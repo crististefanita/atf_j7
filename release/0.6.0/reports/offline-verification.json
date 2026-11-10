@@ -1,0 +1,25 @@
+{
+  "version": "0.6.0",
+  "versionCode": 8,
+  "sourceCommit": "334e5f14ea94c76562992c6751e7b313b886cd60",
+  "apkBytes": 829706,
+  "apkSha256": "533cca1463592d688c8e326624e2c5417f6628770cc0d0681b52c1d49693621c",
+  "signingCertificateSha256": "4f15d961364d331531f78348b4aa167ad87ceceac442126ef802a8202a50344f",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "zipCrc": "PASS",
+  "alignment": "PASS",
+  "offlineChecks": "PASS",
+  "releaseQualification": "EXCEPTION_AUTHORIZED",
+  "qualificationGate": "NOT_RUN",
+  "signedAndroidSanity": "NOT_RUN",
+  "targetedAndroid": "NOT_RUN",
+  "components": {
+    "status": "PASS",
+    "tests": 60,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "extentSha256": "6144023dbde9b65611e5e40c7422df7328fd1e12c4d8946a879eb6d98a5f005d"
+  }
+}
