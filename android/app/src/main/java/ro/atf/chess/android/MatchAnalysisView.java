@@ -23,6 +23,7 @@ import ro.atf.chess.TacticalAnalysis;
 final class MatchAnalysisView extends TextView {
     private final Function<Move, String> notation;
     private final ImageButton bulb;
+    private final EvaluationBar evaluationBar;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private ChessPosition shownPosition;
     private MatchHint hint;
@@ -32,6 +33,7 @@ final class MatchAnalysisView extends TextView {
     MatchAnalysisView(Context context, Function<Move, String> notation, Runnable renderBoard) {
         super(context);
         this.notation = notation;
+        evaluationBar = new EvaluationBar(context);
         setId(R.id.match_analysis);
         setGravity(Gravity.CENTER);
         setTextSize(13);
@@ -51,6 +53,7 @@ final class MatchAnalysisView extends TextView {
     }
 
     ImageButton bulb() { return bulb; }
+    EvaluationBar evaluationBar() { return evaluationBar; }
 
     QuestHint.Cue cue() {
         var revealed = hint == null ? null : hint.revealed();
@@ -72,6 +75,9 @@ final class MatchAnalysisView extends TextView {
                 pending = null;
                 if (lines.isEmpty()) {
                     setText(R.string.match_analysis_ended);
+                    if (match.result() != ChessMatch.Result.IN_PROGRESS && ply == match.ply()) {
+                        evaluationBar.setWhiteShare(MatchEvaluation.terminalWhiteShare(match.result()));
+                    }
                     return;
                 }
                 hint = new MatchHint(lines);
@@ -84,6 +90,7 @@ final class MatchAnalysisView extends TextView {
         request++;
         shownPosition = null;
         hint = null;
+        evaluationBar.setWhiteShare(Double.NaN);
         updateBulb();
         if (pending != null) pending.cancel(false);
         pending = null;
@@ -102,6 +109,7 @@ final class MatchAnalysisView extends TextView {
         var context = getContext();
         var revealed = hint.revealed();
         var evaluation = MatchEvaluation.from(shownPosition.turn(), revealed == null ? hint.first() : revealed);
+        evaluationBar.setWhiteShare(evaluation.whiteShare());
         String score = switch (evaluation.ending()) {
             case CHECKMATE -> context.getString(R.string.match_analysis_mate,
                     leadingColor(evaluation.whiteMateMoves()), Math.abs(evaluation.whiteMateMoves()));

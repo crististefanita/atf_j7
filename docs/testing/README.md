@@ -76,9 +76,9 @@ La modificarea instrumentării, sincronizați numărul exact de aserțiuni pe fa
 
 Pentru analiza AI, rulați runnerul cu `-AnalysisOnly` pe varianta `sanity`. Prima fază verifică bifa, cele două apăsări succesive ale becului și ascunderea variantei după schimbarea poziției. Verifică și poziția exactă a tablei și a celulelor `a1` și `h8` când schimbi problema sau navighezi prin istoric. Măsoară fereastra reală și două profiluri compacte cu text mărit și interfață română, inclusiv zonele de atingere ale becului și săgeților. A doua fază verifică păstrarea opțiunii după repornirea procesului. Dovezile se scriu în `execution.json` și în cele două rezultate de instrumentare.
 
-`MatchHintTest` verifică liniile cu scor maxim, ordinea, revenirea la prima și lipsa unei mutări efective. `MatchEvaluationTest` verifică semnul din perspectiva albului, formatarea în română și engleză și separarea matului și patului de scorul material.
+`MatchHintTest` verifică liniile cu scor maxim, ordinea, revenirea la prima și lipsa unei mutări efective. `MatchEvaluationTest` verifică perspectiva albului, formatarea și proporțiile barei pentru avantaj, egalitate și final. `MatchSetupTest` verifică alegerile de culoare, adâncimile AI, salvările anterioare și mutarea de deschidere a motorului când omul joacă cu negrul. `PlayerProfileTest` verifică validarea numelui, iar `MainMenuLayoutTest` verifică gruparea și opțiunile celor două dropdownuri.
 
-Publicați aserțiunile native ale celor două faze și captura panoului de analiză în `android-match-analysis.html` prin același adaptor Extent:
+Proba Android verifică și editorul numelui, jocul cu negrul la Hard, crestătura nebunului și inversarea barei. Publicați aserțiunile și capturile celor două faze în `android-match-analysis.html` prin același adaptor Extent:
 
 ```powershell
 mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishMatchAnalysisSanity' '-Dchess.android.receipt=<dosar>/analysis-prepare.txt'

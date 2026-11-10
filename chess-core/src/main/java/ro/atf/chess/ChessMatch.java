@@ -9,34 +9,40 @@ import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 
-/** A local match with White controlled by the player and Black by the computer. */
+/** A local match against the computer. */
 public final class ChessMatch {
     public enum Result { IN_PROGRESS, WHITE_WINS, BLACK_WINS, STALEMATE, MATERIAL_DRAW, REPETITION_DRAW, MOVE_COUNT_DRAW }
 
     private static final String FORMAT = "1|";
     private static final String ANALYSIS_FORMAT = "2|analysis|";
+    private static final String SETUP_FORMAT = "3|";
     private static final int SEARCH_PLIES = 3;
+    private static final MatchSetup DEFAULT_SETUP = new MatchSetup(Side.WHITE, MatchSetup.Level.BASIC, false);
     private final List<ChessPosition> positions;
     private final List<Move> moves;
     private final int quietPlies;
-    private final boolean analysisEnabled;
+    private final MatchSetup setup;
     private final Result result;
 
-    private ChessMatch(List<ChessPosition> positions, List<Move> moves, int quietPlies, boolean analysisEnabled) {
+    private ChessMatch(List<ChessPosition> positions, List<Move> moves, int quietPlies, MatchSetup setup) {
         this.positions = positions;
         this.moves = moves;
         this.quietPlies = quietPlies;
-        this.analysisEnabled = analysisEnabled;
+        this.setup = setup;
         result = evaluateResult();
     }
 
     public static ChessMatch start() { return start(false); }
 
     public static ChessMatch start(boolean analysisEnabled) {
-        return new ChessMatch(List.of(ChessPosition.initial()), List.of(), 0, analysisEnabled);
+        return start(new MatchSetup(Side.WHITE, MatchSetup.Level.BASIC, analysisEnabled));
     }
 
-    static ChessMatch fromPosition(ChessPosition position) { return new ChessMatch(List.of(position), List.of(), 0, false); }
+    public static ChessMatch start(MatchSetup setup) {
+        return new ChessMatch(List.of(ChessPosition.initial()), List.of(), 0, setup);
+    }
+
+    static ChessMatch fromPosition(ChessPosition position) { return new ChessMatch(List.of(position), List.of(), 0, DEFAULT_SETUP); }
 
     public ChessPosition position() { return positionAt(ply()); }
     public int ply() { return moves.size(); }
@@ -46,8 +52,9 @@ public final class ChessMatch {
     /** Move that produced the given position, or null at the starting position. */
     public Move moveAt(int ply) { return ply == 0 ? null : moves.get(ply - 1); }
     public Result result() { return result; }
-    public boolean analysisEnabled() { return analysisEnabled; }
-    public boolean awaitingBot() { return result == Result.IN_PROGRESS && position().turn() == Side.BLACK; }
+    public MatchSetup setup() { return setup; }
+    public boolean analysisEnabled() { return setup.analysisEnabled(); }
+    public boolean awaitingBot() { return result == Result.IN_PROGRESS && position().turn() != setup.humanSide(); }
 
     /** Analyzes the displayed position from the point of view of the side to move. */
     public Optional<TacticalAnalysis.Variation> analysisAt(int ply) {
@@ -57,7 +64,7 @@ public final class ChessMatch {
     /** Returns one continuation per best-scoring legal first move, in engine order. */
     public List<TacticalAnalysis.Variation> bestLinesAt(int ply) {
         var board = positionAt(ply);
-        if (!analysisEnabled || ply == ply() && result != Result.IN_PROGRESS) return Collections.emptyList();
+        if (!analysisEnabled() || ply == ply() && result != Result.IN_PROGRESS) return Collections.emptyList();
         return TacticalAnalysis.analyze(board, SEARCH_PLIES).best();
     }
 
@@ -70,20 +77,33 @@ public final class ChessMatch {
         nextPositions.add(after);
         var nextMoves = new ArrayList<>(moves);
         nextMoves.add(move);
-        return new ChessMatch(nextPositions, nextMoves, resetsCount ? 0 : quietPlies + 1, analysisEnabled);
+        return new ChessMatch(nextPositions, nextMoves, resetsCount ? 0 : quietPlies + 1, setup);
     }
 
     public String checkpoint() {
-        var encoded = new StringJoiner(" ", analysisEnabled ? ANALYSIS_FORMAT : FORMAT, "");
+        String prefix = setup.humanSide() == Side.WHITE && setup.level() == MatchSetup.Level.BASIC
+                ? analysisEnabled() ? ANALYSIS_FORMAT : FORMAT
+                : SETUP_FORMAT + setup.humanSide().name() + "|" + setup.level().name() + "|" + (analysisEnabled() ? "1|" : "0|");
+        var encoded = new StringJoiner(" ", prefix, "");
         for (Move move : moves) encoded.add(move.uci());
         return encoded.toString();
     }
 
     public static ChessMatch restore(String checkpoint) {
+        if (checkpoint.startsWith(SETUP_FORMAT)) {
+            String[] fields = checkpoint.split("\\|", -1);
+            if (fields.length != 5 || !(fields[3].equals("0") || fields[3].equals("1"))) {
+                throw new IllegalArgumentException("Invalid match setup checkpoint");
+            }
+            var setup = new MatchSetup(Side.valueOf(fields[1]), MatchSetup.Level.valueOf(fields[2]), fields[3].equals("1"));
+            return replay(start(setup), fields[4]);
+        }
         boolean analysis = checkpoint.startsWith(ANALYSIS_FORMAT);
         if (!analysis && !checkpoint.startsWith(FORMAT)) throw new IllegalArgumentException("Unsupported match checkpoint");
-        var match = start(analysis);
-        String history = checkpoint.substring((analysis ? ANALYSIS_FORMAT : FORMAT).length());
+        return replay(start(analysis), checkpoint.substring((analysis ? ANALYSIS_FORMAT : FORMAT).length()));
+    }
+
+    private static ChessMatch replay(ChessMatch match, String history) {
         if (!history.isEmpty()) for (String move : history.split(" ", -1)) match = match.play(Move.fromUci(move));
         return match;
     }
@@ -94,7 +114,7 @@ public final class ChessMatch {
         Move chosen = null;
         int fewestVisits = Integer.MAX_VALUE;
         int mostActivity = Integer.MIN_VALUE;
-        for (var variation : TacticalAnalysis.analyze(board, SEARCH_PLIES).best()) {
+        for (var variation : TacticalAnalysis.botAnalysis(board, setup.level()).best()) {
             Move move = variation.move();
             int visits = occurrences(board.play(move), positions.size() - 1);
             int activity = activity(board, move);
@@ -112,7 +132,7 @@ public final class ChessMatch {
         int centralization = center(move.to()) - center(move.from());
         return switch (kind) {
             case KNIGHT, BISHOP -> 3 * centralization;
-            case PAWN -> centralization + (move.from() / 8 - move.to() / 8);
+            case PAWN -> centralization + (move.to() / 8 - move.from() / 8) * (board.turn() == Side.WHITE ? 1 : -1);
             case KING -> Math.abs(move.from() - move.to()) == 2 ? 12 : -centralization;
             case ROOK, QUEEN -> centralization;
         };

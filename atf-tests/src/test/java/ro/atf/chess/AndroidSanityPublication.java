@@ -35,10 +35,11 @@ class AndroidSanityPublication {
         Path report = receipt.resolveSibling("android-match-analysis.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
         var prepare = readPhase(receipt, "analysis-prepare", 12);
-        var restore = readPhase(receipt.resolveSibling("analysis-restore.txt"), "analysis-restore", 2);
+        var restore = readPhase(receipt.resolveSibling("analysis-restore.txt"), "analysis-restore", 9);
         boolean restarted = !prepare.pid().isEmpty() && !restore.pid().isEmpty() && !prepare.pid().equals(restore.pid());
-        Path frame = receipt.resolveSibling("match-analysis.png");
-        boolean rendered = isPng(frame);
+        var frames = List.of(new Frame("match-analysis.png", "Evaluation and suggestion below the board"),
+                new Frame("match-setup.png", "Color, AI level and analysis setup"), new Frame("match-black.png", "Named Black seat and evaluation bar"));
+        boolean rendered = frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
         boolean complete = prepare.passed() && restore.passed() && restarted && rendered;
         var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
@@ -47,15 +48,17 @@ class AndroidSanityPublication {
             publish(phase, "Navigate puzzles and game history with an anchored board", prepare.rows(), prepare.passed());
             publish(phase, "Restart the Android process", List.of(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs",
                     prepare.pid() + " → " + restore.pid(), restarted)), restarted);
-            publish(phase, "Resume the same game and its analysis", restore.rows(), restore.passed());
-            if (rendered) {
-                try (var action = phase.startRequest("Android instrumentation", "UI", "Evaluation and suggestion below the board")) {
-                    action.screenshot("Evaluation and suggestion below the board", Base64.getEncoder().encodeToString(Files.readAllBytes(frame)));
-                    action.complete(AtfReportStatus.PASS);
+            publish(phase, "Resume the game, edit the profile and start a Black match", restore.rows(), restore.passed());
+            for (var frame : frames) {
+                Path file = receipt.resolveSibling(frame.file());
+                if (isPng(file)) {
+                    try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {
+                        action.screenshot(frame.title(), Base64.getEncoder().encodeToString(Files.readAllBytes(file)));
+                        action.complete(AtfReportStatus.PASS);
+                    }
+                } else {
+                    publish(phase, frame.title(), List.of(new AtfAssertion("PNG evidence", "Readable PNG", "Missing or invalid " + frame.file(), false)), false);
                 }
-            } else {
-                publish(phase, "Evaluation and suggestion below the board",
-                        List.of(new AtfAssertion("PNG evidence", "Readable PNG", "Missing or invalid match-analysis.png", false)), false);
             }
             phase.complete(status);
             scenario.complete(status);

@@ -15,28 +15,44 @@ class MainMenuLayoutTest {
     private static final Path RES = Path.of("android/app/src/main/res");
 
     @Test void offersChaptersAndLocalPlayInBothLanguages(Checks check) throws Exception {
-        var layout = read("layout/main_menu.xml");
-        check.same("Short windows can scroll the menu", "ScrollView", layout.getTagName());
-        var buttons = layout.getElementsByTagName("Button");
+        var home = read("layout/main_menu.xml");
+        check.same("Short windows can scroll the menu", "ScrollView", home.getTagName());
+        var main = home.getElementsByTagName("Button");
+        var ids = new ArrayList<String>();
+        for (int index = 0; index < main.getLength(); index++) ids.add(((Element) main.item(index)).getAttribute("android:id"));
+        check.same("The home screen exposes games, the puzzle submenu and the editable profile",
+                List.of("@+id/new_match", "@+id/resume_match", "@+id/open_puzzles", "@+id/edit_player_name"), ids);
+        check.same("Resume is hidden until a game is saved", "gone", ((Element) main.item(1)).getAttribute("android:visibility"));
+        var buttons = read("layout/puzzle_menu.xml").getElementsByTagName("Button");
         var entries = new ArrayList<String>();
-        var enabled = new ArrayList<Boolean>();
-        for (int index = 0; index < buttons.getLength(); index++) {
+        for (int index = 0; index < buttons.getLength() - 1; index++) {
             var button = (Element) buttons.item(index);
             entries.add(button.getAttribute("android:text").replace("@string/", ""));
-            enabled.add(!"false".equals(button.getAttribute("android:enabled")));
         }
-        check.same("The four puzzle chapters precede new and saved local games",
-                List.of("open_mate_one", "open_mate_two", "open_mate_three", "open_tactics", "new_match", "resume_match"), entries);
-        check.same("Every menu entry is playable when shown", List.of(true, true, true, true, true, true), enabled);
-        check.same("Resume is hidden until a game is saved", "gone", ((Element) buttons.item(5)).getAttribute("android:visibility"));
+        check.same("All four chapters are grouped under Puzzles", List.of("open_mate_one", "open_mate_two", "open_mate_three", "open_tactics"), entries);
         check.same("English labels identify each mode",
-                List.of("Mate in 1", "Mate in 2", "Mate in 3", "Tactics", "New game vs computer", "Resume game"), labels("values/strings.xml", entries));
+                List.of("Mate in 1", "Mate in 2", "Mate in 3", "Tactics"), labels("values/strings.xml", entries));
         check.same("Romanian labels identify each mode",
-                List.of("Mat în 1", "Mat în 2", "Mat în 3", "Tactică", "Partidă nouă cu calculatorul", "Reia partida"), labels("values-ro/strings.xml", entries));
+                List.of("Mat în 1", "Mat în 2", "Mat în 3", "Tactică"), labels("values-ro/strings.xml", entries));
+    }
+
+    @Test void theTwoDropdownsPresentChoicesInTheOrderTheMatchConsumesThem(Checks check) throws Exception {
+        var spinners = read("layout/match_setup.xml").getElementsByTagName("Spinner");
+        check.same("The match has two dropdowns", 2, spinners.getLength());
+        var arrays = read("values/match_arrays.xml").getElementsByTagName("string-array");
+        check.same("Seat choices map in White, Black, Random order", List.of("@string/white", "@string/black", "@string/match_random_color"),
+                items((Element) arrays.item(0)));
+        check.same("AI choices map from Basic to Hard", List.of("@string/match_basic", "@string/match_advanced", "@string/match_hard"),
+                items((Element) arrays.item(1)));
+        for (int index = 0; index < spinners.getLength(); index++) {
+            var spinner = (Element) spinners.item(index);
+            check.same("Selector " + (index + 1) + " is a dropdown with the corresponding choices", List.of("dropdown", "@array/" + ((Element) arrays.item(index)).getAttribute("name")),
+                    List.of(spinner.getAttribute("android:spinnerMode"), spinner.getAttribute("android:entries")));
+        }
     }
 
     @Test void reservesSpaceForTotalsAndUsesAnAccessibleBulb(Checks check) throws Exception {
-        var rows = read("layout/main_menu.xml").getElementsByTagName("TextView");
+        var rows = read("layout/puzzle_menu.xml").getElementsByTagName("TextView");
         var totals = new ArrayList<String>();
         for (int index = 0; index < rows.getLength(); index++) {
             String id = ((Element) rows.item(index)).getAttribute("android:id");
@@ -50,6 +66,13 @@ class MainMenuLayoutTest {
         check.same("The icon keeps a 48 dp touch target", List.of("48dp", "48dp"),
                 List.of(bulb.getAttribute("android:layout_width"), bulb.getAttribute("android:layout_height")));
         check.same("The flame glyph is compact", "16dp", read("drawable/quest_flame.xml").getAttribute("android:width"));
+    }
+
+    private static List<String> items(Element array) {
+        var children = array.getElementsByTagName("item");
+        var values = new ArrayList<String>();
+        for (int index = 0; index < children.getLength(); index++) values.add(children.item(index).getTextContent());
+        return values;
     }
 
     private static Element read(String path) throws Exception {

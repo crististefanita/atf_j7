@@ -9,16 +9,24 @@ final class BoardPanel extends ViewGroup {
     private final View topLabel;
     private final BoardView board;
     private final View bottomLabel;
+    private final EvaluationBar evaluation;
+    private final int barWidth;
+    private final int gutter;
     private BoardPanelLayout placement;
 
-    BoardPanel(Context context, View topLabel, BoardView board, View bottomLabel) {
+    BoardPanel(Context context, View topLabel, BoardView board, View bottomLabel, EvaluationBar evaluation) {
         super(context);
         this.topLabel = topLabel;
         this.board = board;
         this.bottomLabel = bottomLabel;
+        this.evaluation = evaluation;
+        float density = context.getResources().getDisplayMetrics().density;
+        barWidth = Math.round(8 * density);
+        gutter = evaluation == null ? 0 : barWidth + Math.round(5 * density);
         addView(topLabel);
         addView(board);
         addView(bottomLabel);
+        if (evaluation != null) addView(evaluation);
     }
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
@@ -28,9 +36,10 @@ final class BoardPanel extends ViewGroup {
         int labelHeight = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
         topLabel.measure(labelWidth, labelHeight);
         bottomLabel.measure(labelWidth, labelHeight);
-        placement = BoardPanelLayout.fit(width, height, topLabel.getMeasuredHeight(), bottomLabel.getMeasuredHeight());
+        placement = BoardPanelLayout.fit(width, height, topLabel.getMeasuredHeight(), bottomLabel.getMeasuredHeight(), gutter);
         int boardSize = MeasureSpec.makeMeasureSpec(placement.side(), MeasureSpec.EXACTLY);
         board.measure(boardSize, boardSize);
+        if (evaluation != null) evaluation.measure(MeasureSpec.makeMeasureSpec(Math.min(width, barWidth), MeasureSpec.EXACTLY), boardSize);
         setMeasuredDimension(width, height);
     }
 
@@ -39,6 +48,10 @@ final class BoardPanel extends ViewGroup {
         int boardTop = placement.top() + topLabel.getMeasuredHeight();
         placeLabel(topLabel, placement.top());
         board.layout(x, boardTop, x + placement.side(), boardTop + placement.side());
+        if (evaluation != null) {
+            int barLeft = Math.max(0, x - gutter);
+            evaluation.layout(barLeft, boardTop, barLeft + evaluation.getMeasuredWidth(), boardTop + placement.side());
+        }
         placeLabel(bottomLabel, boardTop + placement.side());
     }
 

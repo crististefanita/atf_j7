@@ -12,6 +12,17 @@ import ro.atf.chess.TacticalAnalysis.Variation;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class MatchEvaluationTest {
+    @Test void mapsEvaluationToTheBarWithEqualAndTerminalPositions(Checks check) {
+        var ending = TacticalAnalysis.Ending.HORIZON;
+        check.same("Zero keeps the split at the center", .5, new MatchEvaluation(ending, 0, 0).whiteShare());
+        check.same("White four pawns ahead gains three quarters of the track", .75, new MatchEvaluation(ending, 400, 0).whiteShare());
+        check.same("A large Black lead fills its side", 0.0, new MatchEvaluation(ending, -900, 0).whiteShare());
+        check.same("White mate and a finished Black win occupy opposite ends", java.util.List.of(1.0, 0.0),
+                java.util.List.of(new MatchEvaluation(TacticalAnalysis.Ending.CHECKMATE, 0, 2).whiteShare(),
+                        MatchEvaluation.terminalWhiteShare(ChessMatch.Result.BLACK_WINS)));
+        check.same("An actual draw splits the bar", .5, MatchEvaluation.terminalWhiteShare(ChessMatch.Result.REPETITION_DRAW));
+    }
+
     private static final Locale ROMANIAN = Locale.forLanguageTag("ro-RO");
 
     @Test void scoresKeepWhitesPerspectiveAcrossTurnsAndLocales(Checks check) {

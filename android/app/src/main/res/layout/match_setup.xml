@@ -1,0 +1,19 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center_vertical" android:orientation="vertical" android:padding="24dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:gravity="center" android:text="@string/match_setup_title" android:textColor="#f5f3ec"
+            android:textSize="30sp" android:textStyle="bold" />
+        <TextView style="@style/MenuSection" android:labelFor="@+id/match_color" android:text="@string/match_choose_color" />
+        <Spinner android:id="@id/match_color" android:layout_width="match_parent" android:layout_height="48dp"
+            android:entries="@array/match_colors" android:spinnerMode="dropdown" />
+        <TextView style="@style/MenuSection" android:labelFor="@+id/match_level" android:text="@string/match_choose_level" />
+        <Spinner android:id="@id/match_level" android:layout_width="match_parent" android:layout_height="48dp"
+            android:entries="@array/match_levels" android:spinnerMode="dropdown" />
+        <CheckBox android:id="@+id/match_analysis_option" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/match_analysis_option" />
+        <Button android:id="@+id/match_start" style="@style/ChapterEntry" android:text="@string/match_start" />
+        <Button android:id="@+id/setup_home" style="@style/ChapterEntry" android:text="@string/main_menu" />
+    </LinearLayout>
+</ScrollView>

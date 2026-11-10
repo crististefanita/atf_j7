@@ -1,0 +1,8 @@
+<resources>
+    <string-array name="match_colors">
+        <item>@string/white</item><item>@string/black</item><item>@string/match_random_color</item>
+    </string-array>
+    <string-array name="match_levels">
+        <item>@string/match_basic</item><item>@string/match_advanced</item><item>@string/match_hard</item>
+    </string-array>
+</resources>

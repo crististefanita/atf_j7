@@ -71,12 +71,13 @@ public final class BoardSanity extends Instrumentation {
     private void checkQuests() throws Exception {
         Activity activity = launch();
         if ("prepare".equals(phase)) {
+            boolean home = activity.findViewById(R.id.new_match).isEnabled() && activity.findViewById(R.id.edit_player_name).isEnabled()
+                    && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE;
+            openPuzzles(activity);
             var menu = viewsOf(activity);
-            compare("The fresh menu offers four playable chapters and a new game against the computer", true,
+            compare("Home exposes play and profile, and Puzzles groups four playable chapters", true, home &&
                     button(activity, menu, R.string.open_mate_one).isEnabled() && button(activity, menu, R.string.open_mate_two).isEnabled()
-                            && button(activity, menu, R.string.open_mate_three).isEnabled() && button(activity, menu, R.string.open_tactics).isEnabled()
-                            && button(activity, menu, R.string.new_match).isEnabled()
-                            && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE);
+                            && button(activity, menu, R.string.open_mate_three).isEnabled() && button(activity, menu, R.string.open_tactics).isEnabled());
             var playable = List.of(button(activity, menu, R.string.open_mate_one), button(activity, menu, R.string.open_mate_two),
                     button(activity, menu, R.string.open_mate_three), button(activity, menu, R.string.open_tactics));
             captureFrame("menu", "The puzzle chapters are fully rendered after launch", image -> playable.stream().allMatch(entry ->
@@ -131,25 +132,29 @@ public final class BoardSanity extends Instrumentation {
                         && hasText(menu, activity.getString(R.string.all_quest_totals, 2, 314, 22)));
     }
 
-    private void checkAnalysis() throws IOException {
+    private void checkAnalysis() throws Exception {
         var store = new ChessProgressStore(getTargetContext());
         Activity activity = launch("analysis-prepare".equals(phase));
         if ("analysis-restore".equals(phase)) {
             var saved = store.readMatch();
             compare("The enabled setting and two moves survive a process restart", true, saved.analysisEnabled() && saved.ply() == 2);
             compare("The reopened match analyzes its live position with the hint hidden", true, awaitHiddenAnalysis(activity, 2));
+            checkMatchSetup(activity, store);
             return;
         }
         if (!"analysis-prepare".equals(phase)) throw new IllegalArgumentException("Unknown analysis phase: " + phase);
         checkQuestBoardNavigation(activity);
+        openGameSetup(activity);
         android.widget.CheckBox option = activity.findViewById(R.id.match_analysis_option);
         compare("The new-game analysis option starts unchecked", false, option.isChecked());
-        tap(activity.findViewById(R.id.new_match));
+        click(activity, R.id.match_start);
         compare("A game started unchecked has no analysis panel or bulb", true,
-                activity.findViewById(R.id.match_analysis) == null && activity.findViewById(R.id.match_hint) == null);
+                activity.findViewById(R.id.match_analysis) == null && activity.findViewById(R.id.match_hint) == null
+                        && activity.findViewById(R.id.match_evaluation_bar) == null);
         tap(button(activity, viewsOf(activity), R.string.main_menu));
-        tap(activity.findViewById(R.id.match_analysis_option));
-        tap(activity.findViewById(R.id.new_match));
+        openGameSetup(activity);
+        click(activity, R.id.match_analysis_option);
+        click(activity, R.id.match_start);
         var board = findBoard(viewsOf(activity));
         var initialBounds = boardFootprints(activity, board);
         compare("The enabled panel shows the evaluation and waits for the bulb press", true, awaitHiddenAnalysis(activity, 0));
@@ -188,8 +193,8 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void checkQuestBoardNavigation(Activity activity) {
-        runOnMainSync(() -> activity.findViewById(R.id.chapter_one).performClick());
-        waitForIdleSync();
+        openPuzzles(activity);
+        click(activity, R.id.chapter_one);
         var views = viewsOf(activity);
         var board = findBoard(views);
         var first = boardFootprints(activity, board);
@@ -202,6 +207,73 @@ public final class BoardSanity extends Instrumentation {
         compare("Quest Previous and Next keep the board and orientation even as the active color changes", true,
                 whiteAtTop && first.equals(next) && first.equals(boardFootprints(activity, board)));
         tap(button(activity, views, R.string.main_menu));
+        click(activity, R.id.puzzles_home);
+    }
+
+    private void checkMatchSetup(Activity activity, ChessProgressStore store) throws Exception {
+        var clip = new android.graphics.Region(0, 0, 48, 48);
+        var bishop = new android.graphics.Region();
+        bishop.setPath(PieceArt.shape(ro.atf.chess.ChessPosition.Kind.BISHOP), clip);
+        var pawn = new android.graphics.Region();
+        pawn.setPath(PieceArt.shape(ro.atf.chess.ChessPosition.Kind.PAWN), clip);
+        compare("The bishop has a tall mitre and an open slit where the pawn is solid", true,
+                bishop.contains(25, 5) && !bishop.contains(25, 17) && pawn.contains(25, 17));
+        compare("A three-quarter evaluation mirrors its white segment when the board flips", true, evaluationBarMirrors(activity));
+        tap(button(activity, viewsOf(activity), R.string.main_menu));
+        click(activity, R.id.edit_player_name);
+        var field = dialogNode(activity.getString(R.string.profile_name_hint), node -> "android.widget.EditText".contentEquals(node.getClassName()));
+        var name = new Bundle();
+        name.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, "Mara");
+        if (field == null || !field.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, name)) throw new AssertionError("Profile editor input unavailable");
+        clickDialog(activity.getString(R.string.profile_save));
+        compare("The profile editor saves the name and refreshes Home", true, "Mara".equals(store.playerName())
+                && hasText(viewsOf(activity), activity.getString(R.string.profile_name, "Mara")));
+        openGameSetup(activity);
+        android.widget.Spinner color = activity.findViewById(R.id.match_color);
+        android.widget.Spinner level = activity.findViewById(R.id.match_level);
+        runOnMainSync(() -> { color.setSelection(1); level.setSelection(2); });
+        click(activity, R.id.match_analysis_option);
+        captureFrame("match-setup", "Both selectors and the analysis option fit on the setup screen",
+                image -> fullyVisible(color) && fullyVisible(level) && fullyVisible(activity.findViewById(R.id.match_start)));
+        click(activity, R.id.match_start);
+        clickDialog(activity.getString(R.string.match_start));
+        long deadline = SystemClock.uptimeMillis() + 30_000;
+        ChessMatch saved;
+        do {
+            saved = store.readMatch();
+            if (saved.setup().humanSide() == ro.atf.chess.ChessPosition.Side.BLACK && saved.ply() > 0) break;
+            SystemClock.sleep(40);
+        } while (SystemClock.uptimeMillis() < deadline);
+        compare("Black Hard is persisted and the computer plays the White opener once", true,
+                saved.setup().humanSide() == ro.atf.chess.ChessPosition.Side.BLACK && saved.setup().level() == ro.atf.chess.MatchSetup.Level.HARD
+                        && saved.analysisEnabled() && saved.ply() == 1 && !saved.awaitingBot());
+        var board = findBoard(viewsOf(activity));
+        var panel = (ViewGroup) board.getParent();
+        var bar = activity.findViewById(R.id.match_evaluation_bar);
+        compare("The player's name is below, the AI level is above, and the bar matches the board height", true,
+                awaitHiddenAnalysis(activity, 1) && ((TextView) panel.getChildAt(0)).getText().toString().contains("Atlas · AI Hard")
+                        && ((TextView) panel.getChildAt(2)).getText().toString().contains("Mara") && bar.getHeight() == board.getHeight());
+        captureFrame("match-black", "Black's named seat and the vertical evaluation render with the board",
+                image -> fullyVisible(board) && hasColor(image, bar, 0xffedeadf, 16));
+    }
+
+    private boolean evaluationBarMirrors(Activity activity) {
+        boolean[] passed = {false};
+        runOnMainSync(() -> {
+            var bar = new EvaluationBar(activity);
+            bar.layout(0, 0, 12, 100);
+            bar.setWhiteShare(.75);
+            var image = Bitmap.createBitmap(12, 100, Bitmap.Config.ARGB_8888);
+            try {
+                var canvas = new android.graphics.Canvas(image);
+                bar.draw(canvas);
+                boolean whiteBelow = image.getPixel(6, 10) == 0xff262522 && image.getPixel(6, 65) == 0xffedeadf;
+                bar.setBlackBelow(true);
+                bar.draw(canvas);
+                passed[0] = whiteBelow && image.getPixel(6, 10) == 0xffedeadf && image.getPixel(6, 90) == 0xff262522;
+            } finally { image.recycle(); }
+        });
+        return passed[0];
     }
 
     private boolean awaitHiddenAnalysis(Activity activity, int ply) {
@@ -240,7 +312,8 @@ public final class BoardSanity extends Instrumentation {
             case "match-prepare" -> {
                 compare("A fresh install offers a new game and hides Resume", true,
                         saved == null && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE);
-                tap(activity.findViewById(R.id.new_match));
+                openGameSetup(activity);
+                click(activity, R.id.match_start);
                 var board = findBoard(viewsOf(activity));
                 boolean[] locked = {false};
                 runOnMainSync(() -> {
@@ -356,9 +429,10 @@ public final class BoardSanity extends Instrumentation {
         var config = activity.getResources().getConfiguration();
         compare("The compact probe runs with Romanian resources and font scale 1.3", true,
                 config.fontScale == 1.3f && "ro".equals(config.getLocales().get(0).getLanguage()));
+        openPuzzles(activity);
         var menu = viewsOf(activity);
         var scroll = menu.stream().filter(ScrollView.class::isInstance).map(ScrollView.class::cast).findFirst().orElseThrow();
-        var last = button(activity, menu, R.string.new_match);
+        var last = activity.findViewById(R.id.puzzles_home);
         boolean[] reachable = {false};
         runOnMainSync(() -> {
             View root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
@@ -604,12 +678,32 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void openChapter(Activity activity, int label) {
+        openPuzzles(activity);
         var entry = button(activity, viewsOf(activity), label);
         runOnMainSync(() -> {
             if (!fullyVisible(entry)) entry.requestRectangleOnScreen(new Rect(0, 0, entry.getWidth(), entry.getHeight()), true);
         });
         waitForIdleSync();
         tap(entry);
+    }
+
+    private void openPuzzles(Activity activity) {
+        if (activity.findViewById(R.id.open_puzzles) != null) click(activity, R.id.open_puzzles);
+    }
+
+    private void openGameSetup(Activity activity) { click(activity, R.id.new_match); }
+
+    private void click(Activity activity, int id) {
+        boolean[] clicked = {false};
+        runOnMainSync(() -> {
+            View view = activity.findViewById(id);
+            if (view != null && view.isEnabled() && view.isClickable()) {
+                view.performClick();
+                clicked[0] = true;
+            }
+        });
+        if (!clicked[0]) throw new AssertionError("Expected enabled control " + activity.getResources().getResourceEntryName(id));
+        waitForIdleSync();
     }
 
     private void switchChapter(Activity activity, int label) {

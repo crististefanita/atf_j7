@@ -22,7 +22,7 @@ public final class TacticalAnalysis {
 
         /** Positive for a winning mate, negative for a losing mate, zero if none is proved. */
         public int signedMatePlies() {
-            return Math.abs(score) >= MATE - POLICY.maxPlies
+            return Math.abs(score) >= MATE - MatchSetup.Level.HARD.maxPlies
                     ? Integer.signum(score) * (MATE - Math.abs(score)) : 0;
         }
     }
@@ -50,26 +50,63 @@ public final class TacticalAnalysis {
         return analyze(position, POLICY.questReplyPlies, replies);
     }
 
+    static Result botAnalysis(ChessPosition position, MatchSetup.Level level) {
+        Result best = analyze(position, MatchSetup.Level.BASIC.maxPlies);
+        if (level == MatchSetup.Level.BASIC) return best;
+        var moves = new ArrayList<Move>();
+        for (var line : best.ranked()) moves.add(line.move());
+        var budget = new SearchBudget(level.extraNodes);
+        for (int depth = MatchSetup.Level.BASIC.maxPlies + 1; depth <= level.maxPlies; depth++) {
+            try { best = deepen(position, moves, depth, budget); }
+            catch (BudgetExhausted exhausted) { break; }
+        }
+        return best;
+    }
+
+    private static Result deepen(ChessPosition position, List<Move> moves, int plies, SearchBudget budget) {
+        var best = new ArrayList<Variation>();
+        int top = -LIMIT;
+        int startingBalance = material(position);
+        for (Move move : moves) {
+            // A one-point margin keeps exact ties while allowing inferior root moves to cut off.
+            int beta = Math.min(LIMIT, 1 - top);
+            var line = search(position.play(move), plies - 1, 1, -LIMIT, beta, budget).prepend(move);
+            if (line.score() < top) continue;
+            if (line.score() > top) {
+                best.clear();
+                top = line.score();
+            }
+            best.add(new Variation(line.moves(), top, line.balance() - startingBalance, line.ending()));
+        }
+        best.sort(Comparator.comparing(entry -> entry.move().uci()));
+        return new Result(best);
+    }
+
     private static Result analyze(ChessPosition position, int plies, List<Move> moves) {
         int startingBalance = material(position);
         var ranked = new ArrayList<Variation>(moves.size());
         for (Move move : moves) {
             // A fresh window gives every root move an exact score at this horizon, including ties.
-            var reply = search(position.play(move), plies - 1, 1, -LIMIT, LIMIT).prepend(move);
+            var reply = search(position.play(move), plies - 1, 1, -LIMIT, LIMIT, null).prepend(move);
             ranked.add(new Variation(reply.moves(), reply.score(), reply.balance() - startingBalance, reply.ending()));
         }
         ranked.sort(Comparator.comparingInt(Variation::score).reversed().thenComparing(entry -> entry.move().uci()));
         return new Result(ranked);
     }
 
-    private static Line search(ChessPosition position, int left, int distance, int alpha, int beta) {
+    private static Line search(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget) {
+        if (budget != null) budget.visit();
         if (left == 0) return leaf(position, distance, position.hasLegalMove());
         var moves = position.legalMoves();
         if (moves.isEmpty()) return leaf(position, distance, false);
+        if (budget != null) {
+            moves = new ArrayList<>(moves);
+            moves.sort(Comparator.comparingInt((Move move) -> captureOrder(position, move)).reversed());
+        }
 
         Line best = null;
         for (Move move : moves) {
-            var child = search(position.play(move), left - 1, distance + 1, -beta, -alpha);
+            var child = search(position.play(move), left - 1, distance + 1, -beta, -alpha, budget);
             int score = -child.score();
             if (best == null || score > best.score()) best = child.prepend(move);
             alpha = Math.max(alpha, score);
@@ -77,6 +114,21 @@ public final class TacticalAnalysis {
         }
         return best;
     }
+
+    private static int captureOrder(ChessPosition position, Move move) {
+        var victim = position.pieceAt(move.to());
+        return (victim == null ? 0 : POLICY.values[victim.kind().ordinal()]) + (move.promotion() == null ? 0 : 1000);
+    }
+
+    private static final class SearchBudget {
+        private int remaining;
+
+        SearchBudget(int remaining) { this.remaining = remaining; }
+
+        void visit() { if (remaining-- == 0) throw new BudgetExhausted(); }
+    }
+
+    private static final class BudgetExhausted extends RuntimeException { }
 
     private static Line leaf(ChessPosition position, int distance, boolean hasMove) {
         int balance = material(position);

@@ -1,6 +1,6 @@
 # Tabla de joc
 
-Tabla este elementul dominant al ecranului. Verdele și cremul delimitează cele 64 de pătrate. Piesele Staunton au contur închis, bază curbată, cal văzut din profil și coroane distincte pentru rege și damă. Desenul este propriu, inspirat de captura de referință. Coordonatele stau în marginea tablei, iar ultima mutare marchează plecarea și destinația.
+Tabla este elementul dominant al ecranului. Verdele și cremul delimitează cele 64 de pătrate. Piesele Staunton au contur închis, bază curbată, cal văzut din profil și coroane distincte pentru rege și damă. Mitra nebunului are o crestătură deschisă, prin care se vede pătratul. Silueta este mai înaltă decât a pionului. Coordonatele stau în marginea tablei, iar ultima mutare marchează plecarea și destinația.
 
 ## Tactică și puncte
 
@@ -44,13 +44,15 @@ Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația ră
 
 ## Partidă cu calculatorul
 
-**Partidă nouă cu calculatorul** deschide poziția inițială. Jucătorul are albele, iar calculatorul calculează local, cu negrele, la un orizont de trei mutări individuale. La egalitate, preferă pozițiile vizitate mai rar și mutările care dezvoltă piesele sau ocupă centrul. Replica apare după cel puțin 650 ms. Tabla așteaptă replica înainte de a primi o nouă mutare.
+Din meniul principal, **Probleme** grupează capitolele și progresul. În **Profil**, atinge numele pentru a-l edita sau reseta. Numele are cel mult 10 caractere și apare la locul jucătorului, inclusiv în partida reluată.
 
-Jocul salvează istoricul înainte de a afișa fiecare mutare. **Reia partida** și redeschiderea directă a unui joc activ refac poziția, evidențiază ultima mutare și restabilesc culoarea la mutare. Dacă replica era în așteptare, pauza reîncepe și se aplică o singură replică. O partidă nouă cere confirmare înainte de a înlocui o partidă în curs cu mutări salvate.
+În **Partidă nouă**, alege culoarea Alb, Negru sau Aleatoriu și nivelul AI. Jocul rezolvă alegerea aleatorie o singură dată și așază culoarea jucătorului jos. Când joci cu negrul, calculatorul deschide cu albele. Alex joacă la Basic, Mira la Advanced și Atlas la Hard. Basic caută trei semimutări. Advanced și Hard încearcă patru, respectiv cinci, cu bugete de căutare diferite și păstrează ultima adâncime completă. La egalitate, motorul preferă pozițiile vizitate mai rar și mutările care dezvoltă piesele sau ocupă centrul. Replica apare după cel puțin 650 ms.
+
+Jocul salvează istoricul înainte de a afișa fiecare mutare. **Reia partida** și redeschiderea directă refac poziția, culoarea, nivelul, analiza și orientarea. Dacă motorul are mutarea, pauza reîncepe și urmează o singură replică. Salvările anterioare revin cu Alb și Basic. O partidă nouă cere confirmare înainte de a înlocui o partidă în curs cu mutări salvate.
 
 Sub tablă, săgețile parcurg fiecare mutare, iar săgeata cu opritor revine la ultima. Lista se derulează orizontal și permite alegerea directă a oricărei poziții, inclusiv **Start**. Mutarea selectată este evidențiată discret. Controalele au zone de atingere de 48 dp. Pozițiile anterioare se afișează cu tabla blocată. Dacă botul răspunde în timp ce te uiți în urmă, mutarea nouă apare în listă și poziția consultată rămâne vizibilă. [Navigarea între mutări pe Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
 
-Bifează **Analiză AI pentru o partidă nouă** înainte de pornire. Evaluarea arată avantajul material estimat în unități de pion. `+1,25 · Alb` favorizează albul, iar `−1,25 · Negru` favorizează negrul, indiferent cine mută. Matul și patul se afișează separat. [Convenția de evaluare Chess.com](https://support.chess.com/en/articles/8379354-computer-evaluation-numbers-on-chess-com)
+Bifează **Analiză AI** înainte de pornire. Bara verticală reflectă evaluarea poziției afișate, inclusiv în istoric. Segmentul mai lung indică partea în avantaj, iar la întoarcerea tablei segmentele își schimbă capetele. Textul arată avantajul material estimat în unități de pion. `+1,25 · Alb` favorizează albul, iar `−1,25 · Negru` favorizează negrul. Bara se umple la un avantaj de opt pioni sau la mat și se împarte egal la remiză. [Convenția de evaluare Chess.com](https://support.chess.com/en/articles/8379354-computer-evaluation-numbers-on-chess-com)
 
 Apasă becul din bara de sub tablă pentru a vedea linia completă și săgeata primei mutări. Motorul local caută până la trei semimutări pentru poziția afișată, inclusiv în istoric. Dacă mai multe prime mutări au același scor maxim, becul parcurge câte o linie pentru fiecare, apoi revine la prima. Schimbarea poziției ascunde indiciul. Indiciul nu joacă mutarea, iar opțiunea de analiză se păstrează la reluare.
 

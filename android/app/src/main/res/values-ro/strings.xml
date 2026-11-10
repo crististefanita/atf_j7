@@ -1,4 +1,22 @@
 <resources>
+    <string name="menu_play">Partide</string>
+    <string name="menu_puzzles">Probleme</string>
+    <string name="profile_title">Profil</string>
+    <string name="profile_name">Nume · %1$s</string>
+    <string name="profile_default">Tu</string>
+    <string name="profile_name_hint">Nume afișat</string>
+    <string name="profile_save">Salvează</string>
+    <string name="profile_reset">Resetează</string>
+    <string name="profile_invalid">Folosește 1–10 caractere, cu cel puțin o literă sau o cifră. Poți include spații, cratime și apostrofuri.</string>
+    <string name="match_setup_title">Partidă nouă</string>
+    <string name="match_choose_color">Culoarea ta</string>
+    <string name="match_choose_level">Nivelul AI</string>
+    <string name="match_random_color">Aleatoriu</string>
+    <string name="match_start">Joacă</string>
+    <string name="match_bot_label">%1$s · AI %2$s</string>
+    <string name="match_seat_description">%1$s. %2$s</string>
+    <string name="match_player_wins">Mat · Ai câștigat</string>
+    <string name="match_bot_wins">Mat · AI a câștigat</string>
     <string name="match_analysis_option">Analiză AI pentru o partidă nouă</string>
     <string name="match_analysis_pending">Analiză AI…</string>
     <string name="match_analysis_ended">Analiză AI · Partidă încheiată</string>
@@ -33,13 +51,11 @@
     <string name="mate_three_reply">Apărare %1$s · două mutări până la mat</string>
     <string name="mate_three_try_again">Mutarea nu forțează matul în trei. Încearcă din nou.</string>
     <string name="main_menu">Meniu</string>
-    <string name="menu_choose">Alege un capitol de probleme sau joacă șah</string>
     <string name="new_match">Partidă nouă cu calculatorul</string>
     <string name="resume_match">Reia partida</string>
     <string name="match_replace_title">Începi o partidă nouă?</string>
     <string name="match_replace_message">Partida nouă va înlocui partida salvată.</string>
     <string name="match_load_failed">Partida salvată nu a putut fi încărcată.</string>
-    <string name="match_sides">Tu joci cu albele · Calculatorul cu negrele</string>
     <string name="match_last_move">Ultima mutare · %1$s</string>
     <string name="match_history_previous">Mutarea anterioară</string>
     <string name="match_history_next">Mutarea următoare</string>
@@ -53,8 +69,6 @@
     <string name="match_retry_bot">Atinge pentru a reîncerca mutarea calculatorului</string>
     <string name="match_player_turn">E rândul tău</string>
     <string name="match_player_check">Șah · E rândul tău</string>
-    <string name="match_white_wins">Mat · Ai câștigat</string>
-    <string name="match_black_wins">Mat · Calculatorul a câștigat</string>
     <string name="match_draw_stalemate">Remiză · Pat</string>
     <string name="match_draw_material">Remiză · Material insuficient</string>
     <string name="match_draw_repetition">Remiză · Poziția a apărut de cinci ori</string>

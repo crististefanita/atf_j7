@@ -7,6 +7,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class BoardPanelLayoutTest {
+    @Test void reservesTheBarWithoutMovingAHeightConstrainedBoardBetweenScores(Checks check) {
+        check.same("The bar and square fit a narrow screen", new BoardPanelLayout(13, 26, 307),
+                BoardPanelLayout.fit(320, 399, 20, 20, 13));
+        check.same("On a short screen the board stays square and the group is centered", new BoardPanelLayout(56, 0, 261),
+                BoardPanelLayout.fit(360, 301, 20, 20, 13));
+    }
+
     @Test void centersTheWholeGroupAndReservesBothLabelsBeforeSizingTheBoard(Checks check) {
         check.same("A tall window centers the labels with the full-width board", new BoardPanelLayout(0, 288, 1080),
                 BoardPanelLayout.fit(1080, 1800, 72, 72));

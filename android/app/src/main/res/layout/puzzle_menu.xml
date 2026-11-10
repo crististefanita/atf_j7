@@ -1,0 +1,21 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center_vertical" android:orientation="vertical" android:padding="24dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:gravity="center" android:text="@string/menu_puzzles" android:textColor="#f5f3ec"
+            android:textSize="30sp" android:textStyle="bold" />
+        <TextView android:id="@+id/quest_totals" style="@style/ChapterTotals" android:textColor="#b8d88a" />
+        <TextView android:id="@+id/menu_streak" style="@style/ChapterTotals" android:layout_width="wrap_content"
+            android:layout_gravity="center_horizontal" android:visibility="gone" />
+        <Button android:id="@+id/chapter_one" style="@style/ChapterEntry" android:text="@string/open_mate_one" />
+        <TextView android:id="@+id/chapter_one_totals" style="@style/ChapterTotals" />
+        <Button android:id="@+id/chapter_two" style="@style/ChapterEntry" android:text="@string/open_mate_two" />
+        <TextView android:id="@+id/chapter_two_totals" style="@style/ChapterTotals" />
+        <Button android:id="@+id/chapter_three" style="@style/ChapterEntry" android:text="@string/open_mate_three" />
+        <TextView android:id="@+id/chapter_three_totals" style="@style/ChapterTotals" />
+        <Button android:id="@+id/chapter_tactics" style="@style/ChapterEntry" android:text="@string/open_tactics" />
+        <TextView android:id="@+id/chapter_tactics_totals" style="@style/ChapterTotals" />
+        <Button android:id="@+id/puzzles_home" style="@style/ChapterEntry" android:text="@string/main_menu" />
+    </LinearLayout>
+</ScrollView>
