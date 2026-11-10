@@ -35,3 +35,7 @@ Decizie pentru ediția 0.6.0 · 2026-11-10
 - Build-ul din commitul candidat a rulat în TMP. Toate cele 60 de teste JVM au trecut. APK-ul 0.6.0 are versionCode 8, același certificat de distribuție ca 0.5.1, aliniere validă și CRC valid.
 - Excepție autorizată pentru 0.6.0: probele E2E Android și poarta standard de calificare care le cere sunt marcate NOT_RUN. Excepția privește această ediție.
 - Poarta de publicare verifică separat descărcarea integrală pornind din README-ul public.
+
+Rezultatul promovării
+- GitHub Release v0.6.0 indică APK-ul semnat din commitul candidat. README-ul din main duce la aceeași ediție și la descărcarea directă.
+- Descărcarea directă și cea autentificată au răspuns cu HTTP 200. Mărimea, SHA-256 și CRC au coincis cu fișierul verificat în TMP.
