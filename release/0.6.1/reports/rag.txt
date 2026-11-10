@@ -36,3 +36,7 @@ Decizie pentru ediția 0.6.1 · 2026-11-10
 - Am reutilizat cele 21 de aserțiuni API 28 din dezvoltare. Comparația celor 95 de fișiere de aplicație și test a găsit doar schimbarea versiunii Android. Raportul identifică APK-ul sanity care a rulat efectiv.
 - Sanity-ul pe APK-ul semnat și poarta standard care cere acea probă sunt marcate NOT_RUN. Promovarea folosește proba de dezvoltare, testele JVM din candidat și verificarea separată a APK-ului de distribuție.
 - Verificarea de publicare citește README-ul de pe main și descarcă APK-ul integral din linkul afișat.
+
+Rezultatul promovării
+- README-ul de pe main indică release-ul GitHub v0.6.1 și descărcarea APK-ului din commitul candidat.
+- Descărcările directă și autentificată au răspuns cu HTTP 200 și au trecut verificarea mărimii, SHA-256 și CRC.
