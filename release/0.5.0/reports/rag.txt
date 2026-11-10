@@ -38,3 +38,4 @@ Sanity Android pe APK-ul semnat: NOT_RUN. ReleaseGate qualification: NOT_RUN.
 Se folosește APK-ul din commitul 8e8d8622d76fc50f4f8350c716f343a828c6d4d3. Cele 53 de teste JVM, verificarea celor 12 tactici, semnătura, versiunea, alinierea și CRC-ul au trecut.
 Validarea ReleaseGate publication se execută după publicare și verifică descărcarea integrală pornind de la README-ul din main.
 Excepția se aplică acestei ediții.
+ReleaseGate publication: PASS pentru descărcarea directă și cea autentificată pornind de la README-ul din main. Ambele au livrat 822.366 de octeți, cu SHA-256 și CRC conforme.
