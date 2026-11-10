@@ -70,6 +70,25 @@ public final class QuestCatalog {
         public Move finishingMove() { return playerMove(playerMoves() - 1); }
         public Move matingMove() { return finishingMove(); }
 
+        /** Replays an accepted finish, with the reference line as the legacy fallback. */
+        public Quest restoreFinish(String checkpoint) {
+            if (objective != Objective.MATE || checkpoint == null) return this;
+            int separator = checkpoint.indexOf(':');
+            if (separator < 1) return this;
+            try {
+                int stage = Integer.parseInt(checkpoint.substring(0, separator));
+                if (stage < 0 || stage >= playerMoves()) return this;
+                Move move = Move.fromUci(checkpoint.substring(separator + 1));
+                if (stage == playerMoves() - 1 && move.equals(finishingMove())) return this;
+                if (!positionAt(stage).play(move).isCheckmate()) return this;
+                var completedLine = new ArrayList<>(line.subList(0, stage * 2));
+                completedLine.add(move);
+                return new Quest(id, fen, theme, position, completedLine, objective);
+            } catch (IllegalArgumentException invalid) {
+                return this;
+            }
+        }
+
         public ChessPosition solvedPosition() { return positionAt(playerMoves() - 1).play(finishingMove()); }
 
         public ChessPosition.MateExplanation explanation() { return solvedPosition().explainMate(); }

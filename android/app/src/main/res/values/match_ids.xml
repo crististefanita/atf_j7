@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item name="match_analysis" type="id" />
     <item name="match_history_previous" type="id" />
     <item name="match_history_next" type="id" />
     <item name="match_history_latest" type="id" />

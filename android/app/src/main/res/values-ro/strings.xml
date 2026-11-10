@@ -1,4 +1,11 @@
 <resources>
+    <string name="match_analysis_option">Analiză AI pentru o partidă nouă</string>
+    <string name="match_analysis_pending">Analiză AI…</string>
+    <string name="match_analysis_ended">Analiză AI · Partidă încheiată</string>
+    <string name="match_analysis_result">AI · %1$s: %2$s · %3$s</string>
+    <string name="match_analysis_material">material %1$s în unități de pion</string>
+    <string name="match_analysis_mate_for">mat în favoare peste %1$d semimutări</string>
+    <string name="match_analysis_mate_against">mat împotrivă peste %1$d semimutări</string>
     <string name="open_tactics">Tactică</string>
     <string name="tactics_progress">Tactică · %1$d/%2$d</string>
     <string name="find_tactic">Găsește mutarea care câștigă cel mai mult material.</string>
@@ -47,7 +54,6 @@
     <string name="match_draw_material">Remiză · Material insuficient</string>
     <string name="match_draw_repetition">Remiză · Poziția a apărut de cinci ori</string>
     <string name="match_draw_move_count">Remiză · 75 de mutări fără pion sau captură</string>
-    <string name="menu_analysis_todo">Analiză — ToDo</string>
     <string name="mate_two_reply">Apărare %1$s · găsește matul</string>
     <string name="opponent_reply_pending">Răspunde adversarul…</string>
     <string name="suggested_move">Mutare sugerată · %1$s</string>

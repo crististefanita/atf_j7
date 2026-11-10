@@ -1,4 +1,11 @@
 <resources>
+    <string name="match_analysis_option">AI analysis for a new game</string>
+    <string name="match_analysis_pending">AI analysis…</string>
+    <string name="match_analysis_ended">AI analysis · Game over</string>
+    <string name="match_analysis_result">AI · %1$s: %2$s · %3$s</string>
+    <string name="match_analysis_material">material %1$s in pawn units</string>
+    <string name="match_analysis_mate_for">mate for %1$d plies ahead</string>
+    <string name="match_analysis_mate_against">mate against %1$d plies ahead</string>
     <string name="open_tactics">Tactics</string>
     <string name="tactics_progress">Tactics · %1$d/%2$d</string>
     <string name="find_tactic">Find the move that wins the most material.</string>
@@ -50,7 +57,6 @@
     <string name="match_draw_material">Draw · Insufficient material</string>
     <string name="match_draw_repetition">Draw · Fivefold repetition</string>
     <string name="match_draw_move_count">Draw · 75 moves without a pawn move or capture</string>
-    <string name="menu_analysis_todo">Analysis — ToDo</string>
     <string name="mate_two_reply">Defense %1$s · find mate</string>
     <string name="opponent_reply_pending">Opponent to reply…</string>
     <string name="suggested_move">Suggested move · %1$s</string>

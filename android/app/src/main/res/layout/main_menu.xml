@@ -42,9 +42,11 @@
         <TextView android:id="@+id/chapter_three_totals" style="@style/ChapterTotals" />
         <Button android:id="@+id/chapter_tactics" style="@style/ChapterEntry" android:text="@string/open_tactics" />
         <TextView android:id="@+id/chapter_tactics_totals" style="@style/ChapterTotals" />
+        <CheckBox android:id="@+id/match_analysis_option"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:minHeight="48dp" android:text="@string/match_analysis_option" android:textColor="#f5f3ec" />
         <Button android:id="@+id/new_match" style="@style/ChapterEntry" android:text="@string/new_match" />
         <Button android:id="@+id/resume_match" style="@style/ChapterEntry" android:text="@string/resume_match" android:visibility="gone" />
-        <Button style="@style/ChapterEntry" android:enabled="false" android:text="@string/menu_analysis_todo" />
 
     </LinearLayout>
 </ScrollView>

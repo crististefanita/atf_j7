@@ -57,6 +57,8 @@ final class ChessProgressStore {
 
     boolean leaveChapter() { return preferences.edit().remove(RESUME_CHAPTER).commit(); }
 
+    String finish(String id) { return preferences.getString("quest-finish-" + id, null); }
+
     int ply(String id) {
         String saved = "quest-ply-" + id;
         if (preferences.contains(saved)) return preferences.getInt(saved, 0);
@@ -72,6 +74,14 @@ final class ChessProgressStore {
     }
 
     boolean save(QuestProgress progress, QuestRewards rewards, int ply) {
+        return save(progress, rewards, ply, null);
+    }
+
+    boolean saveFinish(QuestProgress progress, QuestRewards rewards, String finish) {
+        return save(progress, rewards, 0, finish);
+    }
+
+    private boolean save(QuestProgress progress, QuestRewards rewards, int ply, String finish) {
         String id = progress.currentId();
         String previous = preferences.getString(CURRENT, null);
         var edit = preferences.edit();
@@ -81,6 +91,7 @@ final class ChessProgressStore {
         if (id.equals(preferences.getString(key + "-stage-id", null))) edit.remove(key + "-stage-id").remove(key + "-stage").remove(key + "-ply");
         if (ply == 0) edit.remove("quest-ply-" + id);
         else edit.putInt("quest-ply-" + id, ply);
+        if (finish != null) edit.putString("quest-finish-" + id, finish);
         return edit.putString(key, id).putBoolean(RESUME_CHAPTER, true).remove(RESUME_MATCH)
                 .putString(CURRENT, id).putStringSet(SOLVED, progress.solvedIds())
                 .putStringSet(REWARD_POINTS, rewards.encodedPoints()).putStringSet(REWARD_ASSISTED, rewards.assistedIds())

@@ -12,6 +12,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class ChessMatchTest {
+    @Test void optionalAnalysisSurvivesRestartAndUsesTheSelectedFrame(Checks check) {
+        var legacy = ChessMatch.restore("1|f2f3 e7e5 g2g4");
+        check.same("Legacy games leave analysis off", false, legacy.analysisEnabled());
+        check.same("Disabled analysis provides no recommendation", true, legacy.analysisAt(3).isEmpty());
+
+        var match = ChessMatch.start(true).play(Move.fromUci("f2f3")).play(Move.fromUci("e7e5")).play(Move.fromUci("g2g4"));
+        var restored = ChessMatch.restore(match.checkpoint());
+        check.same("An enabled game retains its setting and saved history", true, restored.analysisEnabled() && restored.ply() == 3);
+        var recommendation = restored.analysisAt(3).orElseThrow();
+        check.same("On Black's turn the analysis recommends immediate mate", "d8h4", recommendation.move().uci());
+        check.same("The recommendation reports mate at the next ply", 1, recommendation.signedMatePlies());
+        var previous = restored.analysisAt(2).orElseThrow();
+        check.same("Reviewing an earlier frame recommends a legal White move", true,
+                restored.positionAt(2).legalMoves().contains(previous.move()) && !previous.move().equals(recommendation.move()));
+        var finished = restored.play(recommendation.move());
+        check.same("The final frame of a finished game offers no move", true, finished.analysisAt(4).isEmpty());
+        check.same("Earlier frames can still be analyzed after game over", recommendation, finished.analysisAt(3).orElseThrow());
+    }
+
     @Test void savedHistoryExposesTheStartAndEveryPositionInOrder(Checks check) {
         var match = ChessMatch.restore("1|e2e4 b8c6 g1f3");
         check.same("Position zero has no move and preserves the starting pawn", true,

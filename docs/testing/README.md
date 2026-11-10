@@ -8,7 +8,7 @@ Construiți în TMP dintr-o copie a sursei. Componentele rulează fără emulato
 
 `BoardPanelLayoutTest` verifică geometria panoului pentru ferestre înalte, scunde și etichete mai înalte. Dimensiunea tablei se calculează din spațiul rămas după măsurarea ambelor etichete.
 
-`MainMenuLayoutTest` verifică ordinea celor patru capitole, textele românești și englezești, derularea, totalurile și zona de atingere a becului. `QuestStepTest` verifică piesele și culoarea la mutare înainte și după apărare, reluarea și blocarea navigării până la rezolvare.
+`MainMenuLayoutTest` verifică ordinea celor patru capitole, textele românești și englezești, derularea, totalurile și zona de atingere a becului. `QuestStepTest` verifică piesele și culoarea la mutare înainte și după apărare, reluarea și blocarea navigării până la rezolvare. Acoperă și redarea unui mat alternativ din catalog, cu explicația lui, plus revenirea la linia de referință pentru date vechi sau invalide.
 
 `QuestCatalogTest` enumeră fiecare mutare legală pentru toate cele 102 probleme și cere o singură soluție de mat. O probă separă șahul cu apărare de mat. O altă probă verifică patul, rocada prin șah și captura en passant care ar expune propriul rege. Amprenta completă a mulțimilor de mutări se compară cu [`quest-oracle.yaml`](../../chess-core/src/main/resources/quest-oracle.yaml), produs de `chess.js` 1.4.0.
 
@@ -73,6 +73,8 @@ Folosiți registrul comun de rezervare pe dispozitivele partajate.
 La modificarea instrumentării, sincronizați numărul exact de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru o corecție exclusivă de publicare, copiați dovezile native într-un dosar nou și rulați publicatorul cu `-Dchess.android.receipt=<dosar>/prepare.txt`.
 
 ## Partidă și istoric
+
+Pentru analiza AI, rulați runnerul cu `-AnalysisOnly` pe varianta `sanity`. Prima fază verifică pornirea cu bifa debifată, activarea panoului și actualizarea după replica botului și la navigarea în istoric. A doua fază verifică păstrarea opțiunii și actualizarea panoului după repornirea procesului. Dovezile se scriu în `execution.json` și în cele două receipte de instrumentare.
 
 `ChessMatchTest` verifică reconstrucția înainte și după replica botului, accesul la pozițiile din istoric, matul, rocada, en passant și repetarea. După fazele de probleme, runnerul pornește cu date proaspete și execută `match-prepare`, `match-restore` și `match-settled` în procese distincte, păstrând partida între ele. Verifică poziția inițială, săgețile, selecția directă, revenirea la ultima mutare, blocarea mutărilor în istoric și identitatea partidei salvate.
 

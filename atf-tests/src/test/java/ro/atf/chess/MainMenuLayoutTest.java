@@ -26,13 +26,13 @@ class MainMenuLayoutTest {
             enabled.add(!"false".equals(button.getAttribute("android:enabled")));
         }
         check.same("The four puzzle chapters precede new and saved local games",
-                List.of("open_mate_one", "open_mate_two", "open_mate_three", "open_tactics", "new_match", "resume_match", "menu_analysis_todo"), entries);
-        check.same("New and saved games are playable when shown", List.of(true, true, true, true, true, true, false), enabled);
+                List.of("open_mate_one", "open_mate_two", "open_mate_three", "open_tactics", "new_match", "resume_match"), entries);
+        check.same("Every menu entry is playable when shown", List.of(true, true, true, true, true, true), enabled);
         check.same("Resume is hidden until a game is saved", "gone", ((Element) buttons.item(5)).getAttribute("android:visibility"));
         check.same("English labels identify each mode",
-                List.of("Mate in 1", "Mate in 2", "Mate in 3", "Tactics", "New game vs computer", "Resume game", "Analysis — ToDo"), labels("values/strings.xml", entries));
+                List.of("Mate in 1", "Mate in 2", "Mate in 3", "Tactics", "New game vs computer", "Resume game"), labels("values/strings.xml", entries));
         check.same("Romanian labels identify each mode",
-                List.of("Mat în 1", "Mat în 2", "Mat în 3", "Tactică", "Partidă nouă cu calculatorul", "Reia partida", "Analiză — ToDo"), labels("values-ro/strings.xml", entries));
+                List.of("Mat în 1", "Mat în 2", "Mat în 3", "Tactică", "Partidă nouă cu calculatorul", "Reia partida"), labels("values-ro/strings.xml", entries));
     }
 
     @Test void reservesSpaceForTotalsAndUsesAnAccessibleBulb(Checks check) throws Exception {

@@ -12,6 +12,7 @@ public record QuestStep(int ply) {
     public boolean defensePending() { return ply % 2 != 0; }
     public QuestStep advance() { return new QuestStep(ply + 1); }
     public Move lastMove(QuestCatalog.Quest quest) { return ply == 0 ? null : quest.line().get(ply - 1); }
+    public String finishCheckpoint(Move move) { return stage() + ":" + move.uci(); }
 
     public ChessPosition position(QuestCatalog.Quest quest) {
         var ready = quest.positionAt(stage());

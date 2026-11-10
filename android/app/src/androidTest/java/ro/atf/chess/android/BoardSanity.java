@@ -48,7 +48,8 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("phase", phase);
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         try {
-            if (phase.startsWith("match-")) checkMatch();
+            if (phase.startsWith("analysis-")) checkAnalysis();
+            else if (phase.startsWith("match-")) checkMatch();
             else checkQuests();
             receipt.putString("result", "PASS");
             finish(Activity.RESULT_OK, receipt);
@@ -75,11 +76,10 @@ public final class BoardSanity extends Instrumentation {
                     button(activity, menu, R.string.open_mate_one).isEnabled() && button(activity, menu, R.string.open_mate_two).isEnabled()
                             && button(activity, menu, R.string.open_mate_three).isEnabled() && button(activity, menu, R.string.open_tactics).isEnabled()
                             && button(activity, menu, R.string.new_match).isEnabled()
-                            && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE
-                            && !button(activity, menu, R.string.menu_analysis_todo).isEnabled());
+                            && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE);
             var playable = List.of(button(activity, menu, R.string.open_mate_one), button(activity, menu, R.string.open_mate_two),
                     button(activity, menu, R.string.open_mate_three), button(activity, menu, R.string.open_tactics));
-            captureFrame("menu", "The puzzle chapters and the new game are fully rendered after launch", image -> playable.stream().allMatch(entry ->
+            captureFrame("menu", "The puzzle chapters are fully rendered after launch", image -> playable.stream().allMatch(entry ->
                     fullyVisible(entry) && hasColor(image, entry, entry.getCurrentTextColor(), 32)));
             runOnMainSync(activity::finish);
             checkRomanianCompactScreen();
@@ -129,6 +129,53 @@ public final class BoardSanity extends Instrumentation {
         compare("The menu totals count these tactics both individually and across all chapters", true,
                 hasText(menu, activity.getString(R.string.chapter_totals, 2, 12, 22))
                         && hasText(menu, activity.getString(R.string.all_quest_totals, 2, 314, 22)));
+    }
+
+    private void checkAnalysis() {
+        var store = new ChessProgressStore(getTargetContext());
+        Activity activity = launch();
+        if ("analysis-restore".equals(phase)) {
+            var saved = store.readMatch();
+            compare("The enabled setting and two moves survive a process restart", true, saved.analysisEnabled() && saved.ply() == 2);
+            compare("The reopened match analyzes its live position", true, awaitAnalysis(activity, saved, 2));
+            return;
+        }
+        if (!"analysis-prepare".equals(phase)) throw new IllegalArgumentException("Unknown analysis phase: " + phase);
+        android.widget.CheckBox option = activity.findViewById(R.id.match_analysis_option);
+        compare("The new-game analysis option starts unchecked", false, option.isChecked());
+        tap(activity.findViewById(R.id.new_match));
+        compare("A game started unchecked has no analysis panel", null, activity.findViewById(R.id.match_analysis));
+        tap(button(activity, viewsOf(activity), R.string.main_menu));
+        tap(activity.findViewById(R.id.match_analysis_option));
+        tap(activity.findViewById(R.id.new_match));
+        compare("The enabled panel recommends a move at the start", true, awaitAnalysis(activity, store.readMatch(), 0));
+        var board = findBoard(viewsOf(activity));
+        tap(cell(board, "e2"));
+        tap(cell(board, "e4"));
+        long deadline = SystemClock.uptimeMillis() + 20_000;
+        while (store.readMatch().ply() < 2 && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        var live = store.readMatch();
+        compare("The live panel follows the board after the bot replies", true, live.ply() == 2 && awaitAnalysis(activity, live, 2));
+        tap(activity.findViewById(R.id.match_history_previous));
+        compare("History shows the Black recommendation without changing the saved game", true,
+                awaitAnalysis(activity, live, 1) && live.checkpoint().equals(store.readMatch().checkpoint()));
+    }
+
+    private boolean awaitAnalysis(Activity activity, ChessMatch match, int ply) {
+        var move = match.analysisAt(ply).orElseThrow().move();
+        String expected = activity.getString(R.string.match_analysis_result,
+                activity.getString(BoardView.sideLabel(match.positionAt(ply).turn())),
+                activity.getString(R.string.solution_move, BoardSquare.name(move.from()), BoardSquare.name(move.to())), "");
+        TextView panel = activity.findViewById(R.id.match_analysis);
+        if (panel == null) return false;
+        boolean[] matches = {false};
+        long deadline = SystemClock.uptimeMillis() + 12_000;
+        do {
+            runOnMainSync(() -> matches[0] = panel.getText().toString().startsWith(expected));
+            if (matches[0]) return true;
+            SystemClock.sleep(40);
+        } while (SystemClock.uptimeMillis() < deadline);
+        return false;
     }
 
     private void checkMatch() throws Exception {
@@ -257,7 +304,7 @@ public final class BoardSanity extends Instrumentation {
                 config.fontScale == 1.3f && "ro".equals(config.getLocales().get(0).getLanguage()));
         var menu = viewsOf(activity);
         var scroll = menu.stream().filter(ScrollView.class::isInstance).map(ScrollView.class::cast).findFirst().orElseThrow();
-        var last = button(activity, menu, R.string.menu_analysis_todo);
+        var last = button(activity, menu, R.string.new_match);
         boolean[] reachable = {false};
         runOnMainSync(() -> {
             View root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);

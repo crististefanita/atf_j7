@@ -7,6 +7,7 @@ param(
     [string]$AdbHost = 'localhost',
     [int]$AdbPort = 5037,
     [switch]$Distribution,
+    [switch]$AnalysisOnly,
     [string]$SourceCommit
 )
 $ErrorActionPreference = 'Stop'
@@ -17,6 +18,7 @@ $adbExe = (Get-Command $Adb -CommandType Application).Source
 $app = if ($Distribution) { 'ro.atf.chess.android' } else { 'ro.atf.chess.android.sanity' }
 $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
+if ($AnalysisOnly -and $Distribution) { throw 'AnalysisOnly uses the isolated sanity package.' }
 $native = 'android/app/build/outputs/apk'
 $apk = Join-Path $root "$native/$variant/app-$variant.apk"
 $tests = Join-Path $root "$native/androidTest/$variant/app-$variant-androidTest.apk"
@@ -111,6 +113,29 @@ try {
     $runner = "$app.test/ro.atf.chess.android.BoardSanity"
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
+    if ($AnalysisOnly) {
+        $pids = @()
+        $checks = [ordered]@{}
+        foreach ($phase in 'analysis-prepare','analysis-restore') {
+            $lines = @(Invoke-Device ($instrument + @('-e','phase',$phase,$runner)))
+            $lines | Set-Content -LiteralPath (Join-Path $run "$phase.txt") -Encoding utf8NoBOM
+            $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
+            $expected = if ($phase -eq 'analysis-prepare') { 5 } else { 2 }
+            if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne $expected) {
+                throw "Analysis phase $phase did not pass. See $run."
+            }
+            $checks[$phase] = $passed.Count
+            $pidLine = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: pid=[0-9]+$' })
+            if ($pidLine.Count -ne 1) { throw "Missing process identity for $phase." }
+            $pids += $pidLine[0].Split('=')[1]
+            Invoke-Device @('shell','am','force-stop',$app)
+        }
+        if ($pids[0] -eq $pids[1]) { throw 'The analysis restore phase reused the same process.' }
+        [ordered]@{status='PASS'; scope='analysis-only'; device=$Serial; api=$api; apkSha256=$hash;
+            sourceCommit=$SourceCommit; pids=$pids; assertions=$checks} |
+            ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'execution.json') -Encoding utf8NoBOM
+        return
+    }
     Invoke-Device ($instrument + @('-e','phase','prepare',$runner)) |
         Set-Content -LiteralPath $receipt -Encoding utf8NoBOM
     if (Select-String -Quiet -LiteralPath $receipt -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS') {

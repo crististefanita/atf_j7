@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -64,13 +65,14 @@ public final class ChessActivity extends Activity {
     private boolean inMatch;
     private boolean botSaveFailed;
     private MatchHistoryView history;
+    private MatchAnalysisView matchAnalysis;
     private int reviewedPly = -1;
     private QuestProgress progress;
     private QuestRewards rewards;
     private int earned;
     private ChessPosition position;
     private int questIndex;
-    private boolean solved;
+    private QuestCatalog.Quest completedQuest;
     private QuestStep step;
     private boolean resumed;
     private int chapterIndex = -1;
@@ -147,6 +149,8 @@ public final class ChessActivity extends Activity {
     private void showMenu() {
         main.removeCallbacks(reply);
         cancelBot();
+        if (matchAnalysis != null) matchAnalysis.close();
+        matchAnalysis = null;
         inMatch = false;
         chapterIndex = -1;
         var menu = screen();
@@ -159,19 +163,20 @@ public final class ChessActivity extends Activity {
         }
         ((TextView) menu.findViewById(R.id.quest_totals)).setText(totals(R.string.all_quest_totals, allIds));
         renderStreak(menu.findViewById(R.id.menu_streak));
-        menu.findViewById(R.id.new_match).setOnClickListener(view -> newMatch());
+        CheckBox analysis = menu.findViewById(R.id.match_analysis_option);
+        menu.findViewById(R.id.new_match).setOnClickListener(view -> newMatch(analysis.isChecked()));
         View resume = menu.findViewById(R.id.resume_match);
         resume.setVisibility(match == null ? View.GONE : View.VISIBLE);
         resume.setOnClickListener(view -> openMatch(match, store.matchBlackBelow()));
         setContentView(menu);
     }
 
-    private void newMatch() {
+    private void newMatch(boolean analysisEnabled) {
         if (match != null && match.ply() > 0 && match.result() == ChessMatch.Result.IN_PROGRESS) {
             new AlertDialog.Builder(this).setTitle(R.string.match_replace_title).setMessage(R.string.match_replace_message)
                     .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(R.string.new_match, (dialog, choice) -> openMatch(ChessMatch.start(), false)).show();
-        } else openMatch(ChessMatch.start(), false);
+                    .setPositiveButton(R.string.new_match, (dialog, choice) -> openMatch(ChessMatch.start(analysisEnabled), false)).show();
+        } else openMatch(ChessMatch.start(analysisEnabled), false);
     }
 
     private void openMatch(ChessMatch nextMatch, boolean flipped) {
@@ -262,6 +267,8 @@ public final class ChessActivity extends Activity {
         status.setAccessibilityLiveRegion(android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE);
         screen.addView(status);
         if (inMatch) {
+            matchAnalysis = match.analysisEnabled() ? new MatchAnalysisView(this, this::notation) : null;
+            if (matchAnalysis != null) screen.addView(matchAnalysis);
             history = new MatchHistoryView(this, this::notation, this::reviewMatch);
             screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
             return screen;
@@ -313,8 +320,8 @@ public final class ChessActivity extends Activity {
     private void revealGuidance() {
         if (step.defensePending()) return;
         var quest = quests.get(questIndex);
-        if (solved || hint == QuestHint.SOLUTION) {
-            showSolution(quest);
+        if (completedQuest != null || hint == QuestHint.SOLUTION) {
+            showSolution(completedQuest == null ? quest : completedQuest);
             return;
         }
         if (!save(progress, rewards.interrupt(quest.id()))) return;
@@ -424,15 +431,15 @@ public final class ChessActivity extends Activity {
         questIndex = index;
         var quest = quests.get(index);
         blackBelow = quest.position().turn() == ChessPosition.Side.BLACK;
-        solved = progress.currentSolved();
+        completedQuest = progress.currentSolved() ? quest.restoreFinish(store.finish(quest.id())) : null;
         earned = 0;
         announceMilestone = false;
         attemptMessage = null;
         hint = QuestHint.NONE;
         selected = -1;
-        step = QuestStep.restore(solved ? 0 : store.ply(quest.id()), quest);
-        last = solved ? quest.finishingMove() : step.lastMove(quest);
-        position = solved ? quest.solvedPosition() : step.position(quest);
+        step = QuestStep.restore(completedQuest == null ? store.ply(quest.id()) : 0, quest);
+        last = completedQuest == null ? step.lastMove(quest) : completedQuest.finishingMove();
+        position = completedQuest == null ? step.position(quest) : completedQuest.solvedPosition();
         options = Collections.emptyList();
     }
 
@@ -454,7 +461,7 @@ public final class ChessActivity extends Activity {
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 
     private void tap(int square) {
-        if (inMatch ? !playerCanMove() : solved || step.defensePending()) return;
+        if (inMatch ? !playerCanMove() : completedQuest != null || step.defensePending()) return;
         List<Move> targets = new ArrayList<>();
         for (Move move : options) if (move.to() == square) targets.add(move);
         if (targets.size() == 1) {
@@ -477,16 +484,17 @@ public final class ChessActivity extends Activity {
             if (playerCanMove() && saveMatchMove(move)) scheduleBot();
             return;
         }
-        if (chapterIndex < 0 || solved || step.defensePending()) return;
+        if (chapterIndex < 0 || completedQuest != null || step.defensePending()) return;
         var quest = quests.get(questIndex);
         int stage = step.stage();
         int remaining = quest.playerMoves() - stage;
         var result = quest.assess(move, stage);
         if (result.solved()) {
             var award = rewards.complete(progress);
-            if (!save(progress.solveCurrent(), award.rewards())) return;
+            String finish = quest.objective() == QuestCatalog.Objective.MATE ? step.finishCheckpoint(move) : null;
+            if (!save(progress.solveCurrent(), award.rewards(), finish)) return;
             earned = award.amount();
-            solved = true;
+            completedQuest = quest.restoreFinish(finish);
             position = result.position();
             last = move;
             announceMilestone = progress.milestone(order).reached();
@@ -495,7 +503,7 @@ public final class ChessActivity extends Activity {
         } else if (!save(progress, rewards.interrupt(quest.id()))) {
             return;
         }
-        if (solved || result.continues()) {
+        if (result.solved() || result.continues()) {
             hint = QuestHint.NONE;
             attemptMessage = null;
         } else if (quest.objective() == QuestCatalog.Objective.MATERIAL) {
@@ -619,7 +627,12 @@ public final class ChessActivity extends Activity {
     }
 
     private boolean save(QuestProgress nextProgress, QuestRewards nextRewards) {
-        if (!store.save(nextProgress, nextRewards)) {
+        return save(nextProgress, nextRewards, null);
+    }
+
+    private boolean save(QuestProgress nextProgress, QuestRewards nextRewards, String finish) {
+        boolean saved = finish == null ? store.save(nextProgress, nextRewards) : store.saveFinish(nextProgress, nextRewards, finish);
+        if (!saved) {
             showSaveError();
             return false;
         }
@@ -636,6 +649,7 @@ public final class ChessActivity extends Activity {
             return;
         }
         var bottom = blackBelow ? ChessPosition.Side.BLACK : ChessPosition.Side.WHITE;
+        boolean solved = completedQuest != null;
         renderPlayer(topPlayer, bottom.other(), !solved && position.turn() == bottom.other());
         renderPlayer(bottomPlayer, bottom, !solved && position.turn() == bottom);
         recentMove.setText(getString(chapters.get(chapterIndex).label(), questIndex + 1, quests.size()));
@@ -662,7 +676,7 @@ public final class ChessActivity extends Activity {
     private void renderStatus(QuestCatalog.Quest quest, int stage, Move suggestion, boolean pending) {
         String visible;
         String spoken = null;
-        if (solved) {
+        if (completedQuest != null) {
             visible = getString(quest.objective() == QuestCatalog.Objective.MATE ? R.string.quest_solved : R.string.tactics_solved);
             if (announceMilestone) spoken = visible + ". " + milestone.getText();
         } else if (pending) visible = getString(R.string.opponent_reply_pending);
@@ -723,6 +737,7 @@ public final class ChessActivity extends Activity {
         int activeLabelId = (shownPosition.turn() == bottom ? bottomPlayer : topPlayer).getId();
         board.show(shownPosition, blackBelow, selected, options, shownMove, new QuestHint.Cue(-1, -1), playerCanMove(), activeLabelId);
         history.show(match, ply);
+        if (resumed && matchAnalysis != null) matchAnalysis.show(match, ply);
     }
 
     private void renderPlayer(TextView label, ChessPosition.Side side, boolean active) {
@@ -766,18 +781,21 @@ public final class ChessActivity extends Activity {
         resumed = true;
         scheduleDefense();
         scheduleBot();
+        if (inMatch && matchAnalysis != null) matchAnalysis.show(match, reviewedPly < 0 ? match.ply() : reviewedPly);
     }
 
     @Override protected void onPause() {
         resumed = false;
         main.removeCallbacks(reply);
         cancelBot();
+        if (inMatch && matchAnalysis != null) matchAnalysis.cancel();
         super.onPause();
     }
 
     @Override protected void onDestroy() {
         cancelBot();
         bot.shutdown();
+        if (matchAnalysis != null) matchAnalysis.close();
         super.onDestroy();
     }
 
