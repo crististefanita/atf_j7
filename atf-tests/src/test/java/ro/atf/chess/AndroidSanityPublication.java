@@ -34,18 +34,29 @@ class AndroidSanityPublication {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-match-analysis.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var prepare = readPhase(receipt, "analysis-prepare", 5);
+        var prepare = readPhase(receipt, "analysis-prepare", 12);
         var restore = readPhase(receipt.resolveSibling("analysis-restore.txt"), "analysis-restore", 2);
         boolean restarted = !prepare.pid().isEmpty() && !restore.pid().isEmpty() && !prepare.pid().equals(restore.pid());
-        boolean complete = prepare.passed() && restore.passed() && restarted;
+        Path frame = receipt.resolveSibling("match-analysis.png");
+        boolean rendered = isPng(frame);
+        boolean complete = prepare.passed() && restore.passed() && restarted && rendered;
         var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
              var scenario = session.startScenario("BoardSanity", "Enable optional AI analysis and restore the game across a process restart", List.of("e2e", "android", "analysis"));
              var phase = scenario.startPhase("TEST BODY")) {
-            publish(phase, "Activate analysis and review an earlier position", prepare.rows(), prepare.passed());
+            publish(phase, "Navigate puzzles and game history with an anchored board", prepare.rows(), prepare.passed());
             publish(phase, "Restart the Android process", List.of(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs",
                     prepare.pid() + " → " + restore.pid(), restarted)), restarted);
             publish(phase, "Resume the same game and its analysis", restore.rows(), restore.passed());
+            if (rendered) {
+                try (var action = phase.startRequest("Android instrumentation", "UI", "Evaluation and suggestion below the board")) {
+                    action.screenshot("Evaluation and suggestion below the board", Base64.getEncoder().encodeToString(Files.readAllBytes(frame)));
+                    action.complete(AtfReportStatus.PASS);
+                }
+            } else {
+                publish(phase, "Evaluation and suggestion below the board",
+                        List.of(new AtfAssertion("PNG evidence", "Readable PNG", "Missing or invalid match-analysis.png", false)), false);
+            }
             phase.complete(status);
             scenario.complete(status);
         }

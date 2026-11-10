@@ -1,6 +1,7 @@
 package ro.atf.chess;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -50,9 +51,14 @@ public final class ChessMatch {
 
     /** Analyzes the displayed position from the point of view of the side to move. */
     public Optional<TacticalAnalysis.Variation> analysisAt(int ply) {
+        return bestLinesAt(ply).stream().findFirst();
+    }
+
+    /** Returns one continuation per best-scoring legal first move, in engine order. */
+    public List<TacticalAnalysis.Variation> bestLinesAt(int ply) {
         var board = positionAt(ply);
-        if (!analysisEnabled || ply == ply() && result != Result.IN_PROGRESS) return Optional.empty();
-        return TacticalAnalysis.analyze(board, SEARCH_PLIES).best().stream().findFirst();
+        if (!analysisEnabled || ply == ply() && result != Result.IN_PROGRESS) return Collections.emptyList();
+        return TacticalAnalysis.analyze(board, SEARCH_PLIES).best();
     }
 
     public ChessMatch play(Move move) {

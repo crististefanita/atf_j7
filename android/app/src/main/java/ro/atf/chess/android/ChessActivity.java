@@ -3,7 +3,6 @@ package ro.atf.chess.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.res.ColorStateList;
-import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -162,7 +161,7 @@ public final class ChessActivity extends Activity {
             ((TextView) menu.findViewById(chapter.totals())).setText(totals(R.string.chapter_totals, chapter.ids()));
         }
         ((TextView) menu.findViewById(R.id.quest_totals)).setText(totals(R.string.all_quest_totals, allIds));
-        renderStreak(menu.findViewById(R.id.menu_streak));
+        renderStreak(menu.findViewById(R.id.menu_streak), View.GONE);
         CheckBox analysis = menu.findViewById(R.id.match_analysis_option);
         menu.findViewById(R.id.new_match).setOnClickListener(view -> newMatch(analysis.isChecked()));
         View resume = menu.findViewById(R.id.resume_match);
@@ -255,6 +254,7 @@ public final class ChessActivity extends Activity {
         screen.addView(header);
         recentMove = text(R.string.mate_objective, 14, MUTED);
         recentMove.setGravity(Gravity.CENTER);
+        BoardCaption.reserve(recentMove, 1);
         screen.addView(recentMove);
         if (!inMatch) screen.addView(progressPanel());
         topPlayer = playerLabel();
@@ -264,12 +264,13 @@ public final class ChessActivity extends Activity {
         status = text(R.string.mate_objective, 16, PRIMARY);
         status.setGravity(Gravity.CENTER);
         status.setPadding(dp(8), dp(4), dp(8), dp(10));
+        BoardCaption.reserve(status, inMatch ? 2 : 3);
         status.setAccessibilityLiveRegion(android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE);
         screen.addView(status);
         if (inMatch) {
-            matchAnalysis = match.analysisEnabled() ? new MatchAnalysisView(this, this::notation) : null;
+            matchAnalysis = match.analysisEnabled() ? new MatchAnalysisView(this, this::notation, this::renderMatch) : null;
             if (matchAnalysis != null) screen.addView(matchAnalysis);
-            history = new MatchHistoryView(this, this::notation, this::reviewMatch);
+            history = new MatchHistoryView(this, this::notation, this::reviewMatch, matchAnalysis == null ? null : matchAnalysis.bulb());
             screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
             return screen;
         }
@@ -295,6 +296,8 @@ public final class ChessActivity extends Activity {
         row.setGravity(Gravity.CENTER_VERTICAL);
         solvedCount = text(R.string.mate_objective, 13, PRIMARY);
         milestone = text(R.string.mate_objective, 12, MUTED);
+        BoardCaption.reserve(solvedCount, 2);
+        BoardCaption.reserve(milestone, 2);
         milestone.setGravity(Gravity.END);
         milestone.setPadding(dp(8), 0, 0, 0);
         row.addView(solvedCount, new LinearLayout.LayoutParams(0, -2, 1));
@@ -304,6 +307,8 @@ public final class ChessActivity extends Activity {
         rewardRow.setGravity(Gravity.CENTER_VERTICAL);
         chapterPoints = text(R.string.mate_objective, 13, PROGRESS);
         streakBadge = text(R.string.mate_objective, 13, FLAME);
+        BoardCaption.reserve(chapterPoints, 1);
+        BoardCaption.reserve(streakBadge, 1);
         rewardRow.addView(chapterPoints, new LinearLayout.LayoutParams(0, -2, 1));
         rewardRow.addView(streakBadge);
         panel.addView(rewardRow);
@@ -373,6 +378,12 @@ public final class ChessActivity extends Activity {
                 : getString(R.string.solution_promotion, from, to, getString(BoardView.kindLabel(move.promotion())));
     }
 
+    static String compactNotation(Move move) {
+        String uci = move.uci();
+        String squares = uci.substring(0, 2) + "–" + uci.substring(2, 4);
+        return move.promotion() == null ? squares : squares + "=" + Character.toUpperCase(uci.charAt(4));
+    }
+
     private String threats(List<ChessPosition.Threat> attackers) {
         List<String> labels = new ArrayList<>(attackers.size());
         for (var attacker : attackers) {
@@ -416,6 +427,7 @@ public final class ChessActivity extends Activity {
         quests = chapter.quests();
         order = chapter.ids();
         loadQuest(order.indexOf(progress.currentId()));
+        blackBelow = quests.get(questIndex).position().turn() == ChessPosition.Side.BLACK;
         setContentView(buildBoardScreen());
     }
 
@@ -430,7 +442,6 @@ public final class ChessActivity extends Activity {
     private void loadQuest(int index) {
         questIndex = index;
         var quest = quests.get(index);
-        blackBelow = quest.position().turn() == ChessPosition.Side.BLACK;
         completedQuest = progress.currentSolved() ? quest.restoreFinish(store.finish(quest.id())) : null;
         earned = 0;
         announceMilestone = false;
@@ -447,6 +458,7 @@ public final class ChessActivity extends Activity {
         TextView label = text(R.string.white, 16, PRIMARY);
         label.setId(View.generateViewId());
         label.setPadding(dp(14), dp(6), dp(14), dp(6));
+        BoardCaption.reserve(label, 1);
         return label;
     }
 
@@ -702,6 +714,10 @@ public final class ChessActivity extends Activity {
         } else visible = getString(quest.objective() == QuestCatalog.Objective.MATE ? R.string.find_mate : R.string.find_tactic);
         if (!android.text.TextUtils.equals(spoken, status.getContentDescription())) status.setContentDescription(spoken);
         if (!visible.contentEquals(status.getText())) status.setText(visible);
+        String details = attemptMessage;
+        status.setOnClickListener(details == null ? null : view -> new AlertDialog.Builder(this)
+                .setMessage(details).setPositiveButton(android.R.string.ok, null).show());
+        status.setClickable(details != null);
     }
 
     private void renderMatch() {
@@ -735,16 +751,16 @@ public final class ChessActivity extends Activity {
         }));
         if (retry) status.setText(R.string.match_retry_bot);
         int activeLabelId = (shownPosition.turn() == bottom ? bottomPlayer : topPlayer).getId();
-        board.show(shownPosition, blackBelow, selected, options, shownMove, new QuestHint.Cue(-1, -1), playerCanMove(), activeLabelId);
-        history.show(match, ply);
         if (resumed && matchAnalysis != null) matchAnalysis.show(match, ply);
+        var cue = matchAnalysis == null ? new QuestHint.Cue(-1, -1) : matchAnalysis.cue();
+        board.show(shownPosition, blackBelow, selected, options, shownMove, cue, playerCanMove(), activeLabelId);
+        history.show(match, ply);
     }
 
     private void renderPlayer(TextView label, ChessPosition.Side side, boolean active) {
         String color = getString(BoardView.sideLabel(side));
         label.setText(active ? getString(R.string.to_move, color) : color);
         label.setTextColor(active ? PROGRESS : PRIMARY);
-        label.setTypeface(Typeface.DEFAULT, active ? Typeface.BOLD : Typeface.NORMAL);
     }
 
     private void renderProgress() {
@@ -759,7 +775,7 @@ public final class ChessActivity extends Activity {
         if (progressTrack.getProgress() != goal.solved()) progressTrack.setProgress(goal.solved(), true);
         int points = rewards.summarize(order, progress).points();
         chapterPoints.setText(earned == 0 ? getString(R.string.chapter_points, points) : getString(R.string.earned_points, earned, points));
-        renderStreak(streakBadge);
+        renderStreak(streakBadge, View.INVISIBLE);
     }
 
     private String totals(int label, List<String> ids) {
@@ -767,9 +783,8 @@ public final class ChessActivity extends Activity {
         return getString(label, totals.solved(), totals.total(), totals.points());
     }
 
-    private void renderStreak(TextView badge) {
-        badge.setVisibility(rewards.showsStreak() ? View.VISIBLE : View.GONE);
-        if (!rewards.showsStreak()) return;
+    private void renderStreak(TextView badge, int hiddenVisibility) {
+        badge.setVisibility(rewards.showsStreak() ? View.VISIBLE : hiddenVisibility);
         badge.setText(getString(R.string.reward_streak, rewards.streak()));
         badge.setTextColor(FLAME);
         badge.setCompoundDrawablePadding(dp(4));
@@ -781,7 +796,7 @@ public final class ChessActivity extends Activity {
         resumed = true;
         scheduleDefense();
         scheduleBot();
-        if (inMatch && matchAnalysis != null) matchAnalysis.show(match, reviewedPly < 0 ? match.ply() : reviewedPly);
+        if (inMatch && matchAnalysis != null) renderMatch();
     }
 
     @Override protected void onPause() {

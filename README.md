@@ -4,12 +4,12 @@
 
 Marcajul de lângă tablă arată cine mută. În probleme, becul de sub tablă arată întâi piesa, apoi mutarea și explicația. Flacăra apare de la a doua rezolvare consecutivă fără greșeli sau indicii. **Reia partida** cu calculatorul readuce tabla la ultima mutare salvată. Săgețile și lista de sub tablă redau istoricul mutărilor.
 
-La pornirea unei partide noi, bifa **Analiză AI** afișează o recomandare calculată local pentru poziția curentă sau cea selectată din istoric.
+La pornirea unei partide noi, bifa **Analiză AI** adaugă evaluarea și un bec sub tablă. Apasă becul pentru a vedea cea mai bună continuare. Dacă mai multe linii au același scor, le poți parcurge pe rând.
 
 ## Jocul
 
-- **[Chess Lab 0.5.1 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.5.1)** — ediția Android curentă.
-- **[Descarcă APK 0.5.1](https://github.com/crististefanita/atf_j7/releases/download/v0.5.1/ChessLab-0.5.1.apk)** — APK Android semnat.
+- **[Chess Lab 0.6.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.6.0)** — ediția Android curentă.
+- **[Descarcă APK 0.6.0](https://github.com/crististefanita/atf_j7/releases/download/v0.6.0/ChessLab-0.6.0.apk)** — APK Android semnat.
 
 ## Proiectul
 
@@ -20,4 +20,4 @@ La pornirea unei partide noi, bifa **Analiză AI** afișează o recomandare calc
 | `atf-tests` | Componente, guvernanță și publicarea dovezii Android în Extent |
 | `release-tools` | Context RAG consultativ și verificarea identității dovezilor |
 
-[Tabla de joc](docs/board/README.md) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.5.1](release/0.5.1/README.md) · [Feedback](docs/feedback/README.md)
+[Tabla de joc](docs/board/README.md) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.6.0](release/0.6.0/README.md) · [Feedback](docs/feedback/README.md)

@@ -131,51 +131,105 @@ public final class BoardSanity extends Instrumentation {
                         && hasText(menu, activity.getString(R.string.all_quest_totals, 2, 314, 22)));
     }
 
-    private void checkAnalysis() {
+    private void checkAnalysis() throws IOException {
         var store = new ChessProgressStore(getTargetContext());
-        Activity activity = launch();
+        Activity activity = launch("analysis-prepare".equals(phase));
         if ("analysis-restore".equals(phase)) {
             var saved = store.readMatch();
             compare("The enabled setting and two moves survive a process restart", true, saved.analysisEnabled() && saved.ply() == 2);
-            compare("The reopened match analyzes its live position", true, awaitAnalysis(activity, saved, 2));
+            compare("The reopened match analyzes its live position with the hint hidden", true, awaitHiddenAnalysis(activity, 2));
             return;
         }
         if (!"analysis-prepare".equals(phase)) throw new IllegalArgumentException("Unknown analysis phase: " + phase);
+        checkQuestBoardNavigation(activity);
         android.widget.CheckBox option = activity.findViewById(R.id.match_analysis_option);
         compare("The new-game analysis option starts unchecked", false, option.isChecked());
         tap(activity.findViewById(R.id.new_match));
-        compare("A game started unchecked has no analysis panel", null, activity.findViewById(R.id.match_analysis));
+        compare("A game started unchecked has no analysis panel or bulb", true,
+                activity.findViewById(R.id.match_analysis) == null && activity.findViewById(R.id.match_hint) == null);
         tap(button(activity, viewsOf(activity), R.string.main_menu));
         tap(activity.findViewById(R.id.match_analysis_option));
         tap(activity.findViewById(R.id.new_match));
-        compare("The enabled panel recommends a move at the start", true, awaitAnalysis(activity, store.readMatch(), 0));
         var board = findBoard(viewsOf(activity));
+        var initialBounds = boardFootprints(activity, board);
+        compare("The enabled panel shows the evaluation and waits for the bulb press", true, awaitHiddenAnalysis(activity, 0));
+        TextView panel = activity.findViewById(R.id.match_analysis);
+        compare("A localized zero score leaves the board anchored", true,
+                panel.getText().toString().equals("0,00 · Echilibru") && initialBounds.equals(boardFootprints(activity, board)));
+        View bulb = activity.findViewById(R.id.match_hint);
+        var initial = store.readMatch();
+        var lines = initial.bestLinesAt(0);
+        tap(bulb);
+        compare("The first bulb press reveals line one and marks its first destination", true,
+                lines.size() > 1 && hintShown(activity, board, lines, 0) && initialBounds.equals(boardFootprints(activity, board)));
+        tap(bulb);
+        compare("The second press shows the next tied line without playing a move", true,
+                hintShown(activity, board, lines, 1) && initial.checkpoint().equals(store.readMatch().checkpoint()));
         tap(cell(board, "e2"));
         tap(cell(board, "e4"));
         long deadline = SystemClock.uptimeMillis() + 20_000;
         while (store.readMatch().ply() < 2 && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
         var live = store.readMatch();
-        compare("The live panel follows the board after the bot replies", true, live.ply() == 2 && awaitAnalysis(activity, live, 2));
-        tap(activity.findViewById(R.id.match_history_previous));
-        compare("History shows the Black recommendation without changing the saved game", true,
-                awaitAnalysis(activity, live, 1) && live.checkpoint().equals(store.readMatch().checkpoint()));
+        compare("The bot reply resets the hint for its new live position", true, live.ply() == 2 && awaitHiddenAnalysis(activity, 2));
+        var currentBounds = boardFootprints(activity, board);
+        runOnMainSync(() -> activity.findViewById(R.id.match_history_previous).performClick());
+        compare("Reviewing Black's turn resets the hint and leaves the saved game untouched", true,
+                awaitHiddenAnalysis(activity, 1) && live.checkpoint().equals(store.readMatch().checkpoint()));
+        var earlierBounds = boardFootprints(activity, board);
+        runOnMainSync(() -> activity.findViewById(R.id.match_history_next).performClick());
+        var latestBounds = awaitHiddenAnalysis(activity, 2) ? boardFootprints(activity, board) : List.<BoardFootprint>of();
+        compare("History Previous and Next preserve the board and corner coordinates in three viewport profiles",
+                List.of(currentBounds, currentBounds), List.of(earlierBounds, latestBounds));
+        runOnMainSync(bulb::performClick);
+        compare("Returning to the latest move reveals its own line within the same board bounds", true,
+                hintShown(activity, board, live.bestLinesAt(2), 0) && currentBounds.equals(boardFootprints(activity, board)));
+        captureFrame("match-analysis", "The compact evaluation and recommendation are rendered below the board",
+                image -> fullyVisible(panel) && hasTwoRenderedLines(image, panel));
     }
 
-    private boolean awaitAnalysis(Activity activity, ChessMatch match, int ply) {
-        var move = match.analysisAt(ply).orElseThrow().move();
-        String expected = activity.getString(R.string.match_analysis_result,
-                activity.getString(BoardView.sideLabel(match.positionAt(ply).turn())),
-                activity.getString(R.string.solution_move, BoardSquare.name(move.from()), BoardSquare.name(move.to())), "");
+    private void checkQuestBoardNavigation(Activity activity) {
+        runOnMainSync(() -> activity.findViewById(R.id.chapter_one).performClick());
+        waitForIdleSync();
+        var views = viewsOf(activity);
+        var board = findBoard(views);
+        var first = boardFootprints(activity, board);
+        tap(cell(board, "d8"));
+        tap(cell(board, "h4"));
+        tap(button(activity, views, R.string.next_quest));
+        boolean whiteAtTop = turnLabel(activity, board, R.string.white, R.string.black, false);
+        var next = boardFootprints(activity, board);
+        tap(button(activity, views, R.string.previous_quest));
+        compare("Quest Previous and Next keep the board and orientation even as the active color changes", true,
+                whiteAtTop && first.equals(next) && first.equals(boardFootprints(activity, board)));
+        tap(button(activity, views, R.string.main_menu));
+    }
+
+    private boolean awaitHiddenAnalysis(Activity activity, int ply) {
         TextView panel = activity.findViewById(R.id.match_analysis);
-        if (panel == null) return false;
+        View bulb = activity.findViewById(R.id.match_hint);
+        ViewGroup moves = activity.findViewById(R.id.match_history_moves);
+        if (panel == null || bulb == null || moves == null) return false;
         boolean[] matches = {false};
         long deadline = SystemClock.uptimeMillis() + 12_000;
         do {
-            runOnMainSync(() -> matches[0] = panel.getText().toString().startsWith(expected));
+            runOnMainSync(() -> matches[0] = ply < moves.getChildCount() && moves.getChildAt(ply).isSelected()
+                    && bulb.isEnabled() && !bulb.isSelected() && !panel.getText().toString().contains("\n"));
             if (matches[0]) return true;
             SystemClock.sleep(40);
         } while (SystemClock.uptimeMillis() < deadline);
         return false;
+    }
+
+    private static boolean hintShown(Activity activity, BoardView board, List<ro.atf.chess.TacticalAnalysis.Variation> lines, int index) {
+        var variation = lines.get(index);
+        var sequence = new java.util.StringJoiner(" · ");
+        for (Move move : variation.line()) sequence.add(ChessActivity.compactNotation(move));
+        String expected = lines.size() == 1 ? sequence.toString()
+                : activity.getString(R.string.match_analysis_variant, index + 1, lines.size(), sequence.toString());
+        TextView panel = activity.findViewById(R.id.match_analysis);
+        View destination = cell(board, BoardSquare.name(variation.move().to()));
+        return activity.findViewById(R.id.match_hint).isSelected() && panel.getText().toString().endsWith("\n" + expected)
+                && destination.getContentDescription().toString().endsWith(activity.getString(R.string.hint_destination, ""));
     }
 
     private void checkMatch() throws Exception {
@@ -738,6 +792,79 @@ public final class BoardSanity extends Instrumentation {
         root.measure(View.MeasureSpec.makeMeasureSpec(bounds.width(), View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
         root.layout(bounds.left, bounds.top, bounds.right, bounds.top + height);
+    }
+
+    private record BoardFootprint(Rect board, Rect a1, Rect h8) { }
+
+    private List<BoardFootprint> boardFootprints(Activity activity, BoardView board) {
+        var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
+        TextView analysis = activity.findViewById(R.id.match_analysis);
+        View bulb = activity.findViewById(R.id.match_hint);
+        var footprints = new ArrayList<BoardFootprint>();
+        runOnMainSync(() -> {
+            var original = new Rect(root.getLeft(), root.getTop(), root.getRight(), root.getBottom());
+            float density = activity.getResources().getDisplayMetrics().density;
+            try {
+                measureScreen(root, original, original.height());
+                footprints.add(footprint(board, analysis));
+                checkHistoryControls(activity, bulb);
+                for (int[] size : new int[][]{{320, 480}, {440, 400}}) {
+                    int width = Math.min(original.width(), Math.round(size[0] * density));
+                    int height = Math.min(original.height(), Math.round(size[1] * density));
+                    var bounds = new Rect(original.left, original.top, original.left + width, original.top + height);
+                    measureScreen(root, bounds, height);
+                    footprints.add(footprint(board, analysis));
+                    checkHistoryControls(activity, bulb);
+                }
+            } finally {
+                measureScreen(root, original, original.height());
+            }
+        });
+        return footprints;
+    }
+
+    private static void checkHistoryControls(Activity activity, View bulb) {
+        if (bulb == null) return;
+        var controls = List.of(bulb, activity.findViewById(R.id.match_history_previous), activity.findViewById(R.id.match_history_next),
+                activity.findViewById(R.id.match_history_latest));
+        int touchSize = Math.round(48 * activity.getResources().getDisplayMetrics().density);
+        if (!controls.stream().allMatch(view -> fullyVisible(view) && view.getWidth() >= touchSize && view.getHeight() >= touchSize)) {
+            throw new AssertionError("The hint and history controls must fit with 48 dp targets");
+        }
+    }
+
+    private static BoardFootprint footprint(BoardView board, TextView analysis) {
+        if (!fullyVisible(board) || board.getWidth() == 0 || board.getWidth() != board.getHeight() || !labelsTouchBoard(board)) {
+            throw new AssertionError("Expected a fully visible square board with both player labels");
+        }
+        if (analysis != null && analysis.getText().toString().contains("\n")) {
+            var layout = analysis.getLayout();
+            if (!fullyVisible(analysis) || layout.getLineCount() != 2 || layout.getEllipsisCount(1) != 0) {
+                throw new AssertionError("Expected the full score and suggestion on two visible lines");
+            }
+        }
+        return new BoardFootprint(screenBounds(board), screenBounds(cell(board, "a1")), screenBounds(cell(board, "h8")));
+    }
+
+    private static Rect screenBounds(View view) {
+        int[] xy = new int[2];
+        view.getLocationOnScreen(xy);
+        return new Rect(xy[0], xy[1], xy[0] + view.getWidth(), xy[1] + view.getHeight());
+    }
+
+    private static boolean hasTwoRenderedLines(Bitmap image, TextView text) {
+        var bounds = screenBounds(text);
+        int color = text.getCurrentTextColor();
+        int firstTextRow = -1;
+        for (int y = Math.max(0, bounds.top); y < Math.min(image.getHeight(), bounds.bottom); y++) {
+            for (int x = Math.max(0, bounds.left); x < Math.min(image.getWidth(), bounds.right); x++) {
+                if (image.getPixel(x, y) != color) continue;
+                if (firstTextRow < 0) firstTextRow = y;
+                if (y - firstTextRow >= text.getLineHeight()) return true;
+                break;
+            }
+        }
+        return false;
     }
 
     private void captureFrame(String name, String assertion, Predicate<Bitmap> rendered) throws IOException {

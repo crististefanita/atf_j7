@@ -1,0 +1,24 @@
+package ro.atf.chess;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/** A reveal cursor for the best continuations of one analyzed position. */
+public final class MatchHint {
+    private final List<TacticalAnalysis.Variation> lines;
+    private int index = -1;
+
+    public MatchHint(List<TacticalAnalysis.Variation> lines) {
+        this.lines = Collections.unmodifiableList(new ArrayList<>(lines));
+    }
+
+    public int count() { return lines.size(); }
+    public int number() { return index + 1; }
+    public TacticalAnalysis.Variation first() { return lines.get(0); }
+    public TacticalAnalysis.Variation revealed() { return index < 0 ? null : lines.get(index); }
+
+    public void revealNext() {
+        if (!lines.isEmpty()) index = (index + 1) % lines.size();
+    }
+}

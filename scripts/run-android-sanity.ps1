@@ -120,14 +120,16 @@ try {
             $lines = @(Invoke-Device ($instrument + @('-e','phase',$phase,$runner)))
             $lines | Set-Content -LiteralPath (Join-Path $run "$phase.txt") -Encoding utf8NoBOM
             $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
-            $expected = if ($phase -eq 'analysis-prepare') { 5 } else { 2 }
+            $expected = if ($phase -eq 'analysis-prepare') { 12 } else { 2 }
             if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne $expected) {
+                Receive-Frame 'failure'
                 throw "Analysis phase $phase did not pass. See $run."
             }
             $checks[$phase] = $passed.Count
             $pidLine = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: pid=[0-9]+$' })
             if ($pidLine.Count -ne 1) { throw "Missing process identity for $phase." }
             $pids += $pidLine[0].Split('=')[1]
+            if ($phase -eq 'analysis-prepare') { Receive-Frame 'match-analysis' }
             Invoke-Device @('shell','am','force-stop',$app)
         }
         if ($pids[0] -eq $pids[1]) { throw 'The analysis restore phase reused the same process.' }
