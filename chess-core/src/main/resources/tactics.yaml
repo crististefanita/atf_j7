@@ -1,0 +1,51 @@
+schema: 1
+objective: WIN_MATERIAL
+quests:
+  # 1320-04.pgn after 20 plies
+  - id: tactic-001
+    fen: "r2qkb1r/1p2ppp1/p2p3p/4n1B1/3NnPb1/2N4P/PPPQ2P1/R3KB1R w KQkq - 0 11"
+    solution: c3e4
+  # 1320-03.pgn after 23 plies
+  - id: tactic-002
+    fen: "rn1qk2r/p1p2ppp/1p2p3/8/1b1Pb1n1/2N5/PP3P1P/R1B2KNR b kq - 1 12"
+    solution: e4h1
+  # 1320-05.pgn after 18 plies
+  - id: tactic-003
+    fen: "r2qkb1r/1p2pppp/2p2n2/p1n5/3P1Bb1/2N2N2/PPPQBPPP/R3K2R w KQkq - 2 10"
+    solution: d4c5
+  # 1320-04.pgn after 25 plies
+  - id: tactic-004
+    fen: "r2qkb1r/1p2ppp1/p7/4p1p1/4N1b1/5N1P/PPPQ2P1/R3KB1R b KQkq - 1 13"
+    solution: g4f3
+  # 1320-01.pgn after 46 plies
+  - id: tactic-005
+    fen: "2bqr2k/3pbp2/2p1p1p1/rpP1P2p/p2P1P2/P1nB2P1/R2Q1N1P/2BR2K1 w - - 0 24"
+    solution: d2c3
+  # 1320-06.pgn after 15 plies
+  - id: tactic-006
+    fen: "r1bqk2r/ppp1ppbp/3p2p1/3Pn3/4P3/2N2N2/PP2BPPP/R1BQK2R b KQkq - 0 8"
+    solution: e5f3
+  # 1320-08.pgn after 26 plies
+  - id: tactic-007
+    fen: "2bqkb1r/4pp2/1pnprn2/pNp2p1p/2P1P3/2NP2PP/PP4B1/R1BQ1RK1 w k - 0 14"
+    solution: e4f5
+  # 1320-07.pgn after 55 plies
+  - id: tactic-008
+    fen: "1k1rr3/5pp1/1p6/2bbP2p/3N3P/P3BP2/6P1/Q1R3K1 b - - 2 28"
+    solution: e8e5
+  # 1320-02.pgn after 24 plies
+  - id: tactic-009
+    fen: "r1b2rk1/1ppp1ppp/2nq4/p2Np3/2P1P3/1P6/P1P2RPP/R1BQ1NK1 w - - 0 13"
+    solution: d5f6
+  # 1320-04.pgn after 39 plies
+  - id: tactic-010
+    fen: "4kb2/6p1/p3p3/1p2pppr/8/2P2P1P/PP3N2/3K1BR1 b - - 0 20"
+    solution: f8c5
+  # 1320-07.pgn after 44 plies
+  - id: tactic-011
+    fen: "3r1b1r/1kq2pp1/1p2b3/4P2p/3N3P/P3B3/4QPP1/2R2RK1 w - - 0 23"
+    solution: e2f3
+  # 1320-02.pgn after 27 plies
+  - id: tactic-012
+    fen: "r1b2rk1/1ppp1p1p/2nq4/p2NpNp1/2P1P3/1P6/P1P2RPP/R1BQ2K1 b - - 1 14"
+    solution: d6e6

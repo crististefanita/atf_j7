@@ -71,26 +71,64 @@ public final class BoardSanity extends Instrumentation {
         Activity activity = launch();
         if ("prepare".equals(phase)) {
             var menu = viewsOf(activity);
-            compare("The fresh menu offers three playable chapters and a new game against the computer", true,
+            compare("The fresh menu offers four playable chapters and a new game against the computer", true,
                     button(activity, menu, R.string.open_mate_one).isEnabled() && button(activity, menu, R.string.open_mate_two).isEnabled()
-                            && button(activity, menu, R.string.open_mate_three).isEnabled() && button(activity, menu, R.string.new_match).isEnabled()
+                            && button(activity, menu, R.string.open_mate_three).isEnabled() && button(activity, menu, R.string.open_tactics).isEnabled()
+                            && button(activity, menu, R.string.new_match).isEnabled()
                             && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE
                             && !button(activity, menu, R.string.menu_analysis_todo).isEnabled());
             var playable = List.of(button(activity, menu, R.string.open_mate_one), button(activity, menu, R.string.open_mate_two),
-                    button(activity, menu, R.string.open_mate_three), button(activity, menu, R.string.new_match));
+                    button(activity, menu, R.string.open_mate_three), button(activity, menu, R.string.open_tactics));
             captureFrame("menu", "The puzzle chapters and the new game are fully rendered after launch", image -> playable.stream().allMatch(entry ->
                     fullyVisible(entry) && hasColor(image, entry, entry.getCurrentTextColor(), 32)));
             runOnMainSync(activity::finish);
             checkRomanianCompactScreen();
             activity = launch();
+            checkTactics(activity);
             openChapter(activity, R.string.open_mate_one);
             var views = viewsOf(activity);
             prepare(activity, views, findBoard(views));
         } else if ("restore".equals(phase)) {
             finishMateInThree(activity);
+            switchChapter(activity, R.string.open_tactics);
+            var views = viewsOf(activity);
+            compare("A real process restart keeps the tactics chapter position and its two awards", true,
+                    hasText(views, activity.getString(R.string.tactics_progress, 2, 12))
+                            && hasText(views, activity.getString(R.string.tactics_solved))
+                            && hasText(views, activity.getString(R.string.chapter_points, 22)));
             switchChapter(activity, R.string.open_mate_two);
             restore(activity);
         } else throw new IllegalArgumentException("Unknown sanity phase: " + phase);
+    }
+
+    private void checkTactics(Activity activity) throws IOException {
+        openChapter(activity, R.string.open_tactics);
+        var views = viewsOf(activity);
+        var board = findBoard(views);
+        var next = button(activity, views, R.string.next_quest);
+        var bulb = guidance(activity, R.string.hint);
+        compare("The accessible bulb fits below the board and Next starts locked", true,
+                !next.isEnabled() && bulb instanceof android.widget.ImageButton && compactLayoutFits(activity, views, board, R.string.hint));
+        var tactics = QuestCatalog.loadTactics();
+        for (int index = 0; index < 2; index++) {
+            var move = tactics.get(index).solution();
+            tap(cell(board, BoardSquare.name(move.from())));
+            tap(cell(board, BoardSquare.name(move.to())));
+            if (index == 0) tap(next);
+        }
+        String streak = activity.getString(R.string.reward_streak, 2);
+        compare("Two consecutive tactics solve without mate and award 10 plus 12 points", true,
+                hasText(views, activity.getString(R.string.tactics_solved))
+                        && hasText(views, activity.getString(R.string.earned_points, 12, 22)) && hasText(views, streak) && next.isEnabled());
+        TextView badge = views.stream().filter(TextView.class::isInstance).map(TextView.class::cast)
+                .filter(view -> streak.contentEquals(view.getText())).findFirst().orElseThrow();
+        captureFrame("tactics-streak", "Tactics shows the amber flame and the second reward below the chapter progress",
+                image -> fullyVisible(badge) && badge.getCompoundDrawables()[0] != null && hasColor(image, badge, 0xffffbc78, 16));
+        tap(button(activity, views, R.string.main_menu));
+        var menu = viewsOf(activity);
+        compare("The menu totals count these tactics both individually and across all chapters", true,
+                hasText(menu, activity.getString(R.string.chapter_totals, 2, 12, 22))
+                        && hasText(menu, activity.getString(R.string.all_quest_totals, 2, 314, 22)));
     }
 
     private void checkMatch() throws Exception {
@@ -239,8 +277,8 @@ public final class BoardSanity extends Instrumentation {
         openChapter(activity, R.string.open_mate_one);
         var views = viewsOf(activity);
         var board = findBoard(views);
-        tap(button(activity, views, R.string.hint));
-        tap(button(activity, views, R.string.show_solution));
+        tap(guidance(activity, R.string.hint));
+        tap(guidance(activity, R.string.show_solution));
         String black = activity.getString(R.string.black);
         String pieceHint = activity.getString(R.string.hint_description, "d8", black, activity.getString(R.string.queen));
         String announcement = activity.getString(R.string.full_hint_announcement, activity.getString(R.string.to_move, black), pieceHint, "h4");
@@ -293,13 +331,13 @@ public final class BoardSanity extends Instrumentation {
         var track = progressTrack(views);
         compare("The collection opens with a zero meter and goal of five", true,
                 track.getProgress() == 0 && track.getMax() == CATALOG_SIZE && hasText(views, activity.getString(R.string.next_milestone, 5)));
-        tap(button(activity, views, R.string.hint));
+        tap(guidance(activity, R.string.hint));
         String expectedHint = activity.getString(R.string.hint_description, "d8", activity.getString(R.string.black), activity.getString(R.string.queen));
         String origin = activity.getString(R.string.piece_square, "d8", activity.getString(R.string.black), activity.getString(R.string.queen));
         View piece = cell(board, "d8");
         View arrowMidpoint = cell(board, "f6");
         View destination = cell(board, "h4");
-        var showSolution = button(activity, views, R.string.show_solution);
+        var showSolution = guidance(activity, R.string.show_solution);
         compare("The simple hint exposes only the black queen on d8 and keeps the board and controls visible", true,
                 hasText(views, expectedHint) && activity.getString(R.string.hint_origin, origin).contentEquals(piece.getContentDescription())
                         && "h4".contentEquals(destination.getContentDescription()) && fullyVisible(board) && fullyVisible(showSolution));
@@ -311,7 +349,7 @@ public final class BoardSanity extends Instrumentation {
                         && activity.getString(R.string.hint_destination, "h4").contentEquals(destination.getContentDescription())
                         && piece.getContentDescription().toString().contains(origin));
         captureFrame("hint-solution", "The full hint renders an arrow across the board", image -> hasColor(image, arrowMidpoint, HINT_TINT, 16));
-        tap(button(activity, views, R.string.why_mate));
+        tap(guidance(activity, R.string.why_mate));
         String queenOnH4 = activity.getString(R.string.piece_at_square, activity.getString(R.string.queen), "h4");
         compare("The solution names the checking queen and king square", true,
                 dialogNode(activity.getString(R.string.mate_checkers, "e1", queenOnH4)) != null);
@@ -395,7 +433,9 @@ public final class BoardSanity extends Instrumentation {
         var order = new ArrayList<String>();
         for (var quest : QuestCatalog.load()) order.add(quest.id());
         var store = new ChessProgressStore(getTargetContext());
-        if (!store.save(store.read(order).select("mate-101"))) throw new AssertionError("Could not select the counter-mate fixture");
+        if (!store.save(store.read(order).select("mate-101"), store.readRewards())) {
+            throw new AssertionError("Could not select the counter-mate fixture");
+        }
         Activity counter = launch();
         List<View> counterViews = viewsOf(counter);
         BoardView counterBoard = findBoard(counterViews);
@@ -416,7 +456,7 @@ public final class BoardSanity extends Instrumentation {
         compare("The fifth solve unlocks the next milestone without hiding the board or controls", true,
                 solvedCount(counter, counterViews, 5) && track.getProgress() == 5
                         && hasText(counterViews, milestone) && hasDescription(counterViews, counter.getString(R.string.quest_solved) + ". " + milestone)
-                        && fullyVisible(counterBoard) && fullyVisible(button(counter, counterViews, R.string.why_mate)));
+                        && fullyVisible(counterBoard) && fullyVisible(guidance(counter, R.string.why_mate)));
         captureFrame("milestone", "The progress bar visibly fills at the first milestone", image -> hasColor(image, track, 0xffb8d88a, 8));
     }
 
@@ -432,8 +472,8 @@ public final class BoardSanity extends Instrumentation {
         playMove(board, wrong);
         compare("A wrong opening keeps White to move and asks for forced mate in two", true,
                 hasText(views, activity.getString(R.string.mate_two_try_again)) && turnLabel(activity, board, R.string.white, R.string.black, true));
-        tap(button(activity, views, R.string.hint));
-        tap(button(activity, views, R.string.show_solution));
+        tap(guidance(activity, R.string.hint));
+        tap(guidance(activity, R.string.show_solution));
         compare("The opening hint shows the unique first move", true, hasText(views, suggestedMove(activity, quest.solution())));
         long started = beginDefense(activity, views, board, quest.solution(), false);
         String defenseText = activity.getString(R.string.mate_two_reply, moveText(activity, quest.defenseAfter(0)));
@@ -453,8 +493,8 @@ public final class BoardSanity extends Instrumentation {
                 hasText(views, activity.getString(R.string.mate_two_progress, 1, 100)) && mateTwoCount(activity, views, 0)
                         && turnLabel(activity, board, R.string.white, R.string.black, true)
                         && hasText(views, activity.getString(R.string.mate_two_reply, moveText(activity, quest.defenseAfter(0)))));
-        tap(button(activity, views, R.string.hint));
-        tap(button(activity, views, R.string.show_solution));
+        tap(guidance(activity, R.string.hint));
+        tap(guidance(activity, R.string.show_solution));
         compare("The second hint follows the current position and shows the mate", true, hasText(views, suggestedMove(activity, quest.matingMove())));
         playMove(board, quest.matingMove());
         compare("Playing the mate increments only the new chapter", true,
@@ -463,7 +503,12 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void openChapter(Activity activity, int label) {
-        tap(button(activity, viewsOf(activity), label));
+        var entry = button(activity, viewsOf(activity), label);
+        runOnMainSync(() -> {
+            if (!fullyVisible(entry)) entry.requestRectangleOnScreen(new Rect(0, 0, entry.getWidth(), entry.getHeight()), true);
+        });
+        waitForIdleSync();
+        tap(entry);
     }
 
     private void switchChapter(Activity activity, int label) {
@@ -523,7 +568,7 @@ public final class BoardSanity extends Instrumentation {
                     && turnLabel(activity, board, R.string.black, R.string.white, false)
                     && originName.contentEquals(origin.getContentDescription())
                     && !BoardSquare.name(move.to()).contentEquals(target.getContentDescription())
-                    && !target.isEnabled() && !button(activity, views, R.string.hint).isEnabled()
+                    && !target.isEnabled() && !guidance(activity, R.string.hint).isEnabled()
                     && !button(activity, views, R.string.next_quest).isEnabled();
             if (closeBeforeReply) activity.finish();
         });
@@ -570,10 +615,10 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void solveCounterMate(Activity activity, List<View> views, BoardView board, String id, String from, String to, int piece) throws Exception {
-        tap(button(activity, views, R.string.hint));
+        tap(guidance(activity, R.string.hint));
         String hint = activity.getString(R.string.hint_description, from, activity.getString(R.string.white), activity.getString(piece));
         compare(id + " names the defending piece and origin", true, hasText(views, hint));
-        tap(button(activity, views, R.string.show_solution));
+        tap(guidance(activity, R.string.show_solution));
         compare(id + " reveals the unique mating reply", true, hasText(views, activity.getString(R.string.suggested_move,
                 activity.getString(R.string.solution_move, from, to))));
         tap(cell(board, from));
@@ -585,6 +630,14 @@ public final class BoardSanity extends Instrumentation {
         return views.stream().filter(Button.class::isInstance).map(Button.class::cast)
                 .filter(view -> view.getText().toString().equals(activity.getString(label))).findFirst()
                 .orElseThrow(() -> new AssertionError("Button missing: " + activity.getString(label)));
+    }
+
+    private static View guidance(Activity activity, int label) {
+        View view = activity.findViewById(R.id.quest_guidance);
+        if (view == null || !activity.getString(label).contentEquals(view.getContentDescription())) {
+            throw new AssertionError("Guidance control missing its accessible name: " + activity.getString(label));
+        }
+        return view;
     }
 
     private static boolean atQuest(Activity activity, List<View> views, int index) {
@@ -614,7 +667,7 @@ public final class BoardSanity extends Instrumentation {
 
     private boolean compactLayoutFits(Activity activity, List<View> views, BoardView board, int hintLabel) {
         var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
-        var controls = List.of(button(activity, views, R.string.previous_quest), button(activity, views, hintLabel),
+        var controls = List.of(button(activity, views, R.string.previous_quest), guidance(activity, hintLabel),
                 button(activity, views, R.string.next_quest));
         boolean[] fits = {false};
         runOnMainSync(() -> {

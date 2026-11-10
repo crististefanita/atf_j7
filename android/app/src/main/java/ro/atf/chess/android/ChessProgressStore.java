@@ -6,10 +6,14 @@ import java.util.Collections;
 import java.util.List;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.QuestProgress;
+import ro.atf.chess.QuestRewards;
 
 final class ChessProgressStore {
     private static final String CURRENT = "current-id";
     private static final String SOLVED = "solved-ids";
+    private static final String REWARD_POINTS = "reward-points";
+    private static final String REWARD_ASSISTED = "reward-assisted";
+    private static final String REWARD_STREAK = "reward-streak";
     private static final String AWAITING_MATE = "awaiting-mate";
     private static final String RESUME_CHAPTER = "resume-chapter";
     private static final String MATCH = "match-checkpoint";
@@ -37,6 +41,11 @@ final class ChessProgressStore {
         return QuestProgress.restore(preferences.getString(CURRENT, null), preferences.getStringSet(SOLVED, Collections.emptySet()), order);
     }
 
+    QuestRewards readRewards() {
+        return QuestRewards.restore(preferences.getStringSet(REWARD_POINTS, Collections.emptySet()),
+                preferences.getStringSet(REWARD_ASSISTED, Collections.emptySet()), preferences.getInt(REWARD_STREAK, 0));
+    }
+
     String remembered(String firstId) {
         String key = chapterKey(firstId);
         String current = preferences.getString(CURRENT, firstId);
@@ -58,9 +67,11 @@ final class ChessProgressStore {
         return id.equals(preferences.getString(AWAITING_MATE, null)) ? 2 : 0;
     }
 
-    boolean save(QuestProgress progress) { return save(progress, progress.currentSolved() ? 0 : ply(progress.currentId())); }
+    boolean save(QuestProgress progress, QuestRewards rewards) {
+        return save(progress, rewards, progress.currentSolved() ? 0 : ply(progress.currentId()));
+    }
 
-    boolean save(QuestProgress progress, int ply) {
+    boolean save(QuestProgress progress, QuestRewards rewards, int ply) {
         String id = progress.currentId();
         String previous = preferences.getString(CURRENT, null);
         var edit = preferences.edit();
@@ -71,10 +82,13 @@ final class ChessProgressStore {
         if (ply == 0) edit.remove("quest-ply-" + id);
         else edit.putInt("quest-ply-" + id, ply);
         return edit.putString(key, id).putBoolean(RESUME_CHAPTER, true).remove(RESUME_MATCH)
-                .putString(CURRENT, id).putStringSet(SOLVED, progress.solvedIds()).commit();
+                .putString(CURRENT, id).putStringSet(SOLVED, progress.solvedIds())
+                .putStringSet(REWARD_POINTS, rewards.encodedPoints()).putStringSet(REWARD_ASSISTED, rewards.assistedIds())
+                .putInt(REWARD_STREAK, rewards.streak()).commit();
     }
 
     private static String chapterKey(String id) {
+        if (id.startsWith("tactic-")) return "last-tactics";
         if (id.startsWith("mate3-")) return "last-mate-three";
         return id.startsWith("mate2-") ? "last-mate-two" : "last-mate-one";
     }

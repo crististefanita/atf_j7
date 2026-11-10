@@ -25,7 +25,8 @@ class AndroidSanityPublication {
     private static final List<Frame> FRAMES = List.of(new Frame("hint-piece.png", "Simple hint · piece only"),
             new Frame("hint-solution.png", "Complete hint · d8 to h4"), new Frame("board.png", "Restored solved position after Qh4#"),
             new Frame("milestone.png", "First milestone · five solved"), new Frame("mate-two.png", "Mate in two · after the defense"),
-            new Frame("menu.png", "Main menu · three puzzle chapters and computer play"), new Frame("mate-three.png", "Mate in three · after the second defense"),
+            new Frame("menu.png", "Main menu · four puzzle chapters and progress totals"), new Frame("mate-three.png", "Mate in three · after the second defense"),
+            new Frame("tactics-streak.png", "Tactics · second solve, bonus and streak"),
             new Frame("match-resumed.png", "Computer game · last move after restart"),
             new Frame("match-history.png", "Computer game · reviewing an earlier move"));
 
@@ -33,8 +34,8 @@ class AndroidSanityPublication {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-board-sanity.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var prepare = readPhase(receipt, "prepare", 42);
-        var restore = readPhase(receipt.resolveSibling("restore.txt"), "restore", 27);
+        var prepare = readPhase(receipt, "prepare", 46);
+        var restore = readPhase(receipt.resolveSibling("restore.txt"), "restore", 28);
         var matchPrepare = readPhase(receipt.resolveSibling("match-prepare.txt"), "match-prepare", 3);
         var matchRestore = readPhase(receipt.resolveSibling("match-restore.txt"), "match-restore", 15);
         var matchSettled = readPhase(receipt.resolveSibling("match-settled.txt"), "match-settled", 4);
@@ -48,10 +49,10 @@ class AndroidSanityPublication {
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
              var scenario = session.startScenario("BoardSanity", "Play the puzzle chapters and review the computer match across restarts", List.of("e2e", "android"));
              var phase = scenario.startPhase("TEST BODY")) {
-            publish(phase, "Open the menu and play the three chapters up to the pending second defense", prepare.rows(), prepare.passed());
+            publish(phase, "Open the menu, earn a tactics bonus and play up to the pending second defense", prepare.rows(), prepare.passed());
             publish(phase, "Android process restart", List.of(new AtfAssertion("Instrumentation process IDs", "Five distinct Android PIDs",
                     String.join(" → ", pids), newProcess)), newProcess);
-            publish(phase, "Resume both pending quests and restore the first chapter's progress", restore.rows(), restore.passed());
+            publish(phase, "Resume pending quests and restore tactics points and mate progress", restore.rows(), restore.passed());
             publish(phase, "Save a computer game before the reply", matchPrepare.rows(), matchPrepare.passed());
             publish(phase, "Resume the computer game and navigate its history", matchRestore.rows(), matchRestore.passed());
             publish(phase, "Reopen after the saved reply", matchSettled.rows(), matchSettled.passed());

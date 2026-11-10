@@ -2,10 +2,10 @@ package ro.atf.chess;
 
 import ro.atf.chess.ChessPosition.Move;
 
-/** A resumable point on the reference line, before the player's final mating move. */
+/** A resumable point on the reference line, before the player's final move. */
 public record QuestStep(int ply) {
     public static QuestStep restore(int ply, QuestCatalog.Quest quest) {
-        return new QuestStep(Math.max(0, Math.min(ply, (quest.mateLength() - 1) * 2)));
+        return new QuestStep(Math.max(0, Math.min(ply, (quest.playerMoves() - 1) * 2)));
     }
 
     public int stage() { return ply / 2; }

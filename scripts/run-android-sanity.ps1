@@ -118,6 +118,7 @@ try {
         Receive-Frame 'hint-solution'
         Receive-Frame 'mate-two'
         Receive-Frame 'menu'
+        Receive-Frame 'tactics-streak'
         Invoke-Device @('shell','am','force-stop',$app)
         Invoke-Device ($instrument + @('-e','phase','restore',$runner)) |
             Set-Content -LiteralPath $restore -Encoding utf8NoBOM

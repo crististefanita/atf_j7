@@ -1,6 +1,17 @@
 # Tabla de joc
 
-Tabla este elementul dominant al ecranului. Verdele și cremul delimitează cele 64 de pătrate. Piesele Staunton au contur închis, bază curbată, cal văzut din profil și coroane distincte pentru rege și damă. Desenul este propriu, inspirat de captura de referință. Coordonatele stau în marginea tablei, iar mutarea de mat marchează plecarea și destinația.
+Tabla este elementul dominant al ecranului. Verdele și cremul delimitează cele 64 de pătrate. Piesele Staunton au contur închis, bază curbată, cal văzut din profil și coroane distincte pentru rege și damă. Desenul este propriu, inspirat de captura de referință. Coordonatele stau în marginea tablei, iar ultima mutare marchează plecarea și destinația.
+
+## Tactică și puncte
+
+- În **Tactică**, alege mutarea care câștigă cel mai mult material. Verificarea ia în calcul mutarea ta, replica adversarului și continuarea ta. Poți deschide explicația pentru linia completă.
+- Becul de sub tablă are o zonă de atingere de 48 dp. Prima apăsare marchează piesa, a doua adaugă săgeata, iar următoarea explică soluția. În timpul replicii, comanda este dezactivată.
+- Prima rezolvare a fiecărei probleme acordă 10 puncte. O serie fără greșeli sau indicii adaugă câte 2 puncte la fiecare problemă, începând de la a doua, până la 20 de puncte pe problemă. Flacăra arată lungimea seriei și funcționează între capitole.
+- O greșeală sau folosirea becului întrerupe seria. Rezolvarea acelei probleme rămâne eligibilă pentru cele 10 puncte de bază. Revizitarea și reluarea păstrează punctele deja acordate. Problemele rezolvate înainte de această schimbare primesc creditul de bază.
+
+Sistemul de puncte și bonusul de la a doua rezolvare urmează modelul Puzzle Points. În J7, flacăra reprezintă problemele consecutive rezolvate fără ajutor. [Chess.com Puzzle Points](https://support.chess.com/en/articles/9681952-what-are-puzzle-points-on-chess-com)
+
+## Tablă și indicii
 
 - Culoarea care mută începe jos și are marcajul „la mutare” lângă tablă. Marcajul urmează poziția de joc și rămâne vizibil când apare un indiciu. Întoarcerea tablei schimbă poziția vizuală a etichetelor și a coordonatelor, inclusiv `h…a` cu negrul jos.
 - Etichetele Alb și Negru stau lângă muchiile tablei. Panoul măsoară întâi etichetele și folosește spațiul disponibil pentru tablă. Pe ferestre scunde, tabla rămâne pătrată și se micșorează pentru a păstra locul comenzilor.

@@ -11,19 +11,20 @@ import ro.atf.chess.ChessPosition.Move;
 
 /** Curated problems. The catalog oracle is used for acceptance; the position decides success. */
 public final class QuestCatalog {
+    public enum Objective { MATE, MATERIAL }
     public enum MatePattern { DIRECT, DISCOVERED, CASTLING, EN_PASSANT, PROMOTION }
 
     public record Guidance(ChessPosition.Piece piece, Move move, MatePattern pattern) { }
 
     public record Attempt(ChessPosition position, ChessPosition.Outcome outcome, Move defense, boolean continues,
-                          TacticalAnalysis.Result replyAnalysis) {
-        public Attempt(ChessPosition position, ChessPosition.Outcome outcome, Move defense, boolean continues) {
-            this(position, outcome, defense, continues, null);
-        }
-    }
+                          boolean solved, TacticalAnalysis.Result replyAnalysis) { }
 
-    public record Quest(String id, String fen, String theme, ChessPosition position, List<Move> line) {
+    public record Quest(String id, String fen, String theme, ChessPosition position, List<Move> line, Objective objective) {
         public Quest { line = List.copyOf(line); }
+
+        public Quest(String id, String fen, String theme, ChessPosition position, List<Move> line) {
+            this(id, fen, theme, position, line, Objective.MATE);
+        }
 
         public Quest(String id, String fen, Move solution, String theme, ChessPosition position) {
             this(id, fen, theme, position, List.of(solution));
@@ -31,7 +32,8 @@ public final class QuestCatalog {
 
         public Move solution() { return playerMove(0); }
 
-        public int mateLength() { return (line.size() + 1) / 2; }
+        public int playerMoves() { return (line.size() + 1) / 2; }
+        public int mateLength() { return playerMoves(); }
 
         public Move playerMove(int stage) { return line.get(stage * 2); }
 
@@ -43,25 +45,32 @@ public final class QuestCatalog {
             return board;
         }
 
-        public boolean solves(Move attempt) { return position.play(attempt).isCheckmate(); }
+        public boolean solves(Move attempt) {
+            var after = position.play(attempt);
+            return objective == Objective.MATERIAL ? solution().equals(attempt) : after.isCheckmate();
+        }
 
         public Attempt assess(Move move) { return assess(move, 0); }
 
         public Attempt assess(Move move, int stage) {
-            if (stage < mateLength() - 1 && playerMove(stage).equals(move)) {
-                return new Attempt(positionAt(stage + 1), ChessPosition.Outcome.PLAYING, defenseAfter(stage), true);
+            if (stage < playerMoves() - 1 && playerMove(stage).equals(move)) {
+                return new Attempt(positionAt(stage + 1), ChessPosition.Outcome.PLAYING, defenseAfter(stage), true, false, null);
             }
             var after = positionAt(stage).play(move);
-            if (!after.isCheck()) return new Attempt(after, after.outcome(), null, false);
+            if (objective == Objective.MATERIAL) {
+                return new Attempt(after, after.outcome(), null, false, solution().equals(move), null);
+            }
+            if (!after.isCheck()) return new Attempt(after, after.outcome(), null, false, false, null);
             var replies = after.legalMoves();
-            if (replies.isEmpty()) return new Attempt(after, ChessPosition.Outcome.CHECKMATE, null, false);
+            if (replies.isEmpty()) return new Attempt(after, ChessPosition.Outcome.CHECKMATE, null, false, true, null);
             var analysis = TacticalAnalysis.checkingReplies(after, replies);
-            return new Attempt(after, ChessPosition.Outcome.CHECK, analysis.best().get(0).move(), false, analysis);
+            return new Attempt(after, ChessPosition.Outcome.CHECK, analysis.best().get(0).move(), false, false, analysis);
         }
 
-        public Move matingMove() { return playerMove(mateLength() - 1); }
+        public Move finishingMove() { return playerMove(playerMoves() - 1); }
+        public Move matingMove() { return finishingMove(); }
 
-        public ChessPosition solvedPosition() { return positionAt(mateLength() - 1).play(matingMove()); }
+        public ChessPosition solvedPosition() { return positionAt(playerMoves() - 1).play(finishingMove()); }
 
         public ChessPosition.MateExplanation explanation() { return solvedPosition().explainMate(); }
 
@@ -101,6 +110,30 @@ public final class QuestCatalog {
 
     public static List<Quest> loadMateInThree() {
         return loadMultiMove("mate-in-three.yaml", "MATE_IN_THREE", 3);
+    }
+
+    public static List<Quest> loadTactics() {
+        var root = ChessYaml.resource("tactics.yaml");
+        if (ChessYaml.number(root, "schema") != 1 || !"WIN_MATERIAL".equals(ChessYaml.string(root, "objective"))) {
+            throw new IllegalArgumentException("Invalid tactics catalog schema or objective");
+        }
+        var quests = new ArrayList<Quest>();
+        var ids = new HashSet<String>();
+        var positions = new HashSet<String>();
+        for (Object item : ChessYaml.list(root, "quests")) {
+            if (!(item instanceof Map<?, ?> row) || row.size() != 3) throw new IllegalArgumentException("Invalid tactics quest row");
+            String id = ChessYaml.string(row, "id");
+            String fen = ChessYaml.string(row, "fen");
+            if (!id.matches("tactic-[0-9]{3}") || !ids.add(id) || !positions.add(fen.replaceFirst(" [0-9]+ [0-9]+$", ""))) {
+                throw new IllegalArgumentException("Invalid or duplicate tactics quest " + id);
+            }
+            var quest = new Quest(id, fen, "MATERIAL", ChessPosition.fromFen(fen),
+                    List.of(Move.fromUci(ChessYaml.string(row, "solution"))), Objective.MATERIAL);
+            if (quest.solvedPosition().isCheckmate()) throw new IllegalArgumentException("Unexpected mate in " + id);
+            quests.add(quest);
+        }
+        if (quests.isEmpty()) throw new IllegalArgumentException("Empty tactics catalog");
+        return Collections.unmodifiableList(quests);
     }
 
     private static List<Quest> loadMultiMove(String file, String objective, int length) {

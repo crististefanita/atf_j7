@@ -1,4 +1,16 @@
 <resources>
+    <string name="open_tactics">Tactică</string>
+    <string name="tactics_progress">Tactică · %1$d/%2$d</string>
+    <string name="find_tactic">Găsește mutarea care câștigă cel mai mult material.</string>
+    <string name="tactics_solved">Material câștigat · Rezolvat</string>
+    <string name="tactics_try_again">Există o mutare mai bună. Încearcă din nou.</string>
+    <string name="why_tactic">De ce această mutare?</string>
+    <string name="tactics_explanation">%1$s\n\nLinia câștigă %2$s unități de pion împotriva celei mai bune replici în următoarele trei semimutări.</string>
+    <string name="chapter_totals">%1$d/%2$d rezolvate · %3$d pct.</string>
+    <string name="all_quest_totals">Total · %1$d/%2$d rezolvate · %3$d pct.</string>
+    <string name="chapter_points">%1$d puncte</string>
+    <string name="earned_points">+%1$d · %2$d puncte</string>
+    <string name="reward_streak">Serie %1$d</string>
     <string name="mate_objective">Mat într-o mutare</string>
     <string name="quest_progress">Mat într-o mutare · %1$d/%2$d</string>
     <string name="mate_two_progress">Mat în două mutări · %1$d/%2$d</string>

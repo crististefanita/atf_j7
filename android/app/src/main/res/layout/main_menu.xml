@@ -25,14 +25,23 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:paddingTop="6dp"
-            android:paddingBottom="18dp"
+            android:paddingBottom="4dp"
             android:text="@string/menu_choose"
             android:textColor="#c0bfb4"
             android:textSize="16sp" />
 
+        <TextView android:id="@+id/quest_totals" style="@style/ChapterTotals" android:textColor="#b8d88a" />
+        <TextView android:id="@+id/menu_streak" style="@style/ChapterTotals" android:layout_width="wrap_content"
+            android:layout_gravity="center_horizontal" android:visibility="gone" />
+
         <Button android:id="@+id/chapter_one" style="@style/ChapterEntry" android:text="@string/open_mate_one" />
+        <TextView android:id="@+id/chapter_one_totals" style="@style/ChapterTotals" />
         <Button android:id="@+id/chapter_two" style="@style/ChapterEntry" android:text="@string/open_mate_two" />
+        <TextView android:id="@+id/chapter_two_totals" style="@style/ChapterTotals" />
         <Button android:id="@+id/chapter_three" style="@style/ChapterEntry" android:text="@string/open_mate_three" />
+        <TextView android:id="@+id/chapter_three_totals" style="@style/ChapterTotals" />
+        <Button android:id="@+id/chapter_tactics" style="@style/ChapterEntry" android:text="@string/open_tactics" />
+        <TextView android:id="@+id/chapter_tactics_totals" style="@style/ChapterTotals" />
         <Button android:id="@+id/new_match" style="@style/ChapterEntry" android:text="@string/new_match" />
         <Button android:id="@+id/resume_match" style="@style/ChapterEntry" android:text="@string/resume_match" android:visibility="gone" />
         <Button style="@style/ChapterEntry" android:enabled="false" android:text="@string/menu_analysis_todo" />

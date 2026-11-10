@@ -117,6 +117,11 @@ class ReleaseGovernanceTest {
         var history = ReleaseRag.retrieve(root, List.of("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "README.md"));
         check.same("History changes cite the match probe and release workflow", List.of("## Sanity Android", "## Partidă și istoric", "## Calificare și publicare"),
                 history.stream().map(ReleaseRag.Citation::heading).toList());
+        var tactics = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/tactics.yaml",
+                "chess-core/src/main/java/ro/atf/chess/QuestRewards.java"));
+        check.same("The new catalog and reward policy cite their specific verification",
+                List.of("TacticsCatalogTest și verify-tactics.cjs", "QuestRewardsTest și MainMenuLayoutTest"),
+                tactics.stream().filter(item -> item.heading().equals("## Tactică și punctaj")).map(ReleaseRag.Citation::check).toList());
         var steps = ReleaseRag.workflow(root);
         check.same("The release workflow follows the eight required steps", List.of(1, 2, 3, 4, 5, 6, 7, 8),
                 steps.stream().map(line -> Integer.parseInt(line.substring(0, line.indexOf('.')))).toList());

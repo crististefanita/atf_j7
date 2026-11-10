@@ -8,7 +8,7 @@ Construiți în TMP dintr-o copie a sursei. Componentele rulează fără emulato
 
 `BoardPanelLayoutTest` verifică geometria panoului pentru ferestre înalte, scunde și etichete mai înalte. Dimensiunea tablei se calculează din spațiul rămas după măsurarea ambelor etichete.
 
-`MainMenuLayoutTest` verifică resursa folosită de Android pentru ordinea capitolelor, textele românești și englezești, accesul prin derulare și intrările ToDo inactive. `QuestStepTest` verifică piesele și culoarea la mutare înainte și după apărare, reluarea și blocarea navigării până la mat.
+`MainMenuLayoutTest` verifică ordinea celor patru capitole, textele românești și englezești, derularea, totalurile și zona de atingere a becului. `QuestStepTest` verifică piesele și culoarea la mutare înainte și după apărare, reluarea și blocarea navigării până la rezolvare.
 
 `QuestCatalogTest` enumeră fiecare mutare legală pentru toate cele 102 probleme și cere o singură soluție de mat. O probă separă șahul cu apărare de mat. O altă probă verifică patul, rocada prin șah și captura en passant care ar expune propriul rege. Amprenta completă a mulțimilor de mutări se compară cu [`quest-oracle.yaml`](../../chess-core/src/main/resources/quest-oracle.yaml), produs de `chess.js` 1.4.0.
 
@@ -36,6 +36,14 @@ node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> chess-core/src/main/re
 node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/resources/mate-in-three.yaml chess-core/src/main/resources/mate-in-three.sha256
 ```
 
+## Tactică și punctaj
+
+`QuestRewardsTest` verifică seria între capitole, plafonul bonusului, restaurarea unei încercări asistate, punctajul anterior și totalurile. `TacticsCatalogTest` verifică cheia unică a fiecărei poziții, câștigul de material, lipsa matului imediat și blocarea comenzii **Următoarea** la o mutare greșită. Pozițiile provin din partidele locale de calibrare J7, cu partida și semimutarea de origine notate în YAML. Amprenta conține cheia și câștigul de material recalculate de chess.js.
+
+```powershell
+node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/tactics.yaml chess-core/src/main/resources/tactics.sha256
+```
+
 ## Raportare Extent
 
 `TacticalAnalysisTest` compară o captură înainte și după recaptură, două câștiguri egale și un mat care devine vizibil abia la al treilea pas. Pozițiile din partida italiană verifică alegerea unei replici superioare primei mutări generate și evitarea unui mat imediat. Raportul de componente păstrează linia și câștigul așteptat ca aserțiuni.
@@ -58,9 +66,11 @@ Din aceeași copie TMP, setați `ANDROID_HOME` către SDK 36 și construiți `:a
 
 Folosiți registrul comun de rezervare pe dispozitivele partajate.
 
-1. Prima instrumentare verifică meniul, marcajul culorii și cele două trepte ale indiciului. Verifică derularea meniului și încadrarea tablei în română la font 1,3×, precum și legăturile de traversare între culoare, piesă și destinație. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
-2. Runnerul oprește procesul. A doua instrumentare verifică redeschiderea în Mat în 3, răspunsul restant și activarea comenzii **Următoarea** abia după mat. Revine în celelalte capitole și verifică reluarea și pragul de cinci rezolvări.
-3. Extent cere PID-uri distincte, aserțiunile celor cinci faze și nouă capturi PNG. Raportul include meniul, indiciile, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
+1. Prima instrumentare verifică meniul, culoarea, cele două trepte ale becului și încadrarea în română la font 1,3×. În Tactică rezolvă două poziții și verifică afișarea flăcării, a bonusului și a totalurilor. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
+2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, deblocarea comenzii **Următoarea**, pragul de cinci rezolvări și restaurarea poziției și punctelor în Tactică.
+3. Extent cere PID-uri distincte, aserțiunile celor cinci faze și zece capturi PNG. Raportul include meniul, indiciile, flacăra, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
+
+La modificarea instrumentării, sincronizați numărul exact de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru o corecție exclusivă de publicare, copiați dovezile native într-un dosar nou și rulați publicatorul cu `-Dchess.android.receipt=<dosar>/prepare.txt`.
 
 ## Partidă și istoric
 
