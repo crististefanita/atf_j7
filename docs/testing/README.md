@@ -6,6 +6,8 @@ Construiți în TMP dintr-o copie a sursei. Componentele rulează fără emulato
 
 `ChessComponentTest` verifică poziția inițială, orientarea și legalitatea, cu oracole independente. Cazurile includ numărul pozițiilor la primele trei mutări individuale, rocada, en passant, promovarea și matul.
 
+`BoardPanelLayoutTest` verifică geometria panoului pentru ferestre înalte, scunde și etichete mai înalte. Dimensiunea tablei se calculează din spațiul rămas după măsurarea ambelor etichete.
+
 `QuestCatalogTest` enumeră fiecare mutare legală pentru toate cele 102 probleme și cere o singură soluție de mat. O probă separă șahul cu apărare de mat. O altă probă verifică patul, rocada prin șah și captura en passant care ar expune propriul rege. Amprenta completă a mulțimilor de mutări se compară cu [`quest-oracle.yaml`](../../chess-core/src/main/resources/quest-oracle.yaml), produs de `chess.js` 1.4.0.
 
 `QuestCatalogTest` recalculează ordinea de dificultate pentru întregul catalog. `QuestProgressTest` verifică inclusiv trecerea de la 100 la 102 de probleme cu selecția și rezolvările păstrate după ID, chiar dacă poziția afișată se mută.
@@ -19,6 +21,12 @@ node scripts/verify-quest-oracle.cjs <cale-catre-chess.js> chess-core/src/main/r
 ```
 
 Motorul independent rulează în TMP și nu intră în APK. [chess.js](https://github.com/jhlywa/chess.js/tree/v1.4.0)
+
+`MateInTwoCatalogTest` verifică exact 100 de poziții, absența matului imediat, o singură cheie, fiecare apărare legală și toate maturile din ramurile rezultate. Amprenta calculată de J7 trebuie să coincidă cu cea produsă independent de chess.js.
+
+```powershell
+node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> chess-core/src/main/resources/mate-in-two.yaml chess-core/src/main/resources/mate-in-two.sha256
+```
 
 ## Raportare Extent
 
@@ -40,8 +48,8 @@ Din aceeași copie TMP, setați `ANDROID_HOME` către SDK 36 și construiți `:a
 
 Folosiți registrul comun de rezervare pe dispozitivele partajate.
 
-1. Prima instrumentare verifică rama fără săgeată, apoi săgeata și explicația. Citește marcajele accesibile și confirmă că dezvăluirea lasă contorul la zero. Rezolvă două probleme și lasă a treia deschisă.
-2. Runnerul oprește procesul. A doua instrumentare verifică problema reluată și matul deja salvat. Selectează `mate-101` în datele aplicației izolate, joacă ambele contra-maturi și atinge pragul de cinci cu încă o rezolvare.
-3. Extent cere PID-uri distincte, aserțiunile ambelor faze și patru capturi PNG. Rama, săgeata, matul restaurat și bara de progres sunt verificate în pixeli și atașate separat, după modelul capturilor multiple din J0. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
+1. Prima instrumentare verifică etichetele, profilul scund și marcajul culorii active la întoarcerea tablei. Parcurge indiciile și rezolvă două probleme din primul capitol. Deschide capitolul nou, verifică respingerea unei chei greșite și joacă mutarea inițială până la apărarea automată.
+2. Runnerul oprește procesul. A doua instrumentare confirmă reluarea după apărare și contorul încă la zero, joacă matul și verifică revenirea la problema anterioară din primul capitol. În datele aplicației izolate parcurge și cele două contra-maturi, până la pragul de cinci.
+3. Extent cere PID-uri distincte, aserțiunile ambelor faze și cinci capturi PNG. Rama, săgeata, matul restaurat, bara de progres și apărarea adversarului sunt verificate în pixeli. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
 
 [Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)

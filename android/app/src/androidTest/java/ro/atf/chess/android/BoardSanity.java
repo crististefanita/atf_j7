@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import ro.atf.chess.BoardSquare;
+import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.QuestCatalog;
 
 public final class BoardSanity extends Instrumentation {
@@ -89,7 +90,15 @@ public final class BoardSanity extends Instrumentation {
         String solved = activity.getString(R.string.quest_solved);
         compare("64 visible cells", 64, board.getChildCount());
         compare("Square board", true, board.getWidth() > 0 && board.getWidth() == board.getHeight());
+        compare("Both player labels are adjacent to the board", true, labelsTouchBoard(board));
+        compare("A compact layout keeps the labels, square board and three controls visible", true, compactLayoutFits(activity, views, board));
         compare("The first of 102 quests is shown", true, atQuest(activity, views, 1));
+        compare("Black is to move and is shown next to the bottom rank", true, turnLabel(activity, board, R.string.black, R.string.white, true));
+        var flip = button(activity, views, R.string.flip);
+        tap(flip);
+        compare("Flipping moves the label to the top without changing the active color", true,
+                turnLabel(activity, board, R.string.black, R.string.white, false));
+        tap(flip);
         compare("Fresh storage shows zero solved quests", true, solvedCount(activity, views, 0));
         var track = progressTrack(views);
         compare("The collection opens with a zero meter and goal of five", true,
@@ -141,6 +150,7 @@ public final class BoardSanity extends Instrumentation {
         tap(next);
         compare("The third quest is the current selection", true, atQuest(activity, views, 3));
         compare("The selected third quest is unsolved", false, hasText(views, solved));
+        prepareMateInTwo(activity, views, board);
     }
 
     private AccessibilityNodeInfo dialogNode(String text) throws Exception {
@@ -171,8 +181,9 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void restore(Activity activity, List<View> views, BoardView board) throws Exception {
+        finishMateInTwo(activity, views, board);
         String solved = activity.getString(R.string.quest_solved);
-        compare("Cold launch resumes the third quest", true, atQuest(activity, views, 3));
+        compare("Switching back resumes the third one-move quest", true, atQuest(activity, views, 3));
         compare("Both prior solves survive process death", true, solvedCount(activity, views, 2));
         compare("The resumed quest is still unsolved", false, hasText(views, solved));
         Button previous = button(activity, views, R.string.previous_quest);
@@ -214,6 +225,66 @@ public final class BoardSanity extends Instrumentation {
         captureFrame("milestone", "The progress bar visibly fills at the first milestone", image -> hasColor(image, track, 0xffb8d88a, 8));
     }
 
+    private void prepareMateInTwo(Activity activity, List<View> views, BoardView board) throws Exception {
+        tap(button(activity, views, R.string.open_mate_two));
+        var quest = QuestCatalog.loadMateInTwo().get(0);
+        compare("The new chapter opens with its own 100-quest counter", true,
+                hasText(views, activity.getString(R.string.mate_two_progress, 1, 100)) && mateTwoCount(activity, views, 0)
+                        && turnLabel(activity, board, R.string.white, R.string.black, true));
+        Move wrong = quest.position().legalMoves().stream().filter(move -> !move.equals(quest.solution())).findFirst().orElseThrow();
+        playMove(board, wrong);
+        compare("A wrong opening keeps White to move and asks for forced mate in two", true,
+                hasText(views, activity.getString(R.string.mate_two_try_again)) && turnLabel(activity, board, R.string.white, R.string.black, true));
+        tap(button(activity, views, R.string.hint));
+        tap(button(activity, views, R.string.show_solution));
+        compare("The opening hint shows the unique first move", true, hasText(views, moveText(activity, quest.solution())));
+        playMove(board, quest.solution());
+        var defense = quest.line().defense();
+        compare("The opponent replies and the first move does not count as a solve", true,
+                hasText(views, activity.getString(R.string.mate_two_reply, moveText(activity, defense))) && mateTwoCount(activity, views, 0)
+                        && turnLabel(activity, board, R.string.white, R.string.black, true));
+        var square = cell(board, BoardSquare.name(defense.to()));
+        int color = BoardSquare.isLight(defense.to()) ? 0xfff4ef86 : 0xffbec953;
+        captureFrame("mate-two", "The mate-in-two board highlights the opponent's defense", image -> hasColor(image, square, color, 16));
+    }
+
+    private void finishMateInTwo(Activity activity, List<View> views, BoardView board) {
+        var quest = QuestCatalog.loadMateInTwo().get(0);
+        compare("Cold launch restores the second move after the opponent's defense", true,
+                hasText(views, activity.getString(R.string.mate_two_progress, 1, 100)) && mateTwoCount(activity, views, 0)
+                        && turnLabel(activity, board, R.string.white, R.string.black, true)
+                        && hasText(views, activity.getString(R.string.mate_two_reply, moveText(activity, quest.line().defense()))));
+        tap(button(activity, views, R.string.hint));
+        tap(button(activity, views, R.string.show_solution));
+        compare("The second hint follows the current position and shows the mate", true, hasText(views, moveText(activity, quest.matingMove())));
+        playMove(board, quest.matingMove());
+        compare("Playing the mate increments only the new chapter", true,
+                mateTwoCount(activity, views, 1) && hasText(views, activity.getString(R.string.quest_solved)));
+        tap(button(activity, views, R.string.open_mate_one));
+    }
+
+    private void playMove(BoardView board, Move move) {
+        if (move.promotion() != null) throw new AssertionError("Sanity fixture requires a move without promotion");
+        tap(cell(board, BoardSquare.name(move.from())));
+        tap(cell(board, BoardSquare.name(move.to())));
+    }
+
+    private static String moveText(Activity activity, Move move) {
+        return activity.getString(R.string.solution_move, BoardSquare.name(move.from()), BoardSquare.name(move.to()));
+    }
+
+    private static boolean mateTwoCount(Activity activity, List<View> views, int count) {
+        return hasText(views, activity.getString(R.string.solved_count, count, 100));
+    }
+
+    private static boolean turnLabel(Activity activity, BoardView board, int active, int other, boolean bottom) {
+        var panel = (ViewGroup) board.getParent();
+        var mover = (TextView) panel.getChildAt(bottom ? 2 : 0);
+        var opponent = (TextView) panel.getChildAt(bottom ? 0 : 2);
+        return activity.getString(R.string.to_move, activity.getString(active)).contentEquals(mover.getText())
+                && activity.getString(other).contentEquals(opponent.getText());
+    }
+
     private void solveCounterMate(Activity activity, List<View> views, BoardView board, String id, String from, String to, int piece) throws Exception {
         tap(button(activity, views, R.string.hint));
         String hint = activity.getString(R.string.hint_description, from, activity.getString(R.string.white), activity.getString(piece));
@@ -246,6 +317,42 @@ public final class BoardSanity extends Instrumentation {
     private static boolean fullyVisible(View view) {
         Rect bounds = new Rect();
         return view.getGlobalVisibleRect(bounds) && bounds.width() == view.getWidth() && bounds.height() == view.getHeight();
+    }
+
+    private static boolean labelsTouchBoard(BoardView board) {
+        ViewGroup panel = (ViewGroup) board.getParent();
+        View top = panel.getChildAt(0);
+        View bottom = panel.getChildAt(2);
+        return top.getBottom() == board.getTop() && bottom.getTop() == board.getBottom()
+                && fullyVisible(top) && fullyVisible(bottom);
+    }
+
+    private boolean compactLayoutFits(Activity activity, List<View> views, BoardView board) {
+        var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
+        var controls = List.of(button(activity, views, R.string.previous_quest), button(activity, views, R.string.hint),
+                button(activity, views, R.string.next_quest));
+        boolean[] fits = {false};
+        runOnMainSync(() -> {
+            Rect original = new Rect(root.getLeft(), root.getTop(), root.getRight(), root.getBottom());
+            int originalBoard = board.getWidth();
+            int densityLimit = Math.round(480 * activity.getResources().getDisplayMetrics().density);
+            int compact = Math.min(original.height() - 1, densityLimit);
+            try {
+                measureScreen(root, original, compact);
+                fits[0] = board.getWidth() > 0 && board.getWidth() < originalBoard && board.getWidth() == board.getHeight()
+                        && labelsTouchBoard(board) && fullyVisible(board) && controls.stream().allMatch(BoardSanity::fullyVisible)
+                        && ((View) board.getParent()).getBottom() <= ((View) controls.get(0).getParent()).getTop();
+            } finally {
+                measureScreen(root, original, original.height());
+            }
+        });
+        return fits[0];
+    }
+
+    private static void measureScreen(View root, Rect bounds, int height) {
+        root.measure(View.MeasureSpec.makeMeasureSpec(bounds.width(), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+        root.layout(bounds.left, bounds.top, bounds.right, bounds.top + height);
     }
 
     private void captureFrame(String name, String assertion, Predicate<Bitmap> rendered) throws IOException {

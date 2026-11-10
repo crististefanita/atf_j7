@@ -12,3 +12,15 @@ Din copia TMP, după build, scorurile pot fi regenerate pentru revizie. Verifica
 ```powershell
 java -cp 'atf-tests/target/classes;target/maven-repo/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar' ro.atf.chess.QuestDifficulty
 ```
+
+## Mat în două mutări
+
+Cele 100 de poziții provin din exportul CC0 Lichess, prin subsetul `lczerolens/lichess-puzzles-mate-in-2`. ID-ul `mate2-<PuzzleId>` păstrează legătura cu problema `https://lichess.org/training/<PuzzleId>`. Poziția afișată este FEN-ul sursă după prima mutare a adversarului. [Formatul și licența Lichess](https://database.lichess.org/#puzzles) · [Subsetul folosit](https://huggingface.co/datasets/lczerolens/lichess-puzzles-mate-in-2/viewer)
+
+Selecția are câte zece poziții cu fiecare culoare la mutare în fiecare dintre cele cinci intervale de rating. Ratingurile importate merg de la 427 la 2358. Verificarea respinge matul imediat, cheia alternativă și orice apărare fără continuare de mat. Catalogul păstrează linia de referință, iar dovada independentă acoperă toate apărările și toate maturile din fiecare ramură.
+
+Pentru reimport, salvați în TMP paginile `rows-<offset>.json`, cu 100 de rânduri pe pagină. Selecția inițială a folosit offseturile 0, 100, 200, 300, 400, 500, 2000, 3000, 10000, 14000, 20000, 40000, 50000, 80000, 90000, 100000, 200000, 400000 și 600000. [Revizia datelor](https://huggingface.co/datasets/lczerolens/lichess-puzzles-mate-in-2/tree/8c195a0696c30c8371d276db0467e833f1b72468)
+
+```powershell
+node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> --import <pagini-TMP> <catalog-TMP.yaml>
+```

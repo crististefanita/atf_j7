@@ -9,7 +9,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -29,6 +28,8 @@ public final class ChessActivity extends Activity {
     private static final int PRIMARY = 0xfff5f3ec;
     private static final int MUTED = 0xffc0bfb4;
     private static final int PROGRESS = 0xffb8d88a;
+    private List<QuestCatalog.Quest> mateInOne;
+    private List<QuestCatalog.Quest> mateInTwo;
     private List<QuestCatalog.Quest> quests;
     private List<String> order;
     private QuestProgressStore store;
@@ -36,6 +37,7 @@ public final class ChessActivity extends Activity {
     private ChessPosition position;
     private int questIndex;
     private boolean solved;
+    private boolean awaitingMate;
     private String attemptMessage;
     private BoardView board;
     private TextView status;
@@ -46,6 +48,7 @@ public final class ChessActivity extends Activity {
     private TextView milestone;
     private ProgressBar progressTrack;
     private Button guidance;
+    private Button chapter;
     private QuestHint hint = QuestHint.NONE;
     private Button previous;
     private Button next;
@@ -56,12 +59,13 @@ public final class ChessActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        quests = QuestCatalog.load();
-        order = new ArrayList<>(quests.size());
-        for (var quest : quests) order.add(quest.id());
+        mateInOne = QuestCatalog.load();
+        mateInTwo = QuestCatalog.loadMateInTwo();
+        var allIds = ids(mateInOne);
+        allIds.addAll(ids(mateInTwo));
         store = new QuestProgressStore(this);
-        progress = store.read(order);
-        loadQuest(order.indexOf(progress.currentId()));
+        progress = store.read(allIds);
+        selectChapter(progress.currentId().startsWith("mate2-") ? mateInTwo : mateInOne, progress.currentId());
         if (state != null && progress.currentId().equals(state.getString("questId"))) {
             blackBelow = state.getBoolean("blackBelow", blackBelow);
         }
@@ -89,16 +93,19 @@ public final class ChessActivity extends Activity {
         screen.addView(header);
         recentMove = text(R.string.mate_objective, 14, MUTED);
         recentMove.setGravity(Gravity.CENTER);
-        screen.addView(recentMove);
+        LinearLayout chapterRow = new LinearLayout(this);
+        chapterRow.setGravity(Gravity.CENTER_VERTICAL);
+        chapterRow.addView(recentMove, new LinearLayout.LayoutParams(0, -2, 1));
+        chapter = new Button(this);
+        chapter.setAllCaps(false);
+        chapter.setOnClickListener(view -> switchChapter());
+        chapterRow.addView(chapter);
+        screen.addView(chapterRow);
         screen.addView(progressPanel());
         topPlayer = playerLabel();
-        screen.addView(topPlayer);
-        FrameLayout center = new FrameLayout(this);
-        board = new BoardView(this, this::tap);
-        center.addView(board, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
-        screen.addView(center, new LinearLayout.LayoutParams(-1, 0, 1));
         bottomPlayer = playerLabel();
-        screen.addView(bottomPlayer);
+        board = new BoardView(this, this::tap);
+        screen.addView(new BoardPanel(this, topPlayer, board, bottomPlayer), new LinearLayout.LayoutParams(-1, 0, 1));
         status = text(R.string.mate_objective, 16, PRIMARY);
         status.setGravity(Gravity.CENTER);
         status.setPadding(dp(8), dp(4), dp(8), dp(10));
@@ -158,7 +165,7 @@ public final class ChessActivity extends Activity {
     }
 
     private void showSolution(QuestCatalog.Quest quest) {
-        int explanation = switch (quest.guidance().pattern()) {
+        int explanation = switch (quest.matingPattern()) {
             case DIRECT -> R.string.mate_direct;
             case DISCOVERED -> R.string.mate_discovered;
             case CASTLING -> R.string.mate_castling;
@@ -166,7 +173,9 @@ public final class ChessActivity extends Activity {
             case PROMOTION -> R.string.mate_promotion;
         };
         var mate = quest.explanation();
-        var message = new StringBuilder(notation(quest.solution())).append("\n\n").append(getString(explanation))
+        String line = quest.mateInTwo() ? getString(R.string.mate_two_line, notation(quest.solution()), notation(quest.line().defense()), notation(quest.matingMove()))
+                : notation(quest.solution());
+        var message = new StringBuilder(line).append("\n\n").append(getString(explanation))
                 .append("\n\n").append(getString(R.string.mate_checkers, BoardSquare.name(mate.king()), threats(mate.checkers())));
         for (var exit : mate.exits()) {
             String square = BoardSquare.name(exit.square());
@@ -206,6 +215,29 @@ public final class ChessActivity extends Activity {
         return button;
     }
 
+    private void switchChapter() {
+        var destination = quests == mateInOne ? mateInTwo : mateInOne;
+        String first = destination.get(0).id();
+        String remembered = store.remembered(first);
+        String target = ids(destination).contains(remembered) ? remembered : first;
+        if (save(progress.select(target))) {
+            selectChapter(destination, target);
+            render();
+        }
+    }
+
+    private void selectChapter(List<QuestCatalog.Quest> collection, String id) {
+        quests = collection;
+        order = ids(collection);
+        loadQuest(order.indexOf(id));
+    }
+
+    private static ArrayList<String> ids(List<QuestCatalog.Quest> collection) {
+        var ids = new ArrayList<String>(collection.size());
+        for (var quest : collection) ids.add(quest.id());
+        return ids;
+    }
+
     private void addControl(LinearLayout row, Button button, float weight) {
         button.setMinimumWidth(0);
         button.setMinWidth(0);
@@ -216,14 +248,17 @@ public final class ChessActivity extends Activity {
 
     private void loadQuest(int index) {
         questIndex = index;
-        position = quests.get(index).position();
+        var quest = quests.get(index);
+        position = quest.position();
         blackBelow = position.turn() == ChessPosition.Side.BLACK;
         solved = progress.currentSolved();
         attemptMessage = null;
         hint = QuestHint.NONE;
         selected = -1;
-        last = solved ? quests.get(index).solution() : null;
-        if (solved) position = position.play(last);
+        awaitingMate = !solved && quest.mateInTwo() && store.awaitingMate(quest.id());
+        last = solved ? quest.matingMove() : awaitingMate ? quest.line().defense() : null;
+        if (solved) position = quest.solvedPosition();
+        else if (awaitingMate) position = quest.continuationPosition();
         options = Collections.emptyList();
     }
 
@@ -263,16 +298,22 @@ public final class ChessActivity extends Activity {
     }
 
     private void play(Move move) {
-        var result = quests.get(questIndex).assess(move);
+        var quest = quests.get(questIndex);
+        boolean opening = quest.mateInTwo() && !awaitingMate;
+        var result = quest.assess(move, awaitingMate);
         boolean mate = result.outcome() == ChessPosition.Outcome.CHECKMATE;
         if (mate && !save(progress.solveCurrent())) return;
+        if (result.continues() && !save(progress, true)) return;
         solved = mate;
-        if (mate) {
+        if (mate || result.continues()) {
             position = result.position();
-            last = move;
+            last = mate ? move : result.defense();
+            awaitingMate = result.continues();
             hint = QuestHint.NONE;
         }
-        attemptMessage = switch (result.outcome()) {
+        if (result.continues() || mate) attemptMessage = null;
+        else if (opening) attemptMessage = getString(R.string.mate_two_try_again);
+        else attemptMessage = switch (result.outcome()) {
             case CHECKMATE -> null;
             case CHECK -> getString(R.string.quest_check_reply, notation(result.defense()));
             case STALEMATE -> getString(R.string.quest_stalemate);
@@ -283,8 +324,10 @@ public final class ChessActivity extends Activity {
         render();
     }
 
-    private boolean save(QuestProgress nextProgress) {
-        if (!store.save(nextProgress)) {
+    private boolean save(QuestProgress nextProgress) { return save(nextProgress, false); }
+
+    private boolean save(QuestProgress nextProgress, boolean awaitingMate) {
+        if (!store.save(nextProgress, awaitingMate)) {
             Toast.makeText(this, R.string.progress_save_failed, Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -294,9 +337,11 @@ public final class ChessActivity extends Activity {
 
     private void render() {
         var bottom = blackBelow ? ChessPosition.Side.BLACK : ChessPosition.Side.WHITE;
-        topPlayer.setText(BoardView.sideLabel(bottom.other()));
-        bottomPlayer.setText(BoardView.sideLabel(bottom));
-        recentMove.setText(getString(R.string.quest_progress, questIndex + 1, quests.size()));
+        renderPlayer(topPlayer, bottom.other());
+        renderPlayer(bottomPlayer, bottom);
+        boolean two = quests == mateInTwo;
+        recentMove.setText(getString(two ? R.string.mate_two_progress : R.string.quest_progress, questIndex + 1, quests.size()));
+        chapter.setText(two ? R.string.open_mate_one : R.string.open_mate_two);
         renderProgress();
         previous.setEnabled(questIndex > 0);
         next.setEnabled(questIndex + 1 < quests.size());
@@ -306,16 +351,24 @@ public final class ChessActivity extends Activity {
             case SOLUTION -> R.string.why_mate;
         });
         var quest = quests.get(questIndex);
-        String actor = getString(BoardView.sideLabel(position.turn()));
+        Move suggestion = awaitingMate ? quest.matingMove() : quest.solution();
         if (solved) status.setText(R.string.quest_solved);
         else if (attemptMessage != null) status.setText(attemptMessage);
         else if (hint == QuestHint.PIECE) {
-            var piece = quest.guidance().piece();
-            status.setText(getString(R.string.hint_description, BoardSquare.name(quest.solution().from()),
+            var piece = position.pieceAt(suggestion.from());
+            status.setText(getString(R.string.hint_description, BoardSquare.name(suggestion.from()),
                     getString(BoardView.sideLabel(piece.side())), getString(BoardView.kindLabel(piece.kind()))));
-        } else if (hint == QuestHint.SOLUTION) status.setText(notation(quest.solution()));
-        else status.setText(getString(R.string.to_move, actor));
-        board.show(position, blackBelow, selected, options, last, hint.cue(quest.solution()));
+        } else if (hint == QuestHint.SOLUTION) status.setText(notation(suggestion));
+        else if (awaitingMate) status.setText(getString(R.string.mate_two_reply, notation(quest.line().defense())));
+        else status.setText(R.string.find_mate);
+        board.show(position, blackBelow, selected, options, last, hint.cue(suggestion));
+    }
+
+    private void renderPlayer(TextView label, ChessPosition.Side side) {
+        boolean active = !solved && position.turn() == side;
+        String color = getString(BoardView.sideLabel(side));
+        label.setText(active ? getString(R.string.to_move, color) : color);
+        label.setTextColor(active ? PROGRESS : PRIMARY);
     }
 
     private void renderProgress() {

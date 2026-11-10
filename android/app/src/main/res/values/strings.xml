@@ -2,6 +2,13 @@
     <string name="app_name">Chess Lab</string>
     <string name="mate_objective">Mate in one</string>
     <string name="quest_progress">Mate in one · %1$d/%2$d</string>
+    <string name="mate_two_progress">Mate in two · %1$d/%2$d</string>
+    <string name="open_mate_one">Mate in 1</string>
+    <string name="open_mate_two">Mate in 2</string>
+    <string name="mate_two_reply">Defense %1$s · find mate</string>
+    <string name="mate_two_try_again">That move does not force mate in two. Try again.</string>
+    <string name="find_mate">Find the mate</string>
+    <string name="mate_two_line">%1$s · %2$s · %3$s#</string>
     <string name="solved_count">Solved · %1$d/%2$d</string>
     <string name="progress_save_failed">Progress could not be saved. Try again.</string>
     <string name="hint">Hint</string>

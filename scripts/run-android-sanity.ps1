@@ -116,6 +116,7 @@ try {
     if (Select-String -Quiet -LiteralPath $receipt -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS') {
         Receive-Frame 'hint-piece'
         Receive-Frame 'hint-solution'
+        Receive-Frame 'mate-two'
         Invoke-Device @('shell','am','force-stop',$app)
         Invoke-Device ($instrument + @('-e','phase','restore',$runner)) |
             Set-Content -LiteralPath $restore -Encoding utf8NoBOM

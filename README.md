@@ -1,13 +1,13 @@
 # ATF J7 · Chess Lab
 
-Colecție offline de 102 probleme de mat într-o mutare, ordonate după dificultate. Două poziții încep în șah și cer o apărare care dă mat. După redeschidere revii la problema curentă și vezi toate rezolvările salvate. Tabla se poate întoarce oricând.
+Colecție offline cu două capitole. Ai 102 probleme de mat într-o mutare și 100 de mat în două, ordonate după dificultate în fiecare capitol. După redeschidere revii la problema curentă, inclusiv după apărarea adversarului în capitolul de mat în două. Tabla se poate întoarce oricând.
 
 **Indiciu** marchează piesa pe tablă. **Arată soluția** trasează mutarea, iar **De ce e mat?** explică poziția finală. Bara de progres arată câte probleme ai rezolvat și următorul prag.
 
 ## Jocul
 
-- **[Chess Lab 0.1.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.1.0)** — ediția Android curentă.
-- **[Descarcă APK 0.1.0](https://github.com/crististefanita/atf_j7/releases/download/v0.1.0/ChessLab-0.1.0.apk)** — pentru utilizatorii autentificați cu acces la repository.
+- **[Chess Lab 0.2.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.2.0)** — ediția Android curentă.
+- **[Descarcă APK 0.2.0](https://github.com/crististefanita/atf_j7/releases/download/v0.2.0/ChessLab-0.2.0.apk)** — pentru utilizatorii autentificați cu acces la repository.
 
 ## Proiectul
 
@@ -18,4 +18,4 @@ Colecție offline de 102 probleme de mat într-o mutare, ordonate după dificult
 | `atf-tests` | Componente, guvernanță și publicarea dovezii Android în Extent |
 | `release-tools` | Context RAG consultativ și verificarea identității dovezilor |
 
-[Tabla de joc](docs/board/README.md) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.1.0](release/0.1.0/README.md) · [Feedback](docs/feedback/README.md)
+[Tabla de joc](docs/board/README.md) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.2.0](release/0.2.0/README.md) · [Feedback](docs/feedback/README.md)
