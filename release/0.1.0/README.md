@@ -4,4 +4,4 @@
 - Două trepte de indiciu pe tablă și explicația matului.
 - Progres local, reluare după repornire și praguri de rezolvare.
 
-[Descărcare](../../README.md#jocul) · [Procesul de release](../../docs/release/README.md)
+[Descărcare](../../README.md#jocul) · [Dovezile ediției](reports/README.md) · [Procesul de release](../../docs/release/README.md)

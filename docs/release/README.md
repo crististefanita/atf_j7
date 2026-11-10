@@ -10,6 +10,14 @@ Configurați `J7_SIGNING_STORE` și `J7_SIGNING_PASSWORD` în sesiunea de build 
 
 `ReleaseGate` expune verificările de calificare și publicare din Java. Pentru o ediție privată, citiți README-ul din `main` cu contul autentificat, reconciliați linkul cu `browser_download_url` al asset-ului din tag și descărcați prin API-ul autentificat. Înregistrați ruta, statusul, commitul, hash-ul și rezultatul CRC în dosarul ediției. Linkul din README rămâne ruta din browser pentru utilizatorii conectați. [API-ul GitHub pentru asset-uri](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
 
+După publicare, rulați verificarea cu autentificarea GitHub existentă în Git Credential Manager. Directorul de ieșire este nou și rămâne în TMP.
+
+```powershell
+./scripts/verify-authenticated-download.ps1 -Repository crististefanita/atf_j7 `
+  -Version <versiune> -CandidateCommit <sha> -QualifiedApk <apk-calificat> `
+  -Classes <copia-TMP>/atf-tests/target/classes -OutputDirectory <director-TMP-nou>
+```
+
 ## Context consultativ
 
 După compilare, apelați `ReleaseRag` din copia TMP cu rădăcina sursei și căile afectate:
