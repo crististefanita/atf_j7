@@ -70,11 +70,17 @@ Folosiți registrul comun de rezervare pe dispozitivele partajate.
 2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, deblocarea comenzii **Următoarea**, pragul de cinci rezolvări și restaurarea poziției și punctelor în Tactică.
 3. Extent cere PID-uri distincte, aserțiunile celor cinci faze și zece capturi PNG. Raportul include meniul, indiciile, flacăra, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
 
-La modificarea instrumentării, sincronizați numărul exact de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru o corecție exclusivă de publicare, copiați dovezile native într-un dosar nou și rulați publicatorul cu `-Dchess.android.receipt=<dosar>/prepare.txt`.
+La modificarea instrumentării, sincronizați numărul exact de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt`.
 
 ## Partidă și istoric
 
 Pentru analiza AI, rulați runnerul cu `-AnalysisOnly` pe varianta `sanity`. Prima fază verifică pornirea cu bifa debifată, activarea panoului și actualizarea după replica botului și la navigarea în istoric. A doua fază verifică păstrarea opțiunii și actualizarea panoului după repornirea procesului. Dovezile se scriu în `execution.json` și în cele două receipte de instrumentare.
+
+Publicați aserțiunile native ale celor două faze în `android-match-analysis.html` prin același adaptor Extent:
+
+```powershell
+mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishMatchAnalysisSanity' '-Dchess.android.receipt=<dosar>/analysis-prepare.txt'
+```
 
 `ChessMatchTest` verifică reconstrucția înainte și după replica botului, accesul la pozițiile din istoric, matul, rocada, en passant și repetarea. După fazele de probleme, runnerul pornește cu date proaspete și execută `match-prepare`, `match-restore` și `match-settled` în procese distincte, păstrând partida între ele. Verifică poziția inițială, săgețile, selecția directă, revenirea la ultima mutare, blocarea mutărilor în istoric și identitatea partidei salvate.
 

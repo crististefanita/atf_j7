@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "analysis-only",
+  "device": "127.0.0.1:5555",
+  "api": "28",
+  "apkSha256": "a1b2e963af4315a16681b2b6e70402f7345b586808eca883b27ff094d3fdb74a",
+  "sourceCommit": "a2a136fc30b09238c4502429927eb25cad0ca866",
+  "pids": [
+    "8831",
+    "8983"
+  ],
+  "assertions": {
+    "analysis-prepare": 5,
+    "analysis-restore": 2
+  },
+  "extentSha256": "850fb97a1d8067f91d5ec7217ff649efcaa1d662aa1d0daf48afb094099dc14d",
+  "receipts": {
+    "analysis-prepare": "d05c54a0e8e406a93f519e70bc18cc5063e1e0c9c6f33aaa4544f45b7ab50641",
+    "analysis-restore": "df4fa3499ef1b260a8a2d6678126c45f66a4e294db17185b6afcd1c5ca7eb609"
+  }
+}

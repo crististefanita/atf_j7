@@ -182,7 +182,7 @@ try {
 
 Push-Location $root
 try {
-    mvn -B -ntp test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication' "-Dchess.android.receipt=$receipt"
+    mvn -B -ntp test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishBoardSanity' "-Dchess.android.receipt=$receipt"
     $publication = $LASTEXITCODE
     $report = Join-Path $run 'android-board-sanity.html'
     $receiptHashes = [ordered]@{}
