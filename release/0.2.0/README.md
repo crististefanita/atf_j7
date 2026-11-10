@@ -5,4 +5,4 @@
 - Marcajul **Alb la mutare** sau **Negru la mutare** urmărește culoarea activă când întorci tabla sau deschizi un indiciu.
 - Etichetele culorilor stau lângă tablă, iar comenzile încap și pe ferestre scunde.
 
-[Descărcare](../../README.md#jocul) · [Proveniența problemelor](../../docs/board/quest-curation.md#mat-în-două-mutări) · [Procesul de release](../../docs/release/README.md)
+[Release și descărcare](https://github.com/crististefanita/atf_j7/releases/tag/v0.2.0) · [Dovezile ediției](reports/README.md) · [Proveniența problemelor](../../docs/board/quest-curation.md#mat-în-două-mutări)

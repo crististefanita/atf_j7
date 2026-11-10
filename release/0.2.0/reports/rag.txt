@@ -1,0 +1,13 @@
+ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 370fc56d17241ced114313cad94c7e706410748f5e579b46672192e9e59fe7a6
+  Verify ChessComponentTest și QuestCatalogTest
+docs/testing/README.md:41 ## Sanity Android
+  SHA-256 370fc56d17241ced114313cad94c7e706410748f5e579b46672192e9e59fe7a6
+  Verify BoardSanity
+docs/testing/README.md:31 ## Raportare Extent
+  SHA-256 370fc56d17241ced114313cad94c7e706410748f5e579b46672192e9e59fe7a6
+  Verify ChessComponentTest și ReleaseGovernanceTest
+docs/release/README.md:3 ## Calificare și publicare
+  SHA-256 17196ecbdb76c50e50881e9c5cdc75594537c68b2d6b06dc85572bce8dc9b834
+  Verify ReleaseGovernanceTest
