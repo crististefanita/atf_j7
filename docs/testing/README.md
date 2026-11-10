@@ -60,4 +60,10 @@ Folosiți registrul comun de rezervare pe dispozitivele partajate.
 2. Runnerul oprește procesul. A doua instrumentare verifică redeschiderea în Mat în 3, răspunsul restant și activarea comenzii **Următoarea** abia după mat. Revine în celelalte capitole și verifică reluarea și pragul de cinci rezolvări.
 3. Extent cere PID-uri distincte, aserțiunile ambelor faze și șapte capturi PNG. Raportul include meniul, indiciile, progresul și apărările adversarului. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
 
+## Proba TalkBack
+
+Activați TalkBack și **Display speech output** pe emulator. În Mat în 1, deschideți **Indiciu**, apoi **Arată mutarea**. Focalizați culoarea la mutare și glisați de două ori spre dreapta. Repetați după întoarcerea tablei și comparați focusul cu piesa și destinația indiciului. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. `QuestHintTest` verifică proiecția în ambele orientări, iar sanity-ul verifică actualizarea legăturilor pe ecran. [Setările TalkBack pentru testare](https://developer.android.com/guide/topics/ui/accessibility/testing#talkback)
+
+Raportul suplimentar consemnează cererile TalkBack și audio PCM acceptat prin callback-ul Android, cu sinteză Google. Proba compară APK-ul publicat cu build-ul local corectat. [Extent TalkBack](../feedback/talkback-extent.html)
+
 [Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)

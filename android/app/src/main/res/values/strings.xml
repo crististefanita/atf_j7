@@ -16,6 +16,7 @@
     <string name="mate_two_reply">Defense %1$s · find mate</string>
     <string name="opponent_reply_pending">Opponent to reply…</string>
     <string name="suggested_move">Suggested move · %1$s</string>
+    <string name="full_hint_announcement">%1$s. %2$s Destination %3$s.</string>
     <string name="mate_two_try_again">That move does not force mate in two. Try again.</string>
     <string name="find_mate">Find the mate</string>
     <string name="solved_count">Solved · %1$d/%2$d</string>

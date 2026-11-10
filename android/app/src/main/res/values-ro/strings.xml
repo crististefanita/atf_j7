@@ -15,6 +15,7 @@
     <string name="mate_two_reply">Apărare %1$s · găsește matul</string>
     <string name="opponent_reply_pending">Răspunde adversarul…</string>
     <string name="suggested_move">Mutare sugerată · %1$s</string>
+    <string name="full_hint_announcement">%1$s. %2$s Destinația %3$s.</string>
     <string name="mate_two_try_again">Mutarea nu forțează matul în două. Încearcă din nou.</string>
     <string name="find_mate">Găsește matul</string>
     <string name="solved_count">Rezolvate · %1$d/%2$d</string>

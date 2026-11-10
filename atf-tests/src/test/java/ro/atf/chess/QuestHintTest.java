@@ -33,4 +33,16 @@ class QuestHintTest {
         check.same("The second level shows the final mating square", "d8", BoardSquare.name(arrow.destination()));
         check.same("The suggested move is legal for the active color", true, step.position(quest).legalMoves().contains(move));
     }
+
+    @Test void displayMappingPreservesHintRolesInBothOrientations(Checks check) {
+        var move = ChessPosition.Move.fromUci("d8h4");
+        check.same("Black below anchors the piece at row 8 column 5 and destination at row 4 column 1",
+                new QuestHint.DisplayCue(60, 24), QuestHint.SOLUTION.cue(move).onBoard(true));
+        check.same("White below anchors the same piece at row 1 column 4 and destination at row 5 column 8",
+                new QuestHint.DisplayCue(3, 39), QuestHint.SOLUTION.cue(move).onBoard(false));
+        check.same("The piece-only hint leaves no destination after a flip",
+                new QuestHint.DisplayCue(3, -1), QuestHint.PIECE.cue(move).onBoard(false));
+        check.same("Closing the hint clears both links",
+                new QuestHint.DisplayCue(-1, -1), QuestHint.NONE.cue(move).onBoard(true));
+    }
 }

@@ -141,14 +141,24 @@ public final class BoardSanity extends Instrumentation {
         var board = findBoard(views);
         tap(button(activity, views, R.string.hint));
         tap(button(activity, views, R.string.show_solution));
+        String black = activity.getString(R.string.black);
+        String pieceHint = activity.getString(R.string.hint_description, "d8", black, activity.getString(R.string.queen));
+        String announcement = activity.getString(R.string.full_hint_announcement, activity.getString(R.string.to_move, black), pieceHint, "h4");
         compare("The Romanian board, active color and controls fit with the enlarged move hint", true,
                 compactLayoutFits(activity, views, board, R.string.why_mate)
-                        && turnLabel(activity, board, R.string.black, R.string.white, true));
+                        && turnLabel(activity, board, R.string.black, R.string.white, true) && hasDescription(views, announcement));
         View origin = cell(board, "d8");
         View destination = cell(board, "h4");
         View active = ((ViewGroup) board.getParent()).getChildAt(2);
-        compare("Accessibility traversal links the active color, hinted piece and destination", true,
-                origin.getAccessibilityTraversalAfter() == active.getId() && destination.getAccessibilityTraversalAfter() == origin.getId());
+        boolean blackBelow = origin.getAccessibilityTraversalAfter() == active.getId() && destination.getAccessibilityTraversalAfter() == origin.getId();
+        tap(button(activity, views, R.string.flip));
+        View flippedOrigin = cell(board, "d8");
+        View flippedDestination = cell(board, "h4");
+        View flippedActive = ((ViewGroup) board.getParent()).getChildAt(0);
+        compare("Accessibility traversal follows color, piece and destination after flipping, with old links cleared", true,
+                blackBelow && flippedOrigin.getAccessibilityTraversalAfter() == flippedActive.getId()
+                        && flippedDestination.getAccessibilityTraversalAfter() == flippedOrigin.getId()
+                        && origin.getAccessibilityTraversalAfter() == View.NO_ID && destination.getAccessibilityTraversalAfter() == View.NO_ID);
         tap(button(activity, views, R.string.main_menu));
         runOnMainSync(activity::finish);
     }
@@ -299,9 +309,10 @@ public final class BoardSanity extends Instrumentation {
         tap(cell(counterBoard, BoardSquare.name(fifth.from())));
         tap(cell(counterBoard, BoardSquare.name(fifth.to())));
         var track = progressTrack(counterViews);
+        String milestone = counter.getString(R.string.milestone_reached, 5, 15);
         compare("The fifth solve unlocks the next milestone without hiding the board or controls", true,
                 solvedCount(counter, counterViews, 5) && track.getProgress() == 5
-                        && hasText(counterViews, counter.getString(R.string.milestone_reached, 5, 15))
+                        && hasText(counterViews, milestone) && hasDescription(counterViews, counter.getString(R.string.quest_solved) + ". " + milestone)
                         && fullyVisible(counterBoard) && fullyVisible(button(counter, counterViews, R.string.why_mate)));
         captureFrame("milestone", "The progress bar visibly fills at the first milestone", image -> hasColor(image, track, 0xffb8d88a, 8));
     }
@@ -614,6 +625,10 @@ public final class BoardSanity extends Instrumentation {
     private static boolean hasText(List<View> views, String expected) {
         return views.stream().filter(TextView.class::isInstance).map(TextView.class::cast)
                 .anyMatch(view -> view.getText().toString().equals(expected));
+    }
+
+    private static boolean hasDescription(List<View> views, String expected) {
+        return views.stream().map(View::getContentDescription).filter(java.util.Objects::nonNull).anyMatch(expected::contentEquals);
     }
 
     private static String coordinate(View view) { return view.getContentDescription().subSequence(0, 2).toString(); }

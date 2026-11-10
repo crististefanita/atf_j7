@@ -40,8 +40,9 @@ final class BoardView extends ViewGroup {
             QuestHint.Cue hint, boolean playable, int activeLabelId) {
         if (hintOrigin != null) hintOrigin.setAccessibilityTraversalAfter(View.NO_ID);
         if (hintDestination != null) hintDestination.setAccessibilityTraversalAfter(View.NO_ID);
-        hintOrigin = null;
-        hintDestination = null;
+        var displayHint = hint.onBoard(blackBelow);
+        hintOrigin = displayHint.originIndex() < 0 ? null : (Cell) getChildAt(displayHint.originIndex());
+        hintDestination = displayHint.destinationIndex() < 0 ? null : (Cell) getChildAt(displayHint.destinationIndex());
         for (int index = 0; index < 64; index++) {
             int column = index % 8;
             int row = index / 8;
@@ -52,9 +53,7 @@ final class BoardView extends ViewGroup {
             cell.light = BoardSquare.isLight(square);
             cell.highlight = selected == square || last != null && (last.from() == square || last.to() == square);
             cell.destination = moves.stream().anyMatch(move -> move.to() == square);
-            cell.hinted = square == hint.origin();
-            if (cell.hinted) hintOrigin = cell;
-            if (square == hint.destination()) hintDestination = cell;
+            cell.hinted = cell == hintOrigin;
             cell.rankLabel = column == 0;
             cell.fileLabel = row == 7;
             cell.setSelected(selected == square);

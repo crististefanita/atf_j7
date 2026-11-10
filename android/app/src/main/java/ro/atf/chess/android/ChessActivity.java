@@ -58,6 +58,7 @@ public final class ChessActivity extends Activity {
     private TextView recentMove;
     private TextView solvedCount;
     private TextView milestone;
+    private boolean announceMilestone;
     private ProgressBar progressTrack;
     private Button guidance;
     private QuestHint hint = QuestHint.NONE;
@@ -190,7 +191,6 @@ public final class ChessActivity extends Activity {
         milestone = text(R.string.mate_objective, 12, MUTED);
         milestone.setGravity(Gravity.END);
         milestone.setPadding(dp(8), 0, 0, 0);
-        milestone.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         row.addView(solvedCount, new LinearLayout.LayoutParams(0, -2, 1));
         row.addView(milestone, new LinearLayout.LayoutParams(0, -2, 1));
         panel.addView(row);
@@ -313,6 +313,7 @@ public final class ChessActivity extends Activity {
         var quest = quests.get(index);
         blackBelow = quest.position().turn() == ChessPosition.Side.BLACK;
         solved = progress.currentSolved();
+        announceMilestone = false;
         attemptMessage = null;
         hint = QuestHint.NONE;
         selected = -1;
@@ -371,6 +372,7 @@ public final class ChessActivity extends Activity {
         if (mate) {
             position = result.position();
             last = move;
+            announceMilestone = progress.milestone(order).reached();
         }
         if (mate || result.continues()) hint = QuestHint.NONE;
         if (result.continues() || mate) attemptMessage = null;
@@ -438,21 +440,40 @@ public final class ChessActivity extends Activity {
         var quest = quests.get(questIndex);
         int stage = step.stage();
         Move suggestion = quest.playerMove(stage);
-        if (solved) status.setText(R.string.quest_solved);
-        else if (pending) status.setText(R.string.opponent_reply_pending);
-        else if (attemptMessage != null) status.setText(attemptMessage);
-        else if (hint == QuestHint.PIECE) {
-            var piece = position.pieceAt(suggestion.from());
-            status.setText(getString(R.string.hint_description, BoardSquare.name(suggestion.from()),
-                    getString(BoardView.sideLabel(piece.side())), getString(BoardView.kindLabel(piece.kind()))));
-        } else if (hint == QuestHint.SOLUTION) status.setText(getString(R.string.suggested_move, notation(suggestion)));
-        else if (stage > 0) {
-            int label = stage == quest.mateLength() - 1 ? R.string.mate_two_reply : R.string.mate_three_reply;
-            status.setText(getString(label, notation(quest.defenseAfter(stage - 1))));
-        }
-        else status.setText(R.string.find_mate);
+        renderStatus(quest, stage, suggestion, pending);
         int activeLabelId = (position.turn() == bottom ? bottomPlayer : topPlayer).getId();
         board.show(position, blackBelow, selected, options, last, hint.cue(suggestion), !pending, activeLabelId);
+    }
+
+    private void renderStatus(QuestCatalog.Quest quest, int stage, Move suggestion, boolean pending) {
+        String visible;
+        String spoken = null;
+        if (solved) {
+            visible = getString(R.string.quest_solved);
+            if (announceMilestone) spoken = visible + ". " + milestone.getText();
+        } else if (pending) visible = getString(R.string.opponent_reply_pending);
+        else if (attemptMessage != null) visible = attemptMessage;
+        else if (hint != QuestHint.NONE) {
+            var piece = position.pieceAt(suggestion.from());
+            String square = BoardSquare.name(suggestion.from());
+            String side = getString(BoardView.sideLabel(piece.side()));
+            String kind = getString(BoardView.kindLabel(piece.kind()));
+            String turn = getString(R.string.to_move, side);
+            String pieceHint = getString(R.string.hint_description, square, side, kind);
+            if (hint == QuestHint.PIECE) {
+                visible = pieceHint;
+                spoken = turn + ". " + pieceHint;
+            } else {
+                visible = getString(R.string.suggested_move, notation(suggestion));
+                spoken = getString(R.string.full_hint_announcement, turn, pieceHint, BoardSquare.name(suggestion.to()));
+                if (suggestion.promotion() != null) spoken += " " + notation(suggestion);
+            }
+        } else if (stage > 0) {
+            int label = stage == quest.mateLength() - 1 ? R.string.mate_two_reply : R.string.mate_three_reply;
+            visible = getString(label, notation(quest.defenseAfter(stage - 1)));
+        } else visible = getString(R.string.find_mate);
+        if (!android.text.TextUtils.equals(spoken, status.getContentDescription())) status.setContentDescription(spoken);
+        if (!visible.contentEquals(status.getText())) status.setText(visible);
     }
 
     private void renderPlayer(TextView label, ChessPosition.Side side) {

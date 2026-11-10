@@ -6,8 +6,8 @@ Marcajul de lângă tablă arată cine mută, inclusiv în pauza dinaintea răsp
 
 ## Jocul
 
-- **[Chess Lab 0.3.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.3.0)** — ediția Android curentă.
-- **[Descarcă APK 0.3.0](https://github.com/crististefanita/atf_j7/releases/download/v0.3.0/ChessLab-0.3.0.apk)** — APK Android semnat.
+- **[Chess Lab 0.3.1 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.3.1)** — ediția Android curentă.
+- **[Descarcă APK 0.3.1](https://github.com/crististefanita/atf_j7/releases/download/v0.3.1/ChessLab-0.3.1.apk)** — APK Android semnat.
 
 ## Proiectul
 
@@ -18,4 +18,4 @@ Marcajul de lângă tablă arată cine mută, inclusiv în pauza dinaintea răsp
 | `atf-tests` | Componente, guvernanță și publicarea dovezii Android în Extent |
 | `release-tools` | Context RAG consultativ și verificarea identității dovezilor |
 
-[Tabla de joc](docs/board/README.md) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.3.0](release/0.3.0/README.md) · [Feedback](docs/feedback/README.md)
+[Tabla de joc](docs/board/README.md) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.3.1](release/0.3.1/README.md) · [Feedback](docs/feedback/README.md)

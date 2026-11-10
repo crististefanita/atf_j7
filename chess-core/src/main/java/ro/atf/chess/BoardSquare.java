@@ -25,6 +25,10 @@ public final class BoardSquare {
         return blackBelow ? of(7 - column, row) : of(column, 7 - row);
     }
 
+    public static int displayIndex(int square, boolean blackBelow) {
+        return atDisplay(square % 8, square / 8, blackBelow);
+    }
+
     public static boolean isLight(int square) {
         return (square % 8 + square / 8) % 2 == 1;
     }

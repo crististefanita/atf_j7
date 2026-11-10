@@ -12,5 +12,12 @@ public enum QuestHint {
         return new Cue(this == NONE ? -1 : move.from(), this == SOLUTION ? move.to() : -1);
     }
 
-    public record Cue(int origin, int destination) { }
+    public record Cue(int origin, int destination) {
+        public DisplayCue onBoard(boolean blackBelow) {
+            return new DisplayCue(origin < 0 ? -1 : BoardSquare.displayIndex(origin, blackBelow),
+                    destination < 0 ? -1 : BoardSquare.displayIndex(destination, blackBelow));
+        }
+    }
+
+    public record DisplayCue(int originIndex, int destinationIndex) { }
 }
