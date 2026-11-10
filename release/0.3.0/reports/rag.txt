@@ -1,0 +1,22 @@
+ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 c767c5feb4641ed829091a73619a7e44f1afd6c46d3d426a868b66d83f3c0d2e
+  Verify ChessComponentTest și QuestCatalogTest
+docs/board/quest-curation.md:32 ## Mat în trei mutări
+  SHA-256 c049dea7135f6fbb94733e4f31bc23f7e322fb84aa40e219ca402a903faba60b
+  Verify MateInThreeCatalogTest și verify-mate-in-three.cjs
+docs/testing/README.md:49 ## Sanity Android
+  SHA-256 c767c5feb4641ed829091a73619a7e44f1afd6c46d3d426a868b66d83f3c0d2e
+  Verify BoardSanity
+docs/testing/README.md:39 ## Raportare Extent
+  SHA-256 c767c5feb4641ed829091a73619a7e44f1afd6c46d3d426a868b66d83f3c0d2e
+  Verify ChessComponentTest și ReleaseGovernanceTest
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 c767c5feb4641ed829091a73619a7e44f1afd6c46d3d426a868b66d83f3c0d2e
+  Verify BoardPanelLayoutTest și QuestHintTest
+docs/feedback/README.md:1 # Feedback · Chess Lab
+  SHA-256 0ebe87d9ee02d5360dfd63c1dc51d3168e66475c6dfbd6efc399c5678ada9c89
+  Verify Revizuiți criteriile deschise înaintea promovării
+docs/release/README.md:3 ## Calificare și publicare
+  SHA-256 17196ecbdb76c50e50881e9c5cdc75594537c68b2d6b06dc85572bce8dc9b834
+  Verify ReleaseGovernanceTest

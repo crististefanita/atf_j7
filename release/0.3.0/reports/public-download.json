@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "observedUtc": "2026-11-10T11:16:53.9302121Z",
+  "channel": "Direct GitHub browser download URL",
+  "readmeCommit": "fe3b7a270487899c65cb56851520cd309f8700f2",
+  "readmeBlob": "78c5c5b32137ecd781e60cb7997606b4d7663d65",
+  "targetCommit": "fe3b7a270487899c65cb56851520cd309f8700f2",
+  "assetUrl": "https://github.com/crististefanita/atf_j7/releases/download/v0.3.0/ChessLab-0.3.0.apk",
+  "httpStatus": 200,
+  "bytes": 796036,
+  "sha256": "acc8868406bacaec772aee26a997eca5e0a041ee87e421ffd73de482a0413681",
+  "zipCrc": "PASS"
+}

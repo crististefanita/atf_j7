@@ -7,7 +7,7 @@ Marcajul de lângă tablă arată cine mută, inclusiv în pauza dinaintea răsp
 ## Jocul
 
 - **[Chess Lab 0.3.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.3.0)** — ediția Android curentă.
-- **[Descarcă APK 0.3.0](https://github.com/crististefanita/atf_j7/releases/download/v0.3.0/ChessLab-0.3.0.apk)** — pentru utilizatorii autentificați cu acces la repository.
+- **[Descarcă APK 0.3.0](https://github.com/crististefanita/atf_j7/releases/download/v0.3.0/ChessLab-0.3.0.apk)** — APK Android semnat.
 
 ## Proiectul
 
