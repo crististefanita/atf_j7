@@ -1,0 +1,38 @@
+ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 1cbe7f35ff629be97828a0f3cdcd992c07b48ad456427e2ace216aa806823bcc
+  Verify ChessComponentTest și QuestCatalogTest
+docs/testing/README.md:75 ## Partidă și istoric
+  SHA-256 1cbe7f35ff629be97828a0f3cdcd992c07b48ad456427e2ace216aa806823bcc
+  Verify ChessMatchTest și BoardSanity
+docs/testing/README.md:59 ## Sanity Android
+  SHA-256 1cbe7f35ff629be97828a0f3cdcd992c07b48ad456427e2ace216aa806823bcc
+  Verify BoardSanity
+docs/testing/README.md:47 ## Raportare Extent
+  SHA-256 1cbe7f35ff629be97828a0f3cdcd992c07b48ad456427e2ace216aa806823bcc
+  Verify ChessComponentTest și ReleaseGovernanceTest
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 1cbe7f35ff629be97828a0f3cdcd992c07b48ad456427e2ace216aa806823bcc
+  Verify BoardPanelLayoutTest și QuestHintTest
+docs/feedback/README.md:1 # Feedback · Chess Lab
+  SHA-256 c572f407c6f153c1671d7f36b24bcb3a231ae93e1b9fecfb4fdf44cecd24c6f6
+  Verify Revizuiți criteriile deschise înaintea promovării
+docs/release/README.md:3 ## Calificare și publicare
+  SHA-256 b61d402a5721b807d2dc1ef4cc1d4de8ee9363011625ece4590d9019724f72e8
+  Verify ReleaseGovernanceTest
+1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
+2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului.
+3. Actualizați notele ediției, ghidul jocului și dovezile de testare. În secțiunea **Jocul** a README-ului principal puneți două linkuri, către release și APK-ul direct. Verificați legăturile locale și rulați `ReleaseGovernanceTest`.
+4. Creați commitul candidat local și exportați exact acel commit în TMP. Rulați `mvn test` și păstrați raportul Extent și rezultatul componentelor, inclusiv guvernanța.
+5. Construiți APK-ul și testele Android cu Gradle și cheia de distribuție. Verificați semnătura și `versionCode`. Rulați sanity-ul semnat pe emulator, inclusiv repornirea, ultima mutare și istoricul partidei. Păstrați hash-ul APK-ului instalat și rapoartele Extent.
+6. Treceți APK-ul, commitul și dovezile prin `ReleaseGate qualification`. Rezolvați abaterile și repetați verificările afectate înainte de publicare.
+7. După autorizare și calificare, împingeți tagul candidat fără a rescrie istoricul, publicați asset-urile GitHub și împingeți commitul cu linkurile pe `main`. Păstrați identitatea tagului și a asset-urilor în dosarul ediției.
+8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
+
+Decizie pentru ediția 0.6.1 · 2026-11-10
+- Ediția intermediară păstrează seria 0.x și folosește 0.6.1 la cererea utilizatorului.
+- Zonele verificate sunt profilul, meniul, setările de partidă, deschiderea motorului cu albele, reluarea, geometria tablei și evaluarea.
+- 66 de teste JVM au trecut din commitul candidat exportat în TMP. APK-ul de distribuție are versionCode 9 și același certificat ca 0.6.0. Alinierea și CRC au trecut.
+- Am reutilizat cele 21 de aserțiuni API 28 din dezvoltare. Comparația celor 95 de fișiere de aplicație și test a găsit doar schimbarea versiunii Android. Raportul identifică APK-ul sanity care a rulat efectiv.
+- Sanity-ul pe APK-ul semnat și poarta standard care cere acea probă sunt marcate NOT_RUN. Promovarea folosește proba de dezvoltare, testele JVM din candidat și verificarea separată a APK-ului de distribuție.
+- Verificarea de publicare citește README-ul de pe main și descarcă APK-ul integral din linkul afișat.

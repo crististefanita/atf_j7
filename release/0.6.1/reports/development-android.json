@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "scope": "analysis-only on the development sanity APK",
+  "api": 28,
+  "assertions": 21,
+  "phaseAssertions": {
+    "analysis-prepare": 12,
+    "analysis-restore": 9
+  },
+  "pids": [
+    "3017",
+    "3076"
+  ],
+  "developmentApkSha256": "895e1a4a6266516690f498d36fe3f83cd50127d356083f85d2f48725c7961f70",
+  "extentSha256": "f37bbbc173fb951b557b786edefb48b1063db116852b6c1d4d80a5947b076cbf",
+  "comparedPaths": 95,
+  "allowedDifference": "Android versionName and versionCode",
+  "candidateCommit": "d9803e6d70443114959015344cd09f0d8c60a351",
+  "signedCandidateInstalled": false
+}
