@@ -1,0 +1,137 @@
+package ro.atf.chess;
+
+import atf.testkit.AtfComponentTest;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import ro.atf.chess.release.ReleaseEvidence;
+import ro.atf.chess.release.ReleaseEvidence.Candidate;
+import ro.atf.chess.release.ReleaseEvidence.Download;
+import ro.atf.chess.release.ReleaseEvidence.Suite;
+import ro.atf.chess.release.ReleaseRag;
+
+@AtfComponentTest
+@ExtendWith(ExtentAudit.class)
+class ReleaseGovernanceTest {
+    private static final String SOURCE = "1".repeat(40);
+    private static final String OTHER = "2".repeat(40);
+    private static final String REPOSITORY = "example/atf_j7";
+    private static final String BASE = "https://github.com/" + REPOSITORY + "/releases/";
+    private static final String URL = BASE + "download/v0.1.0/ChessLab-0.1.0.apk";
+    private static final String README = "## Jocul\n\n[Release](" + BASE + "tag/v0.1.0)\n[APK](" + URL + ")\n";
+
+    @TempDir Path folder;
+    private Candidate candidate;
+    private Suite components;
+    private Suite android;
+    private Path apk;
+
+    @BeforeEach void fixture() throws IOException {
+        apk = folder.resolve("ChessLab-0.1.0.apk");
+        try (var zip = new ZipOutputStream(Files.newOutputStream(apk))) {
+            for (String name : List.of("AndroidManifest.xml", "classes.dex")) {
+                zip.putNextEntry(new ZipEntry(name));
+                zip.write(name.getBytes(StandardCharsets.UTF_8));
+                zip.closeEntry();
+            }
+        }
+        candidate = new Candidate("0.1.0", SOURCE, Files.size(apk), ReleaseEvidence.digest(apk));
+        components = suite("components", "");
+        android = suite("android", candidate.apkSha256());
+    }
+
+    @Test void candidateRequiresEvidenceFromTheSameCommitAndBinary(Checks check) throws IOException {
+        check.same("Consistent fixture qualifies", "accepted", decision(() -> ReleaseEvidence.qualification(candidate, apk, components, android)));
+        check.same("Foreign component commit blocks", "Wrong candidate in components", decision(() -> ReleaseEvidence.qualification(candidate, apk,
+                new Suite(OTHER, "", 3, true, components.htmlSha256(), components.html()), android)));
+        check.same("Foreign installed APK blocks", "Wrong candidate in Android E2E", decision(() -> ReleaseEvidence.qualification(candidate, apk,
+                components, new Suite(SOURCE, "0".repeat(64), 3, true, android.htmlSha256(), android.html()))));
+        check.same("Missing native receipt blocks", "Missing Android E2E receipt", decision(() -> ReleaseEvidence.qualification(candidate, apk, components, null)));
+        check.same("Empty native assertions block even with PASS flag", "Missing passing assertions in Android E2E", decision(() -> ReleaseEvidence.qualification(
+                candidate, apk, components, new Suite(SOURCE, candidate.apkSha256(), 0, true, android.htmlSha256(), android.html()))));
+        Files.writeString(components.html(), "Substituted report");
+        check.same("Changed Extent bytes block", "Extent hash mismatch in components", decision(() -> ReleaseEvidence.qualification(candidate, apk, components, android)));
+    }
+
+    @Test void downloadMustBeginAtTheCanonicalReadmeRouteAndFinishWithAllBytes(Checks check) throws IOException {
+        check.same("Consistent publication fixture is accepted", "accepted", decision(() -> publish(SOURCE, README, 200, apk)));
+        check.same("Tag on a different commit blocks", "Published tag points to another commit", decision(() -> publish(OTHER, README, 200, apk)));
+        check.same("Stale README tag blocks", "README does not lead to the qualified release and APK",
+                decision(() -> publish(SOURCE, README.replace("v0.1.0", "v0.0.9"), 200, apk)));
+        check.same("A 404 response blocks before file acceptance", "Wrong download route or HTTP status", decision(() -> publish(SOURCE, README, 404, apk)));
+        Path truncated = Files.writeString(folder.resolve("truncated.apk"), "404: Not Found");
+        check.same("A text error disguised as APK blocks even with status 200", "APK bytes or SHA-256 differ from qualification",
+                decision(() -> publish(SOURCE, README, 200, truncated)));
+    }
+
+    @Test void authenticatedDownloadRejectsTransportAndContentSubstitutions(Checks check) throws IOException {
+        check.same("Authenticated account and canonical asset qualify", "accepted",
+                decision(() -> ReleaseEvidence.publication(candidate, new Download(SOURCE, SOURCE, README, REPOSITORY, URL, "AUTHENTICATED", 200, apk))));
+        check.same("An unverified session mode cannot qualify", "Unspecified access mode",
+                decision(() -> ReleaseEvidence.publication(candidate, new Download(SOURCE, SOURCE, README, REPOSITORY, URL, "UNKNOWN", 200, apk))));
+        check.same("A raw URL fails even if it returns the right bytes", "Wrong download route or HTTP status", decision(() -> ReleaseEvidence.publication(
+                candidate, new Download(SOURCE, SOURCE, README, REPOSITORY, "https://raw.githubusercontent.com/" + REPOSITORY + "/main/app.apk", "AUTHENTICATED", 200, apk))));
+        check.same("A partial HTTP response fails even if its file matches", "Wrong download route or HTTP status",
+                decision(() -> ReleaseEvidence.publication(candidate, new Download(SOURCE, SOURCE, README, REPOSITORY, URL, "AUTHENTICATED", 206, apk))));
+        byte[] altered = Files.readAllBytes(apk);
+        altered[altered.length / 2] ^= 1;
+        Path sameLength = Files.write(folder.resolve("same-length.apk"), altered);
+        check.same("A substituted APK of the same size fails integrity", "APK bytes or SHA-256 differ from qualification",
+                decision(() -> ReleaseEvidence.publication(candidate, new Download(SOURCE, SOURCE, README, REPOSITORY, URL, "AUTHENTICATED", 200, sameLength))));
+    }
+
+    @Test void rootReadmeLeadsToTheVersionDeclaredByAndroid(Checks check) throws IOException {
+        Path root = Path.of("").toAbsolutePath();
+        String gradle = Files.readString(root.resolve("android/app/build.gradle"));
+        var version = java.util.regex.Pattern.compile("(?m)^\\s*versionName '([0-9]+\\.[0-9]+\\.[0-9]+)'$").matcher(gradle);
+        if (!version.find()) throw new IOException("Missing Android versionName");
+        String name = version.group(1);
+        String base = "https://github.com/crististefanita/atf_j7/releases/";
+        String readme = Files.readString(root.resolve("README.md"));
+        check.same("Jocul links to the matching release and exact APK", List.of(base + "tag/v" + name, base + "download/v" + name + "/ChessLab-" + name + ".apk"),
+                ReleaseEvidence.gameLinks(readme));
+        String game = readme.substring(readme.indexOf("## Jocul"), readme.indexOf("## Proiectul"));
+        check.same("Integrity metadata stays out of the download section", false,
+                java.util.regex.Pattern.compile("(?i)sha[- ]?256|checksum|\\bbytes?\\b|[a-f0-9]{64}").matcher(game).find());
+    }
+
+    @Test void ragRetrievesOnlyAffectedGuidanceAndVerifiesTheAnchor(Checks check) throws IOException {
+        Path root = Path.of("").toAbsolutePath();
+        var citations = ReleaseRag.retrieve(root, List.of("android/app/src/main/AndroidManifest.xml", "README.md"));
+        check.same("Two affected contracts cited", List.of("## Sanity Android", "## Calificare și publicare"), citations.stream().map(ReleaseRag.Citation::heading).toList());
+        check.same("The cited document bytes match their hash", ReleaseEvidence.digest(root.resolve(citations.getFirst().path())), citations.getFirst().sha256());
+        check.same("A path outside the route table has no citation", List.of(), ReleaseRag.retrieve(root, List.of("unknown/foo")));
+        Path missing = Files.createDirectories(folder.resolve("docs/testing")).resolve("README.md");
+        Files.writeString(missing, "# No known anchor");
+        check.same("A missing anchor fails with the source", "Missing citation anchor: docs/testing/README.md ## Sanity Android",
+                decision(() -> ReleaseRag.retrieve(folder, List.of("android/app/build.gradle"))));
+    }
+
+    private Suite suite(String name, String installedApk) throws IOException {
+        Path html = Files.writeString(folder.resolve(name + ".html"), "<html>" + name + " fixture</html>");
+        return new Suite(SOURCE, installedApk, 3, true, ReleaseEvidence.digest(html), html);
+    }
+
+    private void publish(String tag, String readme, int status, Path downloaded) throws IOException {
+        ReleaseEvidence.publication(candidate, new Download(tag, OTHER, readme, REPOSITORY, URL, "ANONYMOUS", status, downloaded));
+    }
+
+    private static String decision(Action action) {
+        try {
+            action.run();
+            return "accepted";
+        } catch (IOException blocked) {
+            return blocked.getMessage();
+        }
+    }
+
+    @FunctionalInterface private interface Action { void run() throws IOException; }
+}

@@ -1,0 +1,28 @@
+schema: 1
+turn: alternate
+destination: empty-or-opponent-except-king
+king-safety: required
+attack-model: includes-pinned-pieces
+mate: check-without-legal-reply
+# A ray stops at the first occupied square. A leap ignores intervening pieces.
+pieces:
+  KNIGHT: {mode: leap, vectors: [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]]}
+  BISHOP: {mode: ray, vectors: [[1, 1], [1, -1], [-1, -1], [-1, 1]]}
+  ROOK: {mode: ray, vectors: [[1, 0], [0, -1], [-1, 0], [0, 1]]}
+  QUEEN: {mode: ray, vectors: [[1, 0], [0, -1], [-1, 0], [0, 1], [1, 1], [1, -1], [-1, -1], [-1, 1]]}
+  KING: {mode: leap, vectors: [[1, 0], [0, -1], [-1, 0], [0, 1], [1, 1], [1, -1], [-1, -1], [-1, 1]]}
+pawn:
+  # Advances require empty squares. The diagonal is a capture, including the immediate en passant exception.
+  white: {forward: 1, home: 2, promotion: 8}
+  black: {forward: -1, home: 7, promotion: 1}
+  initial-advance: 2
+  capture-file-step: 1
+  en-passant: immediate
+  promote-to: [QUEEN, ROOK, BISHOP, KNIGHT]
+castling:
+  # Rights depend on move history. The king may not start, cross or finish on an attacked square.
+  king-from: e
+  require-clear: true
+  require-unattacked: true
+  short: {rook-from: h, king-to: g, rook-to: f}
+  long: {rook-from: a, king-to: c, rook-to: d}

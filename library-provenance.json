@@ -1,0 +1,48 @@
+{
+  "consumer": "atf_j7",
+  "donor": "atf_j4",
+  "donorCommit": "12825ed774f982cd43136fae2fed491e2cd79a4c",
+  "producer": "atf_j0",
+  "files": [
+    {
+      "file": "atf-console-1.0.0-c2.jar",
+      "sha256": "5a1cc9f3125a2e43134a2048476793e0b733b61e37a7f00b171a42990cc2a6aa"
+    },
+    {
+      "file": "atf-console-1.0.0-c2.pom",
+      "sha256": "0543abbd00fb384c25236c6feafec728fae36d036a8917b2177ddc186914388d"
+    },
+    {
+      "file": "atf-core-1.0.0-c4.jar",
+      "sha256": "7c72a3f08c27f1a5cc1b2d61e2378801e130dd4d54d7eec99481348e1b1752b4"
+    },
+    {
+      "file": "atf-core-1.0.0-c4.pom",
+      "sha256": "2cd642e7deba1b7787e1ccef6cab60245d56f3450f8fea75e83134132a82536f"
+    },
+    {
+      "file": "atf-mock-1.0.0-m2.jar",
+      "sha256": "0ae87d84905e3d3177e60a3c3ac2db6d0775852eb88162476f554ba247456704"
+    },
+    {
+      "file": "atf-mock-1.0.0-m2.pom",
+      "sha256": "e75e514f5b4dbcd689644e1b7bc38ca46b6b06e26139327ffd0b62ac295d7567"
+    },
+    {
+      "file": "atf-reporting-1.0.0-j24.jar",
+      "sha256": "8dd71735de004853210a91169297d8965691f6c4bf6781195594be50f70b69ef"
+    },
+    {
+      "file": "atf-reporting-1.0.0-j24.pom",
+      "sha256": "2d18f1d8f3b68e17788baeea60cc011be4d5f1a8c0c0709a2f7801297d2c60da"
+    },
+    {
+      "file": "atf-test-kit-1.0.0-k2.jar",
+      "sha256": "77767919b304afb093d80f4badcd9342c2192a4edb70884c2b61cbaf9a59ccc6"
+    },
+    {
+      "file": "atf-test-kit-1.0.0-k2.pom",
+      "sha256": "c9454ddebf72bcf22bd0e1cb1528cb50161b5b1619a4fcdd770db148f4905a2a"
+    }
+  ]
+}

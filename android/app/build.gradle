@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application' version '9.5.0'
+}
+
+def distribution = providers.gradleProperty('j7Distribution').isPresent()
+
+android {
+    namespace 'ro.atf.chess.android'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'ro.atf.chess.android'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.1.0'
+        testInstrumentationRunner 'ro.atf.chess.android.BoardSanity'
+    }
+
+    sourceSets.main.java.srcDir '../../chess-core/src/main/java'
+    sourceSets.main.resources.srcDir '../../chess-core/src/main/resources'
+    signingConfigs {
+        if (distribution) {
+            release {
+                storeFile file(providers.environmentVariable('J7_SIGNING_STORE').get())
+                storePassword providers.environmentVariable('J7_SIGNING_PASSWORD').get()
+                keyAlias 'chesslab-release'
+                keyPassword storePassword
+                storeType 'PKCS12'
+            }
+        }
+    }
+    buildTypes {
+        sanity {
+            initWith debug
+            applicationIdSuffix '.sanity'
+        }
+        if (distribution) {
+            release { signingConfig signingConfigs.release }
+        }
+    }
+    testBuildType distribution ? 'release' : 'sanity'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies { implementation 'org.yaml:snakeyaml:2.2' }
