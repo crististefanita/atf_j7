@@ -35,7 +35,7 @@ class MateInTwoCatalogTest {
                 if (opening.equals(quest.solution())) recorded = proof;
             }
             if (immediateMate || !candidates.equals(List.of(quest.solution()))
-                    || !recorded.getOrDefault(quest.line().defense().uci(), List.of()).contains(quest.matingMove().uci())) invalid.add(quest.id());
+                    || !recorded.getOrDefault(quest.defenseAfter(0).uci(), List.of()).contains(quest.matingMove().uci())) invalid.add(quest.id());
             if (recorded.size() > 1) branching++;
             canonical.append(quest.id()).append(' ').append(quest.solution().uci());
             recorded.forEach((reply, ends) -> canonical.append(' ').append(reply).append('=').append(String.join(",", ends)));
@@ -55,12 +55,12 @@ class MateInTwoCatalogTest {
         var wrongKey = quest.assess(alternative);
         check.same("A legal wrong key never advances the puzzle", false, wrongKey.continues());
         var reply = quest.assess(quest.solution());
-        check.same("The key advances to the recorded legal defense", quest.line().defense(), reply.defense());
+        check.same("The key advances to the recorded legal defense", quest.defenseAfter(0), reply.defense());
         check.same("The key opens the second move with the original side to play", true,
                 reply.continues() && reply.position().turn() == quest.position().turn() && reply.outcome() == ChessPosition.Outcome.PLAYING);
         var wrongMate = reply.position().legalMoves().stream().filter(move -> !reply.position().play(move).isCheckmate()).findFirst().orElseThrow();
-        check.same("A legal second move without mate stays unfinished", false, quest.assess(wrongMate, true).outcome() == ChessPosition.Outcome.CHECKMATE);
-        check.same("The second move finishes by checkmate", ChessPosition.Outcome.CHECKMATE, quest.assess(quest.matingMove(), true).outcome());
+        check.same("A legal second move without mate stays unfinished", false, quest.assess(wrongMate, 1).outcome() == ChessPosition.Outcome.CHECKMATE);
+        check.same("The second move finishes by checkmate", ChessPosition.Outcome.CHECKMATE, quest.assess(quest.matingMove(), 1).outcome());
         check.same("The line exposes the final king for the explanation", true, !quest.explanation().checkers().isEmpty());
     }
 

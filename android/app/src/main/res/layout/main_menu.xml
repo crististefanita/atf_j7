@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/app_name"
+            android:textColor="#f5f3ec"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="6dp"
+            android:paddingBottom="18dp"
+            android:text="@string/menu_choose"
+            android:textColor="#c0bfb4"
+            android:textSize="16sp" />
+
+        <Button android:id="@+id/chapter_one" style="@style/ChapterEntry" android:text="@string/open_mate_one" />
+        <Button android:id="@+id/chapter_two" style="@style/ChapterEntry" android:text="@string/open_mate_two" />
+        <Button android:id="@+id/chapter_three" style="@style/ChapterEntry" android:text="@string/open_mate_three" />
+        <Button style="@style/ChapterEntry" android:enabled="false" android:text="@string/menu_chess_todo" />
+        <Button style="@style/ChapterEntry" android:enabled="false" android:text="@string/menu_analysis_todo" />
+
+    </LinearLayout>
+</ScrollView>

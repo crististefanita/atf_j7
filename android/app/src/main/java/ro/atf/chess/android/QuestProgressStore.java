@@ -10,6 +10,7 @@ final class QuestProgressStore {
     private static final String CURRENT = "current-id";
     private static final String SOLVED = "solved-ids";
     private static final String AWAITING_MATE = "awaiting-mate";
+    private static final String RESUME_CHAPTER = "resume-chapter";
     private final SharedPreferences preferences;
 
     QuestProgressStore(Context context) { preferences = context.getSharedPreferences("quest-progress", Context.MODE_PRIVATE); }
@@ -18,23 +19,45 @@ final class QuestProgressStore {
         return QuestProgress.restore(preferences.getString(CURRENT, null), preferences.getStringSet(SOLVED, Collections.emptySet()), order);
     }
 
-    String remembered(String firstId) { return preferences.getString(chapterKey(firstId), firstId); }
-
-    boolean awaitingMate(String questId) {
-        return questId.equals(preferences.getString(AWAITING_MATE, null));
+    String remembered(String firstId) {
+        String key = chapterKey(firstId);
+        String current = preferences.getString(CURRENT, firstId);
+        String fallback = key.equals(chapterKey(current)) ? current : firstId;
+        return preferences.getString(key, fallback);
     }
 
-    boolean save(QuestProgress progress) { return save(progress, false); }
+    boolean resumeChapter() { return preferences.getBoolean(RESUME_CHAPTER, false); }
 
-    boolean save(QuestProgress progress, boolean pending) {
+    boolean leaveChapter() { return preferences.edit().remove(RESUME_CHAPTER).commit(); }
+
+    int ply(String id) {
+        String saved = "quest-ply-" + id;
+        if (preferences.contains(saved)) return preferences.getInt(saved, 0);
+        String key = chapterKey(id);
+        if (id.equals(preferences.getString(key + "-stage-id", null))) {
+            return preferences.getInt(key + "-ply", preferences.getInt(key + "-stage", 0) * 2);
+        }
+        return id.equals(preferences.getString(AWAITING_MATE, null)) ? 2 : 0;
+    }
+
+    boolean save(QuestProgress progress) { return save(progress, progress.currentSolved() ? 0 : ply(progress.currentId())); }
+
+    boolean save(QuestProgress progress, int ply) {
         String id = progress.currentId();
         String previous = preferences.getString(CURRENT, null);
         var edit = preferences.edit();
         if (previous != null) edit.putString(chapterKey(previous), previous);
-        if (pending) edit.putString(AWAITING_MATE, id);
-        else if (id.startsWith("mate2-") && (!awaitingMate(id) || progress.currentSolved())) edit.remove(AWAITING_MATE);
-        return edit.putString(chapterKey(id), id).putString(CURRENT, id).putStringSet(SOLVED, progress.solvedIds()).commit();
+        String key = chapterKey(id);
+        if (id.equals(preferences.getString(AWAITING_MATE, null))) edit.remove(AWAITING_MATE);
+        if (id.equals(preferences.getString(key + "-stage-id", null))) edit.remove(key + "-stage-id").remove(key + "-stage").remove(key + "-ply");
+        if (ply == 0) edit.remove("quest-ply-" + id);
+        else edit.putInt("quest-ply-" + id, ply);
+        return edit.putString(key, id).putBoolean(RESUME_CHAPTER, true)
+                .putString(CURRENT, id).putStringSet(SOLVED, progress.solvedIds()).commit();
     }
 
-    private static String chapterKey(String id) { return id.startsWith("mate2-") ? "last-mate-two" : "last-mate-one"; }
+    private static String chapterKey(String id) {
+        if (id.startsWith("mate3-")) return "last-mate-three";
+        return id.startsWith("mate2-") ? "last-mate-two" : "last-mate-one";
+    }
 }

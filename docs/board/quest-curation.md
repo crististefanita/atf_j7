@@ -13,6 +13,10 @@ Din copia TMP, după build, scorurile pot fi regenerate pentru revizie. Verifica
 java -cp 'atf-tests/target/classes;target/maven-repo/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar' ro.atf.chess.QuestDifficulty
 ```
 
+## Calibrarea contra-maturilor
+
+Chess.js confirmă că `mate-101` și `mate-102` pornesc în șah, au 6 și 5 mutări legale și o singură soluție. Pozițiile vecine `mate-012` și `mate-067` au același scor editorial de 32, dar oferă 25 și 43 de mutări legale și câte un șah înșelător cu o singură apărare. `mate-022` și `mate-044` au scor 33, cu 5 și 6 șahuri înșelătoare. Pentru calibrarea cu jucători, alternați ordinea pozițiilor și înregistrați timpul și încercările greșite înainte de primul indiciu.
+
 ## Mat în două mutări
 
 Cele 100 de poziții provin din exportul CC0 Lichess, prin subsetul `lczerolens/lichess-puzzles-mate-in-2`. ID-ul `mate2-<PuzzleId>` păstrează legătura cu problema `https://lichess.org/training/<PuzzleId>`. Poziția afișată este FEN-ul sursă după prima mutare a adversarului. [Formatul și licența Lichess](https://database.lichess.org/#puzzles) · [Subsetul folosit](https://huggingface.co/datasets/lczerolens/lichess-puzzles-mate-in-2/viewer)
@@ -24,3 +28,9 @@ Pentru reimport, salvați în TMP paginile `rows-<offset>.json`, cu 100 de rând
 ```powershell
 node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> --import <pagini-TMP> <catalog-TMP.yaml>
 ```
+
+## Mat în trei mutări
+
+Cele 100 de poziții provin din baza Lichess CC0. Selecția are 50 de poziții cu albul la mutare și 50 cu negrul, ordonate după ratingul importat. ID-ul `mate3-<PuzzleId>` trimite la problema originală Lichess. [Baza Lichess](https://database.lichess.org/#puzzles) · [Revizia subsetului](https://huggingface.co/datasets/lczerolens/lichess-puzzles-mate-in-3/tree/680d12e5e6447800d5cbe2b2321d4cffd6a024d1)
+
+Ambele motoare verifică o singură primă mutare care forțează matul în trei, fără soluție mai scurtă. Pentru fiecare primă apărare se verifică toate mutările care forțează matul în următoarele două. Linia jucată în aplicație are și a doua mutare unică.

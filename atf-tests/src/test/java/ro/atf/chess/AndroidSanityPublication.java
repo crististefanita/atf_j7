@@ -24,26 +24,27 @@ class AndroidSanityPublication {
 
     private static final List<Frame> FRAMES = List.of(new Frame("hint-piece.png", "Simple hint · piece only"),
             new Frame("hint-solution.png", "Complete hint · d8 to h4"), new Frame("board.png", "Restored solved position after Qh4#"),
-            new Frame("milestone.png", "First milestone · five solved"), new Frame("mate-two.png", "Mate in two · after the defense"));
+            new Frame("milestone.png", "First milestone · five solved"), new Frame("mate-two.png", "Mate in two · after the defense"),
+            new Frame("menu.png", "Main menu · three puzzle chapters"), new Frame("mate-three.png", "Mate in three · after the second defense"));
 
     @Test void publishBoardSanity() throws Exception {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-board-sanity.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var prepare = readPhase(receipt, "prepare", 30);
-        var restore = readPhase(receipt.resolveSibling("restore.txt"), "restore", 23);
+        var prepare = readPhase(receipt, "prepare", 42);
+        var restore = readPhase(receipt.resolveSibling("restore.txt"), "restore", 27);
         boolean newProcess = !prepare.pid().isEmpty() && !restore.pid().isEmpty() && !prepare.pid().equals(restore.pid());
         Set<Frame> available = new HashSet<>();
         for (var frame : FRAMES) if (isPng(receipt.resolveSibling(frame.file()))) available.add(frame);
         boolean complete = prepare.passed() && restore.passed() && newProcess && available.size() == FRAMES.size();
         var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
-             var scenario = session.startScenario("BoardSanity", "Play both chapters, resume after the defense and reach the first milestone", List.of("e2e", "android"));
+             var scenario = session.startScenario("BoardSanity", "Open the menu, play three chapters and resume after restart", List.of("e2e", "android"));
              var phase = scenario.startPhase("TEST BODY")) {
-            publish(phase, "Solve two one-move quests and reach the opponent's defense in the new chapter", prepare.rows(), prepare.passed());
+            publish(phase, "Open the menu and play the three chapters up to the pending second defense", prepare.rows(), prepare.passed());
             publish(phase, "Android process restart", List.of(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs",
                     prepare.pid() + " → " + restore.pid(), newProcess)), newProcess);
-            publish(phase, "Resume and solve the two-move quest, then restore the first chapter and reach its milestone", restore.rows(), restore.passed());
+            publish(phase, "Resume both pending quests and restore the first chapter's progress", restore.rows(), restore.passed());
             for (var frame : FRAMES) {
                 if (available.contains(frame)) {
                     try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {

@@ -16,8 +16,11 @@ public final class ReleaseRag {
     private static final Route RELEASE = new Route("release-tools/", "docs/release/README.md", "## Calificare și publicare", "ReleaseGovernanceTest");
     private static final List<Route> ROUTES = List.of(
             new Route("chess-core/", "docs/testing/README.md", "## Motor și proiecție", "ChessComponentTest și QuestCatalogTest"),
+            new Route("chess-core/src/main/resources/mate-in-three.yaml", "docs/board/quest-curation.md", "## Mat în trei mutări", "MateInThreeCatalogTest și verify-mate-in-three.cjs"),
             new Route("android/", "docs/testing/README.md", "## Sanity Android", "BoardSanity"),
             new Route("atf-tests/", "docs/testing/README.md", "## Raportare Extent", "ChessComponentTest și ReleaseGovernanceTest"),
+            new Route("docs/board/", "docs/testing/README.md", "## Motor și proiecție", "BoardPanelLayoutTest și QuestHintTest"),
+            new Route("docs/feedback/", "docs/feedback/README.md", "# Feedback · Chess Lab", "Revizuiți criteriile deschise înaintea promovării"),
             new Route("lib/", "lib/README.md", "## Proveniență", "ReleaseGovernanceTest"),
             new Route("docs/release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),

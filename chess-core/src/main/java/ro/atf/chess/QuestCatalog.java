@@ -17,46 +17,55 @@ public final class QuestCatalog {
 
     public record Attempt(ChessPosition position, ChessPosition.Outcome outcome, Move defense, boolean continues) { }
 
-    public record Line(Move defense, Move mate) { }
+    public record Quest(String id, String fen, String theme, ChessPosition position, List<Move> line) {
+        public Quest { line = List.copyOf(line); }
 
-    public record Quest(String id, String fen, Move solution, String theme, ChessPosition position, Line line) {
         public Quest(String id, String fen, Move solution, String theme, ChessPosition position) {
-            this(id, fen, solution, theme, position, null);
+            this(id, fen, theme, position, List.of(solution));
         }
 
-        public boolean mateInTwo() { return line != null; }
+        public Move solution() { return playerMove(0); }
+
+        public int mateLength() { return (line.size() + 1) / 2; }
+
+        public Move playerMove(int stage) { return line.get(stage * 2); }
+
+        public Move defenseAfter(int stage) { return line.get(stage * 2 + 1); }
+
+        public ChessPosition positionAt(int stage) {
+            var board = position;
+            for (int index = 0; index < stage * 2; index++) board = board.play(line.get(index));
+            return board;
+        }
 
         public boolean solves(Move attempt) { return position.play(attempt).isCheckmate(); }
 
-        public Attempt assess(Move move) { return assess(move, false); }
+        public Attempt assess(Move move) { return assess(move, 0); }
 
-        public Attempt assess(Move move, boolean awaitingMate) {
-            if (mateInTwo() && !awaitingMate && solution.equals(move)) {
-                return new Attempt(continuationPosition(), ChessPosition.Outcome.PLAYING, line.defense(), true);
+        public Attempt assess(Move move, int stage) {
+            if (stage < mateLength() - 1 && playerMove(stage).equals(move)) {
+                return new Attempt(positionAt(stage + 1), ChessPosition.Outcome.PLAYING, defenseAfter(stage), true);
             }
-            var before = awaitingMate ? continuationPosition() : position;
-            var after = before.play(move);
+            var after = positionAt(stage).play(move);
             if (!after.isCheck()) return new Attempt(after, after.outcome(), null, false);
             var replies = after.legalMoves();
             return replies.isEmpty() ? new Attempt(after, ChessPosition.Outcome.CHECKMATE, null, false)
                     : new Attempt(after, ChessPosition.Outcome.CHECK, replies.get(0), false);
         }
 
-        public ChessPosition continuationPosition() { return mateInTwo() ? position.play(solution).play(line.defense()) : position; }
+        public Move matingMove() { return playerMove(mateLength() - 1); }
 
-        public Move matingMove() { return mateInTwo() ? line.mate() : solution; }
-
-        public ChessPosition solvedPosition() { return continuationPosition().play(matingMove()); }
+        public ChessPosition solvedPosition() { return positionAt(mateLength() - 1).play(matingMove()); }
 
         public ChessPosition.MateExplanation explanation() { return solvedPosition().explainMate(); }
 
         public Guidance guidance() {
-            return new Guidance(position.pieceAt(solution.from()), solution, matingPattern());
+            return new Guidance(position.pieceAt(solution().from()), solution(), matingPattern());
         }
 
         public MatePattern matingPattern() {
             Move move = matingMove();
-            var before = continuationPosition();
+            var before = positionAt(mateLength() - 1);
             Kind kind = before.pieceAt(move.from()).kind();
             if (move.promotion() != null) return MatePattern.PROMOTION;
             if (kind == Kind.KING && Math.abs(move.from() - move.to()) == 2) return MatePattern.CASTLING;
@@ -81,31 +90,40 @@ public final class QuestCatalog {
     }
 
     public static List<Quest> loadMateInTwo() {
-        var root = ChessYaml.resource("mate-in-two.yaml");
-        if (ChessYaml.number(root, "schema") != 1 || !"MATE_IN_TWO".equals(ChessYaml.string(root, "objective"))) {
-            throw new IllegalArgumentException("Invalid mate-in-two catalog schema or objective");
+        return loadMultiMove("mate-in-two.yaml", "MATE_IN_TWO", 2);
+    }
+
+    public static List<Quest> loadMateInThree() {
+        return loadMultiMove("mate-in-three.yaml", "MATE_IN_THREE", 3);
+    }
+
+    private static List<Quest> loadMultiMove(String file, String objective, int length) {
+        var root = ChessYaml.resource(file);
+        if (ChessYaml.number(root, "schema") != 1 || !objective.equals(ChessYaml.string(root, "objective"))) {
+            throw new IllegalArgumentException("Invalid catalog schema or objective in " + file);
         }
         var result = new ArrayList<Quest>();
         var ids = new HashSet<String>();
         var positions = new HashSet<String>();
         int previousRating = 0;
         for (Object item : ChessYaml.list(root, "quests")) {
-            if (!(item instanceof Map<?, ?> row) || row.size() != 4) throw new IllegalArgumentException("Invalid mate-in-two row");
+            if (!(item instanceof Map<?, ?> row) || row.size() != 4) throw new IllegalArgumentException("Invalid row in " + file);
             String id = ChessYaml.string(row, "id");
             String fen = ChessYaml.string(row, "fen");
             int rating = ChessYaml.number(row, "rating");
             var moves = ChessYaml.list(row, "line");
-            if (!id.matches("mate2-[A-Za-z0-9]{5}") || !ids.add(id) || !positions.add(fen.replaceFirst(" [0-9]+ [0-9]+$", ""))
-                    || rating < previousRating || moves.size() != 3 || moves.stream().anyMatch(move -> !(move instanceof String))) {
-                throw new IllegalArgumentException("Invalid or duplicate mate-in-two quest " + id);
+            if (!id.matches("mate" + length + "-[A-Za-z0-9]{5}") || !ids.add(id) || !positions.add(fen.replaceFirst(" [0-9]+ [0-9]+$", ""))
+                    || rating < previousRating || moves.size() != length * 2 - 1 || moves.stream().anyMatch(move -> !(move instanceof String))) {
+                throw new IllegalArgumentException("Invalid or duplicate quest " + id);
             }
-            var line = new Line(Move.fromUci((String) moves.get(1)), Move.fromUci((String) moves.get(2)));
-            var quest = new Quest(id, fen, Move.fromUci((String) moves.get(0)), "TACTIC", ChessPosition.fromFen(fen), line);
+            var line = new ArrayList<Move>(moves.size());
+            for (Object move : moves) line.add(Move.fromUci((String) move));
+            var quest = new Quest(id, fen, "TACTIC", ChessPosition.fromFen(fen), line);
             if (!quest.solvedPosition().isCheckmate()) throw new IllegalArgumentException("Invalid reference mate " + id);
             result.add(quest);
             previousRating = rating;
         }
-        if (result.size() != 100) throw new IllegalArgumentException("Expected exactly 100 mate-in-two quests");
+        if (result.size() != 100) throw new IllegalArgumentException("Expected exactly 100 quests in " + file);
         return Collections.unmodifiableList(result);
     }
 

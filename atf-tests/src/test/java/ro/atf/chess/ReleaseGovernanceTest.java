@@ -108,6 +108,9 @@ class ReleaseGovernanceTest {
         var citations = ReleaseRag.retrieve(root, List.of("android/app/src/main/AndroidManifest.xml", "README.md"));
         check.same("Two affected contracts cited", List.of("## Sanity Android", "## Calificare și publicare"), citations.stream().map(ReleaseRag.Citation::heading).toList());
         check.same("The cited document bytes match their hash", ReleaseEvidence.digest(root.resolve(citations.getFirst().path())), citations.getFirst().sha256());
+        var chapter = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/mate-in-three.yaml", "docs/feedback/README.md"));
+        check.same("A chapter release cites its independent oracle and open feedback", List.of("## Motor și proiecție", "## Mat în trei mutări", "# Feedback · Chess Lab"),
+                chapter.stream().map(ReleaseRag.Citation::heading).toList());
         check.same("A path outside the route table has no citation", List.of(), ReleaseRag.retrieve(root, List.of("unknown/foo")));
         Path missing = Files.createDirectories(folder.resolve("docs/testing")).resolve("README.md");
         Files.writeString(missing, "# No known anchor");

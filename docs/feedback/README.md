@@ -2,5 +2,5 @@
 
 | Prioritate | Pas | Criteriu de închidere |
 |---|---|---|
-| P2 | Indicii și progres pe ecran compact | Verificați cu font mărit în română că tabla și cele trei comenzi rămân vizibile, iar ordinea de focus anunță piesa indicată, destinația și pragul atins. |
-| P2 | Calibrarea dificultății | Măsurați timpul și încercările greșite la `mate-101` și `mate-102`, apoi comparați cu problemele vecine cu șahuri tentante. Folosiți rezultatele pentru a verifica bonusul de 16 puncte acordat pozițiilor care încep în șah. [Repere](../board/quest-curation.md) |
+| P2 | Anunțurile TalkBack pe dispozitiv | Confirmați prin gesturi ordinea auzită pentru culoare, piesă și destinație. După mat, confirmați că pragul nou se anunță o singură dată. Testul Android verifică legăturile de traversare și profilul compact în română. |
+| P2 | Calibrare cu jucători | Măsurați fără indicii timpul până la mat și încercările greșite pentru cele două contra-maturi și pozițiile vecine. Comparația motoarelor verifică structura pozițiilor. Ponderea de 16 puncte se decide pe baza rezultatelor jucătorilor. [Pozițiile de control](../board/quest-curation.md#calibrarea-contra-maturilor) |

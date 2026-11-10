@@ -1,0 +1,403 @@
+schema: 1
+objective: MATE_IN_THREE
+quests:
+  - id: mate3-00o7c
+    fen: "2r3k1/pb3ppp/1p2pq2/1P6/2Q1PP2/6P1/P5BP/2R3K1 w - - 1 25"
+    line: [c4c8, b7c8, c1c8, f6d8, c8d8]
+    rating: 428
+  - id: mate3-02eRO
+    fen: "6k1/1R3p1p/6p1/1p1r1b2/8/2Bp3P/6P1/6K1 w - - 6 47"
+    line: [b7b8, f5c8, b8c8, d5d8, c8d8]
+    rating: 580
+  - id: mate3-01749
+    fen: "6k1/5ppp/4p3/3n4/2rB4/1r4P1/5PKP/R2q4 w - - 0 33"
+    line: [a1a8, b3b8, a8b8, c4c8, b8c8]
+    rating: 615
+  - id: mate3-01Dtr
+    fen: "b4rk1/2pR2p1/1p4q1/6N1/7Q/4B3/1P3PPP/6K1 b - - 0 27"
+    line: [g6b1, e3c1, b1c1, d7d1, c1d1]
+    rating: 770
+  - id: mate3-00gNl
+    fen: "6k1/5R2/pp4p1/2p4p/7P/1P6/P2rr1PK/5R2 w - - 1 39"
+    line: [f7f8, g8h7, f1f7, h7h6, f8h8]
+    rating: 803
+  - id: mate3-00F6y
+    fen: "2k3r1/pppb1prp/1q6/8/Q7/2P1R1P1/P4P1P/4R1K1 w - - 4 24"
+    line: [e3e8, d7e8, e1e8, g8e8, a4e8]
+    rating: 809
+  - id: mate3-02jP2
+    fen: "7k/p4r1p/2pR4/8/6RP/6P1/PP3r2/6K1 b - - 0 27"
+    line: [f2f1, g1h2, f7f2, h2h3, f1h1]
+    rating: 824
+  - id: mate3-01382
+    fen: "r6k/5Rp1/2pb3p/1p2P3/3P4/2P3Q1/1P4PP/7K b - - 0 29"
+    line: [a8a1, g3e1, a1e1, f7f1, e1f1]
+    rating: 855
+  - id: mate3-02tV1
+    fen: "5r2/p2pb2Q/1k3qp1/1p2N1p1/4R3/2PP4/PP3PPP/R5K1 b - - 3 22"
+    line: [f6f2, g1h1, f2f1, a1f1, f8f1]
+    rating: 886
+  - id: mate3-01S2P
+    fen: "r4rk1/5qpp/p1p1p3/3pB3/6Q1/4R3/PPP2PPP/R5K1 b - - 5 18"
+    line: [f7f2, g1h1, f2f1, a1f1, f8f1]
+    rating: 923
+  - id: mate3-00QHM
+    fen: "6k1/pp3rpp/4Nb2/4p3/1r6/6PK/PP5P/2R5 w - - 0 29"
+    line: [c1c8, f6d8, c8d8, f7f8, d8f8]
+    rating: 934
+  - id: mate3-02zOY
+    fen: "r4r1k/ppp3pp/1q1pQ3/3P2B1/4R3/8/PP3PPP/R5K1 b - - 0 23"
+    line: [b6f2, g1h1, f2f1, a1f1, f8f1]
+    rating: 935
+  - id: mate3-01vCu
+    fen: "rn2r1k1/ppp2ppp/3p4/4q3/4P3/4BQP1/P1P4P/R4RK1 w - - 4 18"
+    line: [f3f7, g8h8, f7f8, e8f8, f1f8]
+    rating: 939
+  - id: mate3-02gXq
+    fen: "3r2k1/5ppp/p3p3/1q2P3/8/2P1bQPP/8/5R1K w - - 0 27"
+    line: [f3f7, g8h8, f7f8, d8f8, f1f8]
+    rating: 939
+  - id: mate3-00QW1
+    fen: "8/3r1ppp/4p3/k3P3/pR2R2P/2P5/3r1PP1/2K5 b - - 5 31"
+    line: [d2d1, c1b2, d7d2, b2a3, d1a1]
+    rating: 949
+  - id: mate3-01Dq7
+    fen: "2k5/ppp4q/4p1r1/4P3/3P4/1PP2RPp/P3Q1nP/5K2 w - - 3 31"
+    line: [f3f8, c8d7, e2b5, c7c6, b5b7]
+    rating: 985
+  - id: mate3-00O9a
+    fen: "1k3r2/q5r1/2Qp3p/3Bp3/2N1P1p1/P7/1PP2PPP/R5K1 b - - 13 35"
+    line: [a7f2, g1h1, f2f1, a1f1, f8f1]
+    rating: 989
+  - id: mate3-00pSv
+    fen: "5k2/5p1p/6p1/1p2q3/2p1p1Q1/1P2P3/P1R2PPP/6K1 b - - 0 26"
+    line: [e5a1, c2c1, a1c1, g4d1, c1d1]
+    rating: 1010
+  - id: mate3-01pl8
+    fen: "3r4/pR4p1/2p2N1k/4p2p/2B1Pn1N/1P6/P1P2PPP/3R2K1 b - - 0 31"
+    line: [d8d1, c4f1, f4e2, g1h1, d1f1]
+    rating: 1051
+  - id: mate3-00d5g
+    fen: "2b2r1k/pp4p1/2p5/4r3/2B5/1P6/P4pK1/5R2 w - - 5 33"
+    line: [f1h1, c8h3, h1h3, e5h5, h3h5]
+    rating: 1074
+  - id: mate3-02ebU
+    fen: "6k1/p4ppp/1p6/4q3/3r4/4PQP1/P4P2/7K w - - 0 28"
+    line: [f3a8, d4d8, a8d8, e5e8, d8e8]
+    rating: 1077
+  - id: mate3-02242
+    fen: "r4rk1/1p3pp1/8/2p1pNP1/4PnR1/P7/1q5N/3R3K w - - 0 33"
+    line: [f5e7, g8h7, g4h4, f4h5, h4h5]
+    rating: 1081
+  - id: mate3-02EdZ
+    fen: "3r2k1/1p3p1p/2p3p1/3q1bPP/3r1P2/pP2Q3/P7/K1R1R3 w - - 1 34"
+    line: [e3e8, d8e8, e1e8, g8g7, h5h6]
+    rating: 1113
+  - id: mate3-01XyB
+    fen: "r5k1/2Q2ppp/8/8/3Pq2n/p3P3/P5PP/5RK1 w - - 2 38"
+    line: [c7f7, g8h8, f7f8, a8f8, f1f8]
+    rating: 1126
+  - id: mate3-034vZ
+    fen: "8/6bk/7p/1p1Q4/p1pP1q2/P1P1p1N1/1P4PP/6K1 b - - 1 50"
+    line: [f4f2, g1h1, f2e1, g3f1, e1f1]
+    rating: 1133
+  - id: mate3-038TX
+    fen: "3r2k1/5ppp/bQn1p3/8/8/Rp1q1NB1/3N1PPP/1R4K1 b - - 0 25"
+    line: [d3b1, d2b1, d8d1, f3e1, d1e1]
+    rating: 1135
+  - id: mate3-01a8M
+    fen: "8/R4pkp/1p1R4/8/4PP1K/2r3rP/P7/8 b - - 0 34"
+    line: [g3h3, h4g5, c3g3, g5f5, h3h5]
+    rating: 1159
+  - id: mate3-02nwT
+    fen: "rn3rk1/pp4pp/2p2q2/8/3PR3/2P5/P1P3PP/R1BQ2K1 b - - 0 17"
+    line: [f6f2, g1h1, f2f1, d1f1, f8f1]
+    rating: 1181
+  - id: mate3-00GuD
+    fen: "1n5k/6p1/p2q1rPp/1ppB4/8/3P4/PPP1rPQ1/2K4R w - - 0 26"
+    line: [h1h6, g7h6, g6g7, h8h7, g7g8q]
+    rating: 1185
+  - id: mate3-02tEk
+    fen: "1r3rk1/p5pp/1qp5/4R3/8/PPQ5/2P2PPP/4R1K1 b - - 0 21"
+    line: [b6f2, g1h1, f2f1, e1f1, f8f1]
+    rating: 1185
+  - id: mate3-01Xgf
+    fen: "5r1k/p1p3p1/7p/4p1N1/2P2q2/1P5Q/P5PP/3R2K1 b - - 0 32"
+    line: [f4f2, g1h1, f2f1, d1f1, f8f1]
+    rating: 1186
+  - id: mate3-001wR
+    fen: "6nr/p4p1p/k1p5/1p6/1QN5/2P1P3/4KPqP/8 w - - 0 27"
+    line: [b4a5, a6b7, c4d6, b7b8, a5d8]
+    rating: 1187
+  - id: mate3-033rG
+    fen: "5r1k/1p3qbp/3Q2p1/2P5/1P6/8/6PP/3R1NK1 b - - 2 29"
+    line: [f7f2, g1h1, f2f1, d1f1, f8f1]
+    rating: 1193
+  - id: mate3-01Kz0
+    fen: "4rr2/1Q4pk/R1p2q1p/8/8/1P1P4/2P2PPP/5RK1 b - - 4 29"
+    line: [f6f2, f1f2, e8e1, f2f1, e1f1]
+    rating: 1195
+  - id: mate3-004kB
+    fen: "4rr1k/p1Qn2pp/3p1q2/8/8/2P5/PP3PPP/RN3RK1 b - - 0 16"
+    line: [f6f2, f1f2, e8e1, f2f1, e1f1]
+    rating: 1226
+  - id: mate3-02Ub7
+    fen: "2r2nk1/p5pp/bp2p3/3pP1q1/3P4/1P3QP1/P2N2B1/5RK1 w - - 2 24"
+    line: [f3f7, g8h8, f7f8, c8f8, f1f8]
+    rating: 1239
+  - id: mate3-01TmZ
+    fen: "r1b2rk1/1p2bppp/pqnp4/3Np3/2B1PP2/PN6/1PP2nPP/R1BQ1RK1 b - - 6 13"
+    line: [f2h3, g1h1, b6g1, f1g1, h3f2]
+    rating: 1251
+  - id: mate3-01vxK
+    fen: "6rk/1R3Qp1/6Pp/p6P/8/2Pq1p2/K7/8 w - - 0 51"
+    line: [f7g8, h8g8, b7b8, d3d8, b8d8]
+    rating: 1304
+  - id: mate3-01StK
+    fen: "1r4k1/5pp1/2Bp3p/q2P4/8/1PbQ4/P5PP/1K1R4 b - - 1 27"
+    line: [b8b3, a2b3, a5a1, b1c2, a1b2]
+    rating: 1326
+  - id: mate3-02ZqC
+    fen: "8/3N1Qqk/6pp/3P4/4P3/6P1/q4PKP/8 w - - 1 40"
+    line: [d7f6, h7h8, f7e8, g7f8, e8f8]
+    rating: 1327
+  - id: mate3-01NPD
+    fen: "8/5p2/6pk/3PQp2/8/4PP2/p5PK/4q3 w - - 0 40"
+    line: [e5h8, h6g5, f3f4, g5g4, h8h3]
+    rating: 1332
+  - id: mate3-01IA8
+    fen: "r6k/pp2Qrpp/2p5/8/2n5/8/Pq4PP/3R3K w - - 0 29"
+    line: [d1d8, a8d8, e7d8, f7f8, d8f8]
+    rating: 1336
+  - id: mate3-023sA
+    fen: "5r1k/p1p2qpp/6b1/1P1QP3/8/4P1R1/PB4PP/3R2K1 b - - 0 26"
+    line: [f7f2, g1h1, f2f1, d1f1, f8f1]
+    rating: 1337
+  - id: mate3-00gH0
+    fen: "3r2k1/6pp/8/5Q2/2pP4/2q3P1/5RKP/8 w - - 0 36"
+    line: [f5f7, g8h8, f7f8, d8f8, f2f8]
+    rating: 1346
+  - id: mate3-00l68
+    fen: "6Q1/q1k5/3pB1p1/2pP1p2/2P2P2/rp2PK1P/8/8 w - - 3 38"
+    line: [g8c8, c7b6, c8c6, b6a5, c6b5]
+    rating: 1346
+  - id: mate3-01yWZ
+    fen: "8/4r1pk/R6p/4p1P1/3p3P/2n5/6K1/8 w - - 1 45"
+    line: [g5g6, h7h8, a6a8, e7e8, a8e8]
+    rating: 1387
+  - id: mate3-00BrZ
+    fen: "r6r/pp2kb2/3p1p2/1N1Pp3/3bP3/P2B2P1/1P1Q2PP/7K b - - 7 28"
+    line: [h8h2, h1h2, a8h8, d2h6, h8h6]
+    rating: 1412
+  - id: mate3-01KSz
+    fen: "2r3k1/1p3ppp/p3p3/3pP2Q/2r5/P1Pq3P/1P2R2b/5R1K w - - 0 30"
+    line: [h5f7, g8h8, f7f8, c8f8, f1f8]
+    rating: 1426
+  - id: mate3-02gWm
+    fen: "r2k1r2/pppn2Q1/3p3p/8/8/1PP1R2P/Pq2B2K/8 w - - 4 26"
+    line: [g7e7, d8c8, e7e8, f8e8, e3e8]
+    rating: 1428
+  - id: mate3-00Pr6
+    fen: "r1b2rk1/p4ppp/2p5/6q1/6P1/3p1Q1P/PPP5/1K2RR2 w - - 0 18"
+    line: [f3f7, f8f7, e1e8, f7f8, f1f8]
+    rating: 1433
+  - id: mate3-024sp
+    fen: "1k1r1b1r/npp2pp1/5n1p/1N6/8/1P3N2/1P2qPPP/R2R2K1 w - - 0 17"
+    line: [d1d8, a7c8, a1a8, b8a8, d8c8]
+    rating: 1433
+  - id: mate3-00Kbj
+    fen: "8/8/6p1/PR3p2/1P3k1P/8/r5P1/7K b - - 0 39"
+    line: [f4g3, b5d5, a2a1, d5d1, a1d1]
+    rating: 1451
+  - id: mate3-02auQ
+    fen: "3rkb2/6p1/Q5p1/1p3p2/5P2/2Pq4/PP4PP/RNB2RK1 b - - 0 21"
+    line: [f8c5, c1e3, c5e3, g1h1, d3f1]
+    rating: 1452
+  - id: mate3-03O2D
+    fen: "5r2/6pk/7p/4p3/PQ2Pq2/8/1P4PP/3R2K1 b - - 0 33"
+    line: [f4f2, g1h1, f2f1, d1f1, f8f1]
+    rating: 1458
+  - id: mate3-01dKr
+    fen: "1Qrk3r/5p2/4p3/3pP2q/6p1/3B2P1/2P4n/5R1K w - - 3 36"
+    line: [b8d6, d8e8, d3b5, c8c6, b5c6]
+    rating: 1467
+  - id: mate3-01riG
+    fen: "8/8/4P1kp/2R2Np1/2P5/1P4K1/r7/4n3 b - - 0 35"
+    line: [a2g2, g3h3, g5g4, h3h4, e1f3]
+    rating: 1478
+  - id: mate3-02pbx
+    fen: "1k3r2/2p3pp/3bQ3/p7/8/2N1P3/1PP1q1PP/3R2K1 b - - 2 25"
+    line: [e2f2, g1h1, f2f1, d1f1, f8f1]
+    rating: 1504
+  - id: mate3-01DhL
+    fen: "1r4k1/2q3p1/p3R2p/b2p4/2pP3N/6P1/1rQ1RPP1/6K1 w - - 0 32"
+    line: [e6e8, b8e8, e2e8, g8f7, c2g6]
+    rating: 1516
+  - id: mate3-01aP5
+    fen: "6rk/3Q2bp/p2p4/5p2/Pq6/2p4P/2P5/K3R1R1 w - - 9 35"
+    line: [d7g7, g8g7, e1e8, g7g8, g1g8]
+    rating: 1517
+  - id: mate3-02GAF
+    fen: "7k/R7/8/1p4KP/p4p2/1r3P2/8/8 w - - 7 44"
+    line: [g5g6, b3c3, a7a8, c3c8, a8c8]
+    rating: 1535
+  - id: mate3-00j3i
+    fen: "5rk1/R5p1/5q1p/8/3p2Q1/1P6/P3rPPP/5RK1 b - - 3 38"
+    line: [f6f2, f1f2, e2e1, f2f1, e1f1]
+    rating: 1543
+  - id: mate3-00wUm
+    fen: "5rk1/pR1Q1ppp/4N3/3p1n2/8/7P/q4rP1/4R1K1 w - - 0 29"
+    line: [d7f7, f8f7, b7b8, f7f8, b8f8]
+    rating: 1566
+  - id: mate3-02AXB
+    fen: "7k/2pr4/4N1p1/1p5p/8/2P1Q1K1/2q3PP/8 w - - 11 42"
+    line: [e3h6, h8g8, h6f8, g8h7, e6g5]
+    rating: 1580
+  - id: mate3-01YV3
+    fen: "1r4k1/p3R2p/3p2pQ/3q4/3b4/3p4/PP3rPP/1RB4K w - - 0 23"
+    line: [h6h7, g8f8, c1h6, d4g7, h7g7]
+    rating: 1604
+  - id: mate3-01LaG
+    fen: "6rk/5R2/3p1q1p/3P2pQ/1P2P3/3P1p1P/P1r3PB/1R5K b - - 1 28"
+    line: [f3g2, h1g1, f6d4, f7f2, d4f2]
+    rating: 1622
+  - id: mate3-01BeL
+    fen: "8/6QR/pr5p/6p1/5p1k/q6P/2P2PPK/8 b - - 7 39"
+    line: [a3g3, f2g3, f4g3, h2g1, b6b1]
+    rating: 1637
+  - id: mate3-00J1t
+    fen: "r1qr3k/pp3pb1/1np1p3/8/3P3P/2N2PR1/PP1Q2P1/2KR4 w - - 0 23"
+    line: [d2g5, d8g8, g5h5, g7h6, h5h6]
+    rating: 1638
+  - id: mate3-00Ivf
+    fen: "8/2p4r/1p3k2/p2PR1p1/P1P2pP1/1P3P1r/4R1K1/8 b - - 0 46"
+    line: [h3h2, g2f1, h2h1, f1f2, h7h2]
+    rating: 1658
+  - id: mate3-02zCV
+    fen: "r4k1r/1pp2pp1/1b1p1P2/pP6/P2PNnq1/1Q3N1p/5P2/R1B1RB1K b - - 1 21"
+    line: [g4g2, f1g2, h3g2, h1g1, h8h1]
+    rating: 1673
+  - id: mate3-0156a
+    fen: "2k4r/ppp1q1p1/3b2p1/3Q4/1P2NPn1/P1P5/6P1/R1B2RKN b - - 0 21"
+    line: [h8h1, g1h1, e7h4, h1g1, h4h2]
+    rating: 1682
+  - id: mate3-03Ika
+    fen: "3r2k1/1Q4pp/4p1r1/8/7n/1P3P2/P4RPP/6K1 b - - 4 30"
+    line: [d8d1, f2f1, g6g2, g1h1, d1f1]
+    rating: 1714
+  - id: mate3-01iy8
+    fen: "2r3k1/2P2pp1/6r1/3p2qp/3N2b1/1R2P3/3Q1PPP/2R4K b - - 2 28"
+    line: [g4f3, c1g1, f3g2, g1g2, g5g2]
+    rating: 1726
+  - id: mate3-02tx7
+    fen: "1k6/1b3pp1/pB1R4/1p2p1P1/1n2P3/1NK2P2/PPP4r/8 b - - 4 27"
+    line: [h2c2, c3b4, c2c4, b4a3, c4a4]
+    rating: 1728
+  - id: mate3-01Sr1
+    fen: "1r4k1/Q5pp/4p3/1BR2p2/3q4/B3nP1P/P5P1/6K1 b - - 1 35"
+    line: [e3g4, g1h1, d4d1, b5f1, d1f1]
+    rating: 1737
+  - id: mate3-016rF
+    fen: "r5k1/pppb2p1/1bnp1q2/6N1/8/2NQ2B1/PP4PP/7K w - - 0 20"
+    line: [d3h7, g8f8, h7h8, f8e7, c3d5]
+    rating: 1763
+  - id: mate3-01Gjl
+    fen: "rn3k1N/p1pn3p/8/3b2B1/3p4/N7/PP4PP/4R1K1 w - - 4 22"
+    line: [g5h6, f8g8, e1e8, d7f8, e8f8]
+    rating: 1774
+  - id: mate3-02IqG
+    fen: "r5k1/p4pn1/4pBp1/1p1r4/3P1Q1R/2q4P/6P1/6K1 w - - 4 36"
+    line: [h4h8, g8h8, f4h6, h8g8, h6g7]
+    rating: 1799
+  - id: mate3-00ueM
+    fen: "2kr4/2pR4/2P1K1P1/8/8/4n3/p7/8 w - - 0 50"
+    line: [d7d8, c8d8, g6g7, a2a1q, g7g8q]
+    rating: 1805
+  - id: mate3-01wET
+    fen: "6k1/1P1B1p2/4p3/3pP1Pp/P4K1P/2r5/1R1Q2P1/2q5 b - - 6 39"
+    line: [c1f1, d2f2, f1c4, f2d4, c4d4]
+    rating: 1809
+  - id: mate3-02LtX
+    fen: "r3k2r/ppQ1n1p1/1p1R4/6p1/8/P3qP2/BPP4P/5b1K w kq - 0 23"
+    line: [c7d7, e8f8, d7d8, a8d8, d6d8]
+    rating: 1813
+  - id: mate3-02YBE
+    fen: "6k1/5R2/p6P/1pbq2r1/3p4/2P5/P4QP1/6K1 w - - 3 41"
+    line: [h6h7, g8h8, f2f6, g5g7, f6g7]
+    rating: 1851
+  - id: mate3-01FmQ
+    fen: "3r2k1/2B1P1pp/1Q3p2/2b5/P3n3/5N2/2q2PPP/5RK1 b - - 0 32"
+    line: [c2f2, f1f2, d8d1, f3e1, d1e1]
+    rating: 1886
+  - id: mate3-01h56
+    fen: "r3n2k/2q1b2p/3p2p1/2n2N2/2B1P3/8/1Pp2B2/1NKR3R w - - 2 30"
+    line: [h1h7, h8h7, d1h1, e7h4, h1h4]
+    rating: 1895
+  - id: mate3-02I6H
+    fen: "2kr2nr/pp1b1ppp/2nB4/1B1N4/Q2P4/7P/Pq1NKP2/8 w - - 2 16"
+    line: [d5b6, a7b6, a4a8, c6b8, a8b8]
+    rating: 1921
+  - id: mate3-01PIs
+    fen: "r7/6kp/5rp1/3Bn3/1K2P3/2P3b1/PP1B2P1/R6R b - - 2 33"
+    line: [f6b6, b4c5, g3f2, d2e3, f2e3]
+    rating: 1929
+  - id: mate3-01Vce
+    fen: "2r4r/6b1/8/1b1pPQ2/2p2P1k/4P3/PP1B3q/2K5 w - - 8 34"
+    line: [d2e1, h2g3, f5g5, h4h3, g5g3]
+    rating: 1960
+  - id: mate3-00RwV
+    fen: "2r1r2k/ppq3pp/3b1p2/5Q1R/3P4/4B3/PP3PPP/R5K1 b - - 2 20"
+    line: [c7c1, a1c1, c8c1, e3c1, e8e1]
+    rating: 1976
+  - id: mate3-0212b
+    fen: "r3kb1r/ppp2p1p/5Q2/4p3/2B1P3/3P3P/P1q3PK/8 w kq - 0 16"
+    line: [c4f7, e8d7, f6e6, d7d8, e6e8]
+    rating: 1990
+  - id: mate3-02SQK
+    fen: "1r2r1k1/3nbp1p/p1q1p1p1/3pR2Q/3B4/3B4/PPP2PPP/R5K1 w - - 0 20"
+    line: [h5h7, g8h7, e5h5, h7g8, h5h8]
+    rating: 2046
+  - id: mate3-005wy
+    fen: "1r6/pp2kppQ/2n1p1n1/3p2P1/5P2/2PqP3/PP1N4/2KR3R b - - 4 27"
+    line: [c6b4, c3b4, b8c8, d2c4, c8c4]
+    rating: 2062
+  - id: mate3-00vuv
+    fen: "r3r3/2q1b1pk/p3P1Np/5Qp1/8/8/PPpp1P2/2R1R1K1 w - - 0 31"
+    line: [g6f8, h7g8, f5h7, g8f8, h7h8]
+    rating: 2078
+  - id: mate3-02sI2
+    fen: "3R4/ppp3rk/5Q2/8/2q5/5P2/1P1R1KPr/8 b - - 7 34"
+    line: [g7g2, f2e3, g2e2, d2e2, h2e2]
+    rating: 2078
+  - id: mate3-03M6W
+    fen: "7k/ppp3rr/1b1p4/4pQ2/4P1q1/P2P2B1/1PP1RP1P/R5K1 b - - 1 24"
+    line: [g4g3, h2g3, g7g3, g1f1, h7h1]
+    rating: 2110
+  - id: mate3-019gx
+    fen: "1r6/6R1/3p4/KP1Rp3/2r1P3/2k2P2/8/8 b - - 2 45"
+    line: [c4a4, a5a4, b8a8, g7a7, a8a7]
+    rating: 2114
+  - id: mate3-01B5q
+    fen: "r4rk1/1pp2p1p/p4Qp1/3n3P/P2Nq3/8/1B4R1/5B1K w - - 0 37"
+    line: [f6g7, g8g7, d4f5, g7g8, f5h6]
+    rating: 2172
+  - id: mate3-03R9f
+    fen: "8/1P2R3/2Np4/pr6/8/2n5/2P2k2/2K5 b - - 0 47"
+    line: [c3a2, c1d2, b5d5, c6d4, d5d4]
+    rating: 2202
+  - id: mate3-01iF8
+    fen: "5r1k/1p4pp/p5r1/3P4/3Bb2b/2Q5/PP4PP/4RB1K b - - 12 27"
+    line: [f8f1, e1f1, e4g2, h1g1, g2f3]
+    rating: 2211
+  - id: mate3-02dIM
+    fen: "1r2rknQ/pR3p2/2pq4/3p1BP1/3P4/4P3/P7/1K5R w - - 3 32"
+    line: [h8g7, f8g7, h1h7, g7f8, h7f7]
+    rating: 2238
+  - id: mate3-00dt1
+    fen: "Q7/8/3B4/2p5/1rkn4/K7/8/8 b - - 2 54"
+    line: [d4b5, a3a2, b5c3, a2a1, b4b1]
+    rating: 2244
+  - id: mate3-02YEp
+    fen: "r1b5/7p/pp4pk/2qQ1n1r/8/PBN2P1P/1PP3P1/3RR2K b - - 0 24"
+    line: [f5g3, h1h2, h5h3, g2h3, c5f2]
+    rating: 2481

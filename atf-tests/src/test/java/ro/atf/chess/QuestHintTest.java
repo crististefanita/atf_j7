@@ -21,4 +21,16 @@ class QuestHintTest {
                         .equals(new QuestHint.Cue(quest.solution().from(), quest.solution().to()))));
         check.same("Requesting the explanation stays at the complete hint", QuestHint.SOLUTION, levels.get(2).advance());
     }
+
+    @Test void aHintAfterTheDefensePointsToTheNewMove(Checks check) {
+        var quest = QuestCatalog.loadMateInThree().getFirst();
+        var step = QuestStep.restore(4, quest);
+        var move = quest.playerMove(step.stage());
+        var piece = QuestHint.PIECE.cue(move);
+        var arrow = QuestHint.SOLUTION.cue(move);
+        check.same("The old opening square no longer appears in the hint", "c8", BoardSquare.name(piece.origin()));
+        check.same("The first level still hides the destination on the last turn", -1, piece.destination());
+        check.same("The second level shows the final mating square", "d8", BoardSquare.name(arrow.destination()));
+        check.same("The suggested move is legal for the active color", true, step.position(quest).legalMoves().contains(move));
+    }
 }

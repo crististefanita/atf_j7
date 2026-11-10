@@ -3,6 +3,7 @@ package ro.atf.chess.android;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -14,12 +15,14 @@ import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 import ro.atf.chess.BoardSquare;
 import ro.atf.chess.ChessPosition.Move;
@@ -27,7 +30,7 @@ import ro.atf.chess.QuestCatalog;
 
 public final class BoardSanity extends Instrumentation {
     private static final int CATALOG_SIZE = 102;
-    private static final int GOLD = 0xffffb64d;
+    private static final int HINT_TINT = 0xff57e0b4;
     private final Bundle receipt = new Bundle();
     private int comparisons;
     private String phase;
@@ -45,10 +48,28 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         try {
             Activity activity = launch();
-            List<View> views = viewsOf(activity);
-            BoardView board = findBoard(views);
-            if ("prepare".equals(phase)) prepare(activity, views, board);
-            else if ("restore".equals(phase)) restore(activity, views, board);
+            if ("prepare".equals(phase)) {
+                var menu = viewsOf(activity);
+                compare("The main menu offers three playable chapters and two disabled ToDo entries", true,
+                        button(activity, menu, R.string.open_mate_one).isEnabled() && button(activity, menu, R.string.open_mate_two).isEnabled()
+                                && button(activity, menu, R.string.open_mate_three).isEnabled() && !button(activity, menu, R.string.menu_chess_todo).isEnabled()
+                                && !button(activity, menu, R.string.menu_analysis_todo).isEnabled());
+                var playable = List.of(button(activity, menu, R.string.open_mate_one), button(activity, menu, R.string.open_mate_two),
+                        button(activity, menu, R.string.open_mate_three));
+                captureFrame("menu", "All three chapter buttons are fully rendered after launch", image -> playable.stream().allMatch(entry ->
+                        fullyVisible(entry) && hasColor(image, entry, entry.getCurrentTextColor(), 32)));
+                runOnMainSync(activity::finish);
+                checkRomanianCompactScreen();
+                activity = launch();
+                openChapter(activity, R.string.open_mate_one);
+                var views = viewsOf(activity);
+                prepare(activity, views, findBoard(views));
+            } else if ("restore".equals(phase)) {
+                finishMateInThree(activity);
+                switchChapter(activity, R.string.open_mate_two);
+                var views = viewsOf(activity);
+                restore(activity, views, findBoard(views));
+            }
             else throw new IllegalArgumentException("Unknown sanity phase: " + phase);
             receipt.putString("result", "PASS");
             finish(Activity.RESULT_OK, receipt);
@@ -68,10 +89,68 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private Activity launch() {
+        return launch(false);
+    }
+
+    private Activity launch(boolean romanianCompact) {
         Intent intent = new Intent(getTargetContext(), ChessActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (romanianCompact) intent.putExtra("j7-romanian-compact", true);
         Activity activity = startActivitySync(intent);
         waitForIdleSync();
         return activity;
+    }
+
+    @Override public Activity newActivity(ClassLoader loader, String name, Intent intent)
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        Activity activity = super.newActivity(loader, name, intent);
+        if (intent.getBooleanExtra("j7-romanian-compact", false)) {
+            var config = new Configuration();
+            config.fontScale = 1.3f;
+            config.setLocale(Locale.forLanguageTag("ro-RO"));
+            activity.applyOverrideConfiguration(config);
+        }
+        return activity;
+    }
+
+    private void checkRomanianCompactScreen() {
+        Activity activity = launch(true);
+        var config = activity.getResources().getConfiguration();
+        compare("The compact probe runs with Romanian resources and font scale 1.3", true,
+                config.fontScale == 1.3f && "ro".equals(config.getLocales().get(0).getLanguage()));
+        var menu = viewsOf(activity);
+        var scroll = menu.stream().filter(ScrollView.class::isInstance).map(ScrollView.class::cast).findFirst().orElseThrow();
+        var last = button(activity, menu, R.string.menu_analysis_todo);
+        boolean[] reachable = {false};
+        runOnMainSync(() -> {
+            View root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
+            var original = new Rect(root.getLeft(), root.getTop(), root.getRight(), root.getBottom());
+            int compactHeight = Math.min(original.height() - 1, Math.round(320 * activity.getResources().getDisplayMetrics().density));
+            try {
+                measureScreen(root, original, compactHeight);
+                boolean scrolls = scroll.canScrollVertically(1);
+                scroll.scrollTo(0, scroll.getChildAt(0).getHeight());
+                reachable[0] = scrolls && fullyVisible(last);
+            } finally {
+                measureScreen(root, original, original.height());
+                scroll.scrollTo(0, 0);
+            }
+        });
+        compare("The last Romanian menu entry is reachable in a short window", true, reachable[0]);
+        openChapter(activity, R.string.open_mate_one);
+        var views = viewsOf(activity);
+        var board = findBoard(views);
+        tap(button(activity, views, R.string.hint));
+        tap(button(activity, views, R.string.show_solution));
+        compare("The Romanian board, active color and controls fit with the enlarged move hint", true,
+                compactLayoutFits(activity, views, board, R.string.why_mate)
+                        && turnLabel(activity, board, R.string.black, R.string.white, true));
+        View origin = cell(board, "d8");
+        View destination = cell(board, "h4");
+        View active = ((ViewGroup) board.getParent()).getChildAt(2);
+        compare("Accessibility traversal links the active color, hinted piece and destination", true,
+                origin.getAccessibilityTraversalAfter() == active.getId() && destination.getAccessibilityTraversalAfter() == origin.getId());
+        tap(button(activity, views, R.string.main_menu));
+        runOnMainSync(activity::finish);
     }
 
     private static List<View> viewsOf(Activity activity) {
@@ -91,8 +170,9 @@ public final class BoardSanity extends Instrumentation {
         compare("64 visible cells", 64, board.getChildCount());
         compare("Square board", true, board.getWidth() > 0 && board.getWidth() == board.getHeight());
         compare("Both player labels are adjacent to the board", true, labelsTouchBoard(board));
-        compare("A compact layout keeps the labels, square board and three controls visible", true, compactLayoutFits(activity, views, board));
+        compare("A compact layout keeps the labels, square board and three controls visible", true, compactLayoutFits(activity, views, board, R.string.hint));
         compare("The first of 102 quests is shown", true, atQuest(activity, views, 1));
+        compare("Next is disabled on the first unsolved quest", false, next.isEnabled());
         compare("Black is to move and is shown next to the bottom rank", true, turnLabel(activity, board, R.string.black, R.string.white, true));
         var flip = button(activity, views, R.string.flip);
         tap(flip);
@@ -113,14 +193,14 @@ public final class BoardSanity extends Instrumentation {
         compare("The simple hint exposes only the black queen on d8 and keeps the board and controls visible", true,
                 hasText(views, expectedHint) && activity.getString(R.string.hint_origin, origin).contentEquals(piece.getContentDescription())
                         && "h4".contentEquals(destination.getContentDescription()) && fullyVisible(board) && fullyVisible(showSolution));
-        captureFrame("hint-piece", "The simple hint renders a gold ring and no arrow",
-                image -> hasColor(image, piece, GOLD, 16) && !hasColor(image, arrowMidpoint, GOLD, 1));
+        captureFrame("hint-piece", "The simple hint renders a mint outline and no arrow",
+                image -> hasColor(image, piece, HINT_TINT, 16) && !hasColor(image, arrowMidpoint, HINT_TINT, 1));
         tap(showSolution);
         compare("The full hint reveals d8 to h4 and leaves the position playable", true,
-                hasText(views, activity.getString(R.string.solution_move, "d8", "h4"))
+                hasText(views, activity.getString(R.string.suggested_move, activity.getString(R.string.solution_move, "d8", "h4")))
                         && activity.getString(R.string.hint_destination, "h4").contentEquals(destination.getContentDescription())
                         && piece.getContentDescription().toString().contains(origin));
-        captureFrame("hint-solution", "The full hint renders an arrow across the board", image -> hasColor(image, arrowMidpoint, GOLD, 16));
+        captureFrame("hint-solution", "The full hint renders an arrow across the board", image -> hasColor(image, arrowMidpoint, HINT_TINT, 16));
         tap(button(activity, views, R.string.why_mate));
         String queenOnH4 = activity.getString(R.string.piece_at_square, activity.getString(R.string.queen), "h4");
         compare("The solution names the checking queen and king square", true,
@@ -151,6 +231,7 @@ public final class BoardSanity extends Instrumentation {
         compare("The third quest is the current selection", true, atQuest(activity, views, 3));
         compare("The selected third quest is unsolved", false, hasText(views, solved));
         prepareMateInTwo(activity, views, board);
+        prepareMateInThree(activity);
     }
 
     private AccessibilityNodeInfo dialogNode(String text) throws Exception {
@@ -226,7 +307,7 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void prepareMateInTwo(Activity activity, List<View> views, BoardView board) throws Exception {
-        tap(button(activity, views, R.string.open_mate_two));
+        switchChapter(activity, R.string.open_mate_two);
         var quest = QuestCatalog.loadMateInTwo().get(0);
         compare("The new chapter opens with its own 100-quest counter", true,
                 hasText(views, activity.getString(R.string.mate_two_progress, 1, 100)) && mateTwoCount(activity, views, 0)
@@ -237,9 +318,11 @@ public final class BoardSanity extends Instrumentation {
                 hasText(views, activity.getString(R.string.mate_two_try_again)) && turnLabel(activity, board, R.string.white, R.string.black, true));
         tap(button(activity, views, R.string.hint));
         tap(button(activity, views, R.string.show_solution));
-        compare("The opening hint shows the unique first move", true, hasText(views, moveText(activity, quest.solution())));
-        playMove(board, quest.solution());
-        var defense = quest.line().defense();
+        compare("The opening hint shows the unique first move", true, hasText(views, suggestedMove(activity, quest.solution())));
+        long started = beginDefense(activity, views, board, quest.solution(), false);
+        String defenseText = activity.getString(R.string.mate_two_reply, moveText(activity, quest.defenseAfter(0)));
+        compare("The rendered defense follows the player's move by at least 650 ms", true, awaitText(views, defenseText) - started >= 650);
+        var defense = quest.defenseAfter(0);
         compare("The opponent replies and the first move does not count as a solve", true,
                 hasText(views, activity.getString(R.string.mate_two_reply, moveText(activity, defense))) && mateTwoCount(activity, views, 0)
                         && turnLabel(activity, board, R.string.white, R.string.black, true));
@@ -253,14 +336,95 @@ public final class BoardSanity extends Instrumentation {
         compare("Cold launch restores the second move after the opponent's defense", true,
                 hasText(views, activity.getString(R.string.mate_two_progress, 1, 100)) && mateTwoCount(activity, views, 0)
                         && turnLabel(activity, board, R.string.white, R.string.black, true)
-                        && hasText(views, activity.getString(R.string.mate_two_reply, moveText(activity, quest.line().defense()))));
+                        && hasText(views, activity.getString(R.string.mate_two_reply, moveText(activity, quest.defenseAfter(0)))));
         tap(button(activity, views, R.string.hint));
         tap(button(activity, views, R.string.show_solution));
-        compare("The second hint follows the current position and shows the mate", true, hasText(views, moveText(activity, quest.matingMove())));
+        compare("The second hint follows the current position and shows the mate", true, hasText(views, suggestedMove(activity, quest.matingMove())));
         playMove(board, quest.matingMove());
         compare("Playing the mate increments only the new chapter", true,
                 mateTwoCount(activity, views, 1) && hasText(views, activity.getString(R.string.quest_solved)));
-        tap(button(activity, views, R.string.open_mate_one));
+        switchChapter(activity, R.string.open_mate_one);
+    }
+
+    private void openChapter(Activity activity, int label) {
+        tap(button(activity, viewsOf(activity), label));
+    }
+
+    private void switchChapter(Activity activity, int label) {
+        tap(button(activity, viewsOf(activity), R.string.main_menu));
+        openChapter(activity, label);
+    }
+
+    private void prepareMateInThree(Activity activity) throws IOException {
+        switchChapter(activity, R.string.open_mate_three);
+        var views = viewsOf(activity);
+        var board = findBoard(views);
+        var quest = QuestCatalog.loadMateInThree().get(0);
+        compare("Mate in three opens with 100 puzzles and White to move", true,
+                hasText(views, activity.getString(R.string.mate_three_progress, 1, 100)) && mateTwoCount(activity, views, 0)
+                        && turnLabel(activity, board, R.string.white, R.string.black, true));
+        playMove(board, quest.playerMove(0));
+        awaitText(views, activity.getString(R.string.mate_three_reply, moveText(activity, quest.defenseAfter(0))));
+        compare("The first defense leaves two moves and keeps White to move", true,
+                hasText(views, activity.getString(R.string.mate_three_reply, moveText(activity, quest.defenseAfter(0))))
+                        && turnLabel(activity, board, R.string.white, R.string.black, true));
+        beginDefense(activity, views, board, quest.playerMove(1), true);
+    }
+
+    private void finishMateInThree(Activity activity) throws IOException {
+        var views = viewsOf(activity);
+        var board = findBoard(views);
+        var quest = QuestCatalog.loadMateInThree().get(0);
+        String defenseText = activity.getString(R.string.mate_two_reply, moveText(activity, quest.defenseAfter(1)));
+        awaitText(views, defenseText);
+        var next = button(activity, views, R.string.next_quest);
+        compare("Restart reopens Mate in 3 and plays the saved second defense without unlocking Next", true,
+                hasText(views, defenseText) && turnLabel(activity, board, R.string.white, R.string.black, true)
+                        && !next.isEnabled() && mateTwoCount(activity, views, 0));
+        int destination = quest.defenseAfter(1).to();
+        var square = cell(board, BoardSquare.name(destination));
+        int color = BoardSquare.isLight(destination) ? 0xfff4ef86 : 0xffbec953;
+        captureFrame("mate-three", "The board highlights the restored second defense in mate in three", image -> hasColor(image, square, color, 16));
+        playMove(board, quest.matingMove());
+        compare("Only the final mate marks the three-move quest as solved", true,
+                mateTwoCount(activity, views, 1) && hasText(views, activity.getString(R.string.quest_solved)) && next.isEnabled());
+        tap(next);
+        compare("Next keeps the player in Mate in 3 and locks again on the next unsolved quest", true,
+                hasText(views, activity.getString(R.string.mate_three_progress, 2, 100)) && !next.isEnabled());
+    }
+
+    private long beginDefense(Activity activity, List<View> views, BoardView board, Move move, boolean closeBeforeReply) {
+        String originName = BoardSquare.name(move.from());
+        View origin = cell(board, originName);
+        tap(origin);
+        View target = cell(board, BoardSquare.name(move.to()));
+        long[] started = {0};
+        boolean[] waiting = {false};
+        runOnMainSync(() -> {
+            started[0] = SystemClock.uptimeMillis();
+            target.performClick();
+            waiting[0] = hasText(views, activity.getString(R.string.opponent_reply_pending))
+                    && turnLabel(activity, board, R.string.black, R.string.white, false)
+                    && originName.contentEquals(origin.getContentDescription())
+                    && !BoardSquare.name(move.to()).contentEquals(target.getContentDescription())
+                    && !target.isEnabled() && !button(activity, views, R.string.hint).isEnabled()
+                    && !button(activity, views, R.string.next_quest).isEnabled();
+            if (closeBeforeReply) activity.finish();
+        });
+        compare(closeBeforeReply ? "The second defense is pending when the board closes"
+                : "The player's move leaves the opponent to move and locks input during the pause", true, waiting[0]);
+        return started[0];
+    }
+
+    private long awaitText(List<View> views, String expected) {
+        long deadline = SystemClock.uptimeMillis() + 6000;
+        boolean[] found = {false};
+        do {
+            runOnMainSync(() -> found[0] = hasText(views, expected));
+            if (found[0]) return SystemClock.uptimeMillis();
+            SystemClock.sleep(25);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("Timed out waiting for " + expected);
     }
 
     private void playMove(BoardView board, Move move) {
@@ -271,6 +435,10 @@ public final class BoardSanity extends Instrumentation {
 
     private static String moveText(Activity activity, Move move) {
         return activity.getString(R.string.solution_move, BoardSquare.name(move.from()), BoardSquare.name(move.to()));
+    }
+
+    private static String suggestedMove(Activity activity, Move move) {
+        return activity.getString(R.string.suggested_move, moveText(activity, move));
     }
 
     private static boolean mateTwoCount(Activity activity, List<View> views, int count) {
@@ -290,7 +458,8 @@ public final class BoardSanity extends Instrumentation {
         String hint = activity.getString(R.string.hint_description, from, activity.getString(R.string.white), activity.getString(piece));
         compare(id + " names the defending piece and origin", true, hasText(views, hint));
         tap(button(activity, views, R.string.show_solution));
-        compare(id + " reveals the unique mating reply", true, hasText(views, activity.getString(R.string.solution_move, from, to)));
+        compare(id + " reveals the unique mating reply", true, hasText(views, activity.getString(R.string.suggested_move,
+                activity.getString(R.string.solution_move, from, to))));
         tap(cell(board, from));
         tap(cell(board, to));
         compare(id + " is solved by playing the reply", true, hasText(views, activity.getString(R.string.quest_solved)));
@@ -327,9 +496,9 @@ public final class BoardSanity extends Instrumentation {
                 && fullyVisible(top) && fullyVisible(bottom);
     }
 
-    private boolean compactLayoutFits(Activity activity, List<View> views, BoardView board) {
+    private boolean compactLayoutFits(Activity activity, List<View> views, BoardView board, int hintLabel) {
         var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
-        var controls = List.of(button(activity, views, R.string.previous_quest), button(activity, views, R.string.hint),
+        var controls = List.of(button(activity, views, R.string.previous_quest), button(activity, views, hintLabel),
                 button(activity, views, R.string.next_quest));
         boolean[] fits = {false};
         runOnMainSync(() -> {

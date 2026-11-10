@@ -117,6 +117,7 @@ try {
         Receive-Frame 'hint-piece'
         Receive-Frame 'hint-solution'
         Receive-Frame 'mate-two'
+        Receive-Frame 'menu'
         Invoke-Device @('shell','am','force-stop',$app)
         Invoke-Device ($instrument + @('-e','phase','restore',$runner)) |
             Set-Content -LiteralPath $restore -Encoding utf8NoBOM
@@ -124,6 +125,7 @@ try {
     if ((Test-Path -LiteralPath $restore) -and (Select-String -Quiet -LiteralPath $restore -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {
         Receive-Frame 'board'
         Receive-Frame 'milestone'
+        Receive-Frame 'mate-three'
     } else {
         Receive-Frame 'failure'
     }

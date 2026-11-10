@@ -18,8 +18,8 @@ final class BoardView extends ViewGroup {
     private static final int DARK = 0xff769556;
     private static final int LIGHT_MARK = 0xfff4ef86;
     private static final int DARK_MARK = 0xffbec953;
-    private static final int HINT_MARK = 0xffffb64d;
-    private static final int HINT_OUTLINE = 0xff442d16;
+    private static final int HINT_MARK = 0xff57e0b4;
+    private static final int HINT_OUTLINE = 0xff173b31;
     private final Paint arrowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path arrow = new Path();
     private Cell hintOrigin;
@@ -29,13 +29,17 @@ final class BoardView extends ViewGroup {
         super(context);
         for (int index = 0; index < 64; index++) {
             Cell cell = new Cell(context);
+            cell.setId(View.generateViewId());
             cell.setOnClickListener(view -> select.accept(cell.square));
             cell.setFocusable(true);
             addView(cell);
         }
     }
 
-    void show(ChessPosition position, boolean blackBelow, int selected, List<ChessPosition.Move> moves, ChessPosition.Move last, QuestHint.Cue hint) {
+    void show(ChessPosition position, boolean blackBelow, int selected, List<ChessPosition.Move> moves, ChessPosition.Move last,
+            QuestHint.Cue hint, boolean playable, int activeLabelId) {
+        if (hintOrigin != null) hintOrigin.setAccessibilityTraversalAfter(View.NO_ID);
+        if (hintDestination != null) hintDestination.setAccessibilityTraversalAfter(View.NO_ID);
         hintOrigin = null;
         hintDestination = null;
         for (int index = 0; index < 64; index++) {
@@ -54,6 +58,7 @@ final class BoardView extends ViewGroup {
             cell.rankLabel = column == 0;
             cell.fileLabel = row == 7;
             cell.setSelected(selected == square);
+            cell.setEnabled(playable);
             String coordinate = BoardSquare.name(square);
             String description = cell.piece == null ? coordinate : getContext().getString(R.string.piece_square, coordinate,
                     getContext().getString(sideLabel(cell.piece.side())), getContext().getString(kindLabel(cell.piece.kind())));
@@ -63,6 +68,8 @@ final class BoardView extends ViewGroup {
             cell.setContentDescription(description);
             cell.invalidate();
         }
+        if (hintOrigin != null) hintOrigin.setAccessibilityTraversalAfter(activeLabelId);
+        if (hintDestination != null) hintDestination.setAccessibilityTraversalAfter(hintOrigin.getId());
         invalidate();
     }
 
@@ -80,10 +87,10 @@ final class BoardView extends ViewGroup {
         canvas.translate(x, y);
         canvas.rotate((float) Math.toDegrees(Math.atan2(dy, dx)));
         float start = unit * .31f;
-        float tip = distance - unit * .20f;
-        float head = tip - unit * .21f;
-        float halfShaft = unit * .04f;
-        float halfHead = unit * .12f;
+        float tip = distance - unit * .28f;
+        float head = tip - unit * .17f;
+        float halfShaft = unit * .029f;
+        float halfHead = unit * .106f;
         arrow.rewind();
         arrow.moveTo(start, -halfShaft);
         arrow.lineTo(head, -halfShaft);
@@ -96,7 +103,7 @@ final class BoardView extends ViewGroup {
         arrowPaint.setColor(HINT_OUTLINE);
         arrowPaint.setStyle(Paint.Style.STROKE);
         arrowPaint.setStrokeJoin(Paint.Join.ROUND);
-        arrowPaint.setStrokeWidth(unit * .045f);
+        arrowPaint.setStrokeWidth(unit * .027f);
         canvas.drawPath(arrow, arrowPaint);
         arrowPaint.setStyle(Paint.Style.FILL);
         arrowPaint.setColor(HINT_MARK);
@@ -181,13 +188,13 @@ final class BoardView extends ViewGroup {
         }
 
         private void drawHintRing(Canvas canvas, int width, int height) {
-            float inset = width * .06f;
-            float radius = width * .15f;
+            float inset = width * .075f;
+            float radius = width * .13f;
             paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(width * .085f);
+            paint.setStrokeWidth(width * .063f);
             paint.setColor(HINT_OUTLINE);
             canvas.drawRoundRect(inset, inset, width - inset, height - inset, radius, radius, paint);
-            paint.setStrokeWidth(width * .045f);
+            paint.setStrokeWidth(width * .035f);
             paint.setColor(HINT_MARK);
             canvas.drawRoundRect(inset, inset, width - inset, height - inset, radius, radius, paint);
             paint.setStyle(Paint.Style.FILL);

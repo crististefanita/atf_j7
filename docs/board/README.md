@@ -7,7 +7,8 @@ Tabla este elementul dominant al ecranului. Verdele și cremul delimitează cele
 - Atingerea unei piese active arată numai destinațiile legale. O a doua atingere alege destinația. Promovarea cere o alegere explicită.
 - Fiecare pătrat poate primi focus și anunță coordonata, piesa și destinația legală când există. Bara de stare anunță cine mută și rezultatul detectat de motor.
 - O încercare greșită păstrează poziția. Dacă mutarea dă șah, aplicația arată o apărare legală în poziția încercată. Patul are un mesaj propriu.
-- **Indiciu** conturează numai pătratul piesei de mutat și îi anunță numele și coordonata. **Arată soluția** adaugă o săgeată pe tablă și coordonatele mutării, inclusiv piesa necesară la promovare. Celulele anunță textual marcajele, iar săgeata urmează coordonatele la întoarcerea tablei.
+- În Mat în 2 și Mat în 3, mutarea corectă se vede imediat. Apărarea de referință urmează după 650 ms cât timp tabla e în prim-plan. În pauză se vede culoarea adversarului la mutare, iar tabla și indiciile așteaptă răspunsul. Apoi marcajul revine la jucător și ultima mutare scoate în evidență apărarea.
+- **Indiciu** marchează discret cu turcoaz pătratul piesei și îi anunță numele și coordonata. **Arată mutarea** adaugă o săgeată subțire și textul „Mutare sugerată”, cu piesa necesară la promovare. Celulele anunță textual marcajele, iar săgeata urmează coordonatele la întoarcerea tablei. După apărare, indiciul pornește de la noua poziție.
 - **De ce e mat?** deschide explicația detaliată a șahului și a câmpurilor de fugă. Motorul verifică atacurile după plecarea ipotetică a regelui și după o eventuală captură. Contorul crește când mutarea de mat este jucată pe tablă, inclusiv dacă ai cerut un indiciu.
 
 Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația rămâne o acțiune separată, la fel ca dezvăluirea explicită a soluției în antrenamentul Lichess. [Chess.com Daily Puzzle](https://support.chess.com/en/articles/8708990-how-does-the-daily-puzzle-work) · [Lichess Puzzle Training](https://lichess.org/training/daily)
@@ -25,13 +26,15 @@ Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația ră
 
 [`mate-in-two.yaml`](../../chess-core/src/main/resources/mate-in-two.yaml) adaugă 100 de poziții cu o singură mutare inițială care forțează matul. După acea mutare, aplicația joacă apărarea de referință și acceptă orice mat legal din poziția rezultată. Indiciile urmează mutarea curentă, iar explicația arată linia completă. [Selecție și proveniență](quest-curation.md#mat-în-două-mutări)
 
+[`mate-in-three.yaml`](../../chess-core/src/main/resources/mate-in-three.yaml) conține 100 de poziții de mat exact în trei, cu o singură primă mutare câștigătoare. Jocul aplică cele două apărări de referință, afișează câte mutări au mai rămas după prima apărare și acceptă orice mat legal pe ultima mutare. [Selecție și proveniență](quest-curation.md#mat-în-trei-mutări)
+
 ## Dificultate și progres
 
 [`quest-order.yaml`](../../chess-core/src/main/resources/quest-order.yaml) stabilește ordinea după un scor reproductibil. Matul nebunului deschide colecția ca exercițiu introductiv. După el, numărul mutărilor legale contribuie limitat. Scorul crește mai mult pentru șahurile înșelătoare, mai ales dacă există o singură apărare, și pentru matul descoperit, rocadă, en passant și subpromovare. O poziție în care jucătorul începe în șah primește 16 puncte suplimentare. Cele două contra-maturi au scorul 32 și departajarea după ID le așază la pozițiile 57 și 58. Scorul este o estimare editorială care se poate calibra ulterior pe încercări reale. [Repere pentru compoziție](quest-curation.md)
 
-Aplicația salvează ID-ul problemei curente și setul ID-urilor rezolvate într-o singură scriere locală, la navigare și la mat. Reordonarea schimbă numărul afișat, iar identitatea salvată stabilește ce problemă se redeschide. Un ID curent scos din catalog duce la prima problemă disponibilă. Rezolvările vechi se păstrează și intră din nou în total dacă problema revine în catalog.
+Aplicația salvează împreună ID-ul problemei curente, mutările parcurse și setul ID-urilor rezolvate. Reordonarea schimbă numărul afișat, iar identitatea salvată stabilește ce problemă se redeschide. Un ID curent scos din catalog duce la prima problemă disponibilă. Rezolvările vechi se păstrează și intră din nou în total dacă problema revine în catalog.
 
-Fiecare capitol are propriul contor și își reține ultima problemă. La mat în două, prima mutare salvează și poziția după apărarea automată. Contorul crește după matul jucat în a doua mutare.
+La prima pornire se deschide meniul. După alegere, redeschiderea revine în același capitol și reia poziția unei probleme în curs. Dacă răspunsul era în așteptare, pauza începe din nou în prim-plan și apărarea se aplică o singură dată. Butonul **Meniu** revine la selecție, păstrând progresul fiecărui capitol. **Următoarea** se activează numai după mat și rămâne în același capitol.
 
 Bara arată progresul în întreaga colecție. Pragurile 5, 15, 30, 50, 75 și finalul catalogului se recalculează din ID-urile rezolvate. La atingerea unui prag, ecranul confirmă realizarea și afișează următoarea țintă. Bara și textul pornesc de la același total după reluare. Ideea țintelor vizibile vine din Puzzle Journey. [Chess.com Puzzle Points](https://support.chess.com/en/articles/9681952-what-are-puzzle-points-on-chess-com)
 
