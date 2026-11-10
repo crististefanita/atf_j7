@@ -2,8 +2,7 @@
 
 | Verificare | Dovadă |
 |---|---|
-| Investigație și plan de release | RAG și deciziile de calificare |
-| Tactică, punctaj și guvernanță | Extent componente |
-| Meniu, bec, serie și reluare | Extent Android |
-| Commitul și APK-ul semnat | Calificare |
-| Descărcarea pornind din README | Verificarea publicării |
+| Investigație și excepție de la calificarea standard | [RAG](rag.txt) |
+| Tactică, punctaj și guvernanță | [Extent componente](components.html) · [Verificare independentă a tacticilor](tactics-oracle.txt) |
+| Commitul și APK-ul semnat | [Verificare offline](offline-verification.json) |
+| Test pe emulator | Omis prin excepția autorizată pentru 0.5.0 |

@@ -1,0 +1,27 @@
+{
+  "version": "0.5.0",
+  "versionCode": 6,
+  "sourceCommit": "8e8d8622d76fc50f4f8350c716f343a828c6d4d3",
+  "offlineChecks": "PASS",
+  "releaseQualification": "EXCEPTION_AUTHORIZED",
+  "signingRoute": "Gradle distribution build",
+  "apkBytes": 822366,
+  "apkSha256": "8c9c4ba27f3c9d4bbb164702f5ae1bd6f2207a19cdf19c205dc58fb906b43eb2",
+  "signingCertificateSha256": "4f15d961364d331531f78348b4aa167ad87ceceac442126ef802a8202a50344f",
+  "zipCrc": "PASS",
+  "alignment": "PASS",
+  "components": {
+    "status": "PASS",
+    "tests": 53,
+    "extentSha256": "9bff8f760246f74588eb00f561ed3e0a8ebd2d1d358e18d337427d42a9c58fe7",
+    "sourceCommit": "8e8d8622d76fc50f4f8350c716f343a828c6d4d3"
+  },
+  "nativeSanity": "NOT_RUN",
+  "qualificationGate": "NOT_RUN",
+  "exception": {
+    "authorizedOn": "2026-11-10",
+    "scope": "Chess Lab 0.5.0",
+    "reason": "Publish the existing signed APK without emulator testing.",
+    "requestedBy": "project owner"
+  }
+}
