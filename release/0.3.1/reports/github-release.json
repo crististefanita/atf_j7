@@ -1,0 +1,21 @@
+{
+  "id": 440319776,
+  "tag_name": "v0.3.1",
+  "html_url": "https://github.com/crististefanita/atf_j7/releases/tag/v0.3.1",
+  "draft": false,
+  "target_commitish": "423df6b6923361ea1419ec6c6f76721326aa8bc2",
+  "assets": [
+    {
+      "name": "ChessLab-0.3.1.apk",
+      "size": 796848,
+      "digest": "sha256:34fc85c252ca81e1b69ab24edc1de069ff8fc256c30bd21e0f6d2391ac639085",
+      "browser_download_url": "https://github.com/crististefanita/atf_j7/releases/download/v0.3.1/ChessLab-0.3.1.apk"
+    },
+    {
+      "name": "ChessLab-0.3.1.apk.sha256",
+      "size": 86,
+      "digest": "sha256:d6a7e2bcb54bc5a70c0bc84f47b23b9fe042721dc0f46a1b2728e01e92679958",
+      "browser_download_url": "https://github.com/crististefanita/atf_j7/releases/download/v0.3.1/ChessLab-0.3.1.apk.sha256"
+    }
+  ]
+}
