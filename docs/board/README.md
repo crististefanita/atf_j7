@@ -6,7 +6,7 @@ Tabla este elementul dominant al ecranului. Verdele și cremul delimitează cele
 - Etichetele Alb și Negru stau lângă muchiile tablei. Panoul măsoară întâi etichetele și folosește spațiul disponibil pentru tablă. Pe ferestre scunde, tabla rămâne pătrată și se micșorează pentru a păstra locul comenzilor.
 - Atingerea unei piese active arată numai destinațiile legale. O a doua atingere alege destinația. Promovarea cere o alegere explicită.
 - Fiecare pătrat poate primi focus și anunță coordonata, piesa și destinația legală când există. Bara de stare anunță cine mută și rezultatul detectat de motor.
-- O încercare greșită păstrează poziția. Dacă mutarea dă șah, aplicația arată o apărare legală în poziția încercată. Patul are un mesaj propriu.
+- O încercare greșită păstrează poziția. Dacă mutarea dă șah, aplicația arată replica adversarului și următorul răspuns, plus câștigul net de material sau finalul când linia se termină în mat ori pat. Când mai multe replici au același scor, mesajul arată câte sunt și indică o alternativă. Patul direct are un mesaj propriu.
 - În Mat în 2 și Mat în 3, mutarea corectă se vede imediat. Apărarea de referință urmează după 650 ms cât timp tabla e în prim-plan. În pauză se vede culoarea adversarului la mutare, iar tabla și indiciile așteaptă răspunsul. Apoi marcajul revine la jucător și ultima mutare scoate în evidență apărarea.
 - **Indiciu** marchează discret cu turcoaz pătratul piesei și îi anunță numele și coordonata. **Arată mutarea** adaugă o săgeată subțire și textul „Mutare sugerată”, cu piesa necesară la promovare. Celulele anunță textual marcajele, iar săgeata urmează coordonatele la întoarcerea tablei. După apărare, indiciul pornește de la noua poziție.
 - Cititorul de ecran anunță culoarea și piesa la **Indiciu**, apoi include destinația la **Arată mutarea**. La atingerea unui prag, confirmarea matului include și pragul. Bara de progres păstrează pragul vizibil la revenire.
@@ -18,6 +18,8 @@ Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația ră
 
 [`chess-rules.yaml`](../../chess-core/src/main/resources/chess-rules.yaml) declară vectorii pieselor, deplasarea pe rază sau prin salt, sensul pionului, captura, promovarea și configurația celor două rocade. Motorul aplică blocajele, alternarea culorilor, protecția regelui și expirarea dreptului en passant. Condițiile de siguranță rămân obligatorii la încărcarea profilului standard.
 
+[`tactical-analysis.yaml`](../../chess-core/src/main/resources/tactical-analysis.yaml) fixează orizontul la cel mult trei mutări individuale. Mesajul din joc folosește două, începând cu replica adversarului. Fiecare parte alege cea mai bună continuare pentru ea. Matul primează, patul valorează zero, iar restul pozițiilor se compară după materialul de la capătul liniei. Câștigul afișat este diferența de material față de poziția de după încercarea jucătorului. Scorurile egale la acest orizont rămân în același grup, iar ordinea UCI alege linia afișată. Repetarea, regula mutărilor fără captură sau pion și evaluarea pozițională țin de o analiză cu istoric și orizont mai lung.
+
 [`quests.yaml`](../../chess-core/src/main/resources/quests.yaml) păstrează poziția FEN, soluția UCI și tema fiecărei probleme. Setul conține 52 de poziții cu albul la mutare și 50 cu negrul. Catalogul include compoziții pentru mat prin rocadă, en passant, promovare la cal și apărare din șah.
 
 | ID | Poziție în catalog | Indiciu | Soluție |
@@ -28,6 +30,16 @@ Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația ră
 [`mate-in-two.yaml`](../../chess-core/src/main/resources/mate-in-two.yaml) adaugă 100 de poziții cu o singură mutare inițială care forțează matul. După acea mutare, aplicația joacă apărarea de referință și acceptă orice mat legal din poziția rezultată. Indiciile urmează mutarea curentă, iar explicația arată linia completă. [Selecție și proveniență](quest-curation.md#mat-în-două-mutări)
 
 [`mate-in-three.yaml`](../../chess-core/src/main/resources/mate-in-three.yaml) conține 100 de poziții de mat exact în trei, cu o singură primă mutare câștigătoare. Jocul aplică cele două apărări de referință, afișează câte mutări au mai rămas după prima apărare și acceptă orice mat legal pe ultima mutare. [Selecție și proveniență](quest-curation.md#mat-în-trei-mutări)
+
+## Partidă cu calculatorul
+
+**Partidă nouă cu calculatorul** deschide poziția inițială. Jucătorul are albele, iar calculatorul calculează local, cu negrele, la un orizont de trei mutări individuale. La egalitate, preferă pozițiile vizitate mai rar și mutările care dezvoltă piesele sau ocupă centrul. Replica apare după cel puțin 650 ms. Tabla așteaptă replica înainte de a primi o nouă mutare.
+
+Jocul salvează istoricul înainte de a afișa fiecare mutare. **Reia partida** și redeschiderea directă a unui joc activ refac poziția, evidențiază ultima mutare și restabilesc culoarea la mutare. Dacă replica era în așteptare, pauza reîncepe și se aplică o singură replică. O partidă nouă cere confirmare înainte de a înlocui o partidă în curs cu mutări salvate.
+
+Sub tablă, **‹** și **›** parcurg fiecare mutare. Lista se derulează orizontal și permite alegerea directă a oricărei poziții, inclusiv **Start**. **»** revine la ultima mutare. Pozițiile anterioare se afișează cu mutarea evidențiată și cu tabla blocată. Dacă botul răspunde în timp ce te uiți în urmă, mutarea nouă apare în listă și poziția consultată rămâne vizibilă. [Navigarea între mutări pe Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
+
+Motorul aplică rocada, en passant și alegerea la promovare. Partida se oprește la mat, pat, configurațiile uzuale de material insuficient, a cincea apariție a poziției sau 75 de mutări de fiecare parte fără captură ori mutare de pion. Remizele la cerere fac parte din regulile de competiție. [Regulile FIDE](https://handbook.fide.com/chapter/e012023)
 
 ## Dificultate și progres
 

@@ -14,6 +14,9 @@ import org.junit.jupiter.api.Test;
 /** Publishes an explicit emulator probe without changing the release qualification reports. */
 class TalkBackPublication {
     private static final Pattern SPEECH = Pattern.compile(".* I/J7TtsProbe\\(\\s*\\d+\\): (REQUEST|SPOKEN) (.*)");
+    private static final Pattern FOCUS = Pattern.compile(".* I/J7FocusProbe\\(\\s*\\d+\\): FOCUS \\[(.*)] (.*)");
+    private static final Pattern GESTURE_MARKER = Pattern.compile(".* I/J7ProbeMarker\\(\\s*\\d+\\): ((?:BLACK|WHITE)_(?:ANCHOR|PIECE|DESTINATION)_(?:START|END))");
+    private static final List<String> ORIENTATIONS = List.of("BLACK", "WHITE");
     private static final String HINT = "Black to move. Move the Black Queen on d8. Destination h4.";
     private static final String MILESTONE = "5 reached · next 15";
     private static final String CHECKMATE = "Checkmate · Solved";
@@ -64,6 +67,66 @@ class TalkBackPublication {
         org.junit.jupiter.api.Assertions.assertEquals(AtfReportStatus.PASS, result, "See " + report);
     }
 
+    @Test void publishTalkBackGestures() throws Exception {
+        Path receipt = Path.of(System.getProperty("chess.talkback.gestures"));
+        Path report = receipt.resolveSibling("talkback-gestures-extent.html");
+        if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh TalkBack evidence folder");
+        var lines = Files.readAllLines(receipt);
+        String provenance = Files.readString(receipt.resolveSibling("emulator.json"));
+        validateGestureMarkers(lines);
+        var black = gestures(lines, "BLACK");
+        var white = gestures(lines, "WHITE");
+        var result = status(java.util.stream.Stream.concat(black.stream(), white.stream()).toList());
+        try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
+             var scenario = session.startScenario("TalkBack gestures", "Focus follows the complete hint in both orientations", List.of("e2e", "android", "accessibility"));
+             var phase = scenario.startPhase("TEST BODY")) {
+            try (var request = phase.startRequest("Android emulator", "UI", "Touchscreen provenance")) {
+                request.json("Emulator and APK", provenance);
+                request.detail("Input and oracle", "Two right swipes through the emulator touchscreen RPC, verified with Android accessibility focus events.");
+                request.complete(AtfReportStatus.PASS);
+            }
+            for (String orientation : ORIENTATIONS) {
+                var assertions = orientation.equals("BLACK") ? black : white;
+                var anchor = new Trace(lines, orientation + "_ANCHOR");
+                String marker = orientation + "_PROGRAMMATIC_ANCHOR";
+                try (var step = phase.startAssertionStep(orientation.equals("BLACK") ? "Black below" : "White below")) {
+                    step.assertions(assertions);
+                    step.complete(status(assertions));
+                }
+                for (String step : List.of("color", "PIECE", "DESTINATION")) {
+                    String checkpoint = orientation + "-" + step;
+                    try (var request = phase.startRequest("Android emulator", "UI", checkpoint)) {
+                        if (step.equals("color")) request.detail("Focus starting point", anchor.lines().stream().anyMatch(line -> line.endsWith(marker))
+                                ? "Placed on the color label by the observer before the gestures" : "Reached by touch exploration");
+                        byte[] png = Files.readAllBytes(receipt.resolveSibling(checkpoint + ".png"));
+                        request.screenshot(checkpoint, Base64.getEncoder().encodeToString(png));
+                        request.complete(AtfReportStatus.PASS);
+                    }
+                }
+            }
+            phase.complete(result);
+            scenario.complete(result);
+        }
+        org.junit.jupiter.api.Assertions.assertEquals(AtfReportStatus.PASS, result, "See " + report);
+    }
+
+    private static void validateGestureMarkers(List<String> lines) {
+        var expected = ORIENTATIONS.stream().flatMap(orientation -> List.of("ANCHOR", "PIECE", "DESTINATION").stream()
+                .flatMap(step -> List.of(orientation + "_" + step + "_START", orientation + "_" + step + "_END").stream())).toList();
+        var actual = lines.stream().map(GESTURE_MARKER::matcher).filter(java.util.regex.Matcher::matches).map(match -> match.group(1)).toList();
+        org.junit.jupiter.api.Assertions.assertEquals(expected, actual, "Use the trace from one complete emulator probe");
+    }
+
+    private static List<AtfAssertion> gestures(List<String> lines, String orientation) {
+        var anchor = new Trace(lines, orientation + "_ANCHOR").focus();
+        return List.of(
+                assertion("Focus starts on the active color", "Black to move", anchor.isEmpty() ? "No focus event" : anchor.getLast()),
+                assertion("First right swipe focuses the hinted piece", List.of("d8, Black Queen, hinted piece"),
+                        new Trace(lines, orientation + "_PIECE").focus()),
+                assertion("Second right swipe focuses the solution destination", List.of("h4, solution destination"),
+                        new Trace(lines, orientation + "_DESTINATION").focus()));
+    }
+
     private static AtfAssertion assertion(String name, Object expected, Object actual) {
         return new AtfAssertion(name, expected.toString(), actual.toString(), expected.equals(actual));
     }
@@ -90,6 +153,11 @@ class TalkBackPublication {
         private List<String> speech(String type) {
             return lines.stream().map(SPEECH::matcher).filter(java.util.regex.Matcher::matches)
                     .filter(match -> type.equals(match.group(1))).map(match -> match.group(2).strip()).toList();
+        }
+
+        List<String> focus() {
+            return lines.stream().map(FOCUS::matcher).filter(java.util.regex.Matcher::matches)
+                    .map(match -> match.group(2).equals("null") ? match.group(1) : match.group(2)).toList();
         }
 
         String utterance(String type, String fragment) { return String.join(" / ", speech(type).stream().filter(text -> text.contains(fragment)).toList()); }

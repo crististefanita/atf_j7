@@ -1,0 +1,7 @@
+schema: 1
+# One ply is a turn by one side. The quest reply considers the player's next turn too.
+max-plies: 3
+quest-reply-plies: 2
+# 100 = one pawn. Mate takes precedence. Stalemate scores zero.
+# Equal scores form one group. UCI order makes the first choice repeatable.
+material: {PAWN: 100, KNIGHT: 320, BISHOP: 330, ROOK: 500, QUEEN: 900, KING: 0}

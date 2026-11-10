@@ -15,7 +15,12 @@ public final class QuestCatalog {
 
     public record Guidance(ChessPosition.Piece piece, Move move, MatePattern pattern) { }
 
-    public record Attempt(ChessPosition position, ChessPosition.Outcome outcome, Move defense, boolean continues) { }
+    public record Attempt(ChessPosition position, ChessPosition.Outcome outcome, Move defense, boolean continues,
+                          TacticalAnalysis.Result replyAnalysis) {
+        public Attempt(ChessPosition position, ChessPosition.Outcome outcome, Move defense, boolean continues) {
+            this(position, outcome, defense, continues, null);
+        }
+    }
 
     public record Quest(String id, String fen, String theme, ChessPosition position, List<Move> line) {
         public Quest { line = List.copyOf(line); }
@@ -49,8 +54,9 @@ public final class QuestCatalog {
             var after = positionAt(stage).play(move);
             if (!after.isCheck()) return new Attempt(after, after.outcome(), null, false);
             var replies = after.legalMoves();
-            return replies.isEmpty() ? new Attempt(after, ChessPosition.Outcome.CHECKMATE, null, false)
-                    : new Attempt(after, ChessPosition.Outcome.CHECK, replies.get(0), false);
+            if (replies.isEmpty()) return new Attempt(after, ChessPosition.Outcome.CHECKMATE, null, false);
+            var analysis = TacticalAnalysis.checkingReplies(after, replies);
+            return new Attempt(after, ChessPosition.Outcome.CHECK, analysis.best().get(0).move(), false, analysis);
         }
 
         public Move matingMove() { return playerMove(mateLength() - 1); }

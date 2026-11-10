@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
 import ro.atf.chess.BoardSquare;
+import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.QuestCatalog;
 
@@ -47,30 +48,8 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("phase", phase);
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         try {
-            Activity activity = launch();
-            if ("prepare".equals(phase)) {
-                var menu = viewsOf(activity);
-                compare("The main menu offers three playable chapters and two disabled ToDo entries", true,
-                        button(activity, menu, R.string.open_mate_one).isEnabled() && button(activity, menu, R.string.open_mate_two).isEnabled()
-                                && button(activity, menu, R.string.open_mate_three).isEnabled() && !button(activity, menu, R.string.menu_chess_todo).isEnabled()
-                                && !button(activity, menu, R.string.menu_analysis_todo).isEnabled());
-                var playable = List.of(button(activity, menu, R.string.open_mate_one), button(activity, menu, R.string.open_mate_two),
-                        button(activity, menu, R.string.open_mate_three));
-                captureFrame("menu", "All three chapter buttons are fully rendered after launch", image -> playable.stream().allMatch(entry ->
-                        fullyVisible(entry) && hasColor(image, entry, entry.getCurrentTextColor(), 32)));
-                runOnMainSync(activity::finish);
-                checkRomanianCompactScreen();
-                activity = launch();
-                openChapter(activity, R.string.open_mate_one);
-                var views = viewsOf(activity);
-                prepare(activity, views, findBoard(views));
-            } else if ("restore".equals(phase)) {
-                finishMateInThree(activity);
-                switchChapter(activity, R.string.open_mate_two);
-                var views = viewsOf(activity);
-                restore(activity, views, findBoard(views));
-            }
-            else throw new IllegalArgumentException("Unknown sanity phase: " + phase);
+            if (phase.startsWith("match-")) checkMatch();
+            else checkQuests();
             receipt.putString("result", "PASS");
             finish(Activity.RESULT_OK, receipt);
         } catch (Throwable failure) {
@@ -86,6 +65,127 @@ public final class BoardSanity extends Instrumentation {
             }
             finish(Activity.RESULT_CANCELED, receipt);
         }
+    }
+
+    private void checkQuests() throws Exception {
+        Activity activity = launch();
+        if ("prepare".equals(phase)) {
+            var menu = viewsOf(activity);
+            compare("The fresh menu offers three playable chapters and a new game against the computer", true,
+                    button(activity, menu, R.string.open_mate_one).isEnabled() && button(activity, menu, R.string.open_mate_two).isEnabled()
+                            && button(activity, menu, R.string.open_mate_three).isEnabled() && button(activity, menu, R.string.new_match).isEnabled()
+                            && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE
+                            && !button(activity, menu, R.string.menu_analysis_todo).isEnabled());
+            var playable = List.of(button(activity, menu, R.string.open_mate_one), button(activity, menu, R.string.open_mate_two),
+                    button(activity, menu, R.string.open_mate_three), button(activity, menu, R.string.new_match));
+            captureFrame("menu", "The puzzle chapters and the new game are fully rendered after launch", image -> playable.stream().allMatch(entry ->
+                    fullyVisible(entry) && hasColor(image, entry, entry.getCurrentTextColor(), 32)));
+            runOnMainSync(activity::finish);
+            checkRomanianCompactScreen();
+            activity = launch();
+            openChapter(activity, R.string.open_mate_one);
+            var views = viewsOf(activity);
+            prepare(activity, views, findBoard(views));
+        } else if ("restore".equals(phase)) {
+            finishMateInThree(activity);
+            switchChapter(activity, R.string.open_mate_two);
+            restore(activity);
+        } else throw new IllegalArgumentException("Unknown sanity phase: " + phase);
+    }
+
+    private void checkMatch() throws Exception {
+        var store = new ChessProgressStore(getTargetContext());
+        var saved = store.readMatch();
+        Activity activity = launch();
+        switch (phase) {
+            case "match-prepare" -> {
+                compare("A fresh install offers a new game and hides Resume", true,
+                        saved == null && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE);
+                tap(activity.findViewById(R.id.new_match));
+                var board = findBoard(viewsOf(activity));
+                boolean[] locked = {false};
+                runOnMainSync(() -> {
+                    cell(board, "e2").performClick();
+                    cell(board, "e4").performClick();
+                    locked[0] = !cell(board, "e4").isEnabled();
+                    activity.finish();
+                });
+                var pending = store.readMatch();
+                compare("The human move is committed before the delayed bot reply", true, pending.ply() == 1 && pending.awaitingBot());
+                compare("The board locks while the computer has the turn", true, locked[0]);
+            }
+            case "match-restore" -> {
+                compare("Process restart finds the human move and one bot reply due", true,
+                        saved.ply() == 1 && saved.awaitingBot() && "e2e4".equals(saved.lastMove().uci()));
+                long deadline = SystemClock.uptimeMillis() + 12_000;
+                while (store.readMatch().ply() == 1 && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+                waitForIdleSync();
+                var afterReply = store.readMatch();
+                compare("The restarted process commits exactly one reply", 2, afterReply.ply());
+                assertMatchBoard(activity, afterReply);
+                var board = findBoard(viewsOf(activity));
+                int destination = afterReply.lastMove().to();
+                int highlight = BoardSquare.isLight(destination) ? 0xfff4ef86 : 0xffbec953;
+                captureFrame("match-resumed", "The restarted match shows the last move and the human turn",
+                        image -> fullyVisible(board) && hasColor(image, cell(board, BoardSquare.name(destination)), highlight, 16));
+                verifyMatchHistory(activity, store, afterReply);
+                tap(button(activity, viewsOf(activity), R.string.main_menu));
+                compare("Returning to the menu exposes the saved game", View.VISIBLE, activity.findViewById(R.id.resume_match).getVisibility());
+                tap(activity.findViewById(R.id.resume_match));
+                assertMatchBoard(activity, afterReply);
+                runOnMainSync(activity::finish);
+            }
+            case "match-settled" -> {
+                compare("The second restart begins after the committed bot reply", true, saved.ply() == 2 && !saved.awaitingBot());
+                SystemClock.sleep(1_000);
+                compare("The computer does not replay its saved reply", saved.checkpoint(), store.readMatch().checkpoint());
+                assertMatchBoard(activity, saved);
+            }
+            default -> throw new IllegalArgumentException("Unknown match phase: " + phase);
+        }
+    }
+
+    private void verifyMatchHistory(Activity activity, ChessProgressStore store, ChessMatch live) throws IOException {
+        var board = findBoard(viewsOf(activity));
+        View previousMove = activity.findViewById(R.id.match_history_previous);
+        View nextMove = activity.findViewById(R.id.match_history_next);
+        View latest = activity.findViewById(R.id.match_history_latest);
+        ViewGroup moves = activity.findViewById(R.id.match_history_moves);
+        compare("The strip lists the start and every saved move", live.ply() + 1, moves.getChildCount());
+        tap(previousMove);
+        compare("The previous arrow shows the position after e4 with play disabled", true,
+                moves.getChildAt(1).isSelected() && !cell(board, "e4").isEnabled()
+                        && cell(board, "e4").getContentDescription().toString().contains(activity.getString(R.string.pawn)));
+        tap(previousMove);
+        compare("The start shows the white pawn on e2 and disables Previous", true,
+                moves.getChildAt(0).isSelected() && !previousMove.isEnabled()
+                        && cell(board, "e2").getContentDescription().toString().contains(activity.getString(R.string.pawn)));
+        tap(nextMove);
+        compare("The next arrow restores the next position", true,
+                moves.getChildAt(1).isSelected() && "e2".contentEquals(cell(board, "e2").getContentDescription()));
+        captureFrame("match-history", "The board and move controls fit in history",
+                image -> fullyVisible(board) && fullyVisible(previousMove) && fullyVisible(latest)
+                        && hasColor(image, cell(board, "e4"), 0xfff4ef86, 16));
+        tap(latest);
+        compare("Jump to latest returns to the live turn and disables Next", true,
+                moves.getChildAt(live.ply()).isSelected() && !nextMove.isEnabled() && cell(board, "e4").isEnabled());
+        runOnMainSync(() -> ((android.widget.HorizontalScrollView) moves.getParent()).scrollTo(0, 0));
+        tap(moves.getChildAt(1));
+        compare("Tapping a listed move selects it without changing the saved game", true,
+                moves.getChildAt(1).isSelected() && live.checkpoint().equals(store.readMatch().checkpoint()));
+        tap(latest);
+    }
+
+    private void assertMatchBoard(Activity activity, ChessMatch match) {
+        var views = viewsOf(activity);
+        var board = findBoard(views);
+        var move = match.lastMove();
+        String displayMove = activity.getString(R.string.solution_move, BoardSquare.name(move.from()), BoardSquare.name(move.to()));
+        compare("The displayed last move matches the saved bot move", true,
+                hasText(views, activity.getString(R.string.match_last_move, displayMove)));
+        compare("The restored board shows the human pawn and accepts the next move", true,
+                cell(board, "e4").getContentDescription().toString().contains(activity.getString(R.string.pawn))
+                        && cell(board, "e4").isEnabled());
     }
 
     private Activity launch() {
@@ -240,7 +340,7 @@ public final class BoardSanity extends Instrumentation {
         tap(next);
         compare("The third quest is the current selection", true, atQuest(activity, views, 3));
         compare("The selected third quest is unsolved", false, hasText(views, solved));
-        prepareMateInTwo(activity, views, board);
+        prepareMateInTwo(activity);
         prepareMateInThree(activity);
     }
 
@@ -271,8 +371,11 @@ public final class BoardSanity extends Instrumentation {
         getUiAutomation().waitForIdle(100, 2500);
     }
 
-    private void restore(Activity activity, List<View> views, BoardView board) throws Exception {
-        finishMateInTwo(activity, views, board);
+    private void restore(Activity activity) throws Exception {
+        var mateTwoViews = viewsOf(activity);
+        finishMateInTwo(activity, mateTwoViews, findBoard(mateTwoViews));
+        var views = viewsOf(activity);
+        var board = findBoard(views);
         String solved = activity.getString(R.string.quest_solved);
         compare("Switching back resumes the third one-move quest", true, atQuest(activity, views, 3));
         compare("Both prior solves survive process death", true, solvedCount(activity, views, 2));
@@ -291,7 +394,7 @@ public final class BoardSanity extends Instrumentation {
         waitForIdleSync();
         var order = new ArrayList<String>();
         for (var quest : QuestCatalog.load()) order.add(quest.id());
-        var store = new QuestProgressStore(getTargetContext());
+        var store = new ChessProgressStore(getTargetContext());
         if (!store.save(store.read(order).select("mate-101"))) throw new AssertionError("Could not select the counter-mate fixture");
         Activity counter = launch();
         List<View> counterViews = viewsOf(counter);
@@ -317,8 +420,10 @@ public final class BoardSanity extends Instrumentation {
         captureFrame("milestone", "The progress bar visibly fills at the first milestone", image -> hasColor(image, track, 0xffb8d88a, 8));
     }
 
-    private void prepareMateInTwo(Activity activity, List<View> views, BoardView board) throws Exception {
+    private void prepareMateInTwo(Activity activity) throws Exception {
         switchChapter(activity, R.string.open_mate_two);
+        var views = viewsOf(activity);
+        var board = findBoard(views);
         var quest = QuestCatalog.loadMateInTwo().get(0);
         compare("The new chapter opens with its own 100-quest counter", true,
                 hasText(views, activity.getString(R.string.mate_two_progress, 1, 100)) && mateTwoCount(activity, views, 0)

@@ -4,16 +4,34 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import java.util.Collections;
 import java.util.List;
+import ro.atf.chess.ChessMatch;
 import ro.atf.chess.QuestProgress;
 
-final class QuestProgressStore {
+final class ChessProgressStore {
     private static final String CURRENT = "current-id";
     private static final String SOLVED = "solved-ids";
     private static final String AWAITING_MATE = "awaiting-mate";
     private static final String RESUME_CHAPTER = "resume-chapter";
+    private static final String MATCH = "match-checkpoint";
+    private static final String RESUME_MATCH = "resume-match";
+    private static final String MATCH_BLACK_BELOW = "match-black-below";
     private final SharedPreferences preferences;
 
-    QuestProgressStore(Context context) { preferences = context.getSharedPreferences("quest-progress", Context.MODE_PRIVATE); }
+    ChessProgressStore(Context context) { preferences = context.getSharedPreferences("quest-progress", Context.MODE_PRIVATE); }
+
+    ChessMatch readMatch() {
+        String encoded = preferences.getString(MATCH, null);
+        return encoded == null ? null : ChessMatch.restore(encoded);
+    }
+
+    boolean resumeMatch() { return preferences.getBoolean(RESUME_MATCH, false); }
+    boolean matchBlackBelow() { return preferences.getBoolean(MATCH_BLACK_BELOW, false); }
+    boolean leaveMatch() { return preferences.edit().remove(RESUME_MATCH).commit(); }
+
+    boolean saveMatch(ChessMatch match, boolean blackBelow) {
+        return preferences.edit().putString(MATCH, match.checkpoint()).putBoolean(MATCH_BLACK_BELOW, blackBelow)
+                .putBoolean(RESUME_MATCH, true).remove(RESUME_CHAPTER).commit();
+    }
 
     QuestProgress read(List<String> order) {
         return QuestProgress.restore(preferences.getString(CURRENT, null), preferences.getStringSet(SOLVED, Collections.emptySet()), order);
@@ -52,7 +70,7 @@ final class QuestProgressStore {
         if (id.equals(preferences.getString(key + "-stage-id", null))) edit.remove(key + "-stage-id").remove(key + "-stage").remove(key + "-ply");
         if (ply == 0) edit.remove("quest-ply-" + id);
         else edit.putInt("quest-ply-" + id, ply);
-        return edit.putString(key, id).putBoolean(RESUME_CHAPTER, true)
+        return edit.putString(key, id).putBoolean(RESUME_CHAPTER, true).remove(RESUME_MATCH)
                 .putString(CURRENT, id).putStringSet(SOLVED, progress.solvedIds()).commit();
     }
 

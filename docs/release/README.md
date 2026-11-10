@@ -2,9 +2,14 @@
 
 ## Calificare și publicare
 
-1. Alegeți commitul candidat și construiți în TMP. Rulați componentele și sanity-ul pe APK-ul semnat ales pentru distribuție. Păstrați hash-ul APK-ului instalat și hash-ul fiecărui HTML Extent în dovezile rulărilor.
-2. `ReleaseEvidence.qualification` confruntă commitul, APK-ul, HTML-urile și rezultatul celor două selecții. `ReleaseEvidence.publication` confruntă tagul, README-ul remote, canalul, URL-ul și octeții efectiv descărcați, inclusiv CRC-urile din APK.
-3. După aprobare, publicați APK-ul ca asset GitHub. În secțiunea **Jocul** a README-ului principal puneți două linkuri, către release-ul curent și descărcarea directă. Documentați testele în dosarul ediției, separat de pagina de descărcare.
+1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
+2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului.
+3. Actualizați notele ediției, ghidul jocului și dovezile de testare. În secțiunea **Jocul** a README-ului principal puneți două linkuri, către release și APK-ul direct. Verificați legăturile locale și rulați `ReleaseGovernanceTest`.
+4. Creați commitul candidat local și exportați exact acel commit în TMP. Rulați `mvn test` și păstrați raportul Extent și rezultatul componentelor, inclusiv guvernanța.
+5. Construiți APK-ul și testele Android cu Gradle și cheia de distribuție. Verificați semnătura și `versionCode`. Rulați sanity-ul semnat pe emulator, inclusiv repornirea, ultima mutare și istoricul partidei. Păstrați hash-ul APK-ului instalat și rapoartele Extent.
+6. Treceți APK-ul, commitul și dovezile prin `ReleaseGate qualification`. Rezolvați abaterile și repetați verificările afectate înainte de publicare.
+7. După autorizare și calificare, împingeți tagul candidat fără a rescrie istoricul, publicați asset-urile GitHub și împingeți commitul cu linkurile pe `main`. Păstrați identitatea tagului și a asset-urilor în dosarul ediției.
+8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
 
 Configurați `J7_SIGNING_STORE` și `J7_SIGNING_PASSWORD` în sesiunea de build și păstrați cheia `chesslab-release` în afara repository-ului. Pentru upgrade, păstrați aceeași cheie. Gradle construiește perechea semnată cu `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`. Runnerul cu `-Distribution -SourceCommit <sha>` cere un emulator fără pachetul jocului și confruntă octeții instalați cu APK-ul calificat înaintea instrumentării.
 
@@ -26,4 +31,4 @@ După compilare, apelați `ReleaseRag` din copia TMP cu rădăcina sursei și c�
 java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseRag . chess-core/src/main/java/ro/atf/chess/ChessPosition.java
 ```
 
-Fiecare rezultat indică documentul, ancora, linia, hash-ul și verificarea potrivită. Pentru audit de release, rulați comanda în copia commitului candidat. Rezultatul este consultativ, iar verificările de calificare și publicare rămân `NOT_RUN` în acest pas.
+Fiecare rezultat indică documentul, ancora, linia, hash-ul și verificarea potrivită. Când este citată secțiunea **Calificare și publicare**, RAG afișează și pașii în ordine. Păstrați ieșirea în dosarul ediției. Verificările de calificare și publicare se execută separat.

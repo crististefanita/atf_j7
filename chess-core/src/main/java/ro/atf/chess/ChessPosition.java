@@ -1,6 +1,7 @@
 package ro.atf.chess;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -114,6 +115,24 @@ public final class ChessPosition {
 
     public Piece pieceAt(int square) { return board[square]; }
 
+    boolean sameForRepetition(ChessPosition other) {
+        return turn == other.turn && castleRights == other.castleRights && Arrays.equals(board, other.board)
+                && (enPassant == other.enPassant || legalEnPassant() == other.legalEnPassant());
+    }
+
+    private int legalEnPassant() {
+        if (enPassant < 0) return -1;
+        int adjacentRank = enPassant - 8 * RULES.pawn(turn).forward();
+        for (int offset : new int[]{-1, 1}) {
+            int from = adjacentRank + offset;
+            if (from / 8 == adjacentRank / 8 && from >= 0 && from < 64
+                    && new Piece(turn, Kind.PAWN).equals(board[from]) && isLegal(new Move(from, enPassant))) {
+                return enPassant;
+            }
+        }
+        return -1;
+    }
+
     public List<Move> legalMovesFrom(int from) {
         if (from < 0 || from >= board.length || board[from] == null || board[from].side() != turn) {
             return Collections.emptyList();
@@ -145,9 +164,12 @@ public final class ChessPosition {
     }
 
     public boolean isCheckmate() {
-        if (!isCheck()) return false;
-        for (int square = 0; square < 64; square++) if (!legalMovesFrom(square).isEmpty()) return false;
-        return true;
+        return isCheck() && !hasLegalMove();
+    }
+
+    boolean hasLegalMove() {
+        for (int square = 0; square < 64; square++) if (!legalMovesFrom(square).isEmpty()) return true;
+        return false;
     }
 
     public boolean isCheck() { return inCheck(turn); }
@@ -186,9 +208,7 @@ public final class ChessPosition {
 
     public Outcome outcome() {
         boolean check = inCheck(turn);
-        for (int square = 0; square < board.length; square++) {
-            if (!legalMovesFrom(square).isEmpty()) return check ? Outcome.CHECK : Outcome.PLAYING;
-        }
+        if (hasLegalMove()) return check ? Outcome.CHECK : Outcome.PLAYING;
         return check ? Outcome.CHECKMATE : Outcome.STALEMATE;
     }
 

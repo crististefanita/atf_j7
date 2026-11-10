@@ -25,7 +25,9 @@ class AndroidSanityPublication {
     private static final List<Frame> FRAMES = List.of(new Frame("hint-piece.png", "Simple hint · piece only"),
             new Frame("hint-solution.png", "Complete hint · d8 to h4"), new Frame("board.png", "Restored solved position after Qh4#"),
             new Frame("milestone.png", "First milestone · five solved"), new Frame("mate-two.png", "Mate in two · after the defense"),
-            new Frame("menu.png", "Main menu · three puzzle chapters"), new Frame("mate-three.png", "Mate in three · after the second defense"));
+            new Frame("menu.png", "Main menu · three puzzle chapters and computer play"), new Frame("mate-three.png", "Mate in three · after the second defense"),
+            new Frame("match-resumed.png", "Computer game · last move after restart"),
+            new Frame("match-history.png", "Computer game · reviewing an earlier move"));
 
     @Test void publishBoardSanity() throws Exception {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
@@ -33,18 +35,26 @@ class AndroidSanityPublication {
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
         var prepare = readPhase(receipt, "prepare", 42);
         var restore = readPhase(receipt.resolveSibling("restore.txt"), "restore", 27);
-        boolean newProcess = !prepare.pid().isEmpty() && !restore.pid().isEmpty() && !prepare.pid().equals(restore.pid());
+        var matchPrepare = readPhase(receipt.resolveSibling("match-prepare.txt"), "match-prepare", 3);
+        var matchRestore = readPhase(receipt.resolveSibling("match-restore.txt"), "match-restore", 15);
+        var matchSettled = readPhase(receipt.resolveSibling("match-settled.txt"), "match-settled", 4);
+        var phases = List.of(prepare, restore, matchPrepare, matchRestore, matchSettled);
+        var pids = phases.stream().map(PhaseEvidence::pid).toList();
+        boolean newProcess = !pids.contains("") && pids.stream().distinct().count() == phases.size();
         Set<Frame> available = new HashSet<>();
         for (var frame : FRAMES) if (isPng(receipt.resolveSibling(frame.file()))) available.add(frame);
-        boolean complete = prepare.passed() && restore.passed() && newProcess && available.size() == FRAMES.size();
+        boolean complete = phases.stream().allMatch(PhaseEvidence::passed) && newProcess && available.size() == FRAMES.size();
         var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
-             var scenario = session.startScenario("BoardSanity", "Open the menu, play three chapters and resume after restart", List.of("e2e", "android"));
+             var scenario = session.startScenario("BoardSanity", "Play the puzzle chapters and review the computer match across restarts", List.of("e2e", "android"));
              var phase = scenario.startPhase("TEST BODY")) {
             publish(phase, "Open the menu and play the three chapters up to the pending second defense", prepare.rows(), prepare.passed());
-            publish(phase, "Android process restart", List.of(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs",
-                    prepare.pid() + " → " + restore.pid(), newProcess)), newProcess);
+            publish(phase, "Android process restart", List.of(new AtfAssertion("Instrumentation process IDs", "Five distinct Android PIDs",
+                    String.join(" → ", pids), newProcess)), newProcess);
             publish(phase, "Resume both pending quests and restore the first chapter's progress", restore.rows(), restore.passed());
+            publish(phase, "Save a computer game before the reply", matchPrepare.rows(), matchPrepare.passed());
+            publish(phase, "Resume the computer game and navigate its history", matchRestore.rows(), matchRestore.passed());
+            publish(phase, "Reopen after the saved reply", matchSettled.rows(), matchSettled.passed());
             for (var frame : FRAMES) {
                 if (available.contains(frame)) {
                     try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {

@@ -38,6 +38,8 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 ## Raportare Extent
 
+`TacticalAnalysisTest` compară o captură înainte și după recaptură, două câștiguri egale și un mat care devine vizibil abia la al treilea pas. Pozițiile din partida italiană verifică alegerea unei replici superioare primei mutări generate și evitarea unui mat imediat. Raportul de componente păstrează linia și câștigul așteptat ca aserțiuni.
+
 Din copia TMP, cu JDK 21 și Maven:
 
 ```powershell
@@ -58,12 +60,20 @@ Folosiți registrul comun de rezervare pe dispozitivele partajate.
 
 1. Prima instrumentare verifică meniul, marcajul culorii și cele două trepte ale indiciului. Verifică derularea meniului și încadrarea tablei în română la font 1,3×, precum și legăturile de traversare între culoare, piesă și destinație. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
 2. Runnerul oprește procesul. A doua instrumentare verifică redeschiderea în Mat în 3, răspunsul restant și activarea comenzii **Următoarea** abia după mat. Revine în celelalte capitole și verifică reluarea și pragul de cinci rezolvări.
-3. Extent cere PID-uri distincte, aserțiunile ambelor faze și șapte capturi PNG. Raportul include meniul, indiciile, progresul și apărările adversarului. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
+3. Extent cere PID-uri distincte, aserțiunile celor cinci faze și nouă capturi PNG. Raportul include meniul, indiciile, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
+
+## Partidă și istoric
+
+`ChessMatchTest` verifică reconstrucția înainte și după replica botului, accesul la pozițiile din istoric, matul, rocada, en passant și repetarea. După fazele de probleme, runnerul pornește cu date proaspete și execută `match-prepare`, `match-restore` și `match-settled` în procese distincte, păstrând partida între ele. Verifică poziția inițială, săgețile, selecția directă, revenirea la ultima mutare, blocarea mutărilor în istoric și identitatea partidei salvate.
 
 ## Proba TalkBack
 
-Activați TalkBack și **Display speech output** pe emulator. În Mat în 1, deschideți **Indiciu**, apoi **Arată mutarea**. Focalizați culoarea la mutare și glisați de două ori spre dreapta. Repetați după întoarcerea tablei și comparați focusul cu piesa și destinația indiciului. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. `QuestHintTest` verifică proiecția în ambele orientări, iar sanity-ul verifică actualizarea legăturilor pe ecran. [Setările TalkBack pentru testare](https://developer.android.com/guide/topics/ui/accessibility/testing#talkback)
+1. Activați TalkBack pe emulator. În **Mat în 1**, deschideți **Indiciu**, apoi **Arată mutarea**. Atingeți culoarea la mutare și glisați de două ori spre dreapta prin intrarea tactilă a emulatorului. După fiecare gest, capturați evenimentul Android `TYPE_VIEW_ACCESSIBILITY_FOCUSED` și cadrul cu focusul. Repetați după **Întoarce tabla**. [Intrarea tactilă a emulatorului](https://developer.android.com/studio/run/emulator-console)
+2. Pentru prima problemă din 0.3.1, traseul este negrul la mutare → regina neagră de pe d8 → h4, cu oricare dintre culori jos. Proba pe API 33 cu TalkBack 14.2 a confirmat cele patru glisări prin `EmulatorController/sendTouch`. [Extent glisări](../../release/0.3.1/reports/talkback-gestures-extent.html)
+3. `QuestHintTest` verifică proiecția în ambele orientări. Sanity-ul verifică actualizarea legăturilor native. Proba glisărilor are propriul raport și folosește evenimentele de focus ca dovadă.
 
-Raportul suplimentar consemnează cererile TalkBack și audio PCM acceptat prin callback-ul Android, cu sinteză Google. Proba compară APK-ul publicat cu build-ul local corectat. [Extent TalkBack](../feedback/talkback-extent.html)
+Pentru republicare, rulați `TalkBackPublication#publishTalkBackGestures` din copia TMP și indicați logul prin `-Dchess.talkback.gestures`. Logul unei singure probe conține evenimentele `J7FocusProbe` și markerii `J7ProbeMarker`, de la `BLACK_ANCHOR_START` la `WHITE_DESTINATION_END`. În același director puneți `emulator.json`, capturile `BLACK-color.png`, `BLACK-PIECE.png`, `BLACK-DESTINATION.png` și echivalentele `WHITE-*`.
+
+Pentru vorbire, activați **Display speech output**. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. Proba anterioară compară ediția 0.3.0 cu build-ul corectat și consemnează cererile TalkBack și audio PCM sintetizat. [Extent vorbire](../feedback/talkback-extent.html)
 
 [Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)

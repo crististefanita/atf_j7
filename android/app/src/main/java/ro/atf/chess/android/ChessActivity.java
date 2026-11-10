@@ -16,17 +16,23 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import ro.atf.chess.BoardSquare;
+import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.QuestCatalog;
 import ro.atf.chess.QuestHint;
 import ro.atf.chess.QuestProgress;
 import ro.atf.chess.QuestStep;
+import ro.atf.chess.TacticalAnalysis;
 
 public final class ChessActivity extends Activity {
     private static final int BACKGROUND = 0xff262522;
@@ -38,10 +44,19 @@ public final class ChessActivity extends Activity {
     private static final long DEFENSE_DELAY_MS = 650;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Runnable reply = this::playDefense;
+    private final Runnable botReply = this::startBotSearch;
+    private final ExecutorService bot = Executors.newSingleThreadExecutor();
+    private Future<?> botJob;
+    private int botGeneration;
     private List<List<QuestCatalog.Quest>> chapters;
     private List<QuestCatalog.Quest> quests;
     private List<String> order;
-    private QuestProgressStore store;
+    private ChessProgressStore store;
+    private ChessMatch match;
+    private boolean inMatch;
+    private boolean botSaveFailed;
+    private MatchHistoryView history;
+    private int reviewedPly = -1;
     private QuestProgress progress;
     private ChessPosition position;
     private int questIndex;
@@ -49,7 +64,6 @@ public final class ChessActivity extends Activity {
     private QuestStep step;
     private boolean resumed;
     private int chapterIndex = -1;
-    private LinearLayout questScreen;
     private String attemptMessage;
     private BoardView board;
     private TextView status;
@@ -74,10 +88,19 @@ public final class ChessActivity extends Activity {
         chapters = List.of(QuestCatalog.load(), QuestCatalog.loadMateInTwo(), QuestCatalog.loadMateInThree());
         var allIds = new ArrayList<String>();
         for (var collection : chapters) allIds.addAll(ids(collection));
-        store = new QuestProgressStore(this);
+        store = new ChessProgressStore(this);
         progress = store.read(allIds);
         if (Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, this::back);
+        }
+        try {
+            match = store.readMatch();
+        } catch (IllegalArgumentException | IllegalStateException | ClassCastException invalid) {
+            Toast.makeText(this, R.string.match_load_failed, Toast.LENGTH_LONG).show();
+        }
+        if (match != null && store.resumeMatch()) {
+            displayMatch(store.matchBlackBelow());
+            return;
         }
         if (store.resumeChapter()) for (int index = 0; index < chapters.size(); index++) {
             var chapterIds = ids(chapters.get(index));
@@ -107,6 +130,8 @@ public final class ChessActivity extends Activity {
 
     private void showMenu() {
         main.removeCallbacks(reply);
+        cancelBot();
+        inMatch = false;
         chapterIndex = -1;
         var menu = screen();
         getLayoutInflater().inflate(R.layout.main_menu, menu);
@@ -114,7 +139,50 @@ public final class ChessActivity extends Activity {
             int chapter = index;
             menu.findViewById(CHAPTER_BUTTONS[index]).setOnClickListener(view -> openChapter(chapter));
         }
+        menu.findViewById(R.id.new_match).setOnClickListener(view -> newMatch());
+        View resume = menu.findViewById(R.id.resume_match);
+        resume.setVisibility(match == null ? View.GONE : View.VISIBLE);
+        resume.setOnClickListener(view -> openMatch(match, store.matchBlackBelow()));
         setContentView(menu);
+    }
+
+    private void newMatch() {
+        if (match != null && match.ply() > 0 && match.result() == ChessMatch.Result.IN_PROGRESS) {
+            new AlertDialog.Builder(this).setTitle(R.string.match_replace_title).setMessage(R.string.match_replace_message)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(R.string.new_match, (dialog, choice) -> openMatch(ChessMatch.start(), false)).show();
+        } else openMatch(ChessMatch.start(), false);
+    }
+
+    private void openMatch(ChessMatch nextMatch, boolean flipped) {
+        if (!store.saveMatch(nextMatch, flipped)) {
+            showSaveError();
+            return;
+        }
+        match = nextMatch;
+        displayMatch(flipped);
+        scheduleBot();
+    }
+
+    private void displayMatch(boolean flipped) {
+        inMatch = true;
+        reviewedPly = -1;
+        botSaveFailed = false;
+        chapterIndex = -1;
+        blackBelow = flipped;
+        selected = -1;
+        options = Collections.emptyList();
+        position = match.position();
+        last = match.lastMove();
+        setContentView(buildBoardScreen());
+        renderMatch();
+    }
+
+    private void leaveBoard() {
+        if (inMatch) {
+            if (store.leaveMatch()) showMenu();
+            else showSaveError();
+        } else leaveChapter();
     }
 
     private void leaveChapter() {
@@ -131,13 +199,13 @@ public final class ChessActivity extends Activity {
     }
 
     private void back() {
-        if (chapterIndex < 0) finish();
-        else leaveChapter();
+        if (inMatch || chapterIndex >= 0) leaveBoard();
+        else finish();
     }
 
     @Override public void onBackPressed() { back(); }
 
-    private LinearLayout buildQuestScreen() {
+    private LinearLayout buildBoardScreen() {
         var screen = screen();
         LinearLayout header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
@@ -147,16 +215,23 @@ public final class ChessActivity extends Activity {
         Button flip = new Button(this);
         flip.setText(R.string.flip);
         flip.setAllCaps(false);
-        flip.setOnClickListener(view -> { blackBelow = !blackBelow; render(); });
+        flip.setOnClickListener(view -> {
+            if (inMatch && !store.saveMatch(match, !blackBelow)) {
+                showSaveError();
+                return;
+            }
+            blackBelow = !blackBelow;
+            render();
+        });
         header.addView(flip);
         var menu = menuButton(R.string.main_menu);
-        menu.setOnClickListener(view -> leaveChapter());
+        menu.setOnClickListener(view -> leaveBoard());
         header.addView(menu);
         screen.addView(header);
         recentMove = text(R.string.mate_objective, 14, MUTED);
         recentMove.setGravity(Gravity.CENTER);
         screen.addView(recentMove);
-        screen.addView(progressPanel());
+        if (!inMatch) screen.addView(progressPanel());
         topPlayer = playerLabel();
         bottomPlayer = playerLabel();
         board = new BoardView(this, this::tap);
@@ -166,6 +241,11 @@ public final class ChessActivity extends Activity {
         status.setPadding(dp(8), dp(4), dp(8), dp(10));
         status.setAccessibilityLiveRegion(android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE);
         screen.addView(status);
+        if (inMatch) {
+            history = new MatchHistoryView(this, this::notation, this::reviewMatch);
+            screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
+            return screen;
+        }
         LinearLayout navigation = new LinearLayout(this);
         navigation.setGravity(Gravity.CENTER);
         navigation.setBaselineAligned(false);
@@ -286,12 +366,12 @@ public final class ChessActivity extends Activity {
     }
 
     private void displayChapter(int index, List<String> chapterIds) {
+        inMatch = false;
         chapterIndex = index;
         quests = chapters.get(index);
         order = chapterIds;
         loadQuest(order.indexOf(progress.currentId()));
-        if (questScreen == null) questScreen = buildQuestScreen();
-        setContentView(questScreen);
+        setContentView(buildBoardScreen());
     }
 
     private static ArrayList<String> ids(List<QuestCatalog.Quest> collection) {
@@ -341,7 +421,7 @@ public final class ChessActivity extends Activity {
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 
     private void tap(int square) {
-        if (solved || step.defensePending()) return;
+        if (inMatch ? !playerCanMove() : solved || step.defensePending()) return;
         List<Move> targets = new ArrayList<>();
         for (Move move : options) if (move.to() == square) targets.add(move);
         if (targets.size() == 1) {
@@ -360,6 +440,10 @@ public final class ChessActivity extends Activity {
     }
 
     private void play(Move move) {
+        if (inMatch) {
+            if (playerCanMove() && saveMatchMove(move)) scheduleBot();
+            return;
+        }
         if (chapterIndex < 0 || solved || step.defensePending()) return;
         var quest = quests.get(questIndex);
         int stage = step.stage();
@@ -376,12 +460,12 @@ public final class ChessActivity extends Activity {
         }
         if (mate || result.continues()) hint = QuestHint.NONE;
         if (result.continues() || mate) attemptMessage = null;
-        else if (remaining > 1) attemptMessage = getString(remaining == 3 ? R.string.mate_three_try_again : R.string.mate_two_try_again);
         else attemptMessage = switch (result.outcome()) {
             case CHECKMATE -> null;
-            case CHECK -> getString(R.string.quest_check_reply, notation(result.defense()));
+            case CHECK -> checkingReply(result.replyAnalysis());
             case STALEMATE -> getString(R.string.quest_stalemate);
-            case PLAYING -> getString(R.string.quest_try_again);
+            case PLAYING -> getString(remaining == 3 ? R.string.mate_three_try_again
+                    : remaining == 2 ? R.string.mate_two_try_again : R.string.quest_try_again);
         };
         selected = -1;
         options = Collections.emptyList();
@@ -389,9 +473,88 @@ public final class ChessActivity extends Activity {
         if (result.continues()) scheduleDefense();
     }
 
+    private String checkingReply(TacticalAnalysis.Result analysis) {
+        var best = analysis.best();
+        var reply = best.get(0);
+        var line = new StringJoiner(" · ");
+        for (Move move : reply.line()) line.add(notation(move));
+        String preview = getString(R.string.quest_check_reply, line.toString());
+        String effect = switch (reply.ending()) {
+            case CHECKMATE -> getString(reply.signedMatePlies() > 0 ? R.string.quest_reply_mates : R.string.quest_reply_allows_mate);
+            case STALEMATE -> getString(R.string.quest_reply_stalemate);
+            case HORIZON -> reply.materialChange() > 0
+                    ? getString(R.string.quest_reply_gain, NumberFormat.getNumberInstance(
+                            getResources().getConfiguration().getLocales().get(0)).format(reply.materialChange() / 100.0))
+                    : "";
+        };
+        if (!effect.isEmpty()) preview += " · " + effect;
+        if (best.size() > 1) preview += " · " + getString(R.string.quest_reply_equal, best.size(), notation(best.get(1).move()));
+        return preview;
+    }
+
     private void scheduleDefense() {
         main.removeCallbacks(reply);
         if (resumed && chapterIndex >= 0 && step.defensePending()) main.postDelayed(reply, DEFENSE_DELAY_MS);
+    }
+
+    private boolean playerCanMove() {
+        return reviewedPly < 0 && match.result() == ChessMatch.Result.IN_PROGRESS && !match.awaitingBot();
+    }
+
+    private void reviewMatch(int ply) {
+        if (ply < 0 || ply > match.ply() || ply == reviewedPly) return;
+        if (reviewedPly < 0 && ply == match.ply()) return;
+        reviewedPly = ply == match.ply() ? -1 : ply;
+        selected = -1;
+        options = Collections.emptyList();
+        renderMatch();
+    }
+
+    private boolean saveMatchMove(Move move) {
+        var nextMatch = match.play(move);
+        if (!store.saveMatch(nextMatch, blackBelow)) {
+            showSaveError();
+            return false;
+        }
+        match = nextMatch;
+        botSaveFailed = false;
+        position = match.position();
+        last = match.lastMove();
+        selected = -1;
+        options = Collections.emptyList();
+        renderMatch();
+        return true;
+    }
+
+    private void scheduleBot() {
+        main.removeCallbacks(botReply);
+        if (resumed && inMatch && match.awaitingBot() && botJob == null) main.postDelayed(botReply, DEFENSE_DELAY_MS);
+    }
+
+    private void startBotSearch() {
+        if (!resumed || !inMatch || !match.awaitingBot()) return;
+        var pending = match;
+        int generation = botGeneration;
+        botJob = bot.submit(() -> {
+            Move move = pending.chooseBotMove();
+            main.post(() -> {
+                if (!resumed || !inMatch || generation != botGeneration || match != pending) return;
+                botJob = null;
+                if (!saveMatchMove(move)) {
+                    botSaveFailed = true;
+                    renderMatch();
+                }
+            });
+        });
+    }
+
+    private void cancelBot() {
+        main.removeCallbacks(botReply);
+        botGeneration++;
+        if (botJob != null) {
+            botJob.cancel(false);
+            botJob = null;
+        }
     }
 
     private void playDefense() {
@@ -423,9 +586,13 @@ public final class ChessActivity extends Activity {
     private void showSaveError() { Toast.makeText(this, R.string.progress_save_failed, Toast.LENGTH_SHORT).show(); }
 
     private void render() {
+        if (inMatch) {
+            renderMatch();
+            return;
+        }
         var bottom = blackBelow ? ChessPosition.Side.BLACK : ChessPosition.Side.WHITE;
-        renderPlayer(topPlayer, bottom.other());
-        renderPlayer(bottomPlayer, bottom);
+        renderPlayer(topPlayer, bottom.other(), !solved && position.turn() == bottom.other());
+        renderPlayer(bottomPlayer, bottom, !solved && position.turn() == bottom);
         recentMove.setText(getString(CHAPTER_PROGRESS[chapterIndex], questIndex + 1, quests.size()));
         renderProgress();
         boolean pending = step.defensePending();
@@ -476,8 +643,42 @@ public final class ChessActivity extends Activity {
         if (!visible.contentEquals(status.getText())) status.setText(visible);
     }
 
-    private void renderPlayer(TextView label, ChessPosition.Side side) {
-        boolean active = !solved && position.turn() == side;
+    private void renderMatch() {
+        boolean reviewing = reviewedPly >= 0;
+        int ply = reviewing ? reviewedPly : match.ply();
+        var shownPosition = match.positionAt(ply);
+        var shownMove = match.moveAt(ply);
+        boolean markTurn = reviewing || match.result() == ChessMatch.Result.IN_PROGRESS;
+        var bottom = blackBelow ? ChessPosition.Side.BLACK : ChessPosition.Side.WHITE;
+        renderPlayer(topPlayer, bottom.other(), markTurn && shownPosition.turn() == bottom.other());
+        renderPlayer(bottomPlayer, bottom, markTurn && shownPosition.turn() == bottom);
+        recentMove.setText(shownMove == null
+                ? getString(reviewing ? R.string.match_history_initial_position : R.string.match_sides)
+                : getString(reviewing ? R.string.match_history_showing_move : R.string.match_last_move, notation(shownMove)));
+        boolean retry = !reviewing && botSaveFailed;
+        status.setOnClickListener(retry ? view -> {
+            botSaveFailed = false;
+            renderMatch();
+            scheduleBot();
+        } : null);
+        status.setClickable(retry);
+        status.setText(reviewing ? getString(R.string.match_history_position, ply, match.ply()) : getString(switch (match.result()) {
+            case IN_PROGRESS -> match.awaitingBot() ? R.string.match_bot_thinking
+                    : position.isCheck() ? R.string.match_player_check : R.string.match_player_turn;
+            case WHITE_WINS -> R.string.match_white_wins;
+            case BLACK_WINS -> R.string.match_black_wins;
+            case STALEMATE -> R.string.match_draw_stalemate;
+            case MATERIAL_DRAW -> R.string.match_draw_material;
+            case REPETITION_DRAW -> R.string.match_draw_repetition;
+            case MOVE_COUNT_DRAW -> R.string.match_draw_move_count;
+        }));
+        if (retry) status.setText(R.string.match_retry_bot);
+        int activeLabelId = (shownPosition.turn() == bottom ? bottomPlayer : topPlayer).getId();
+        board.show(shownPosition, blackBelow, selected, options, shownMove, new QuestHint.Cue(-1, -1), playerCanMove(), activeLabelId);
+        history.show(match, ply);
+    }
+
+    private void renderPlayer(TextView label, ChessPosition.Side side, boolean active) {
         String color = getString(BoardView.sideLabel(side));
         label.setText(active ? getString(R.string.to_move, color) : color);
         label.setTextColor(active ? PROGRESS : PRIMARY);
@@ -500,12 +701,20 @@ public final class ChessActivity extends Activity {
         super.onResume();
         resumed = true;
         scheduleDefense();
+        scheduleBot();
     }
 
     @Override protected void onPause() {
         resumed = false;
         main.removeCallbacks(reply);
+        cancelBot();
         super.onPause();
+    }
+
+    @Override protected void onDestroy() {
+        cancelBot();
+        bot.shutdown();
+        super.onDestroy();
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {

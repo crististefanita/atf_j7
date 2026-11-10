@@ -33,7 +33,8 @@
         <Button android:id="@+id/chapter_one" style="@style/ChapterEntry" android:text="@string/open_mate_one" />
         <Button android:id="@+id/chapter_two" style="@style/ChapterEntry" android:text="@string/open_mate_two" />
         <Button android:id="@+id/chapter_three" style="@style/ChapterEntry" android:text="@string/open_mate_three" />
-        <Button style="@style/ChapterEntry" android:enabled="false" android:text="@string/menu_chess_todo" />
+        <Button android:id="@+id/new_match" style="@style/ChapterEntry" android:text="@string/new_match" />
+        <Button android:id="@+id/resume_match" style="@style/ChapterEntry" android:text="@string/resume_match" android:visibility="gone" />
         <Button style="@style/ChapterEntry" android:enabled="false" android:text="@string/menu_analysis_todo" />
 
     </LinearLayout>

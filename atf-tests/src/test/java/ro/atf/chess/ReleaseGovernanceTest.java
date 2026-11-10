@@ -114,6 +114,14 @@ class ReleaseGovernanceTest {
         var board = ReleaseRag.retrieve(root, List.of("android/app/src/main/java/ro/atf/chess/android/BoardView.java"));
         check.same("Board changes cite native sanity and TalkBack evidence", List.of("## Sanity Android", "## Proba TalkBack"),
                 board.stream().map(ReleaseRag.Citation::heading).toList());
+        var history = ReleaseRag.retrieve(root, List.of("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "README.md"));
+        check.same("History changes cite the match probe and release workflow", List.of("## Sanity Android", "## Partidă și istoric", "## Calificare și publicare"),
+                history.stream().map(ReleaseRag.Citation::heading).toList());
+        var steps = ReleaseRag.workflow(root);
+        check.same("The release workflow follows the eight required steps", List.of(1, 2, 3, 4, 5, 6, 7, 8),
+                steps.stream().map(line -> Integer.parseInt(line.substring(0, line.indexOf('.')))).toList());
+        check.same("The last step verifies the download again after pushing the evidence", true,
+                steps.getLast().contains("repetați descărcarea"));
         check.same("A path outside the route table has no citation", List.of(), ReleaseRag.retrieve(root, List.of("unknown/foo")));
         Path missing = Files.createDirectories(folder.resolve("docs/testing")).resolve("README.md");
         Files.writeString(missing, "# No known anchor");

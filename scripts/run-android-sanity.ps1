@@ -126,6 +126,23 @@ try {
         Receive-Frame 'board'
         Receive-Frame 'milestone'
         Receive-Frame 'mate-three'
+        Invoke-Device @('shell','am','force-stop',$app)
+        $clear = Invoke-Device @('shell','pm','clear',$app)
+        if ($clear -notcontains 'Success') { throw 'Could not reset for computer-match sanity.' }
+        foreach ($phase in 'match-prepare','match-restore','match-settled') {
+            $matchReceipt = Join-Path $run "$phase.txt"
+            Invoke-Device ($instrument + @('-e','phase',$phase,$runner)) |
+                Set-Content -LiteralPath $matchReceipt -Encoding utf8NoBOM
+            if (!(Select-String -Quiet -LiteralPath $matchReceipt -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {
+                Receive-Frame 'failure'
+                break
+            }
+            if ($phase -eq 'match-restore') {
+                Receive-Frame 'match-resumed'
+                Receive-Frame 'match-history'
+            }
+            Invoke-Device @('shell','am','force-stop',$app)
+        }
     } else {
         Receive-Frame 'failure'
     }
@@ -142,11 +159,14 @@ try {
     mvn -B -ntp test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication' "-Dchess.android.receipt=$receipt"
     $publication = $LASTEXITCODE
     $report = Join-Path $run 'android-board-sanity.html'
-    $nativeChecks = @(Select-String -LiteralPath $receipt -Pattern '^INSTRUMENTATION_RESULT: check_').Count
-    if (Test-Path -LiteralPath $restore) { $nativeChecks += @(Select-String -LiteralPath $restore -Pattern '^INSTRUMENTATION_RESULT: check_').Count }
+    $receiptHashes = [ordered]@{}
+    $nativeChecks = 0
+    foreach ($file in Get-ChildItem -LiteralPath $run -Filter '*.txt' -File) {
+        $nativeChecks += @(Select-String -LiteralPath $file.FullName -Pattern '^INSTRUMENTATION_RESULT: check_').Count
+        $receiptHashes[$file.BaseName] = (Get-FileHash -LiteralPath $file.FullName).Hash.ToLowerInvariant()
+    }
     [ordered]@{device=$Serial; api=$api; apkSha256=$hash; sourceCommit=$SourceCommit; assertions=$nativeChecks;
-        prepareSha256=(Get-FileHash -LiteralPath $receipt).Hash.ToLowerInvariant();
-        restoreSha256=$(if(Test-Path -LiteralPath $restore){(Get-FileHash -LiteralPath $restore).Hash.ToLowerInvariant()}); variant=$variant;
+        receipts=$receiptHashes; variant=$variant;
         status=$(if ($publication) {'FAIL'} else {'PASS'});
         extentSha256=$(if (Test-Path -LiteralPath $report) {(Get-FileHash -LiteralPath $report).Hash.ToLowerInvariant()})} |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'execution.json') -Encoding utf8NoBOM
