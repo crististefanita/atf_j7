@@ -36,3 +36,8 @@ Decizie pentru ediția 0.5.1 · 2026-11-10
 - Excepție autorizată pentru această ediție: sanity-ul complet pe APK-ul semnat și poarta standard de calificare nu au fost rulate.
 - Proba separată pentru analiza AI a trecut pe API 28, în două procese distincte, pe APK-ul izolat sanity din același commit. Extent păstrează toate cele șapte aserțiuni native.
 - Promovarea și integritatea descărcării se verifică după publicare pornind de la README-ul principal.
+
+Rezultatul promovării
+- GitHub Release v0.5.1 și README-ul principal indică APK-ul semnat din commitul candidat.
+- Descărcarea directă și cea autentificată au răspuns cu HTTP 200. APK-ul a avut octeții așteptați, același SHA-256 și CRC valid pentru toate intrările.
+- Control negativ pe Extent: cu dovada fazei de reluare absentă, publicatorul a respins rularea și a păstrat diagnosticul în raport.
