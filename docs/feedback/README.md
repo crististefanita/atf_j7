@@ -1,5 +1,7 @@
 # Feedback · Chess Lab
 
+Registrul păstrează ipotezele și criteriile încă deschise. [Ghidul tablei](../board/README.md) descrie comportamentul livrat.
+
 | Prioritate | Pas | Criteriu de închidere |
 |---|---|---|
 | P1 | Disciplina Hard în finalul de turnuri din Alehină | După 96 de semimutări din reluarea istorică, Hard dă 339 cp pentru `Kd1` și 338 cp pentru `Kf1`. Stockfish 19 dă −1,05 și +2,94. La 108 și 112, Hard revine cu turnul la a8 în loc să activeze al doilea turn. Verificați siguranța regelui și activarea turnului pe pozițiile de la 96, 108 și 112, apoi pe finaluri independente, în același buget. Păstrați conversia din liga integrală și verificați dacă se îmbunătățește și rezultatul continuării istorice. [Rejucare](../board/ai-quality.md#rejucarea-finalului-de-turnuri) |

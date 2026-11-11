@@ -12,8 +12,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import java.util.Date;
-import ro.atf.chess.ChessMatch;
-import ro.atf.chess.ChessPosition.Side;
+import ro.atf.chess.MatchListEntry;
 import ro.atf.chess.MatchStore;
 
 public final class MatchListActivity extends Activity {
@@ -66,39 +65,36 @@ public final class MatchListActivity extends Activity {
     private void showSaved(LinearLayout rows, MatchStore store) {
         for (int slot : store.savedMatchSlots()) {
             var saved = store.readSavedMatch(slot);
-            if (saved == null) {
-                addRow(rows, getString(R.string.match_slot_unavailable, slot), 0).setEnabled(false);
-                continue;
-            }
-            int status = saved.result() == ChessMatch.Result.IN_PROGRESS ? R.string.match_slot_active : R.string.match_slot_finished;
-            var row = addRow(rows, getString(R.string.match_slot_label, slot, MatchLabels.botName(this, saved.setup().level()),
-                    getString(BoardView.sideLabel(saved.setup().humanSide())), saved.ply(), getString(status)), store.startedAt(slot));
-            row.setOnClickListener(view -> select(new Intent().putExtra(SAVED_SLOT, slot)));
+            var entry = MatchListEntry.saved(slot, saved, saved == null ? 0 : store.startedAt(slot));
+            addRow(rows, entry, new Intent().putExtra(SAVED_SLOT, slot));
         }
     }
 
     private void showFinished(LinearLayout rows, MatchStore store) {
         for (var entry : store.archivedMatches()) {
-            var saved = entry.match();
-            int result = switch (saved.result()) {
-                case WHITE_WINS -> saved.setup().humanSide() == Side.WHITE ? R.string.match_player_wins : R.string.match_bot_wins;
-                case BLACK_WINS -> saved.setup().humanSide() == Side.BLACK ? R.string.match_player_wins : R.string.match_bot_wins;
-                default -> R.string.match_archive_draw;
-            };
-            var row = addRow(rows, getString(R.string.match_archive_row, getString(result), MatchLabels.botName(this, saved.setup().level()),
-                    saved.ply(), getString(entry.reviewed() ? R.string.match_archive_reviewed : R.string.match_archive_no_review)), entry.finishedAt());
-            row.setOnClickListener(view -> select(new Intent().putExtra(ARCHIVE_ID, entry.id())));
+            addRow(rows, MatchListEntry.finished(entry), new Intent().putExtra(ARCHIVE_ID, entry.id()));
         }
     }
 
-    private View addRow(LinearLayout rows, String label, long timestamp) {
+    private void addRow(LinearLayout rows, MatchListEntry entry, Intent selection) {
         var row = getLayoutInflater().inflate(R.layout.match_list_row, rows, false);
         TextView title = row.findViewById(R.id.match_row_label);
+        TextView details = row.findViewById(R.id.match_row_details);
+        var available = entry.status() != MatchListEntry.Status.UNAVAILABLE;
+        String label = rowTitle(entry);
         title.setText(label);
         row.setAccessibilityDelegate(ROW_ACCESSIBILITY);
-        String description = label;
-        if (timestamp != 0) {
-            var date = new Date(timestamp);
+        String summary = getString(statusLabel(entry.status()));
+        if (available) {
+            String moves = getResources().getQuantityString(R.plurals.match_row_moves, entry.moves(), entry.moves());
+            summary = moves + " · " + summary;
+            if (entry.reviewed()) summary += " · " + getString(R.string.match_archive_reviewed);
+            row.setOnClickListener(view -> select(selection));
+        } else row.setEnabled(false);
+        details.setText(summary);
+        String description = label + ", " + summary;
+        if (entry.hasTimestamp()) {
+            var date = new Date(entry.timestamp());
             String localDate = DateFormat.getDateFormat(this).format(date);
             String localTime = DateFormat.getTimeFormat(this).format(date);
             TextView badge = row.findViewById(R.id.match_row_date);
@@ -108,7 +104,24 @@ public final class MatchListActivity extends Activity {
         }
         row.setContentDescription(description);
         rows.addView(row);
-        return row;
+    }
+
+    private String rowTitle(MatchListEntry entry) {
+        if (entry.status() == MatchListEntry.Status.UNAVAILABLE) return getString(R.string.match_saved_number, entry.slot());
+        String opponent = MatchLabels.opponentName(entry.opponent());
+        return entry.slot() > 0 ? getString(R.string.match_saved_title, entry.slot(), opponent)
+                : getString(R.string.match_finished_title, opponent);
+    }
+
+    private static int statusLabel(MatchListEntry.Status status) {
+        return switch (status) {
+            case IN_PROGRESS -> R.string.match_slot_active;
+            case FINISHED -> R.string.match_slot_finished;
+            case WON -> R.string.match_list_won;
+            case LOST -> R.string.match_list_lost;
+            case DRAW -> R.string.match_archive_draw;
+            case UNAVAILABLE -> R.string.match_list_unavailable;
+        };
     }
 
     private void select(Intent selection) {

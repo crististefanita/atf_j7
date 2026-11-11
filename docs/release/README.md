@@ -4,14 +4,20 @@
 
 1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
 2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului.
-3. Actualizați notele ediției, ghidul jocului și dovezile de testare. Puneți **Jocul** ca prima secțiune a README-ului principal, imediat după orientare. Folosiți două rânduri de listă formate fiecare dintr-un link, întâi către release, apoi către APK. În restul README-ului puneți ghidurile proiectului. Verificați legăturile locale și rulați `ReleaseGovernanceTest`.
-4. Creați commitul candidat local și exportați exact acel commit în TMP. Rulați `mvn test`, care pornește `ChessJvmSuite`, și păstrați raportul Extent al componentelor și guvernanței. Activați probele AI relevante când diff-ul afectează motorul sau corpusul. [Suitele și raportarea](../testing/README.md#suite-jvm)
+3. Actualizați notele ediției și ghidurile afectate. Mutați regulile confirmate din feedback în ghidul care le deține și păstrați criteriile încă deschise. Puneți **Jocul** ca prima secțiune a README-ului principal, imediat după orientare. Folosiți două rânduri de listă formate fiecare dintr-un link, întâi către release, apoi către APK. În restul README-ului puneți ghidurile proiectului.
+4. Creați commitul candidat local și exportați exact acel commit într-un TMP nou. Rulați `mvn test`, care pornește `ChessJvmSuite`. Rulați `ReleaseGate preflight` pe recepțiile acelui checkout pentru `DocumentationGovernanceTest`, `ReleaseGovernanceTest` și `ExtentGovernanceTest` înaintea build-ului de distribuție. Păstrați Extent pentru componente și guvernanță. Activați probele AI relevante când diff-ul afectează motorul sau corpusul. [Suitele JVM](../testing/README.md#suite-jvm)
 5. Construiți APK-ul și testele Android cu Gradle și cheia de distribuție. Verificați semnătura și `versionCode`. Rulați pe emulator parcursul semnat potrivit schimbării. Includeți repornirea, ultima mutare și istoricul când schimbarea afectează tabla sau reluarea partidei. Păstrați hash-ul APK-ului instalat și rapoartele Extent.
-6. Treceți APK-ul, commitul și dovezile prin `ReleaseGate qualification`. Rezolvați abaterile și repetați verificările afectate înainte de publicare.
+6. Verificați în Extent starea, comparațiile extensibile și diagnosticul. Pentru sanity, verificați identitatea execuției și captura în pasul care conține aserțiunea. Treceți APK-ul, commitul și dovezile prin `ReleaseGate qualification`. Rezolvați abaterile și repetați verificările afectate înainte de publicare. [Criterii de audit Extent](../testing/README.md#raportare-extent)
 7. După autorizare și calificare, împingeți tagul candidat fără a rescrie istoricul, publicați asset-urile GitHub și împingeți commitul cu linkurile pe `main`. Păstrați identitatea tagului și a asset-urilor în dosarul ediției.
 8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
 
 Configurați `J7_SIGNING_STORE` și `J7_SIGNING_PASSWORD` în sesiunea de build și păstrați cheia `chesslab-release` în afara repository-ului. Pentru upgrade, păstrați aceeași cheie. Gradle construiește perechea semnată cu `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`. Runnerul cu `-Distribution -SourceCommit <sha>` cere un emulator fără pachetul jocului și confruntă octeții instalați cu APK-ul calificat înaintea instrumentării.
+
+În copia TMP, după execuția Maven și înainte de semnare:
+
+```powershell
+java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate preflight atf-tests/target/surefire-reports
+```
 
 Pentru schimbările din Deschideri, adăugați `-IncludeOpenings` la sanity-ul semnat. Runnerul execută proba pe același APK după verificarea reluării partidei. Publicați Extent din recepția `openings/openings.txt` și folosiți același commit și hash APK la calificarea ambelor rapoarte. [Proba Deschideri](../testing/README.md#deschideri)
 

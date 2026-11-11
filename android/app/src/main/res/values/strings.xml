@@ -2,10 +2,11 @@
     <string name="menu_study">Study</string>
     <string name="match_archive">Finished games</string>
     <string name="match_archive_empty">Finished games will appear here.</string>
-    <string name="match_archive_row">%1$s · %2$s · %3$d plies · %4$s</string>
+    <string name="match_finished_title">vs. %1$s</string>
     <string name="match_archive_draw">Draw</string>
     <string name="match_archive_reviewed">Analysis saved</string>
-    <string name="match_archive_no_review">Analysis available</string>
+    <string name="match_list_won">You won</string>
+    <string name="match_list_lost">AI won</string>
     <string name="game_review_manual_rating">Elo estimates are unavailable when you played moves for the AI side.</string>
     <string name="game_review_live_rating">Elo is available after the game ends.</string>
     <string name="game_review_study_rating">The report shows the accuracy of each color for this study line.</string>
@@ -15,10 +16,15 @@
     <string name="match_saved_games">Saved games</string>
     <string name="match_saved_empty">Saved games will appear here.</string>
     <string name="match_list_back">Back</string>
-    <string name="match_slot_label">Game %1$d · %2$s · %3$s · %4$d plies · %5$s</string>
+    <string name="match_saved_title">Game %1$d · %2$s</string>
+    <string name="match_saved_number">Game %1$d</string>
+    <plurals name="match_row_moves">
+        <item quantity="one">%d move</item>
+        <item quantity="other">%d moves</item>
+    </plurals>
     <string name="match_slot_active">In progress</string>
     <string name="match_slot_finished">Finished</string>
-    <string name="match_slot_unavailable">Game %1$d · Unavailable</string>
+    <string name="match_list_unavailable">Unavailable</string>
     <string name="match_replacement_note">Starting a new game replaces the oldest saved game.</string>
     <string name="match_actions">Game options</string>
     <string name="match_offer_draw">Offer draw</string>

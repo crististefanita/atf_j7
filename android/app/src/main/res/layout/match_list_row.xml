@@ -1,9 +1,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" style="@style/MatchListRow"
     android:orientation="vertical" android:focusable="true">
     <TextView android:id="@+id/match_row_label" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:importantForAccessibility="no" android:textColor="#f5f3ec" android:textSize="16sp" />
+        android:importantForAccessibility="no" android:textColor="#f5f3ec" android:textSize="17sp" android:textStyle="bold" />
+    <TextView android:id="@+id/match_row_details" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="2dp" android:importantForAccessibility="no" android:textColor="#dedbd0" android:textSize="14sp" />
     <TextView android:id="@+id/match_row_date" android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_marginTop="4dp" android:background="@drawable/match_date_badge" android:importantForAccessibility="no"
-        android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp"
-        android:textColor="#d6d4ca" android:textSize="13sp" android:visibility="gone" />
+        android:layout_marginTop="5dp" android:background="@drawable/match_date_badge" android:importantForAccessibility="no"
+        android:paddingStart="6dp" android:paddingEnd="6dp" android:paddingTop="1dp" android:paddingBottom="1dp"
+        android:textColor="#aaa69b" android:textSize="12sp" android:visibility="gone" />
 </LinearLayout>

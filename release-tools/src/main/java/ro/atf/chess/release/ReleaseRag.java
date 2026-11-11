@@ -20,7 +20,8 @@ public final class ReleaseRag {
         }
     }
 
-    private static final Route RELEASE = new Route("release-tools/", "docs/release/README.md", "## Calificare și publicare", "ReleaseGovernanceTest");
+    private static final Route RELEASE = new Route("release-tools/", "docs/release/README.md", "## Calificare și publicare",
+            "DocumentationGovernanceTest, ReleaseGovernanceTest și ExtentGovernanceTest");
     private static final List<Route> ROUTES = List.of(
             new Route("chess-core/", "docs/testing/README.md", "## Motor și proiecție", "ChessComponentTest și QuestCatalogTest"),
             ai("chess-core/src/main/resources/ai-repertoire.yaml"),
@@ -47,6 +48,7 @@ public final class ReleaseRag {
             games("chess-core/src/main/java/ro/atf/chess/MatchArchive.java"),
             games("chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java"),
             games("chess-core/src/main/java/ro/atf/chess/MatchSlots.java"),
+            games("chess-core/src/main/java/ro/atf/chess/MatchListEntry.java"),
             games("chess-core/src/main/java/ro/atf/chess/MatchStore.java"),
             games("android/app/src/main/java/ro/atf/chess/android/AndroidMatchPreferences.java"),
             games("android/app/src/main/java/ro/atf/chess/android/ChessProgressStore.java"),
@@ -57,6 +59,7 @@ public final class ReleaseRag {
             games("android/app/src/main/res/layout/match_list_row.xml"),
             games("android/app/src/main/res/layout/match_setup.xml"),
             games("android/app/src/main/res/drawable/match_date_badge.xml"),
+            games("android/app/src/main/res/drawable/match_list_divider.xml"),
             manualAnalysis("chess-core/src/main/java/ro/atf/chess/AnalysisLine.java"),
             manualAnalysis("android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java"),
             manualAnalysis("android/app/src/main/java/ro/atf/chess/android/ChessActivity.java"),
@@ -71,9 +74,16 @@ public final class ReleaseRag {
             openings("android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java"),
             openings("docs/board/openings.md"),
             new Route("atf-tests/", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
+            audit("atf-tests/src/test/java/ro/atf/chess/ExtentAudit.java"),
+            audit("atf-tests/src/test/java/ro/atf/chess/ExtentGovernanceTest.java"),
+            audit("atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java"),
+            audit("scripts/run-android-sanity.ps1"),
+            audit("docs/testing/README.md"),
+            new Route("atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("docs/testing/README.md", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
             new Route("docs/board/", "docs/testing/README.md", "## Motor și proiecție", "BoardPanelLayoutTest și QuestHintTest"),
-            new Route("docs/feedback/", "docs/feedback/README.md", "# Feedback · Chess Lab", "Revizuiți criteriile deschise înaintea promovării"),
+            new Route("docs/feedback/", "docs/feedback/README.md", "# Feedback · Chess Lab",
+                    "DocumentationGovernanceTest și revizia criteriilor deschise"),
             new Route("lib/", "lib/README.md", "## Proveniență", "ReleaseGovernanceTest"),
             new Route("docs/release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
@@ -82,6 +92,10 @@ public final class ReleaseRag {
             new Route("README.md", RELEASE.document(), RELEASE.heading(), RELEASE.check()), RELEASE);
 
     private ReleaseRag() { }
+
+    private static Route audit(String path) {
+        return new Route(path, "docs/testing/README.md", "## Raportare Extent", "ExtentGovernanceTest");
+    }
 
     private static Route ai(String path) {
         return new Route(path, "docs/board/ai-quality.md", "## Control la fiecare schimbare",
@@ -114,7 +128,7 @@ public final class ReleaseRag {
 
     private static Route games(String path) {
         return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -MatchMenusOnly");
+                "MatchListEntryTest, MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -MatchMenusOnly");
     }
 
     public static List<Citation> retrieve(Path root, List<String> changedPaths) throws IOException {

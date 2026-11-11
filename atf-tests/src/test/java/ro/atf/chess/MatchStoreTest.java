@@ -87,6 +87,17 @@ class MatchStoreTest {
                 List.of(disk.commitAttempts, snapshot.equals(disk.data)));
     }
 
+    @Test void excludesAnUnfinishedCheckpointFromTheResultsList(Checks check) {
+        var disk = new MemoryPreferences();
+        var store = store(disk, START);
+        store.startMatch(1, ChessMatch.restore(MATE), false, false, false);
+        store.startMatch(2, ChessMatch.restore(MATE), false, false, false);
+        String broken = store.archivedId(2);
+        disk.data.put("match-archive-" + broken + "-checkpoint", LEGACY);
+        check.same("A damaged archive entry leaves the other result reachable", List.of(store.archivedId(1)), ids(store));
+        check.same("The damaged result cannot be reopened by ID", null, store.readArchivedMatch(broken));
+    }
+
     private static MatchStore store(MemoryPreferences disk, Instant instant) {
         return new MatchStore(disk, Clock.fixed(instant, ZoneOffset.UTC));
     }

@@ -178,7 +178,9 @@ public final class MatchStore {
         try {
             String checkpoint = preferences.getString(archiveKey(id, "checkpoint"), null);
             if (checkpoint == null) return null;
-            return new ArchivedMatch(id, ChessMatch.restore(checkpoint), preferences.getBoolean(archiveKey(id, "black-below"), false),
+            var match = ChessMatch.restore(checkpoint);
+            if (match.result() == ChessMatch.Result.IN_PROGRESS) return null;
+            return new ArchivedMatch(id, match, preferences.getBoolean(archiveKey(id, "black-below"), false),
                     preferences.getBoolean(archiveKey(id, "manual-used"), false), preferences.contains(archiveKey(id, "review")),
                     preferences.getLong(archiveKey(id, "finished-at"), 0));
         } catch (IllegalArgumentException | IllegalStateException | ClassCastException invalid) {

@@ -64,7 +64,9 @@ Meniul principal grupează **Partidă nouă**, **Partide salvate** și **Partide
 
 **Partide salvate** arată până la zece partide, de la cea mai recent începută. **Partidă nouă** folosește primul loc liber. Când toate sunt ocupate, configurarea anunță că noua partidă va înlocui cea mai veche salvare. Reluarea unei partide îi păstrează locul în ordine, iar redeschiderea aplicației reia ultima partidă activă. Pentru salvările din edițiile anterioare, ordinea inițială urmează numărul locului.
 
-Sub descrierea partidei, eticheta discretă arată data și ora locală. În **Partide salvate** apare momentul începerii, iar în **Partide încheiate** momentul terminării. Salvările vechi își păstrează datele disponibile.
+Rândul începe cu numărul partidei și numele adversarului în **Partide salvate** și cu numele adversarului în **Partide încheiate**. Sub titlu apar numărul de mutări înregistrate și starea sau rezultatul. Fiecare mutare a albului sau a negrului se numără o dată.
+
+Eticheta discretă de la baza rândului arată ziua și ora locală. În **Partide salvate** apare momentul începerii, iar în **Partide încheiate** momentul terminării. Pentru partidele vechi a căror dată lipsește, rândul afișează titlul și mutările.
 
 **Joacă și mutările AI-ului**, deasupra tablei, îți permite să joci mutările legale ale ambelor culori. Opțiunea se salvează separat pe fiecare partidă. Dacă o debifezi în tura AI-ului, motorul reia tura curentă. Când schimbi partida, o replică aflată în calcul se anulează și poate fi recalculată când revii la acea partidă. Dacă ai jucat pentru AI, analiza afișează precizia și categoriile mutărilor pe culori, iar estimările Elo sunt indisponibile pentru acea partidă.
 

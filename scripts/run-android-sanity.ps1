@@ -143,19 +143,21 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         Receive-Frame 'failure' $Directory
         throw "Android phase $Phase did not pass. See $Directory."
     }
-    Receive-Frame $Phase $Directory
-    if ($Phase -eq 'match-slots') {
-        Receive-Frame 'match-home' $Directory
-        Receive-Frame 'saved-games' $Directory
+    $frames = @($Phase)
+    switch ($Phase) {
+        'match-slots' { $frames += 'saved-games' }
+        'match-archive' { $frames += 'finished-games' }
+        'game-review' { $frames += 'game-review-comparison', 'game-review-actions' }
     }
-    if ($Phase -eq 'match-archive') { Receive-Frame 'finished-games' $Directory }
-    if ($Phase -eq 'game-review') {
-        Receive-Frame 'game-review-comparison' $Directory
-        Receive-Frame 'game-review-actions' $Directory
+    $captureHashes = [ordered]@{}
+    foreach ($frame in $frames) {
+        Receive-Frame $frame $Directory
+        $file = "$frame.png"
+        $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
     }
     [ordered]@{status='PASS'; scope=$Phase; device=$Serial; api=$api; apkSha256=$hash;
         sourceCommit=$SourceCommit; variant=$variant; assertions=$passed.Count;
-        receiptSha256=(Get-FileHash -LiteralPath $reviewReceipt).Hash.ToLowerInvariant()} |
+        receiptSha256=(Get-FileHash -LiteralPath $reviewReceipt).Hash.ToLowerInvariant(); captureSha256=$captureHashes} |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
 }
 
@@ -169,8 +171,8 @@ function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expecte
 
 function Invoke-SelectedMatchSanity([string]$Directory) {
     if ($IncludeManualAnalysis) { Invoke-IncludedSanity $Directory 'manual-analysis' 15 }
-    if ($IncludeMatchSlots) { Invoke-IncludedSanity $Directory 'match-slots' 4 }
-    if ($IncludeMatchArchive) { Invoke-IncludedSanity $Directory 'match-archive' 3 }
+    if ($IncludeMatchSlots) { Invoke-IncludedSanity $Directory 'match-slots' 2 }
+    if ($IncludeMatchArchive) { Invoke-IncludedSanity $Directory 'match-archive' 2 }
 }
 
 Set-Lease $true
@@ -212,16 +214,16 @@ try {
         return
     }
     if ($MatchSlotsOnly) {
-        Invoke-FocusedSanity $run 'match-slots' 4
+        Invoke-FocusedSanity $run 'match-slots' 2
         return
     }
     if ($MatchArchiveOnly) {
-        Invoke-FocusedSanity $run 'match-archive' 3
+        Invoke-FocusedSanity $run 'match-archive' 2
         return
     }
     if ($MatchMenusOnly) {
-        Invoke-FocusedSanity $run 'match-slots' 4
-        Invoke-IncludedSanity $run 'match-archive' 3
+        Invoke-FocusedSanity $run 'match-slots' 2
+        Invoke-IncludedSanity $run 'match-archive' 2
         return
     }
     if ($OpeningsOnly) {

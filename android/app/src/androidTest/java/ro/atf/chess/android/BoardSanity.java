@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.InputDevice;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +20,9 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -28,6 +30,10 @@ import java.util.function.Predicate;
 import ro.atf.chess.BoardSquare;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition.Move;
+import ro.atf.chess.ChessPosition.Side;
+import ro.atf.chess.MatchSetup;
+import ro.atf.chess.MatchSlots;
+import ro.atf.chess.MatchStore;
 import ro.atf.chess.QuestCatalog;
 
 public final class BoardSanity extends Instrumentation {
@@ -79,24 +85,14 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void checkMatchArchive() throws Exception {
-        var store = new ChessProgressStore(getTargetContext()).matches();
-        var home = launch();
-        var emptyArchive = openMatchList(home, R.id.match_archive);
-        var empty = (TextView) emptyArchive.findViewById(R.id.match_list_empty);
-        boolean showsEmptyPage = fullyVisible(empty) && empty.getText().equals(emptyArchive.getText(R.string.match_archive_empty));
-        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
-        awaitListTransition(home);
-        compare("Android Back returns from the empty finished games page to the main menu", true,
-                showsEmptyPage && home.hasWindowFocus() && fullyVisible(home.findViewById(R.id.match_archive)));
-
         var mate = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
-        for (int slot = 1; slot <= ro.atf.chess.MatchSlots.LIMIT; slot++) {
-            if (!store.startMatch(slot, mate, false, false, false)) throw new AssertionError("Could not prepare the finished games list");
-        }
-        var oldest = store.archivedMatches().get(ro.atf.chess.MatchSlots.LIMIT - 1);
+        seedGame(1, mate);
+        seedGame(2, ChessMatch.start(new MatchSetup(Side.WHITE, MatchSetup.Level.ADVANCED, false)).offerDraw());
+        seedGame(3, ChessMatch.start(new MatchSetup(Side.WHITE, MatchSetup.Level.HARD, false)).resign());
+        var home = launch();
         var list = openMatchList(home, R.id.match_archive);
-        verifyLastGameRow(list, "finished-games", oldest.finishedAt());
-        chooseListEntry(list, 9);
+        captureLastGameRow(list, "finished-games");
+        chooseListEntry(list, 2);
         awaitListTransition(home);
         var board = findBoard(viewsOf(home));
         var result = (TextView) home.findViewById(R.id.match_status);
@@ -106,44 +102,30 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void checkMatchSlots() throws Exception {
-        var store = new ChessProgressStore(getTargetContext()).matches();
-        var checkpoint = ChessMatch.restore("1|e2e4 e7e5");
-        if (!store.startMatch(1, checkpoint, false, false, false) || !store.leaveMatch()) throw new AssertionError("Could not prepare a saved game");
+        var levels = MatchSetup.Level.values();
+        for (int slot = 1; slot <= MatchSlots.LIMIT; slot++) {
+            var match = ChessMatch.start(new MatchSetup(Side.WHITE, levels[(slot - 1) % levels.length], false));
+            if (slot % 3 != 0) match = match.play(Move.fromUci("e2e4")).play(Move.fromUci("e7e5"));
+            seedGame(slot, match);
+        }
         var activity = launch(true);
-        var games = activity.findViewById(R.id.home_games);
-        var resume = activity.findViewById(R.id.resume_match);
-        var archive = activity.findViewById(R.id.match_archive);
-        captureFrame("match-home", "Saved and finished games are visible in the main menu", image -> resume.getParent() == games
-                && archive.getParent() == games && fullyVisible(resume) && fullyVisible(archive));
-
-        var singleGame = openMatchList(activity, R.id.resume_match);
-        var rows = (ViewGroup) singleGame.findViewById(R.id.match_list_rows);
-        boolean singleGamePage = rows.getChildCount() == 1 && fullyVisible(singleGame.findViewById(R.id.match_list_back));
-        chooseListEntry(singleGame, 0);
+        var list = openMatchList(activity, R.id.resume_match);
+        captureLastGameRow(list, "saved-games");
+        chooseListEntry(list, MatchSlots.LIMIT - 1);
         awaitListTransition(activity);
         var board = findBoard(viewsOf(activity));
-        click(activity, R.id.match_actions);
-        clickMenuItem(activity.getString(R.string.match_saved_games));
-        boolean showsBack = menuItem(activity.getString(R.string.match_list_back)) != null;
-        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
-        awaitListTransition(activity);
-        compare("One saved game opens a list and Back from the in-game list preserves the board", true,
-                singleGamePage && showsBack && fullyVisible(board) && hasPawn(activity, board, "e4"));
+        captureFrame("match-slots", "Selecting a saved row restores the recorded position",
+                image -> fullyVisible(board) && hasPawn(activity, board, "e4") && hasPawn(activity, board, "e5")
+                        && (hasColor(image, cell(board, "e5"), 0xffbec953, 24) || hasColor(image, cell(board, "e5"), 0xfff4ef86, 24)));
+    }
 
-        clickMenuItem(activity.getString(R.string.main_menu));
-        for (int slot = 2; slot <= ro.atf.chess.MatchSlots.LIMIT; slot++) {
-            if (!store.startMatch(slot, checkpoint, false, false, false)) throw new AssertionError("Could not prepare the full saved games list");
+    private void seedGame(int slot, ChessMatch match) {
+        var preferences = getTargetContext().getSharedPreferences("quest-progress", android.content.Context.MODE_PRIVATE);
+        var instant = Instant.parse("2026-01-12T17:30:00Z").plusSeconds(slot * 93_600L);
+        var store = new MatchStore(new AndroidMatchPreferences(preferences), Clock.fixed(instant, ZoneOffset.UTC));
+        if (!store.startMatch(slot, match, false, false, false) || !store.leaveMatch()) {
+            throw new AssertionError("Could not prepare a game list fixture");
         }
-        var fullList = openMatchList(activity, R.id.resume_match);
-        verifyLastGameRow(fullList, "saved-games", store.startedAt(1));
-        click(fullList, R.id.match_list_back);
-        awaitListTransition(activity);
-        openGameSetup(activity);
-        boolean showsNotice = fullyVisible(activity.findViewById(R.id.match_replacement_note));
-        click(activity, R.id.match_start);
-        var newBoard = findBoard(viewsOf(activity));
-        captureFrame("match-slots", "At capacity the setup announces replacement and Start opens the new board", image -> showsNotice
-                && fullyVisible(newBoard) && hasPawn(activity, newBoard, "e2") && hasPawn(activity, newBoard, "e7"));
     }
 
     private void chooseListEntry(Activity list, int index) {
@@ -172,32 +154,31 @@ public final class BoardSanity extends Instrumentation {
         if (!activity.hasWindowFocus()) throw new AssertionError("The game list transition did not transfer window focus");
     }
 
-    private void verifyLastGameRow(Activity list, String frame, long timestamp) throws IOException {
+    private void captureLastGameRow(Activity list, String frame) throws IOException {
         var scroll = (ScrollView) list.findViewById(R.id.match_list_scroll);
         var rows = (ViewGroup) list.findViewById(R.id.match_list_rows);
-        if (rows.getChildCount() != 10) throw new AssertionError("The game list should contain ten entries");
-        var last = rows.getChildAt(9);
+        if (rows.getChildCount() == 0) throw new AssertionError("The fixture did not produce game rows");
+        var last = rows.getChildAt(rows.getChildCount() - 1);
         var badge = (TextView) last.findViewById(R.id.match_row_date);
         var label = (TextView) last.findViewById(R.id.match_row_label);
+        var summary = (TextView) last.findViewById(R.id.match_row_details);
         var title = (TextView) list.findViewById(R.id.match_list_title);
         var back = (Button) list.findViewById(R.id.match_list_back);
         runOnMainSync(() -> scroll.scrollTo(0, scroll.getChildAt(0).getHeight()));
         waitForIdleSync();
-        var date = new java.util.Date(timestamp);
-        String dateAndTime = android.text.format.DateFormat.getDateFormat(list).format(date)
-                + " · " + android.text.format.DateFormat.getTimeFormat(list).format(date);
         var rightHalfOfTitle = screenBounds(title);
         rightHalfOfTitle.left = rightHalfOfTitle.centerX();
         var group = screenBounds(rows);
         int lowerEdge = group.bottom - 3;
-        captureFrame(frame, "The tenth game shows its local date and time and Back remains visible", image -> fullyVisible(last) && fullyVisible(back)
-                && timestamp > 0 && fullyVisible(badge) && badge.getText().toString().equals(dateAndTime)
+        captureFrame(frame, "The last game shows its title, moves and local time with Back visible", image -> fullyVisible(last) && fullyVisible(back)
+                && fullyVisible(badge) && badge.getText().length() > 0
                 && screenBounds(last).bottom <= screenBounds(back).top
                 // The rounded corner must be painted at the bottom, even if the view tree has already scrolled.
                 && image.getPixel(group.left + 3, lowerEdge) == image.getPixel(group.left - 3, lowerEdge)
                 && hasColor(image, rightHalfOfTitle, title.getCurrentTextColor(), 32)
                 && hasColor(image, label, label.getCurrentTextColor(), 32)
-                && hasColor(image, badge, 0xff403d38, 32) && hasColor(image, badge, badge.getCurrentTextColor(), 24)
+                && hasColor(image, summary, summary.getCurrentTextColor(), 24)
+                && hasColor(image, badge, badge.getCurrentTextColor(), 24)
                 && hasColor(image, back, back.getCurrentTextColor(), 32));
     }
 

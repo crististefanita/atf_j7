@@ -39,6 +39,19 @@ class DocumentationGovernanceTest {
         check.same("All local links in current guides, release process and feedback resolve", List.of(), failures);
     }
 
+    @Test void releaseAndTestingGuidesLeadToTheirEvidenceOwners(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        var release = prose(root.resolve("docs/release/README.md"));
+        var testing = prose(root.resolve("docs/testing/README.md"));
+        check.same("Release guidance links to suite commands and audit criteria", true,
+                release.stream().anyMatch(line -> line.contains("../testing/README.md#suite-jvm"))
+                        && release.stream().anyMatch(line -> line.contains("../testing/README.md#raportare-extent")));
+        check.same("Audit guidance links to the qualification owner", true,
+                testing.stream().anyMatch(line -> line.contains("../release/README.md#calificare-și-publicare")));
+        check.same("Feedback retains a distinct list of open acceptance criteria", true,
+                prose(root.resolve("docs/feedback/README.md")).contains("| Prioritate | Pas | Criteriu de închidere |"));
+    }
+
     @Test void catchesMissingFilesAndRenamedAnchorsWithoutReadingCodeExamples(Checks check) throws IOException {
         Path guide = Files.writeString(folder.resolve("guide.md"), """
                 ## Mat în două

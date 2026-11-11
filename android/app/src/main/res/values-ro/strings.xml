@@ -2,10 +2,11 @@
     <string name="menu_study">Studiu</string>
     <string name="match_archive">Partide încheiate</string>
     <string name="match_archive_empty">Partidele încheiate vor apărea aici.</string>
-    <string name="match_archive_row">%1$s · %2$s · %3$d semimutări · %4$s</string>
+    <string name="match_finished_title">Cu %1$s</string>
     <string name="match_archive_draw">Remiză</string>
     <string name="match_archive_reviewed">Analiză salvată</string>
-    <string name="match_archive_no_review">Analiză disponibilă</string>
+    <string name="match_list_won">Ai câștigat</string>
+    <string name="match_list_lost">A câștigat AI-ul</string>
     <string name="game_review_manual_rating">Estimările Elo sunt indisponibile dacă ai jucat mutări pentru AI.</string>
     <string name="game_review_live_rating">Estimarea Elo devine disponibilă după încheierea partidei.</string>
     <string name="game_review_study_rating">Raportul arată precizia fiecărei culori în linia de studiu.</string>
@@ -15,10 +16,16 @@
     <string name="match_saved_games">Partide salvate</string>
     <string name="match_saved_empty">Partidele salvate vor apărea aici.</string>
     <string name="match_list_back">Înapoi</string>
-    <string name="match_slot_label">Partida %1$d · %2$s · %3$s · %4$d semimutări · %5$s</string>
+    <string name="match_saved_title">Partida %1$d · %2$s</string>
+    <string name="match_saved_number">Partida %1$d</string>
+    <plurals name="match_row_moves">
+        <item quantity="one">%d mutare</item>
+        <item quantity="few">%d mutări</item>
+        <item quantity="other">%d de mutări</item>
+    </plurals>
     <string name="match_slot_active">În curs</string>
     <string name="match_slot_finished">Încheiată</string>
-    <string name="match_slot_unavailable">Partida %1$d · Indisponibilă</string>
+    <string name="match_list_unavailable">Indisponibilă</string>
     <string name="match_replacement_note">Partida nouă va înlocui cea mai veche salvare.</string>
     <string name="match_actions">Opțiunile partidei</string>
     <string name="match_offer_draw">Oferă remiză</string>

@@ -77,7 +77,9 @@ JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Co
 
 `TacticalAnalysisTest` compară o captură înainte și după recaptură, două câștiguri egale și un mat care devine vizibil abia la al treilea pas. Pozițiile din partida italiană verifică alegerea unei replici superioare primei mutări generate și evitarea unui mat imediat. Raportul de componente păstrează linia și câștigul așteptat ca aserțiuni.
 
-În Extent, deschideți scenariul și **Assertions** pentru a vedea valorile așteptate, valorile observate și rezultatul fiecărei comparații. Extensia măsoară execuția de la setup la teardown, apoi publică starea și diagnosticul JUnit. `ExtentGovernanceTest` rulează cazuri deliberate de PASS, FAIL și SKIP și verifică HTML-ul produs. `ReleaseGovernanceTest` verifică refuzurile pentru commit, rapoarte, README și APK nepotrivite.
+În Extent, deschideți scenariul, **TEST BODY** și **Assertions** pentru a vedea valorile așteptate, valorile observate și rezultatul fiecărei comparații. Extensia măsoară execuția de la setup la teardown, apoi publică starea și diagnosticul JUnit. `ExtentGovernanceTest` verifică HTML-ul produs pentru PASS, FAIL, SKIP și pentru un caz fără comparații.
+
+Pentru cele două meniuri Android, fiecare checkpoint grupează acțiunea, comparația nativă și captura PNG încorporată. La reluarea unei partide, aserțiunea verifică poziția și evidențierea ultimei mutări în imagine. Verificați că aserțiunile se pot extinde și că amprentele corespund recepției, APK-ului, commitului și capturilor. O captură absentă, invalidă, substituită sau repetată între cele două ecrane produce FAIL cu diagnostic în HTML. `ExtentGovernanceTest` exercită publicarea offline. [Calificarea ediției](../release/README.md#calificare-și-publicare)
 
 ## Sanity Android
 
@@ -127,7 +129,7 @@ Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <s
 
 `MatchStoreTest` rulează persistența de producție cu preferințe în memorie și ceas fix. Verifică migrarea, cele nouă salvări păstrate, ordinea la redeschidere, datele, rezultatul vechi păstrat până la final și eliminarea analizei odată cu rezultatul. `MatchArchiveTest` verifică și codec-ul analizei, plafonul și identitatea checkpoint-ului.
 
-`MainMenuLayoutTest` verifică structura listelor și eticheta datei din resurse, cu fundal distinct și text mai mic. `MatchSlotsTest` verifică ordinea de înlocuire, controlul manual și respingerea replicilor AI vechi. Android păstrează patru verificări pentru salvări și trei pentru arhivă, inclusiv navigarea, ultimul rând și randarea datei cu butonul **Înapoi** vizibil.
+`MatchListEntryTest` verifică datele afișate pentru partide în curs, partide încheiate, remize, renunțări și salvări vechi. `MainMenuLayoutTest` verifică textele în română și engleză, ierarhia dintre titlu, mutări și dată, contrastul etichetei și poziția butonului **Înapoi**. `MatchSlotsTest` verifică ordinea de înlocuire, controlul manual și respingerea replicilor AI vechi. Android păstrează un parcurs pe meniu, cu o captură a listei și o verificare a deschiderii partidei.
 
 `ChessMatchTest` verifică reluarea din fiecare poziție a unei partide terminate, salvarea variantei noi, rocada, en passant și repetarea poziției. `GameReviewTest` verifică matul ratat, variantele comparate, transpoziția ECO, schimbarea categoriei la configurarea pragului, anularea și estimarea din perspectiva jucătorului. `GameReviewGovernanceTest` verifică valorile implicite și respinge politici incomplete sau cu praguri incompatibile. Verifică și bugetul, reperele Elo și legalitatea liniilor importate. [Scheme și praguri](../board/game-review.md)
 

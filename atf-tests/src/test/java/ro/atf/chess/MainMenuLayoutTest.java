@@ -79,22 +79,51 @@ class MainMenuLayoutTest {
         var row = read("layout/match_list_row.xml");
         check.same("Rows retain one focusable target and a vertical layout", List.of("@style/MatchListRow", "true", "vertical"),
                 List.of(row.getAttribute("style"), row.getAttribute("android:focusable"), row.getAttribute("android:orientation")));
-        var labels = row.getElementsByTagName("TextView");
-        var game = (Element) labels.item(0);
-        var date = (Element) labels.item(1);
-        check.same("The date uses a smaller badge that is hidden for legacy saves", List.of("16sp", "13sp", "wrap_content", "gone", "@drawable/match_date_badge"),
-                List.of(game.getAttribute("android:textSize"), date.getAttribute("android:textSize"), date.getAttribute("android:layout_width"),
-                        date.getAttribute("android:visibility"), date.getAttribute("android:background")));
+        var fields = row.getElementsByTagName("TextView");
+        var title = (Element) fields.item(0);
+        var summary = (Element) fields.item(1);
+        var date = (Element) fields.item(2);
+        check.same("The title and move summary precede the optional timestamp",
+                List.of("@+id/match_row_label", "@+id/match_row_details", "@+id/match_row_date"),
+                List.of(title.getAttribute("android:id"), summary.getAttribute("android:id"), date.getAttribute("android:id")));
+        check.same("Only the title is bold and the type gets smaller down the row", true,
+                title.getAttribute("android:textStyle").equals("bold") && !summary.hasAttribute("android:textStyle")
+                        && !date.hasAttribute("android:textStyle") && fontSize(title) > fontSize(summary) && fontSize(summary) > fontSize(date));
+        check.same("The date badge takes its natural width and is hidden when absent",
+                List.of("wrap_content", "gone", "@drawable/match_date_badge"),
+                List.of(date.getAttribute("android:layout_width"), date.getAttribute("android:visibility"), date.getAttribute("android:background")));
+        check.same("The accessibility target is the row rather than three separate labels", List.of("no", "no", "no"),
+                List.of(title.getAttribute("android:importantForAccessibility"), summary.getAttribute("android:importantForAccessibility"),
+                        date.getAttribute("android:importantForAccessibility")));
         var badge = read("drawable/match_date_badge.xml");
         var badgeFill = ((Element) badge.getElementsByTagName("solid").item(0)).getAttribute("android:color");
         var groupFill = ((Element) read("drawable/home_group.xml").getElementsByTagName("solid").item(0)).getAttribute("android:color");
-        check.same("The date has a distinct background and rounded corners", List.of(true, "8dp"),
-                List.of(!badgeFill.equals(groupFill), ((Element) badge.getElementsByTagName("corners").item(0)).getAttribute("android:radius")));
+        double badgeSeparation = contrast(badgeFill, groupFill);
+        double dateContrast = contrast(date.getAttribute("android:textColor"), badgeFill);
+        check.same("The date is readable while the badge stays close to the row background", true,
+                dateContrast >= 4.5 && badgeSeparation > 1 && badgeSeparation < 1.25
+                        && dateContrast < contrast(summary.getAttribute("android:textColor"), groupFill));
         var localized = List.of("match_saved_games", "match_archive", "match_list_back");
         check.same("English titles and Back describe the list screens",
                 List.of("Saved games", "Finished games", "Back"), labels("values/strings.xml", localized));
         check.same("Romanian titles and Back describe the list screens",
                 List.of("Partide salvate", "Partide încheiate", "Înapoi"), labels("values-ro/strings.xml", localized));
+    }
+
+    @Test void gameTitlesAndMoveCountsHaveCompactLabelsInBothLanguages(Checks check) throws Exception {
+        var titles = List.of("match_saved_title", "match_finished_title");
+        var en = labels("values/strings.xml", titles);
+        var ro = labels("values-ro/strings.xml", titles);
+        check.same("The English titles identify the game or opponent", List.of("Game 3 · Mira", "vs. Atlas"),
+                List.of(en.getFirst().formatted(3, "Mira"), en.getLast().formatted("Atlas")));
+        check.same("The Romanian titles identify the game or opponent", List.of("Partida 3 · Mira", "Cu Atlas"),
+                List.of(ro.getFirst().formatted(3, "Mira"), ro.getLast().formatted("Atlas")));
+        check.same("English has distinct singular and plural move labels", List.of("1 move", "0 moves", "24 moves"),
+                List.of(moveLabel("values/strings.xml", "one", 1), moveLabel("values/strings.xml", "other", 0),
+                        moveLabel("values/strings.xml", "other", 24)));
+        check.same("Romanian can show zero, one, a few and many moves naturally", List.of("0 mutări", "1 mutare", "4 mutări", "24 de mutări"),
+                List.of(moveLabel("values-ro/strings.xml", "few", 0), moveLabel("values-ro/strings.xml", "one", 1),
+                        moveLabel("values-ro/strings.xml", "few", 4), moveLabel("values-ro/strings.xml", "other", 24)));
     }
 
     @Test void theTwoDropdownsPresentChoicesInTheOrderTheMatchConsumesThem(Checks check) throws Exception {
@@ -140,6 +169,40 @@ class MainMenuLayoutTest {
         var values = new ArrayList<String>();
         for (int index = 0; index < children.getLength(); index++) values.add(children.item(index).getTextContent());
         return values;
+    }
+
+    private static int fontSize(Element element) {
+        return Integer.parseInt(element.getAttribute("android:textSize").replace("sp", ""));
+    }
+
+    private static double contrast(String first, String second) {
+        double a = luminance(first);
+        double b = luminance(second);
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    }
+
+    private static double luminance(String color) {
+        int rgb = Integer.parseInt(color.substring(1), 16);
+        return 0.2126 * linear(rgb >> 16) + 0.7152 * linear(rgb >> 8) + 0.0722 * linear(rgb);
+    }
+
+    private static double linear(int component) {
+        double value = (component & 255) / 255.0;
+        return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+    }
+
+    private static String moveLabel(String resource, String quantity, int count) throws Exception {
+        var plurals = read(resource).getElementsByTagName("plurals");
+        for (int index = 0; index < plurals.getLength(); index++) {
+            var plural = (Element) plurals.item(index);
+            if (!plural.getAttribute("name").equals("match_row_moves")) continue;
+            var values = plural.getElementsByTagName("item");
+            for (int item = 0; item < values.getLength(); item++) {
+                var value = (Element) values.item(item);
+                if (value.getAttribute("quantity").equals(quantity)) return value.getTextContent().formatted(count);
+            }
+        }
+        throw new AssertionError("Missing move label for " + quantity + " in " + resource);
     }
 
     private static Element read(String path) throws Exception {

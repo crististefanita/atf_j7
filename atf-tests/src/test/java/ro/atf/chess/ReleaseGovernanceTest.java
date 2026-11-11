@@ -17,6 +17,7 @@ import ro.atf.chess.release.ReleaseEvidence;
 import ro.atf.chess.release.ReleaseEvidence.Candidate;
 import ro.atf.chess.release.ReleaseEvidence.Download;
 import ro.atf.chess.release.ReleaseEvidence.Suite;
+import ro.atf.chess.release.ReleaseGate;
 import ro.atf.chess.release.ReleaseRag;
 
 @AtfComponentTest
@@ -81,6 +82,22 @@ class ReleaseGovernanceTest {
                 candidate, apk, components, new Suite(SOURCE, candidate.apkSha256(), 0, true, android.htmlSha256(), android.html()))));
         Files.writeString(components.html(), "Substituted report");
         check.same("Changed Extent bytes block", "Extent hash mismatch in components", decision(() -> ReleaseEvidence.qualification(candidate, apk, components, android)));
+    }
+
+    @Test void signingPreflightRejectsMissingAndNonPassingGovernanceReceipts(Checks check) throws IOException {
+        String xml = "<testsuite name=\"ro.atf.chess.%s\" tests=\"2\" failures=\"0\" errors=\"0\" skipped=\"0\"/>";
+        String documentation = "DocumentationGovernanceTest";
+        check.rejects("Missing documentation execution blocks signing", IllegalStateException.class, () -> ReleaseGate.preflight(folder));
+        for (String name : List.of(documentation, "ReleaseGovernanceTest", "ExtentGovernanceTest")) {
+            Files.writeString(folder.resolve("TEST-ro.atf.chess." + name + ".xml"), xml.formatted(name));
+        }
+        check.same("Three passing governance classes allow signing", "accepted", decision(() -> ReleaseGate.preflight(folder)));
+        String extent = "ExtentGovernanceTest";
+        Path receipt = folder.resolve("TEST-ro.atf.chess." + extent + ".xml");
+        for (String field : List.of("failures", "errors", "skipped")) {
+            Files.writeString(receipt, xml.formatted(extent).replace(field + "=\"0\"", field + "=\"1\""));
+            check.rejects("Signing rejects " + field + " in the Extent checks", IllegalStateException.class, () -> ReleaseGate.preflight(folder));
+        }
     }
 
     @Test void downloadMustBeginAtTheCanonicalReadmeRouteAndFinishWithAllBytes(Checks check) throws IOException {
@@ -179,6 +196,20 @@ class ReleaseGovernanceTest {
         Files.writeString(missing, "# No known anchor");
         check.same("A missing anchor fails with the source", "Missing citation anchor: docs/testing/README.md ## Sanity Android",
                 decision(() -> ReleaseRag.retrieve(folder, List.of("android/app/build.gradle"))));
+    }
+
+    @Test void ragSelectsDocumentationAndAuditChecksBeforeDistribution(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        var citations = ReleaseRag.inspect(root, List.of("docs/testing/README.md", "docs/release/README.md",
+                "docs/feedback/README.md", "scripts/run-android-sanity.ps1"));
+        check.same("All affected documents and Android runner are routed", List.of(), citations.needsReview());
+        check.same("Native evidence cites the audit contract", List.of("ExtentGovernanceTest"),
+                citations.citations().stream().filter(item -> item.heading().equals("## Raportare Extent"))
+                        .map(ReleaseRag.Citation::check).toList());
+        var steps = ReleaseRag.workflow(root);
+        check.same("The pre-build step requires all three governance checks", true,
+                steps.get(3).contains("DocumentationGovernanceTest") && steps.get(3).contains("ReleaseGovernanceTest")
+                        && steps.get(3).contains("ExtentGovernanceTest") && steps.get(4).contains("Gradle"));
     }
 
     @Test void ragCitesTheAiProtocolForEachEngineInputAndKeepsReadmeFocused(Checks check) throws IOException {
