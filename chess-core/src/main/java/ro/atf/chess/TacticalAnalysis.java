@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
@@ -59,30 +60,83 @@ public final class TacticalAnalysis {
 
     record SearchReport(Result result, int depth, int extraNodes) { }
 
+    record ReviewSearch(Variation best, Variation played, int alternativeScore, int depth, boolean onlyProvedMate) { }
+
+    static ReviewSearch review(ChessPosition position, Move played, Set<Move> draws, MatchAiPolicy.Search policy) {
+        var root = new RootSearch(position, draws);
+        var ranked = analyze(root, MatchAiPolicy.BASE_PLIES, position.legalMoves(), Objective.POSITION).ranked();
+        var result = reviewAt(ranked, played, MatchAiPolicy.BASE_PLIES, null, -LIMIT);
+        var moves = new ArrayList<Move>();
+        for (var line : ranked) moves.add(line.move());
+        var budget = new SearchBudget(policy.extraNodes(), 1);
+        final int window = 180;
+        for (int depth = MatchAiPolicy.BASE_PLIES + 1; depth <= policy.maxPlies(); depth++) {
+            try {
+                var next = deepen(root, moves, depth, budget, window, Map.of()).ranked();
+                Variation missing = null;
+                if (next.stream().noneMatch(line -> line.move().equals(played))) {
+                    int balance = material(position);
+                    var line = root.line(played, depth, LIMIT, budget, Objective.POSITION, balance);
+                    missing = new Variation(line.moves(), line.score(), line.balance() - balance, line.ending());
+                }
+                var leader = next.get(0);
+                result = reviewAt(next, played, depth, missing, leader.score() - window);
+                moves.remove(leader.move());
+                moves.add(0, leader.move());
+            } catch (BudgetExhausted exhausted) {
+                break;
+            }
+        }
+        return result;
+    }
+
+    private static ReviewSearch reviewAt(List<Variation> ranked, Move played, int depth, Variation fallback, int alternativeFloor) {
+        var chosen = ranked.stream().filter(line -> line.move().equals(played)).findFirst().orElse(fallback);
+        int alternative = ranked.stream().filter(line -> !line.move().equals(played)).findFirst()
+                .map(Variation::score).orElse(alternativeFloor);
+        // Any other proved mate at this depth is within the root score window.
+        boolean onlyMate = chosen.signedMatePlies() > 0 && ranked.stream()
+                .noneMatch(line -> !line.move().equals(played) && line.signedMatePlies() > 0);
+        return new ReviewSearch(ranked.get(0), chosen, alternative, depth, onlyMate);
+    }
+
+    static int offeredMaterial(ChessPosition position, Variation variation) {
+        if (variation.line().size() < 2) return 0;
+        var reply = position.playGenerated(variation.move()).playGenerated(variation.line().get(1));
+        return material(position) - material(reply);
+    }
+
     static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level) {
         return botAnalysis(position, level, 0);
     }
 
     static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap) {
+        return botAnalysis(position, level, gap, Set.of());
+    }
+
+    static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers) {
         boolean hard = level == MatchSetup.Level.HARD;
         var repertoire = hard && gap == 0 ? OpeningRepertoire.CURRENT.reply(position) : null;
-        var base = repertoire == null ? openingSearch(position) : analyze(position, MatchAiPolicy.BASE_PLIES, List.of(repertoire), Objective.POSITION);
-        return matchSearch(position, MatchAiPolicy.CURRENT.opponent(level), gap, 0, hard && repertoire == null, base);
+        var root = new RootSearch(position, repetitionOffers);
+        var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
+        var base = analyze(root, MatchAiPolicy.BASE_PLIES, moves, Objective.POSITION);
+        return matchSearch(root, MatchAiPolicy.CURRENT.opponent(level), gap, 0, hard && repertoire == null, base);
     }
 
     static SearchReport hintAnalysis(ChessPosition position) {
         var policy = MatchAiPolicy.CURRENT.hint;
         var repertoire = OpeningRepertoire.CURRENT.reply(position);
+        var root = new RootSearch(position, Set.of());
         if (repertoire != null) {
             var base = analyze(position, MatchAiPolicy.BASE_PLIES, List.of(repertoire), Objective.POSITION);
-            return matchSearch(position, policy.search(), 0, policy.tacticalExtensionPlies(), false, base);
+            return matchSearch(root, policy.search(), 0, policy.tacticalExtensionPlies(), false, base);
         }
         var hardPolicy = MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD);
         var base = openingSearch(position);
-        var hard = matchSearch(position, hardPolicy, 0, 0, true, base);
+        var hard = matchSearch(root, hardPolicy, 0, 0, true, base);
         int available = policy.search().extraNodes() - hard.extraNodes();
         var tacticalPolicy = new MatchAiPolicy.Search(policy.search().maxPlies(), available - policy.verificationNodes());
-        var tactical = matchSearch(position, tacticalPolicy, policy.maxLossCp(), policy.tacticalExtensionPlies(), false, base);
+        var tactical = matchSearch(root, tacticalPolicy, policy.maxLossCp(), policy.tacticalExtensionPlies(), false, base);
         var verified = chooseCoachingSearch(position, base, hard, tactical, policy);
         return new SearchReport(new Result(hintLines(new Result(coachingOrder(position, verified.result())), policy)),
                 verified.depth(), hard.extraNodes() + tactical.extraNodes() + verified.extraNodes());
@@ -119,7 +173,7 @@ public final class TacticalAnalysis {
                 ? boundedShallowScores(position, base) : Map.<Move, Integer>of();
         Result result = hard.result();
         try {
-            result = deepen(position, List.copyOf(candidates), hard.depth(), budget, policy.maxLossCp(), confirmation);
+            result = deepen(new RootSearch(position, Set.of()), List.copyOf(candidates), hard.depth(), budget, policy.maxLossCp(), confirmation);
         } catch (BudgetExhausted exhausted) {
             // The completed Hard result remains available if the alternatives cannot all be compared.
         }
@@ -169,7 +223,7 @@ public final class TacticalAnalysis {
         return List.copyOf(selected);
     }
 
-    private static SearchReport matchSearch(ChessPosition position, MatchAiPolicy.Search policy, int gap, int tacticalExtension,
+    private static SearchReport matchSearch(RootSearch root, MatchAiPolicy.Search policy, int gap, int tacticalExtension,
                                             boolean confirmAcrossHorizons, Result base) {
         int completed = MatchAiPolicy.BASE_PLIES;
         Result best = base;
@@ -179,13 +233,14 @@ public final class TacticalAnalysis {
         var moves = new ArrayList<Move>();
         for (var line : best.ranked()) moves.add(line.move());
         // In an unequal position, let the deeper search resolve immediate material recovery on its own.
-        var shallowScores = confirmAcrossHorizons && material(position) == 0 ? boundedShallowScores(position, best) : Map.<Move, Integer>of();
+        var shallowScores = confirmAcrossHorizons && material(root.position()) == 0
+                ? boundedShallowScores(root.position(), best) : Map.<Move, Integer>of();
         var budget = new SearchBudget(policy.extraNodes(), tacticalExtension);
         for (int depth = completed + 1; depth <= policy.maxPlies(); depth++) {
             try {
                 // Give Hard a two-horizon ranking if the next full iteration cannot finish.
                 var confirmation = depth == MatchAiPolicy.BASE_PLIES + 1 ? shallowScores : Map.<Move, Integer>of();
-                best = deepen(position, moves, depth, budget, gap, confirmation);
+                best = deepen(root, moves, depth, budget, gap, confirmation);
                 completed = depth;
                 var leader = best.ranked().get(0).move();
                 moves.remove(leader);
@@ -211,17 +266,17 @@ public final class TacticalAnalysis {
         return scores;
     }
 
-    private static Result deepen(ChessPosition position, List<Move> moves, int plies, SearchBudget budget, int gap,
+    private static Result deepen(RootSearch root, List<Move> moves, int plies, SearchBudget budget, int gap,
                                  Map<Move, Integer> shallowScores) {
         var best = new ArrayList<Variation>();
         int top = -LIMIT;
-        int startingBalance = material(position);
+        int startingBalance = material(root.position());
         for (Move move : moves) {
             int cutoff = top - gap;
-            int offset = shallowScores.getOrDefault(move, 0);
+            int offset = root.repetitionOffers().contains(move) ? 0 : shallowScores.getOrDefault(move, 0);
             // Allow for the bonus before pruning and keep the boundary inclusive. Endings use the unadjusted score.
             int beta = Math.min(LIMIT, 1 - cutoff + Math.max(0, offset));
-            var line = search(position.playGenerated(move), plies - 1, 1, -LIMIT, beta, budget, Objective.POSITION).prepend(move);
+            var line = root.line(move, plies, beta, budget, Objective.POSITION, startingBalance);
             int score = line.ending() == Ending.HORIZON ? line.score() + offset : line.score();
             if (score < cutoff) continue;
             top = Math.max(top, score);
@@ -234,16 +289,28 @@ public final class TacticalAnalysis {
     }
 
     private static Result analyze(ChessPosition position, int plies, List<Move> moves, Objective objective) {
-        int startingBalance = material(position);
+        return analyze(new RootSearch(position, Set.of()), plies, moves, objective);
+    }
+
+    private static Result analyze(RootSearch root, int plies, List<Move> moves, Objective objective) {
+        int startingBalance = material(root.position());
         var ranked = new ArrayList<Variation>(moves.size());
         for (Move move : moves) {
             checkInterrupted();
             // A fresh window gives every root move an exact score at this horizon, including ties.
-            var reply = search(position.playGenerated(move), plies - 1, 1, -LIMIT, LIMIT, null, objective).prepend(move);
+            var reply = root.line(move, plies, LIMIT, null, objective, startingBalance);
             ranked.add(new Variation(reply.moves(), reply.score(), reply.balance() - startingBalance, reply.ending()));
         }
         ranked.sort(RANK);
         return new Result(ranked);
+    }
+
+    private record RootSearch(ChessPosition position, Set<Move> repetitionOffers) {
+        Line line(Move move, int plies, int beta, SearchBudget budget, Objective objective, int startingBalance) {
+            // Discount the projected score when a repeat invites a draw. The game still decides its own result.
+            if (repetitionOffers.contains(move)) return new Line(0, startingBalance, List.of(move), Ending.HORIZON);
+            return search(position.playGenerated(move), plies - 1, 1, -LIMIT, beta, budget, objective).prepend(move);
+        }
     }
 
     private static Line search(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget, Objective objective) {

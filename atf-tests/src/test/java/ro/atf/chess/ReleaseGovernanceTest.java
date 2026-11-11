@@ -162,6 +162,16 @@ class ReleaseGovernanceTest {
                 citations.stream().map(ReleaseRag.Citation::check).toList());
     }
 
+    @Test void gameReviewRoutesToItsComponentGovernanceAndSignedAndroidChecks(Checks check) throws IOException {
+        var paths = List.of("chess-core/src/main/java/ro/atf/chess/GameReview.java", "chess-core/src/main/resources/opening-book.tsv",
+                "android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java");
+        var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths).stream()
+                .filter(citation -> citation.heading().equals("## Partidă și istoric")).toList();
+        check.same("Game review changes cite the signed scenario and both JVM layers once",
+                List.of("GameReviewTest, GameReviewGovernanceTest și BoardSanity -IncludeGameReview"),
+                citations.stream().map(ReleaseRag.Citation::check).toList());
+    }
+
     private Suite suite(String name, String installedApk) throws IOException {
         Path html = Files.writeString(folder.resolve(name + ".html"), "<html>" + name + " fixture</html>");
         return new Suite(SOURCE, installedApk, 3, true, ReleaseEvidence.digest(html), html);

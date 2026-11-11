@@ -9,7 +9,9 @@ param(
     [switch]$Distribution,
     [switch]$AnalysisOnly,
     [switch]$OpeningsOnly,
+    [switch]$GameReviewOnly,
     [switch]$IncludeOpenings,
+    [switch]$IncludeGameReview,
     [string]$SourceCommit
 )
 $ErrorActionPreference = 'Stop'
@@ -23,6 +25,10 @@ if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distr
 if ($AnalysisOnly -and $Distribution) { throw 'AnalysisOnly uses the isolated sanity package.' }
 if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
 if ($IncludeOpenings -and ($OpeningsOnly -or $AnalysisOnly)) { throw 'IncludeOpenings extends the board sanity phases.' }
+if ($GameReviewOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview)) {
+    throw 'GameReviewOnly uses the isolated sanity package and its own phase.'
+}
+if ($IncludeGameReview -and ($AnalysisOnly -or $OpeningsOnly)) { throw 'IncludeGameReview extends the board sanity phases.' }
 $native = 'android/app/build/outputs/apk'
 $apk = Join-Path $root "$native/$variant/app-$variant.apk"
 $tests = Join-Path $root "$native/androidTest/$variant/app-$variant-androidTest.apk"
@@ -92,7 +98,7 @@ function Invoke-OpeningSanity([string]$Directory) {
     $lines = @(Invoke-Device ($instrument + @('-e','phase','openings',$runner)))
     $lines | Set-Content -LiteralPath $openingReceipt -Encoding utf8NoBOM
     $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
-    if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne 24) {
+    if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne 26) {
         Receive-Frame 'failure' $Directory
         throw "Opening lessons did not pass. See $Directory."
     }
@@ -102,6 +108,22 @@ function Invoke-OpeningSanity([string]$Directory) {
     [ordered]@{status='PASS'; scope='openings-only'; device=$Serial; api=$api; apkSha256=$hash;
         sourceCommit=$SourceCommit; variant=$variant; assertions=$passed.Count;
         receiptSha256=(Get-FileHash -LiteralPath $openingReceipt).Hash.ToLowerInvariant()} |
+        ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
+}
+
+function Invoke-GameReviewSanity([string]$Directory) {
+    $reviewReceipt = Join-Path $Directory 'game-review.txt'
+    $lines = @(Invoke-Device ($instrument + @('-e','phase','game-review',$runner)))
+    $lines | Set-Content -LiteralPath $reviewReceipt -Encoding utf8NoBOM
+    $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
+    if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne 9) {
+        Receive-Frame 'failure' $Directory
+        throw "Game review did not pass. See $Directory."
+    }
+    Receive-Frame 'game-review' $Directory
+    [ordered]@{status='PASS'; scope='game-review'; device=$Serial; api=$api; apkSha256=$hash;
+        sourceCommit=$SourceCommit; variant=$variant; assertions=$passed.Count;
+        receiptSha256=(Get-FileHash -LiteralPath $reviewReceipt).Hash.ToLowerInvariant()} |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
 }
 
@@ -135,6 +157,10 @@ try {
     $runner = "$app.test/ro.atf.chess.android.BoardSanity"
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
+    if ($GameReviewOnly) {
+        Invoke-GameReviewSanity $run
+        return
+    }
     if ($OpeningsOnly) {
         Invoke-OpeningSanity $run
         return
@@ -209,6 +235,13 @@ try {
         $openingDirectory = Join-Path $run 'openings'
         $null = New-Item -ItemType Directory $openingDirectory
         Invoke-OpeningSanity $openingDirectory
+    }
+    if ($IncludeGameReview -and (Test-Path -LiteralPath $settled) -and
+            (Select-String -Quiet -LiteralPath $settled -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {
+        Invoke-Device @('shell','am','force-stop',$app)
+        $reviewDirectory = Join-Path $run 'game-review'
+        $null = New-Item -ItemType Directory $reviewDirectory
+        Invoke-GameReviewSanity $reviewDirectory
     }
 } finally {
     try {

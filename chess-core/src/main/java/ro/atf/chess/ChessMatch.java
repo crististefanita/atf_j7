@@ -2,8 +2,10 @@ package ro.atf.chess;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
@@ -76,12 +78,36 @@ public final class ChessMatch {
         if (result != Result.IN_PROGRESS) throw new IllegalStateException("The match has ended");
         var before = position();
         var after = before.play(move);
-        boolean resetsCount = before.pieceAt(move.from()).kind() == Kind.PAWN || before.pieceAt(move.to()) != null;
         var nextPositions = new ArrayList<>(positions);
         nextPositions.add(after);
         var nextMoves = new ArrayList<>(moves);
         nextMoves.add(move);
-        return new ChessMatch(nextPositions, nextMoves, resetsCount ? 0 : quietPlies + 1, setup);
+        return new ChessMatch(nextPositions, nextMoves, resetsQuietCount(before, move) ? 0 : quietPlies + 1, setup);
+    }
+
+    /** Starts a new continuation using exactly the history leading to the selected position. */
+    public ChessMatch continueFrom(int ply) {
+        if (ply < 0 || ply > ply()) throw new IllegalArgumentException("Invalid continuation ply: " + ply);
+        if (ply == ply()) return this;
+        int quiet = 0;
+        for (int index = ply - 1; index >= 0 && !resetsQuietCount(positionAt(index), moves.get(index)); index--) quiet++;
+        return new ChessMatch(List.copyOf(positions.subList(0, ply + 1)), List.copyOf(moves.subList(0, ply)), quiet, setup);
+    }
+
+    private static boolean resetsQuietCount(ChessPosition position, Move move) {
+        return position.pieceAt(move.from()).kind() == Kind.PAWN || position.pieceAt(move.to()) != null;
+    }
+
+    Set<Move> automaticDrawMoves() {
+        var board = position();
+        var draws = new HashSet<Move>();
+        for (var move : board.legalMoves()) {
+            var after = board.playGenerated(move);
+            if (deadMaterial(after) || !resetsQuietCount(board, move) && (quietPlies >= 149 || occurrences(after, ply()) >= 4)) {
+                if (!after.isCheck() || after.hasLegalMove()) draws.add(move);
+            }
+        }
+        return draws;
     }
 
     public String checkpoint() {
@@ -129,7 +155,8 @@ public final class ChessMatch {
         boolean hard = level == MatchSetup.Level.HARD;
         boolean cycle = hard && occurrences(board, positions.size() - 2) >= 2;
         var policy = MatchAiPolicy.CURRENT.repetition;
-        var search = TacticalAnalysis.botAnalysis(board, level, cycle ? policy.maxScoreLossCp() : 0);
+        var repetitionOffers = cycle ? repetitionOffers(board) : Set.<Move>of();
+        var search = TacticalAnalysis.botAnalysis(board, level, cycle ? policy.maxScoreLossCp() : 0, repetitionOffers);
         Move chosen = null;
         int fewestVisits = Integer.MAX_VALUE;
         int mostActivity = Integer.MIN_VALUE;
@@ -145,10 +172,10 @@ public final class ChessMatch {
         }
         if (hard) {
             var leader = search.result().ranked().get(0);
-            if (leader.score() < 0 && quietPlies >= 15) {
+            if ((leader.score() < 0 || cycle && leader.score() == 0) && quietPlies >= 15) {
                 // Four prior occurrences need at least sixteen reversible plies, including the draw move.
                 chosen = board.legalMoves().stream().filter(move -> visitsAfter(move) >= 4).findFirst().orElse(chosen);
-            } else if (cycle && fewestVisits >= 2 && leader.ending() == TacticalAnalysis.Ending.HORIZON) {
+            } else if (cycle && fewestVisits > 0 && leader.ending() == TacticalAnalysis.Ending.HORIZON) {
                 int floor = Math.max(policy.minAdvantageCp(), leader.score() - policy.maxScoreLossCp());
                 int visits = fewestVisits;
                 chosen = search.result().ranked().stream().filter(line -> line.score() >= floor)
@@ -160,6 +187,12 @@ public final class ChessMatch {
 
     private int visitsAfter(Move move) {
         return occurrences(position().playGenerated(move), positions.size() - 1);
+    }
+
+    private Set<Move> repetitionOffers(ChessPosition board) {
+        var offers = new HashSet<Move>();
+        for (var move : board.legalMoves()) if (visitsAfter(move) >= 2) offers.add(move);
+        return offers;
     }
 
     static int activity(ChessPosition board, Move move) {

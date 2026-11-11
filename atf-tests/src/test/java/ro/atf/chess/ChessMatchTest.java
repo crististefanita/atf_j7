@@ -55,6 +55,42 @@ class ChessMatchTest {
         check.same("The saved last move is the actual bot reply", reply, restored.lastMove());
     }
 
+    @Test void continuesFromEveryPlyOfAFinishedGameAndPersistsOnlyTheNewLine(Checks check) {
+        var ended = ChessMatch.restore("3|BLACK|ADVANCED|1|f2f3 e7e5 g2g4 d8h4");
+        for (int ply = 0; ply < ended.ply(); ply++) {
+            var branch = ended.continueFrom(ply);
+            check.same("Continuation reuses the exact position at ply " + ply, ended.positionAt(ply), branch.position());
+            check.same("Continuation reopens the result at ply " + ply, ChessMatch.Result.IN_PROGRESS, branch.result());
+            check.same("The saved color determines whose turn resumes at ply " + ply, ply % 2 == 0, branch.awaitingBot());
+            var loaded = ChessMatch.restore(branch.checkpoint());
+            check.same("Restored branch retains its exact prefix and setup at ply " + ply, branch.checkpoint(), loaded.checkpoint());
+        }
+        var alternative = ended.continueFrom(1).play(Move.fromUci("d7d5"));
+        check.same("Playing again replaces the old suffix in the persisted checkpoint", "3|BLACK|ADVANCED|1|f2f3 d7d5", alternative.checkpoint());
+        check.same("Browsing or branching cannot mutate the original final result", ChessMatch.Result.BLACK_WINS, ended.result());
+        check.same("The latest position remains the same match", ended, ended.continueFrom(ended.ply()));
+        check.rejects("A negative position is rejected", IllegalArgumentException.class, () -> ended.continueFrom(-1));
+        check.rejects("A position beyond the played moves is rejected", IllegalArgumentException.class, () -> ended.continueFrom(5));
+    }
+
+    @Test void continuingRestoresSpecialRightsAndCountsOnlyEarlierRepetitions(Checks check) {
+        var enPassant = ChessMatch.restore("1|e2e4 a7a6 e4e5 d7d5 g1f3").continueFrom(4);
+        var capture = Move.fromUci("e5d6");
+        check.same("The alternative en passant capture reappears before the old reply", true, enPassant.position().legalMoves().contains(capture));
+        check.same("An en passant branch persists the removal of the captured pawn", null,
+                ChessMatch.restore(enPassant.play(capture).checkpoint()).position().pieceAt(BoardSquare.parse("d5")));
+        var castle = ChessMatch.restore("1|e2e4 e7e5 g1f3 b8c6 f1e2 g8f6 e1g1").continueFrom(6);
+        check.same("The selected position recovers the original castling right", true, castle.position().legalMoves().contains(Move.fromUci("e1g1")));
+        String cycle = "g1f3 g8f6 f3g1 f6g8";
+        var repeated = ChessMatch.restore("1|" + String.join(" ", cycle, cycle, cycle, cycle));
+        var branch = repeated.continueFrom(15);
+        check.same("Only the fifth occurrence ends the branch", ChessMatch.Result.IN_PROGRESS, branch.result());
+        check.same("The next repeating move is recognized as an automatic draw for review", true,
+                branch.automaticDrawMoves().contains(Move.fromUci("f6g8")));
+        check.same("The repetition survives saving and reopening the alternative line", ChessMatch.Result.REPETITION_DRAW,
+                ChessMatch.restore(branch.play(Move.fromUci("f6g8")).checkpoint()).result());
+    }
+
     @Test void theBotFindsMateAndCannotPlayPastTheResult(Checks check) {
         var pending = ChessMatch.restore("1|f2f3 e7e5 g2g4");
         var move = pending.chooseBotMove();

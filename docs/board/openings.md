@@ -19,6 +19,8 @@ Săgețile deasupra tablei parcurg câte o semimutare. În istoric vezi poziția
 
 La poziția curentă, săgeata înainte aplică exact următoarea mutare din lecție. Când replica din catalog rămâne în așteptare, mai apasă o dată săgeata sau folosește **Continuă lecția**. Dacă joci cu piesele pe tablă, replica vine automat. La final poți reveni la orice pas sau exersa din nou.
 
+Pe aceeași fereastră, tabla păstrează poziția și dimensiunea când parcurgi mutările. Progresul și butoanele își rezervă înălțimea, iar **Indiciu lecție**, **Continuă lecția** și **Rejoacă de aici** folosesc același loc.
+
 **Indiciu lecție** evidențiază întâi piesa. **Arată mutarea** selectează piesa, trasează săgeata și afișează coordonatele și ideea. Atinge destinația marcată ca să joci mutarea.
 
 **Analiză AI** evaluează poziția afișată, inclusiv în istoric și la finalul lecției. Becul parcurge până la cinci continuări. Când sugestia coincide cu mutarea ta din lecție, o poți juca atingând destinația. O sugestie diferită apare etichetată drept variantă AI. Schimbarea poziției ascunde săgeata anterioară și actualizează evaluarea. [Politica indiciilor AI](ai-quality.md)

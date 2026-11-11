@@ -26,6 +26,12 @@ public final class ReleaseRag {
             new Route("chess-core/src/main/java/ro/atf/chess/QuestRewards.java", "docs/testing/README.md", "## Tactică și punctaj", "QuestRewardsTest și MainMenuLayoutTest"),
             new Route("android/", "docs/testing/README.md", "## Sanity Android", "BoardSanity"),
             new Route("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
+            review("chess-core/src/main/java/ro/atf/chess/GameReview.java"),
+            review("chess-core/src/main/java/ro/atf/chess/GameReviewPolicy.java"),
+            review("chess-core/src/main/java/ro/atf/chess/OpeningIndex.java"),
+            review("chess-core/src/main/resources/game-review.yaml"),
+            review("chess-core/src/main/resources/opening-book.tsv"),
+            review("android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java"),
             new Route("android/app/src/main/java/ro/atf/chess/android/BoardView.java", "docs/testing/README.md", "## Proba TalkBack", "QuestHintTest, BoardSanity și proba TalkBack"),
             openings("chess-core/src/main/java/ro/atf/chess/OpeningLesson.java"),
             openings("android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java"),
@@ -49,6 +55,11 @@ public final class ReleaseRag {
 
     private static Route openings(String path) {
         return new Route(path, "docs/testing/README.md", "## Deschideri", "OpeningLessonTest și BoardSanity -IncludeOpenings");
+    }
+
+    private static Route review(String path) {
+        return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
+                "GameReviewTest, GameReviewGovernanceTest și BoardSanity -IncludeGameReview");
     }
 
     public static List<Citation> retrieve(Path root, List<String> changedPaths) throws IOException {

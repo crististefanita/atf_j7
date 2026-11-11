@@ -1,0 +1,10 @@
+schema: 1
+depth: 5
+extra-nodes: 85000
+score-scale: 220
+minimum-rated-moves: 10
+# Paired 72-game run against Stockfish 19 UCI_Elo 1500, 6000 nodes.
+opponents:
+  BASIC: {elo: 1245, low: null, high: 1442}
+  ADVANCED: {elo: 1544, low: 1346, high: 1755}
+  HARD: {elo: 1380, low: 1083, high: 1558}

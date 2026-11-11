@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="match_analysis" type="id" />
+    <item name="match_status" type="id" />
     <item name="match_hint" type="id" />
     <item name="match_evaluation_bar" type="id" />
     <item name="match_top_captures" type="id" />

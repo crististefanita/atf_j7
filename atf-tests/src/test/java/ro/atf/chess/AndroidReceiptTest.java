@@ -40,6 +40,23 @@ class AndroidReceiptTest {
                 invalid.rows().getLast().actual().contains("valid checks 0/1 from 1 native rows"));
     }
 
+    @Test void rejectsOpeningPassWhenAnUnrelatedCheckReplacesTheBoardGeometry(Checks check) throws IOException {
+        String reply = "Next preserves the board and its corner squares when Resume lesson appears";
+        String learner = "Next preserves the board and its corner squares when Lesson hint returns";
+        var lines = new StringBuilder(PASSING.substring(PASSING.indexOf("INSTRUMENTATION_RESULT: phase=")));
+        for (int id = 1; id <= 24; id++) {
+            lines.append("INSTRUMENTATION_RESULT: check_%02d=Lesson step %d\ttrue\ttrue\ttrue%n".formatted(id, id));
+        }
+        lines.append("INSTRUMENTATION_RESULT: check_25=").append(reply).append("\ttrue\ttrue\ttrue\n");
+        lines.append("INSTRUMENTATION_RESULT: check_26=").append(learner).append("\ttrue\ttrue\ttrue\n");
+        var valid = AndroidSanityPublication.readOpeningPhase(Files.writeString(folder.resolve("opening-geometry.txt"), lines));
+        check.same("Both Next transitions qualify the native opening receipt", true, valid.passed());
+        var invalid = AndroidSanityPublication.readOpeningPhase(Files.writeString(folder.resolve("opening-missing-geometry.txt"),
+                lines.toString().replace(learner, "An unrelated passing comparison")));
+        check.same("The total alone cannot qualify the opening receipt", false, invalid.passed());
+        check.same("The diagnostic names the missing Next transition", true, invalid.rows().getLast().actual().contains(learner));
+    }
+
     private AndroidSanityPublication.PhaseEvidence read(String file, String contents) throws IOException {
         return AndroidSanityPublication.readPhase(Files.writeString(folder.resolve(file + ".txt"), contents), "openings", 1);
     }

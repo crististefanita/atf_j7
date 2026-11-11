@@ -4,6 +4,7 @@ import atf.testkit.AtfComponentTest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ro.atf.chess.ChessPosition.Move;
@@ -52,6 +53,28 @@ class AiOpeningRegressionTest {
         var draw = defending.chooseBotMove();
         check.same("Losing Black can still choose the fifth occurrence", "g8f8", draw.uci());
         check.same("The game records the fifth occurrence as a draw", ChessMatch.Result.REPETITION_DRAW, defending.play(draw).result());
+    }
+
+    @Test void hardUsesThePlayedHistoryToCompareTheConversionWithTheRepeat(Checks check) {
+        var fixture = ChessYaml.resource("alekhine-conversion.yaml");
+        var replay = match(ChessYaml.string(fixture, "moves"), "BLACK");
+        var repeat = Move.fromUci(ChessYaml.string(fixture, "repeat"));
+        var repeated = replay.play(repeat);
+        long previousVisits = IntStream.rangeClosed(0, replay.ply())
+                .filter(ply -> repeated.position().sameForRepetition(replay.positionAt(ply))).count();
+        check.same("Historical checkpoint after 72 plies", 72, replay.ply());
+        check.same("Qc5 would revisit a position that appeared twice", 2L, previousVisits);
+        check.same("The third visit does not end the game", ChessMatch.Result.IN_PROGRESS, repeated.result());
+        var positionOnly = ChessMatch.fromPosition(replay.position(), replay.setup());
+        check.same("On the same board without repetition history Hard still prefers Qc5", repeat, positionOnly.chooseBotMove());
+        String earlierMoves = String.join(" ", Arrays.copyOf(ChessYaml.string(fixture, "moves").split(" "), 68));
+        var earlier = match(earlierMoves, "BLACK");
+        check.same("Qc5 remains available on its second occurrence", repeat, earlier.chooseBotMove());
+        var decision = replay.botDecision();
+        check.same("With the complete history Hard chooses the queen exchange Qxf6+", ChessYaml.string(fixture, "conversion"), decision.move().uci());
+        var budget = MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD);
+        check.same("Hard completes its configured depth within its existing extra node budget", true,
+                decision.depth() == budget.maxPlies() && decision.extraNodes() <= budget.extraNodes());
     }
 
     static String alekhinePrefix(String ply) {

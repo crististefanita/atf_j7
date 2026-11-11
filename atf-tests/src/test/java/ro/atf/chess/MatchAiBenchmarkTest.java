@@ -44,6 +44,26 @@ class MatchAiBenchmarkTest {
         }
     }
 
+    @Test void confirmsTheAlekhineConversionWithTheCompleteHistory(Checks check) throws Exception {
+        var settings = ChessYaml.resource("match-ai-benchmark.yaml");
+        var fixture = ChessYaml.resource("alekhine-conversion.yaml");
+        int depth = ChessYaml.number(settings, "depth");
+        String prefix = ChessYaml.string(fixture, "moves");
+        String position = "startpos moves " + prefix;
+        var match = ChessMatch.restore("3|BLACK|HARD|0|" + prefix);
+        String choice = match.chooseBotMove().uci();
+        try (var engine = new StockfishUci(Path.of(System.getProperty("chess.stockfish")))) {
+            check.same("Pinned conversion reference", ChessYaml.string(settings, "stockfish"), engine.name());
+            var best = engine.evaluatePosition(position, depth, null);
+            var repeat = engine.evaluatePosition(position, depth, ChessYaml.string(fixture, "repeat"));
+            var played = engine.evaluatePosition(position, depth, choice);
+            int loss = Math.max(0, best.expected() - played.expected());
+            check.same("Full history: " + repeat.move() + " gives away the advantage | " + repeat.score(), 500, repeat.expected());
+            check.same("Hard " + played.move() + " " + played.score() + " vs Stockfish " + best.move() + " " + best.score()
+                    + " | loss " + loss + "‰", true, played.expected() > 500 && loss < ChessYaml.number(settings, "major-loss-permille"));
+        }
+    }
+
     @Test void coachingKeepsUpWithHardOnTheIndependentLeagueStarts(Checks check) throws Exception {
         var settings = ChessYaml.resource("match-ai-benchmark.yaml");
         int depth = ChessYaml.number(settings, "depth");

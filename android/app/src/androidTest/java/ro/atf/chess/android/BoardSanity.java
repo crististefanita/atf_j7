@@ -49,6 +49,7 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         try {
             if ("openings".equals(phase)) checkOpenings();
+            else if ("game-review".equals(phase)) checkGameReview();
             else if (phase.startsWith("analysis-")) checkAnalysis();
             else if (phase.startsWith("match-")) checkMatch();
             else checkQuests();
@@ -67,6 +68,59 @@ public final class BoardSanity extends Instrumentation {
             }
             finish(Activity.RESULT_CANCELED, receipt);
         }
+    }
+
+    private void checkGameReview() throws Exception {
+        var store = new ChessProgressStore(getTargetContext());
+        String cycle = "b1a3 b8a6 a3b1 a6b8";
+        var finished = ChessMatch.restore("3|WHITE|ADVANCED|0|" + String.join(" ", cycle, cycle, cycle,
+                "a2a3 a7a6 g1h3 g8h6 h3g1 h6g8 f2f3 e7e5 g2g4 d8h4"));
+        int branchPly = finished.ply() - 2;
+        var branch = finished.continueFrom(branchPly);
+        if (!store.saveMatch(finished, false)) throw new AssertionError("Could not seed the completed match");
+        var activity = launch();
+        var status = (TextView) activity.findViewById(R.id.match_status);
+        var board = findBoard(viewsOf(activity));
+        var bounds = screenBounds(board);
+        compare("A finished match offers review with live analysis disabled", true,
+                status.getText().toString().contains(activity.getString(R.string.match_game_review))
+                        && activity.findViewById(R.id.match_analysis) == null);
+        tap(status);
+        String graph = activity.getString(R.string.game_review_graph);
+        var graphNode = dialogNode(graph, AccessibilityNodeInfo::isClickable, 120_000);
+        compare("The completed review exposes its interactive evaluation graph", true, graphNode != null);
+        compare("The player's estimate and the Advanced reference show their measured intervals", true,
+                dialogNode("≈ 1424 (712–1971)") != null && dialogNode("≈ 1544 (1346–1755)") != null);
+        var graphBounds = new Rect();
+        graphNode.getBoundsInScreen(graphBounds);
+        captureFrame("game-review", "The finished analysis draws the evaluation line", image -> hasColor(image, graphBounds, 0xffb8d88a, 24));
+        float blunderPosition = (branchPly + 1f) / finished.ply();
+        tapAt(graphBounds.left + graphBounds.width() * blunderPosition, graphBounds.exactCenterY());
+        String retry = activity.getString(R.string.game_review_retry);
+        compare("Selecting the penultimate ply opens the blunder and the retry action", true,
+                dialogNode(activity.getString(R.string.game_review_blunder)) != null && dialogNode(retry) != null);
+        clickDialog(retry);
+        clickDialog(activity.getString(android.R.string.cancel));
+        compare("Cancelling the suggested retry preserves the original saved result", finished.checkpoint(), store.readMatch().checkpoint());
+        tap(activity.findViewById(R.id.match_history_previous));
+        tap(activity.findViewById(R.id.match_history_previous));
+        compare("History keeps the board anchored and offers continuation from the selected position", true,
+                bounds.equals(screenBounds(board)) && status.getText().toString().contains(activity.getString(R.string.match_continue_from_here))
+                        && !cell(board, "h2").isEnabled());
+        tap(status);
+        tapDialog(activity.getString(R.string.match_confirm_continue));
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        while (!branch.checkpoint().equals(store.readMatch().checkpoint()) && SystemClock.uptimeMillis() < deadline) {
+            SystemClock.sleep(40);
+        }
+        waitForIdleSync();
+        var tokens = (ViewGroup) activity.findViewById(R.id.match_history_moves);
+        compare("Confirming saves the prefix, removes old history chips and enables the selected side",
+                List.of(branch.checkpoint(), branchPly + 1, true),
+                List.of(store.readMatch().checkpoint(), tokens.getChildCount(), cell(board, "b2").isEnabled()));
+        tap(cell(board, "b2"));
+        tap(cell(board, "b3"));
+        compare("The alternative move becomes the new saved continuation", Move.fromUci("b2b3"), store.readMatch().moveAt(branchPly + 1));
     }
 
     private void checkOpenings() throws Exception {
@@ -110,6 +164,7 @@ public final class BoardSanity extends Instrumentation {
         var status = (TextView) lesson.findViewById(R.id.opening_progress);
         var explanation = (TextView) lesson.findViewById(R.id.opening_message);
         var initial = screenBounds(board);
+        checkOpeningBoardGeometry(lesson, board);
         tap(cell(board, "d2"));
         tap(cell(board, "d4"));
         compare("A legal alternative receives feedback and leaves the board at the initial step", true,
@@ -126,9 +181,9 @@ public final class BoardSanity extends Instrumentation {
                         && cell(board, "e2").isSelected());
         tap(cell(board, "e4"));
         awaitOpeningPly(status, 2);
-        compare("Tapping only the hinted destination plays e4 and the configured e5 reply once", true,
-                status.getText().toString().startsWith("2 / 12") && screenBounds(board).equals(initial)
-                        && cell(board, "e5").getContentDescription().toString().contains(lesson.getString(R.string.pawn)));
+        compare("Tapping only the hinted destination plays e4 and the configured e5 reply once", List.of(true, initial, true),
+                List.of(status.getText().toString().startsWith("2 / 12"), screenBounds(board),
+                        cell(board, "e5").getContentDescription().toString().contains(lesson.getString(R.string.pawn))));
         tap(lesson.findViewById(R.id.opening_toggle_ai));
         var bulb = lesson.findViewById(R.id.match_hint);
         long deadline = SystemClock.uptimeMillis() + 15_000;
@@ -217,7 +272,13 @@ public final class BoardSanity extends Instrumentation {
 
     private void awaitOpeningPly(TextView progress, int ply) {
         long deadline = SystemClock.uptimeMillis() + 6000;
-        while (!progress.getText().toString().startsWith(ply + " / ") && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        String expected = ply + " / ";
+        boolean[] reached = {false};
+        do {
+            runOnMainSync(() -> reached[0] = progress.getText().toString().startsWith(expected));
+            if (reached[0]) return;
+            SystemClock.sleep(40);
+        } while (SystemClock.uptimeMillis() < deadline);
     }
 
     private static boolean catalogScrolled(Bitmap before, Bitmap after, Rect area) {
@@ -796,7 +857,11 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private AccessibilityNodeInfo dialogNode(String text, Predicate<AccessibilityNodeInfo> matches) throws Exception {
-        long deadline = SystemClock.uptimeMillis() + 4500;
+        return dialogNode(text, matches, 4500);
+    }
+
+    private AccessibilityNodeInfo dialogNode(String text, Predicate<AccessibilityNodeInfo> matches, long timeoutMs) throws Exception {
+        long deadline = SystemClock.uptimeMillis() + timeoutMs;
         do {
             AccessibilityNodeInfo window = getUiAutomation().getRootInActiveWindow();
             if (window != null) {
@@ -1137,6 +1202,42 @@ public final class BoardSanity extends Instrumentation {
 
     private record BoardFootprint(Rect board, Rect a1, Rect h8) { }
 
+    private void checkOpeningBoardGeometry(Activity activity, BoardView board) {
+        View next = activity.findViewById(R.id.opening_next);
+        View previous = activity.findViewById(R.id.opening_previous);
+        View replay = activity.findViewById(R.id.opening_practice);
+        var start = openingFootprints(activity, board);
+        tap(next);
+        compare("Next preserves the board and its corner squares when Resume lesson appears", start, openingFootprints(activity, board));
+        tap(next);
+        compare("Next preserves the board and its corner squares when Lesson hint returns", start, openingFootprints(activity, board));
+        tap(previous);
+        tap(previous);
+        tap(replay);
+    }
+
+    private List<BoardFootprint> openingFootprints(Activity activity, BoardView board) {
+        var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
+        var footprints = new ArrayList<BoardFootprint>();
+        runOnMainSync(() -> {
+            var original = new Rect(root.getLeft(), root.getTop(), root.getRight(), root.getBottom());
+            float density = activity.getResources().getDisplayMetrics().density;
+            try {
+                footprints.add(footprint(board, null));
+                for (int[] size : new int[][]{{320, 480}, {280, 440}}) {
+                    int width = Math.min(original.width(), Math.round(size[0] * density));
+                    int height = Math.min(original.height(), Math.round(size[1] * density));
+                    var bounds = new Rect(original.left, original.top, original.left + width, original.top + height);
+                    measureScreen(root, bounds, height);
+                    footprints.add(footprint(board, null));
+                }
+            } finally {
+                measureScreen(root, original, original.height());
+            }
+        });
+        return footprints;
+    }
+
     private List<BoardFootprint> boardFootprints(Activity activity, BoardView board) {
         var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
         TextView analysis = activity.findViewById(R.id.match_analysis);
@@ -1240,11 +1341,15 @@ public final class BoardSanity extends Instrumentation {
     private boolean hasColor(Bitmap image, View view, int color, int required) {
         int[] location = new int[2];
         runOnMainSync(() -> view.getLocationOnScreen(location));
+        return hasColor(image, new Rect(location[0], location[1], location[0] + view.getWidth(), location[1] + view.getHeight()), color, required);
+    }
+
+    private static boolean hasColor(Bitmap image, Rect bounds, int color, int required) {
         int marked = 0;
-        int right = Math.min(image.getWidth(), location[0] + view.getWidth());
-        int bottom = Math.min(image.getHeight(), location[1] + view.getHeight());
-        for (int y = Math.max(0, location[1]); y < bottom; y++) {
-            for (int x = Math.max(0, location[0]); x < right; x++) {
+        int right = Math.min(image.getWidth(), bounds.right);
+        int bottom = Math.min(image.getHeight(), bounds.bottom);
+        for (int y = Math.max(0, bounds.top); y < bottom; y++) {
+            for (int x = Math.max(0, bounds.left); x < right; x++) {
                 if (image.getPixel(x, y) == color && ++marked >= required) return true;
             }
         }

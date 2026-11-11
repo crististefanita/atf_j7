@@ -16,6 +16,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -189,6 +190,7 @@ public final class OpeningActivity extends Activity {
     private LinearLayout navigation() {
         var row = new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setBaselineAligned(false);
         row.setPadding(dp(10), 0, dp(10), 0);
         previousButton = arrow(R.id.opening_previous, R.string.opening_previous_move, "‹",
                 () -> navigate(lesson.show(lesson.shownPly() - 1)));
@@ -196,9 +198,10 @@ public final class OpeningActivity extends Activity {
         progress = text("", 13, ACCENT);
         progress.setId(R.id.opening_progress);
         progress.setGravity(Gravity.CENTER);
+        BoardCaption.reserve(progress, 2);
         progress.setOnClickListener(view -> review());
         row.addView(previousButton, new LinearLayout.LayoutParams(dp(48), -2));
-        row.addView(progress, new LinearLayout.LayoutParams(0, -1, 1));
+        row.addView(progress, new LinearLayout.LayoutParams(0, -2, 1));
         row.addView(nextButton, new LinearLayout.LayoutParams(dp(48), -2));
         return row;
     }
@@ -227,6 +230,7 @@ public final class OpeningActivity extends Activity {
         controls.addView(analysis, new LinearLayout.LayoutParams(-1, -2));
         var actions = new LinearLayout(this);
         actions.setGravity(Gravity.CENTER_VERTICAL);
+        actions.setBaselineAligned(false);
         hintButton = button(R.string.opening_hint);
         hintButton.setId(R.id.opening_theory_hint);
         hintButton.setOnClickListener(view -> theory());
@@ -243,8 +247,14 @@ public final class OpeningActivity extends Activity {
             }
             render();
         });
-        actions.addView(hintButton, new LinearLayout.LayoutParams(0, -2, 1));
-        actions.addView(practiceButton, new LinearLayout.LayoutParams(0, -2, 1));
+        // The hint and the practice action use the same slot throughout a lesson.
+        var lessonAction = new FrameLayout(this);
+        BoardCaption.reserve(hintButton, 2);
+        BoardCaption.reserve(practiceButton, 2);
+        BoardCaption.reserve(aiButton, 2);
+        lessonAction.addView(hintButton, new FrameLayout.LayoutParams(-1, -2));
+        lessonAction.addView(practiceButton, new FrameLayout.LayoutParams(-1, -2));
+        actions.addView(lessonAction, new LinearLayout.LayoutParams(0, -2, 1));
         actions.addView(aiButton, new LinearLayout.LayoutParams(0, -2, 1));
         actions.addView(analysis.bulb());
         controls.addView(actions, new LinearLayout.LayoutParams(-1, -2));
@@ -365,9 +375,9 @@ public final class OpeningActivity extends Activity {
         message.setText(reviewing ? explanationAt(ply) : messageFor(phase));
         message.setTextColor(offLine ? 0xffffbc78 : PRIMARY);
         boolean showPracticeAction = reviewing || lesson.replyPaused() || phase == Phase.COMPLETE;
-        practiceButton.setVisibility(showPracticeAction ? View.VISIBLE : View.GONE);
+        practiceButton.setVisibility(showPracticeAction ? View.VISIBLE : View.INVISIBLE);
         practiceButton.setText(reviewing ? R.string.opening_replay : lesson.replyPaused() ? R.string.opening_continue : R.string.opening_retry);
-        hintButton.setVisibility(showPracticeAction ? View.GONE : View.VISIBLE);
+        hintButton.setVisibility(showPracticeAction ? View.INVISIBLE : View.VISIBLE);
         hintButton.setEnabled(playable);
         hintButton.setText(switch (theoryHint) {
             case NONE -> R.string.opening_hint;

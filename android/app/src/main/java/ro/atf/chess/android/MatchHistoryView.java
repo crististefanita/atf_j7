@@ -57,6 +57,10 @@ final class MatchHistoryView extends LinearLayout {
 
     void show(ChessMatch match, int ply) {
         end = match.ply();
+        if (moves.getChildCount() > end + 1) {
+            moves.removeViews(end + 1, moves.getChildCount() - end - 1);
+            if (shown > end) shown = -1;
+        }
         while (moves.getChildCount() <= end) append(match, moves.getChildCount());
         previous.setEnabled(ply > 0);
         next.setEnabled(ply < end);

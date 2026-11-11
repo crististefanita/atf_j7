@@ -15,6 +15,8 @@ Configurați `J7_SIGNING_STORE` și `J7_SIGNING_PASSWORD` în sesiunea de build 
 
 Pentru schimbările din Deschideri, adăugați `-IncludeOpenings` la sanity-ul semnat. Runnerul execută proba pe același APK după verificarea reluării partidei. Publicați Extent din recepția `openings/openings.txt` și folosiți același commit și hash APK la calificarea ambelor rapoarte. [Proba Deschideri](../testing/README.md#deschideri)
 
+Pentru schimbările din Analiza partidei, adăugați `-IncludeGameReview` la sanity-ul semnat. Publicați Extent din `game-review/game-review.txt` și calificați raportul cu identitatea APK-ului instalat din `game-review/execution.json`. [Proba de reluare și analiză](../testing/README.md#partidă-și-istoric)
+
 `ReleaseGate` expune verificările de calificare și publicare din Java. Pentru o ediție privată, citiți README-ul din `main` cu contul autentificat, reconciliați linkul cu `browser_download_url` al asset-ului din tag și descărcați prin API-ul autentificat. Înregistrați ruta, statusul, commitul, hash-ul și rezultatul CRC în dosarul ediției. Linkul din README rămâne ruta din browser pentru utilizatorii conectați. [API-ul GitHub pentru asset-uri](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
 
 După publicare, rulați verificarea cu autentificarea GitHub existentă în Git Credential Manager. Directorul de ieșire este nou și rămâne în TMP.

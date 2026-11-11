@@ -6,12 +6,14 @@ Marcajul de lângă tablă arată cine mută. În probleme, becul de sub tablă 
 
 În **Profil** poți edita numele afișat. La **Partidă nouă**, alegi Alb, Negru sau Aleatoriu și nivelul Basic, Advanced sau Hard. Bifa **Analiză AI** adaugă bara de evaluare și becul. Becul pornește cu cea mai bine evaluată continuare și parcurge până la cinci variante apropiate ca scor. Sub nume apar capturile și avantajul material.
 
+**Continuă de aici** reia partida din poziția aleasă în istoric. După final, **Analiza partidei** afișează deschiderea, graficul avantajului, variantele, precizia ambelor culori și estimările Elo cu intervale. [Partida cu calculatorul](docs/board/README.md#partidă-cu-calculatorul)
+
 În **Deschideri** poți exersa zece linii cu ambele culori. Folosește săgețile pentru a parcurge mutările și **Rejoacă de aici** pentru a exersa din poziția afișată. Indiciul complet îți permite să joci atingând destinația marcată. [Lecțiile și sursele](docs/board/openings.md)
 
 ## Jocul
 
-- **[Chess Lab 0.8.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.8.0)** — ediția Android curentă.
-- **[Descarcă APK 0.8.0](https://github.com/crististefanita/atf_j7/releases/download/v0.8.0/ChessLab-0.8.0.apk)** — APK Android semnat.
+- **[Chess Lab 0.9.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.9.0)** — ediția Android curentă.
+- **[Descarcă APK 0.9.0](https://github.com/crististefanita/atf_j7/releases/download/v0.9.0/ChessLab-0.9.0.apk)** — APK Android semnat.
 
 ## Proiectul
 
@@ -22,4 +24,4 @@ Marcajul de lângă tablă arată cine mută. În probleme, becul de sub tablă 
 | `atf-tests` | Componente, guvernanță și publicarea dovezii Android în Extent |
 | `release-tools` | Context RAG consultativ și verificarea identității dovezilor |
 
-[Tabla de joc](docs/board/README.md) · [Configurarea problemelor](docs/board/quest-curation.md#configurarea-capitolelor) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.8.0](release/0.8.0/README.md) · [Feedback](docs/feedback/README.md)
+[Tabla de joc](docs/board/README.md) · [Configurarea problemelor](docs/board/quest-curation.md#configurarea-capitolelor) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.9.0](release/0.9.0/README.md) · [Feedback](docs/feedback/README.md)

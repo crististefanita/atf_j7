@@ -73,7 +73,7 @@ JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Co
 
 `MatchSetupTest` acoperă decizia Hard în Franceză și Scandinavă în bugetul existent. `MatchEvaluationTest` verifică estimarea poziției, ordinea indiciilor și scorurile terminale. Benchmarkul cu Stockfish compară separat pierderea mutărilor Hard și eroarea numerică a barei, pe poziții suplimentare fixate în YAML. [Pozițiile de calibrare](../../atf-tests/src/test/resources/opening-calibration.yaml)
 
-`AiOpeningRegressionTest` verifică repertoriul Pirc și Benoni, transpoziția, ieșirea Hard din ciclul Alehină și remiza disponibilă apărării. `AiLeagueComponentTest` verifică perechile cu culori inversate, transpozițiile duplicate, intervalul partidelor neterminate și finalurile elementare. Probele opționale scriu rejucarea UCI și raportul Extent. [Comenzile și interpretarea Elo](../board/ai-quality.md#liga-offline)
+`AiOpeningRegressionTest` verifică repertoriul Pirc și Benoni, transpoziția, ieșirea Hard din ciclul Alehină și remiza disponibilă apărării. La semimutarea 72, compară alegerea Hard cu și fără istoricul aceleiași poziții și verifică bugetul. Proba Stockfish folosește toate mutările precedente ca să poată evalua repetiția. `AiLeagueComponentTest` verifică perechile cu culori inversate, transpozițiile duplicate, intervalul partidelor neterminate și finalurile elementare. Probele opționale scriu rejucarea UCI și raportul Extent. [Comenzile și interpretarea Elo](../board/ai-quality.md#liga-offline)
 
 `TacticalAnalysisTest` compară o captură înainte și după recaptură, două câștiguri egale și un mat care devine vizibil abia la al treilea pas. Pozițiile din partida italiană verifică alegerea unei replici superioare primei mutări generate și evitarea unui mat imediat. Raportul de componente păstrează linia și câștigul așteptat ca aserțiuni.
 
@@ -103,6 +103,8 @@ La modificarea instrumentării, sincronizați numărul de aserțiuni pe fază cu
 
 Pe Android, rulați sanity cu `-OpeningsOnly`. Proba joacă destinația indicată în Italiană și sugestia AI compatibilă cu lecția. Verifică mesajul pentru varianta spaniolă sugerată de AI, navigarea în ambele sensuri, rejucarea dintr-o poziție anterioară și tabla orientată pentru negru.
 
+La două apăsări **Următoarea**, proba compară coordonatele și dimensiunile tablei și ale celulelor `a1` și `h8`: când apare **Continuă lecția** și când revine **Indiciu lecție**. Folosește fereastra emulatorului și două măsurători native compacte, de până la 320 × 480 dp și 280 × 440 dp. Extent cere ambele comparații chiar dacă numărul total de aserțiuni este corect.
+
 ```powershell
 mvn test '-Dtest=AndroidSanityPublication#publishOpeningSanity' "-Dchess.android.receipt=$receipt"
 ```
@@ -112,6 +114,10 @@ Setați `$receipt` la `openings.txt` din dosarul TMP tipărit de runner. Raportu
 Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <sha>`. Proba folosește același APK instalat ca sanity-ul de bază și salvează recepția și capturile în subdirectorul `openings`.
 
 ## Partidă și istoric
+
+`ChessMatchTest` verifică reluarea din fiecare poziție a unei partide terminate, salvarea variantei noi, rocada, en passant și repetarea poziției. `GameReviewTest` verifică matul ratat, variantele comparate, transpoziția ECO, pragurile, anularea și estimarea din perspectiva jucătorului. `GameReviewGovernanceTest` verifică bugetul, reperele Elo și legalitatea tuturor liniilor importate.
+
+Pentru un parcurs Android dedicat, rulați `run-android-sanity.ps1 -GameReviewOnly` după construirea variantei `sanity`. Proba deschide analiza unei partide terminate, verifică estimările din ecran, anulează o reluare, confirmă reluarea de la o poziție anterioară și joacă o altă mutare. Publicați raportul din `game-review.txt` cu `-Dtest=AndroidSanityPublication#publishGameReviewSanity` și `-Dchess.android.receipt=<cale>`. [Fluxul jucătorului](../board/README.md#partidă-cu-calculatorul)
 
 Pentru analiza AI, rulați runnerul cu `-AnalysisOnly` pe varianta `sanity`. Prima fază verifică bifa, cele două apăsări succesive ale becului și ascunderea variantei după schimbarea poziției. Verifică și poziția exactă a tablei și a celulelor `a1` și `h8` când schimbi problema sau navighezi prin istoric. Măsoară fereastra reală și două profiluri compacte cu text mărit și interfață română, inclusiv zonele de atingere ale becului și săgeților. A doua fază verifică păstrarea opțiunii după repornirea procesului. Dovezile se scriu în `execution.json` și în cele două rezultate de instrumentare.
 

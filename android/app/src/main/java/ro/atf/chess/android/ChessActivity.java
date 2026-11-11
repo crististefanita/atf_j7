@@ -33,6 +33,7 @@ import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
+import ro.atf.chess.GameReview;
 import ro.atf.chess.MatchSetup;
 import ro.atf.chess.QuestCatalog;
 import ro.atf.chess.QuestHint;
@@ -71,6 +72,8 @@ public final class ChessActivity extends Activity {
     private boolean botSaveFailed;
     private MatchHistoryView history;
     private MatchAnalysisView matchAnalysis;
+    private AlertDialog reviewDialog;
+    private GameReview completedReview;
     private int reviewedPly = -1;
     private QuestProgress progress;
     private QuestRewards rewards;
@@ -167,8 +170,9 @@ public final class ChessActivity extends Activity {
         menu.findViewById(R.id.open_puzzles).setOnClickListener(view -> showPuzzles());
         menu.findViewById(R.id.open_openings).setOnClickListener(view -> startActivity(new android.content.Intent(this, OpeningActivity.class)));
         menu.findViewById(R.id.new_match).setOnClickListener(view -> showMatchSetup());
-        View resume = menu.findViewById(R.id.resume_match);
+        Button resume = menu.findViewById(R.id.resume_match);
         resume.setVisibility(match == null ? View.GONE : View.VISIBLE);
+        if (match != null && match.result() != ChessMatch.Result.IN_PROGRESS) resume.setText(R.string.match_last_game);
         resume.setOnClickListener(view -> openMatch(match, store.matchBlackBelow()));
         setContentView(menu);
     }
@@ -233,6 +237,8 @@ public final class ChessActivity extends Activity {
             showSaveError();
             return;
         }
+        if (match != nextMatch) completedReview = null;
+        cancelBot();
         match = nextMatch;
         displayMatch(flipped);
         scheduleBot();
@@ -323,6 +329,7 @@ public final class ChessActivity extends Activity {
         screen.addView(new BoardPanel(this, topSeat, board, bottomSeat, matchAnalysis == null ? null : matchAnalysis.evaluationBar()),
                 new LinearLayout.LayoutParams(-1, 0, 1));
         status = text(R.string.mate_objective, 16, PRIMARY);
+        if (inMatch) status.setId(R.id.match_status);
         status.setGravity(Gravity.CENTER);
         status.setPadding(dp(8), dp(4), dp(8), dp(10));
         BoardCaption.reserve(status, inMatch ? 2 : 3);
@@ -636,6 +643,42 @@ public final class ChessActivity extends Activity {
         renderMatch();
     }
 
+    private void confirmContinuation(int ply) {
+        if (!inMatch || ply < 0 || ply >= match.ply()) return;
+        new AlertDialog.Builder(this).setTitle(R.string.match_continue_from_here)
+                .setMessage(getString(R.string.match_continue_confirm, ply))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.match_confirm_continue, (dialog, which) -> continueMatch(ply)).show();
+    }
+
+    private void continueMatch(int ply) {
+        var continuation = match.continueFrom(ply);
+        if (!store.saveMatch(continuation, blackBelow)) {
+            showSaveError();
+            return;
+        }
+        cancelBot();
+        completedReview = null;
+        reviewedPly = -1;
+        botSaveFailed = false;
+        match = continuation;
+        position = match.position();
+        last = match.lastMove();
+        selected = -1;
+        options = Collections.emptyList();
+        renderMatch();
+        scheduleBot();
+    }
+
+    private void showGameReview() {
+        if (match.result() == ChessMatch.Result.IN_PROGRESS || reviewDialog != null) return;
+        var snapshot = match;
+        reviewDialog = GameReviewDialog.show(this, snapshot, completedReview, bot, this::notation, humanName(),
+                botName(match.setup().level()), result -> {
+                    if (match == snapshot) completedReview = result;
+                }, this::reviewMatch, this::confirmContinuation, () -> reviewDialog = null);
+    }
+
     private boolean saveMatchMove(Move move) {
         var nextMatch = match.play(move);
         if (!store.saveMatch(nextMatch, blackBelow)) {
@@ -678,7 +721,7 @@ public final class ChessActivity extends Activity {
         main.removeCallbacks(botReply);
         botGeneration++;
         if (botJob != null) {
-            botJob.cancel(false);
+            botJob.cancel(true);
             botJob = null;
         }
     }
@@ -801,24 +844,7 @@ public final class ChessActivity extends Activity {
         recentMove.setText(shownMove == null
                 ? getString(R.string.match_history_initial_position)
                 : getString(reviewing ? R.string.match_history_showing_move : R.string.match_last_move, notation(shownMove)));
-        boolean retry = !reviewing && botSaveFailed;
-        status.setOnClickListener(retry ? view -> {
-            botSaveFailed = false;
-            renderMatch();
-            scheduleBot();
-        } : null);
-        status.setClickable(retry);
-        status.setText(reviewing ? getString(R.string.match_history_position, ply, match.ply()) : getString(switch (match.result()) {
-            case IN_PROGRESS -> match.awaitingBot() ? R.string.match_bot_thinking
-                    : position.isCheck() ? R.string.match_player_check : R.string.match_player_turn;
-            case WHITE_WINS -> match.setup().humanSide() == Side.WHITE ? R.string.match_player_wins : R.string.match_bot_wins;
-            case BLACK_WINS -> match.setup().humanSide() == Side.BLACK ? R.string.match_player_wins : R.string.match_bot_wins;
-            case STALEMATE -> R.string.match_draw_stalemate;
-            case MATERIAL_DRAW -> R.string.match_draw_material;
-            case REPETITION_DRAW -> R.string.match_draw_repetition;
-            case MOVE_COUNT_DRAW -> R.string.match_draw_move_count;
-        }));
-        if (retry) status.setText(R.string.match_retry_bot);
+        renderMatchStatus(reviewing, ply);
         int activeLabelId = (shownPosition.turn() == bottom ? bottomPlayer : topPlayer).getId();
         if (matchAnalysis != null) {
             matchAnalysis.evaluationBar().setBlackBelow(blackBelow);
@@ -827,6 +853,39 @@ public final class ChessActivity extends Activity {
         var cue = matchAnalysis == null ? new QuestHint.Cue(-1, -1) : matchAnalysis.cue();
         board.show(shownPosition, blackBelow, selected, options, shownMove, cue, playerCanMove(), activeLabelId);
         history.show(match, ply);
+    }
+
+    private void renderMatchStatus(boolean reviewing, int ply) {
+        String label = getString(switch (match.result()) {
+            case IN_PROGRESS -> match.awaitingBot() ? R.string.match_bot_thinking
+                    : position.isCheck() ? R.string.match_player_check : R.string.match_player_turn;
+            case WHITE_WINS -> match.setup().humanSide() == Side.WHITE ? R.string.match_player_wins : R.string.match_bot_wins;
+            case BLACK_WINS -> match.setup().humanSide() == Side.BLACK ? R.string.match_player_wins : R.string.match_bot_wins;
+            case STALEMATE -> R.string.match_draw_stalemate;
+            case MATERIAL_DRAW -> R.string.match_draw_material;
+            case REPETITION_DRAW -> R.string.match_draw_repetition;
+            case MOVE_COUNT_DRAW -> R.string.match_draw_move_count;
+        });
+        View.OnClickListener action = null;
+        if (reviewing) {
+            label = getString(R.string.match_history_position, ply, match.ply()) + "\n" + getString(R.string.match_continue_from_here);
+            action = view -> confirmContinuation(ply);
+        } else if (botSaveFailed) {
+            label = getString(R.string.match_retry_bot);
+            action = view -> {
+                botSaveFailed = false;
+                renderMatch();
+                scheduleBot();
+            };
+        } else if (match.result() != ChessMatch.Result.IN_PROGRESS) {
+            label += "\n" + getString(R.string.match_game_review);
+            action = view -> showGameReview();
+        }
+        status.setText(label);
+        status.setTextColor(action == null ? PRIMARY : PROGRESS);
+        status.setOnClickListener(action);
+        status.setClickable(action != null);
+        status.setFocusable(action != null);
     }
 
     private void renderPlayer(TextView label, ChessPosition.Side side, boolean active) {
@@ -897,6 +956,7 @@ public final class ChessActivity extends Activity {
 
     @Override protected void onDestroy() {
         cancelBot();
+        if (reviewDialog != null) reviewDialog.dismiss();
         bot.shutdown();
         if (matchAnalysis != null) matchAnalysis.close();
         super.onDestroy();

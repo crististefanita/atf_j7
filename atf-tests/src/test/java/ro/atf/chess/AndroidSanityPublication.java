@@ -21,6 +21,9 @@ import org.junit.jupiter.api.Test;
 @Tag("native-evidence")
 class AndroidSanityPublication {
     private static final Pattern CHECK = Pattern.compile("^INSTRUMENTATION_RESULT: check_(\\d{2})=(.*)$");
+    private static final List<String> OPENING_GEOMETRY_CHECKS = List.of(
+            "Next preserves the board and its corner squares when Resume lesson appears",
+            "Next preserves the board and its corner squares when Lesson hint returns");
 
     private record Frame(String file, String title) { }
 
@@ -36,7 +39,7 @@ class AndroidSanityPublication {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-openings.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var evidence = readPhase(receipt, "openings", 24);
+        var evidence = readOpeningPhase(receipt);
         var frames = List.of(new Frame("opening-catalog.png", "Opening catalog · first lessons"),
                 new Frame("opening-catalog-end.png", "Opening catalog · last lessons"),
                 new Frame("opening-hint.png", "Theory arrow and move explanation"),
@@ -47,7 +50,11 @@ class AndroidSanityPublication {
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
              var scenario = session.startScenario("BoardSanity", "Study the Italian opening on Android", List.of("e2e", "android", "openings"));
              var phase = scenario.startPhase("TEST BODY")) {
-            publish(phase, "Choose a color, use the hints, step through the line and replay", evidence.rows(), evidence.passed());
+            var geometry = evidence.rows().stream().filter(row -> OPENING_GEOMETRY_CHECKS.contains(row.name())).toList();
+            var lesson = evidence.rows().stream().filter(row -> !OPENING_GEOMETRY_CHECKS.contains(row.name())).toList();
+            publish(phase, "Choose a color, use the hints, step through the line and replay", lesson, evidence.passed());
+            publish(phase, "Keep board coordinates stable across Next at three viewport sizes", geometry,
+                    missingOpeningGeometry(geometry).isEmpty() && geometry.stream().allMatch(AtfAssertion::passed));
             for (var frame : frames) {
                 Path image = receipt.resolveSibling(frame.file());
                 if (isPng(image)) {
@@ -62,6 +69,33 @@ class AndroidSanityPublication {
         }
         System.out.println("J7 Android Extent: " + report);
         org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android opening evidence: " + receipt);
+    }
+
+    @Test void publishGameReviewSanity() throws Exception {
+        Path receipt = Path.of(System.getProperty("chess.android.receipt"));
+        Path report = receipt.resolveSibling("android-game-review.html");
+        if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
+        var evidence = readPhase(receipt, "game-review", 9);
+        Path frame = receipt.resolveSibling("game-review.png");
+        boolean rendered = isPng(frame);
+        boolean complete = evidence.passed() && rendered;
+        var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+        try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
+             var scenario = session.startScenario("BoardSanity", "Review a completed match and continue from an earlier move",
+                     List.of("e2e", "android", "game-review"));
+             var phase = scenario.startPhase("TEST BODY")) {
+            publish(phase, "Review the completed game and save a different line", evidence.rows(), evidence.passed());
+            if (rendered) {
+                try (var action = phase.startRequest("Android instrumentation", "UI", "Game review summary")) {
+                    action.screenshot("Game review summary", Base64.getEncoder().encodeToString(Files.readAllBytes(frame)));
+                    action.complete(AtfReportStatus.PASS);
+                }
+            } else publish(phase, "Game review summary", List.of(receiptFailure("game-review", "Missing game-review.png")), false);
+            phase.complete(status);
+            scenario.complete(status);
+        }
+        System.out.println("J7 Android Extent: " + report);
+        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android game review evidence: " + receipt);
     }
 
     @Test void publishMatchAnalysisSanity() throws Exception {
@@ -162,6 +196,20 @@ class AndroidSanityPublication {
 
     record PhaseEvidence(String pid, List<AtfAssertion> rows, boolean passed) {
         PhaseEvidence { rows = List.copyOf(rows); }
+    }
+
+    static PhaseEvidence readOpeningPhase(Path receipt) throws IOException {
+        var evidence = readPhase(receipt, "openings", 26);
+        if (!evidence.passed()) return evidence;
+        var missing = missingOpeningGeometry(evidence.rows());
+        if (missing.isEmpty()) return evidence;
+        var rows = new ArrayList<>(evidence.rows());
+        rows.add(receiptFailure("openings", "Missing or duplicate board geometry checks: " + missing));
+        return new PhaseEvidence(evidence.pid(), rows, false);
+    }
+
+    private static List<String> missingOpeningGeometry(List<AtfAssertion> rows) {
+        return OPENING_GEOMETRY_CHECKS.stream().filter(name -> rows.stream().filter(row -> row.name().equals(name)).count() != 1).toList();
     }
 
     static PhaseEvidence readPhase(Path receipt, String phase, int expectedChecks) throws IOException {
