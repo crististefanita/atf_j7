@@ -7,8 +7,6 @@ import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class ChessMatchTest {
@@ -63,8 +61,8 @@ class ChessMatchTest {
         check.same("The computer chooses the forced mate", "d8h4", move.uci());
         var ended = ChessMatch.restore(pending.play(move).checkpoint());
         check.same("The mate and winning side survive a restart", ChessMatch.Result.BLACK_WINS, ended.result());
-        assertThrows(IllegalStateException.class, ended::chooseBotMove);
-        assertThrows(IllegalStateException.class, () -> ended.play(Move.fromUci("a2a3")));
+        check.rejects("The bot cannot move after checkmate", IllegalStateException.class, ended::chooseBotMove);
+        check.rejects("The player cannot move after checkmate", IllegalStateException.class, () -> ended.play(Move.fromUci("a2a3")));
     }
 
     @Test void historyPreservesCastlingAndEnPassant(Checks check) {
@@ -75,8 +73,8 @@ class ChessMatchTest {
         var capture = Move.fromUci("e5d6");
         check.same("The en passant right is available after restoring the double step", true, ep.position().legalMoves().contains(capture));
         check.same("The restored capture removes the pawn from d5", null, ep.play(capture).position().pieceAt(BoardSquare.parse("d5")));
-        assertThrows(IllegalArgumentException.class, () -> ChessMatch.restore("1|e2e5"));
-        assertThrows(IllegalArgumentException.class, () -> ChessMatch.restore("2|e2e4"));
+        check.rejects("A saved illegal move cannot be restored", IllegalArgumentException.class, () -> ChessMatch.restore("1|e2e5"));
+        check.rejects("A malformed analysis checkpoint is rejected", IllegalArgumentException.class, () -> ChessMatch.restore("2|e2e4"));
     }
 
     @Test void automaticDrawsUseThePositionAndItsHistory(Checks check) {

@@ -9,6 +9,7 @@ param(
     [switch]$Distribution,
     [switch]$AnalysisOnly,
     [switch]$OpeningsOnly,
+    [switch]$IncludeOpenings,
     [string]$SourceCommit
 )
 $ErrorActionPreference = 'Stop'
@@ -21,6 +22,7 @@ $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
 if ($AnalysisOnly -and $Distribution) { throw 'AnalysisOnly uses the isolated sanity package.' }
 if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
+if ($IncludeOpenings -and ($OpeningsOnly -or $AnalysisOnly)) { throw 'IncludeOpenings extends the board sanity phases.' }
 $native = 'android/app/build/outputs/apk'
 $apk = Join-Path $root "$native/$variant/app-$variant.apk"
 $tests = Join-Path $root "$native/androidTest/$variant/app-$variant-androidTest.apk"
@@ -67,7 +69,7 @@ function Invoke-Device([string[]]$Command) {
     if ($LASTEXITCODE) { throw "ADB failed for $($Command[0])" }
 }
 
-function Receive-Frame([string]$Name) {
+function Receive-Frame([string]$Name, [string]$Directory = $run) {
     $start = [Diagnostics.ProcessStartInfo]::new($adbExe)
     $start.UseShellExecute = $false
     $start.RedirectStandardOutput = $true
@@ -77,12 +79,30 @@ function Receive-Frame([string]$Name) {
     $current = Get-Content -Raw -LiteralPath $LeaseFile | ConvertFrom-Json
     if (!$current.active -or $current.leaseId -cne $token) { throw 'Android reservation ownership changed.' }
     $process = [Diagnostics.Process]::Start($start)
-    $png = [IO.File]::Create((Join-Path $run "$Name.png"))
+    $png = [IO.File]::Create((Join-Path $Directory "$Name.png"))
     try {
         $process.StandardOutput.BaseStream.CopyTo($png)
         $process.WaitForExit()
         if ($process.ExitCode) { Write-Warning "ADB could not retrieve $Name.png." }
     } finally { $png.Dispose(); $process.Dispose() }
+}
+
+function Invoke-OpeningSanity([string]$Directory) {
+    $openingReceipt = Join-Path $Directory 'openings.txt'
+    $lines = @(Invoke-Device ($instrument + @('-e','phase','openings',$runner)))
+    $lines | Set-Content -LiteralPath $openingReceipt -Encoding utf8NoBOM
+    $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
+    if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne 24) {
+        Receive-Frame 'failure' $Directory
+        throw "Opening lessons did not pass. See $Directory."
+    }
+    foreach ($frame in 'opening-catalog','opening-catalog-end','opening-hint','opening-ai','opening-replay') {
+        Receive-Frame $frame $Directory
+    }
+    [ordered]@{status='PASS'; scope='openings-only'; device=$Serial; api=$api; apkSha256=$hash;
+        sourceCommit=$SourceCommit; variant=$variant; assertions=$passed.Count;
+        receiptSha256=(Get-FileHash -LiteralPath $openingReceipt).Hash.ToLowerInvariant()} |
+        ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
 }
 
 Set-Lease $true
@@ -116,19 +136,7 @@ try {
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
     if ($OpeningsOnly) {
-        $lines = @(Invoke-Device ($instrument + @('-e','phase','openings',$runner)))
-        $lines | Set-Content -LiteralPath (Join-Path $run 'openings.txt') -Encoding utf8NoBOM
-        $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
-        if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne 15) {
-            Receive-Frame 'failure'
-            throw "Opening lessons did not pass. See $run."
-        }
-        Receive-Frame 'opening-catalog'
-        Receive-Frame 'opening-catalog-end'
-        Receive-Frame 'opening-hint'
-        Receive-Frame 'opening-ai'
-        [ordered]@{status='PASS'; scope='openings-only'; device=$Serial; api=$api; apkSha256=$hash; assertions=$passed.Count} |
-            ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'execution.json') -Encoding utf8NoBOM
+        Invoke-OpeningSanity $run
         return
     }
     if ($AnalysisOnly) {
@@ -192,6 +200,15 @@ try {
         }
     } else {
         Receive-Frame 'failure'
+    }
+    $settled = Join-Path $run 'match-settled.txt'
+    if ($IncludeOpenings -and (Test-Path -LiteralPath $settled) -and
+            (Select-String -Quiet -LiteralPath $settled -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {
+        $clear = Invoke-Device @('shell','pm','clear',$app)
+        if ($clear -notcontains 'Success') { throw 'Could not reset for opening lessons.' }
+        $openingDirectory = Join-Path $run 'openings'
+        $null = New-Item -ItemType Directory $openingDirectory
+        Invoke-OpeningSanity $openingDirectory
     }
 } finally {
     try {

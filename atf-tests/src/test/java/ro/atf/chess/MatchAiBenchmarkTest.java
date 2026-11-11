@@ -7,12 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ro.atf.chess.ChessPosition.Move;
 
 @AtfComponentTest
+@Tag("benchmark")
 @ExtendWith(ExtentAudit.class)
 @EnabledIfSystemProperty(named = "chess.stockfish", matches = ".+")
 class MatchAiBenchmarkTest {

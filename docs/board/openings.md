@@ -15,12 +15,16 @@ Din meniul principal, intră în **Deschideri**, alege o linie și joacă cu alb
 | Sistemul Londonez | Împotriva fianchetto-ului, A48 | Bf4 înainte de e3 și dezvoltarea pentru rocada ambelor părți. [Chess.com](https://www.chess.com/openings/London-System) · [Linia cu Be2 în Lichess](https://github.com/lichess-org/chess-openings/blob/master/a.tsv#L642) |
 | Apărarea est-indiană | Aronin–Taimanov, E97 | Centrul larg al albului, contraatacul cu e5 și poziția închisă după d5. [Linia Aronin–Taimanov în Lichess](https://github.com/lichess-org/chess-openings/blob/master/e.tsv#L358) |
 
-**Indiciu lecție** evidențiază întâi piesa. A doua apăsare desenează mutarea și arată de ce se joacă. Atinge progresul deasupra tablei și alege poziția inițială sau o mutare jucată. Tabla afișează acel moment pentru analiză. **Înapoi la lecție** revine la progresul curent. La final poți relua linia sau reveni la catalog și schimba culoarea.
+Săgețile deasupra tablei parcurg câte o semimutare. În istoric vezi poziția și explicația mutării alese. Atinge progresul pentru a sări la o poziție jucată. **Rejoacă de aici** reia lecția de la poziția afișată. Comanda sistemului **Înapoi** revine din istoric la poziția curentă.
 
-**Analiză AI** pornește evaluarea locală pentru poziția de pe tablă. Becul de lângă analiză parcurge până la cinci continuări eligibile, inclusiv din poziția finală a lecției. Rezultatul motorului poate diferi de mutarea aleasă pentru lecție. Explicația ultimei mutări afișează numărul și coordonatele ei, ca să poți urmări separat sugestia desenată de AI. [Politica indiciilor AI](ai-quality.md)
+La poziția curentă, săgeata înainte aplică exact următoarea mutare din lecție. Când replica din catalog rămâne în așteptare, mai apasă o dată săgeata sau folosește **Continuă lecția**. Dacă joci cu piesele pe tablă, replica vine automat. La final poți reveni la orice pas sau exersa din nou.
+
+**Indiciu lecție** evidențiază întâi piesa. **Arată mutarea** selectează piesa, trasează săgeata și afișează coordonatele și ideea. Atinge destinația marcată ca să joci mutarea.
+
+**Analiză AI** evaluează poziția afișată, inclusiv în istoric și la finalul lecției. Becul parcurge până la cinci continuări. Când sugestia coincide cu mutarea ta din lecție, o poți juca atingând destinația. O sugestie diferită apare etichetată drept variantă AI. Schimbarea poziției ascunde săgeata anterioară și actualizează evaluarea. [Politica indiciilor AI](ai-quality.md)
 
 ## Configurarea lecțiilor
 
 Ordinea elementelor din `openings.yaml` stabilește ordinea din meniu. Fiecare lecție are un ID stabil, cod ECO, sursă HTTPS, titlu, variantă și plan în română și engleză. În `line`, fiecare pas conține mutarea UCI și ideea în ambele limbi. Pentru rocadă se declară mutarea regelui, de exemplu `e1g1`. Motorul reia toate mutările de la poziția inițială și indică lecția și pasul dacă găsește o mutare ilegală. [Catalogul YAML](../../chess-core/src/main/resources/openings.yaml)
 
-La adăugarea unei linii, verificați codul ECO și mutările din sursă. Explicați ce schimbă mutarea pe tablă și ce plan pregătește. Păstrați ID-ul la editarea textului, iar pentru o variantă nouă adăugați o intrare distinctă. Rulați `OpeningCatalogTest` pentru ambele culori și proba Android pentru selecție, indicii și evaluare. [Setul ECO Lichess](https://github.com/lichess-org/chess-openings) · [Strategia de testare](../testing/README.md#deschideri)
+La adăugarea unei linii, verificați codul ECO și mutările din sursă. Explicați ce schimbă mutarea pe tablă și ce plan pregătește. Păstrați ID-ul la editarea textului, iar pentru o variantă nouă adăugați o intrare distinctă. Rulați suita de componente pentru ambele culori și proba Android pentru navigare, rejucare și indicii. [Setul ECO Lichess](https://github.com/lichess-org/chess-openings) · [Strategia de testare](../testing/README.md#deschideri)

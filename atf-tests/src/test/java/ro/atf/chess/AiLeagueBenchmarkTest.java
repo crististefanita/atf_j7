@@ -8,12 +8,14 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ro.atf.chess.MatchSetup.Level;
 
 @AtfComponentTest
+@Tag("benchmark")
 @ExtendWith(ExtentAudit.class)
 @EnabledIfSystemProperty(named = "chess.league", matches = ".+")
 class AiLeagueBenchmarkTest {

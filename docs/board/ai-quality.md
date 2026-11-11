@@ -20,7 +20,7 @@ Bara și prima linie de text folosesc o estimare separată pentru poziția curen
 4. La regresie, deschideți în Extent pozițiile cu pierderea cea mai mare și verificați dacă mutarea a fost depunctată din cauza orizontului, a unei egalități sau a bugetului epuizat. Mențineți pragurile în timpul experimentului și justificați separat orice revizie a setului sau a pragurilor.
 
 ```powershell
-mvn test '-Dtest=MatchAiBenchmarkTest' "-Dchess.stockfish=$stockfish" '-Dchess.extent=target/match-ai-benchmark.html'
+mvn test '-Dtest=ChessBenchmarkSuite' "-Dchess.stockfish=$stockfish" '-Dchess.extent=target/match-ai-benchmark.html'
 ```
 
 Setați `$stockfish` la executabilul Stockfish 19. Verificarea pornește câte o căutare la adâncimea fixată în YAML pentru poziția întreagă și pentru mutarea J7, cu un fir, 16 MiB de hash și memorie resetată între căutări. Scorul așteptat Stockfish este `W + D/2` în miimi. Diferența dintre căutări se plafonează la zero când cea restrânsă găsește o evaluare mai bună. Raportul arată și scorul UCI pentru fiecare mutare, ca să se vadă maturile sau diferențele care apar la un scor așteptat deja saturat. [Set și praguri](../../atf-tests/src/test/resources/match-ai-benchmark.yaml) · [Stockfish 19](https://github.com/official-stockfish/Stockfish/releases/tag/sf_19) · [Scorurile WDL Stockfish](https://official-stockfish.github.io/docs/stockfish-wiki/Useful-data.html)
@@ -45,7 +45,7 @@ Ancora externă folosește Stockfish 19, `UCI_Elo 1500`, un fir și cererea de 6
 Dintr-o copie TMP, folosiți căi noi pentru fiecare raport și fișier de rejucare:
 
 ```powershell
-mvn test '-Dtest=AiLeagueBenchmarkTest' "-Dchess.league=$leagueTsv" "-Dchess.extent=$leagueHtml"
+mvn test '-Dtest=ChessBenchmarkSuite' "-Dchess.league=$leagueTsv" "-Dchess.extent=$leagueHtml"
 mvn test '-Dtest=AiAnchorBenchmarkTest' "-Dchess.stockfish=$stockfish" "-Dchess.anchor=$anchorTsv" "-Dchess.extent=$anchorHtml"
 ```
 

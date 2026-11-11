@@ -73,6 +73,24 @@ class OpeningCatalogTest {
         check.same("The book still expects the original continuation", "g1f3", resumed.next().move().uci());
     }
 
+    @Test void aBlackLessonAppliesItsFirstReplyAndProtectsTurnBoundaries(Checks check) {
+        var lesson = OpeningCatalog.load().getFirst();
+        var black = new OpeningPractice(lesson, Side.BLACK, 0);
+        var e4 = Move.fromUci("e2e4");
+        var e5 = Move.fromUci("e7e5");
+        check.same("Playing Black starts with a book reply", OpeningPractice.Phase.REPLY, black.phase());
+        check.same("The learner cannot play a legal White move for the book", OpeningPractice.Attempt.ILLEGAL, black.check(e4));
+        check.rejects("A player move during the book reply is refused", IllegalArgumentException.class, () -> black.play(e4));
+        var blackTurn = black.reply();
+        check.same("The first book reply is e4", e4, blackTurn.previous());
+        check.same("Black can now answer e5", OpeningPractice.Attempt.ON_LINE, blackTurn.check(e5));
+        check.rejects("The reply cannot be applied twice", IllegalStateException.class, blackTurn::reply);
+        var completed = new OpeningPractice(lesson, Side.BLACK, lesson.steps().size());
+        check.same("The last authored position ends the lesson", OpeningPractice.Phase.COMPLETE, completed.phase());
+        check.rejects("A completed lesson cannot accept another player move", IllegalArgumentException.class, () -> completed.play(e5));
+        check.rejects("A completed lesson cannot emit another book reply", IllegalStateException.class, completed::reply);
+    }
+
     @Test void rejectsIllegalBookMovesAndDuplicateLessons(Checks check) {
         var root = new HashMap<Object, Object>(ChessYaml.resource("openings.yaml"));
         var entries = new ArrayList<Object>(ChessYaml.list(root, "openings"));

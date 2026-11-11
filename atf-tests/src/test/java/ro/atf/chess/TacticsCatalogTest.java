@@ -3,7 +3,6 @@ package ro.atf.chess;
 import atf.testkit.AtfComponentTest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.Comparator;
 import java.util.HexFormat;
@@ -33,7 +32,8 @@ class TacticsCatalogTest {
         check.same("Four positions require a quiet first move", 4L,
                 catalog.stream().filter(quest -> quest.position().pieceAt(quest.solution().to()) == null).count());
         String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(proof.toString().getBytes(StandardCharsets.UTF_8)));
-        check.same("Engine results agree with the chess.js proof", Files.readString(Path.of("chess-core/src/main/resources/tactics.sha256")).trim(), digest);
+        check.same("Engine results agree with the chess.js proof",
+                Files.readString(ProjectRoot.locate().resolve("chess-core/src/main/resources/tactics.sha256")).trim(), digest);
     }
 
     @Test void wrongLegalMovesKeepNextLockedAndBothHintsReferToTheWinningMove(Checks check) {

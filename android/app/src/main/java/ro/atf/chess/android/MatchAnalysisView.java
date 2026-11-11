@@ -59,9 +59,14 @@ final class MatchAnalysisView extends TextView {
     ImageButton bulb() { return bulb; }
     EvaluationBar evaluationBar() { return evaluationBar; }
 
-    QuestHint.Cue cue() {
+    Move revealedMove() {
         var revealed = hint == null ? null : hint.revealed();
-        return revealed == null ? new QuestHint.Cue(-1, -1) : QuestHint.SOLUTION.cue(revealed.move());
+        return revealed == null ? null : revealed.move();
+    }
+
+    QuestHint.Cue cue() {
+        var move = revealedMove();
+        return move == null ? new QuestHint.Cue(-1, -1) : QuestHint.SOLUTION.cue(move);
     }
 
     void show(ChessMatch match, int ply) {

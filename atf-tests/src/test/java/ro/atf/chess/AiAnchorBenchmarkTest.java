@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.MatchSetup.Level;
 
 @AtfComponentTest
+@Tag("benchmark")
 @ExtendWith(ExtentAudit.class)
 @EnabledIfSystemProperty(named = "chess.anchor", matches = ".+")
 class AiAnchorBenchmarkTest {

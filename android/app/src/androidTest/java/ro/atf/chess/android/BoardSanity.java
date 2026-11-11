@@ -122,21 +122,16 @@ public final class BoardSanity extends Instrumentation {
                         && "e4".contentEquals(cell(board, "e4").getContentDescription()));
         tap(hint);
         captureFrame("opening-hint", "The opening lesson draws its arrow and explains the move",
-                image -> hasColor(image, cell(board, "e3"), HINT_TINT, 12) && fullyVisible(explanation));
-        tap(cell(board, "e2"));
-        getUiAutomation().waitForIdle(100, 2_000);
-        runOnMainSync(() -> {
-            if (!cell(board, "e2").isSelected()) throw new AssertionError("The e2 tap must select the pawn before its destination is tapped");
-        });
+                image -> hasColor(image, cell(board, "e3"), HINT_TINT, 12) && fullyVisible(explanation)
+                        && cell(board, "e2").isSelected());
         tap(cell(board, "e4"));
-        long deadline = SystemClock.uptimeMillis() + 6000;
-        while (!status.getText().toString().startsWith("2 / 12") && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
-        compare("The configured e5 reply is played once and the board stays anchored", true,
+        awaitOpeningPly(status, 2);
+        compare("Tapping only the hinted destination plays e4 and the configured e5 reply once", true,
                 status.getText().toString().startsWith("2 / 12") && screenBounds(board).equals(initial)
                         && cell(board, "e5").getContentDescription().toString().contains(lesson.getString(R.string.pawn)));
         tap(lesson.findViewById(R.id.opening_toggle_ai));
         var bulb = lesson.findViewById(R.id.match_hint);
-        deadline = SystemClock.uptimeMillis() + 15_000;
+        long deadline = SystemClock.uptimeMillis() + 15_000;
         while (!bulb.isEnabled() && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
         compare("Optional AI evaluates the current position without advancing the lesson", true, bulb.isEnabled()
                 && lesson.findViewById(R.id.match_evaluation_bar).getVisibility() == View.VISIBLE && status.getText().toString().startsWith("2 / 12"));
@@ -147,6 +142,35 @@ public final class BoardSanity extends Instrumentation {
                 image -> bulb.isSelected() && hasTwoRenderedLines(image, analysisText) && positionScore.startsWith("+0")
                         && analysisText.getText().toString().startsWith(positionScore + "\n")
                         && explanation.getText().toString().startsWith("1… " + lesson.getString(R.string.solution_move, "e7", "e5")));
+        tap(cell(board, "f3"));
+        awaitOpeningPly(status, 4);
+        compare("An AI move matching the lesson can be played by its highlighted destination", true,
+                status.getText().toString().startsWith("4 / 12")
+                        && cell(board, "f3").getContentDescription().toString().contains(lesson.getString(R.string.knight)));
+        deadline = SystemClock.uptimeMillis() + 15_000;
+        while (!bulb.isEnabled() && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        tap(bulb);
+        compare("The Ruy López suggestion is identified as an AI alternative to the Italian lesson", true,
+                explanation.getText().toString().startsWith(lesson.getString(R.string.opening_ai_alternative))
+                        && cell(board, "b5").getContentDescription().toString().contains(lesson.getString(R.string.hint_destination, ""))
+                        && !cell(board, "f1").isSelected());
+        tap(cell(board, "f1"));
+        tap(cell(board, "b5"));
+        compare("Trying the AI alternative leaves the authored lesson at the same move", true,
+                status.getText().toString().startsWith("4 / 12")
+                        && lesson.getString(R.string.opening_off_line).contentEquals(explanation.getText()));
+        View previous = lesson.findViewById(R.id.opening_previous);
+        View next = lesson.findViewById(R.id.opening_next);
+        View practice = lesson.findViewById(R.id.opening_practice);
+        tap(previous);
+        compare("Previous shows exactly the board before Black's second reply", true,
+                status.getText().toString().startsWith("3 / 12")
+                        && "c6".contentEquals(cell(board, "c6").getContentDescription()) && !cell(board, "b8").isEnabled());
+        tap(next);
+        compare("Next returns to the played position without adding another move", true,
+                status.getText().toString().startsWith("4 / 12")
+                        && cell(board, "c6").getContentDescription().toString().contains(lesson.getString(R.string.knight))
+                        && cell(board, "f1").isEnabled());
         tap(status);
         compare("The lesson offers an annotated review of moves already played", true, dialogNode(lesson.getString(R.string.opening_review)) != null);
         tapDialog(lesson.getString(R.string.opening_initial));
@@ -156,10 +180,28 @@ public final class BoardSanity extends Instrumentation {
                 status.getText().toString().contains(lesson.getString(R.string.opening_reviewing))
                         && "e4".contentEquals(cell(board, "e4").getContentDescription()) && !cell(board, "e2").isEnabled()
                         && screenBounds(board).equals(initial) && bulb.isEnabled() && !bulb.isSelected());
-        tap(hint);
-        compare("Back to lesson restores the same live position and move count", true,
+        captureFrame("opening-replay", "The review exposes a separate replay action and both step controls",
+                image -> fullyVisible(practice) && fullyVisible(previous) && fullyVisible(next)
+                        && !previous.isEnabled() && next.isEnabled()
+                        && lesson.getString(R.string.opening_replay).contentEquals(((TextView) practice).getText()));
+        tap(practice);
+        compare("Play from here starts practice on the selected position", true,
+                status.getText().toString().startsWith("0 / 12") && cell(board, "e2").isEnabled()
+                        && hint.isShown() && !previous.isEnabled());
+        tap(next);
+        SystemClock.sleep(650);
+        compare("Forward plays exactly e4 and waits for the next explicit step", true,
+                status.getText().toString().startsWith("1 / 12") && "e5".contentEquals(cell(board, "e5").getContentDescription())
+                        && lesson.getString(R.string.opening_continue).contentEquals(((TextView) practice).getText()));
+        tap(next);
+        compare("Another Forward plays the authored e5 reply and returns the turn to the learner", true,
                 status.getText().toString().startsWith("2 / 12") && cell(board, "g1").isEnabled()
                         && cell(board, "e5").getContentDescription().toString().contains(lesson.getString(R.string.pawn)));
+        tap(previous);
+        runOnMainSync(lesson::onBackPressed);
+        waitForIdleSync();
+        compare("System Back returns from review to the current practice position", true,
+                status.getText().toString().startsWith("2 / 12") && cell(board, "g1").isEnabled() && screenBounds(board).equals(initial));
         runOnMainSync(lesson::onBackPressed);
         waitForIdleSync();
         var returnedCards = (ViewGroup) lesson.findViewById(R.id.opening_catalog);
@@ -167,11 +209,15 @@ public final class BoardSanity extends Instrumentation {
         tapDialog(lesson.getString(R.string.opening_train_black));
         var reversed = (BoardView) awaitOpeningBoard(lesson);
         var blackProgress = (TextView) lesson.findViewById(R.id.opening_progress);
-        deadline = SystemClock.uptimeMillis() + 6000;
-        while (!blackProgress.getText().toString().startsWith("1 / 12") && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        awaitOpeningPly(blackProgress, 1);
         compare("Training as Black flips the board and starts with the scripted White move", true,
                 blackProgress.getText().toString().startsWith("1 / 12") && "h1".equals(coordinate(reversed.getChildAt(0)))
                         && cell(reversed, "e4").getContentDescription().toString().contains(lesson.getString(R.string.pawn)));
+    }
+
+    private void awaitOpeningPly(TextView progress, int ply) {
+        long deadline = SystemClock.uptimeMillis() + 6000;
+        while (!progress.getText().toString().startsWith(ply + " / ") && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
     }
 
     private static boolean catalogScrolled(Bitmap before, Bitmap after, Rect area) {

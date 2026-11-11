@@ -8,7 +8,6 @@ import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.MatchSetup.ColorChoice;
 import ro.atf.chess.MatchSetup.Level;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
@@ -29,7 +28,8 @@ class MatchSetupTest {
                 List.of(resumed.setup(), resumed.ply(), resumed.awaitingBot(), resumed.position().turn()));
         check.same("A legacy checkpoint still resumes as White with Basic", new MatchSetup(Side.WHITE, Level.BASIC, true),
                 ChessMatch.restore("2|analysis|e2e4").setup());
-        assertThrows(IllegalArgumentException.class, () -> ChessMatch.restore("3|BLACK|HARD|yes|e2e4"));
+        check.rejects("A malformed saved analysis option is rejected", IllegalArgumentException.class,
+                () -> ChessMatch.restore("3|BLACK|HARD|yes|e2e4"));
     }
 
     @Test void theThreeLevelsReachDifferentCompletedHorizonsOnTheSamePosition(Checks check) {

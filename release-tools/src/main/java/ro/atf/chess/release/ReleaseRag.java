@@ -16,6 +16,10 @@ public final class ReleaseRag {
     private static final Route RELEASE = new Route("release-tools/", "docs/release/README.md", "## Calificare și publicare", "ReleaseGovernanceTest");
     private static final List<Route> ROUTES = List.of(
             new Route("chess-core/", "docs/testing/README.md", "## Motor și proiecție", "ChessComponentTest și QuestCatalogTest"),
+            ai("chess-core/src/main/resources/ai-repertoire.yaml"),
+            ai("chess-core/src/main/resources/match-ai.yaml"),
+            ai("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java"),
+            ai("chess-core/src/main/java/ro/atf/chess/ChessMatch.java"),
             new Route("chess-core/src/main/java/ro/atf/chess/ChessMatch.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
             new Route("chess-core/src/main/resources/mate-in-three.yaml", "docs/board/quest-curation.md", "## Mat în trei mutări", "MateInThreeCatalogTest și verify-mate-in-three.cjs"),
             new Route("chess-core/src/main/resources/tactics.yaml", "docs/testing/README.md", "## Tactică și punctaj", "TacticsCatalogTest și verify-tactics.cjs"),
@@ -23,7 +27,11 @@ public final class ReleaseRag {
             new Route("android/", "docs/testing/README.md", "## Sanity Android", "BoardSanity"),
             new Route("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
             new Route("android/app/src/main/java/ro/atf/chess/android/BoardView.java", "docs/testing/README.md", "## Proba TalkBack", "QuestHintTest, BoardSanity și proba TalkBack"),
-            new Route("atf-tests/", "docs/testing/README.md", "## Raportare Extent", "ChessComponentTest și ReleaseGovernanceTest"),
+            openings("chess-core/src/main/java/ro/atf/chess/OpeningLesson.java"),
+            openings("android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java"),
+            openings("docs/board/openings.md"),
+            new Route("atf-tests/", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
+            new Route("docs/testing/README.md", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
             new Route("docs/board/", "docs/testing/README.md", "## Motor și proiecție", "BoardPanelLayoutTest și QuestHintTest"),
             new Route("docs/feedback/", "docs/feedback/README.md", "# Feedback · Chess Lab", "Revizuiți criteriile deschise înaintea promovării"),
             new Route("lib/", "lib/README.md", "## Proveniență", "ReleaseGovernanceTest"),
@@ -33,6 +41,15 @@ public final class ReleaseRag {
             new Route("README.md", RELEASE.document(), RELEASE.heading(), RELEASE.check()), RELEASE);
 
     private ReleaseRag() { }
+
+    private static Route ai(String path) {
+        return new Route(path, "docs/board/ai-quality.md", "## Control la fiecare schimbare",
+                "ChessBenchmarkSuite: Stockfish și liga offline");
+    }
+
+    private static Route openings(String path) {
+        return new Route(path, "docs/testing/README.md", "## Deschideri", "OpeningLessonTest și BoardSanity -IncludeOpenings");
+    }
 
     public static List<Citation> retrieve(Path root, List<String> changedPaths) throws IOException {
         var result = new ArrayList<Citation>();

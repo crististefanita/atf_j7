@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -19,6 +20,7 @@ import ro.atf.chess.release.ReleaseEvidence.Suite;
 import ro.atf.chess.release.ReleaseRag;
 
 @AtfComponentTest
+@Tag("governance")
 @ExtendWith(ExtentAudit.class)
 class ReleaseGovernanceTest {
     private static final String SOURCE = "1".repeat(40);
@@ -89,7 +91,7 @@ class ReleaseGovernanceTest {
     }
 
     @Test void rootReadmeLeadsToTheVersionDeclaredByAndroid(Checks check) throws IOException {
-        Path root = Path.of("").toAbsolutePath();
+        Path root = ProjectRoot.locate();
         String gradle = Files.readString(root.resolve("android/app/build.gradle"));
         var version = java.util.regex.Pattern.compile("(?m)^\\s*versionName '([0-9]+\\.[0-9]+\\.[0-9]+)'$").matcher(gradle);
         if (!version.find()) throw new IOException("Missing Android versionName");
@@ -104,7 +106,7 @@ class ReleaseGovernanceTest {
     }
 
     @Test void ragRetrievesOnlyAffectedGuidanceAndVerifiesTheAnchor(Checks check) throws IOException {
-        Path root = Path.of("").toAbsolutePath();
+        Path root = ProjectRoot.locate();
         var citations = ReleaseRag.retrieve(root, List.of("android/app/src/main/AndroidManifest.xml", "README.md"));
         check.same("Two affected contracts cited", List.of("## Sanity Android", "## Calificare și publicare"), citations.stream().map(ReleaseRag.Citation::heading).toList());
         check.same("The cited document bytes match their hash", ReleaseEvidence.digest(root.resolve(citations.getFirst().path())), citations.getFirst().sha256());
@@ -132,6 +134,32 @@ class ReleaseGovernanceTest {
         Files.writeString(missing, "# No known anchor");
         check.same("A missing anchor fails with the source", "Missing citation anchor: docs/testing/README.md ## Sanity Android",
                 decision(() -> ReleaseRag.retrieve(folder, List.of("android/app/build.gradle"))));
+    }
+
+    @Test void ragCitesTheAiProtocolForEachEngineInputAndKeepsReadmeFocused(Checks check) throws IOException {
+        var root = ProjectRoot.locate();
+        var aiPaths = List.of("chess-core/src/main/resources/ai-repertoire.yaml", "chess-core/src/main/resources/match-ai.yaml",
+                "chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java", "chess-core/src/main/java/ro/atf/chess/ChessMatch.java");
+        for (String source : aiPaths) {
+            var citations = ReleaseRag.retrieve(root, List.of(source));
+            var ai = citations.stream().filter(citation -> citation.path().equals("docs/board/ai-quality.md")).toList();
+            check.same(source + " cites the Stockfish and league protocol", List.of("ChessBenchmarkSuite: Stockfish și liga offline"),
+                    ai.stream().map(ReleaseRag.Citation::check).toList());
+        }
+        check.same("A multi-file AI diff cites the protocol once", 1L,
+                ReleaseRag.retrieve(root, aiPaths).stream().filter(citation -> citation.path().equals("docs/board/ai-quality.md")).count());
+        check.same("A root README-only change cites just the release workflow", List.of("docs/release/README.md"),
+                ReleaseRag.retrieve(root, List.of("README.md")).stream().map(ReleaseRag.Citation::path).toList());
+    }
+
+    @Test void openingNavigationRoutesToItsSignedSanityAndComponentTest(Checks check) throws IOException {
+        var paths = List.of("chess-core/src/main/java/ro/atf/chess/OpeningLesson.java",
+                "android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java", "docs/board/openings.md");
+        var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths).stream()
+                .filter(citation -> citation.heading().equals("## Deschideri")).toList();
+        check.same("Opening changes cite the component and Android release tests once",
+                List.of("OpeningLessonTest și BoardSanity -IncludeOpenings"),
+                citations.stream().map(ReleaseRag.Citation::check).toList());
     }
 
     private Suite suite(String name, String installedApk) throws IOException {

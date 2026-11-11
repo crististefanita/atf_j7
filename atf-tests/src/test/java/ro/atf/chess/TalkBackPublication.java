@@ -9,9 +9,11 @@ import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Publishes an explicit emulator probe without changing the release qualification reports. */
+@Tag("native-evidence")
 class TalkBackPublication {
     private static final Pattern SPEECH = Pattern.compile(".* I/J7TtsProbe\\(\\s*\\d+\\): (REQUEST|SPOKEN) (.*)");
     private static final Pattern FOCUS = Pattern.compile(".* I/J7FocusProbe\\(\\s*\\d+\\): FOCUS \\[(.*)] (.*)");

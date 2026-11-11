@@ -14,9 +14,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Explicit publisher for a captured Android instrumentation run. */
+@Tag("native-evidence")
 class AndroidSanityPublication {
     private static final Pattern CHECK = Pattern.compile("^INSTRUMENTATION_RESULT: check_(\\d{2})=(.*)$");
 
@@ -34,17 +36,18 @@ class AndroidSanityPublication {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-openings.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var evidence = readPhase(receipt, "openings", 15);
+        var evidence = readPhase(receipt, "openings", 24);
         var frames = List.of(new Frame("opening-catalog.png", "Opening catalog · first lessons"),
                 new Frame("opening-catalog-end.png", "Opening catalog · last lessons"),
                 new Frame("opening-hint.png", "Theory arrow and move explanation"),
-                new Frame("opening-ai.png", "Independent AI analysis in an opening lesson"));
+                new Frame("opening-ai.png", "Independent AI analysis in an opening lesson"),
+                new Frame("opening-replay.png", "Review with previous, next and play from here"));
         boolean complete = evidence.passed() && frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
         var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
              var scenario = session.startScenario("BoardSanity", "Study the Italian opening on Android", List.of("e2e", "android", "openings"));
              var phase = scenario.startPhase("TEST BODY")) {
-            publish(phase, "Choose a color, practise the line and consult the AI", evidence.rows(), evidence.passed());
+            publish(phase, "Choose a color, use the hints, step through the line and replay", evidence.rows(), evidence.passed());
             for (var frame : frames) {
                 Path image = receipt.resolveSibling(frame.file());
                 if (isPng(image)) {
@@ -157,9 +160,11 @@ class AndroidSanityPublication {
         }
     }
 
-    private record PhaseEvidence(String pid, List<AtfAssertion> rows, boolean passed) { }
+    record PhaseEvidence(String pid, List<AtfAssertion> rows, boolean passed) {
+        PhaseEvidence { rows = List.copyOf(rows); }
+    }
 
-    private static PhaseEvidence readPhase(Path receipt, String phase, int expectedChecks) throws IOException {
+    static PhaseEvidence readPhase(Path receipt, String phase, int expectedChecks) throws IOException {
         if (!Files.isRegularFile(receipt)) return new PhaseEvidence("", List.of(receiptFailure(phase, "Missing native receipt")), false);
         var input = Files.readAllLines(receipt);
         var rows = new ArrayList<AtfAssertion>();
@@ -169,25 +174,32 @@ class AndroidSanityPublication {
             if (!match.matches()) continue;
             var fields = match.group(2).split("\t", -1);
             int id = Integer.parseInt(match.group(1));
-            if (fields.length == 4 && ids.add(id) && (fields[3].equals("true") || fields[3].equals("false"))) {
+            if (fields.length == 4 && !fields[0].isBlank() && (fields[3].equals("true") || fields[3].equals("false")) && ids.add(id)) {
                 rows.add(new AtfAssertion(fields[0], fields[1], fields[2], Boolean.parseBoolean(fields[3]) && fields[1].equals(fields[2])));
             }
         }
         long rawChecks = input.stream().filter(line -> line.startsWith("INSTRUMENTATION_RESULT: check_")).count();
-        String pidPrefix = "INSTRUMENTATION_RESULT: pid=";
-        var pids = input.stream().filter(line -> line.startsWith(pidPrefix)).map(line -> line.substring(pidPrefix.length())).toList();
+        var pids = markerValues(input, "INSTRUMENTATION_RESULT: pid=");
+        var phases = markerValues(input, "INSTRUMENTATION_RESULT: phase=");
+        var results = markerValues(input, "INSTRUMENTATION_RESULT: result=");
+        var codes = markerValues(input, "INSTRUMENTATION_CODE: ");
         String pid = pids.size() == 1 && pids.getFirst().matches("[1-9][0-9]*") ? pids.getFirst() : "";
-        boolean passed = input.contains("INSTRUMENTATION_RESULT: phase=" + phase)
-                && input.contains("INSTRUMENTATION_RESULT: result=PASS") && input.contains("INSTRUMENTATION_CODE: -1")
-                && rawChecks == expectedChecks && ids.size() == expectedChecks
+        boolean passed = !pid.isEmpty() && phases.equals(List.of(phase)) && results.equals(List.of("PASS")) && codes.equals(List.of("-1"))
+                && rawChecks == expectedChecks && rows.size() == expectedChecks
                 && ids.stream().allMatch(id -> id >= 1 && id <= expectedChecks) && rows.stream().allMatch(AtfAssertion::passed);
         if (!passed) {
-            String prefix = "INSTRUMENTATION_RESULT: diagnostic=";
-            String diagnostic = input.stream().filter(line -> line.startsWith(prefix)).map(line -> line.substring(prefix.length()))
-                    .findFirst().orElse("Expected " + expectedChecks + " passing checks and a successful result, received " + rawChecks + " checks");
+            var diagnostics = markerValues(input, "INSTRUMENTATION_RESULT: diagnostic=");
+            String diagnostic = diagnostics.isEmpty()
+                    ? "Phase " + phases + ", result " + results + ", code " + codes + ", PID " + pids
+                            + ", valid checks " + rows.size() + "/" + expectedChecks + " from " + rawChecks + " native rows"
+                    : String.join(" · ", diagnostics);
             rows.add(receiptFailure(phase, diagnostic));
         }
         return new PhaseEvidence(pid, rows, passed);
+    }
+
+    private static List<String> markerValues(List<String> lines, String prefix) {
+        return lines.stream().filter(line -> line.startsWith(prefix)).map(line -> line.substring(prefix.length())).toList();
     }
 
     private static AtfAssertion receiptFailure(String phase, String diagnostic) {

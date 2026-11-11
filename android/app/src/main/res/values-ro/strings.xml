@@ -8,6 +8,7 @@
     <string name="opening_progress_label">%1$d / %2$d · %3$s</string>
     <string name="opening_your_turn">Rândul tău</string>
     <string name="opening_book_reply">Replica din lecție</string>
+    <string name="opening_reply_paused">Replica în așteptare</string>
     <string name="opening_complete">Linie parcursă</string>
     <string name="opening_hint">Indiciu lecție</string>
     <string name="opening_show_move">Arată mutarea</string>
@@ -17,10 +18,15 @@
     <string name="opening_ai_enabled">Ascunde AI</string>
     <string name="opening_off_line">Mutarea este legală. Încearcă să urmezi continuarea din lecție.</string>
     <string name="opening_hint_piece">Încearcă să muți piesa %1$s.</string>
+    <string name="opening_hint_move">Mutarea din lecție %1$s · %2$s</string>
+    <string name="opening_ai_alternative">Variantă AI · folosește Indiciu lecție pentru linia predată.</string>
     <string name="opening_review">Vezi mutările jucate</string>
     <string name="opening_reviewing">Revizuire</string>
     <string name="opening_initial">Poziția inițială</string>
-    <string name="opening_resume">Înapoi la lecție</string>
+    <string name="opening_previous_move">Mutarea anterioară</string>
+    <string name="opening_next_move">Mutarea următoare</string>
+    <string name="opening_replay">Rejoacă de aici</string>
+    <string name="opening_continue">Continuă lecția</string>
     <string name="menu_play">Partide</string>
     <string name="menu_puzzles">Probleme</string>
     <string name="profile_title">Profil</string>

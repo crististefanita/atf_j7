@@ -8,6 +8,7 @@
     <string name="opening_progress_label">%1$d / %2$d · %3$s</string>
     <string name="opening_your_turn">Your move</string>
     <string name="opening_book_reply">Book reply</string>
+    <string name="opening_reply_paused">Book reply paused</string>
     <string name="opening_complete">Line complete</string>
     <string name="opening_hint">Lesson hint</string>
     <string name="opening_show_move">Show move</string>
@@ -17,10 +18,15 @@
     <string name="opening_ai_enabled">Hide AI</string>
     <string name="opening_off_line">That move is legal. Try the continuation for this lesson.</string>
     <string name="opening_hint_piece">Try moving the %1$s.</string>
+    <string name="opening_hint_move">Lesson move %1$s · %2$s</string>
+    <string name="opening_ai_alternative">AI alternative · use Lesson hint for the taught line.</string>
     <string name="opening_review">Review played moves</string>
     <string name="opening_reviewing">Review</string>
     <string name="opening_initial">Starting position</string>
-    <string name="opening_resume">Back to lesson</string>
+    <string name="opening_previous_move">Previous move</string>
+    <string name="opening_next_move">Next move</string>
+    <string name="opening_replay">Play from here</string>
+    <string name="opening_continue">Resume lesson</string>
     <string name="menu_play">Games</string>
     <string name="menu_puzzles">Puzzles</string>
     <string name="profile_title">Profile</string>

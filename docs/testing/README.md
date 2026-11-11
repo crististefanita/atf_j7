@@ -44,23 +44,40 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/tactics.yaml chess-core/src/main/resources/tactics.sha256
 ```
 
+## Suite JVM
+
+| Intrare JUnit | Ce verifică |
+|---|---|
+| `ChessComponentSuite` | Regulile, pozițiile și problemele, progresul, partida, deschiderile, indiciile și geometria verificată în JVM. Rulează offline. |
+| `ChessGovernanceSuite` | Inventarul suitelor, rezultatele și diagnosticul din Extent, legăturile locale din documentație, politica AI și calificarea release-ului. |
+| `ChessBenchmarkSuite` | Stockfish, liga offline și ancora Elo. Fiecare probă pornește când primește intrările documentate. |
+| `ChessJvmSuite` | Intrarea Maven implicită. Reunește cele trei selecții într-un raport. |
+
+Din copia TMP, cu JDK 21 și Maven:
+
+```powershell
+mvn test '-Dmaven.repo.local=target/maven-repo' '-Dchess.extent=target/jvm.html'
+mvn test '-Dtest=ChessComponentSuite' '-Dchess.extent=target/components.html'
+mvn test '-Dtest=ChessGovernanceSuite' '-Dchess.extent=target/governance.html'
+```
+
+În IDE, porniți clasa suitei ca test JUnit. Pentru un singur caz, folosiți clasa sau metoda direct, de exemplu `-Dtest=ChessMatchTest#historyPreservesCastlingAndEnPassant`. Folosiți un fișier Extent nou la fiecare lansare. Pentru un raport cumulat, porniți `ChessJvmSuite`. [Intrările JUnit](../../atf-tests/src/test/java/ro/atf/chess/suites)
+
+JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Configurarea Stockfish, a ligii și a ancorei Elo](../board/ai-quality.md#control-la-fiecare-schimbare)
+
+`SuiteGovernanceTest` compară planurile descoperite de JUnit. Fiecare metodă JVM cu audit aparține unei singure suite primare. Publicarea recepțiilor Android și TalkBack are intrări explicite. `DocumentationGovernanceTest` verifică fișierele și ancorele Markdown locale, inclusiv cele din feedback.
+
 ## Raportare Extent
 
 `MatchAiGovernanceTest` verifică limitele YAML, iar `MatchHintTest` verifică pragul, limita de cinci și un mat găsit la adâncime mai mare, inclusiv în partida configurată pe Basic. `MatchMaterialTest` acoperă capturile, en passant, promovarea și reluarea. Pentru comparația cu Stockfish 19, folosiți suita separată și același set de poziții la fiecare revizie. [Protocol și comenzi](../board/ai-quality.md)
 
 `MatchSetupTest` acoperă decizia Hard în Franceză și Scandinavă în bugetul existent. `MatchEvaluationTest` verifică estimarea poziției, ordinea indiciilor și scorurile terminale. Benchmarkul cu Stockfish compară separat pierderea mutărilor Hard și eroarea numerică a barei, pe poziții suplimentare fixate în YAML. [Pozițiile de calibrare](../../atf-tests/src/test/resources/opening-calibration.yaml)
 
-`AiLeagueComponentTest` verifică perechile cu culori inversate, transpozițiile duplicate, intervalul partidelor neterminate și finalurile elementare. `AiLeagueBenchmarkTest` și `AiAnchorBenchmarkTest` rulează la cerere în TMP și scriu rejucarea UCI plus raportul Extent. [Comenzile și interpretarea Elo](../board/ai-quality.md#liga-offline)
+`AiOpeningRegressionTest` verifică repertoriul Pirc și Benoni, transpoziția, ieșirea Hard din ciclul Alehină și remiza disponibilă apărării. `AiLeagueComponentTest` verifică perechile cu culori inversate, transpozițiile duplicate, intervalul partidelor neterminate și finalurile elementare. Probele opționale scriu rejucarea UCI și raportul Extent. [Comenzile și interpretarea Elo](../board/ai-quality.md#liga-offline)
 
 `TacticalAnalysisTest` compară o captură înainte și după recaptură, două câștiguri egale și un mat care devine vizibil abia la al treilea pas. Pozițiile din partida italiană verifică alegerea unei replici superioare primei mutări generate și evitarea unui mat imediat. Raportul de componente păstrează linia și câștigul așteptat ca aserțiuni.
 
-Din copia TMP, cu JDK 21 și Maven:
-
-```powershell
-mvn test '-Dmaven.repo.local=target/maven-repo' '-Dchess.extent=target/components.html'
-```
-
-Aceeași extensie JUnit publică aserțiunile reale într-o secțiune colapsabilă atât la rularea întregii colecții, cât și la rularea unei metode prin `-Dtest`. Rapoartele pot fi inspectate fără XML-urile intermediare. `ReleaseGovernanceTest` verifică refuzurile pentru commit, rapoarte, README și APK nepotrivite.
+În Extent, deschideți scenariul și **Assertions** pentru a vedea valorile așteptate, valorile observate și rezultatul fiecărei comparații. Extensia măsoară execuția de la setup la teardown, apoi publică starea și diagnosticul JUnit. `ExtentGovernanceTest` rulează cazuri deliberate de PASS, FAIL și SKIP și verifică HTML-ul produs. `ReleaseGovernanceTest` verifică refuzurile pentru commit, rapoarte, README și APK nepotrivite.
 
 ## Sanity Android
 
@@ -72,21 +89,27 @@ Din aceeași copie TMP, setați `ANDROID_HOME` către SDK 36 și construiți `:a
 
 Folosiți registrul comun de rezervare pe dispozitivele partajate.
 
+1. Prima instrumentare verifică meniul, culoarea, cele două trepte ale becului și încadrarea în română la font 1,3×. În Tactică rezolvă două poziții și verifică flacăra, bonusul și totalurile. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
+2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, deblocarea comenzii **Următoarea**, pragul de cinci rezolvări și restaurarea poziției și punctelor în Tactică.
+3. Extent cere PID-uri distincte, aserțiunile celor cinci faze și zece capturi PNG. Raportul include meniul, indiciile, flacăra, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
+
+La modificarea instrumentării, sincronizați numărul de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt`.
+
+`AndroidReceiptTest` verifică offline importul recepției native. O fază trece cu un singur verdict PASS, un cod de succes, un PID valid și toate aserțiunile așteptate. Marcajele contradictorii și valorile neconcordante apar ca FAIL.
+
 ## Deschideri
 
-`OpeningCatalogTest` parcurge toate liniile cu ambele culori, respinge mutările ilegale, liniile duplicate și sursele înșelătoare. `MatchAiGovernanceTest` verifică dacă fiecare lecție are o poziție înghețată pentru comparația cu Stockfish. Pe Android, rulați sanity cu `-OpeningsOnly`. Proba ajunge la ultima lecție prin derulare, exersează începutul Italienei și verifică analiza unei poziții istorice, revenirea la lecție și schimbarea culorii.
+`OpeningCatalogTest` verifică liniile, alternarea culorilor și validarea catalogului. `OpeningLessonTest` verifică navigarea prin toate liniile cu ambele culori, o singură semimutare la fiecare apăsare, pauza replicii și rejucarea din istoric. `MatchAiGovernanceTest` verifică pozițiile de comparație cu Stockfish pentru fiecare lecție.
+
+Pe Android, rulați sanity cu `-OpeningsOnly`. Proba joacă destinația indicată în Italiană și sugestia AI compatibilă cu lecția. Verifică mesajul pentru varianta spaniolă sugerată de AI, navigarea în ambele sensuri, rejucarea dintr-o poziție anterioară și tabla orientată pentru negru.
 
 ```powershell
 mvn test '-Dtest=AndroidSanityPublication#publishOpeningSanity' "-Dchess.android.receipt=$receipt"
 ```
 
-Setați `$receipt` la `openings.txt` din dosarul TMP tipărit de runner. Raportul include aserțiunile native și cadrele de la ambele capete ale catalogului, indiciului și analizei.
+Setați `$receipt` la `openings.txt` din dosarul TMP tipărit de runner. Raportul include aserțiunile native și cadrele pentru catalog, indiciu, analiză și rejucare.
 
-1. Prima instrumentare verifică meniul, culoarea, cele două trepte ale becului și încadrarea în română la font 1,3×. În Tactică rezolvă două poziții și verifică afișarea flăcării, a bonusului și a totalurilor. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
-2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, deblocarea comenzii **Următoarea**, pragul de cinci rezolvări și restaurarea poziției și punctelor în Tactică.
-3. Extent cere PID-uri distincte, aserțiunile celor cinci faze și zece capturi PNG. Raportul include meniul, indiciile, flacăra, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
-
-La modificarea instrumentării, sincronizați numărul exact de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt`.
+Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <sha>`. Proba folosește același APK instalat ca sanity-ul de bază și salvează recepția și capturile în subdirectorul `openings`.
 
 ## Partidă și istoric
 

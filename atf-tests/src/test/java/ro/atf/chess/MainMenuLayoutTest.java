@@ -12,7 +12,7 @@ import org.w3c.dom.Element;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class MainMenuLayoutTest {
-    private static final Path RES = Path.of("android/app/src/main/res");
+    private static final Path RES = ProjectRoot.locate().resolve("android/app/src/main/res");
 
     @Test void offersChaptersAndLocalPlayInBothLanguages(Checks check) throws Exception {
         var home = read("layout/main_menu.xml");

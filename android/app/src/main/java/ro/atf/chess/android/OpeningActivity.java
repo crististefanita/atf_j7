@@ -27,6 +27,7 @@ import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.OpeningCatalog;
 import ro.atf.chess.OpeningCatalog.Opening;
 import ro.atf.chess.OpeningCatalog.Text;
+import ro.atf.chess.OpeningLesson;
 import ro.atf.chess.OpeningPractice;
 import ro.atf.chess.OpeningPractice.Phase;
 import ro.atf.chess.QuestHint;
@@ -39,13 +40,16 @@ public final class OpeningActivity extends Activity {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Runnable bookReply = this::playReply;
     private List<Opening> catalog;
-    private OpeningPractice practice;
+    private OpeningLesson lesson;
     private BoardView board;
     private TextView top;
     private TextView bottom;
     private TextView progress;
     private TextView message;
+    private Button previousButton;
+    private Button nextButton;
     private Button hintButton;
+    private Button practiceButton;
     private Button aiButton;
     private MatchAnalysisView analysis;
     private boolean resumed;
@@ -53,7 +57,6 @@ public final class OpeningActivity extends Activity {
     private boolean offLine;
     private QuestHint theoryHint = QuestHint.NONE;
     private int selected = -1;
-    private int reviewPly = -1;
     private List<Move> targets = List.of();
 
     @Override protected void onCreate(Bundle state) {
@@ -64,10 +67,11 @@ public final class OpeningActivity extends Activity {
             String id = state.getString("opening");
             int ply = state.getInt("ply");
             for (var opening : catalog) if (opening.id().equals(id) && ply >= 0 && ply <= opening.steps().size()) {
-                begin(new OpeningPractice(opening, state.getBoolean("black") ? Side.BLACK : Side.WHITE, ply),
-                        state.getBoolean("analysis"));
+                var practice = new OpeningPractice(opening, state.getBoolean("black") ? Side.BLACK : Side.WHITE, ply);
                 int savedReview = state.getInt("review", -1);
-                if (savedReview >= 0 && savedReview <= ply) selectReview(savedReview);
+                int shown = savedReview >= 0 && savedReview <= ply ? savedReview : ply;
+                boolean paused = state.getBoolean("replyPaused") && practice.phase() == Phase.REPLY;
+                begin(new OpeningLesson(practice, shown, paused), state.getBoolean("analysis"));
                 return;
             }
         }
@@ -88,7 +92,7 @@ public final class OpeningActivity extends Activity {
 
     private void showCatalog() {
         closePractice();
-        practice = null;
+        lesson = null;
         var root = screen();
         root.addView(header(getString(R.string.openings_title)));
         var scroll = new ScrollView(this);
@@ -130,8 +134,8 @@ public final class OpeningActivity extends Activity {
     private void overview(Opening opening) {
         new AlertDialog.Builder(this).setTitle(localized(opening.title()))
                 .setMessage(localized(opening.variation()) + "\n\n" + localized(opening.plan()))
-                .setPositiveButton(R.string.opening_train_white, (dialog, which) -> begin(new OpeningPractice(opening, Side.WHITE, 0), false))
-                .setNegativeButton(R.string.opening_train_black, (dialog, which) -> begin(new OpeningPractice(opening, Side.BLACK, 0), false))
+                .setPositiveButton(R.string.opening_train_white, (dialog, which) -> begin(start(opening, Side.WHITE), false))
+                .setNegativeButton(R.string.opening_train_black, (dialog, which) -> begin(start(opening, Side.BLACK), false))
                 .setNeutralButton(R.string.opening_source, (dialog, which) -> {
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(opening.source().toString())));
@@ -141,22 +145,20 @@ public final class OpeningActivity extends Activity {
                 }).show();
     }
 
-    private void begin(OpeningPractice next, boolean enableAi) {
+    private static OpeningLesson start(Opening opening, Side learner) {
+        return new OpeningLesson(new OpeningPractice(opening, learner, 0));
+    }
+
+    private void begin(OpeningLesson next, boolean enableAi) {
         closePractice();
-        practice = next;
+        lesson = next;
         aiEnabled = enableAi;
-        reviewPly = -1;
         clearSelection();
         theoryHint = QuestHint.NONE;
         offLine = false;
         var root = screen();
-        root.addView(header(localized(next.opening().title())));
-        progress = text("", 13, ACCENT);
-        progress.setId(R.id.opening_progress);
-        progress.setGravity(Gravity.CENTER);
-        progress.setPadding(0, dp(3), 0, dp(4));
-        progress.setOnClickListener(view -> review());
-        root.addView(progress);
+        root.addView(header(localized(next.practice().opening().title())));
+        root.addView(navigation());
 
         var workspace = new LinearLayout(this);
         boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
@@ -166,12 +168,8 @@ public final class OpeningActivity extends Activity {
         bottom = seat();
         board = new BoardView(this, this::tap);
         board.setId(R.id.opening_board);
-        analysis = new MatchAnalysisView(this, this::notation, () -> {
-            theoryHint = QuestHint.NONE;
-            offLine = false;
-            render();
-        });
-        analysis.evaluationBar().setBlackBelow(next.learner() == Side.BLACK);
+        analysis = new MatchAnalysisView(this, this::notation, this::showAiHint);
+        analysis.evaluationBar().setBlackBelow(next.practice().learner() == Side.BLACK);
         var panel = new BoardPanel(this, top, board, bottom, analysis.evaluationBar());
         workspace.addView(panel, landscape ? new LinearLayout.LayoutParams(0, -1, 1)
                 : new LinearLayout.LayoutParams(-1, 0, 1));
@@ -186,6 +184,33 @@ public final class OpeningActivity extends Activity {
         setContentView(root);
         render();
         scheduleReply();
+    }
+
+    private LinearLayout navigation() {
+        var row = new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(10), 0, dp(10), 0);
+        previousButton = arrow(R.id.opening_previous, R.string.opening_previous_move, "‹",
+                () -> navigate(lesson.show(lesson.shownPly() - 1)));
+        nextButton = arrow(R.id.opening_next, R.string.opening_next_move, "›", () -> navigate(lesson.forward()));
+        progress = text("", 13, ACCENT);
+        progress.setId(R.id.opening_progress);
+        progress.setGravity(Gravity.CENTER);
+        progress.setOnClickListener(view -> review());
+        row.addView(previousButton, new LinearLayout.LayoutParams(dp(48), -2));
+        row.addView(progress, new LinearLayout.LayoutParams(0, -1, 1));
+        row.addView(nextButton, new LinearLayout.LayoutParams(dp(48), -2));
+        return row;
+    }
+
+    private Button arrow(int id, int description, String glyph, Runnable action) {
+        var arrow = button(description);
+        arrow.setId(id);
+        arrow.setText(glyph);
+        arrow.setTextSize(24);
+        arrow.setContentDescription(getString(description));
+        arrow.setOnClickListener(view -> action.run());
+        return arrow;
     }
 
     private LinearLayout controls() {
@@ -205,14 +230,21 @@ public final class OpeningActivity extends Activity {
         hintButton = button(R.string.opening_hint);
         hintButton.setId(R.id.opening_theory_hint);
         hintButton.setOnClickListener(view -> theory());
+        practiceButton = button(R.string.opening_replay);
+        practiceButton.setId(R.id.opening_practice);
+        practiceButton.setOnClickListener(view -> practiceAction());
         aiButton = button(R.string.opening_ai);
         aiButton.setId(R.id.opening_toggle_ai);
         aiButton.setOnClickListener(view -> {
             aiEnabled = !aiEnabled;
-            if (!aiEnabled) analysis.cancel();
+            if (!aiEnabled) {
+                if (analysis.revealedMove() != null) clearSelection();
+                analysis.cancel();
+            }
             render();
         });
         actions.addView(hintButton, new LinearLayout.LayoutParams(0, -2, 1));
+        actions.addView(practiceButton, new LinearLayout.LayoutParams(0, -2, 1));
         actions.addView(aiButton, new LinearLayout.LayoutParams(0, -2, 1));
         actions.addView(analysis.bulb());
         controls.addView(actions, new LinearLayout.LayoutParams(-1, -2));
@@ -220,23 +252,50 @@ public final class OpeningActivity extends Activity {
     }
 
     private void theory() {
-        if (reviewPly >= 0) {
-            selectReview(-1);
-            return;
-        }
-        if (practice.phase() == Phase.COMPLETE) {
-            begin(new OpeningPractice(practice.opening(), practice.learner(), 0), aiEnabled);
-            return;
-        }
-        if (practice.phase() != Phase.LEARNER) return;
+        if (!lesson.canPlay()) return;
         theoryHint = theoryHint == QuestHint.SOLUTION ? QuestHint.NONE : theoryHint.advance();
         offLine = false;
         analysis.hideSuggestion();
+        clearSelection();
+        if (theoryHint == QuestHint.SOLUTION) selectPiece(practice().next().move().from());
         render();
     }
 
+    private void practiceAction() {
+        if (lesson.reviewing()) navigate(lesson.replay());
+        else if (lesson.replyPaused()) navigate(lesson.resume());
+        else if (practice().phase() == Phase.COMPLETE) navigate(start(practice().opening(), practice().learner()));
+    }
+
+    private void showAiHint() {
+        theoryHint = QuestHint.NONE;
+        offLine = false;
+        clearSelection();
+        var guided = guidedMove();
+        if (guided != null) selectPiece(guided.from());
+        render();
+    }
+
+    private Move guidedMove() {
+        if (!lesson.canPlay()) return null;
+        var expected = practice().next().move();
+        return theoryHint == QuestHint.SOLUTION || expected.equals(analysis.revealedMove()) ? expected : null;
+    }
+
     private void tap(int square) {
-        if (reviewPly >= 0 || practice.phase() != Phase.LEARNER) return;
+        if (!lesson.canPlay()) return;
+        var guided = guidedMove();
+        if (guided != null && (selected < 0 || selected == guided.from())) {
+            if (square == guided.to()) {
+                tryMove(guided);
+                return;
+            }
+            if (square == guided.from()) {
+                selectPiece(square);
+                render();
+                return;
+            }
+        }
         if (selected >= 0 && selected != square) {
             var choices = targets.stream().filter(move -> move.to() == square).collect(java.util.stream.Collectors.toList());
             if (choices.size() == 1) {
@@ -249,20 +308,18 @@ public final class OpeningActivity extends Activity {
                 return;
             }
         }
-        var piece = practice.position().pieceAt(square);
-        if (selected == square || piece == null || piece.side() != practice.learner()) clearSelection();
-        else {
-            selected = square;
-            targets = practice.position().legalMovesFrom(square);
-        }
+        var piece = practice().position().pieceAt(square);
+        if (selected == square || piece == null || piece.side() != practice().learner()) clearSelection();
+        else selectPiece(square);
         render();
     }
 
     private void tryMove(Move move) {
-        var attempt = practice.check(move);
+        if (!lesson.canPlay()) return;
+        var attempt = practice().check(move);
         clearSelection();
         if (attempt == OpeningPractice.Attempt.ON_LINE) {
-            practice = practice.play(move);
+            lesson = lesson.play(move);
             theoryHint = QuestHint.NONE;
             offLine = false;
         } else if (attempt == OpeningPractice.Attempt.OFF_LINE) {
@@ -273,29 +330,33 @@ public final class OpeningActivity extends Activity {
     }
 
     private void playReply() {
-        if (!resumed || practice == null || practice.phase() != Phase.REPLY) return;
-        practice = practice.reply();
+        if (!resumed || lesson == null || !lesson.canAutoReply()) return;
+        lesson = lesson.reply();
         render();
     }
 
     private void scheduleReply() {
         main.removeCallbacks(bookReply);
-        if (resumed && practice.phase() == Phase.REPLY) main.postDelayed(bookReply, 450);
+        if (resumed && lesson.canAutoReply()) main.postDelayed(bookReply, 450);
     }
 
     private void render() {
+        var practice = practice();
         var phase = practice.phase();
-        boolean reviewing = reviewPly >= 0;
-        int ply = reviewing ? reviewPly : practice.ply();
-        boolean playable = !reviewing && phase == Phase.LEARNER;
+        boolean reviewing = lesson.reviewing();
+        int ply = lesson.shownPly();
+        boolean playable = lesson.canPlay();
         progress.setText(getString(R.string.opening_progress_label, ply, practice.opening().steps().size(),
-                getString(reviewing ? R.string.opening_reviewing : switch (phase) {
+                getString(reviewing ? R.string.opening_reviewing : lesson.replyPaused() ? R.string.opening_reply_paused : switch (phase) {
                     case LEARNER -> R.string.opening_your_turn;
                     case REPLY -> R.string.opening_book_reply;
                     case COMPLETE -> R.string.opening_complete;
                 })));
         progress.setContentDescription(practice.ply() == 0 ? null
                 : progress.getText() + ". " + getString(R.string.opening_review));
+        progress.setClickable(practice.ply() > 0);
+        previousButton.setEnabled(ply > 0);
+        nextButton.setEnabled(ply < practice.opening().steps().size());
         var position = practice.opening().positionAt(ply);
         var learner = practice.learner();
         boolean markTurn = reviewing || phase != Phase.COMPLETE;
@@ -303,8 +364,12 @@ public final class OpeningActivity extends Activity {
         renderSeat(bottom, learner, markTurn && position.turn() == learner);
         message.setText(reviewing ? explanationAt(ply) : messageFor(phase));
         message.setTextColor(offLine ? 0xffffbc78 : PRIMARY);
-        hintButton.setEnabled(reviewing || phase != Phase.REPLY);
-        hintButton.setText(reviewing ? R.string.opening_resume : phase == Phase.COMPLETE ? R.string.opening_retry : switch (theoryHint) {
+        boolean showPracticeAction = reviewing || lesson.replyPaused() || phase == Phase.COMPLETE;
+        practiceButton.setVisibility(showPracticeAction ? View.VISIBLE : View.GONE);
+        practiceButton.setText(reviewing ? R.string.opening_replay : lesson.replyPaused() ? R.string.opening_continue : R.string.opening_retry);
+        hintButton.setVisibility(showPracticeAction ? View.GONE : View.VISIBLE);
+        hintButton.setEnabled(playable);
+        hintButton.setText(switch (theoryHint) {
             case NONE -> R.string.opening_hint;
             case PIECE -> R.string.opening_show_move;
             case SOLUTION -> R.string.opening_hide_hint;
@@ -323,38 +388,47 @@ public final class OpeningActivity extends Activity {
     }
 
     private String messageFor(Phase phase) {
+        var practice = practice();
         if (offLine) return getString(R.string.opening_off_line);
         if (phase == Phase.COMPLETE) return localized(practice.opening().plan());
-        if (phase == Phase.LEARNER && theoryHint == QuestHint.SOLUTION) return localized(practice.next().idea());
+        if (phase == Phase.LEARNER && theoryHint == QuestHint.SOLUTION) {
+            return getString(R.string.opening_hint_move, moveLabel(practice.ply()), localized(practice.next().idea()));
+        }
         if (phase == Phase.LEARNER && theoryHint == QuestHint.PIECE) {
             var piece = practice.position().pieceAt(practice.next().move().from());
             return getString(R.string.opening_hint_piece, getString(BoardView.kindLabel(piece.kind())));
         }
-        return explanationAt(practice.ply());
+        String explanation = explanationAt(practice.ply());
+        Move suggested = analysis.revealedMove();
+        if (phase == Phase.LEARNER && suggested != null && !practice.next().move().equals(suggested)) {
+            return getString(R.string.opening_ai_alternative) + "\n" + explanation;
+        }
+        return explanation;
     }
 
     private void review() {
-        if (practice.ply() == 0 || practice.phase() == Phase.REPLY) return;
-        String[] positions = new String[practice.ply() + 1];
+        if (practice().ply() == 0) return;
+        String[] positions = new String[practice().ply() + 1];
         positions[0] = getString(R.string.opening_initial);
         for (int ply = 1; ply < positions.length; ply++) positions[ply] = explanationAt(ply);
         new AlertDialog.Builder(this).setTitle(R.string.opening_review)
-                .setItems(positions, (dialog, ply) -> selectReview(ply))
+                .setItems(positions, (dialog, ply) -> navigate(lesson.show(ply)))
                 .setNegativeButton(android.R.string.cancel, null).show();
     }
 
-    private void selectReview(int ply) {
-        reviewPly = ply;
+    private void navigate(OpeningLesson next) {
+        lesson = next;
         clearSelection();
         theoryHint = QuestHint.NONE;
         offLine = false;
         analysis.hideSuggestion();
         render();
+        scheduleReply();
     }
 
     private String explanationAt(int ply) {
-        return ply == 0 ? localized(practice.opening().plan())
-                : moveLabel(ply - 1) + " · " + localized(practice.opening().steps().get(ply - 1).idea());
+        return ply == 0 ? localized(practice().opening().plan())
+                : moveLabel(ply - 1) + " · " + localized(practice().opening().steps().get(ply - 1).idea());
     }
 
     private void renderSeat(TextView label, Side side, boolean toMove) {
@@ -411,12 +485,18 @@ public final class OpeningActivity extends Activity {
     }
 
     private void clearSelection() { selected = -1; targets = List.of(); }
+    private void selectPiece(int square) {
+        selected = square;
+        targets = practice().position().legalMovesFrom(square);
+    }
+
+    private OpeningPractice practice() { return lesson.practice(); }
     private int dp(int size) { return Math.round(size * getResources().getDisplayMetrics().density); }
     private String localized(Text value) { return value.in(getResources().getConfiguration().getLocales().get(0)); }
 
     private String moveLabel(int ply) {
         String number = (ply / 2 + 1) + (ply % 2 == 0 ? ". " : "… ");
-        return number + notation(practice.opening().steps().get(ply).move());
+        return number + notation(practice().opening().steps().get(ply).move());
     }
 
     private String notation(Move move) {
@@ -427,8 +507,8 @@ public final class OpeningActivity extends Activity {
     }
 
     private void back() {
-        if (reviewPly >= 0) selectReview(-1);
-        else if (practice != null) showCatalog();
+        if (lesson != null && lesson.reviewing()) navigate(lesson.show(practice().ply()));
+        else if (lesson != null) showCatalog();
         else finish();
     }
 
@@ -437,7 +517,7 @@ public final class OpeningActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         resumed = true;
-        if (practice != null) { render(); scheduleReply(); }
+        if (lesson != null) { render(); scheduleReply(); }
     }
 
     @Override protected void onPause() {
@@ -449,11 +529,13 @@ public final class OpeningActivity extends Activity {
 
     @Override protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
-        if (practice == null) return;
+        if (lesson == null) return;
+        var practice = practice();
         state.putString("opening", practice.opening().id());
         state.putBoolean("black", practice.learner() == Side.BLACK);
         state.putInt("ply", practice.ply());
-        state.putInt("review", reviewPly);
+        state.putInt("review", lesson.shownPly());
+        state.putBoolean("replyPaused", lesson.replyPaused());
         state.putBoolean("analysis", aiEnabled);
     }
 
