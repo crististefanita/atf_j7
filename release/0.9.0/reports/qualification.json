@@ -1,0 +1,61 @@
+{
+  "version": "0.9.0",
+  "versionCode": 12,
+  "sourceCommit": "343faf3e1b7839c9fe7ff73010d49cbe29740f52",
+  "apkBytes": 1020719,
+  "apkSha256": "a4c36a1238a055a39dbdce0f0b957707af3ac7d556913a5cdc618ea2b4f7a7b1",
+  "signingCertificateSha256": "4f15d961364d331531f78348b4aa167ad87ceceac442126ef802a8202a50344f",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "alignment": "PASS",
+  "signature": "PASS",
+  "android": {
+    "device": "127.0.0.1:5555",
+    "api": "28",
+    "apkSha256": "a4c36a1238a055a39dbdce0f0b957707af3ac7d556913a5cdc618ea2b4f7a7b1",
+    "sourceCommit": "343faf3e1b7839c9fe7ff73010d49cbe29740f52",
+    "assertions": 96,
+    "receipts": {
+      "match-prepare": "41f23dd41c38d533ee60e225275e223cf7b88a09e4f17e5aec530e19f5751a1d",
+      "match-restore": "27733b911a3fcd887a43f1e17a0f8b670c6cf4db7c884b06850154d4f853038a",
+      "match-settled": "40c2eed0aa0d476b2ded14dff44a70b6ed1f54d3d1576fdd4ac8f554652e9ec6",
+      "prepare": "2357c70163368dab3c497cfe219f14aa89530f04af70c6ac9926ad63c9b45613",
+      "restore": "a29fdea9f37726700fc2c63758c6e8b905f41ab7b4d1f00ccc96878efc60938f"
+    },
+    "variant": "release",
+    "status": "PASS",
+    "extentSha256": "f170a262d0eddb13c625ae07dcd60922839fad187ec2419f8242d4af86f85883"
+  },
+  "openings": {
+    "status": "PASS",
+    "scope": "openings-only",
+    "device": "127.0.0.1:5555",
+    "api": "28",
+    "apkSha256": "a4c36a1238a055a39dbdce0f0b957707af3ac7d556913a5cdc618ea2b4f7a7b1",
+    "sourceCommit": "343faf3e1b7839c9fe7ff73010d49cbe29740f52",
+    "variant": "release",
+    "assertions": 26,
+    "receiptSha256": "a5c08b8c81c19cc2987834e2973bb1b111f3c614787f06688d5b2345a5d864e5",
+    "extentSha256": "dd1fb576d98c88a471c65997269ed615e5503ef9475e8b64414c27487f62dec5"
+  },
+  "gameReview": {
+    "status": "PASS",
+    "scope": "game-review",
+    "device": "127.0.0.1:5555",
+    "api": "28",
+    "apkSha256": "a4c36a1238a055a39dbdce0f0b957707af3ac7d556913a5cdc618ea2b4f7a7b1",
+    "sourceCommit": "343faf3e1b7839c9fe7ff73010d49cbe29740f52",
+    "variant": "release",
+    "assertions": 9,
+    "receiptSha256": "b875890578e06ba764e718f6098f8c6701fc073b5b5cabe55426a0e471f666cc",
+    "extentSha256": "fbd1b2f3c43006560ae35b7930cfc731acd87fe67915ea8249bb8b4db3ca94c9"
+  },
+  "qualificationGate": "PASS",
+  "zipCrc": "PASS",
+  "components": {
+    "status": "PASS",
+    "skipped": 1,
+    "extentSha256": "b5d67b925d40a55a6f9e6764bce4353576a8c0cc05f94e1e53d149d16f09b577",
+    "passed": 130
+  }
+}
