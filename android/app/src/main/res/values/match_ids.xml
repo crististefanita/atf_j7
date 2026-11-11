@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item name="match_manual_ai" type="id" />
     <item name="match_actions" type="id" />
     <item name="match_open_analysis" type="id" />
     <item name="manual_reset_line" type="id" />
+    <item name="manual_options" type="id" />
     <item name="match_analysis" type="id" />
     <item name="match_status" type="id" />
     <item name="match_hint" type="id" />

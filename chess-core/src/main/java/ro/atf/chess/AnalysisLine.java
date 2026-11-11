@@ -14,6 +14,15 @@ public record AnalysisLine(ChessMatch line, int ply) {
     public Move lastMove() { return line.moveAt(ply); }
     public Result result() { return ply == line.ply() ? line.result() : Result.IN_PROGRESS; }
 
+    public boolean preservesCompletedGame(ChessMatch source) {
+        return source.result() != Result.IN_PROGRESS && line.checkpoint().equals(source.forAnalysis().checkpoint());
+    }
+
+    public ChessMatch resumeMatch(boolean analysisEnabled) {
+        if (result() != Result.IN_PROGRESS) throw new IllegalStateException("Choose a playable study position");
+        return line.continueFrom(ply).withAnalysis(analysisEnabled);
+    }
+
     public AnalysisLine seek(int selectedPly) {
         return selectedPly == ply ? this : new AnalysisLine(line, selectedPly);
     }

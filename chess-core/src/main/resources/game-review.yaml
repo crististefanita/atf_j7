@@ -3,6 +3,23 @@ depth: 5
 extra-nodes: 85000
 score-scale: 220
 minimum-rated-moves: 10
+classification:
+  book-loss-exclusive: 100
+  verified-depth: 4
+  distinct-gap: 100
+  brilliant-played-min: 550
+  brilliant-sacrifice-cp: 200
+  great-winning-best-min: 750
+  great-winning-alternative-exclusive: 700
+  great-recovery-best-min: 450
+  great-recovery-alternative-exclusive: 400
+  miss-previous-loss-min: 100
+  miss-best-min: 750
+  miss-played-max: 550
+  good-loss-min: 20
+  inaccuracy-loss-min: 50
+  mistake-loss-min: 100
+  blunder-loss-min: 200
 # Three paired sessions against Stockfish 19 UCI_Elo 1500, 6000 nodes.
 # The opening-cluster estimates are verified against ai-anchor-observations.yaml.
 opponents:

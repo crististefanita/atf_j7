@@ -64,23 +64,21 @@ public final class TacticalAnalysis {
 
     static ReviewSearch review(ChessPosition position, Move played, Set<Move> draws, MatchAiPolicy.Search policy) {
         var root = new RootSearch(position, draws);
+        var reference = OpeningRepertoire.CURRENT.reviewReply(position);
+        if (reference != null && draws.contains(reference)) reference = null;
         var ranked = analyze(root, MatchAiPolicy.BASE_PLIES, position.legalMoves(), Objective.POSITION).ranked();
-        var result = reviewAt(ranked, played, MatchAiPolicy.BASE_PLIES, null, -LIMIT);
+        var result = reviewAt(root, ranked, played, reference, MatchAiPolicy.BASE_PLIES, -LIMIT);
         var moves = new ArrayList<Move>();
         for (var line : ranked) moves.add(line.move());
         var budget = new SearchBudget(policy.extraNodes(), 1);
         final int window = 180;
         for (int depth = MatchAiPolicy.BASE_PLIES + 1; depth <= policy.maxPlies(); depth++) {
             try {
-                var next = deepen(root, moves, depth, budget, window, Map.of()).ranked();
-                Variation missing = null;
-                if (next.stream().noneMatch(line -> line.move().equals(played))) {
-                    int balance = material(position);
-                    var line = root.line(played, depth, LIMIT, budget, Objective.POSITION, balance);
-                    missing = new Variation(line.moves(), line.score(), line.balance() - balance, line.ending());
-                }
+                var next = new ArrayList<>(deepen(root, moves, depth, budget, window, Map.of()).ranked());
                 var leader = next.get(0);
-                result = reviewAt(next, played, depth, missing, leader.score() - window);
+                completeReviewLine(root, next, played, depth, budget);
+                if (reference != null) completeReviewLine(root, next, reference, depth, budget);
+                result = reviewAt(root, next, played, reference, depth, leader.score() - window);
                 moves.remove(leader.move());
                 moves.add(0, leader.move());
             } catch (BudgetExhausted exhausted) {
@@ -90,14 +88,26 @@ public final class TacticalAnalysis {
         return result;
     }
 
-    private static ReviewSearch reviewAt(List<Variation> ranked, Move played, int depth, Variation fallback, int alternativeFloor) {
-        var chosen = ranked.stream().filter(line -> line.move().equals(played)).findFirst().orElse(fallback);
-        int alternative = ranked.stream().filter(line -> !line.move().equals(played)).findFirst()
-                .map(Variation::score).orElse(alternativeFloor);
+    private static void completeReviewLine(RootSearch root, List<Variation> lines, Move move, int depth, SearchBudget budget) {
+        if (lines.stream().anyMatch(line -> line.move().equals(move))) return;
+        int balance = material(root.position());
+        var line = root.line(move, depth, LIMIT, budget, Objective.POSITION, balance);
+        lines.add(new Variation(line.moves(), line.score(), line.balance() - balance, line.ending()));
+    }
+
+    private static ReviewSearch reviewAt(RootSearch root, List<Variation> ranked, Move played, Move reference, int depth, int alternativeFloor) {
+        var chosen = ranked.stream().filter(line -> line.move().equals(played)).findFirst().orElseThrow();
+        var leader = ranked.get(0);
+        var book = ranked.stream().filter(line -> line.move().equals(reference)).findFirst().orElse(null);
+        boolean useReference = book != null && leader.ending() == Ending.HORIZON && book.ending() == Ending.HORIZON
+                && !root.repetitionOffers().contains(leader.move());
+        var recommendation = useReference ? book : leader;
+        int alternative = ranked.stream().filter(line -> !line.move().equals(played)).mapToInt(Variation::score)
+                .reduce(alternativeFloor, Math::max);
         // Any other proved mate at this depth is within the root score window.
         boolean onlyMate = chosen.signedMatePlies() > 0 && ranked.stream()
                 .noneMatch(line -> !line.move().equals(played) && line.signedMatePlies() > 0);
-        return new ReviewSearch(ranked.get(0), chosen, alternative, depth, onlyMate);
+        return new ReviewSearch(recommendation, chosen, alternative, depth, onlyMate);
     }
 
     static int offeredMaterial(ChessPosition position, Variation variation) {
@@ -116,7 +126,7 @@ public final class TacticalAnalysis {
 
     static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers) {
         boolean hard = level == MatchSetup.Level.HARD;
-        var repertoire = hard && gap == 0 ? OpeningRepertoire.CURRENT.reply(position) : null;
+        var repertoire = gap == 0 ? OpeningRepertoire.CURRENT.reply(position, level) : null;
         var root = new RootSearch(position, repetitionOffers);
         var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
         var base = analyze(root, MatchAiPolicy.BASE_PLIES, moves, Objective.POSITION);
@@ -202,6 +212,11 @@ public final class TacticalAnalysis {
                 int correction = (odd.score() - estimate) / 2;
                 int limit = policy.maxHorizonCorrectionCp();
                 estimate += Math.max(-limit, Math.min(limit, correction));
+                if ((long) even.score() * estimate < 0) {
+                    // A sign reversal needs a second horizon with equal turns.
+                    var confirmation = search(position, 4, 0, -LIMIT, LIMIT, budget, Objective.POSITION);
+                    if (confirmation.ending() == Ending.HORIZON) estimate = (even.score() + confirmation.score()) / 2;
+                }
             }
         } catch (BudgetExhausted exhausted) {
             // Keep the last complete estimate when the display budget is used up.

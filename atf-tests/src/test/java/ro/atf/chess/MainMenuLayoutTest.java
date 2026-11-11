@@ -20,8 +20,29 @@ class MainMenuLayoutTest {
         var main = home.getElementsByTagName("Button");
         var ids = new ArrayList<String>();
         for (int index = 0; index < main.getLength(); index++) ids.add(((Element) main.item(index)).getAttribute("android:id"));
-        check.same("The home screen exposes games, puzzles, openings, manual analysis and the editable profile",
-                List.of("@+id/new_match", "@+id/resume_match", "@+id/open_puzzles", "@+id/open_openings", "@+id/open_analysis", "@+id/edit_player_name"), ids);
+        check.same("The home screen exposes active games, the archive, puzzles, openings, manual analysis and the editable profile",
+                List.of("@+id/new_match", "@+id/resume_match", "@+id/match_archive", "@+id/open_puzzles", "@+id/open_openings",
+                        "@+id/open_analysis", "@+id/edit_player_name"), ids);
+        var groups = new java.util.LinkedHashMap<String, List<String>>();
+        for (int index = 0; index < main.getLength(); index++) {
+            var button = (Element) main.item(index);
+            var parent = (Element) button.getParentNode();
+            groups.computeIfAbsent(parent.getAttribute("android:id"), ignored -> new ArrayList<>()).add(button.getAttribute("android:id"));
+        }
+        check.same("Games, study and profile have separate visual and structural groups", java.util.Map.of(
+                "@+id/home_games", List.of("@+id/new_match", "@+id/resume_match", "@+id/match_archive"),
+                "@+id/home_study", List.of("@+id/open_puzzles", "@+id/open_openings", "@+id/open_analysis"),
+                "@+id/home_profile", List.of("@+id/edit_player_name")), groups);
+        check.same("Only creating a game uses the primary action style", List.of("@+id/new_match"),
+                java.util.stream.IntStream.range(0, main.getLength()).mapToObj(index -> (Element) main.item(index))
+                        .filter(button -> button.getAttribute("style").equals("@style/HomePrimaryAction"))
+                        .map(button -> button.getAttribute("android:id")).toList());
+        check.same("Study has a localized section heading", List.of("Study", "Studiu"),
+                List.of(labels("values/strings.xml", List.of("menu_study")).getFirst(),
+                        labels("values-ro/strings.xml", List.of("menu_study")).getFirst()));
+        check.same("The archive is independently accessible in both languages", List.of("Finished games", "Partide încheiate"),
+                List.of(labels("values/strings.xml", List.of("match_archive")).getFirst(),
+                        labels("values-ro/strings.xml", List.of("match_archive")).getFirst()));
         check.same("Openings has an independent localized home entry", List.of("Openings", "Deschideri"),
                 List.of(labels("values/strings.xml", List.of("openings_title")).getFirst(),
                         labels("values-ro/strings.xml", List.of("openings_title")).getFirst()));

@@ -1,4 +1,24 @@
 <resources>
+    <string name="menu_study">Study</string>
+    <string name="match_archive">Finished games</string>
+    <string name="match_archive_empty">Finished games will appear here.</string>
+    <string name="match_archive_row">%1$s · %2$s · %3$d plies · %4$s</string>
+    <string name="match_archive_draw">Draw</string>
+    <string name="match_archive_reviewed">Analysis saved</string>
+    <string name="match_archive_no_review">Analysis available</string>
+    <string name="game_review_manual_rating">Elo estimates are unavailable when you played moves for the AI side.</string>
+    <string name="game_review_live_rating">Elo is available after the game ends.</string>
+    <string name="game_review_study_rating">The report shows the accuracy of each color for this study line.</string>
+    <string name="game_review_accuracy_only">Accuracy %1$s</string>
+    <string name="match_manual_ai">Play AI moves manually</string>
+    <string name="match_manual_ai_turn">Your move for the AI side</string>
+    <string name="match_saved_games">Saved games</string>
+    <string name="match_slot_label">Game %1$d · %2$s · %3$s · %4$d plies · %5$s</string>
+    <string name="match_slot_active">In progress</string>
+    <string name="match_slot_finished">Finished</string>
+    <string name="match_slot_unavailable">Game %1$d · Unavailable</string>
+    <string name="match_slots_full">All 10 games are in progress. Finish one to start another.</string>
+    <string name="match_replace_completed">Replace finished game %1$d with a new game?</string>
     <string name="match_actions">Game options</string>
     <string name="match_offer_draw">Offer draw</string>
     <string name="match_draw_declined">The AI declined the draw.</string>
@@ -11,7 +31,15 @@
     <string name="game_review_human_column">Player</string>
     <string name="game_review_ai_column">AI</string>
     <string name="game_review_grade_counts">%1$s. Player %2$s. AI %3$s.</string>
+    <string name="game_review_study_counts">%1$s. White %2$s. Black %3$s.</string>
     <string name="manual_analysis">Analysis board</string>
+    <string name="manual_options">Analysis board options</string>
+    <string name="manual_enable_analysis">AI analysis</string>
+    <string name="manual_game_review">Review all moves</string>
+    <string name="manual_continue_game">Continue as a saved game</string>
+    <string name="manual_continue_confirm">Start a new saved game after ply %1$d?</string>
+    <string name="manual_no_free_slot">A free game slot is needed to save this line.</string>
+    <string name="match_automatic_ai">Let AI play its moves</string>
     <string name="manual_reset">Reset line</string>
     <string name="manual_close">Back to the previous screen</string>
     <string name="manual_checkmate">Checkmate</string>
@@ -110,7 +138,6 @@
     <string name="new_match">New game vs computer</string>
     <string name="resume_match">Resume game</string>
     <string name="match_replace_title">Start a new game?</string>
-    <string name="match_replace_message">The new game will replace the saved game.</string>
     <string name="match_load_failed">The saved game could not be loaded.</string>
     <string name="match_last_move">Last move · %1$s</string>
     <string name="match_history_previous">Previous move</string>
@@ -197,7 +224,7 @@
     <string name="game_review_player">Accuracy %1$s · Game Elo %2$s</string>
     <string name="game_review_ai">Accuracy %1$s · AI reference Elo %2$s</string>
     <string name="game_review_rating_note">Your estimate uses this result against the AI reference. The interval shows its uncertainty.</string>
-    <string name="game_review_move_detail">%1$s\n\nExpected score · Best %2$.1f%% · Played %3$.1f%%\nSearch depth %4$d plies\n\nBest line\n%5$s\n\nLine after the played move\n%6$s</string>
+    <string name="game_review_move_detail">%1$s\n\nExpected score · Recommended %2$.1f%% · Played %3$.1f%%\nSearch depth %4$d plies\n\nRecommended line\n%5$s\n\nLine after the played move\n%6$s</string>
     <string name="game_review_sacrifice">The strongest reply accepts a sacrifice worth %1$.2f pawns.</string>
     <string name="game_review_on_board">Show on board</string>
     <string name="game_review_retry">Try this move again</string>

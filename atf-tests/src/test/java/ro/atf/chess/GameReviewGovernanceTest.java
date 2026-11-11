@@ -20,6 +20,21 @@ import ro.atf.chess.MatchSetup.Level;
 @Tag("governance")
 @ExtendWith(ExtentAudit.class)
 class GameReviewGovernanceTest {
+    @Test void classificationKeepsPublishedDefaultsAndRejectsInvalidOverrides(Checks check) {
+        check.same("All published grade boundaries survive the migration to YAML",
+                new GameReviewPolicy.Classification(100, 4, 100, 550, 200, 750, 700, 450, 400, 100, 750, 550, 20, 50, 100, 200),
+                GameReviewPolicy.CURRENT.classification);
+        var root = new HashMap<Object, Object>(ChessYaml.resource("game-review.yaml"));
+        var thresholds = new HashMap<Object, Object>(ChessYaml.map(root, "classification"));
+        root.put("classification", thresholds);
+        thresholds.remove("good-loss-min");
+        check.rejects("An incomplete policy does not fall back silently", IllegalArgumentException.class, () -> GameReviewPolicy.read(root));
+        for (var invalid : List.of(50, 20.5, -1, 1001)) {
+            thresholds.put("good-loss-min", invalid);
+            check.rejects("Reject invalid good threshold " + invalid, IllegalArgumentException.class, () -> GameReviewPolicy.read(root));
+        }
+    }
+
     @Test void reviewBudgetAndReferenceRangesAreExplicitAndValidated(Checks check) {
         var policy = GameReviewPolicy.CURRENT;
         var hard = MatchAiPolicy.CURRENT.opponent(Level.HARD);

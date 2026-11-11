@@ -1,4 +1,29 @@
 <resources>
+    <style name="HomeSection" parent="MenuSection">
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">5dp</item>
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+    <style name="HomeGroup">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:background">@drawable/home_group</item>
+    </style>
+    <style name="HomeAction" parent="ChapterEntry">
+        <item name="android:gravity">start|center_vertical</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#f5f3ec</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+    </style>
+    <style name="HomePrimaryAction" parent="HomeAction">
+        <item name="android:textColor">#e0efca</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/home_primary_action</item>
+    </style>
     <style name="MenuSection">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

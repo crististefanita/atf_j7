@@ -126,6 +126,11 @@ public final class ChessMatch {
         return new ChessMatch(List.copyOf(positions.subList(0, ply + 1)), List.copyOf(moves.subList(0, ply)), quiet, setup);
     }
 
+    ChessMatch withAnalysis(boolean enabled) {
+        if (analysisEnabled() == enabled) return this;
+        return new ChessMatch(positions, moves, quietPlies, new MatchSetup(setup.humanSide(), setup.level(), enabled), decision);
+    }
+
     private static boolean resetsQuietCount(ChessPosition position, Move move) {
         return position.pieceAt(move.from()).kind() == Kind.PAWN || position.pieceAt(move.to()) != null;
     }

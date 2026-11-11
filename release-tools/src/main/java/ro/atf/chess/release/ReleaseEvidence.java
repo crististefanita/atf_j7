@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -13,8 +14,11 @@ import java.util.zip.ZipFile;
 
 /** Deterministic checks over the bytes supplied by independent build, test and download runs. */
 public final class ReleaseEvidence {
-    private static final Pattern LINKS = Pattern.compile("\\[[^\\]\\r\\n]+]\\(([^\\s)]+)\\)");
-    private static final Pattern GAME = Pattern.compile("(?ms)^## Jocul[ \\t]*\\R(.*?)(?=^## |\\z)");
+    private static final Pattern LINK_BULLET = Pattern.compile("- \\[([^\\[\\]\\r\\n]+)]\\(([^\\s()<>]+)\\)");
+    private static final Pattern GAME = Pattern.compile("(?ms)^## Jocul[ \\t]*\\R(.*?)(?=^#{1,2}[ \\t]+|\\z)");
+    private static final Pattern SECTION = Pattern.compile("(?m)^##[ \\t]+");
+    private static final Pattern INTEGRITY_LABEL = Pattern.compile("(?i)sha[- ]?256|checksum|\\bbytes?\\b|[a-f0-9]{64}");
+    private static final Pattern APK_ROUTE = Pattern.compile("(?i)/releases/download/|[^\\s(<\\[\"'`=]+(?:\\.|%2e)apk(?=$|[\\s?#)>'\"`\\],;])");
 
     public record Candidate(String version, String commit, long apkBytes, String apkSha256) {
         public Candidate {
@@ -61,9 +65,21 @@ public final class ReleaseEvidence {
     public static List<String> gameLinks(String readme) throws IOException {
         var game = GAME.matcher(readme);
         require(game.find(), "Missing Jocul section");
-        var links = LINKS.matcher(game.group(1)).results().map(match -> match.group(1)).toList();
+        String before = readme.substring(0, game.start());
+        String after = readme.substring(game.end());
+        var rows = game.group(1).lines().filter(line -> !line.isBlank()).toList();
         require(!game.find(), "Duplicate Jocul section");
-        return links;
+        require(!SECTION.matcher(before).find(), "Jocul must be the first section");
+        require(rows.size() == 2, "Jocul must contain exactly two link bullets");
+        var links = new ArrayList<String>(rows.size());
+        for (String row : rows) {
+            var link = LINK_BULLET.matcher(row);
+            require(link.matches(), "Jocul must contain exactly two link bullets");
+            require(!INTEGRITY_LABEL.matcher(link.group(1)).find(), "Integrity metadata belongs in the release evidence");
+            links.add(link.group(2));
+        }
+        require(!APK_ROUTE.matcher(before).find() && !APK_ROUTE.matcher(after).find(), "APK route outside Jocul");
+        return List.copyOf(links);
     }
 
     private static void apk(Candidate candidate, Path apk) throws IOException {

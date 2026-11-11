@@ -81,8 +81,19 @@ class AndroidSanityPublication {
 
     @Test void publishManualAnalysisSanity() throws Exception {
         publishFocusedSanity("manual-analysis", "Explore a line without changing the saved game",
-                  "Play both colors, apply a hint from history and return to the saved game", 10,
+                "Play the hinted move and continue from history in a separate game", 15,
                 List.of(new Frame("manual-analysis.png", "Manual analysis board")));
+    }
+
+    @Test void publishMatchSlotsSanity() throws Exception {
+        publishFocusedSanity("match-slots", "Keep separate games and take over the AI side",
+                "Play, switch games and verify the tenth slot", 5, List.of(
+                        new Frame("match-home.png", "Grouped home menu"), new Frame("match-slots.png", "Manual AI control above the board")));
+    }
+
+    @Test void publishMatchArchiveSanity() throws Exception {
+        publishFocusedSanity("match-archive", "Keep the latest completed games and their reviews",
+                "Review from history, reopen the result and verify retention", 4, List.of(new Frame("match-archive.png", "Completed games with saved review")));
     }
 
     private static void publishFocusedSanity(String scope, String scenarioTitle, String stepTitle, int checks, List<Frame> frames) throws Exception {

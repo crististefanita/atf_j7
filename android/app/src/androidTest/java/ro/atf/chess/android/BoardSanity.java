@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import java.util.function.Predicate;
 import ro.atf.chess.BoardSquare;
 import ro.atf.chess.ChessMatch;
@@ -55,6 +56,8 @@ public final class BoardSanity extends Instrumentation {
             if ("openings".equals(phase)) checkOpenings();
             else if ("game-review".equals(phase)) checkGameReview();
             else if ("manual-analysis".equals(phase)) checkManualAnalysis();
+            else if ("match-slots".equals(phase)) checkMatchSlots();
+            else if ("match-archive".equals(phase)) checkMatchArchive();
             else if (phase.startsWith("analysis-")) checkAnalysis();
             else if (phase.startsWith("match-")) checkMatch();
             else checkQuests();
@@ -75,12 +78,119 @@ public final class BoardSanity extends Instrumentation {
         }
     }
 
+    private void checkMatchArchive() throws Exception {
+        var store = new ChessProgressStore(getTargetContext());
+        var mate = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
+        var prefs = getTargetContext().getSharedPreferences("quest-progress", android.content.Context.MODE_PRIVATE);
+        if (!prefs.edit().putString("match-checkpoint", mate.checkpoint()).commit()) throw new AssertionError("Legacy fixture failed");
+        var home = launch();
+        var entry = store.archivedMatches().get(0);
+        tap(home.findViewById(R.id.match_archive));
+        String basic = home.getString(R.string.match_bot_label, "Alex", home.getString(R.string.match_basic));
+        String row = home.getString(R.string.match_archive_row, home.getString(R.string.match_bot_wins), basic, 4,
+                home.getString(R.string.match_archive_no_review));
+        clickMenuItem(row);
+        tap(home.findViewById(R.id.match_history_previous));
+        var monitor = addMonitor(AnalysisActivity.class.getName(), null, false);
+        tap(home.findViewById(R.id.match_open_analysis));
+        var study = waitForMonitorWithTimeout(monitor, 7000);
+        removeMonitor(monitor);
+        if (study == null) throw new AssertionError("Archive history did not open the study board");
+        waitForIdleSync();
+        runOnMainSync(() -> study.findViewById(R.id.manual_options).performClick());
+        clickMenuItem(study.getString(R.string.manual_game_review));
+        String graph = home.getString(R.string.game_review_graph);
+        var node = dialogNode(graph, AccessibilityNodeInfo::isClickable, 120_000);
+        var cached = store.readReview(entry.id(), mate);
+        compare("Study from archive history analyzes the entire completed game with its AI rating", true,
+                node != null && cached != null && cached.turns().size() == mate.ply() && cached.black().rating().isPresent()
+                        && dialogNode(study.getString(R.string.game_review_rating_note)) != null);
+        tapDialog(study.getString(R.string.game_review_close));
+        closeActivity(study);
+        closeActivity(home);
+        home = launch();
+        tap(home.findViewById(R.id.match_archive));
+        String reviewed = home.getString(R.string.match_archive_row, home.getString(R.string.match_bot_wins), basic, 4,
+                home.getString(R.string.match_archive_reviewed));
+        var reviewedRow = menuItem(reviewed);
+        captureFrame("match-archive", "The archive identifies the saved analysis", image -> reviewedRow != null);
+        clickMenuItem(reviewed);
+        tap(home.findViewById(R.id.match_status));
+        compare("Opening the saved analysis immediately exposes the graph", true,
+                dialogNode(graph, AccessibilityNodeInfo::isClickable, 1_500) != null);
+        tapDialog(home.getString(R.string.game_review_close));
+        closeActivity(home);
+        var newestFirst = new java.util.ArrayList<String>();
+        for (int slot = 1; slot <= ro.atf.chess.MatchSlots.LIMIT; slot++) {
+            if (!store.startMatch(slot, mate, false, false, false)) throw new AssertionError("Could not seed archived game " + slot);
+            newestFirst.add(0, store.archivedId(slot));
+        }
+        var reopened = new ChessProgressStore(getTargetContext());
+        compare("The eleventh result evicts the oldest game and its cached review only", true,
+                newestFirst.equals(reopened.archivedMatches().stream().map(ChessProgressStore.ArchivedMatch::id).collect(Collectors.toList()))
+                        && reopened.readReview(entry.id(), mate) == null);
+    }
+
+    private void checkMatchSlots() throws Exception {
+        var store = new ChessProgressStore(getTargetContext());
+        var legacy = ChessMatch.restore("1|e2e4 e7e5");
+        var preferences = getTargetContext().getSharedPreferences("quest-progress", android.content.Context.MODE_PRIVATE);
+        if (!preferences.edit().putString("match-checkpoint", legacy.checkpoint()).commit()) throw new AssertionError("Legacy fixture failed");
+        var activity = launch(true);
+        var games = activity.findViewById(R.id.home_games);
+        var create = activity.findViewById(R.id.new_match);
+        var resume = activity.findViewById(R.id.resume_match);
+        var archive = activity.findViewById(R.id.match_archive);
+        captureFrame("match-home", "New, saved and finished games render together in the home menu",
+                image -> create.getParent() == games && resume.getParent() == games && archive.getParent() == games
+                        && fullyVisible(create) && fullyVisible(resume) && fullyVisible(archive));
+        tap(activity.findViewById(R.id.new_match));
+        tap(activity.findViewById(R.id.match_start));
+        var manual = (android.widget.CheckBox) activity.findViewById(R.id.match_manual_ai);
+        var board = findBoard(viewsOf(activity));
+        var boardBounds = screenBounds(board);
+        tap(manual);
+        tap(cell(board, "e2"));
+        tap(cell(board, "e4"));
+        tap(cell(board, "c7"));
+        tap(cell(board, "c5"));
+        captureFrame("match-slots", "The visible manual AI checkbox lets the player make Black's move",
+                image -> fullyVisible(manual) && screenBounds(manual).bottom <= boardBounds.top
+                        && hasPawn(activity, board, "c5") && boardBounds.equals(screenBounds(board)));
+        tap(button(activity, viewsOf(activity), R.string.main_menu));
+        tap(activity.findViewById(R.id.resume_match));
+        var basic = activity.getString(R.string.match_bot_label, "Alex", activity.getString(R.string.match_basic));
+        String first = activity.getString(R.string.match_slot_label, 1, basic, activity.getString(R.string.white), 2,
+                activity.getString(R.string.match_slot_active));
+        clickMenuItem(first);
+        compare("Selecting a saved game restores its own state and leaves the other saved", List.of(1, false, "c7c5"),
+                List.of(store.activeMatchSlot(), store.matchManualAi(1), store.readMatch(2).lastMove().uci()));
+        for (int slot = 3; slot < ro.atf.chess.MatchSlots.LIMIT; slot++) {
+            if (!store.startMatch(slot, legacy, false, false, false)) throw new AssertionError("Could not seed game " + slot);
+        }
+        tap(button(activity, viewsOf(activity), R.string.main_menu));
+        openGameSetup(activity);
+        click(activity, R.id.match_start);
+        var saved = new java.util.ArrayList<String>();
+        for (int slot = 1; slot <= ro.atf.chess.MatchSlots.LIMIT; slot++) saved.add(store.readMatch(slot).checkpoint());
+        compare("New Game uses the tenth slot and preserves earlier moves", true,
+                store.activeMatchSlot() == 10 && saved.get(0).equals(legacy.checkpoint()) && store.readMatch(2).lastMove().uci().equals("c7c5"));
+        tap(button(activity, viewsOf(activity), R.string.main_menu));
+        openGameSetup(activity);
+        click(activity, R.id.match_start);
+        var after = new java.util.ArrayList<String>();
+        for (int slot = 1; slot <= ro.atf.chess.MatchSlots.LIMIT; slot++) after.add(store.readMatch(slot).checkpoint());
+        compare("An eleventh game leaves all ten checkpoints intact and stays in setup", true,
+                saved.equals(after) && store.activeMatchSlot() == 10 && fullyVisible(activity.findViewById(R.id.match_start)));
+    }
+
     private void checkManualAnalysis() throws Exception {
         var store = new ChessProgressStore(getTargetContext());
         var home = launch();
         var monitor = addMonitor(AnalysisActivity.class.getName(), null, false);
         tap(home.findViewById(R.id.open_analysis));
         var study = waitForMonitorWithTimeout(monitor, 7000);
+        removeMonitor(monitor);
         if (study == null) throw new AssertionError("Home did not open the analysis board");
         waitForIdleSync();
         var board = findBoard(viewsOf(study));
@@ -106,6 +216,7 @@ public final class BoardSanity extends Instrumentation {
         monitor = addMonitor(AnalysisActivity.class.getName(), null, false);
         tap(game.findViewById(R.id.match_open_analysis));
         var branch = waitForMonitorWithTimeout(monitor, 7000);
+        removeMonitor(monitor);
         if (branch == null) throw new AssertionError("History did not open the analysis board");
         waitForIdleSync();
         var branchBoard = findBoard(viewsOf(branch));
@@ -141,6 +252,30 @@ public final class BoardSanity extends Instrumentation {
                 image -> evaluationReady && fullyVisible(branchBoard) && fullyVisible(branch.findViewById(R.id.match_history_previous))
                         && hasColor(image, bar, 0xffedeadf, 24)
                         && (hasColor(image, cell(branchBoard, "c5"), 0xffbec953, 24) || hasColor(image, cell(branchBoard, "c5"), 0xfff4ef86, 24)));
+        var options = branch.findViewById(R.id.manual_options);
+        String analysisOption = branch.getString(R.string.manual_enable_analysis);
+        String reviewLine = branch.getString(R.string.manual_game_review);
+        tap(options);
+        clickMenuItem(analysisOption);
+        tap(options);
+        var reviewNode = dialogNode(reviewLine, AccessibilityNodeInfo::isVisibleToUser, 1500);
+        boolean reviewClickable = false;
+        for (var node = reviewNode; node != null && node.isEnabled(); node = node.getParent()) {
+            if (node.isClickable()) {
+                reviewClickable = true;
+                break;
+            }
+        }
+        compare("Turning off analysis hides the bar and disables full line review", true,
+                !reviewClickable && bar.getVisibility() == View.GONE);
+        clickMenuItem(analysisOption);
+        tap(options);
+        clickMenuItem(reviewLine);
+        String graph = branch.getString(R.string.game_review_graph);
+        var studyGraph = dialogNode(graph, AccessibilityNodeInfo::isClickable, 120_000);
+        compare("The study review evaluates the recorded line and identifies both colors without Elo", true,
+                studyGraph != null && dialogNode(branch.getString(R.string.game_review_study_rating)) != null);
+        clickDialog(branch.getString(R.string.game_review_close));
         tap(branch.findViewById(R.id.manual_reset_line));
         compare("Reset returns to the original entry and makes the saved continuation browsable", true,
                 !hasPawn(branch, branchBoard, "c5") && tokens.getChildCount() == 5 && next.isEnabled());
@@ -149,6 +284,34 @@ public final class BoardSanity extends Instrumentation {
         compare("Leaving analysis returns to the original cursor and checkpoint", true,
                 saved.checkpoint().equals(store.readMatch().checkpoint()) && hasPawn(game, originalBoard, "e4")
                         && !hasPawn(game, originalBoard, "e5"));
+
+        monitor = addMonitor(AnalysisActivity.class.getName(), null, false);
+        runOnMainSync(() -> game.findViewById(R.id.match_open_analysis).performClick());
+        var resumed = waitForMonitorWithTimeout(monitor, 12_000);
+        removeMonitor(monitor);
+        if (resumed == null) throw new AssertionError("The study could not be reopened");
+        waitForIdleSync();
+        tap(resumed.findViewById(R.id.manual_options));
+        clickMenuItem(resumed.getString(R.string.manual_continue_game));
+        clickDialog(resumed.getString(R.string.match_automatic_ai));
+        clickDialog(resumed.getString(R.string.match_confirm_continue));
+        long slotDeadline = SystemClock.uptimeMillis() + 7000;
+        while (store.activeMatchSlot() != 2 && SystemClock.uptimeMillis() < slotDeadline) SystemClock.sleep(80);
+        waitForIdleSync();
+        compare("Continuing from history with AI unchecked creates a distinct manual game at the chosen ply", true,
+                store.activeMatchSlot() == 2 && store.matchManualAi(2) && store.readMatch(2).ply() == 1
+                        && saved.checkpoint().equals(store.readMatch(1).checkpoint()));
+        runOnMainSync(() -> game.findViewById(R.id.match_actions).performClick());
+        clickMenuItem(game.getString(R.string.match_game_review));
+        var gameGraph = dialogNode(graph, AccessibilityNodeInfo::isClickable, 120_000);
+        compare("The active game offers a full review without advancing its saved position", true,
+                gameGraph != null && store.readMatch(2).ply() == 1);
+        clickDialog(game.getString(R.string.game_review_close));
+        tap(game.findViewById(R.id.match_manual_ai));
+        long deadline = SystemClock.uptimeMillis() + 20_000;
+        while (store.readMatch(2).ply() < 2 && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(100);
+        compare("Enabling automatic AI plays one reply in the continued game only", true,
+                !store.matchManualAi(2) && store.readMatch(2).ply() == 2 && saved.checkpoint().equals(store.readMatch(1).checkpoint()));
     }
 
     private static boolean hasPawn(Activity activity, BoardView board, String square) {
@@ -171,7 +334,8 @@ public final class BoardSanity extends Instrumentation {
                 status.getText().toString().contains(activity.getString(R.string.match_game_review))
                         && status.getText().toString().contains("📊") && status.isClickable()
                         && activity.findViewById(R.id.match_analysis) == null);
-        tap(status);
+        tap(activity.findViewById(R.id.match_actions));
+        clickMenuItem(activity.getString(R.string.match_game_review));
         var close = dialogNode(activity.getString(R.string.game_review_close), AccessibilityNodeInfo::isClickable);
         var reviewBounds = activeWindowBounds();
         compare("Game review fills the app window as soon as it opens", true,
@@ -710,7 +874,6 @@ public final class BoardSanity extends Instrumentation {
         captureFrame("match-setup", "Both selectors and the analysis option fit on the setup screen",
                 image -> fullyVisible(color) && fullyVisible(level) && fullyVisible(activity.findViewById(R.id.match_start)));
         click(activity, R.id.match_start);
-        clickDialog(activity.getString(R.string.match_start));
         long deadline = SystemClock.uptimeMillis() + 30_000;
         ChessMatch saved;
         do {

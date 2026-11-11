@@ -112,7 +112,9 @@ Pe sursa ediției 0.9.0, trei sesiuni au folosit aceleași 12 poziții și culor
 
 Din cele 216 partide, 64 au rămas active la plafon. Fiecare contribuie cu un interval de scor între zero și un punct. Calculul agregă cele trei perechi ale fiecărei deschideri înaintea celor 10.000 de reeșantionări. Deschiderea rămâne unitatea independentă. Hard conduce la estimarea centrală, iar intervalele celor trei profiluri se suprapun. `GameReviewGovernanceTest` recalculează toate cele trei repere folosite în aplicație. [Rezultatele perechilor și proveniența](../../atf-tests/src/test/resources/ai-anchor-observations.yaml)
 
-În Benoni modern, Advanced a ajuns la plafon în cinci dintre cele șase partide. La poziția finală, Stockfish 19 cu istoricul complet și adâncime 13 a estimat 0‰ pentru Advanced în toate cinci, inclusiv două poziții cu mat forțat. Proba separată localizează un caz de investigat. În calculul ancorei, toate cinci păstrează intervalul de partidă neterminată.
+În cele trei sesiuni istorice, Advanced a ajuns la plafon în cinci dintre cele șase partide Benoni modern. Stockfish 19 la adâncimea 13 a estimat 0‰ pentru Advanced la pozițiile finale ale celor cinci, inclusiv două poziții cu mat forțat. În calculul ancorei, toate cinci păstrează intervalul de partidă neterminată.
+
+Reevaluarea istoricului complet din aceste sesiuni și din sesiunea de după corecția Alehină a găsit prima pierdere majoră a negrului la semimutarea 10. `…Ng4` a pierdut 335‰ în toate cele patru față de `…d6`. Cu albul, prima pierdere a apărut la semimutarea 11 după `…g6`, `…Na6` sau `…h6`, cu 379‰, 285‰ și 173‰. Repertoriul Advanced folosește `…d6`, `d6` după `…g6` și `e4` după `…Na6` sau `…h6`. Regulile se potrivesc pe poziția exactă și păstrează bugetul Advanced. [Replici și niveluri](../../chess-core/src/main/resources/ai-repertoire.yaml)
 
 Pentru reproducere, folosiți o copie TMP și trei căi noi pentru TSV și Extent. Fiecare execuție validează perechile și reia toate mutările până la rezultatul înregistrat.
 
@@ -175,7 +177,9 @@ Suita Stockfish confirmă legalitatea tuturor mutărilor predate și verifică H
 
 În Franceza de avans, după `5.Nf3`, Hard a trecut de la `…Qa5` la `…cxd4`. Pierderea a scăzut de la 277‰ la 21‰ față de `…Nge7` în Stockfish 19. Pe setul existent de deschideri, pierderea medie Hard a coborât de la 59,5‰ la 19,1‰ și nu au mai apărut pierderi de cel puțin 150‰. Cele șase poziții suplimentare din Franceză și Scoțiană au o pierdere medie de 39,7‰ și un maxim de 127‰.
 
-După `1.e4 e5`, prima recomandare este `Nf3`, iar bara afișează `+0,19` față de `+1,40` anterior și `+0,43` în Stockfish 19. Pe șapte poziții suplimentare eroarea absolută medie a barei a scăzut de la 70,7 cp la 13,1 cp. Eroarea maximă este 41 cp, la Gambitul damei după `2.c4`, unde semnele diferă. Benchmarkul compară separat alegerea mutării în scor așteptat și estimarea barei în centipioni, din perspectiva albului. [Setul și porțile de calibrare](../../atf-tests/src/test/resources/opening-calibration.yaml) · [Scara Stockfish](https://official-stockfish.github.io/docs/stockfish-wiki/Useful-data.html)
+După `1.e4 e5`, prima recomandare este `Nf3`, iar bara afișează `+0,19` față de `+1,40` anterior și `+0,43` în Stockfish 19. Pe șapte poziții suplimentare, prima calibrare a scăzut eroarea absolută medie de la 70,7 cp la 13,1 cp. Benchmarkul compară separat alegerea mutării în scor așteptat și estimarea barei în centipioni, din perspectiva albului. [Setul și porțile de calibrare](../../atf-tests/src/test/resources/opening-calibration.yaml) · [Scara Stockfish](https://official-stockfish.github.io/docs/stockfish-wiki/Useful-data.html)
+
+Când corecția la trei semimutări inversează semnul evaluării de la două, bara caută încă un orizont cu același număr de mutări pentru ambele culori. Dacă îl termină în bugetul existent, mediază cele două rezultate cu orizont par. După `1.d4 d5 2.c4`, bara trece de la `−0,19` la `+0,19`, față de `+0,22` în Stockfish 19. Eroarea scade de la 41 la 3 cp, iar media pe cele șapte controale ajunge la 7,7 cp. După `2…e6` eroarea observată este 33 cp, iar după `2…c6` este 8 cp. După acceptarea cu `2…dxc4`, bara afișează încă `−0,60` față de `+0,21`, un caz separat de compensare a pionului.
 
 ## Rezultatul de referință al primei extinderi
 

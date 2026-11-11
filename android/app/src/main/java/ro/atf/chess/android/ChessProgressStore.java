@@ -4,8 +4,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import java.util.Collections;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import ro.atf.chess.ChessMatch;
+import ro.atf.chess.GameReview;
+import ro.atf.chess.GameReviewCodec;
+import ro.atf.chess.MatchArchive;
+import ro.atf.chess.MatchSlots;
 import ro.atf.chess.QuestProgress;
 import ro.atf.chess.QuestRewards;
 
@@ -20,6 +26,12 @@ final class ChessProgressStore {
     private static final String MATCH = "match-checkpoint";
     private static final String RESUME_MATCH = "resume-match";
     private static final String MATCH_BLACK_BELOW = "match-black-below";
+    private static final String MATCH_MANUAL_AI = "match-manual-ai";
+    private static final String MATCH_MANUAL_USED = "match-manual-used";
+    private static final String ACTIVE_MATCH_SLOT = "active-match-slot";
+    private static final String MATCH_ID = "match-id";
+    private static final String MATCH_ARCHIVED = "match-archived";
+    private static final String ARCHIVE_ORDER = "match-archive-order";
     private static final String PLAYER_NAME = "player-name";
     private final SharedPreferences preferences;
 
@@ -32,17 +44,131 @@ final class ChessProgressStore {
     }
 
     ChessMatch readMatch() {
-        String encoded = preferences.getString(MATCH, null);
+        return readMatch(activeMatchSlot());
+    }
+
+    ChessMatch readMatch(int slot) {
+        String encoded = preferences.getString(MatchSlots.key(MATCH, slot), null);
         return encoded == null ? null : ChessMatch.restore(encoded);
     }
 
+    int activeMatchSlot() { return preferences.getInt(ACTIVE_MATCH_SLOT, 1); }
+    boolean hasMatch(int slot) { return preferences.contains(MatchSlots.key(MATCH, slot)); }
+    int freeMatchSlot() { return MatchSlots.firstFree(this::hasMatch); }
     boolean resumeMatch() { return preferences.getBoolean(RESUME_MATCH, false); }
-    boolean matchBlackBelow() { return preferences.getBoolean(MATCH_BLACK_BELOW, false); }
+    boolean matchBlackBelow() { return matchBlackBelow(activeMatchSlot()); }
+    boolean matchBlackBelow(int slot) { return preferences.getBoolean(MatchSlots.key(MATCH_BLACK_BELOW, slot), false); }
+    boolean matchManualAi(int slot) { return preferences.getBoolean(MatchSlots.key(MATCH_MANUAL_AI, slot), false); }
+    boolean matchManualUsed(int slot) { return preferences.getBoolean(MatchSlots.key(MATCH_MANUAL_USED, slot), false); }
     boolean leaveMatch() { return preferences.edit().remove(RESUME_MATCH).commit(); }
 
     boolean saveMatch(ChessMatch match, boolean blackBelow) {
-        return preferences.edit().putString(MATCH, match.checkpoint()).putBoolean(MATCH_BLACK_BELOW, blackBelow)
-                .putBoolean(RESUME_MATCH, true).remove(RESUME_CHAPTER).commit();
+        int slot = activeMatchSlot();
+        return saveMatch(slot, match, blackBelow, matchManualAi(slot));
+    }
+
+    boolean saveMatch(int slot, ChessMatch match, boolean blackBelow, boolean manualAi) {
+        return saveMatch(slot, match, blackBelow, manualAi, matchManualUsed(slot));
+    }
+
+    boolean saveMatch(int slot, ChessMatch match, boolean blackBelow, boolean manualAi, boolean manualUsed) {
+        return saveMatch(slot, match, blackBelow, manualAi, manualUsed, false);
+    }
+
+    boolean startMatch(int slot, ChessMatch match, boolean blackBelow, boolean manualAi, boolean manualUsed) {
+        return saveMatch(slot, match, blackBelow, manualAi, manualUsed, true);
+    }
+
+    private boolean saveMatch(int slot, ChessMatch match, boolean blackBelow, boolean manualAi, boolean manualUsed, boolean fresh) {
+        String idKey = MatchSlots.key(MATCH_ID, slot);
+        String archivedKey = MatchSlots.key(MATCH_ARCHIVED, slot);
+        String id = fresh ? null : preferences.getString(idKey, null);
+        if (id == null) id = UUID.randomUUID().toString();
+        boolean archived = !fresh && preferences.getBoolean(archivedKey, false);
+        var edit = preferences.edit().putString(idKey, id).putString(MatchSlots.key(MATCH, slot), match.checkpoint())
+                .putBoolean(MatchSlots.key(MATCH_BLACK_BELOW, slot), blackBelow)
+                .putBoolean(MatchSlots.key(MATCH_MANUAL_USED, slot), manualUsed)
+                .putBoolean(MatchSlots.key(MATCH_MANUAL_AI, slot), manualAi).putInt(ACTIVE_MATCH_SLOT, slot)
+                .putBoolean(RESUME_MATCH, true).remove(RESUME_CHAPTER);
+        if (!archived && match.result() != ChessMatch.Result.IN_PROGRESS) {
+            recordArchive(edit, id, match, blackBelow, manualUsed);
+            archived = true;
+        }
+        return edit.putBoolean(archivedKey, archived).commit();
+    }
+
+    record ArchivedMatch(String id, ChessMatch match, boolean blackBelow, boolean manualUsed, boolean reviewed) { }
+
+    private List<String> archiveOrder() {
+        String encoded = preferences.getString(ARCHIVE_ORDER, "");
+        return encoded.isEmpty() ? List.of() : List.of(encoded.split(","));
+    }
+
+    private String archiveKey(String id, String field) { return "match-archive-" + id + "-" + field; }
+
+    private void recordArchive(SharedPreferences.Editor edit, String id, ChessMatch match, boolean flipped, boolean manualUsed) {
+        var retention = MatchArchive.retain(archiveOrder(), id);
+        edit.putString(ARCHIVE_ORDER, String.join(",", retention.kept()))
+                .putString(archiveKey(id, "checkpoint"), match.checkpoint())
+                .putBoolean(archiveKey(id, "black-below"), flipped)
+                .putBoolean(archiveKey(id, "manual-used"), manualUsed);
+        for (var previous : retention.evicted()) {
+            for (var field : List.of("checkpoint", "black-below", "manual-used", "review")) edit.remove(archiveKey(previous, field));
+        }
+    }
+
+    void migrateCompletedMatches() {
+        int active = activeMatchSlot();
+        for (int slot = 1; slot <= MatchSlots.LIMIT; slot++) if (slot != active) migrateCompletedMatch(slot);
+        migrateCompletedMatch(active);
+    }
+
+    private void migrateCompletedMatch(int slot) {
+        if (!hasMatch(slot) || preferences.contains(MatchSlots.key(MATCH_ID, slot))) return;
+        try {
+            var saved = readMatch(slot);
+            String id = UUID.randomUUID().toString();
+            var edit = preferences.edit().putString(MatchSlots.key(MATCH_ID, slot), id);
+            if (saved.result() != ChessMatch.Result.IN_PROGRESS) {
+                edit.putBoolean(MatchSlots.key(MATCH_ARCHIVED, slot), true);
+                recordArchive(edit, id, saved, matchBlackBelow(slot), matchManualUsed(slot));
+            }
+            edit.commit();
+        } catch (IllegalArgumentException | IllegalStateException | ClassCastException invalid) {
+            // The other slots remain readable even if one older checkpoint is damaged.
+        }
+    }
+
+    List<ArchivedMatch> archivedMatches() {
+        var result = new ArrayList<ArchivedMatch>();
+        for (String id : archiveOrder()) {
+            try {
+                var match = ChessMatch.restore(preferences.getString(archiveKey(id, "checkpoint"), ""));
+                result.add(new ArchivedMatch(id, match, preferences.getBoolean(archiveKey(id, "black-below"), false),
+                        preferences.getBoolean(archiveKey(id, "manual-used"), false), preferences.contains(archiveKey(id, "review"))));
+            } catch (IllegalArgumentException | IllegalStateException | ClassCastException invalid) {
+                // Skip damaged entries while preserving the remaining history.
+            }
+        }
+        return result;
+    }
+
+    String archivedId(int slot) { return preferences.getString(MatchSlots.key(MATCH_ID, slot), null); }
+    boolean hasArchived(String id) { return id != null && preferences.contains(archiveKey(id, "checkpoint")); }
+
+    GameReview readReview(String id, ChessMatch match) {
+        if (id == null) return null;
+        try {
+            String encoded = preferences.getString(archiveKey(id, "review"), null);
+            return encoded == null ? null : GameReviewCodec.decode(match, encoded);
+        } catch (IllegalArgumentException | ClassCastException invalid) {
+            return null;
+        }
+    }
+
+    boolean saveReview(String id, ChessMatch match, GameReview review) {
+        if (id == null || !match.checkpoint().equals(preferences.getString(archiveKey(id, "checkpoint"), null))) return false;
+        return preferences.edit().putString(archiveKey(id, "review"), GameReviewCodec.encode(match, review)).commit();
     }
 
     QuestProgress read(List<String> order) {

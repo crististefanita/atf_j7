@@ -44,6 +44,16 @@ public record GameReview(List<Turn> turns, Opening opening, int bookPlies, int i
 
     public static GameReview analyze(ChessMatch match, IntConsumer progress) {
         if (match.result() == ChessMatch.Result.IN_PROGRESS) throw new IllegalArgumentException("Finish the game before reviewing it");
+        return analyze(match, progress, true);
+    }
+
+    /** Reviews every recorded move without deriving a rating from a study or unfinished game. */
+    public static GameReview analyzeLine(ChessMatch match, IntConsumer progress) {
+        if (match.ply() == 0) throw new IllegalArgumentException("Play a move before reviewing the line");
+        return analyze(match, progress, false);
+    }
+
+    private static GameReview analyze(ChessMatch match, IntConsumer progress, boolean rated) {
         var policy = GameReviewPolicy.CURRENT;
         var book = OpeningIndex.CURRENT.recognize(match);
         var turns = new ArrayList<Turn>(match.ply());
@@ -61,10 +71,10 @@ public record GameReview(List<Turn> turns, Opening opening, int bookPlies, int i
             int loss = Math.max(0, best - actual);
             int alternative = points(comparison.alternativeScore(), policy.scoreScale);
             int sacrifice = Math.max(0, TacticalAnalysis.offeredMaterial(board, comparison.played()));
-            boolean bookMove = ply <= book.bookPlies() && loss < 100;
+            boolean bookMove = ply <= book.bookPlies() && loss < policy.classification.bookLoss();
             boolean forced = board.legalMoves().size() == 1;
             int previousLoss = turns.isEmpty() ? 0 : turns.get(turns.size() - 1).loss();
-            Grade grade = classify(bookMove, forced, comparison.best().score() == comparison.played().score(),
+            Grade grade = classify(policy.classification, bookMove, forced, comparison.played().score() >= comparison.best().score(),
                     comparison.depth(), best, actual, alternative, sacrifice, previousLoss, comparison.onlyProvedMate());
             var side = board.turn();
             if (ply == 1) initial = side == Side.WHITE ? best : 1000 - best;
@@ -77,10 +87,12 @@ public record GameReview(List<Turn> turns, Opening opening, int bookPlies, int i
         var opponent = policy.opponentRatings.get(match.setup().level());
         var human = match.setup().humanSide();
         var humanStats = human == Side.WHITE ? white : black;
-        var humanRating = estimate(match.result(), human, humanStats.choices, opponent, policy.minimumRatedMoves);
+        var humanRating = rated ? estimate(match.result(), human, humanStats.choices, opponent, policy.minimumRatedMoves)
+                : Optional.<Rating>empty();
+        var botRating = rated ? Optional.of(opponent) : Optional.<Rating>empty();
         return new GameReview(turns, book.opening(), book.bookPlies(), initial,
-                white.finish(human == Side.WHITE ? humanRating : Optional.of(opponent)),
-                black.finish(human == Side.BLACK ? humanRating : Optional.of(opponent)));
+                white.finish(human == Side.WHITE ? humanRating : botRating),
+                black.finish(human == Side.BLACK ? humanRating : botRating));
     }
 
     static int points(int score, int scale) {
@@ -89,19 +101,27 @@ public record GameReview(List<Turn> turns, Opening opening, int bookPlies, int i
 
     static Grade classify(boolean book, boolean forced, boolean bestMove, int depth, int best, int played,
                           int alternative, int sacrifice, int previousLoss, boolean onlyProvedMate) {
+        return classify(GameReviewPolicy.CURRENT.classification, book, forced, bestMove, depth, best, played,
+                alternative, sacrifice, previousLoss, onlyProvedMate);
+    }
+
+    static Grade classify(GameReviewPolicy.Classification policy, boolean book, boolean forced, boolean bestMove,
+                          int depth, int best, int played, int alternative, int sacrifice, int previousLoss, boolean onlyProvedMate) {
         if (book) return Grade.BOOK;
         if (forced) return Grade.FORCED;
         int loss = Math.max(0, best - played);
-        boolean verified = depth >= 4 && bestMove;
-        boolean distinct = best - alternative >= 100;
-        if (verified && (distinct || onlyProvedMate) && played >= 550 && sacrifice >= 200) return Grade.BRILLIANT;
-        if (verified && distinct && (best >= 750 && alternative < 700 || best >= 450 && alternative < 400)) return Grade.GREAT;
+        boolean verified = depth >= policy.verifiedDepth() && bestMove;
+        boolean distinct = best - alternative >= policy.distinctGap();
+        if (verified && (distinct || onlyProvedMate) && played >= policy.brilliantPlayed()
+                && sacrifice >= policy.brilliantSacrifice()) return Grade.BRILLIANT;
+        if (verified && distinct && (best >= policy.winningBest() && alternative < policy.winningAlternative()
+                || best >= policy.recoveryBest() && alternative < policy.recoveryAlternative())) return Grade.GREAT;
         if (bestMove) return Grade.BEST;
-        if (previousLoss >= 100 && best >= 750 && played <= 550) return Grade.MISS;
-        if (loss >= 200) return Grade.BLUNDER;
-        if (loss >= 100) return Grade.MISTAKE;
-        if (loss >= 50) return Grade.INACCURACY;
-        return loss >= 20 ? Grade.GOOD : Grade.EXCELLENT;
+        if (previousLoss >= policy.missPreviousLoss() && best >= policy.missBest() && played <= policy.missPlayed()) return Grade.MISS;
+        if (loss >= policy.blunder()) return Grade.BLUNDER;
+        if (loss >= policy.mistake()) return Grade.MISTAKE;
+        if (loss >= policy.inaccuracy()) return Grade.INACCURACY;
+        return loss >= policy.good() ? Grade.GOOD : Grade.EXCELLENT;
     }
 
     static Optional<Rating> estimate(ChessMatch.Result result, Side human, int moves, Rating opponent, int minimum) {

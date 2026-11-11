@@ -45,6 +45,15 @@ class MatchEvaluationTest {
                 MatchPositionEvaluation.bonus(clearsCastle) < MatchPositionEvaluation.bonus(blocksPawn));
     }
 
+    @Test void confirmsTheSignWhenTheNextHorizonDisagreesAtTheQueensGambit(Checks check) {
+        var board = ChessMatch.restore("1|d2d4 d7d5 c2c4").position();
+        var best = TacticalAnalysis.recommendations(board).getFirst();
+        var display = MatchEvaluation.forPosition(board, best);
+        check.same("The equal-turn confirmation keeps White's small edge after 2.c4", true,
+                display.whiteCentipawns() > 0 && display.whiteCentipawns() <= 50 && display.whiteShare() > .5);
+        check.same("The additional horizon only changes the display estimate", best, TacticalAnalysis.recommendations(board).getFirst());
+    }
+
     @Test void mapsEvaluationToTheBarWithEqualAndTerminalPositions(Checks check) {
         var ending = TacticalAnalysis.Ending.HORIZON;
         check.same("Zero keeps the split at the center", .5, new MatchEvaluation(ending, 0, 0).whiteShare());

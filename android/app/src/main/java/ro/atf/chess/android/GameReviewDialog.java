@@ -36,16 +36,29 @@ final class GameReviewDialog {
     private static final int ACCENT = 0xffb8d88a;
     private final Context context;
     private final Side humanSide;
+    enum Mode {
+        MATCH(R.string.game_review_rating_note), MANUAL_MATCH(R.string.game_review_manual_rating),
+        LIVE_MATCH(R.string.game_review_live_rating), STUDY(R.string.game_review_study_rating);
+
+        final int ratingNote;
+
+        Mode(int ratingNote) { this.ratingNote = ratingNote; }
+
+        boolean snapshot() { return this == LIVE_MATCH || this == STUDY; }
+    }
+
+    private final Mode mode;
     private final Function<Move, String> notation;
     private final IntConsumer showPosition;
     private final IntConsumer continueFrom;
     private final LinearLayout content;
     private final Dialog dialog;
 
-    private GameReviewDialog(Context context, Side humanSide, Function<Move, String> notation,
+    private GameReviewDialog(Context context, Side humanSide, Mode mode, Function<Move, String> notation,
                              IntConsumer showPosition, IntConsumer continueFrom) {
         this.context = context;
         this.humanSide = humanSide;
+        this.mode = mode;
         this.notation = notation;
         this.showPosition = showPosition;
         this.continueFrom = continueFrom;
@@ -62,7 +75,7 @@ final class GameReviewDialog {
         var header = new LinearLayout(context);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(16), 0, dp(8), 0);
-        var title = text(context.getString(R.string.match_game_review), 22, PRIMARY);
+        var title = text(context.getString(mode == Mode.STUDY ? R.string.manual_game_review : R.string.match_game_review), 22, PRIMARY);
         if (Build.VERSION.SDK_INT >= 28) title.setAccessibilityHeading(true);
         header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
         var close = new Button(context, null, android.R.attr.borderlessButtonStyle);
@@ -78,9 +91,22 @@ final class GameReviewDialog {
     }
 
     static Dialog show(Context context, ChessMatch match, GameReview cached, ExecutorService worker,
-                            Function<Move, String> notation, String human, String bot, Consumer<GameReview> remember,
+                            Function<Move, String> notation, boolean manualMoves, String human, String bot, Consumer<GameReview> remember,
                             IntConsumer showPosition, IntConsumer continueFrom, Runnable onClose) {
-        var view = new GameReviewDialog(context, match.setup().humanSide(), notation, showPosition, continueFrom);
+        return open(context, match, cached, worker, notation, manualMoves ? Mode.MANUAL_MATCH : Mode.MATCH,
+                human, bot, remember, showPosition, continueFrom, onClose);
+    }
+
+    static Dialog showLine(Context context, ChessMatch match, ExecutorService worker, Function<Move, String> notation,
+                           Mode mode, String human, String bot, IntConsumer showPosition, IntConsumer continueFrom, Runnable onClose) {
+        return open(context, match, null, worker, notation, mode, human, bot, result -> {}, showPosition, continueFrom, onClose);
+    }
+
+    private static Dialog open(Context context, ChessMatch match, GameReview cached, ExecutorService worker,
+                               Function<Move, String> notation, Mode mode, String human, String bot, Consumer<GameReview> remember,
+                               IntConsumer showPosition, IntConsumer continueFrom, Runnable onClose) {
+        var view = new GameReviewDialog(context, mode == Mode.STUDY ? Side.WHITE : match.setup().humanSide(), mode,
+                notation, showPosition, continueFrom);
         view.dialog.show();
         view.dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         var job = view.load(match, cached, worker, human, bot, remember);
@@ -105,11 +131,12 @@ final class GameReviewDialog {
         content.addView(progress, new LinearLayout.LayoutParams(-1, -2));
         return worker.submit(() -> {
             try {
-                var result = GameReview.analyze(match, ply -> content.post(() -> {
+                IntConsumer update = ply -> content.post(() -> {
                     if (!dialog.isShowing()) return;
                     progress.setProgress(ply);
                     label.setText(context.getString(R.string.game_review_progress, ply, match.ply()));
-                }));
+                });
+                var result = mode.snapshot() ? GameReview.analyzeLine(match, update) : GameReview.analyze(match, update);
                 content.post(() -> {
                     if (!dialog.isShowing()) return;
                     remember.accept(result);
@@ -117,7 +144,7 @@ final class GameReviewDialog {
                 });
             } catch (CancellationException cancelled) {
                 // Closing the dialog cancels the local search.
-            } catch (RuntimeException failure) {
+            } catch (RuntimeException | LinkageError failure) {
                 android.util.Log.e("GameReview", "Unable to analyze the game", failure);
                 content.post(() -> {
                     if (!dialog.isShowing()) return;
@@ -144,7 +171,7 @@ final class GameReviewDialog {
                 new LinearLayout.LayoutParams(-1, dp(64)));
         summary.addView(player(human, humanSide, humanSide == Side.WHITE ? result.white() : result.black()));
         summary.addView(player(bot, humanSide.other(), humanSide == Side.WHITE ? result.black() : result.white()));
-        summary.addView(text(context.getString(R.string.game_review_rating_note), 12, MUTED));
+        summary.addView(text(context.getString(mode.ratingNote), 12, MUTED));
         summary.addView(comparison(result));
         list.addHeaderView(summary, null, false);
         list.setAdapter(new MoveRows(result.turns()));
@@ -158,15 +185,17 @@ final class GameReviewDialog {
                 + (value.low() == null ? "≤ " + value.high() : value.low() + "–" + value.high()) + ")")
                 .orElseGet(() -> context.getString(R.string.game_review_insufficient, player.ratedMoves()));
         int label = side == humanSide ? R.string.game_review_player : R.string.game_review_ai;
-        var caption = name + " · " + context.getString(BoardView.sideLabel(side)) + "\n" + context.getString(label, accuracy, rating);
+        String stats = mode == Mode.MATCH ? context.getString(label, accuracy, rating) : context.getString(R.string.game_review_accuracy_only, accuracy);
+        var caption = (mode == Mode.STUDY ? name : name + " · " + context.getString(BoardView.sideLabel(side))) + "\n" + stats;
         return text(caption, 15, PRIMARY);
     }
 
     private View comparison(GameReview result) {
         var table = column();
         var category = context.getString(R.string.game_review_category);
-        var human = context.getString(R.string.game_review_human_column);
-        var ai = context.getString(R.string.game_review_ai_column);
+        boolean study = mode == Mode.STUDY;
+        var human = context.getString(study ? R.string.white : R.string.game_review_human_column);
+        var ai = context.getString(study ? R.string.black : R.string.game_review_ai_column);
         var header = comparisonRow(category, human, ai);
         if (Build.VERSION.SDK_INT >= 28) header.setAccessibilityHeading(true);
         table.addView(header);
@@ -176,7 +205,8 @@ final class GameReviewDialog {
             String humanCount = numbers.format(count.human());
             String aiCount = numbers.format(count.ai());
             var row = comparisonRow(grade, humanCount, aiCount);
-            row.setContentDescription(context.getString(R.string.game_review_grade_counts, grade, humanCount, aiCount));
+            int counts = study ? R.string.game_review_study_counts : R.string.game_review_grade_counts;
+            row.setContentDescription(context.getString(counts, grade, humanCount, aiCount));
             for (int index = 0; index < row.getChildCount(); index++) {
                 row.getChildAt(index).setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             }
@@ -213,7 +243,7 @@ final class GameReviewDialog {
                     dialog.dismiss();
                     showPosition.accept(turn.ply());
                 }).setNeutralButton(R.string.game_review_close, null);
-        if (turn.side() == humanSide) {
+        if (mode == Mode.STUDY || turn.side() == humanSide) {
             options.setNegativeButton(R.string.game_review_retry, (ignored, which) -> {
                 dialog.dismiss();
                 continueFrom.accept(turn.ply() - 1);

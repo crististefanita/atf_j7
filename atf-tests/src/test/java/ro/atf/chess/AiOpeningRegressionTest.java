@@ -3,6 +3,7 @@ package ro.atf.chess;
 import atf.testkit.AtfComponentTest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,65 @@ class AiOpeningRegressionTest {
         var illegal = Map.of("id", "illegal", "moves", PIRC, "reply", "f8f6");
         check.same("An illegal reply is rejected during configuration loading", true, assertThrows(IllegalArgumentException.class,
                 () -> OpeningRepertoire.read(Map.of("schema", 1, "positions", List.of(illegal)))).getMessage().contains("Illegal"));
+        for (var invalidLevels : List.of(List.of("BASIC"), List.of("ADVANCED", "ADVANCED"), List.of("UNKNOWN"))) {
+            var entry = new java.util.HashMap<String, Object>(pirc);
+            entry.put("levels", invalidLevels);
+            check.rejects("Unsupported or repeated repertoire level " + invalidLevels, IllegalArgumentException.class,
+                    () -> OpeningRepertoire.read(Map.of("schema", 1, "positions", List.of(entry))));
+        }
+    }
+
+    @Test void advancedUsesVerifiedBenoniRepliesWithoutBorrowingOtherProfiles(Checks check) {
+        var black = ChessMatch.restore("3|WHITE|ADVANCED|0|" + BENONI);
+        check.same("Advanced develops the d-pawn at the first repeated Black loss", "d7d6", black.chooseBotMove().uci());
+        for (var row : List.of(List.of("g7g6", "d5d6"), List.of("b8a6", "e2e4"), List.of("h7h6", "e2e4"))) {
+            var white = ChessMatch.restore("3|BLACK|ADVANCED|0|" + BENONI + " " + row.get(0));
+            var decision = white.botDecision();
+            check.same("Advanced White follows the exact position after " + row.get(0), row.get(1), decision.move().uci());
+            check.same("The existing Advanced search budget still applies", true,
+                    decision.extraNodes() <= MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.ADVANCED).extraNodes());
+            check.same("The Advanced-only reply stays out of Hard and hints", null, OpeningRepertoire.CURRENT.reply(white.position()));
+            check.same("Basic keeps its own search", null, OpeningRepertoire.CURRENT.reply(white.position(), MatchSetup.Level.BASIC));
+        }
+        var neighboring = ChessMatch.restore("1|" + BENONI + " d7d6");
+        check.same("The adjacent review-only line stays out of Advanced play", null,
+                OpeningRepertoire.CURRENT.reply(neighboring.position(), MatchSetup.Level.ADVANCED));
+    }
+
+    @Test void postgameReviewComparesTheVerifiedReplyAndThePlayedMove(Checks check) {
+        for (var row : List.of(List.of(PIRC, "f8g7", "f8h6"), List.of(TRANSPOSED_PIRC, "f8g7", "f8h6"),
+                List.of(BENONI, "d7d6", "d8a5"),
+                List.of(PIRC.replace("f2f4", "g1f3"), "f8g7", "c8g4"),
+                List.of(BENONI + " d7d6", "h2h3", "c1g5"))) {
+            var position = match(row.get(0), "WHITE").position();
+            var expected = Move.fromUci(row.get(1));
+            var played = Move.fromUci(row.get(2));
+            var review = TacticalAnalysis.review(position, played, Set.of(), GameReviewPolicy.CURRENT.search);
+            check.same("The verified reply is the recommendation for " + row.get(0), expected, review.best().move());
+            check.same("The played line still starts with the actual move", played, review.played().move());
+            for (var variation : List.of(review.best(), review.played())) {
+                var board = position;
+                for (var move : variation.line()) board = board.play(move);
+                check.same("The continuation reaches the common search horizon", true, variation.line().size() >= review.depth());
+            }
+        }
+        var position = match(PIRC, "WHITE").position();
+        var reply = Move.fromUci("f8g7");
+        var drawn = TacticalAnalysis.review(position, reply, Set.of(reply), GameReviewPolicy.CURRENT.search);
+        check.same("An automatic draw is evaluated at its actual zero score", 0, drawn.played().score());
+        check.same("A better search result can outrank the drawn repertoire move", true,
+                !drawn.best().move().equals(reply) && drawn.best().score() > 0);
+    }
+
+    @Test void reviewOnlyRepliesStayOutOfLivePlayAndDoNotExtendToTheNextPosition(Checks check) {
+        var classical = match(PIRC.replace("f2f4", "g1f3"), "WHITE").position();
+        var benoni = match(BENONI + " d7d6", "BLACK").position();
+        for (var position : List.of(classical, benoni)) {
+            var reply = OpeningRepertoire.CURRENT.reviewReply(position);
+            check.same("The review has a legal reference", true, position.legalMoves().contains(reply));
+            check.same("Live play and hints use their normal search", null, OpeningRepertoire.CURRENT.reply(position));
+            check.same("The next board still uses review search", null, OpeningRepertoire.CURRENT.reviewReply(position.play(reply)));
+        }
     }
 
     @Test void hardLeavesTheWinningCycleAndCanStillTakeAForcedDraw(Checks check) {

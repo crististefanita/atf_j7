@@ -7,3 +7,24 @@ positions:
   - id: modern-benoni
     moves: "d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5"
     reply: d7d6
+    levels: [ADVANCED, HARD]
+  - id: benoni-after-g-six
+    moves: "d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5 g7g6"
+    reply: d5d6
+    levels: [ADVANCED]
+  - id: benoni-after-na-six
+    moves: "d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5 b8a6"
+    reply: e2e4
+    levels: [ADVANCED]
+  - id: benoni-after-h-six
+    moves: "d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5 h7h6"
+    reply: e2e4
+    levels: [ADVANCED]
+  - id: pirc-classical
+    moves: "e2e4 d7d6 d2d4 g8f6 b1c3 g7g6 g1f3"
+    reply: f8g7
+    review-only: true
+  - id: benoni-h-three
+    moves: "d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5 d7d6"
+    reply: h2h3
+    review-only: true

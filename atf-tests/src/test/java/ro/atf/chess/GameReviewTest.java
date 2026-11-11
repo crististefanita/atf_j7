@@ -14,6 +14,26 @@ import ro.atf.chess.GameReview.Grade;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class GameReviewTest {
+    @Test void reviewsAllRecordedMovesOfAStudyOrLiveGameWithoutRatingOrMutation(Checks check) {
+        var live = ChessMatch.restore("3|BLACK|ADVANCED|1|e2e4 e7e5 g1f3");
+        var study = new AnalysisLine(live, 1);
+        var visited = new ArrayList<Integer>();
+        var review = GameReview.analyzeLine(study.line(), visited::add);
+        check.same("The entire recorded line is reviewed even when the cursor is earlier", List.of(1, 2, 3), visited);
+        check.same("Both colors are attributed to the actual played moves",
+                List.of("WHITE:e2e4", "BLACK:e7e5", "WHITE:g1f3"),
+                review.turns().stream().map(turn -> turn.side() + ":" + turn.played().uci()).toList());
+        check.same("A line review reports no Elo for either side", List.of(Optional.empty(), Optional.empty()),
+                List.of(review.white().rating(), review.black().rating()));
+        check.same("The study cursor, original checkpoint and live result remain intact",
+                List.of(1, "3|BLACK|ADVANCED|1|e2e4 e7e5 g1f3", ChessMatch.Result.IN_PROGRESS),
+                List.of(study.ply(), live.checkpoint(), live.result()));
+        check.rejects("An empty line has no moves to analyze", IllegalArgumentException.class,
+                () -> GameReview.analyzeLine(ChessMatch.start(), ignored -> { }));
+        check.rejects("The finished-game review still requires a result", IllegalArgumentException.class,
+                () -> GameReview.analyze(live, ignored -> { }));
+    }
+
     @Test void comparesEveryGradeByRoleAndReconcilesWithTheMoveList(Checks check) {
         var match = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
         var review = GameReview.analyze(match, ignored -> { });
@@ -83,6 +103,20 @@ class GameReviewTest {
                 GameReview.classify(false, false, true, 3, 810, 810, 600, 320, 0, false));
         check.same("A legal move with no alternative is forced even when it gives mate", Grade.FORCED,
                 GameReview.classify(false, true, true, 5, 1000, 1000, 0, 320, 0, true));
+    }
+
+    @Test void configuredThresholdMovesTheClassificationBoundary(Checks check) {
+        var root = new java.util.HashMap<Object, Object>(ChessYaml.resource("game-review.yaml"));
+        var thresholds = new java.util.HashMap<Object, Object>(ChessYaml.map(root, "classification"));
+        root.put("classification", thresholds);
+        thresholds.put("inaccuracy-loss-min", 65);
+        var policy = GameReviewPolicy.read(root).classification;
+        check.same("A 60‰ loss is an inaccuracy at the shipped threshold", GameReview.Grade.INACCURACY,
+                GameReview.classify(false, false, false, 5, 700, 640, 700, 0, 0, false));
+        check.same("A 60‰ loss is good with a 65‰ threshold", GameReview.Grade.GOOD,
+                GameReview.classify(policy, false, false, false, 5, 700, 640, 700, 0, 0, false));
+        check.same("The configured boundary is inclusive", GameReview.Grade.INACCURACY,
+                GameReview.classify(policy, false, false, false, 5, 700, 635, 700, 0, 0, false));
     }
 
     @Test void provesTheQueenSacrificeAndDistinguishesTwoMatingLines(Checks check) {

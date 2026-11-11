@@ -36,10 +36,11 @@ final class BoardPanel extends ViewGroup {
         int labelHeight = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
         topLabel.measure(labelWidth, labelHeight);
         bottomLabel.measure(labelWidth, labelHeight);
-        placement = BoardPanelLayout.fit(width, height, topLabel.getMeasuredHeight(), bottomLabel.getMeasuredHeight(), gutter);
+        placement = BoardPanelLayout.fit(width, height, topLabel.getMeasuredHeight(), bottomLabel.getMeasuredHeight(),
+                evaluationVisible() ? gutter : 0);
         int boardSize = MeasureSpec.makeMeasureSpec(placement.side(), MeasureSpec.EXACTLY);
         board.measure(boardSize, boardSize);
-        if (evaluation != null) evaluation.measure(MeasureSpec.makeMeasureSpec(Math.min(width, barWidth), MeasureSpec.EXACTLY), boardSize);
+        if (evaluationVisible()) evaluation.measure(MeasureSpec.makeMeasureSpec(Math.min(width, barWidth), MeasureSpec.EXACTLY), boardSize);
         setMeasuredDimension(width, height);
     }
 
@@ -48,12 +49,14 @@ final class BoardPanel extends ViewGroup {
         int boardTop = placement.top() + topLabel.getMeasuredHeight();
         placeLabel(topLabel, placement.top());
         board.layout(x, boardTop, x + placement.side(), boardTop + placement.side());
-        if (evaluation != null) {
+        if (evaluationVisible()) {
             int barLeft = Math.max(0, x - gutter);
             evaluation.layout(barLeft, boardTop, barLeft + evaluation.getMeasuredWidth(), boardTop + placement.side());
         }
         placeLabel(bottomLabel, boardTop + placement.side());
     }
+
+    private boolean evaluationVisible() { return evaluation != null && evaluation.getVisibility() != View.GONE; }
 
     private void placeLabel(View label, int top) {
         int width = label.getMeasuredWidth();

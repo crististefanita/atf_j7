@@ -11,9 +11,13 @@ param(
     [switch]$OpeningsOnly,
     [switch]$GameReviewOnly,
     [switch]$ManualAnalysisOnly,
+    [switch]$MatchSlotsOnly,
+    [switch]$MatchArchiveOnly,
     [switch]$IncludeOpenings,
     [switch]$IncludeGameReview,
     [switch]$IncludeManualAnalysis,
+    [switch]$IncludeMatchSlots,
+    [switch]$IncludeMatchArchive,
     [string]$SourceCommit
 )
 $ErrorActionPreference = 'Stop'
@@ -26,15 +30,22 @@ $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
 if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
 if ($IncludeOpenings -and ($OpeningsOnly -or $AnalysisOnly)) { throw 'IncludeOpenings extends the board sanity phases.' }
-if ($GameReviewOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis)) {
+if ($GameReviewOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview)) {
     throw 'GameReviewOnly uses the isolated sanity package and its own phase.'
 }
 if ($IncludeGameReview -and ($AnalysisOnly -or $OpeningsOnly)) { throw 'IncludeGameReview extends the board sanity phases.' }
-if ($ManualAnalysisOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis)) {
+if ($ManualAnalysisOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots)) {
     throw 'ManualAnalysisOnly uses the isolated sanity package and its own phase.'
 }
-if ($IncludeManualAnalysis -and ($OpeningsOnly -or $GameReviewOnly)) {
-    throw 'IncludeManualAnalysis extends board or match analysis sanity.'
+if (($IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive) -and
+        ($OpeningsOnly -or $GameReviewOnly -or $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly)) {
+    throw 'Included phases require board or match analysis sanity.'
+}
+if ($MatchSlotsOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $ManualAnalysisOnly -or $IncludeOpenings -or $IncludeGameReview)) {
+    throw 'MatchSlotsOnly uses the isolated sanity package and its own phase.'
+}
+if ($MatchArchiveOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $ManualAnalysisOnly -or $MatchSlotsOnly -or $IncludeOpenings -or $IncludeGameReview)) {
+    throw 'MatchArchiveOnly uses the isolated sanity package and its own phase.'
 }
 $native = 'android/app/build/outputs/apk'
 $apk = Join-Path $root "$native/$variant/app-$variant.apk"
@@ -128,6 +139,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         throw "Android phase $Phase did not pass. See $Directory."
     }
     Receive-Frame $Phase $Directory
+    if ($Phase -eq 'match-slots') { Receive-Frame 'match-home' $Directory }
     if ($Phase -eq 'game-review') {
         Receive-Frame 'game-review-comparison' $Directory
         Receive-Frame 'game-review-actions' $Directory
@@ -136,6 +148,20 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         sourceCommit=$SourceCommit; variant=$variant; assertions=$passed.Count;
         receiptSha256=(Get-FileHash -LiteralPath $reviewReceipt).Hash.ToLowerInvariant()} |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
+}
+
+function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expected) {
+    $clear = Invoke-Device @('shell','pm','clear',$app)
+    if ($clear -cnotcontains 'Success') { throw "Could not reset for $Phase." }
+    $phaseDirectory = Join-Path $Directory $Phase
+    $null = New-Item -ItemType Directory $phaseDirectory
+    Invoke-FocusedSanity $phaseDirectory $Phase $Expected
+}
+
+function Invoke-SelectedMatchSanity([string]$Directory) {
+    if ($IncludeManualAnalysis) { Invoke-IncludedSanity $Directory 'manual-analysis' 15 }
+    if ($IncludeMatchSlots) { Invoke-IncludedSanity $Directory 'match-slots' 5 }
+    if ($IncludeMatchArchive) { Invoke-IncludedSanity $Directory 'match-archive' 4 }
 }
 
 Set-Lease $true
@@ -173,7 +199,15 @@ try {
         return
     }
     if ($ManualAnalysisOnly) {
-        Invoke-FocusedSanity $run 'manual-analysis' 10
+        Invoke-FocusedSanity $run 'manual-analysis' 15
+        return
+    }
+    if ($MatchSlotsOnly) {
+        Invoke-FocusedSanity $run 'match-slots' 5
+        return
+    }
+    if ($MatchArchiveOnly) {
+        Invoke-FocusedSanity $run 'match-archive' 4
         return
     }
     if ($OpeningsOnly) {
@@ -201,13 +235,7 @@ try {
             Invoke-Device @('shell','am','force-stop',$app)
         }
         if ($pids[0] -eq $pids[1]) { throw 'The analysis restore phase reused the same process.' }
-        if ($IncludeManualAnalysis) {
-            $clear = Invoke-Device @('shell','pm','clear',$app)
-            if ($clear -cnotcontains 'Success') { throw 'Could not reset for the manual analysis board.' }
-            $manualDirectory = Join-Path $run 'manual-analysis'
-            $null = New-Item -ItemType Directory $manualDirectory
-            Invoke-FocusedSanity $manualDirectory 'manual-analysis' 10
-        }
+        Invoke-SelectedMatchSanity $run
         $receiptHashes = [ordered]@{}
         foreach ($phase in $checks.Keys) {
             $receiptHashes[$phase] = (Get-FileHash -LiteralPath (Join-Path $run "$phase.txt")).Hash.ToLowerInvariant()
@@ -269,13 +297,9 @@ try {
         $null = New-Item -ItemType Directory $reviewDirectory
         Invoke-FocusedSanity $reviewDirectory 'game-review' 15
     }
-    if ($IncludeManualAnalysis -and (Test-Path -LiteralPath $settled) -and
+    if ((Test-Path -LiteralPath $settled) -and
             (Select-String -Quiet -LiteralPath $settled -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {
-        $clear = Invoke-Device @('shell','pm','clear',$app)
-        if ($clear -cnotcontains 'Success') { throw 'Could not reset for the manual analysis board.' }
-        $manualDirectory = Join-Path $run 'manual-analysis'
-        $null = New-Item -ItemType Directory $manualDirectory
-        Invoke-FocusedSanity $manualDirectory 'manual-analysis' 10
+        Invoke-SelectedMatchSanity $run
     }
 } finally {
     try {

@@ -10,9 +10,15 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.ImageButton;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import ro.atf.chess.AnalysisLine;
 import ro.atf.chess.ChessMatch;
@@ -21,14 +27,27 @@ import ro.atf.chess.ChessPosition.Side;
 
 /** A local study board whose line belongs to the activity, independently of the saved match. */
 public final class AnalysisActivity extends Activity {
+    static final int CONTINUATION_REQUEST = 17;
+    static final String CONTINUATION = "analysisContinuation";
+    static final String AI_AUTOMATIC = "analysisAutomaticAi";
+    static final String ORIENTATION = "analysisBlackBelow";
     private static final String LINE = "line";
     private static final String PLY = "ply";
     private static final String BLACK_BELOW = "blackBelow";
+    private static final String ANALYSIS_ENABLED = "analysisEnabled";
+    private static final String ARCHIVE_ID = "archiveId";
+    private static final String MANUAL_MOVES = "manualMoves";
+    private static final String HUMAN_NAME = "humanName";
+    private static final String BOT_NAME = "botName";
     private static final int PRIMARY = 0xfff5f3ec;
     private static final int ACTIVE = 0xffb8d88a;
     private AnalysisLine entry;
     private AnalysisLine study;
+    private ChessMatch sourceMatch;
     private boolean blackBelow;
+    private boolean analysisEnabled = true;
+    private final ExecutorService reviewWorker = Executors.newSingleThreadExecutor();
+    private android.app.Dialog reviewDialog;
     private int selected = -1;
     private List<Move> options = List.of();
     private BoardView board;
@@ -39,16 +58,25 @@ public final class AnalysisActivity extends Activity {
     private MatchAnalysisView analysis;
 
     static void open(Activity owner, ChessMatch match, int ply, boolean blackBelow) {
-        owner.startActivity(new Intent(owner, AnalysisActivity.class).putExtra(LINE, match.checkpoint())
-                .putExtra(PLY, ply).putExtra(BLACK_BELOW, blackBelow));
+        open(owner, match, ply, blackBelow, null, false, null, null);
+    }
+
+    static void open(Activity owner, ChessMatch match, int ply, boolean blackBelow,
+                     String archiveId, boolean manualMoves, String humanName, String botName) {
+        var intent = new Intent(owner, AnalysisActivity.class).putExtra(LINE, match.checkpoint())
+                .putExtra(PLY, ply).putExtra(BLACK_BELOW, blackBelow).putExtra(ARCHIVE_ID, archiveId)
+                .putExtra(MANUAL_MOVES, manualMoves).putExtra(HUMAN_NAME, humanName).putExtra(BOT_NAME, botName);
+        owner.startActivityForResult(intent, CONTINUATION_REQUEST);
     }
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         var intent = getIntent();
-        entry = new AnalysisLine(ChessMatch.restore(intent.getStringExtra(LINE)), intent.getIntExtra(PLY, 0));
+        sourceMatch = ChessMatch.restore(intent.getStringExtra(LINE));
+        entry = new AnalysisLine(sourceMatch, intent.getIntExtra(PLY, 0));
         study = state == null ? entry : new AnalysisLine(ChessMatch.restore(state.getString(LINE)), state.getInt(PLY));
         blackBelow = state == null ? intent.getBooleanExtra(BLACK_BELOW, false) : state.getBoolean(BLACK_BELOW);
+        analysisEnabled = state == null || state.getBoolean(ANALYSIS_ENABLED, true);
         setContentView(buildScreen());
     }
 
@@ -66,7 +94,7 @@ public final class AnalysisActivity extends Activity {
         }
         var header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        var back = button(R.drawable.match_chevron, R.string.manual_close, this::finish);
+        var back = button(R.drawable.match_chevron, R.string.manual_close, view -> finish());
         back.setScaleX(-1);
         addHeaderAction(header, back);
         var title = text(19);
@@ -74,13 +102,12 @@ public final class AnalysisActivity extends Activity {
         title.setGravity(Gravity.CENTER_VERTICAL);
         BoardCaption.reserve(title, 2);
         header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        addHeaderAction(header, button(android.R.drawable.ic_menu_rotate, R.string.flip, () -> {
-            blackBelow = !blackBelow;
-            render();
-        }));
-        var reset = button(android.R.drawable.ic_menu_revert, R.string.manual_reset, () -> select(entry));
+        var reset = button(android.R.drawable.ic_menu_revert, R.string.manual_reset, view -> select(entry));
         reset.setId(R.id.manual_reset_line);
         addHeaderAction(header, reset);
+        var menu = button(R.drawable.match_more, R.string.manual_options, this::showOptions);
+        menu.setId(R.id.manual_options);
+        addHeaderAction(header, menu);
         screen.addView(header);
         top = text(15);
         bottom = text(15);
@@ -100,13 +127,13 @@ public final class AnalysisActivity extends Activity {
         return screen;
     }
 
-    private ImageButton button(int icon, int label, Runnable action) {
+    private ImageButton button(int icon, int label, View.OnClickListener action) {
         var button = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
         button.setImageResource(icon);
         button.setImageTintList(ColorStateList.valueOf(PRIMARY));
         button.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
         button.setContentDescription(getString(label));
-        button.setOnClickListener(view -> action.run());
+        button.setOnClickListener(action);
         return button;
     }
 
@@ -129,9 +156,77 @@ public final class AnalysisActivity extends Activity {
         render();
     }
 
+    private void showOptions(View anchor) {
+        var optionsMenu = new PopupMenu(this, anchor);
+        var items = optionsMenu.getMenu();
+        items.add(R.string.manual_enable_analysis).setCheckable(true).setChecked(analysisEnabled).setOnMenuItemClickListener(item -> {
+            analysisEnabled = !analysisEnabled;
+            if (!analysisEnabled) analysis.cancel();
+            render();
+            return true;
+        });
+        items.add(R.string.manual_game_review).setEnabled(analysisEnabled && study.line().ply() > 0).setOnMenuItemClickListener(item -> {
+            showReview();
+            return true;
+        });
+        items.add(R.string.manual_continue_game).setEnabled(study.result() == ChessMatch.Result.IN_PROGRESS).setOnMenuItemClickListener(item -> {
+            confirmContinuation(study);
+            return true;
+        });
+        items.add(R.string.flip).setOnMenuItemClickListener(item -> {
+            blackBelow = !blackBelow;
+            render();
+            return true;
+        });
+        optionsMenu.show();
+    }
+
+    private void showReview() {
+        if (!analysisEnabled || study.line().ply() == 0 || reviewDialog != null) return;
+        var snapshot = study;
+        IntConsumer seek = ply -> select(snapshot.seek(ply));
+        IntConsumer resume = ply -> confirmContinuation(snapshot.seek(ply));
+        Runnable onClose = () -> reviewDialog = null;
+        if (snapshot.preservesCompletedGame(sourceMatch)) {
+            var intent = getIntent();
+            var store = new ChessProgressStore(this);
+            String id = intent.getStringExtra(ARCHIVE_ID);
+            var cached = store.readReview(id, sourceMatch);
+            reviewDialog = GameReviewDialog.show(this, sourceMatch, cached, reviewWorker, this::notation,
+                    intent.getBooleanExtra(MANUAL_MOVES, false), intent.getStringExtra(HUMAN_NAME), intent.getStringExtra(BOT_NAME),
+                    review -> {
+                        if (store.hasArchived(id) && !store.saveReview(id, sourceMatch, review)) {
+                            Toast.makeText(this, R.string.progress_save_failed, Toast.LENGTH_SHORT).show();
+                        }
+                    }, seek, resume, onClose);
+            return;
+        }
+        reviewDialog = GameReviewDialog.showLine(this, snapshot.line(), reviewWorker, this::notation, GameReviewDialog.Mode.STUDY,
+                getString(R.string.white), getString(R.string.black), seek, resume, onClose);
+    }
+
+    private void confirmContinuation(AnalysisLine cursor) {
+        var continuation = cursor.resumeMatch(analysisEnabled);
+        var automatic = new CheckBox(this);
+        automatic.setText(R.string.match_automatic_ai);
+        automatic.setChecked(true);
+        new AlertDialog.Builder(this).setTitle(R.string.manual_continue_game)
+                .setMessage(getString(R.string.manual_continue_confirm, cursor.ply())).setView(automatic)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.match_confirm_continue, (dialog, which) -> {
+                    if (new ChessProgressStore(this).freeMatchSlot() == 0) {
+                        android.widget.Toast.makeText(this, R.string.manual_no_free_slot, android.widget.Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    setResult(RESULT_OK, new Intent().putExtra(CONTINUATION, continuation.checkpoint())
+                            .putExtra(AI_AUTOMATIC, automatic.isChecked()).putExtra(ORIENTATION, blackBelow));
+                    finish();
+                }).show();
+    }
+
     private void tap(int square) {
         if (study.result() != ChessMatch.Result.IN_PROGRESS) return;
-        var guided = analysis.moveForTap(study.position(), selected, square);
+        var guided = analysisEnabled ? analysis.moveForTap(study.position(), selected, square) : null;
         if (guided != null) {
             select(study.play(guided));
             return;
@@ -169,8 +264,14 @@ public final class AnalysisActivity extends Activity {
             case AGREED_DRAW -> R.string.match_agreed_draw;
         };
         status.setText(outcome == 0 ? label : label + "\n" + getString(outcome));
-        analysis.evaluationBar().setBlackBelow(blackBelow);
-        analysis.show(study);
+        int visibility = analysisEnabled ? View.VISIBLE : View.GONE;
+        analysis.setVisibility(visibility);
+        analysis.bulb().setVisibility(visibility);
+        analysis.evaluationBar().setVisibility(visibility);
+        if (analysisEnabled) {
+            analysis.evaluationBar().setBlackBelow(blackBelow);
+            analysis.show(study);
+        }
         board.show(study.position(), blackBelow, selected, options, study.lastMove(), analysis.cue(), playable,
                 study.position().turn() == lower ? bottom.getId() : top.getId());
         history.show(study.line(), study.ply());
@@ -189,12 +290,18 @@ public final class AnalysisActivity extends Activity {
 
     @Override protected void onResume() { super.onResume(); render(); }
     @Override protected void onPause() { analysis.cancel(); super.onPause(); }
-    @Override protected void onDestroy() { analysis.close(); super.onDestroy(); }
+    @Override protected void onDestroy() {
+        if (reviewDialog != null) reviewDialog.dismiss();
+        reviewWorker.shutdownNow();
+        analysis.close();
+        super.onDestroy();
+    }
 
     @Override protected void onSaveInstanceState(Bundle state) {
         state.putString(LINE, study.line().checkpoint());
         state.putInt(PLY, study.ply());
         state.putBoolean(BLACK_BELOW, blackBelow);
+        state.putBoolean(ANALYSIS_ENABLED, analysisEnabled);
         super.onSaveInstanceState(state);
     }
 }

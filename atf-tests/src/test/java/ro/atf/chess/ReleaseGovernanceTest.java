@@ -23,12 +23,28 @@ import ro.atf.chess.release.ReleaseRag;
 @Tag("governance")
 @ExtendWith(ExtentAudit.class)
 class ReleaseGovernanceTest {
+    @Test void ragReportsCoverageForEveryPathInAMixedDiff(Checks check) throws Exception {
+        var root = ProjectRoot.locate();
+        var pom = ReleaseRag.inspect(root, List.of("pom.xml"));
+        check.same("The root Maven configuration has release guidance", List.of("pom.xml"), pom.covered());
+        check.same("The POM cites the qualification workflow", List.of("## Calificare și publicare"),
+                pom.citations().stream().map(ReleaseRag.Citation::heading).toList());
+        String board = "android/app/src/main/java/ro/atf/chess/android/BoardView.java";
+        var mixed = ReleaseRag.inspect(root, List.of("pom.xml", "misc/new-tool", board.replace('/', '\\'), board));
+        check.same("Covered paths retain input order and normalize Windows separators", List.of("pom.xml", board), mixed.covered());
+        check.same("The unmapped path remains visible when other paths have citations", List.of("misc/new-tool"), mixed.needsReview());
+        var archive = ReleaseRag.inspect(root, List.of("chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java"));
+        check.same("Review cache changes point to archive, slot and menu components", true,
+                archive.citations().stream().anyMatch(citation -> citation.check().contains("MatchArchiveTest")
+                        && citation.check().contains("-IncludeMatchSlots -IncludeMatchArchive")));
+    }
     private static final String SOURCE = "1".repeat(40);
     private static final String OTHER = "2".repeat(40);
     private static final String REPOSITORY = "example/atf_j7";
     private static final String BASE = "https://github.com/" + REPOSITORY + "/releases/";
     private static final String URL = BASE + "download/v0.1.0/ChessLab-0.1.0.apk";
-    private static final String README = "## Jocul\n\n[Release](" + BASE + "tag/v0.1.0)\n[APK](" + URL + ")\n";
+    private static final String README = "# Chess Lab\n\nȘah și studiu.\n\n## Jocul\n\n"
+            + "- [Release](" + BASE + "tag/v0.1.0)\n- [APK](" + URL + ")\n\n## În joc\n\n[Studiu](docs/board/README.md)\n";
 
     @TempDir Path folder;
     private Candidate candidate;
@@ -90,6 +106,28 @@ class ReleaseGovernanceTest {
                 decision(() -> ReleaseEvidence.publication(candidate, new Download(SOURCE, SOURCE, README, REPOSITORY, URL, "AUTHENTICATED", 200, sameLength))));
     }
 
+    @Test void readmeKeepsTheDownloadSectionFirstAndRejectsOtherApkRoutes(Checks check) throws IOException {
+        check.same("A brief introduction, two canonical bullets and a guide qualify", "accepted",
+                decision(() -> publish(SOURCE, README.replace("\n", "\r\n"), 200, apk)));
+        check.same("An introductory section cannot precede the download", "Jocul must be the first section",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("Șah și studiu.", "## Introducere\n\nȘah și studiu."))));
+        check.same("Prose appended to a link is rejected", "Jocul must contain exactly two link bullets",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace(URL + ")", URL + ") — APK Android semnat."))));
+        check.same("A label cannot carry integrity metadata", "Integrity metadata belongs in the release evidence",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("[APK]", "[APK SHA-256]"))));
+        check.same("A paragraph between download bullets is rejected", "Jocul must contain exactly two link bullets",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("- [APK]", "Descarcă aici.\n\n- [APK]"))));
+        check.same("A duplicate download section is rejected", "Duplicate Jocul section",
+                decision(() -> ReleaseEvidence.gameLinks(README + "\n## Jocul\n")));
+        check.same("A repeated canonical APK link in the introduction is rejected", "APK route outside Jocul",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("Șah și studiu.", "[Alt traseu](" + URL + ")"))));
+        for (String route : List.of("[copie](dist/ChessLab.apk)", "[copie]: https://example.org/ChessLab%2EAPK?dl=1",
+                "<https://example.org/ChessLab.apk#download>", "<a href=\"https://example.org/ChessLab.apk\">Copie</a>")) {
+            check.same("An APK route outside Jocul is rejected · " + route, "APK route outside Jocul",
+                    decision(() -> ReleaseEvidence.gameLinks(README + "\n" + route + "\n")));
+        }
+    }
+
     @Test void rootReadmeLeadsToTheVersionDeclaredByAndroid(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         String gradle = Files.readString(root.resolve("android/app/build.gradle"));
@@ -100,9 +138,6 @@ class ReleaseGovernanceTest {
         String readme = Files.readString(root.resolve("README.md"));
         check.same("Jocul links to the matching release and exact APK", List.of(base + "tag/v" + name, base + "download/v" + name + "/ChessLab-" + name + ".apk"),
                 ReleaseEvidence.gameLinks(readme));
-        String game = readme.substring(readme.indexOf("## Jocul"), readme.indexOf("## Proiectul"));
-        check.same("Integrity metadata stays out of the download section", false,
-                java.util.regex.Pattern.compile("(?i)sha[- ]?256|checksum|\\bbytes?\\b|[a-f0-9]{64}").matcher(game).find());
     }
 
     @Test void ragRetrievesOnlyAffectedGuidanceAndVerifiesTheAnchor(Checks check) throws IOException {
@@ -122,7 +157,7 @@ class ReleaseGovernanceTest {
                 history.stream().map(ReleaseRag.Citation::heading).toList());
         var hints = ReleaseRag.retrieve(root, List.of("chess-core/src/main/java/ro/atf/chess/MatchHint.java",
                 "android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java"));
-        check.same("Shared hint changes cite both signed Android journeys once",
+        check.same("Shared hints cite both signed Android journeys once",
                 List.of("MatchHintTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
                 hints.stream().filter(item -> item.heading().equals("## Partidă și istoric")).map(ReleaseRag.Citation::check).toList());
         var tactics = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/tactics.yaml",
@@ -181,6 +216,8 @@ class ReleaseGovernanceTest {
     @Test void manualAnalysisAndAnchorChangesHaveDistinctVerification(Checks check) throws IOException {
         var paths = List.of("chess-core/src/main/java/ro/atf/chess/AnalysisLine.java",
                 "android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java",
+                "android/app/src/main/java/ro/atf/chess/android/ChessActivity.java",
+                "chess-core/src/main/java/ro/atf/chess/QuestProgress.java",
                 "atf-tests/src/test/resources/ai-anchor.yaml", "atf-tests/src/test/resources/ai-anchor-observations.yaml");
         var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths);
         check.same("Manual board changes require the native and component checks once",
@@ -189,6 +226,9 @@ class ReleaseGovernanceTest {
         check.same("Anchor observations and protocol changes cite the same independent calibration",
                 List.of("AiAnchorBenchmarkTest și GameReviewGovernanceTest"),
                 citations.stream().filter(item -> item.heading().equals("### Rezultatele ancorei externe")).map(ReleaseRag.Citation::check).toList());
+        check.same("Progress changes cite both the navigation component and the signed upgrade probe",
+                List.of("QuestProgressTest și upgrade Android pe două APK-uri semnate"),
+                citations.stream().filter(item -> item.heading().equals("## Upgrade al progresului")).map(ReleaseRag.Citation::check).toList());
     }
 
     private Suite suite(String name, String installedApk) throws IOException {
