@@ -70,7 +70,7 @@ public final class ChessActivity extends Activity {
     private ChessProgressStore store;
     private ChessMatch match;
     private int matchSlot = 1;
-    private ChessProgressStore.ArchivedMatch archivedMatch;
+    private ro.atf.chess.MatchStore.ArchivedMatch archivedMatch;
     private boolean manualAi;
     private CheckBox manualAiCheck;
     private boolean inMatch;
@@ -124,28 +124,23 @@ public final class ChessActivity extends Activity {
                 new Chapter(R.id.chapter_tactics, R.string.tactics_progress, R.id.chapter_tactics_totals, QuestCatalog.loadTactics()));
         allIds = chapters.stream().flatMap(chapter -> chapter.ids().stream()).collect(Collectors.toList());
         store = new ChessProgressStore(this);
-        store.migrateCompletedMatches();
+        store.matches().migrateCompletedMatches();
         progress = store.read(allIds);
         rewards = store.readRewards();
         if (Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, this::back);
         }
         try {
-            matchSlot = store.activeMatchSlot();
-            match = store.readMatch();
-            manualAi = store.matchManualAi(matchSlot);
+            matchSlot = store.matches().activeMatchSlot();
+            match = store.matches().readMatch();
+            manualAi = store.matches().matchManualAi(matchSlot);
         } catch (IllegalArgumentException | IllegalStateException | ClassCastException invalid) {
             Toast.makeText(this, R.string.match_load_failed, Toast.LENGTH_LONG).show();
         }
         String archiveId = state == null ? null : state.getString("archive-id");
-        if (archiveId != null) {
-            for (var archived : store.archivedMatches()) if (archived.id().equals(archiveId)) {
-                openArchivedMatch(archived);
-                return;
-            }
-        }
-        if (match != null && store.resumeMatch()) {
-            displayMatch(store.matchBlackBelow());
+        if (archiveId != null && openArchivedMatch(archiveId)) return;
+        if (match != null && store.matches().resumeMatch()) {
+            displayMatch(store.matches().matchBlackBelow());
             return;
         }
         if (store.resumeChapter()) for (int index = 0; index < chapters.size(); index++) {
@@ -189,19 +184,10 @@ public final class ChessActivity extends Activity {
         menu.findViewById(R.id.open_openings).setOnClickListener(view -> startActivity(new android.content.Intent(this, OpeningActivity.class)));
         menu.findViewById(R.id.open_analysis).setOnClickListener(view -> AnalysisActivity.open(this, ChessMatch.start(), 0, false));
         menu.findViewById(R.id.new_match).setOnClickListener(view -> showMatchSetup());
-        menu.findViewById(R.id.match_archive).setOnClickListener(view -> showArchive());
+        menu.findViewById(R.id.match_archive).setOnClickListener(view -> MatchListActivity.openFinished(this));
         Button resume = menu.findViewById(R.id.resume_match);
-        var slots = savedMatchSlots();
-        resume.setVisibility(slots.isEmpty() ? View.GONE : View.VISIBLE);
-        if (slots.size() > 1) resume.setText(R.string.match_saved_games);
-        else if (slots.size() == 1) {
-            var only = readSavedMatch(slots.get(0));
-            if (only != null && only.result() != ChessMatch.Result.IN_PROGRESS) resume.setText(R.string.match_last_game);
-        }
-        resume.setOnClickListener(view -> {
-            if (slots.size() == 1) selectMatch(slots.get(0));
-            else showSavedMatches();
-        });
+        resume.setVisibility(store.matches().savedMatchSlots().isEmpty() ? View.GONE : View.VISIBLE);
+        resume.setOnClickListener(view -> MatchListActivity.openSaved(this));
         setContentView(menu);
     }
 
@@ -238,6 +224,7 @@ public final class ChessActivity extends Activity {
         Spinner colors = menu.findViewById(R.id.match_color);
         Spinner levels = menu.findViewById(R.id.match_level);
         CheckBox analysis = menu.findViewById(R.id.match_analysis_option);
+        menu.findViewById(R.id.match_replacement_note).setVisibility(store.matches().freeMatchSlot() == 0 ? View.VISIBLE : View.GONE);
         menu.findViewById(R.id.match_start).setOnClickListener(view -> {
             var color = MatchSetup.ColorChoice.values()[colors.getSelectedItemPosition()];
             var level = MatchSetup.Level.values()[levels.getSelectedItemPosition()];
@@ -253,64 +240,21 @@ public final class ChessActivity extends Activity {
     }
 
     private void newMatch(MatchSetup setup) {
-        int slot = store.freeMatchSlot();
-        if (slot > 0) {
-            openMatch(slot, ChessMatch.start(setup), setup.humanSide() == Side.BLACK, false, false, true);
-            return;
-        }
-        for (int saved : savedMatchSlots()) {
-            var completed = readSavedMatch(saved);
-            if (completed == null || completed.result() == ChessMatch.Result.IN_PROGRESS) continue;
-            new AlertDialog.Builder(this).setTitle(R.string.match_replace_title).setMessage(getString(R.string.match_replace_completed, saved))
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(R.string.match_start, (dialog, choice) ->
-                            openMatch(saved, ChessMatch.start(setup), setup.humanSide() == Side.BLACK, false, false, true)).show();
-            return;
-        }
-        Toast.makeText(this, R.string.match_slots_full, Toast.LENGTH_LONG).show();
-    }
-
-    private List<Integer> savedMatchSlots() {
-        var slots = new ArrayList<Integer>();
-        for (int slot = 1; slot <= MatchSlots.LIMIT; slot++) if (store.hasMatch(slot)) slots.add(slot);
-        return slots;
-    }
-
-    private ChessMatch readSavedMatch(int slot) {
-        try {
-            return store.readMatch(slot);
-        } catch (IllegalArgumentException | IllegalStateException | ClassCastException invalid) {
-            return null;
-        }
-    }
-
-    private void showSavedMatches() {
-        var slots = savedMatchSlots();
-        if (slots.isEmpty()) return;
-        var labels = new ArrayList<String>();
-        for (int slot : slots) {
-            var saved = readSavedMatch(slot);
-            if (saved == null) labels.add(getString(R.string.match_slot_unavailable, slot));
-            else labels.add(getString(R.string.match_slot_label, slot, botName(saved.setup().level()),
-                    getString(BoardView.sideLabel(saved.setup().humanSide())), saved.ply(),
-                    getString(saved.result() == ChessMatch.Result.IN_PROGRESS ? R.string.match_slot_active : R.string.match_slot_finished)));
-        }
-        new AlertDialog.Builder(this).setTitle(R.string.match_saved_games).setItems(labels.toArray(new String[0]),
-                (dialog, choice) -> selectMatch(slots.get(choice))).setNegativeButton(android.R.string.cancel, null).show();
+        openMatch(store.matches().slotForNewMatch(), ChessMatch.start(setup), setup.humanSide() == Side.BLACK, false, false, true);
     }
 
     private void selectMatch(int slot) {
-        var saved = readSavedMatch(slot);
+        var saved = store.matches().readSavedMatch(slot);
         if (saved == null) {
             Toast.makeText(this, R.string.match_load_failed, Toast.LENGTH_LONG).show();
             return;
         }
-        openMatch(slot, saved, store.matchBlackBelow(slot), store.matchManualAi(slot), store.matchManualUsed(slot), false);
+        openMatch(slot, saved, store.matches().matchBlackBelow(slot), store.matches().matchManualAi(slot), store.matches().matchManualUsed(slot), false);
     }
 
     private void openMatch(int slot, ChessMatch nextMatch, boolean flipped, boolean manual, boolean manualUsed, boolean fresh) {
-        boolean saved = fresh ? store.startMatch(slot, nextMatch, flipped, manual, manualUsed)
-                : store.saveMatch(slot, nextMatch, flipped, manual, manualUsed);
+        boolean saved = fresh ? store.matches().startMatch(slot, nextMatch, flipped, manual, manualUsed)
+                : store.matches().saveMatch(slot, nextMatch, flipped, manual, manualUsed);
         if (!saved) {
             showSaveError();
             return;
@@ -326,35 +270,17 @@ public final class ChessActivity extends Activity {
         scheduleBot();
     }
 
-    private void showArchive() {
-        var games = store.archivedMatches();
-        var dialog = new AlertDialog.Builder(this).setTitle(R.string.match_archive).setNegativeButton(android.R.string.cancel, null);
-        if (games.isEmpty()) dialog.setMessage(R.string.match_archive_empty);
-        else {
-            var rows = new ArrayList<String>();
-            for (var game : games) {
-                var saved = game.match();
-                int result = switch (saved.result()) {
-                    case WHITE_WINS -> saved.setup().humanSide() == Side.WHITE ? R.string.match_player_wins : R.string.match_bot_wins;
-                    case BLACK_WINS -> saved.setup().humanSide() == Side.BLACK ? R.string.match_player_wins : R.string.match_bot_wins;
-                    default -> R.string.match_archive_draw;
-                };
-                rows.add(getString(R.string.match_archive_row, getString(result), botName(saved.setup().level()), saved.ply(),
-                        getString(game.reviewed() ? R.string.match_archive_reviewed : R.string.match_archive_no_review)));
-            }
-            dialog.setItems(rows.toArray(new String[0]), (ignored, index) -> openArchivedMatch(games.get(index)));
-        }
-        dialog.show();
-    }
-
-    private void openArchivedMatch(ChessProgressStore.ArchivedMatch archived) {
+    private boolean openArchivedMatch(String id) {
+        var archived = store.matches().readArchivedMatch(id);
+        if (archived == null) return false;
         cancelBot();
         if (matchAnalysis != null) matchAnalysis.close();
         archivedMatch = archived;
         match = archived.match();
         manualAi = false;
-        completedReview = store.readReview(archived.id(), match);
+        completedReview = store.matches().readReview(archived.id(), match);
         displayMatch(archived.blackBelow());
+        return true;
     }
 
     private void displayMatch(boolean flipped) {
@@ -373,7 +299,7 @@ public final class ChessActivity extends Activity {
 
     private void leaveBoard() {
         if (inMatch) {
-            if (archivedMatch != null || store.leaveMatch()) showMenu();
+            if (archivedMatch != null || store.matches().leaveMatch()) showMenu();
             else showSaveError();
         } else leaveChapter();
     }
@@ -410,7 +336,7 @@ public final class ChessActivity extends Activity {
         flip.setText(R.string.flip);
         flip.setAllCaps(false);
         flip.setOnClickListener(view -> {
-            if (inMatch && archivedMatch == null && !store.saveMatch(matchSlot, match, !blackBelow, manualAi)) {
+            if (inMatch && archivedMatch == null && !store.matches().saveMatch(matchSlot, match, !blackBelow, manualAi)) {
                 showSaveError();
                 return;
             }
@@ -484,8 +410,8 @@ public final class ChessActivity extends Activity {
             study.setContentDescription(getString(R.string.manual_analysis));
             study.setOnClickListener(view -> {
                 cancelBot();
-                String id = archivedMatch == null ? store.archivedId(matchSlot) : archivedMatch.id();
-                boolean manualUsed = archivedMatch == null ? store.matchManualUsed(matchSlot) : archivedMatch.manualUsed();
+                String id = archivedMatch == null ? store.matches().archivedId(matchSlot) : archivedMatch.id();
+                boolean manualUsed = archivedMatch == null ? store.matches().matchManualUsed(matchSlot) : archivedMatch.manualUsed();
                 AnalysisActivity.open(this, match, reviewedPly < 0 ? match.ply() : reviewedPly, blackBelow,
                         id, manualUsed, humanName(), botName(match.setup().level()));
             });
@@ -796,7 +722,7 @@ public final class ChessActivity extends Activity {
     }
 
     private void setManualAi(boolean enabled) {
-        if (!store.saveMatch(matchSlot, match, blackBelow, enabled)) {
+        if (!store.matches().saveMatch(matchSlot, match, blackBelow, enabled)) {
             manualAiCheck.setChecked(manualAi);
             showSaveError();
             return;
@@ -840,13 +766,13 @@ public final class ChessActivity extends Activity {
     private void continueMatch(int ply, boolean manual) {
         var continuation = match.continueFrom(ply);
         if (archivedMatch != null) {
-            int free = store.freeMatchSlot();
+            int free = store.matches().freeMatchSlot();
             if (free == 0) Toast.makeText(this, R.string.manual_no_free_slot, Toast.LENGTH_LONG).show();
             else openMatch(free, continuation, blackBelow, manual, archivedMatch.manualUsed(), true);
             return;
         }
-        boolean saved = match.result() == ChessMatch.Result.IN_PROGRESS ? store.saveMatch(matchSlot, continuation, blackBelow, manual)
-                : store.startMatch(matchSlot, continuation, blackBelow, manual, store.matchManualUsed(matchSlot));
+        boolean saved = match.result() == ChessMatch.Result.IN_PROGRESS ? store.matches().saveMatch(matchSlot, continuation, blackBelow, manual)
+                : store.matches().startMatch(matchSlot, continuation, blackBelow, manual, store.matches().matchManualUsed(matchSlot));
         if (!saved) {
             showSaveError();
             return;
@@ -878,20 +804,20 @@ public final class ChessActivity extends Activity {
                     });
             return;
         }
-        String id = archivedMatch == null ? store.archivedId(matchSlot) : archivedMatch.id();
-        boolean manualUsed = archivedMatch == null ? store.matchManualUsed(matchSlot) : archivedMatch.manualUsed();
-        if (completedReview == null) completedReview = store.readReview(id, snapshot);
+        String id = archivedMatch == null ? store.matches().archivedId(matchSlot) : archivedMatch.id();
+        boolean manualUsed = archivedMatch == null ? store.matches().matchManualUsed(matchSlot) : archivedMatch.manualUsed();
+        if (completedReview == null) completedReview = store.matches().readReview(id, snapshot);
         reviewDialog = GameReviewDialog.show(this, snapshot, completedReview, bot, this::notation, manualUsed, humanName(),
                 botName(match.setup().level()), result -> {
                     if (match == snapshot) completedReview = result;
-                    if (store.hasArchived(id) && !store.saveReview(id, snapshot, result)) showSaveError();
+                    if (store.matches().hasArchived(id) && !store.matches().saveReview(id, snapshot, result)) showSaveError();
                 }, this::reviewMatch, this::confirmContinuation, () -> reviewDialog = null);
     }
 
     private void showMatchActions(View anchor) {
         var menu = new PopupMenu(this, anchor);
         menu.getMenu().add(R.string.match_saved_games).setOnMenuItemClickListener(item -> {
-            showSavedMatches();
+            MatchListActivity.openSaved(this);
             return true;
         });
         boolean finished = match.result() != ChessMatch.Result.IN_PROGRESS;
@@ -927,7 +853,7 @@ public final class ChessActivity extends Activity {
     }
 
     private void saveMatchEnding(ChessMatch ending) {
-        if (!store.saveMatch(matchSlot, ending, blackBelow, manualAi)) {
+        if (!store.matches().saveMatch(matchSlot, ending, blackBelow, manualAi)) {
             showSaveError();
             return;
         }
@@ -941,8 +867,8 @@ public final class ChessActivity extends Activity {
 
     private boolean saveMatchMove(Move move) {
         var nextMatch = match.play(move);
-        boolean manualUsed = store.matchManualUsed(matchSlot) || manualAi && match.awaitingBot();
-        if (!store.saveMatch(matchSlot, nextMatch, blackBelow, manualAi, manualUsed)) {
+        boolean manualUsed = store.matches().matchManualUsed(matchSlot) || manualAi && match.awaitingBot();
+        if (!store.matches().saveMatch(matchSlot, nextMatch, blackBelow, manualAi, manualUsed)) {
             showSaveError();
             return false;
         }
@@ -1175,11 +1101,7 @@ public final class ChessActivity extends Activity {
     }
 
     private String botName(MatchSetup.Level level) {
-        return switch (level) {
-            case BASIC -> getString(R.string.match_bot_label, "Alex", getString(R.string.match_basic));
-            case ADVANCED -> getString(R.string.match_bot_label, "Mira", getString(R.string.match_advanced));
-            case HARD -> getString(R.string.match_bot_label, "Atlas", getString(R.string.match_hard));
-        };
+        return MatchLabels.botName(this, level);
     }
 
     private void renderProgress() {
@@ -1236,10 +1158,21 @@ public final class ChessActivity extends Activity {
 
     @Override protected void onActivityResult(int request, int result, android.content.Intent data) {
         super.onActivityResult(request, result, data);
-        if (request != AnalysisActivity.CONTINUATION_REQUEST || result != RESULT_OK || data == null) return;
+        if (result != RESULT_OK || data == null) return;
+        if (request == MatchListActivity.SAVED_REQUEST) {
+            selectMatch(data.getIntExtra(MatchListActivity.SAVED_SLOT, 0));
+            return;
+        }
+        if (request == MatchListActivity.FINISHED_REQUEST) {
+            if (!openArchivedMatch(data.getStringExtra(MatchListActivity.ARCHIVE_ID))) {
+                Toast.makeText(this, R.string.match_load_failed, Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+        if (request != AnalysisActivity.CONTINUATION_REQUEST) return;
         String checkpoint = data.getStringExtra(AnalysisActivity.CONTINUATION);
         if (checkpoint == null) return;
-        int free = store.freeMatchSlot();
+        int free = store.matches().freeMatchSlot();
         if (free == 0) {
             Toast.makeText(this, R.string.manual_no_free_slot, Toast.LENGTH_LONG).show();
             return;

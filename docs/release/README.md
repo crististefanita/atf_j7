@@ -6,7 +6,7 @@
 2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului.
 3. Actualizați notele ediției, ghidul jocului și dovezile de testare. Puneți **Jocul** ca prima secțiune a README-ului principal, imediat după orientare. Folosiți două rânduri de listă formate fiecare dintr-un link, întâi către release, apoi către APK. În restul README-ului puneți ghidurile proiectului. Verificați legăturile locale și rulați `ReleaseGovernanceTest`.
 4. Creați commitul candidat local și exportați exact acel commit în TMP. Rulați `mvn test`, care pornește `ChessJvmSuite`, și păstrați raportul Extent al componentelor și guvernanței. Activați probele AI relevante când diff-ul afectează motorul sau corpusul. [Suitele și raportarea](../testing/README.md#suite-jvm)
-5. Construiți APK-ul și testele Android cu Gradle și cheia de distribuție. Verificați semnătura și `versionCode`. Rulați sanity-ul semnat pe emulator, inclusiv repornirea, ultima mutare și istoricul partidei. Păstrați hash-ul APK-ului instalat și rapoartele Extent.
+5. Construiți APK-ul și testele Android cu Gradle și cheia de distribuție. Verificați semnătura și `versionCode`. Rulați pe emulator parcursul semnat potrivit schimbării. Includeți repornirea, ultima mutare și istoricul când schimbarea afectează tabla sau reluarea partidei. Păstrați hash-ul APK-ului instalat și rapoartele Extent.
 6. Treceți APK-ul, commitul și dovezile prin `ReleaseGate qualification`. Rezolvați abaterile și repetați verificările afectate înainte de publicare.
 7. După autorizare și calificare, împingeți tagul candidat fără a rescrie istoricul, publicați asset-urile GitHub și împingeți commitul cu linkurile pe `main`. Păstrați identitatea tagului și a asset-urilor în dosarul ediției.
 8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
@@ -21,12 +21,14 @@ Pentru schimbările din Tabla de analiză, folosiți `-ManualAnalysisOnly` în d
 
 Pentru indiciile comune, rulați `-Distribution -AnalysisOnly -IncludeManualAnalysis -SourceCommit <sha>`. Calificați cele două rapoarte Extent față de același commit și APK semnat. [Partidă și istoric](../testing/README.md#partidă-și-istoric)
 
-Pentru edițiile care schimbă gestionarea partidelor și arhiva, rulați parcursul concentrat pe APK-ul semnat. Runnerul păstrează aceeași instalare și resetează datele de test între faze. Calificați separat raportul de restart și indiciu, tabla de analiză, partidele salvate și arhiva.
+Pentru schimbări la listele de partide, rulați proba semnată a celor două meniuri. Runnerul păstrează aceeași instalare și resetează datele de test între faze. Calificați separat cele două rapoarte Extent cu identitatea comună a APK-ului. Verificările de persistență rulează în `MatchStoreTest`.
 
 ```powershell
 ./scripts/run-android-sanity.ps1 -Adb <adb> -Serial <serial> -LeaseFile <registru> `
-  -Distribution -AnalysisOnly -IncludeManualAnalysis -IncludeMatchSlots -IncludeMatchArchive -SourceCommit <sha>
+  -Distribution -MatchMenusOnly -SourceCommit <sha>
 ```
+
+Dacă ediția schimbă și tabla sau indiciile, rulați parcursul de analiză cu `-AnalysisOnly -IncludeManualAnalysis -IncludeMatchSlots -IncludeMatchArchive`.
 
 `ReleaseGate` expune verificările de calificare și publicare din Java. Pentru o ediție privată, citiți README-ul din `main` cu contul autentificat, reconciliați linkul cu `browser_download_url` al asset-ului din tag și descărcați prin API-ul autentificat. Înregistrați ruta, statusul, commitul, hash-ul și rezultatul CRC în dosarul ediției. Linkul din README rămâne ruta din browser pentru utilizatorii conectați. [API-ul GitHub pentru asset-uri](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
 

@@ -36,7 +36,11 @@ class ReleaseGovernanceTest {
         var archive = ReleaseRag.inspect(root, List.of("chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java"));
         check.same("Review cache changes point to archive, slot and menu components", true,
                 archive.citations().stream().anyMatch(citation -> citation.check().contains("MatchArchiveTest")
-                        && citation.check().contains("-IncludeMatchSlots -IncludeMatchArchive")));
+                        && citation.check().contains("-MatchMenusOnly")));
+        var menus = ReleaseRag.inspect(root, List.of("android/app/src/main/res/layout/match_list.xml"));
+        check.same("Changing game list layout selects component and both focused Android checks", true,
+                menus.citations().stream().anyMatch(citation -> citation.check().contains("MainMenuLayoutTest")
+                        && citation.check().contains("-MatchMenusOnly")));
     }
     private static final String SOURCE = "1".repeat(40);
     private static final String OTHER = "2".repeat(40);

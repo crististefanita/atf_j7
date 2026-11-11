@@ -31,10 +31,25 @@ class MatchSlotsTest {
         check.same("The original checkpoint remains readable in the first slot", legacy,
                 ChessMatch.restore(checkpoints.get(MatchSlots.key("match-checkpoint", 1))).checkpoint());
         check.same("The four per-slot preference keys never collide", 40, keys.size());
-        check.same("An eleventh slot cannot be allocated", 0,
+        check.same("No unused slot remains at capacity", 0,
                 MatchSlots.firstFree(candidate -> checkpoints.containsKey(MatchSlots.key("match-checkpoint", candidate))));
         check.rejects("An out of bounds slot cannot write a checkpoint", IllegalArgumentException.class,
                 () -> MatchSlots.key("match-checkpoint", 11));
+    }
+
+    @Test void aNewGameRecyclesTheOldestSavedGameWhenAllTenSlotsAreUsed(Checks check) {
+        var occupied = new HashSet<Integer>();
+        for (int slot = 1; slot < MatchSlots.LIMIT; slot++) occupied.add(slot);
+        var creation = new HashMap<Integer, Long>();
+        java.util.function.IntToLongFunction age = slot -> creation.getOrDefault(slot, (long) slot);
+        check.same("A free slot is used before an existing game is replaced", 10, MatchSlots.forNewGame(occupied::contains, age));
+        occupied.add(10);
+        check.same("A legacy list without creation numbers uses the original allocation order", 1, MatchSlots.forNewGame(occupied::contains, age));
+        creation.put(1, 11L);
+        check.same("The recycled slot moves to the top of the saved games menu", List.of(1, 10, 9, 8, 7, 6, 5, 4, 3, 2),
+                MatchSlots.newestFirst(occupied::contains, age));
+        check.same("The next new game recycles the second oldest, leaving the new first slot in place", 2,
+                MatchSlots.forNewGame(occupied::contains, age));
     }
 
     @Test void changingOwnershipInvalidatesAQueuedBotReply(Checks check) {

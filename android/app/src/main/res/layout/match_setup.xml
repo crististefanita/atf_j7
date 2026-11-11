@@ -13,6 +13,8 @@
             android:entries="@array/match_levels" android:spinnerMode="dropdown" />
         <CheckBox android:id="@+id/match_analysis_option" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/match_analysis_option" />
+        <TextView android:id="@+id/match_replacement_note" style="@style/MenuSection" android:text="@string/match_replacement_note"
+            android:visibility="gone" />
         <Button android:id="@+id/match_start" style="@style/ChapterEntry" android:text="@string/match_start" />
         <Button android:id="@+id/setup_home" style="@style/ChapterEntry" android:text="@string/main_menu" />
     </LinearLayout>

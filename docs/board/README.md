@@ -58,11 +58,13 @@ Navigarea și mutările manuale pentru ambele culori urmează fluxul de analiză
 
 ## Partidă cu calculatorul
 
-Meniul principal grupează **Partidă nouă**, **Reia partida** și **Partide încheiate** în secțiunea **Partide**. Problemele, deschiderile și tabla de analiză sunt în **Studiu**, iar numele jucătorului este în **Profil**.
+Meniul principal grupează **Partidă nouă**, **Partide salvate** și **Partide încheiate** în secțiunea **Partide**. Problemele, deschiderile și tabla de analiză sunt în **Studiu**, iar numele jucătorului este în **Profil**. Ambele liste de partide se deschid ca ecrane dedicate, în stilul meniului **Probleme**. **Înapoi** rămâne vizibil când derulezi și revine la ecranul de unde ai venit.
 
-**Partide încheiate** păstrează ultimele zece rezultate, de la cel mai recent. Poți redeschide tabla și istoricul fiecărei partide. Dacă ai lăsat analiza să se termine, lista o marchează ca salvată, iar **📊 Analiza partidei** o deschide direct. Continuarea pornită din arhivă folosește un loc liber și păstrează rezultatul original. La al unsprezecelea rezultat, partida cea mai veche și analiza ei ies din arhivă.
+**Partide încheiate** păstrează ultimele zece rezultate, în ordinea încheierii, de la cel mai recent. Poți redeschide tabla și istoricul fiecărei partide. Dacă ai lăsat analiza să se termine, lista o marchează ca salvată, iar **📊 Analiza partidei** o deschide direct. Continuarea pornită din arhivă folosește un loc liber și păstrează rezultatul original. La al unsprezecelea rezultat, cel mai vechi rezultat și analiza lui ies din arhivă.
 
-Poți păstra până la zece partide. **Partidă nouă** folosește primul loc liber, iar **Partide salvate** arată numărul, nivelul, culoarea ta, progresul și starea fiecărei partide. Poți schimba partida și din **Opțiunile partidei**. Dacă toate locurile sunt ocupate, înlocuirea unei partide încheiate cere confirmare. La redeschidere, aplicația reia ultima partidă activă.
+**Partide salvate** arată până la zece partide, de la cea mai recent începută. **Partidă nouă** folosește primul loc liber. Când toate sunt ocupate, configurarea anunță că noua partidă va înlocui cea mai veche salvare. Reluarea unei partide îi păstrează locul în ordine, iar redeschiderea aplicației reia ultima partidă activă. Pentru salvările din edițiile anterioare, ordinea inițială urmează numărul locului.
+
+Sub descrierea partidei, eticheta discretă arată data și ora locală. În **Partide salvate** apare momentul începerii, iar în **Partide încheiate** momentul terminării. Salvările vechi își păstrează datele disponibile.
 
 **Joacă și mutările AI-ului**, deasupra tablei, îți permite să joci mutările legale ale ambelor culori. Opțiunea se salvează separat pe fiecare partidă. Dacă o debifezi în tura AI-ului, motorul reia tura curentă. Când schimbi partida, o replică aflată în calcul se anulează și poate fi recalculată când revii la acea partidă. Dacă ai jucat pentru AI, analiza afișează precizia și categoriile mutărilor pe culori, iar estimările Elo sunt indisponibile pentru acea partidă.
 
@@ -76,7 +78,7 @@ Din meniul principal, **Probleme** grupează capitolele și progresul. În **Pro
 
 În **Partidă nouă**, alege culoarea Alb, Negru sau Aleatoriu și nivelul AI. Jocul rezolvă alegerea aleatorie o singură dată și așază culoarea jucătorului jos. Când joci cu negrul, calculatorul deschide cu albele. Alex joacă la Basic, Mira la Advanced și Atlas la Hard. Basic caută trei semimutări. Advanced și Hard încearcă patru, respectiv cinci, cu bugete de căutare diferite și păstrează ultima adâncime completă. La egalitate, motorul preferă pozițiile vizitate mai rar și mutările care dezvoltă piesele sau ocupă centrul. Replica apare după cel puțin 650 ms.
 
-Jocul salvează istoricul înainte de a afișa fiecare mutare. **Reia partida** și redeschiderea directă refac poziția, culoarea, nivelul, analiza și orientarea. Dacă motorul are mutarea, pauza reîncepe și urmează o singură replică. Salvările anterioare revin cu Alb și Basic.
+Jocul salvează istoricul înainte de a afișa fiecare mutare. Alegerea unei partide din **Partide salvate** și redeschiderea directă refac poziția, culoarea, nivelul, analiza și orientarea. Dacă motorul are mutarea, pauza reîncepe și urmează o singură replică. Salvările anterioare revin cu Alb și Basic.
 
 Sub tablă, săgețile parcurg fiecare mutare, iar săgeata cu opritor revine la ultima. Lista se derulează orizontal și permite alegerea directă a oricărei poziții, inclusiv **Start**. Mutarea selectată este evidențiată discret. Controalele au zone de atingere de 48 dp. Pozițiile anterioare se afișează cu tabla blocată. Dacă botul răspunde în timp ce te uiți în urmă, mutarea nouă apare în listă și poziția consultată rămâne vizibilă. [Navigarea între mutări pe Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
 

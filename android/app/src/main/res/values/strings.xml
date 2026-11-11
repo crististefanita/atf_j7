@@ -13,12 +13,13 @@
     <string name="match_manual_ai">Play AI moves manually</string>
     <string name="match_manual_ai_turn">Your move for the AI side</string>
     <string name="match_saved_games">Saved games</string>
+    <string name="match_saved_empty">Saved games will appear here.</string>
+    <string name="match_list_back">Back</string>
     <string name="match_slot_label">Game %1$d · %2$s · %3$s · %4$d plies · %5$s</string>
     <string name="match_slot_active">In progress</string>
     <string name="match_slot_finished">Finished</string>
     <string name="match_slot_unavailable">Game %1$d · Unavailable</string>
-    <string name="match_slots_full">All 10 games are in progress. Finish one to start another.</string>
-    <string name="match_replace_completed">Replace finished game %1$d with a new game?</string>
+    <string name="match_replacement_note">Starting a new game replaces the oldest saved game.</string>
     <string name="match_actions">Game options</string>
     <string name="match_offer_draw">Offer draw</string>
     <string name="match_draw_declined">The AI declined the draw.</string>
@@ -136,8 +137,6 @@
     <string name="mate_three_try_again">That move does not force mate in three. Try again.</string>
     <string name="main_menu">Menu</string>
     <string name="new_match">New game vs computer</string>
-    <string name="resume_match">Resume game</string>
-    <string name="match_replace_title">Start a new game?</string>
     <string name="match_load_failed">The saved game could not be loaded.</string>
     <string name="match_last_move">Last move · %1$s</string>
     <string name="match_history_previous">Previous move</string>
@@ -213,7 +212,6 @@
     <string name="match_continue_from_here">Continue from here</string>
     <string name="match_confirm_continue">Resume here</string>
     <string name="match_continue_confirm">Resume after ply %1$d? Later moves will be removed from the saved game.</string>
-    <string name="match_last_game">Last game</string>
     <string name="match_game_review">Game review</string>
     <string name="game_review_close">Close</string>
     <string name="game_review_progress">Analyzing moves %1$d / %2$d</string>

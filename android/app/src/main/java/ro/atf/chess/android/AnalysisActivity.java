@@ -191,11 +191,11 @@ public final class AnalysisActivity extends Activity {
             var intent = getIntent();
             var store = new ChessProgressStore(this);
             String id = intent.getStringExtra(ARCHIVE_ID);
-            var cached = store.readReview(id, sourceMatch);
+            var cached = store.matches().readReview(id, sourceMatch);
             reviewDialog = GameReviewDialog.show(this, sourceMatch, cached, reviewWorker, this::notation,
                     intent.getBooleanExtra(MANUAL_MOVES, false), intent.getStringExtra(HUMAN_NAME), intent.getStringExtra(BOT_NAME),
                     review -> {
-                        if (store.hasArchived(id) && !store.saveReview(id, sourceMatch, review)) {
+                        if (store.matches().hasArchived(id) && !store.matches().saveReview(id, sourceMatch, review)) {
                             Toast.makeText(this, R.string.progress_save_failed, Toast.LENGTH_SHORT).show();
                         }
                     }, seek, resume, onClose);
@@ -214,7 +214,7 @@ public final class AnalysisActivity extends Activity {
                 .setMessage(getString(R.string.manual_continue_confirm, cursor.ply())).setView(automatic)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.match_confirm_continue, (dialog, which) -> {
-                    if (new ChessProgressStore(this).freeMatchSlot() == 0) {
+                    if (new ChessProgressStore(this).matches().freeMatchSlot() == 0) {
                         android.widget.Toast.makeText(this, R.string.manual_no_free_slot, android.widget.Toast.LENGTH_LONG).show();
                         return;
                     }

@@ -4,12 +4,17 @@ import atf.reporting.configuration.AtfReportConfigurationLoader;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.model.ReportField;
+import atf.reporting.model.ReportObservation;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -26,6 +31,8 @@ class AndroidSanityPublication {
             "Next preserves the board and its corner squares when Lesson hint returns");
 
     private record Frame(String file, String title) { }
+    private record MenuCheckpoint(String action, String assertion, String frame) { }
+    private static final String DATED_LAST_ROW = "The tenth game shows its local date and time and Back remains visible";
 
     private static final List<Frame> FRAMES = List.of(new Frame("hint-piece.png", "Simple hint · piece only"),
             new Frame("hint-solution.png", "Complete hint · d8 to h4"), new Frame("board.png", "Restored solved position after Qh4#"),
@@ -86,14 +93,92 @@ class AndroidSanityPublication {
     }
 
     @Test void publishMatchSlotsSanity() throws Exception {
-        publishFocusedSanity("match-slots", "Keep separate games and take over the AI side",
-                "Play, switch games and verify the tenth slot", 5, List.of(
-                        new Frame("match-home.png", "Grouped home menu"), new Frame("match-slots.png", "Manual AI control above the board")));
+        publishMatchMenu("match-slots", "Navigate saved games and start a new game at capacity", List.of(
+                new MenuCheckpoint("GIVEN the main menu with a saved game", "Saved and finished games are visible in the main menu", "match-home.png"),
+                new MenuCheckpoint("WHEN the player opens a save and backs out of the in-game list",
+                        "One saved game opens a list and Back from the in-game list preserves the board", null),
+                new MenuCheckpoint("AND the player scrolls to the last saved game", DATED_LAST_ROW, "saved-games.png"),
+                new MenuCheckpoint("THEN Start at capacity opens a new board",
+                        "At capacity the setup announces replacement and Start opens the new board", "match-slots.png")));
     }
 
     @Test void publishMatchArchiveSanity() throws Exception {
-        publishFocusedSanity("match-archive", "Keep the latest completed games and their reviews",
-                "Review from history, reopen the result and verify retention", 4, List.of(new Frame("match-archive.png", "Completed games with saved review")));
+        publishMatchMenu("match-archive", "Navigate and reopen finished games", List.of(
+                new MenuCheckpoint("GIVEN an empty archive, the player uses Android Back",
+                        "Android Back returns from the empty finished games page to the main menu", null),
+                new MenuCheckpoint("WHEN the player scrolls to the last finished game", DATED_LAST_ROW, "finished-games.png"),
+                new MenuCheckpoint("THEN selecting it opens the result",
+                        "Selecting a finished row opens its result and review entry point", "match-archive.png")));
+    }
+
+    private static void publishMatchMenu(String scope, String scenarioTitle, List<MenuCheckpoint> checkpoints) throws Exception {
+        Path receipt = Path.of(System.getProperty("chess.android.receipt"));
+        Path report = receipt.resolveSibling("android-" + scope + ".html");
+        if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
+        var evidence = readPhase(receipt, scope, checkpoints.size());
+        String receiptHash = Files.isRegularFile(receipt) ? sha256(Files.readAllBytes(receipt)) : "";
+        var identity = menuIdentity(receipt.resolveSibling("execution.json"), scope, receiptHash, checkpoints.size());
+        boolean complete = evidence.passed() && !identity.isEmpty();
+        try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
+             var scenario = session.startScenario("BoardSanity", scenarioTitle, List.of("e2e", "android", scope));
+             var phase = scenario.startPhase("TEST BODY")) {
+            var audit = new ArrayList<>(identity);
+            audit.add(new ReportField("Android process", evidence.pid()));
+            audit.add(new ReportField("Receipt SHA-256", receiptHash));
+            phase.observation(new ReportObservation("Android execution identity", audit, List.of(), List.of()));
+            if (!complete) publish(phase, "Native execution evidence", evidence.passed()
+                    ? List.of(receiptFailure(scope, "Missing or mismatched execution identity")) : evidence.rows(), false);
+            for (var checkpoint : checkpoints) {
+                var row = evidence.rows().stream().filter(assertion -> assertion.name().equals(checkpoint.assertion())).findFirst()
+                        .orElseGet(() -> receiptFailure(scope, "Missing check: " + checkpoint.assertion()));
+                Path frame = checkpoint.frame() == null ? null : receipt.resolveSibling(checkpoint.frame());
+                boolean hasFrame = frame != null && isPng(frame);
+                var assertions = new ArrayList<>(List.of(row));
+                if (frame != null && !hasFrame) assertions.add(receiptFailure(scope, "Missing or invalid PNG: " + checkpoint.frame()));
+                var status = assertions.stream().allMatch(AtfAssertion::passed) ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+                try (var action = phase.startRequest(checkpoint.action(), "ANDROID", scope);
+                     var validation = action.startValidation("Native assertions")) {
+                    if (hasFrame) {
+                        byte[] image = Files.readAllBytes(frame);
+                        action.detail("Capture SHA-256", sha256(image));
+                        validation.screenshot(checkpoint.frame(), Base64.getEncoder().encodeToString(image));
+                    }
+                    validation.assertions(assertions);
+                    validation.complete(status);
+                    action.complete(status);
+                }
+                complete &= status == AtfReportStatus.PASS;
+            }
+            phase.complete(complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL);
+            scenario.complete(complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL);
+        }
+        System.out.println("J7 Android Extent: " + report);
+        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android " + scope + " evidence: " + receipt);
+    }
+
+    private static List<ReportField> menuIdentity(Path execution, String scope, String receiptHash, int count) {
+        try {
+            var identity = new ObjectMapper().readTree(execution.toFile());
+            if (identity == null) return List.of();
+            String variant = identity.path("variant").asText();
+            String commit = identity.path("sourceCommit").asText();
+            String apk = identity.path("apkSha256").asText();
+            String api = identity.path("api").asText();
+            String device = identity.path("device").asText();
+            if (!identity.path("status").asText().equals("PASS") || !identity.path("scope").asText().equals(scope)
+                    || !receiptHash.matches("[a-f0-9]{64}") || !receiptHash.equals(identity.path("receiptSha256").asText())
+                    || identity.path("assertions").asInt() != count || !apk.matches("[a-f0-9]{64}")
+                    || !api.matches("[0-9]+") || device.isBlank()
+                    || !(variant.equals("sanity") || variant.equals("release") && commit.matches("[a-f0-9]{40}"))) return List.of();
+            return List.of(new ReportField("Phase", scope), new ReportField("Android API", api), new ReportField("Device", device),
+                    new ReportField("Variant", variant), new ReportField("Source commit", commit), new ReportField("APK SHA-256", apk));
+        } catch (IOException invalid) {
+            return List.of();
+        }
+    }
+
+    private static String sha256(byte[] bytes) throws java.security.NoSuchAlgorithmException {
+        return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
     }
 
     private static void publishFocusedSanity(String scope, String scenarioTitle, String stepTitle, int checks, List<Frame> frames) throws Exception {

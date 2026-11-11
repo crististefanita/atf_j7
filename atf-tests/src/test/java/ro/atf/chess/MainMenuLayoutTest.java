@@ -47,6 +47,7 @@ class MainMenuLayoutTest {
                 List.of(labels("values/strings.xml", List.of("openings_title")).getFirst(),
                         labels("values-ro/strings.xml", List.of("openings_title")).getFirst()));
         check.same("Resume is hidden until a game is saved", "gone", ((Element) main.item(1)).getAttribute("android:visibility"));
+        check.same("Saved games has one stable menu label", "@string/match_saved_games", ((Element) main.item(1)).getAttribute("android:text"));
         check.same("Manual analysis is available independently of a saved game in both languages", List.of("Analysis board", "Tablă de analiză"),
                 List.of(labels("values/strings.xml", List.of("manual_analysis")).getFirst(),
                         labels("values-ro/strings.xml", List.of("manual_analysis")).getFirst()));
@@ -63,8 +64,42 @@ class MainMenuLayoutTest {
                 List.of("Mat în 1", "Mat în 2", "Mat în 3", "Tactică"), labels("values-ro/strings.xml", entries));
     }
 
+    @Test void gameListsFollowThePuzzleMenuAndKeepBackOutsideTheScroll(Checks check) throws Exception {
+        var page = read("layout/match_list.xml");
+        var heading = (Element) page.getElementsByTagName("TextView").item(0);
+        var puzzleHeading = (Element) read("layout/puzzle_menu.xml").getElementsByTagName("TextView").item(0);
+        check.same("Game lists use the Puzzles title alignment and size",
+                List.of(puzzleHeading.getAttribute("android:gravity"), puzzleHeading.getAttribute("android:textSize")),
+                List.of(heading.getAttribute("android:gravity"), heading.getAttribute("android:textSize")));
+        check.same("The page exposes an accessibility heading", "true", heading.getAttribute("android:accessibilityHeading"));
+        var scroll = (Element) page.getElementsByTagName("ScrollView").item(0);
+        var back = (Element) page.getElementsByTagName("Button").item(0);
+        check.same("Back is outside the weighted scroll area", List.of(true, "1", "@style/ChapterEntry"),
+                List.of(scroll.getParentNode().isSameNode(back.getParentNode()), scroll.getAttribute("android:layout_weight"), back.getAttribute("style")));
+        var row = read("layout/match_list_row.xml");
+        check.same("Rows retain one focusable target and a vertical layout", List.of("@style/MatchListRow", "true", "vertical"),
+                List.of(row.getAttribute("style"), row.getAttribute("android:focusable"), row.getAttribute("android:orientation")));
+        var labels = row.getElementsByTagName("TextView");
+        var game = (Element) labels.item(0);
+        var date = (Element) labels.item(1);
+        check.same("The date uses a smaller badge that is hidden for legacy saves", List.of("16sp", "13sp", "wrap_content", "gone", "@drawable/match_date_badge"),
+                List.of(game.getAttribute("android:textSize"), date.getAttribute("android:textSize"), date.getAttribute("android:layout_width"),
+                        date.getAttribute("android:visibility"), date.getAttribute("android:background")));
+        var badge = read("drawable/match_date_badge.xml");
+        var badgeFill = ((Element) badge.getElementsByTagName("solid").item(0)).getAttribute("android:color");
+        var groupFill = ((Element) read("drawable/home_group.xml").getElementsByTagName("solid").item(0)).getAttribute("android:color");
+        check.same("The date has a distinct background and rounded corners", List.of(true, "8dp"),
+                List.of(!badgeFill.equals(groupFill), ((Element) badge.getElementsByTagName("corners").item(0)).getAttribute("android:radius")));
+        var localized = List.of("match_saved_games", "match_archive", "match_list_back");
+        check.same("English titles and Back describe the list screens",
+                List.of("Saved games", "Finished games", "Back"), labels("values/strings.xml", localized));
+        check.same("Romanian titles and Back describe the list screens",
+                List.of("Partide salvate", "Partide încheiate", "Înapoi"), labels("values-ro/strings.xml", localized));
+    }
+
     @Test void theTwoDropdownsPresentChoicesInTheOrderTheMatchConsumesThem(Checks check) throws Exception {
-        var spinners = read("layout/match_setup.xml").getElementsByTagName("Spinner");
+        var setup = read("layout/match_setup.xml");
+        var spinners = setup.getElementsByTagName("Spinner");
         check.same("The match has two dropdowns", 2, spinners.getLength());
         var arrays = read("values/match_arrays.xml").getElementsByTagName("string-array");
         check.same("Seat choices map in White, Black, Random order", List.of("@string/white", "@string/black", "@string/match_random_color"),
@@ -76,6 +111,11 @@ class MainMenuLayoutTest {
             check.same("Selector " + (index + 1) + " is a dropdown with the corresponding choices", List.of("dropdown", "@array/" + ((Element) arrays.item(index)).getAttribute("name")),
                     List.of(spinner.getAttribute("android:spinnerMode"), spinner.getAttribute("android:entries")));
         }
+        var notes = setup.getElementsByTagName("TextView");
+        var replacement = (Element) notes.item(notes.getLength() - 1);
+        check.same("The replacement notice has a localized label and is hidden by default",
+                List.of("@+id/match_replacement_note", "@string/match_replacement_note", "gone"),
+                List.of(replacement.getAttribute("android:id"), replacement.getAttribute("android:text"), replacement.getAttribute("android:visibility")));
     }
 
     @Test void reservesSpaceForTotalsAndUsesAnAccessibleBulb(Checks check) throws Exception {

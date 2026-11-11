@@ -4,12 +4,12 @@
 
 ## Jocul
 
-- [Chess Lab 0.11.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.11.0)
-- [Descarcă APK 0.11.0](https://github.com/crististefanita/atf_j7/releases/download/v0.11.0/ChessLab-0.11.0.apk)
+- [Chess Lab 0.11.1 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.11.1)
+- [Descarcă APK 0.11.1](https://github.com/crististefanita/atf_j7/releases/download/v0.11.1/ChessLab-0.11.1.apk)
 
 ## În joc
 
-- **Partide** · **Partidă nouă cu calculatorul** și **Reia partida**. [Partida cu calculatorul](docs/board/README.md#partidă-cu-calculatorul)
+- **Partide** · joc cu calculatorul, salvări și arhivă. [Partida cu calculatorul](docs/board/README.md#partidă-cu-calculatorul)
 - **Studiu** · **Probleme**, **Deschideri** și **Tablă de analiză**. [Ghidul tablei](docs/board/README.md)
 
 ## Proiectul

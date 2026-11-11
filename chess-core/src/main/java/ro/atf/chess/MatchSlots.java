@@ -1,6 +1,10 @@
 package ro.atf.chess;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.IntPredicate;
+import java.util.function.IntToLongFunction;
 
 /** Stable local slots and move ownership shared by the controller and persistence. */
 public final class MatchSlots {
@@ -16,6 +20,18 @@ public final class MatchSlots {
     public static int firstFree(IntPredicate occupied) {
         for (int slot = 1; slot <= LIMIT; slot++) if (!occupied.test(slot)) return slot;
         return 0;
+    }
+
+    public static List<Integer> newestFirst(IntPredicate occupied, IntToLongFunction creationOrder) {
+        var slots = new ArrayList<Integer>();
+        for (int slot = 1; slot <= LIMIT; slot++) if (occupied.test(slot)) slots.add(slot);
+        slots.sort(Comparator.comparingLong((Integer slot) -> creationOrder.applyAsLong(slot)).thenComparingInt(Integer::intValue).reversed());
+        return List.copyOf(slots);
+    }
+
+    public static int forNewGame(IntPredicate occupied, IntToLongFunction creationOrder) {
+        int free = firstFree(occupied);
+        return free > 0 ? free : newestFirst(occupied, creationOrder).get(LIMIT - 1);
     }
 
     public static boolean needsBot(ChessMatch match, boolean manualAi) {

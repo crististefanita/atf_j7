@@ -13,6 +13,7 @@ param(
     [switch]$ManualAnalysisOnly,
     [switch]$MatchSlotsOnly,
     [switch]$MatchArchiveOnly,
+    [switch]$MatchMenusOnly,
     [switch]$IncludeOpenings,
     [switch]$IncludeGameReview,
     [switch]$IncludeManualAnalysis,
@@ -28,6 +29,10 @@ $adbExe = (Get-Command $Adb -CommandType Application).Source
 $app = if ($Distribution) { 'ro.atf.chess.android' } else { 'ro.atf.chess.android.sanity' }
 $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
+if ($MatchMenusOnly -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or
+        $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
+    throw 'MatchMenusOnly selects both menu phases on its own.'
+}
 if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
 if ($IncludeOpenings -and ($OpeningsOnly -or $AnalysisOnly)) { throw 'IncludeOpenings extends the board sanity phases.' }
 if ($GameReviewOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview)) {
@@ -139,7 +144,11 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         throw "Android phase $Phase did not pass. See $Directory."
     }
     Receive-Frame $Phase $Directory
-    if ($Phase -eq 'match-slots') { Receive-Frame 'match-home' $Directory }
+    if ($Phase -eq 'match-slots') {
+        Receive-Frame 'match-home' $Directory
+        Receive-Frame 'saved-games' $Directory
+    }
+    if ($Phase -eq 'match-archive') { Receive-Frame 'finished-games' $Directory }
     if ($Phase -eq 'game-review') {
         Receive-Frame 'game-review-comparison' $Directory
         Receive-Frame 'game-review-actions' $Directory
@@ -160,8 +169,8 @@ function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expecte
 
 function Invoke-SelectedMatchSanity([string]$Directory) {
     if ($IncludeManualAnalysis) { Invoke-IncludedSanity $Directory 'manual-analysis' 15 }
-    if ($IncludeMatchSlots) { Invoke-IncludedSanity $Directory 'match-slots' 5 }
-    if ($IncludeMatchArchive) { Invoke-IncludedSanity $Directory 'match-archive' 4 }
+    if ($IncludeMatchSlots) { Invoke-IncludedSanity $Directory 'match-slots' 4 }
+    if ($IncludeMatchArchive) { Invoke-IncludedSanity $Directory 'match-archive' 3 }
 }
 
 Set-Lease $true
@@ -203,11 +212,16 @@ try {
         return
     }
     if ($MatchSlotsOnly) {
-        Invoke-FocusedSanity $run 'match-slots' 5
+        Invoke-FocusedSanity $run 'match-slots' 4
         return
     }
     if ($MatchArchiveOnly) {
-        Invoke-FocusedSanity $run 'match-archive' 4
+        Invoke-FocusedSanity $run 'match-archive' 3
+        return
+    }
+    if ($MatchMenusOnly) {
+        Invoke-FocusedSanity $run 'match-slots' 4
+        Invoke-IncludedSanity $run 'match-archive' 3
         return
     }
     if ($OpeningsOnly) {

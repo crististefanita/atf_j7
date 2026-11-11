@@ -13,12 +13,13 @@
     <string name="match_manual_ai">Joacă și mutările AI-ului</string>
     <string name="match_manual_ai_turn">Mută pentru culoarea AI-ului</string>
     <string name="match_saved_games">Partide salvate</string>
+    <string name="match_saved_empty">Partidele salvate vor apărea aici.</string>
+    <string name="match_list_back">Înapoi</string>
     <string name="match_slot_label">Partida %1$d · %2$s · %3$s · %4$d semimutări · %5$s</string>
     <string name="match_slot_active">În curs</string>
     <string name="match_slot_finished">Încheiată</string>
     <string name="match_slot_unavailable">Partida %1$d · Indisponibilă</string>
-    <string name="match_slots_full">Toate cele 10 partide sunt în curs. Încheie una ca să începi alta.</string>
-    <string name="match_replace_completed">Înlocuiești partida încheiată %1$d cu una nouă?</string>
+    <string name="match_replacement_note">Partida nouă va înlocui cea mai veche salvare.</string>
     <string name="match_actions">Opțiunile partidei</string>
     <string name="match_offer_draw">Oferă remiză</string>
     <string name="match_draw_declined">AI-ul a refuzat remiza.</string>
@@ -133,8 +134,6 @@
     <string name="mate_three_try_again">Mutarea nu forțează matul în trei. Încearcă din nou.</string>
     <string name="main_menu">Meniu</string>
     <string name="new_match">Partidă nouă cu calculatorul</string>
-    <string name="resume_match">Reia partida</string>
-    <string name="match_replace_title">Începi o partidă nouă?</string>
     <string name="match_load_failed">Partida salvată nu a putut fi încărcată.</string>
     <string name="match_last_move">Ultima mutare · %1$s</string>
     <string name="match_history_previous">Mutarea anterioară</string>
@@ -208,7 +207,6 @@
     <string name="match_continue_from_here">Continuă de aici</string>
     <string name="match_confirm_continue">Reia de aici</string>
     <string name="match_continue_confirm">Reiei după semimutarea %1$d? Mutările ulterioare vor fi eliminate din partida salvată.</string>
-    <string name="match_last_game">Ultima partidă</string>
     <string name="match_game_review">Analiza partidei</string>
     <string name="game_review_close">Închide</string>
     <string name="game_review_progress">Analizez mutările %1$d / %2$d</string>

@@ -47,8 +47,16 @@ public final class ReleaseRag {
             games("chess-core/src/main/java/ro/atf/chess/MatchArchive.java"),
             games("chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java"),
             games("chess-core/src/main/java/ro/atf/chess/MatchSlots.java"),
+            games("chess-core/src/main/java/ro/atf/chess/MatchStore.java"),
+            games("android/app/src/main/java/ro/atf/chess/android/AndroidMatchPreferences.java"),
             games("android/app/src/main/java/ro/atf/chess/android/ChessProgressStore.java"),
+            games("android/app/src/main/java/ro/atf/chess/android/MatchListActivity.java"),
+            games("android/app/src/main/java/ro/atf/chess/android/MatchLabels.java"),
             games("android/app/src/main/res/layout/main_menu.xml"),
+            games("android/app/src/main/res/layout/match_list.xml"),
+            games("android/app/src/main/res/layout/match_list_row.xml"),
+            games("android/app/src/main/res/layout/match_setup.xml"),
+            games("android/app/src/main/res/drawable/match_date_badge.xml"),
             manualAnalysis("chess-core/src/main/java/ro/atf/chess/AnalysisLine.java"),
             manualAnalysis("android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java"),
             manualAnalysis("android/app/src/main/java/ro/atf/chess/android/ChessActivity.java"),
@@ -106,7 +114,7 @@ public final class ReleaseRag {
 
     private static Route games(String path) {
         return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -IncludeMatchSlots -IncludeMatchArchive");
+                "MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -MatchMenusOnly");
     }
 
     public static List<Citation> retrieve(Path root, List<String> changedPaths) throws IOException {
