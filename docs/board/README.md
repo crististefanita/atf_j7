@@ -31,18 +31,33 @@ Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația ră
 
 [`tactical-analysis.yaml`](../../chess-core/src/main/resources/tactical-analysis.yaml) fixează orizontul la cel mult trei mutări individuale. Mesajul din joc folosește două, începând cu replica adversarului. Fiecare parte alege cea mai bună continuare pentru ea. Matul primează, patul valorează zero, iar restul pozițiilor se compară după materialul de la capătul liniei. Câștigul afișat este diferența de material față de poziția de după încercarea jucătorului. Scorurile egale la acest orizont rămân în același grup, iar ordinea UCI alege linia afișată. Repetarea, regula mutărilor fără captură sau pion și evaluarea pozițională țin de o analiză cu istoric și orizont mai lung.
 
-[`quests.yaml`](../../chess-core/src/main/resources/quests.yaml) păstrează poziția FEN, soluția UCI și tema fiecărei probleme. Setul conține 52 de poziții cu albul la mutare și 50 cu negrul. Catalogul include compoziții pentru mat prin rocadă, en passant, promovare la cal și apărare din șah.
+[`quests.yaml`](../../chess-core/src/main/resources/quests.yaml) păstrează poziția FEN, soluția UCI și tema fiecărei probleme. Setul are 500 de poziții, câte 250 cu fiecare culoare la mutare. Catalogul include compoziții pentru mat prin rocadă, en passant, promovare la cal și apărare din șah.
 
 | ID | Indiciu | Soluție |
 |---|---|---|
 | `mate-101` | Nebunul de pe `h6` | `Nd2#` oprește șahul turnului negru și deschide coloana h pentru dama albă. |
 | `mate-102` | Pionul de pe `h3` | `hxg4#` capturează calul care dă șah și eliberează coloana h pentru turnul alb. |
 
-[`mate-in-two.yaml`](../../chess-core/src/main/resources/mate-in-two.yaml) adaugă 100 de poziții cu o singură mutare inițială care forțează matul. După acea mutare, aplicația joacă apărarea de referință și acceptă orice mat legal din poziția rezultată. Indiciile urmează mutarea curentă, iar explicația arată linia completă. [Selecție și proveniență](quest-curation.md#mat-în-două-mutări)
+[`mate-in-two.yaml`](../../chess-core/src/main/resources/mate-in-two.yaml) are 300 de poziții cu o singură mutare inițială care forțează matul. După acea mutare, aplicația joacă apărarea de referință și acceptă orice mat legal din poziția rezultată. Indiciile urmează mutarea curentă, iar explicația arată linia completă. [Selecție și proveniență](quest-curation.md#mat-în-două-mutări)
 
-[`mate-in-three.yaml`](../../chess-core/src/main/resources/mate-in-three.yaml) conține 100 de poziții de mat exact în trei, cu o singură primă mutare câștigătoare. Jocul aplică cele două apărări de referință, afișează câte mutări au mai rămas după prima apărare și acceptă orice mat legal pe ultima mutare. [Selecție și proveniență](quest-curation.md#mat-în-trei-mutări)
+[`mate-in-three.yaml`](../../chess-core/src/main/resources/mate-in-three.yaml) conține 200 de poziții de mat exact în trei, cu o singură primă mutare câștigătoare. Jocul aplică cele două apărări de referință, afișează câte mutări au mai rămas după prima apărare și acceptă orice mat legal pe ultima mutare. [Selecție și proveniență](quest-curation.md#mat-în-trei-mutări)
+
+[`tactics.yaml`](../../chess-core/src/main/resources/tactics.yaml) adaugă 100 de poziții cu o singură mutare care câștigă material la orizontul capitolului. Selecția include furculițe, legări, atacuri descoperite și îndepărtarea apărătorului.
+
+## Tablă de analiză
+
+- Din meniul principal pornești de la poziția inițială. Dintr-o partidă, lupa de lângă istoric deschide exact poziția afișată și păstrează mutările partidei disponibile pentru navigare.
+- Joci manual pentru alb și negru. Evaluarea se actualizează local după fiecare poziție, iar becul arată o continuare. Săgețile și mutările din bandă selectează poziții. O mutare diferită înlocuiește continuarea din tablă, iar **Resetează linia** readuce poziția și continuarea de la intrare.
+- După abandon sau remiză prin acord, ultima poziție rămâne jucabilă în analiză. Matul și finalurile automate rămân finale. Poți explora de la o poziție anterioară.
+- Înapoi revii în partidă la poziția afișată înainte de analiză. Pentru a relua efectiv partida de la o mutare anterioară, folosești **Continuă de aici** și confirmi. La închiderea tablei de analiză, varianta explorată se încheie, iar partida salvată rămâne disponibilă la repornire.
+
+Navigarea și mutările manuale pentru ambele culori urmează fluxul de analiză individuală. [Tabla de analiză Chess.com](https://support.chess.com/en/articles/8583825-how-do-i-use-the-analysis-board)
 
 ## Partidă cu calculatorul
+
+**Analiza partidei** ocupă fereastra aplicației din timpul calculului, cu butonul **Închide** în antet. Derulează graficul, precizia, estimările Elo, tabelul și lista mutărilor în același ecran. În tabel, coloana **Jucător** este mereu prima dintre cele numerice, inclusiv când joci cu negrul. Fiecare categorie are un rând, cu zero când lipsește. [Reperul Game Review](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
+
+După rezultat, pictograma 📊 marchează intrarea în **Analiza partidei**. În timpul jocului, butonul **Opțiunile partidei** oferă remiză la mutarea ta. AI-ul refuză când are avantaj material și acceptă în celelalte poziții. **Renunță la partidă** cere confirmare și salvează victoria AI-ului. Meniul principal păstrează partida în curs pentru reluare.
 
 Din meniul principal, **Probleme** grupează capitolele și progresul. În **Profil**, atinge numele pentru a-l edita sau reseta. Numele are cel mult 10 caractere și apare la locul jucătorului, inclusiv în partida reluată.
 

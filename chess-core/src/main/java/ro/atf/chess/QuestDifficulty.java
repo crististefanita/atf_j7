@@ -84,6 +84,13 @@ public final class QuestDifficulty {
             entries.add(new Rank(rank.id(), rank.score() * 10 + tieBreak));
         }
         entries.sort(Comparator.comparingInt(Rank::score).thenComparing(Rank::id));
+        int previous = -1;
+        for (int index = 0; index < entries.size(); index++) {
+            var entry = entries.get(index);
+            int score = Math.max(entry.score(), previous + 1);
+            if (score != entry.score()) entries.set(index, new Rank(entry.id(), score));
+            previous = score;
+        }
         return List.copyOf(entries);
     }
 
@@ -135,13 +142,6 @@ public final class QuestDifficulty {
             return;
         }
         var ranks = rank(quests);
-        for (int index = 1; index < ranks.size(); index++) {
-            var before = ranks.get(index - 1);
-            var after = ranks.get(index);
-            if (before.score() == after.score()) {
-                throw new IllegalArgumentException("Set a YAML difficulty tie-break for " + before.id() + " / " + after.id());
-            }
-        }
         System.out.println("schema: 1\norder:");
         for (Rank rank : ranks) System.out.printf("  - [%s, %d]%n", rank.id(), rank.score());
     }

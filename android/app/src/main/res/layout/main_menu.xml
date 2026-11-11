@@ -11,6 +11,7 @@
         <Button android:id="@+id/open_puzzles" style="@style/ChapterEntry" android:text="@string/menu_puzzles" />
         <TextView android:id="@+id/home_totals" style="@style/ChapterTotals" android:textColor="#b8d88a" />
         <Button android:id="@+id/open_openings" style="@style/ChapterEntry" android:text="@string/openings_title" />
+        <Button android:id="@+id/open_analysis" style="@style/ChapterEntry" android:text="@string/manual_analysis" />
         <TextView style="@style/MenuSection" android:text="@string/profile_title" />
         <Button android:id="@+id/edit_player_name" style="@style/ChapterEntry" />
     </LinearLayout>

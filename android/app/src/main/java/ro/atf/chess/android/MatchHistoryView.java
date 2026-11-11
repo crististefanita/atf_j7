@@ -29,8 +29,9 @@ final class MatchHistoryView extends LinearLayout {
     private final IntConsumer select;
     private int shown = -1;
     private int end;
+    private ChessMatch boundLine;
 
-    MatchHistoryView(Context context, Function<Move, String> notation, IntConsumer select, View hint) {
+    MatchHistoryView(Context context, Function<Move, String> notation, IntConsumer select, View... actions) {
         super(context);
         this.notation = notation;
         this.select = select;
@@ -50,17 +51,23 @@ final class MatchHistoryView extends LinearLayout {
         addView(scroll, new LayoutParams(0, -2, 1));
         next = control(R.id.match_history_next, R.drawable.match_chevron, R.string.match_history_next, () -> select.accept(shown + 1));
         latest = control(R.id.match_history_latest, R.drawable.match_latest, R.string.match_history_latest, () -> select.accept(end));
-        if (hint != null) addView(hint, new LayoutParams(dp(CONTROL_SIZE), dp(CONTROL_SIZE)));
+        for (View action : actions) {
+            if (action != null) addView(action, new LayoutParams(dp(CONTROL_SIZE), dp(CONTROL_SIZE)));
+        }
         moves.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> keepSelectionVisible());
         scroll.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> keepSelectionVisible());
     }
 
     void show(ChessMatch match, int ply) {
-        end = match.ply();
-        if (moves.getChildCount() > end + 1) {
-            moves.removeViews(end + 1, moves.getChildCount() - end - 1);
-            if (shown > end) shown = -1;
+        if (boundLine != match && boundLine != null) {
+            int common = Math.min(end, match.ply());
+            while (common > 0 && boundLine.positionAt(common) != match.positionAt(common)) common--;
+            int keep = common + 1;
+            if (moves.getChildCount() > keep) moves.removeViews(keep, moves.getChildCount() - keep);
+            if (shown >= keep) shown = -1;
         }
+        boundLine = match;
+        end = match.ply();
         while (moves.getChildCount() <= end) append(match, moves.getChildCount());
         previous.setEnabled(ply > 0);
         next.setEnabled(ply < end);

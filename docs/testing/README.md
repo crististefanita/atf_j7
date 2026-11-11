@@ -10,13 +10,13 @@ Construiți în TMP dintr-o copie a sursei. Componentele rulează fără emulato
 
 `MainMenuLayoutTest` verifică ordinea celor patru capitole, textele românești și englezești, derularea, totalurile și zona de atingere a becului. `QuestStepTest` verifică piesele și culoarea la mutare înainte și după apărare, reluarea și blocarea navigării până la rezolvare. Acoperă și redarea unui mat alternativ din catalog, cu explicația lui, plus revenirea la linia de referință pentru date vechi sau invalide.
 
-`QuestCatalogTest` enumeră fiecare mutare legală pentru toate cele 102 probleme și cere o singură soluție de mat. O probă separă șahul cu apărare de mat. O altă probă verifică patul, rocada prin șah și captura en passant care ar expune propriul rege. Amprenta completă a mulțimilor de mutări se compară cu [`quest-oracle.yaml`](../../chess-core/src/main/resources/quest-oracle.yaml), produs de `chess.js` 1.4.0.
+`QuestCatalogTest` enumeră fiecare mutare legală pentru toate cele 500 de probleme și cere o singură soluție de mat. O probă separă șahul cu apărare de mat. O altă probă verifică patul, rocada prin șah și captura en passant care ar expune propriul rege. Amprenta completă a mulțimilor de mutări se compară cu [`quest-oracle.yaml`](../../chess-core/src/main/resources/quest-oracle.yaml), produs de `chess.js` 1.4.0.
 
 `QuestCatalogTest` recalculează din YAML ordinea strict crescătoare a problemelor Mat în 1 și caută poziții repetate în toate cele patru capitole. Cazurile negative acoperă un mat alternativ, o temă incorectă, un ID retras, o poziție apropiată cu aceeași soluție și copii obținute prin simetrie. `QuestProgressTest` verifică reluarea după reordonare și retragerea unei poziții fără creditarea înlocuitoarei.
 
-`QuestHintTest` verifică pentru toate cele 102 probleme că prima treaptă expune exclusiv plecarea, iar a doua destinația validată de motor. După apărarea adversarului, indiciul trebuie să folosească următoarea poziție. `QuestProgressTest` verifică pragurile după reluare și reordonare, idempotența rezolvărilor și finalul unui catalog de altă lungime.
+`QuestHintTest` verifică pentru toate cele 500 de probleme că prima treaptă expune exclusiv plecarea, iar a doua destinația validată de motor. După apărarea adversarului, indiciul trebuie să folosească următoarea poziție. `QuestProgressTest` verifică pragurile după reluare și reordonare, idempotența rezolvărilor și finalul unui catalog de altă lungime.
 
-`MateExplanationTest` confruntă pentru toate cele 102 probleme piesele care dau șah și explicațiile câmpurilor de fugă cu amprenta produsă de chess.js. Probele pentru `mate-101` și `mate-102` folosesc pozițiile din catalog și verifică faptul că pornesc în șah, indiciile și fiecare apărare legală. O probă separată cere o apărare legală după un șah care lasă adversarului mutări.
+`MateExplanationTest` confruntă pentru toate cele 500 de probleme piesele care dau șah și explicațiile câmpurilor de fugă cu amprenta produsă de chess.js. Probele pentru `mate-101` și `mate-102` folosesc pozițiile din catalog și verifică faptul că pornesc în șah, indiciile și fiecare apărare legală. O probă separată cere o apărare legală după un șah care lasă adversarului mutări.
 
 ```powershell
 ./scripts/update-mate-one-order.ps1 -ChessJs $chessJs
@@ -117,7 +117,7 @@ Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <s
 
 `ChessMatchTest` verifică reluarea din fiecare poziție a unei partide terminate, salvarea variantei noi, rocada, en passant și repetarea poziției. `GameReviewTest` verifică matul ratat, variantele comparate, transpoziția ECO, pragurile, anularea și estimarea din perspectiva jucătorului. `GameReviewGovernanceTest` verifică bugetul, reperele Elo și legalitatea tuturor liniilor importate.
 
-Pentru un parcurs Android dedicat, rulați `run-android-sanity.ps1 -GameReviewOnly` după construirea variantei `sanity`. Proba deschide analiza unei partide terminate, verifică estimările din ecran, anulează o reluare, confirmă reluarea de la o poziție anterioară și joacă o altă mutare. Publicați raportul din `game-review.txt` cu `-Dtest=AndroidSanityPublication#publishGameReviewSanity` și `-Dchess.android.receipt=<cale>`. [Fluxul jucătorului](../board/README.md#partidă-cu-calculatorul)
+Pentru un parcurs Android dedicat, rulați `run-android-sanity.ps1 -GameReviewOnly` după construirea variantei `sanity`. Cele 15 verificări acoperă fereastra completă, graficul, estimările Elo, comparația jucător–AI, reluarea, remiza și renunțarea. Extent cere recepția nativă și capturile separate ale graficului și tabelului. Publicați raportul din `game-review.txt` cu `-Dtest=AndroidSanityPublication#publishGameReviewSanity` și `-Dchess.android.receipt=<cale>`. `GameReviewTest` reconciliază tabelul cu mutările individuale, inclusiv zerourile și rolurile inversate când jucătorul are negrul. `MatchActionsTest` verifică refuzul, redeschiderea rezultatului salvat, mutarea din istoric și respingerea unei salvări care suprascrie un mat. [Fluxul jucătorului](../board/README.md#partidă-cu-calculatorul)
 
 Pentru analiza AI, rulați runnerul cu `-AnalysisOnly` pe varianta `sanity`. Prima fază verifică bifa, cele două apăsări succesive ale becului și ascunderea variantei după schimbarea poziției. Verifică și poziția exactă a tablei și a celulelor `a1` și `h8` când schimbi problema sau navighezi prin istoric. Măsoară fereastra reală și două profiluri compacte cu text mărit și interfață română, inclusiv zonele de atingere ale becului și săgeților. A doua fază verifică păstrarea opțiunii după repornirea procesului. Dovezile se scriu în `execution.json` și în cele două rezultate de instrumentare.
 
@@ -130,6 +130,12 @@ mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication
 ```
 
 `ChessMatchTest` verifică reconstrucția înainte și după replica botului, accesul la pozițiile din istoric, matul, rocada, en passant și repetarea. După fazele de probleme, runnerul pornește cu date proaspete și execută `match-prepare`, `match-restore` și `match-settled` în procese distincte, păstrând partida între ele. Verifică poziția inițială, săgețile, selecția directă, revenirea la ultima mutare, blocarea mutărilor în istoric și identitatea partidei salvate.
+
+## Tablă de analiză
+
+`AnalysisLineTest` verifică ambele culori, navigarea prin istoricul original, rejucarea mutării înregistrate, ramificarea, promovarea și en passant. Verifică și refacerea liniei la recrearea ecranului și păstrarea checkpointului partidei. `MainMenuLayoutTest` acoperă intrarea localizată din meniu.
+
+Pentru parcursul Android folosiți `-ManualAnalysisOnly`. Proba deschide tabla din meniu și din istoric, joacă ambele culori, verifică încadrarea, resetează linia și compară partida salvată după revenire. Din recepția `manual-analysis.txt`, publicați Extent cu `-Dtest=AndroidSanityPublication#publishManualAnalysisSanity` și `-Dchess.android.receipt=<cale>`. Raportul include nouă aserțiuni și captura integrată. [Utilizare](../board/README.md#tablă-de-analiză)
 
 ## Proba TalkBack
 

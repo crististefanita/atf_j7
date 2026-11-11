@@ -1,13 +1,18 @@
 package ro.atf.chess.android;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.os.Build;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -35,7 +40,7 @@ final class GameReviewDialog {
     private final IntConsumer showPosition;
     private final IntConsumer continueFrom;
     private final LinearLayout content;
-    private final AlertDialog dialog;
+    private final Dialog dialog;
 
     private GameReviewDialog(Context context, Side humanSide, Function<Move, String> notation,
                              IntConsumer showPosition, IntConsumer continueFrom) {
@@ -44,16 +49,40 @@ final class GameReviewDialog {
         this.notation = notation;
         this.showPosition = showPosition;
         this.continueFrom = continueFrom;
+        dialog = new Dialog(context, android.R.style.Theme_Material_NoActionBar);
+        var screen = column();
+        screen.setBackgroundColor(0xff262522);
+        if (Build.VERSION.SDK_INT >= 35) {
+            screen.setOnApplyWindowInsetsListener((view, insets) -> {
+                var bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return insets;
+            });
+        }
+        var header = new LinearLayout(context);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(dp(16), 0, dp(8), 0);
+        var title = text(context.getString(R.string.match_game_review), 22, PRIMARY);
+        if (Build.VERSION.SDK_INT >= 28) title.setAccessibilityHeading(true);
+        header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
+        var close = new Button(context, null, android.R.attr.borderlessButtonStyle);
+        close.setAllCaps(false);
+        close.setText(R.string.game_review_close);
+        close.setMinHeight(dp(48));
+        close.setOnClickListener(view -> dialog.dismiss());
+        header.addView(close, new LinearLayout.LayoutParams(-2, -2));
+        screen.addView(header, new LinearLayout.LayoutParams(-1, -2));
         content = column();
-        dialog = new AlertDialog.Builder(context).setTitle(R.string.match_game_review).setView(content)
-                .setNegativeButton(R.string.game_review_close, null).create();
+        screen.addView(content, new LinearLayout.LayoutParams(-1, 0, 1));
+        dialog.setContentView(screen);
     }
 
-    static AlertDialog show(Context context, ChessMatch match, GameReview cached, ExecutorService worker,
+    static Dialog show(Context context, ChessMatch match, GameReview cached, ExecutorService worker,
                             Function<Move, String> notation, String human, String bot, Consumer<GameReview> remember,
                             IntConsumer showPosition, IntConsumer continueFrom, Runnable onClose) {
         var view = new GameReviewDialog(context, match.setup().humanSide(), notation, showPosition, continueFrom);
         view.dialog.show();
+        view.dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         var job = view.load(match, cached, worker, human, bot, remember);
         view.dialog.setOnDismissListener(dialog -> {
             if (job != null) job.cancel(true);
@@ -100,7 +129,6 @@ final class GameReviewDialog {
     }
 
     private void display(GameReview result, String human, String bot) {
-        dialog.getWindow().setLayout(-1, -1);
         content.removeAllViews();
         content.setPadding(0, 0, 0, 0);
         var list = new ListView(context);
@@ -114,9 +142,10 @@ final class GameReviewDialog {
         summary.addView(text(context.getString(R.string.game_review_graph), 13, MUTED));
         summary.addView(new EvaluationGraph(result, ply -> detail(result.turns().get(ply - 1))),
                 new LinearLayout.LayoutParams(-1, dp(64)));
-        summary.addView(player(humanSide == Side.WHITE ? human : bot, Side.WHITE, result.white()));
-        summary.addView(player(humanSide == Side.BLACK ? human : bot, Side.BLACK, result.black()));
+        summary.addView(player(human, humanSide, humanSide == Side.WHITE ? result.white() : result.black()));
+        summary.addView(player(bot, humanSide.other(), humanSide == Side.WHITE ? result.black() : result.white()));
         summary.addView(text(context.getString(R.string.game_review_rating_note), 12, MUTED));
+        summary.addView(comparison(result));
         list.addHeaderView(summary, null, false);
         list.setAdapter(new MoveRows(result.turns()));
         list.setOnItemClickListener((parent, row, position, id) -> detail(result.turns().get(position - 1)));
@@ -128,15 +157,48 @@ final class GameReviewDialog {
         String rating = player.rating().map(value -> "≈ " + value.elo() + " ("
                 + (value.low() == null ? "≤ " + value.high() : value.low() + "–" + value.high()) + ")")
                 .orElseGet(() -> context.getString(R.string.game_review_insufficient, player.ratedMoves()));
-        var counts = new StringJoiner(" · ");
-        for (var grade : List.of(GameReview.Grade.BRILLIANT, GameReview.Grade.GREAT, GameReview.Grade.MISTAKE,
-                GameReview.Grade.MISS, GameReview.Grade.BLUNDER)) {
-            int count = player.grades().getOrDefault(grade, 0);
-            if (count > 0) counts.add(gradeLabel(grade) + " " + count);
-        }
         int label = side == humanSide ? R.string.game_review_player : R.string.game_review_ai;
         var caption = name + " · " + context.getString(BoardView.sideLabel(side)) + "\n" + context.getString(label, accuracy, rating);
-        return text(counts.length() == 0 ? caption : caption + "\n" + counts, 15, PRIMARY);
+        return text(caption, 15, PRIMARY);
+    }
+
+    private View comparison(GameReview result) {
+        var table = column();
+        var category = context.getString(R.string.game_review_category);
+        var human = context.getString(R.string.game_review_human_column);
+        var ai = context.getString(R.string.game_review_ai_column);
+        var header = comparisonRow(category, human, ai);
+        if (Build.VERSION.SDK_INT >= 28) header.setAccessibilityHeading(true);
+        table.addView(header);
+        var numbers = java.text.NumberFormat.getIntegerInstance(context.getResources().getConfiguration().getLocales().get(0));
+        for (var count : result.compareGrades(humanSide)) {
+            String grade = gradeLabel(count.grade());
+            String humanCount = numbers.format(count.human());
+            String aiCount = numbers.format(count.ai());
+            var row = comparisonRow(grade, humanCount, aiCount);
+            row.setContentDescription(context.getString(R.string.game_review_grade_counts, grade, humanCount, aiCount));
+            for (int index = 0; index < row.getChildCount(); index++) {
+                row.getChildAt(index).setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            }
+            if (table.getChildCount() % 2 != 0) row.setBackgroundColor(0xff2e2c28);
+            table.addView(row);
+        }
+        return table;
+    }
+
+    private LinearLayout comparisonRow(String category, String human, String ai) {
+        var row = new LinearLayout(context);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        if (Build.VERSION.SDK_INT >= 28) row.setScreenReaderFocusable(true);
+        else row.setFocusable(true);
+        row.setPadding(dp(8), 0, dp(8), 0);
+        row.addView(text(category, 14, PRIMARY), new LinearLayout.LayoutParams(0, -2, 2));
+        for (String value : List.of(human, ai)) {
+            var label = text(value, 14, PRIMARY);
+            label.setGravity(Gravity.CENTER);
+            row.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
+        }
+        return row;
     }
 
     private void detail(GameReview.Turn turn) {

@@ -13,24 +13,33 @@ import ro.atf.chess.ChessPosition.Side;
 
 /** A local match against the computer. */
 public final class ChessMatch {
-    public enum Result { IN_PROGRESS, WHITE_WINS, BLACK_WINS, STALEMATE, MATERIAL_DRAW, REPETITION_DRAW, MOVE_COUNT_DRAW }
+    public enum Result { IN_PROGRESS, WHITE_WINS, BLACK_WINS, STALEMATE, MATERIAL_DRAW, REPETITION_DRAW, MOVE_COUNT_DRAW, AGREED_DRAW }
+    private enum Decision { DRAW, RESIGN }
 
     private static final String FORMAT = "1|";
     private static final String ANALYSIS_FORMAT = "2|analysis|";
     private static final String SETUP_FORMAT = "3|";
+    private static final String DECISION_FORMAT = "4|";
     private static final MatchSetup DEFAULT_SETUP = new MatchSetup(Side.WHITE, MatchSetup.Level.BASIC, false);
     private final List<ChessPosition> positions;
     private final List<Move> moves;
     private final int quietPlies;
     private final MatchSetup setup;
     private final Result result;
+    private final Decision decision;
 
     private ChessMatch(List<ChessPosition> positions, List<Move> moves, int quietPlies, MatchSetup setup) {
+        this(positions, moves, quietPlies, setup, null);
+    }
+
+    private ChessMatch(List<ChessPosition> positions, List<Move> moves, int quietPlies, MatchSetup setup, Decision decision) {
         this.positions = positions;
         this.moves = moves;
         this.quietPlies = quietPlies;
         this.setup = setup;
-        result = evaluateResult();
+        this.decision = decision;
+        result = decision == null ? evaluateResult() : decision == Decision.DRAW ? Result.AGREED_DRAW
+                : setup.humanSide() == Side.WHITE ? Result.BLACK_WINS : Result.WHITE_WINS;
     }
 
     public static ChessMatch start() { return start(false); }
@@ -61,6 +70,29 @@ public final class ChessMatch {
     public MatchSetup setup() { return setup; }
     public boolean analysisEnabled() { return setup.analysisEnabled(); }
     public boolean awaitingBot() { return result == Result.IN_PROGRESS && position().turn() != setup.humanSide(); }
+    public boolean resigned() { return decision == Decision.RESIGN; }
+
+    public ChessMatch offerDraw() {
+        requirePlayerDecision();
+        return materialAt(ply()).forSide(setup.humanSide().other()).advantage() > 0 ? this : finish(Decision.DRAW);
+    }
+
+    public ChessMatch resign() {
+        if (result != Result.IN_PROGRESS) throw new IllegalStateException("The match has ended");
+        return finish(Decision.RESIGN);
+    }
+
+    private void requirePlayerDecision() {
+        if (result != Result.IN_PROGRESS || awaitingBot()) throw new IllegalStateException("It is not the player's turn");
+    }
+
+    private ChessMatch finish(Decision reason) {
+        return new ChessMatch(positions, moves, quietPlies, setup, reason);
+    }
+
+    ChessMatch forAnalysis() {
+        return decision == null ? this : new ChessMatch(positions, moves, quietPlies, setup);
+    }
 
     /** Analyzes the displayed position from the point of view of the side to move. */
     public Optional<TacticalAnalysis.Variation> analysisAt(int ply) {
@@ -116,10 +148,20 @@ public final class ChessMatch {
                 : SETUP_FORMAT + setup.humanSide().name() + "|" + setup.level().name() + "|" + (analysisEnabled() ? "1|" : "0|");
         var encoded = new StringJoiner(" ", prefix, "");
         for (Move move : moves) encoded.add(move.uci());
-        return encoded.toString();
+        return decision == null ? encoded.toString() : DECISION_FORMAT + decision.name() + "|" + encoded;
     }
 
     public static ChessMatch restore(String checkpoint) {
+        if (checkpoint.startsWith(DECISION_FORMAT)) {
+            var fields = checkpoint.split("\\|", 3);
+            if (fields.length != 3 || fields[2].startsWith(DECISION_FORMAT)) throw new IllegalArgumentException("Invalid match decision checkpoint");
+            var original = restore(fields[2]);
+            var decision = Decision.valueOf(fields[1]);
+            if (original.result != Result.IN_PROGRESS || decision == Decision.DRAW && original.awaitingBot()) {
+                throw new IllegalArgumentException("Decision does not belong to this position");
+            }
+            return original.finish(decision);
+        }
         if (checkpoint.startsWith(SETUP_FORMAT)) {
             String[] fields = checkpoint.split("\\|", -1);
             if (fields.length != 5 || !(fields[3].equals("0") || fields[3].equals("1"))) {

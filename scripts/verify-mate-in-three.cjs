@@ -9,6 +9,7 @@ const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const square = index => 'abcdefgh'[index & 7] + (8 - (index >> 4));
 const uci = move => square(move.from) + square(move.to) + (move.promotion || '');
 const key = fen => fen.split(' ').slice(0, 4).join(' ');
+const chapterSize = 200;
 
 // chess.js 1.4.0 raw moves use 0x88 squares. Search with its legal generator
 // directly so the exhaustive proof does not format SAN at every position.
@@ -59,7 +60,7 @@ function select(source) {
       if (line.length !== 5 || !row.Themes.split(' ').includes('mateIn3') || row.Popularity < 60) continue;
       const board = new Chess(row.FEN);
       const side = board.turn() === 'w' ? 'b' : 'w';
-      if (counts[side] === 50) continue;
+      if (counts[side] === chapterSize / 2) continue;
       board.move({ from: setup.slice(0, 2), to: setup.slice(2, 4), promotion: setup[4] });
       const fen = board.fen();
       if (positions.has(key(fen))) continue;
@@ -68,7 +69,7 @@ function select(source) {
       positions.add(key(fen));
       counts[side]++;
       entries.push({ id: 'mate3-' + row.PuzzleId, fen, line, rating: row.Rating, branches });
-      if (entries.length === 100) return entries.sort((a, b) => a.rating - b.rating || compare(a.id, b.id));
+      if (entries.length === chapterSize) return entries.sort((a, b) => a.rating - b.rating || compare(a.id, b.id));
     }
   }
   throw Error('Incomplete selection: ' + JSON.stringify(counts));
@@ -83,7 +84,7 @@ if (input === '--import') {
   console.log(digest(entries));
 } else {
   const rows = [...fs.readFileSync(input, 'utf8').replaceAll('\r\n', '\n').matchAll(/^  - id: (mate3-[A-Za-z0-9]{5})\n    fen: "([^"\n]+)"\n    line: \[([a-h1-8qrbn, ]+)\]\n    rating: (\d+)$/gm)];
-  if (rows.length !== 100) throw Error('Expected exactly 100 canonical mate-in-three entries');
+  if (rows.length !== chapterSize) throw Error('Expected exactly ' + chapterSize + ' canonical mate-in-three entries');
   const entries = rows.map(([, id, fen, moves]) => {
     const line = moves.split(', ');
     const branches = proof(new Chess(fen), line);

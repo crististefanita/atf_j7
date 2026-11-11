@@ -1,4 +1,21 @@
 <resources>
+    <string name="match_actions">Game options</string>
+    <string name="match_offer_draw">Offer draw</string>
+    <string name="match_draw_declined">The AI declined the draw.</string>
+    <string name="match_agreed_draw">Draw by agreement</string>
+    <string name="match_resign">Resign game</string>
+    <string name="match_confirm_resign">Confirm resignation</string>
+    <string name="match_resign_confirm">End this game and record a loss?</string>
+    <string name="match_resigned">You resigned</string>
+    <string name="game_review_category">Move type</string>
+    <string name="game_review_human_column">Player</string>
+    <string name="game_review_ai_column">AI</string>
+    <string name="game_review_grade_counts">%1$s. Player %2$s. AI %3$s.</string>
+    <string name="manual_analysis">Analysis board</string>
+    <string name="manual_reset">Reset line</string>
+    <string name="manual_close">Back to the previous screen</string>
+    <string name="manual_checkmate">Checkmate</string>
+    <string name="manual_position">Position %1$d · %2$d</string>
     <string name="openings_title">Openings</string>
     <string name="opening_train_white">Play White</string>
     <string name="opening_train_black">Play Black</string>

@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import ro.atf.chess.AnalysisLine;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
@@ -77,6 +78,12 @@ final class MatchAnalysisView extends TextView {
 
     void show(ChessPosition position) {
         show(position, () -> TacticalAnalysis.recommendations(position), Double.NaN);
+    }
+
+    void show(AnalysisLine line) {
+        var position = line.position();
+        if (line.result() == ChessMatch.Result.IN_PROGRESS) show(position);
+        else show(position, List::of, MatchEvaluation.terminalWhiteShare(line.result()));
     }
 
     private void show(ChessPosition position, Supplier<List<TacticalAnalysis.Variation>> search, double terminal) {

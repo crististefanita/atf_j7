@@ -102,7 +102,29 @@ Hard alege `Kd1` cu 339 cp, față de 338 cp pentru `Kf1`. Stockfish evaluează 
 
 ### Rezultatele ancorei externe
 
-Retestarea după corecția Alehină, pe 72 de partide:
+Pe sursa ediției 0.9.0, trei sesiuni au folosit aceleași 12 poziții și culorile inversate, câte 24 de partide pe profil în fiecare sesiune. Stockfish 19 a rămas la `UCI_Elo 1500`, 6.000 de noduri cerute pe mutare și un fir. Plafonul a rămas la 160 de semimutări, iar profilurile J7 și-au păstrat bugetele.
+
+| Profil | V / R / Î / N | Estimare în protocol | Interval empiric 95% | Estimări pe sesiuni |
+|---|---:|---:|---:|---:|
+| Basic | 12 / 2 / 43 / 15 | 1340 | 1139–1481 | 1380 / 1328 / 1309 |
+| Advanced | 16 / 2 / 24 / 30 | 1461 | 1183–1684 | 1471 / 1411 / 1500 |
+| Hard | 31 / 1 / 21 / 19 | 1549 | 1369–1739 | 1573 / 1573 / 1500 |
+
+Din cele 216 partide, 64 au rămas active la plafon. Fiecare contribuie cu un interval de scor între zero și un punct. Calculul agregă cele trei perechi ale fiecărei deschideri înaintea celor 10.000 de reeșantionări. Deschiderea rămâne unitatea independentă. Hard conduce la estimarea centrală, iar intervalele celor trei profiluri se suprapun. `GameReviewGovernanceTest` recalculează toate cele trei repere folosite în aplicație. [Rezultatele perechilor și proveniența](../../atf-tests/src/test/resources/ai-anchor-observations.yaml)
+
+În Benoni modern, Advanced a ajuns la plafon în cinci dintre cele șase partide. La poziția finală, Stockfish 19 cu istoricul complet și adâncime 13 a estimat 0‰ pentru Advanced în toate cinci, inclusiv două poziții cu mat forțat. Proba separată localizează un caz de investigat. În calculul ancorei, toate cinci păstrează intervalul de partidă neterminată.
+
+Pentru reproducere, folosiți o copie TMP și trei căi noi pentru TSV și Extent. Fiecare execuție validează perechile și reia toate mutările până la rezultatul înregistrat.
+
+```powershell
+foreach ($index in 1..3) {
+    mvn -B -ntp test '-Dtest=AiAnchorBenchmarkTest' "-Dchess.stockfish=$stockfish" `
+        "-Dchess.anchor=$scratch/anchor-$index.tsv" "-Dchess.extent=$scratch/anchor-$index.html"
+    if ($LASTEXITCODE) { throw "Sesiunea $index a eșuat" }
+}
+```
+
+Retestarea anterioară după corecția Alehină a acoperit 72 de partide.
 
 | Profil | V / R / Î / N | Performanță centrală în protocol | Interval empiric 95% |
 |---|---:|---:|---:|

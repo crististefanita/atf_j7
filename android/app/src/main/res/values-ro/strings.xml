@@ -1,4 +1,21 @@
 <resources>
+    <string name="match_actions">Opțiunile partidei</string>
+    <string name="match_offer_draw">Oferă remiză</string>
+    <string name="match_draw_declined">AI-ul a refuzat remiza.</string>
+    <string name="match_agreed_draw">Remiză prin acord</string>
+    <string name="match_resign">Renunță la partidă</string>
+    <string name="match_confirm_resign">Confirmă renunțarea</string>
+    <string name="match_resign_confirm">Închei partida și înregistrezi o înfrângere?</string>
+    <string name="match_resigned">Ai renunțat la partidă</string>
+    <string name="game_review_category">Tipul mutării</string>
+    <string name="game_review_human_column">Jucător</string>
+    <string name="game_review_ai_column">AI</string>
+    <string name="game_review_grade_counts">%1$s. Jucător %2$s. AI %3$s.</string>
+    <string name="manual_analysis">Tablă de analiză</string>
+    <string name="manual_reset">Resetează linia</string>
+    <string name="manual_close">Înapoi la ecranul anterior</string>
+    <string name="manual_checkmate">Șah mat</string>
+    <string name="manual_position">Poziția %1$d · %2$d</string>
     <string name="openings_title">Deschideri</string>
     <string name="opening_train_white">Cu albele</string>
     <string name="opening_train_black">Cu negrele</string>

@@ -15,6 +15,18 @@ import ro.atf.chess.ChessPosition.Side;
 public record GameReview(List<Turn> turns, Opening opening, int bookPlies, int initialWhitePoints,
                          Player white, Player black) {
     public enum Grade { BOOK, FORCED, BRILLIANT, GREAT, BEST, EXCELLENT, GOOD, INACCURACY, MISTAKE, MISS, BLUNDER }
+    public record GradeCount(Grade grade, int human, int ai) { }
+
+    public List<GradeCount> compareGrades(Side humanSide) {
+        var human = humanSide == Side.WHITE ? white : black;
+        var ai = humanSide == Side.WHITE ? black : white;
+        var counts = new ArrayList<GradeCount>();
+        for (var grade : List.of(Grade.BRILLIANT, Grade.GREAT, Grade.BEST, Grade.EXCELLENT, Grade.GOOD, Grade.BOOK,
+                Grade.FORCED, Grade.INACCURACY, Grade.MISTAKE, Grade.MISS, Grade.BLUNDER)) {
+            counts.add(new GradeCount(grade, human.grades().getOrDefault(grade, 0), ai.grades().getOrDefault(grade, 0)));
+        }
+        return List.copyOf(counts);
+    }
     public record Rating(int elo, Integer low, int high) { }
     public record Opening(String eco, String name) { }
     public record Player(OptionalInt accuracy, Optional<Rating> rating, int ratedMoves, Map<Grade, Integer> grades) {

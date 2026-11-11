@@ -20,12 +20,15 @@ class MainMenuLayoutTest {
         var main = home.getElementsByTagName("Button");
         var ids = new ArrayList<String>();
         for (int index = 0; index < main.getLength(); index++) ids.add(((Element) main.item(index)).getAttribute("android:id"));
-        check.same("The home screen exposes games, puzzles, openings and the editable profile",
-                List.of("@+id/new_match", "@+id/resume_match", "@+id/open_puzzles", "@+id/open_openings", "@+id/edit_player_name"), ids);
+        check.same("The home screen exposes games, puzzles, openings, manual analysis and the editable profile",
+                List.of("@+id/new_match", "@+id/resume_match", "@+id/open_puzzles", "@+id/open_openings", "@+id/open_analysis", "@+id/edit_player_name"), ids);
         check.same("Openings has an independent localized home entry", List.of("Openings", "Deschideri"),
                 List.of(labels("values/strings.xml", List.of("openings_title")).getFirst(),
                         labels("values-ro/strings.xml", List.of("openings_title")).getFirst()));
         check.same("Resume is hidden until a game is saved", "gone", ((Element) main.item(1)).getAttribute("android:visibility"));
+        check.same("Manual analysis is available independently of a saved game in both languages", List.of("Analysis board", "Tablă de analiză"),
+                List.of(labels("values/strings.xml", List.of("manual_analysis")).getFirst(),
+                        labels("values-ro/strings.xml", List.of("manual_analysis")).getFirst()));
         var buttons = read("layout/puzzle_menu.xml").getElementsByTagName("Button");
         var entries = new ArrayList<String>();
         for (int index = 0; index < buttons.getLength() - 1; index++) {

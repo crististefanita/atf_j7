@@ -20,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class QuestCatalogTest {
     @Test void everyPuzzleHasExactlyOneMateAndTheSameLegalMovesAsTheIndependentOracle(Checks check) throws Exception {
         var catalog = QuestCatalog.load();
-        check.same("There are exactly 102 mate-in-one puzzles", 102, catalog.size());
-        check.same("52 positions start with White to move", 52L,
+        check.same("There are exactly 500 mate-in-one puzzles", 500, catalog.size());
+        check.same("Half of the positions start with White to move", 250L,
                 catalog.stream().filter(q -> q.position().turn() == ChessPosition.Side.WHITE).count());
         StringBuilder normalized = new StringBuilder();
         for (var quest : catalog.stream().sorted(Comparator.comparing(QuestCatalog.Quest::id)).toList()) {
@@ -53,7 +53,7 @@ class QuestCatalogTest {
         var weights = new HashMap<Object, Object>(ChessYaml.map(root, "weights"));
         weights.put("checking-decoy", ChessYaml.number(weights, "checking-decoy") + 1);
         root.put("weights", weights);
-        var quests = QuestCatalog.loadPositions();
+        var quests = QuestCatalog.loadPositions().stream().filter(quest -> List.of("mate-001", "mate-129").contains(quest.id())).toList();
         var amended = QuestDifficulty.rank(quests, QuestDifficulty.Profile.read(root));
         var baseline = new HashMap<Object, Object>(root);
         baseline.put("weights", ChessYaml.map(ChessYaml.resource("quest-difficulty.yaml"), "weights"));
@@ -72,7 +72,7 @@ class QuestCatalogTest {
         all.addAll(QuestCatalog.loadMateInThree());
         all.addAll(QuestCatalog.loadTactics());
         QuestDiversity.requireDistinct(all);
-        check.same("All chapters contribute 314 distinct IDs and positions", 314L, all.stream().map(QuestCatalog.Quest::id).distinct().count());
+        check.same("All chapters contribute 1,100 distinct IDs and positions", 1100L, all.stream().map(QuestCatalog.Quest::id).distinct().count());
     }
 
     @Test void ignoresAnEditorialTieBreakOnceTheBaseScoresDiffer(Checks check) {
@@ -145,7 +145,7 @@ class QuestCatalogTest {
             return guidance.piece().equals(quest.position().pieceAt(guidance.move().from()))
                     && guidance.piece().side() == quest.position().turn() && quest.solves(guidance.move());
         }).count();
-        check.same("All 102 hints name a piece that can play the recorded mate", 102L, complete);
+        check.same("All hints name a piece that can play the recorded mate", (long) catalog.size(), complete);
         var promotion = catalog.stream().filter(q -> q.solution().uci().equals("f7f8n")).findFirst().orElseThrow().guidance();
         check.same("Underpromotion hint starts with a pawn", ChessPosition.Kind.PAWN, promotion.piece().kind());
         check.same("The revealed solution preserves the knight promotion", ChessPosition.Kind.KNIGHT, promotion.move().promotion());

@@ -55,6 +55,10 @@ class AiLeagueComponentTest {
         check.same("The paired interval includes the full uncertainty of each sampled opening", true,
                 estimate.eloLow95() < PairedElo.elo(.375) && estimate.eloHigh95() > PairedElo.elo(.625));
         check.same("The bootstrap is reproducible with a fixed seed", estimate, PairedElo.estimate(pairs, 10_000, 42));
+        check.same("Repeated identical runs do not increase the effective opening sample", estimate,
+                PairedElo.estimateRepeated(pairs.stream().map(pair -> List.of(pair, pair, pair)).toList(), 10_000, 42));
+        check.rejects("A missing paired session cannot silently narrow the interval", IllegalArgumentException.class,
+                () -> PairedElo.estimateRepeated(List.of(pairs, List.of(pairs.getFirst())), 10_000, 42));
         check.same("Two wins on every opening have no finite Elo point estimate", Double.POSITIVE_INFINITY,
                 PairedElo.estimate(List.of(new PairedElo.Pair(2, 0, 0, 0), new PairedElo.Pair(2, 0, 0, 0)), 1_000, 42).eloLow95());
         check.same("A 75% result corresponds to about +191 Elo", 191L, Math.round(PairedElo.elo(.75)));

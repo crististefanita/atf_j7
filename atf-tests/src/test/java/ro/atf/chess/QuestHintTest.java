@@ -14,7 +14,7 @@ class QuestHintTest {
         check.same("One action reveals the piece, a second reveals the move", List.of(QuestHint.NONE, QuestHint.PIECE, QuestHint.SOLUTION), levels);
         check.same("The unopened hint exposes neither square", true,
                 quests.stream().allMatch(quest -> levels.get(0).cue(quest.solution()).equals(new QuestHint.Cue(-1, -1))));
-        check.same("The piece hint hides the destination in all 102 quests", true,
+        check.same("The piece hint hides the destination in every quest", true,
                 quests.stream().allMatch(quest -> levels.get(1).cue(quest.solution()).equals(new QuestHint.Cue(quest.solution().from(), -1))));
         check.same("The complete hint follows the verified move even for castling, promotions and counter-mates", true,
                 quests.stream().allMatch(quest -> levels.get(2).cue(quest.solution())

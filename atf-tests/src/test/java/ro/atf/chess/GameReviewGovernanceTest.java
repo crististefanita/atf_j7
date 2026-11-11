@@ -27,16 +27,26 @@ class GameReviewGovernanceTest {
                 policy.search.maxPlies() >= hard.maxPlies() && policy.search.extraNodes() > hard.extraNodes()
                         && policy.search.extraNodes() <= MatchAiPolicy.CURRENT.hint.search().extraNodes());
         check.same("The benchmarks cover all selectable profiles", Set.of(Level.values()), policy.opponentRatings.keySet());
-        check.same("The configured estimates match the paired Stockfish reference evidence", List.of(
-                new GameReview.Rating(1245, null, 1442), new GameReview.Rating(1544, 1346, 1755), new GameReview.Rating(1380, 1083, 1558)),
-                List.of(policy.opponentRatings.get(Level.BASIC), policy.opponentRatings.get(Level.ADVANCED), policy.opponentRatings.get(Level.HARD)));
-        check.same("The Basic reference keeps its measured unbounded endpoint", null, policy.opponentRatings.get(Level.BASIC).low());
+        var protocol = ChessYaml.resource("ai-anchor.yaml");
+        var league = AiLeague.load(ChessYaml.resource("ai-league.yaml"));
+        check.same("Stockfish strength, nodes, game cap and bootstrap size are frozen", List.of("Stockfish 19", 1500, 6000, 160, 10000),
+                List.of(ChessYaml.string(protocol, "stockfish"), ChessYaml.number(protocol, "uci-elo"),
+                        ChessYaml.number(protocol, "nodes-per-move"), league.maxPlies(), league.samples()));
+        var evidence = ChessYaml.resource("ai-anchor-observations.yaml");
+        for (Level level : Level.values()) {
+            check.same(level + " displayed Elo matches the opening-cluster calculation from all paired sessions",
+                    AiAnchorEvidence.rating(evidence, level), policy.opponentRatings.get(level));
+        }
+        var incomplete = new HashMap<Object, Object>(evidence);
+        incomplete.put("sessions", ChessYaml.list(evidence, "sessions").subList(0, 2));
+        check.rejects("Two sessions cannot replace the published calibration", IllegalArgumentException.class,
+                () -> AiAnchorEvidence.rating(incomplete, Level.HARD));
         var invalid = new HashMap<Object, Object>(ChessYaml.resource("game-review.yaml"));
         invalid.put("minimum-rated-moves", 1);
         check.rejects("The policy refuses Elo after a single decision", IllegalArgumentException.class, () -> GameReviewPolicy.read(invalid));
         invalid.put("minimum-rated-moves", 10);
         var ratings = new HashMap<Object, Object>(ChessYaml.map(invalid, "opponents"));
-        ratings.put("ADVANCED", Map.of("elo", 1544, "low", 1540, "high", 1530));
+        ratings.put("ADVANCED", Map.of("elo", 1461, "low", 1450, "high", 1440));
         invalid.put("opponents", ratings);
         check.rejects("A range that excludes its reference estimate is rejected", IllegalArgumentException.class, () -> GameReviewPolicy.read(invalid));
         check.same("The expected-score transform preserves color symmetry", 1000,

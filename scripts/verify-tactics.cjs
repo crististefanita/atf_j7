@@ -10,7 +10,7 @@ const mate = 100000;
 
 function material(board) {
   const side = board.turn();
-  return board.board().flat().reduce((total, piece) =>
+  return board._board.reduce((total, piece) =>
     piece ? total + (piece.color === side ? 1 : -1) * values[piece.type] : total, 0);
 }
 
@@ -20,11 +20,17 @@ function after(board, move, visit) {
   try { return visit(); } finally { board._undoMove(); }
 }
 
-function score(board, remaining, distance) {
+function score(board, remaining, distance, alpha, beta) {
   const moves = board._moves();
   if (!moves.length) return board.isCheck() ? distance - mate : 0;
   if (!remaining) return material(board);
-  return Math.max(...moves.map(move => after(board, move, () => -score(board, remaining - 1, distance + 1))));
+  let best = -Infinity;
+  for (const move of moves) {
+    best = Math.max(best, after(board, move, () => -score(board, remaining - 1, distance + 1, -beta, -alpha)));
+    if (best >= beta) return best;
+    alpha = Math.max(alpha, best);
+  }
+  return best;
 }
 
 function verify(id, fen, solution) {
@@ -33,7 +39,7 @@ function verify(id, fen, solution) {
   if (moves.some(move => move.san.endsWith('#'))) throw Error(id + ' has an immediate mate');
   const ranked = moves.map(move => {
     board.move(move);
-    try { return { move: move.lan, score: -score(board, 2, 1) }; } finally { board.undo(); }
+    try { return { move: move.lan, score: -score(board, 2, 1, -Infinity, Infinity) }; } finally { board.undo(); }
   }).sort((a, b) => b.score - a.score);
   const [best, next] = ranked;
   const gain = best.score - material(board);

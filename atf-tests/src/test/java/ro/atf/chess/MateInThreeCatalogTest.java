@@ -15,8 +15,8 @@ import ro.atf.chess.ChessPosition.Move;
 class MateInThreeCatalogTest {
     @Test void everyPositionHasExactlyOneOpeningThatForcesMateInThree(Checks check) throws Exception {
         var quests = QuestCatalog.loadMateInThree();
-        check.same("The chapter has 100 positions", 100, quests.size());
-        check.same("Each color starts 50 positions", 50L, quests.stream().filter(q -> q.position().turn() == ChessPosition.Side.WHITE).count());
+        check.same("The chapter has 200 positions", 200, quests.size());
+        check.same("Each color starts 100 positions", 100L, quests.stream().filter(q -> q.position().turn() == ChessPosition.Side.WHITE).count());
         var canonical = new StringBuilder();
         var invalid = new ArrayList<String>();
         for (var quest : quests) {
@@ -26,7 +26,7 @@ class MateInThreeCatalogTest {
             var afterKey = position.play(quest.solution());
             var rows = new ArrayList<String>();
             for (Move reply : afterKey.legalMoves()) {
-                var next = afterKey.play(reply);
+                var next = afterKey.playGenerated(reply);
                 var second = next.legalMoves().stream().filter(move -> wins(next, move, 2)).toList();
                 if (reply.equals(quest.defenseAfter(0)) && !second.equals(List.of(quest.playerMove(1)))) invalid.add(quest.id());
                 rows.add(reply.uci() + "=" + String.join(",", second.stream().map(Move::uci).sorted().toList()));
@@ -53,12 +53,12 @@ class MateInThreeCatalogTest {
     }
 
     private static boolean wins(ChessPosition position, Move move, int budget) {
-        var after = position.play(move);
+        var after = position.playGenerated(move);
         if (budget == 1) return after.isCheckmate();
         var replies = after.legalMoves();
         if (replies.isEmpty()) return after.isCheck();
         for (Move reply : replies) {
-            var next = after.play(reply);
+            var next = after.playGenerated(reply);
             if (!next.legalMoves().stream().anyMatch(candidate -> wins(next, candidate, budget - 1))) return false;
         }
         return true;

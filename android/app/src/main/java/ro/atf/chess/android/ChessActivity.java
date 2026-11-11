@@ -15,6 +15,7 @@ import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -71,8 +72,9 @@ public final class ChessActivity extends Activity {
     private MenuPage menuPage = MenuPage.HOME;
     private boolean botSaveFailed;
     private MatchHistoryView history;
+    private ImageButton matchActions;
     private MatchAnalysisView matchAnalysis;
-    private AlertDialog reviewDialog;
+    private android.app.Dialog reviewDialog;
     private GameReview completedReview;
     private int reviewedPly = -1;
     private QuestProgress progress;
@@ -169,6 +171,7 @@ public final class ChessActivity extends Activity {
                 () -> profile.setText(getString(R.string.profile_name, humanName()))));
         menu.findViewById(R.id.open_puzzles).setOnClickListener(view -> showPuzzles());
         menu.findViewById(R.id.open_openings).setOnClickListener(view -> startActivity(new android.content.Intent(this, OpeningActivity.class)));
+        menu.findViewById(R.id.open_analysis).setOnClickListener(view -> AnalysisActivity.open(this, ChessMatch.start(), 0, false));
         menu.findViewById(R.id.new_match).setOnClickListener(view -> showMatchSetup());
         Button resume = menu.findViewById(R.id.resume_match);
         resume.setVisibility(match == null ? View.GONE : View.VISIBLE);
@@ -334,10 +337,33 @@ public final class ChessActivity extends Activity {
         status.setPadding(dp(8), dp(4), dp(8), dp(10));
         BoardCaption.reserve(status, inMatch ? 2 : 3);
         status.setAccessibilityLiveRegion(android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        screen.addView(status);
+        if (inMatch) {
+            var statusRow = new LinearLayout(this);
+            statusRow.setGravity(Gravity.CENTER_VERTICAL);
+            statusRow.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
+            matchActions = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
+            matchActions.setId(R.id.match_actions);
+            matchActions.setImageResource(R.drawable.match_more);
+            matchActions.setImageTintList(ColorStateList.valueOf(MUTED));
+            matchActions.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
+            matchActions.setContentDescription(getString(R.string.match_actions));
+            matchActions.setOnClickListener(this::showMatchActions);
+            statusRow.addView(matchActions, new LinearLayout.LayoutParams(dp(48), dp(48)));
+            screen.addView(statusRow);
+        } else screen.addView(status);
         if (inMatch) {
             if (matchAnalysis != null) screen.addView(matchAnalysis);
-            history = new MatchHistoryView(this, this::notation, this::reviewMatch, matchAnalysis == null ? null : matchAnalysis.bulb());
+            var study = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
+            study.setImageResource(R.drawable.match_study);
+            study.setImageTintList(ColorStateList.valueOf(MUTED));
+            study.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
+            study.setId(R.id.match_open_analysis);
+            study.setContentDescription(getString(R.string.manual_analysis));
+            study.setOnClickListener(view -> {
+                cancelBot();
+                AnalysisActivity.open(this, match, reviewedPly < 0 ? match.ply() : reviewedPly, blackBelow);
+            });
+            history = new MatchHistoryView(this, this::notation, this::reviewMatch, matchAnalysis == null ? null : matchAnalysis.bulb(), study);
             screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
             return screen;
         }
@@ -439,10 +465,14 @@ public final class ChessActivity extends Activity {
     }
 
     private String notation(Move move) {
+        return notation(this, move);
+    }
+
+    static String notation(android.content.Context context, Move move) {
         String from = BoardSquare.name(move.from());
         String to = BoardSquare.name(move.to());
-        return move.promotion() == null ? getString(R.string.solution_move, from, to)
-                : getString(R.string.solution_promotion, from, to, getString(BoardView.kindLabel(move.promotion())));
+        return move.promotion() == null ? context.getString(R.string.solution_move, from, to)
+                : context.getString(R.string.solution_promotion, from, to, context.getString(BoardView.kindLabel(move.promotion())));
     }
 
     static String compactNotation(Move move) {
@@ -679,6 +709,42 @@ public final class ChessActivity extends Activity {
                 }, this::reviewMatch, this::confirmContinuation, () -> reviewDialog = null);
     }
 
+    private void showMatchActions(View anchor) {
+        var menu = new PopupMenu(this, anchor);
+        var draw = menu.getMenu().add(R.string.match_offer_draw);
+        draw.setEnabled(playerCanMove());
+        draw.setOnMenuItemClickListener(item -> {
+            if (playerCanMove()) {
+                var outcome = match.offerDraw();
+                if (outcome == match) Toast.makeText(this, R.string.match_draw_declined, Toast.LENGTH_SHORT).show();
+                else saveMatchEnding(outcome);
+            }
+            return true;
+        });
+        menu.getMenu().add(R.string.match_resign).setOnMenuItemClickListener(item -> {
+            new AlertDialog.Builder(this).setTitle(R.string.match_resign).setMessage(R.string.match_resign_confirm)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(R.string.match_confirm_resign, (dialog, which) -> {
+                        if (inMatch && reviewedPly < 0 && match.result() == ChessMatch.Result.IN_PROGRESS) saveMatchEnding(match.resign());
+                    }).show();
+            return true;
+        });
+        menu.show();
+    }
+
+    private void saveMatchEnding(ChessMatch ending) {
+        if (!store.saveMatch(ending, blackBelow)) {
+            showSaveError();
+            return;
+        }
+        cancelBot();
+        match = ending;
+        botSaveFailed = false;
+        selected = -1;
+        options = List.of();
+        renderMatch();
+    }
+
     private boolean saveMatchMove(Move move) {
         var nextMatch = match.play(move);
         if (!store.saveMatch(nextMatch, blackBelow)) {
@@ -865,8 +931,11 @@ public final class ChessActivity extends Activity {
             case MATERIAL_DRAW -> R.string.match_draw_material;
             case REPETITION_DRAW -> R.string.match_draw_repetition;
             case MOVE_COUNT_DRAW -> R.string.match_draw_move_count;
+            case AGREED_DRAW -> R.string.match_agreed_draw;
         });
+        if (match.resigned()) label = getString(R.string.match_resigned);
         View.OnClickListener action = null;
+        String spokenLabel = null;
         if (reviewing) {
             label = getString(R.string.match_history_position, ply, match.ply()) + "\n" + getString(R.string.match_continue_from_here);
             action = view -> confirmContinuation(ply);
@@ -878,10 +947,13 @@ public final class ChessActivity extends Activity {
                 scheduleBot();
             };
         } else if (match.result() != ChessMatch.Result.IN_PROGRESS) {
-            label += "\n" + getString(R.string.match_game_review);
+            spokenLabel = label + ". " + getString(R.string.match_game_review);
+            label += "\n📊  " + getString(R.string.match_game_review);
             action = view -> showGameReview();
         }
+        matchActions.setVisibility(!reviewing && match.result() == ChessMatch.Result.IN_PROGRESS ? View.VISIBLE : View.INVISIBLE);
         status.setText(label);
+        status.setContentDescription(spokenLabel);
         status.setTextColor(action == null ? PRIMARY : PROGRESS);
         status.setOnClickListener(action);
         status.setClickable(action != null);

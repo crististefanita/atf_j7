@@ -22,6 +22,9 @@ public final class ReleaseRag {
             ai("chess-core/src/main/java/ro/atf/chess/ChessMatch.java"),
             new Route("chess-core/src/main/java/ro/atf/chess/ChessMatch.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
             new Route("chess-core/src/main/resources/mate-in-three.yaml", "docs/board/quest-curation.md", "## Mat în trei mutări", "MateInThreeCatalogTest și verify-mate-in-three.cjs"),
+            new Route("chess-core/src/main/resources/mate-in-two.yaml", "docs/board/quest-curation.md", "## Mat în două mutări", "MateInTwoCatalogTest și verify-mate-in-two.cjs"),
+            new Route("chess-core/src/main/resources/quests.yaml", "docs/board/quest-curation.md", "## Configurarea capitolelor",
+                    "QuestCatalogTest și update-mate-one-order.ps1"),
             new Route("chess-core/src/main/resources/tactics.yaml", "docs/testing/README.md", "## Tactică și punctaj", "TacticsCatalogTest și verify-tactics.cjs"),
             new Route("chess-core/src/main/java/ro/atf/chess/QuestRewards.java", "docs/testing/README.md", "## Tactică și punctaj", "QuestRewardsTest și MainMenuLayoutTest"),
             new Route("android/", "docs/testing/README.md", "## Sanity Android", "BoardSanity"),
@@ -32,6 +35,12 @@ public final class ReleaseRag {
             review("chess-core/src/main/resources/game-review.yaml"),
             review("chess-core/src/main/resources/opening-book.tsv"),
             review("android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java"),
+            manualAnalysis("chess-core/src/main/java/ro/atf/chess/AnalysisLine.java"),
+            manualAnalysis("android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java"),
+            manualAnalysis("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java"),
+            anchor("atf-tests/src/test/resources/ai-anchor.yaml"),
+            anchor("atf-tests/src/test/resources/ai-anchor-observations.yaml"),
+            anchor("atf-tests/src/test/java/ro/atf/chess/PairedElo.java"),
             new Route("android/app/src/main/java/ro/atf/chess/android/BoardView.java", "docs/testing/README.md", "## Proba TalkBack", "QuestHintTest, BoardSanity și proba TalkBack"),
             openings("chess-core/src/main/java/ro/atf/chess/OpeningLesson.java"),
             openings("android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java"),
@@ -60,6 +69,16 @@ public final class ReleaseRag {
     private static Route review(String path) {
         return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
                 "GameReviewTest, GameReviewGovernanceTest și BoardSanity -IncludeGameReview");
+    }
+
+    private static Route manualAnalysis(String path) {
+        return new Route(path, "docs/testing/README.md", "## Tablă de analiză",
+                "AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly");
+    }
+
+    private static Route anchor(String path) {
+        return new Route(path, "docs/board/ai-quality.md", "### Rezultatele ancorei externe",
+                "AiAnchorBenchmarkTest și GameReviewGovernanceTest");
     }
 
     public static List<Citation> retrieve(Path root, List<String> changedPaths) throws IOException {

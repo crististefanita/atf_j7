@@ -17,9 +17,9 @@ class TacticsCatalogTest {
     @Test void everyTacticHasOneMaterialWinningMoveAndAnIndependentProof(Checks check) throws Exception {
         var catalog = QuestCatalog.loadTactics();
         var proof = new StringBuilder();
-        check.same("The initial chapter has twelve tactics", 12, catalog.size());
-        check.same("The YAML difficulty starts with a direct capture and ends with a quiet key",
-                List.of("tactic-005", "tactic-012"), List.of(catalog.getFirst().id(), catalog.getLast().id()));
+        check.same("The chapter has exactly 100 tactics", 100, catalog.size());
+        check.same("The introductory progression keeps its original direct capture and quiet key",
+                List.of("tactic-005", "tactic-012"), List.of(catalog.getFirst().id(), catalog.get(11).id()));
         for (var quest : catalog.stream().sorted(Comparator.comparing(QuestCatalog.Quest::id)).toList()) {
             var variations = TacticalAnalysis.analyze(quest.position(), 3);
             var best = variations.best().get(0);
@@ -28,9 +28,9 @@ class TacticsCatalogTest {
             check.same(quest.id() + " has no immediate checkmate", false, quest.position().legalMoves().stream().anyMatch(move -> quest.position().play(move).isCheckmate()));
             proof.append(quest.id()).append(' ').append(quest.solution().uci()).append(' ').append(best.materialChange()).append('\n');
         }
-        check.same("Both sides get six tactics", 6L, catalog.stream().filter(quest -> quest.position().turn() == ChessPosition.Side.BLACK).count());
-        check.same("Four positions require a quiet first move", 4L,
-                catalog.stream().filter(quest -> quest.position().pieceAt(quest.solution().to()) == null).count());
+        check.same("Both sides get fifty tactics", 50L, catalog.stream().filter(quest -> quest.position().turn() == ChessPosition.Side.BLACK).count());
+        check.same("The extended curriculum includes quiet keys beyond the introductory puzzles", true,
+                catalog.stream().skip(12).anyMatch(quest -> quest.position().pieceAt(quest.solution().to()) == null));
         String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(proof.toString().getBytes(StandardCharsets.UTF_8)));
         check.same("Engine results agree with the chess.js proof",
                 Files.readString(ProjectRoot.locate().resolve("chess-core/src/main/resources/tactics.sha256")).trim(), digest);

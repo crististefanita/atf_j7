@@ -3,8 +3,9 @@ depth: 5
 extra-nodes: 85000
 score-scale: 220
 minimum-rated-moves: 10
-# Paired 72-game run against Stockfish 19 UCI_Elo 1500, 6000 nodes.
+# Three paired sessions against Stockfish 19 UCI_Elo 1500, 6000 nodes.
+# The opening-cluster estimates are verified against ai-anchor-observations.yaml.
 opponents:
-  BASIC: {elo: 1245, low: null, high: 1442}
-  ADVANCED: {elo: 1544, low: 1346, high: 1755}
-  HARD: {elo: 1380, low: 1083, high: 1558}
+  BASIC: {elo: 1340, low: 1139, high: 1481}
+  ADVANCED: {elo: 1461, low: 1183, high: 1684}
+  HARD: {elo: 1549, low: 1369, high: 1739}

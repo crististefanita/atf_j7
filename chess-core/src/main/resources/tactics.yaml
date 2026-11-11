@@ -61,3 +61,443 @@ quests:
     fen: "r1b2rk1/1ppp1p1p/2nq4/p2NpNp1/2P1P3/1P6/P1P2RPP/R1BQ2K1 b - - 1 14"
     solution: d6e6
     difficulty: 12
+  # Lichess 009tE · rating 624 · fork
+  - id: tactic-017
+    fen: "6k1/6pp/p1N5/1pP2bp1/5P2/8/PPP5/3K4 w - - 0 29"
+    solution: c6e7
+    difficulty: 13
+  # Lichess 00F1l · rating 836 · skewer
+  - id: tactic-020
+    fen: "8/2k1b3/5p2/RBpK1Pp1/P2p2P1/1p1P4/2r5/8 w - - 0 46"
+    solution: a5a7
+    difficulty: 14
+  # Lichess 006OI · rating 843 · skewer
+  - id: tactic-061
+    fen: "6R1/p7/5k2/P7/6KP/8/8/5r2 b - - 6 53"
+    solution: f1g1
+    difficulty: 15
+  # Lichess 004nd · rating 898 · fork
+  - id: tactic-015
+    fen: "3q2k1/3r4/pp3p1Q/2b1n3/P3N3/2P5/1P4PP/R6K w - - 1 25"
+    solution: e4f6
+    difficulty: 16
+  # Lichess 00R2A · rating 909 · discoveredAttack
+  - id: tactic-062
+    fen: "2kr1b1R/p5p1/8/3P1p2/2P5/4B3/PP1K1P2/8 b - - 0 25"
+    solution: f8b4
+    difficulty: 17
+  # Lichess 001wr · rating 977 · fork
+  - id: tactic-057
+    fen: "r4rk1/p3ppbp/Pp1q1np1/3PpbB1/2B5/2N2P2/1PPQ2PP/3RR1K1 b - - 0 18"
+    solution: d6c5
+    difficulty: 18
+  # Lichess 003jb · rating 982 · fork
+  - id: tactic-014
+    fen: "r3kb1r/p4ppp/b3p3/2pq4/3Q4/4BN2/PPP2PPP/R3K2R w KQkq - 0 12"
+    solution: d4a4
+    difficulty: 19
+  # Lichess 003Jb · rating 993 · fork
+  - id: tactic-059
+    fen: "6k1/Q2bqr1p/2rpp1pR/p7/Pp2P3/1B3P2/1PP3P1/2KR4 b - - 7 22"
+    solution: e7g5
+    difficulty: 20
+  # Lichess 00E29 · rating 997 · discoveredAttack
+  - id: tactic-019
+    fen: "r1b2rk1/4bppp/p1n5/3q4/Pp6/3B1N2/1B3PPP/R2Q1RK1 w - - 0 18"
+    solution: d3h7
+    difficulty: 21
+  # Lichess 00Tdk · rating 1041 · pin
+  - id: tactic-063
+    fen: "r6r/4kppp/2pNpnq1/p1P1n3/8/B3P3/PP1Q1PPP/3R1RK1 b - - 8 20"
+    solution: e5f3
+    difficulty: 22
+  # Lichess 00TiV · rating 1073 · skewer
+  - id: tactic-064
+    fen: "8/1kp5/4n3/3p4/r2P3R/2K2N1P/8/8 b - - 6 48"
+    solution: a4a3
+    difficulty: 23
+  # Lichess 002bK · rating 1080 · hangingPiece
+  - id: tactic-013
+    fen: "8/7p/4k3/pb1p1pPB/1n1P3P/N1p1P3/4K3/8 w - - 2 43"
+    solution: a3b5
+    difficulty: 24
+  # Lichess 008Y3 · rating 1110 · discoveredAttack
+  - id: tactic-016
+    fen: "r5k1/1p1r1pp1/p3pnp1/2qN4/8/1Q5P/PP3PP1/3RR1K1 w - - 0 25"
+    solution: d5f6
+    difficulty: 25
+  # Lichess 0039T · rating 1111 · skewer
+  - id: tactic-058
+    fen: "1r5r/p3kp2/4p2p/4P3/R4Pp1/6P1/P1P4P/4K2R b K - 2 25"
+    solution: b8b1
+    difficulty: 26
+  # Lichess 00AB1 · rating 1133 · skewer
+  - id: tactic-018
+    fen: "8/7Q/3p1kp1/1p6/2b5/2q4P/5PPK/8 w - - 0 37"
+    solution: h7h8
+    difficulty: 27
+  # Lichess 003jH · rating 1137 · fork
+  - id: tactic-060
+    fen: "rn3rk1/p5pp/3N4/4np1q/5Q2/1P6/PB1P1KP1/2R4R b - - 1 25"
+    solution: e5d3
+    difficulty: 28
+  # Lichess 00Ta0 · rating 1156 · fork
+  - id: tactic-070
+    fen: "4k3/1R6/6N1/5p1p/7P/2r3PK/5b2/8 b - - 0 47"
+    solution: c3g3
+    difficulty: 29
+  # Lichess 00ICz · rating 1161 · skewer
+  - id: tactic-026
+    fen: "2k3r1/1p1q3p/1p2p3/1NbpQr2/P1p2P2/6P1/6KP/R4R2 w - - 1 32"
+    solution: b5a7
+    difficulty: 30
+  # Lichess 0071K · rating 1162 · hangingPiece
+  - id: tactic-067
+    fen: "3N1r2/R7/kp6/p2pPp1Q/2pP2P1/2q5/2P5/2K5 b - - 1 38"
+    solution: a6a7
+    difficulty: 31
+  # Lichess 00PZo · rating 1166 · deflection
+  - id: tactic-069
+    fen: "7r/8/3b4/3p1P2/6R1/2kN4/4KP2/8 b - - 0 67"
+    solution: h8e8
+    difficulty: 32
+  # Lichess 00byq · rating 1174 · fork
+  - id: tactic-072
+    fen: "2r3k1/2r1bppp/3ppn2/qp6/4P3/1Q2B1P1/PP3PBP/1RR3K1 b - - 6 21"
+    solution: c7c1
+    difficulty: 33
+  # Lichess 00SIE · rating 1188 · fork
+  - id: tactic-028
+    fen: "2k3nr/ppp2ppp/2n5/8/8/1Q2P3/q4rPP/1R2KB1R w K - 0 16"
+    solution: b3b7
+    difficulty: 34
+  # Lichess 00Er4 · rating 1200 · hangingPiece
+  - id: tactic-068
+    fen: "r3k2r/p1bN2pp/2p1Rp2/3p3b/3P1q2/2N4P/PPPQ1PP1/R5K1 b kq - 0 16"
+    solution: e8d7
+    difficulty: 35
+  # Lichess 004LZ · rating 1208 · deflection
+  - id: tactic-066
+    fen: "8/7R/5p2/p7/7P/2p5/3k2N1/1K6 b - - 0 48"
+    solution: c3c2
+    difficulty: 36
+  # Lichess 00Ybq · rating 1212 · fork
+  - id: tactic-029
+    fen: "2r5/4kp2/p3p2q/1p3nNP/3rQP2/P1N5/1P3K2/6R1 w - - 0 35"
+    solution: e4b7
+    difficulty: 37
+  # Lichess 009FP · rating 1235 · trappedPiece
+  - id: tactic-023
+    fen: "r1b1k1nr/ppp2pbp/3p1qp1/4p3/2BnP3/N2P2QP/PPP2PP1/R1B1K2R w KQkq - 0 10"
+    solution: c1g5
+    difficulty: 38
+  # Lichess 00dUW · rating 1250 · fork
+  - id: tactic-073
+    fen: "4k2r/1pb3pp/p4p2/2PNp2b/1PBn4/P5P1/3B1P1P/5RK1 b k - 4 23"
+    solution: d4f3
+    difficulty: 39
+  # Lichess 00Bul · rating 1271 · discoveredAttack
+  - id: tactic-024
+    fen: "rnbqk2r/pp3ppp/5n2/4N3/2p5/2P5/P1PPQPPP/R1B1K2R w KQkq - 0 9"
+    solution: e5c6
+    difficulty: 40
+  # Lichess 00IF1 · rating 1274 · hangingPiece
+  - id: tactic-027
+    fen: "1k6/p1p5/P2p4/3P4/1PK2r1p/4P3/8/4B3 w - - 0 58"
+    solution: e3f4
+    difficulty: 41
+  # Lichess 001xl · rating 1289 · skewer
+  - id: tactic-021
+    fen: "8/4R3/p4kpp/3B4/5q2/8/5P1P/6K1 w - - 6 41"
+    solution: e7f7
+    difficulty: 42
+  # Lichess 004mT · rating 1291 · skewer
+  - id: tactic-022
+    fen: "5Q2/8/1bk1p1p1/5p2/3p4/5qPK/7P/8 w - - 2 52"
+    solution: f8a8
+    difficulty: 43
+  # Lichess 00Ea3 · rating 1315 · fork
+  - id: tactic-025
+    fen: "3r4/p5k1/1p1qpr1p/1Q1pn1p1/3P1pP1/1PP5/P5PP/4RRK1 w - - 0 30"
+    solution: d4e5
+    difficulty: 44
+  # Lichess 000lC · rating 1325 · hangingPiece
+  - id: tactic-065
+    fen: "3r3r/pQNk1ppp/1qnR1n2/1B6/8/8/PPP3PP/5R1K b - - 0 19"
+    solution: d7d6
+    difficulty: 45
+  # Lichess 00ZWf · rating 1346 · trappedPiece
+  - id: tactic-071
+    fen: "r1b2bnr/ppQp3p/2n2q1k/6pP/2B1P3/2PP4/PP3PP1/RNB1K2R b KQ - 0 11"
+    solution: f8d6
+    difficulty: 46
+  # Lichess 003S3 · rating 1415 · pin
+  - id: tactic-030
+    fen: "1r3k1r/pNqnppb1/6pn/2p3Np/7P/2P2Q2/PP3PP1/R1B1K2R w KQ - 3 16"
+    solution: g5e6
+    difficulty: 47
+  # Lichess 00InW · rating 1439 · hangingPiece
+  - id: tactic-037
+    fen: "8/2p5/pp1p4/3P1N2/PPP1Pp2/5n1p/5K1k/8 w - - 0 47"
+    solution: f2f3
+    difficulty: 48
+  # Lichess 00IUT · rating 1442 · fork
+  - id: tactic-077
+    fen: "1r2r1k1/ppp1q1pp/4b3/4P3/1Q1R1P2/8/P5PP/R1B3K1 b - - 0 19"
+    solution: c7c5
+    difficulty: 49
+  # Lichess 0048r · rating 1443 · deflection
+  - id: tactic-031
+    fen: "1r3k2/5PbQ/p2p4/1q1Pp1P1/8/3R4/2P1K3/8 w - - 1 33"
+    solution: h7g8
+    difficulty: 50
+  # Lichess 008D5 · rating 1446 · fork
+  - id: tactic-033
+    fen: "r1bqk2r/pp3ppp/4p3/3pPn2/1b1P1P2/2N5/PP4PP/R1BQKB1R w KQkq - 3 10"
+    solution: d1a4
+    difficulty: 51
+  # Lichess 001m3 · rating 1455 · skewer
+  - id: tactic-075
+    fen: "7r/6k1/2b1Rp2/8/P1N3p1/5nP1/5P2/Q4K2 b - - 0 38"
+    solution: h8h1
+    difficulty: 52
+  # Lichess 00WzS · rating 1459 · hangingPiece
+  - id: tactic-079
+    fen: "r2qk2r/2pn1p1n/pp1p2Bp/3Pp1b1/PPP1P3/2N1B3/3N2PP/R2Q1RK1 b kq - 0 17"
+    solution: g5e3
+    difficulty: 53
+  # Lichess 00lvP · rating 1474 · deflection
+  - id: tactic-082
+    fen: "6k1/p4pp1/Qp3q1p/2p1R3/8/2P2N1P/P1P2PPK/2r5 b - - 5 24"
+    solution: f6f4
+    difficulty: 54
+  # Lichess 00XQ8 · rating 1480 · discoveredAttack
+  - id: tactic-080
+    fen: "k4r2/pp6/2p3Q1/3p2P1/4r2P/8/PPP2q2/2KR1R2 b - - 2 30"
+    solution: f2e3
+    difficulty: 55
+  # Lichess 00AFG · rating 1492 · discoveredAttack
+  - id: tactic-034
+    fen: "r4rk1/5ppp/p3bp2/2q2N1Q/Ppp5/8/1PP2PPP/R2R2K1 w - - 0 22"
+    solution: f5h6
+    difficulty: 56
+  # Lichess 00Dke · rating 1498 · discoveredAttack
+  - id: tactic-036
+    fen: "5bk1/2Q2p1p/5qp1/p7/P1Bp4/1P5P/2r2PP1/3R2K1 w - - 6 28"
+    solution: c4f7
+    difficulty: 57
+  # Lichess 004Ud · rating 1513 · interference
+  - id: tactic-032
+    fen: "r1bqk2r/p3nppp/3p4/1pp5/4P3/4Q3/PPP2PPP/2KR1B1R w kq - 0 12"
+    solution: f1b5
+    difficulty: 58
+  # Lichess 000Pw · rating 1514 · fork
+  - id: tactic-074
+    fen: "6k1/5p1p/4p3/4q3/3n4/2Q3P1/PP1N1P1P/6K1 b - - 3 37"
+    solution: d4e2
+    difficulty: 59
+  # Lichess 00T4i · rating 1540 · discoveredAttack
+  - id: tactic-078
+    fen: "2r4k/q2b1Q1p/2p2P2/1p2p3/4P3/p2P3R/4N1K1/R7 b - - 0 38"
+    solution: d7h3
+    difficulty: 60
+  # Lichess 00coU · rating 1552 · skewer
+  - id: tactic-081
+    fen: "6k1/R3K3/8/1r6/5r2/p4N2/8/5R2 b - - 4 50"
+    solution: f4f7
+    difficulty: 61
+  # Lichess 002Tf · rating 1561 · fork
+  - id: tactic-076
+    fen: "r3kbnr/ppp1qppp/2n5/1B1pP3/5B2/4PQ2/PPP2PPP/RN2K2R b KQkq - 2 7"
+    solution: e7b4
+    difficulty: 62
+  # Lichess 00BM8 · rating 1583 · trappedPiece
+  - id: tactic-035
+    fen: "3r1rk1/pp2bppp/2ppnn2/8/N1P1P3/q1P4P/P2N2PB/R2Q1R1K w - - 1 17"
+    solution: d2b1
+    difficulty: 63
+  # Lichess 00Kia · rating 1596 · fork
+  - id: tactic-038
+    fen: "5r1k/4n2p/1p4p1/pP5Q/P2pB2K/6P1/2P4P/4q3 w - - 0 38"
+    solution: h5e5
+    difficulty: 64
+  # Lichess 01BWS · rating 1608 · fork
+  - id: tactic-047
+    fen: "5k2/p7/6RN/6K1/1p6/8/P7/5q2 w - - 13 55"
+    solution: g6f6
+    difficulty: 65
+  # Lichess 00HzX · rating 1612 · fork
+  - id: tactic-083
+    fen: "4r1k1/5pp1/7R/1p6/8/1PP3QP/2q2PP1/6K1 b - - 0 29"
+    solution: c2c1
+    difficulty: 66
+  # Lichess 00LNH · rating 1622 · pin
+  - id: tactic-084
+    fen: "1k2r3/pp2r2p/2pqbpp1/3n4/3P1p2/1B3N1P/PPQB1PP1/1K1RR3 b - - 3 22"
+    solution: e6f5
+    difficulty: 67
+  # Lichess 00Cqg · rating 1634 · hangingPiece
+  - id: tactic-040
+    fen: "3r2k1/pp4bp/4qpp1/3Pp3/8/4Q2P/4B1P1/2rR3K w - - 0 27"
+    solution: d5e6
+    difficulty: 68
+  # Lichess 00l7Y · rating 1647 · pin
+  - id: tactic-043
+    fen: "r1bq4/p3p1bk/2p3p1/3pn2p/8/2NB3P/PPPBQ1P1/5RK1 w - - 2 18"
+    solution: e2h5
+    difficulty: 69
+  # Lichess 00lIV · rating 1669 · discoveredAttack
+  - id: tactic-088
+    fen: "r2qr1k1/pb2bppp/2p2n2/3pN1B1/2P5/4P3/PPQ1BPPP/3RK2R b K - 4 13"
+    solution: e7b4
+    difficulty: 70
+  # Lichess 01Amq · rating 1674 · hangingPiece
+  - id: tactic-045
+    fen: "4r1k1/4Pp2/pQ3b1p/6pP/q1p5/P4P2/5BPK/8 w - - 3 32"
+    solution: b6f6
+    difficulty: 71
+  # Lichess 00oXF · rating 1681 · pin
+  - id: tactic-044
+    fen: "3r1rk1/1p3p1p/p1q3p1/4Pb1P/2p2P2/P5R1/2Q1B1P1/3R2K1 w - - 2 26"
+    solution: c2f5
+    difficulty: 72
+  # Lichess 00DdW · rating 1693 · trappedPiece
+  - id: tactic-041
+    fen: "5rk1/5ppp/4b3/1p1pPpPP/2pP4/b1P5/rqNQKP2/2RRN3 w - - 6 24"
+    solution: c1b1
+    difficulty: 73
+  # Lichess 00hxr · rating 1695 · hangingPiece
+  - id: tactic-086
+    fen: "r4rk1/pp3pBp/4p3/3p2qB/Q1p5/2PbP3/PP1N1P1P/R3K2R b KQ - 0 15"
+    solution: g5h5
+    difficulty: 74
+  # Lichess 01273 · rating 1750 · pin
+  - id: tactic-089
+    fen: "8/p1B4p/1p3pk1/6p1/3PQ1P1/2P1nP1K/P3q2P/8 b - - 10 36"
+    solution: g6h6
+    difficulty: 75
+  # Lichess 01Aty · rating 1770 · pin
+  - id: tactic-046
+    fen: "2kr3r/1pp2p2/p2p3p/3P1bpB/2P2q2/1P6/P5PP/R2QR2K w - - 0 19"
+    solution: e1f1
+    difficulty: 76
+  # Lichess 01Mee · rating 1795 · fork
+  - id: tactic-091
+    fen: "8/8/4R3/3p1n1k/3P1P2/5K2/8/8 b - - 0 53"
+    solution: f5d4
+    difficulty: 77
+  # Lichess 00008 · rating 1819 · hangingPiece
+  - id: tactic-039
+    fen: "r6k/pp2r2p/4Rp1Q/3p4/8/1N1P2b1/PqP3PP/7K w - - 0 25"
+    solution: e6e7
+    difficulty: 78
+  # Lichess 00kDo · rating 1836 · pin
+  - id: tactic-087
+    fen: "8/5ppk/P5qp/2p1p3/2B4Q/1P2PbP1/5P1P/6K1 b - - 0 37"
+    solution: g6b1
+    difficulty: 79
+  # Lichess 016yu · rating 1843 · hangingPiece
+  - id: tactic-090
+    fen: "4r1k1/p5pp/1p3n2/8/1q3B2/3Q1P2/PP3P1P/2R3K1 b - - 6 24"
+    solution: b4f4
+    difficulty: 80
+  # Lichess 00e7H · rating 1845 · deflection
+  - id: tactic-085
+    fen: "8/7p/p1p4k/1p1p4/3Qpq2/2P3pP/PP1N2K1/8 b - - 1 44"
+    solution: c6c5
+    difficulty: 81
+  # Lichess 00dqP · rating 1848 · discoveredAttack
+  - id: tactic-042
+    fen: "r1b2rk1/5p1p/p3pq2/1p1p4/7n/1P5P/P1P1QPB1/1K1R2R1 w - - 0 22"
+    solution: g2d5
+    difficulty: 82
+  # Lichess 0095W · rating 1858 · hangingPiece
+  - id: tactic-096
+    fen: "8/pp1r2kp/q2P1ppb/4N3/4P3/1Q5P/PPR2PP1/6K1 b - - 0 32"
+    solution: f6e5
+    difficulty: 83
+  # Lichess 00JqT · rating 1867 · deflection
+  - id: tactic-097
+    fen: "2r2rk1/pp2R3/5p2/3p1q2/3P2P1/4QP1p/PP3R1P/6K1 b - - 0 30"
+    solution: f5b1
+    difficulty: 84
+  # Lichess 003wQ · rating 1877 · pin
+  - id: tactic-092
+    fen: "2r2rk1/6pp/3Q1q2/8/3N1B2/6P1/PP1K3P/5R2 b - - 0 24"
+    solution: f6d6
+    difficulty: 85
+  # Lichess 00798 · rating 1907 · discoveredAttack
+  - id: tactic-094
+    fen: "8/4k1K1/4P3/6pp/6rP/4R1P1/8/8 b - - 1 60"
+    solution: g5h4
+    difficulty: 86
+  # Lichess 00OPc · rating 1932 · fork
+  - id: tactic-098
+    fen: "1k1rr3/ppp1q3/8/4nQ1p/8/2P2N1P/PP4P1/2K1R2R b - - 1 25"
+    solution: e5d3
+    difficulty: 87
+  # Lichess 001kG · rating 1941 · pin
+  - id: tactic-049
+    fen: "rnbq3r/1p3kpp/p4n2/2b5/2pNP3/2N5/PPP3PP/R1BQ1RK1 w - - 2 12"
+    solution: d1h5
+    difficulty: 88
+  # Lichess 00UJF · rating 1961 · attraction
+  - id: tactic-100
+    fen: "2kr2r1/3q1p2/pp1B1n1p/2pP4/2Pp4/PQ1P3P/4B1PK/R4R2 b - - 0 21"
+    solution: d7d6
+    difficulty: 89
+  # Lichess 00dTd · rating 1998 · hangingPiece
+  - id: tactic-056
+    fen: "3r4/ppp1Q3/1b3P2/3k4/4qp2/P1Pr4/1P3P2/1K2N3 w - - 6 32"
+    solution: e7d8
+    difficulty: 90
+  # Lichess 00KNK · rating 2023 · fork
+  - id: tactic-053
+    fen: "r3r1k1/p1p4p/3b4/6qN/4p3/1P1b1Q2/P2P1PP1/B5KR w - - 0 23"
+    solution: h5f6
+    difficulty: 91
+  # Lichess 001aK · rating 2052 · hangingPiece
+  - id: tactic-048
+    fen: "6k1/5p2/4p3/P1B5/2P4P/4Pnp1/Rb2r3/5K2 w - - 0 34"
+    solution: f1e2
+    difficulty: 92
+  # Lichess 00Ty2 · rating 2075 · fork
+  - id: tactic-099
+    fen: "r5k1/ppp4p/2P3r1/8/4P3/B1P5/P1Q1K3/6N1 b - - 0 31"
+    solution: g6g2
+    difficulty: 93
+  # Lichess 00aZ3 · rating 2078 · hangingPiece
+  - id: tactic-055
+    fen: "8/6k1/8/1K1np1p1/P5P1/1B3r2/1PP5/8 w - - 2 37"
+    solution: b3d5
+    difficulty: 94
+  # Lichess 008nF · rating 2194 · trappedPiece
+  - id: tactic-095
+    fen: "2rq1rk1/7p/1n4pb/1R2Q3/pPpP1P2/P1B5/3N2PP/2R3K1 b - - 0 31"
+    solution: f8e8
+    difficulty: 95
+  # Lichess 002LF · rating 2222 · interference
+  - id: tactic-050
+    fen: "7r/p4pk1/1pp3p1/8/6q1/4Q3/PP1R1P1r/5KN1 w - - 0 39"
+    solution: e3e5
+    difficulty: 96
+  # Lichess 003Ec · rating 2245 · pin
+  - id: tactic-052
+    fen: "3r4/p4R2/1pb2Pp1/n1p1Qqkp/8/P7/1P4PP/6RK w - - 3 33"
+    solution: e5e3
+    difficulty: 97
+  # Lichess 00LZl · rating 2262 · fork
+  - id: tactic-054
+    fen: "r2qk2r/ppp2ppp/2n5/3pPb2/1b1n1B2/2NB1N2/PP3PPP/R2QK2R w KQkq - 4 10"
+    solution: f3d4
+    difficulty: 98
+  # Lichess 004sg · rating 2440 · hangingPiece
+  - id: tactic-093
+    fen: "6k1/p3b2p/1p1pP3/2P3P1/2np3B/P6P/3Q3K/8 b - - 0 38"
+    solution: c4d2
+    difficulty: 99
+  # Lichess 002e8 · rating 2524 · pin
+  - id: tactic-051
+    fen: "3rnrk1/1b3pp1/4pb2/p3q3/1p1N4/3B2R1/PPPQN2P/1K4R1 w - - 2 24"
+    solution: d2h6
+    difficulty: 100

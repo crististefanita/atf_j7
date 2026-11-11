@@ -17,8 +17,8 @@ import ro.atf.chess.ChessPosition.Move;
 class MateInTwoCatalogTest {
     @Test void everyDefenseHasMateAndTheOpeningIsUniqueInBothEngines(Checks check) throws Exception {
         var quests = QuestCatalog.loadMateInTwo();
-        check.same("The two-move chapter has exactly 100 puzzles", 100, quests.size());
-        check.same("Each color starts 50 puzzles", 50L, quests.stream().filter(q -> q.position().turn() == ChessPosition.Side.WHITE).count());
+        check.same("The two-move chapter has exactly 300 puzzles", 300, quests.size());
+        check.same("Each color starts 150 puzzles", 150L, quests.stream().filter(q -> q.position().turn() == ChessPosition.Side.WHITE).count());
         var canonical = new StringBuilder();
         var invalid = new ArrayList<String>();
         int branching = 0;
@@ -28,7 +28,7 @@ class MateInTwoCatalogTest {
             Map<String, List<String>> recorded = Map.of();
             boolean immediateMate = false;
             for (Move opening : position.legalMoves()) {
-                var afterOpening = position.play(opening);
+                var afterOpening = position.playGenerated(opening);
                 immediateMate |= afterOpening.isCheckmate();
                 var proof = defenses(afterOpening);
                 if (!proof.isEmpty()) candidates.add(opening);
@@ -67,8 +67,9 @@ class MateInTwoCatalogTest {
     private static Map<String, List<String>> defenses(ChessPosition position) {
         var result = new TreeMap<String, List<String>>();
         for (Move reply : position.legalMoves()) {
-            var continuation = position.play(reply);
-            var mates = continuation.legalMoves().stream().filter(move -> continuation.play(move).isCheckmate()).map(Move::uci).sorted().toList();
+            var continuation = position.playGenerated(reply);
+            var mates = continuation.legalMoves().stream().filter(move -> continuation.playGenerated(move).isCheckmate())
+                    .map(Move::uci).sorted().toList();
             if (mates.isEmpty()) return Map.of();
             result.put(reply.uci(), mates);
         }

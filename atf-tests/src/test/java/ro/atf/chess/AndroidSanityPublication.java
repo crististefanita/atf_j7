@@ -72,30 +72,45 @@ class AndroidSanityPublication {
     }
 
     @Test void publishGameReviewSanity() throws Exception {
+        publishFocusedSanity("game-review", "Review a completed match and continue from an earlier move",
+                "Review the completed game, change the line and verify match actions", 15, List.of(
+                        new Frame("game-review.png", "Game review summary"),
+                        new Frame("game-review-comparison.png", "Move counts by type · player and AI"),
+                        new Frame("game-review-actions.png", "In-game options · offer draw and resign")));
+    }
+
+    @Test void publishManualAnalysisSanity() throws Exception {
+        publishFocusedSanity("manual-analysis", "Explore a line without changing the saved game",
+                "Play both colors, branch from history and return to the saved game", 9,
+                List.of(new Frame("manual-analysis.png", "Manual analysis board")));
+    }
+
+    private static void publishFocusedSanity(String scope, String scenarioTitle, String stepTitle, int checks, List<Frame> frames) throws Exception {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
-        Path report = receipt.resolveSibling("android-game-review.html");
+        Path report = receipt.resolveSibling("android-" + scope + ".html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var evidence = readPhase(receipt, "game-review", 9);
-        Path frame = receipt.resolveSibling("game-review.png");
-        boolean rendered = isPng(frame);
+        var evidence = readPhase(receipt, scope, checks);
+        boolean rendered = frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
         boolean complete = evidence.passed() && rendered;
         var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
-             var scenario = session.startScenario("BoardSanity", "Review a completed match and continue from an earlier move",
-                     List.of("e2e", "android", "game-review"));
+             var scenario = session.startScenario("BoardSanity", scenarioTitle, List.of("e2e", "android", scope));
              var phase = scenario.startPhase("TEST BODY")) {
-            publish(phase, "Review the completed game and save a different line", evidence.rows(), evidence.passed());
-            if (rendered) {
-                try (var action = phase.startRequest("Android instrumentation", "UI", "Game review summary")) {
-                    action.screenshot("Game review summary", Base64.getEncoder().encodeToString(Files.readAllBytes(frame)));
-                    action.complete(AtfReportStatus.PASS);
-                }
-            } else publish(phase, "Game review summary", List.of(receiptFailure("game-review", "Missing game-review.png")), false);
+            publish(phase, stepTitle, evidence.rows(), evidence.passed());
+            for (var frame : frames) {
+                Path image = receipt.resolveSibling(frame.file());
+                if (isPng(image)) {
+                    try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {
+                        action.screenshot(frame.title(), Base64.getEncoder().encodeToString(Files.readAllBytes(image)));
+                        action.complete(AtfReportStatus.PASS);
+                    }
+                } else publish(phase, frame.title(), List.of(receiptFailure(scope, "Missing " + frame.file())), false);
+            }
             phase.complete(status);
             scenario.complete(status);
         }
         System.out.println("J7 Android Extent: " + report);
-        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android game review evidence: " + receipt);
+        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android " + scope + " evidence: " + receipt);
     }
 
     @Test void publishMatchAnalysisSanity() throws Exception {

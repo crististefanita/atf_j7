@@ -10,8 +10,10 @@ param(
     [switch]$AnalysisOnly,
     [switch]$OpeningsOnly,
     [switch]$GameReviewOnly,
+    [switch]$ManualAnalysisOnly,
     [switch]$IncludeOpenings,
     [switch]$IncludeGameReview,
+    [switch]$IncludeManualAnalysis,
     [string]$SourceCommit
 )
 $ErrorActionPreference = 'Stop'
@@ -25,10 +27,16 @@ if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distr
 if ($AnalysisOnly -and $Distribution) { throw 'AnalysisOnly uses the isolated sanity package.' }
 if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
 if ($IncludeOpenings -and ($OpeningsOnly -or $AnalysisOnly)) { throw 'IncludeOpenings extends the board sanity phases.' }
-if ($GameReviewOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview)) {
+if ($GameReviewOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis)) {
     throw 'GameReviewOnly uses the isolated sanity package and its own phase.'
 }
 if ($IncludeGameReview -and ($AnalysisOnly -or $OpeningsOnly)) { throw 'IncludeGameReview extends the board sanity phases.' }
+if ($ManualAnalysisOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis)) {
+    throw 'ManualAnalysisOnly uses the isolated sanity package and its own phase.'
+}
+if ($IncludeManualAnalysis -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly)) {
+    throw 'IncludeManualAnalysis extends the board sanity phases.'
+}
 $native = 'android/app/build/outputs/apk'
 $apk = Join-Path $root "$native/$variant/app-$variant.apk"
 $tests = Join-Path $root "$native/androidTest/$variant/app-$variant-androidTest.apk"
@@ -111,17 +119,21 @@ function Invoke-OpeningSanity([string]$Directory) {
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
 }
 
-function Invoke-GameReviewSanity([string]$Directory) {
-    $reviewReceipt = Join-Path $Directory 'game-review.txt'
-    $lines = @(Invoke-Device ($instrument + @('-e','phase','game-review',$runner)))
+function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected) {
+    $reviewReceipt = Join-Path $Directory "$Phase.txt"
+    $lines = @(Invoke-Device ($instrument + @('-e','phase',$Phase,$runner)))
     $lines | Set-Content -LiteralPath $reviewReceipt -Encoding utf8NoBOM
     $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
-    if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne 9) {
+    if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne $Expected) {
         Receive-Frame 'failure' $Directory
-        throw "Game review did not pass. See $Directory."
+        throw "Android phase $Phase did not pass. See $Directory."
     }
-    Receive-Frame 'game-review' $Directory
-    [ordered]@{status='PASS'; scope='game-review'; device=$Serial; api=$api; apkSha256=$hash;
+    Receive-Frame $Phase $Directory
+    if ($Phase -eq 'game-review') {
+        Receive-Frame 'game-review-comparison' $Directory
+        Receive-Frame 'game-review-actions' $Directory
+    }
+    [ordered]@{status='PASS'; scope=$Phase; device=$Serial; api=$api; apkSha256=$hash;
         sourceCommit=$SourceCommit; variant=$variant; assertions=$passed.Count;
         receiptSha256=(Get-FileHash -LiteralPath $reviewReceipt).Hash.ToLowerInvariant()} |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
@@ -158,7 +170,11 @@ try {
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
     if ($GameReviewOnly) {
-        Invoke-GameReviewSanity $run
+        Invoke-FocusedSanity $run 'game-review' 15
+        return
+    }
+    if ($ManualAnalysisOnly) {
+        Invoke-FocusedSanity $run 'manual-analysis' 9
         return
     }
     if ($OpeningsOnly) {
@@ -241,7 +257,15 @@ try {
         Invoke-Device @('shell','am','force-stop',$app)
         $reviewDirectory = Join-Path $run 'game-review'
         $null = New-Item -ItemType Directory $reviewDirectory
-        Invoke-GameReviewSanity $reviewDirectory
+        Invoke-FocusedSanity $reviewDirectory 'game-review' 15
+    }
+    if ($IncludeManualAnalysis -and (Test-Path -LiteralPath $settled) -and
+            (Select-String -Quiet -LiteralPath $settled -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {
+        $clear = Invoke-Device @('shell','pm','clear',$app)
+        if ($clear -cnotcontains 'Success') { throw 'Could not reset for the manual analysis board.' }
+        $manualDirectory = Join-Path $run 'manual-analysis'
+        $null = New-Item -ItemType Directory $manualDirectory
+        Invoke-FocusedSanity $manualDirectory 'manual-analysis' 9
     }
 } finally {
     try {

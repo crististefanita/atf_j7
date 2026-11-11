@@ -18,27 +18,42 @@ final class PairedElo {
     }
 
     record Estimate(double scoreLow, double scoreHigh, double eloMidpoint, double eloLow95, double eloHigh95) { }
+    private record Bounds(double low, double high) { }
 
     private PairedElo() { }
 
     static Estimate estimate(List<Pair> pairs, int samples, long seed) {
-        if (pairs.size() < 2 || samples < 1_000) throw new IllegalArgumentException("Insufficient paired sample");
+        return estimateBounds(pairs.stream().map(pair -> new Bounds(pair.low(), pair.high())).toList(), samples, seed);
+    }
+
+    static Estimate estimateRepeated(List<List<Pair>> openings, int samples, long seed) {
+        if (openings.isEmpty() || openings.getFirst().isEmpty()
+                || openings.stream().anyMatch(pairs -> pairs.size() != openings.getFirst().size())) {
+            throw new IllegalArgumentException("Each opening needs the same number of paired sessions");
+        }
+        var bounds = openings.stream().map(pairs -> new Bounds(pairs.stream().mapToDouble(Pair::low).average().orElseThrow(),
+                pairs.stream().mapToDouble(Pair::high).average().orElseThrow())).toList();
+        return estimateBounds(bounds, samples, seed);
+    }
+
+    private static Estimate estimateBounds(List<Bounds> openings, int samples, long seed) {
+        if (openings.size() < 2 || samples < 1_000) throw new IllegalArgumentException("Insufficient paired sample");
         var random = new SplittableRandom(seed);
         double[] lower = new double[samples];
         double[] upper = new double[samples];
         for (int draw = 0; draw < samples; draw++) {
-            for (int index = 0; index < pairs.size(); index++) {
-                Pair pair = pairs.get(random.nextInt(pairs.size()));
+            for (int index = 0; index < openings.size(); index++) {
+                Bounds pair = openings.get(random.nextInt(openings.size()));
                 lower[draw] += pair.low();
                 upper[draw] += pair.high();
             }
-            lower[draw] /= pairs.size();
-            upper[draw] /= pairs.size();
+            lower[draw] /= openings.size();
+            upper[draw] /= openings.size();
         }
         Arrays.sort(lower);
         Arrays.sort(upper);
-        double low = pairs.stream().mapToDouble(Pair::low).average().orElseThrow();
-        double high = pairs.stream().mapToDouble(Pair::high).average().orElseThrow();
+        double low = openings.stream().mapToDouble(Bounds::low).average().orElseThrow();
+        double high = openings.stream().mapToDouble(Bounds::high).average().orElseThrow();
         return new Estimate(low, high, elo((low + high) / 2), elo(lower[(int) (samples * .025)]),
                 elo(upper[(int) Math.ceil(samples * .975) - 1]));
     }

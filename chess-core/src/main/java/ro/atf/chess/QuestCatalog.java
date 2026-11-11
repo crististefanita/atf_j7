@@ -13,6 +13,8 @@ import ro.atf.chess.ChessPosition.Move;
 
 /** Curated problems. The catalog oracle is used for acceptance; the position decides success. */
 public final class QuestCatalog {
+    private static final int MATE_IN_TWO_COUNT = 300;
+    private static final int MATE_IN_THREE_COUNT = 200;
     public enum Objective { MATE, MATERIAL }
     public enum MatePattern { DIRECT, DISCOVERED, CASTLING, EN_PASSANT, PROMOTION }
 
@@ -126,11 +128,11 @@ public final class QuestCatalog {
     }
 
     public static List<Quest> loadMateInTwo() {
-        return loadMultiMove("mate-in-two.yaml", "MATE_IN_TWO", 2);
+        return loadMultiMove("mate-in-two.yaml", "MATE_IN_TWO", 2, MATE_IN_TWO_COUNT);
     }
 
     public static List<Quest> loadMateInThree() {
-        return loadMultiMove("mate-in-three.yaml", "MATE_IN_THREE", 3);
+        return loadMultiMove("mate-in-three.yaml", "MATE_IN_THREE", 3, MATE_IN_THREE_COUNT);
     }
 
     public static List<Quest> loadTactics() {
@@ -164,7 +166,7 @@ public final class QuestCatalog {
         return Collections.unmodifiableList(quests);
     }
 
-    private static List<Quest> loadMultiMove(String file, String objective, int length) {
+    private static List<Quest> loadMultiMove(String file, String objective, int length, int expectedCount) {
         var root = ChessYaml.resource(file);
         if (ChessYaml.number(root, "schema") != 1 || !objective.equals(ChessYaml.string(root, "objective"))) {
             throw new IllegalArgumentException("Invalid catalog schema or objective in " + file);
@@ -191,7 +193,7 @@ public final class QuestCatalog {
             result.add(quest);
             previousRating = rating;
         }
-        if (result.size() != 100) throw new IllegalArgumentException("Expected exactly 100 quests in " + file);
+        if (result.size() != expectedCount) throw new IllegalArgumentException("Expected exactly " + expectedCount + " quests in " + file);
         return Collections.unmodifiableList(result);
     }
 

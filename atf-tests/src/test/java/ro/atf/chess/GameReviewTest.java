@@ -14,6 +14,26 @@ import ro.atf.chess.GameReview.Grade;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class GameReviewTest {
+    @Test void comparesEveryGradeByRoleAndReconcilesWithTheMoveList(Checks check) {
+        var match = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
+        var review = GameReview.analyze(match, ignored -> { });
+        var white = review.compareGrades(Side.WHITE);
+        var black = review.compareGrades(Side.BLACK);
+        check.same("Each grade appears exactly once, including grades with zero occurrences",
+                java.util.Set.of(Grade.values()), white.stream().map(GameReview.GradeCount::grade).collect(java.util.stream.Collectors.toSet()));
+        check.same("The comparison has one row per grade", Grade.values().length, white.size());
+        check.same("At least one unused grade displays zero for both roles", true,
+                white.stream().anyMatch(row -> row.human() == 0 && row.ai() == 0));
+        for (var row : white) {
+            for (Side side : Side.values()) {
+                var count = review.turns().stream().filter(turn -> turn.side() == side && turn.grade() == row.grade()).count();
+                check.same(side + " " + row.grade() + " agrees with the move list", count,
+                        (long) (side == Side.WHITE ? row.human() : row.ai()));
+            }
+        }
+        check.same("Playing Black swaps the counts while preserving grade order", white.stream()
+                .map(row -> new GameReview.GradeCount(row.grade(), row.ai(), row.human())).toList(), black);
+    }
     @Test void explainsAnActualMissedDefenseAndTheMateEvenWithLiveHintsOff(Checks check) {
         var match = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
         var progress = new ArrayList<Integer>();

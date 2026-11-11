@@ -6,37 +6,42 @@ const [modulePath, input, output, imported] = process.argv.slice(2);
 if (!modulePath || !input) throw Error('Usage: node verify-mate-in-two.cjs <chess.js> <quests.yaml> [sha256] or <chess.js> --import <source-pages> <quests.yaml>');
 const { Chess } = require(resolve(modulePath));
 const move = (board, uci) => board.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] });
-const legal = board => board.moves({ verbose: true });
-const mates = moves => moves.filter(candidate => candidate.san.endsWith('#'));
+const square = index => 'abcdefgh'[index & 7] + (8 - (index >> 4));
+const uci = candidate => square(candidate.from) + square(candidate.to) + (candidate.promotion || '');
+const legal = board => board._moves();
+const mates = (board, moves) => moves.filter(candidate => after(board, candidate, () => board.isCheckmate()));
 const byId = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const key = fen => fen.split(' ').slice(0, 4).join(' ');
 const upperRatings = [1200, 1450, 1700, 1900, Infinity];
+const chapterSize = 300;
 
 function forcedLines(board, opening) {
-  move(board, opening);
-  const proof = [];
-  try {
+  return after(board, opening, () => {
+    const proof = [];
     const replies = legal(board);
     if (!replies.length) return [];
     for (const reply of replies) {
-      move(board, reply.lan);
-      const ends = mates(legal(board)).map(candidate => candidate.lan).sort();
-      board.undo();
+      const ends = after(board, reply, () => mates(board, legal(board)).map(uci).sort());
       if (!ends.length) return [];
-      proof.push([reply.lan, ends]);
+      proof.push([uci(reply), ends]);
     }
     return proof.sort((a, b) => byId(a[0], b[0]));
-  } finally {
-    board.undo();
-  }
+  });
+}
+
+// Use the same chess.js 1.4.0 legal generator as the mate-in-three verifier.
+function after(board, candidate, visit) {
+  board._makeMove(candidate);
+  try { return visit(); } finally { board._undoMove(); }
 }
 
 function validate(board, [opening, defense, finish]) {
   const options = legal(board);
-  if (mates(options).length || !options.some(candidate => candidate.lan === opening)) return null;
-  const proof = forcedLines(board, opening);
+  const key = options.find(candidate => uci(candidate) === opening);
+  if (!key || mates(board, options).length) return null;
+  const proof = forcedLines(board, key);
   if (!proof.some(([reply, ends]) => reply === defense && ends.includes(finish))) return null;
-  if (options.some(candidate => candidate.lan !== opening && forcedLines(board, candidate.lan).length)) return null;
+  if (options.some(candidate => candidate !== key && forcedLines(board, candidate).length)) return null;
   return proof;
 }
 
@@ -57,11 +62,11 @@ function select(source) {
     const bracket = upperRatings.findIndex(upper => row.Rating < upper);
     const bucket = board.turn() + bracket;
     const used = counts.get(bucket) || 0;
-    if (used === 10 || positions.has(key(fen)) || !validate(board, line)) continue;
+    if (used === chapterSize / 10 || positions.has(key(fen)) || !validate(board, line)) continue;
     positions.add(key(fen));
     counts.set(bucket, used + 1);
     entries.push({ id: 'mate2-' + row.PuzzleId, fen, line, rating: row.Rating });
-    if (entries.length === 100) return entries.sort((a, b) => a.rating - b.rating || byId(a.id, b.id));
+    if (entries.length === chapterSize) return entries.sort((a, b) => a.rating - b.rating || byId(a.id, b.id));
   }
   throw Error('Incomplete selection: ' + JSON.stringify(Object.fromEntries(counts)));
 }
@@ -72,7 +77,7 @@ if (input === '--import') {
   fs.writeFileSync(imported, 'schema: 1\nobjective: MATE_IN_TWO\nquests:\n' + rows.join('\n') + '\n');
 } else {
   const rows = [...fs.readFileSync(input, 'utf8').replaceAll('\r\n', '\n').matchAll(/^  - id: (mate2-[A-Za-z0-9]{5})\n    fen: "([^"\n]+)"\n    line: \[([a-h1-8qrbn, ]+)\]\n    rating: (\d+)$/gm)];
-  if (rows.length !== 100) throw Error('Expected exactly 100 canonical mate-in-two entries');
+  if (rows.length !== chapterSize) throw Error('Expected exactly ' + chapterSize + ' canonical mate-in-two entries');
   const positions = new Set();
   const ids = new Set();
   const fingerprints = [];

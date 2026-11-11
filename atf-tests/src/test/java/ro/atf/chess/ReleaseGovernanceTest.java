@@ -117,7 +117,8 @@ class ReleaseGovernanceTest {
         check.same("Board changes cite native sanity and TalkBack evidence", List.of("## Sanity Android", "## Proba TalkBack"),
                 board.stream().map(ReleaseRag.Citation::heading).toList());
         var history = ReleaseRag.retrieve(root, List.of("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "README.md"));
-        check.same("History changes cite the match probe and release workflow", List.of("## Sanity Android", "## Partidă și istoric", "## Calificare și publicare"),
+        check.same("History changes cite both consumers and the release workflow",
+                List.of("## Sanity Android", "## Partidă și istoric", "## Tablă de analiză", "## Calificare și publicare"),
                 history.stream().map(ReleaseRag.Citation::heading).toList());
         var tactics = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/tactics.yaml",
                 "chess-core/src/main/java/ro/atf/chess/QuestRewards.java"));
@@ -170,6 +171,19 @@ class ReleaseGovernanceTest {
         check.same("Game review changes cite the signed scenario and both JVM layers once",
                 List.of("GameReviewTest, GameReviewGovernanceTest și BoardSanity -IncludeGameReview"),
                 citations.stream().map(ReleaseRag.Citation::check).toList());
+    }
+
+    @Test void manualAnalysisAndAnchorChangesHaveDistinctVerification(Checks check) throws IOException {
+        var paths = List.of("chess-core/src/main/java/ro/atf/chess/AnalysisLine.java",
+                "android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java",
+                "atf-tests/src/test/resources/ai-anchor.yaml", "atf-tests/src/test/resources/ai-anchor-observations.yaml");
+        var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths);
+        check.same("Manual board changes require the native and component checks once",
+                List.of("AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly"),
+                citations.stream().filter(item -> item.heading().equals("## Tablă de analiză")).map(ReleaseRag.Citation::check).toList());
+        check.same("Anchor observations and protocol changes cite the same independent calibration",
+                List.of("AiAnchorBenchmarkTest și GameReviewGovernanceTest"),
+                citations.stream().filter(item -> item.heading().equals("### Rezultatele ancorei externe")).map(ReleaseRag.Citation::check).toList());
     }
 
     private Suite suite(String name, String installedApk) throws IOException {

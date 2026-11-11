@@ -1,0 +1,22 @@
+schema: 1
+source-commit: b5c1ef31b1f5173d9d1ad9a13ea6d1848c6fb70f
+stockfish-sha256: 45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0
+openings: [english-symmetrical, pirc-austrian, nimzo-rubinstein, kings-gambit, slav, catalan, vienna, petroff, modern-benoni, reti, dutch, alekhine]
+# Each pair is ordered White, Black from the J7 profile perspective.
+# W win, D draw, L loss, U unfinished at the ply cap.
+sessions:
+  - replay-sha256: f79342bddbed60175f428dfc320af9afa1d94d3a78f384793393e79478fd0730
+    profiles:
+      BASIC: ["LD", "LL", "UW", "LL", "LL", "UW", "LW", "WL", "LL", "LU", "WL", "DU"]
+      ADVANCED: ["WU", "WU", "LL", "UU", "DU", "WL", "UL", "WU", "UU", "UU", "LL", "LW"]
+      HARD: ["LU", "WW", "LW", "WW", "LW", "WW", "WU", "WL", "WW", "LW", "UL", "LL"]
+  - replay-sha256: baaf11549bf16618029354def18c7920cfd10acccf2074b5c320fa80733c3738
+    profiles:
+      BASIC: ["LL", "LW", "WL", "LL", "LU", "LL", "UL", "LU", "WL", "UU", "LL", "WL"]
+      ADVANCED: ["LL", "WL", "UL", "LU", "UW", "UU", "UL", "LU", "UU", "LD", "UL", "WU"]
+      HARD: ["WW", "WL", "UU", "LW", "UU", "UW", "LW", "LW", "UW", "WW", "UL", "UD"]
+  - replay-sha256: f53ea42b7f7a16f891b6ac9e75233c404f9d46acd86e187c263a79ce95c422c7
+    profiles:
+      BASIC: ["LU", "LL", "LL", "WU", "UL", "LL", "UL", "UW", "LL", "LL", "UL", "WL"]
+      ADVANCED: ["WL", "WL", "LU", "WL", "WL", "UU", "UU", "WU", "UL", "WL", "WL", "WU"]
+      HARD: ["WL", "LU", "WL", "UL", "LW", "WW", "UU", "UU", "WW", "LL", "WU", "UL"]
