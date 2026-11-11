@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "observedUtc": "2026-11-11T11:49:59.7102328Z",
+  "account": "crististefanita",
+  "channel": "GitHub API authenticated",
+  "repository": "crististefanita/atf_j7",
+  "readmeCommit": "353bf69f2372389716b73aac6e88ab2953e4f249",
+  "readmeBlob": "0810e7b269dfef41a6853a128a8ded00269f9a0b",
+  "tag": "v0.8.0",
+  "targetCommit": "353bf69f2372389716b73aac6e88ab2953e4f249",
+  "releaseUrl": "https://github.com/crististefanita/atf_j7/releases/tag/v0.8.0",
+  "assetUrl": "https://github.com/crististefanita/atf_j7/releases/download/v0.8.0/ChessLab-0.8.0.apk",
+  "assetId": 735337656,
+  "httpStatus": 200,
+  "bytes": 886323,
+  "sha256": "c4f3f2e467f673def4877dd4801a983e6dc317058336f0f3cb368ba5590d501b",
+  "zipCrc": "PASS"
+}

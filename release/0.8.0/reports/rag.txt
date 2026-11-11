@@ -1,0 +1,30 @@
+ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 be558104efe8d50897c858f4fac31ebcf8fa9e92887d88f58d9ff9152c026346
+  Verify ChessComponentTest și QuestCatalogTest
+docs/testing/README.md:82 ## Sanity Android
+  SHA-256 be558104efe8d50897c858f4fac31ebcf8fa9e92887d88f58d9ff9152c026346
+  Verify BoardSanity
+docs/testing/README.md:100 ## Deschideri
+  SHA-256 be558104efe8d50897c858f4fac31ebcf8fa9e92887d88f58d9ff9152c026346
+  Verify OpeningLessonTest și BoardSanity -IncludeOpenings
+docs/testing/README.md:47 ## Suite JVM
+  SHA-256 be558104efe8d50897c858f4fac31ebcf8fa9e92887d88f58d9ff9152c026346
+  Verify ChessJvmSuite și ChessGovernanceSuite
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 be558104efe8d50897c858f4fac31ebcf8fa9e92887d88f58d9ff9152c026346
+  Verify BoardPanelLayoutTest și QuestHintTest
+docs/feedback/README.md:1 # Feedback · Chess Lab
+  SHA-256 027a1ed39aecf01799cb13ae87b684b3c34612d4d6487c370bb1188c39d2bdd7
+  Verify Revizuiți criteriile deschise înaintea promovării
+docs/release/README.md:3 ## Calificare și publicare
+  SHA-256 d1417ef916a91254f39ed4fd623fef380ee5dac21bbc85a099e86b764de366a6
+  Verify ReleaseGovernanceTest
+1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
+2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului.
+3. Actualizați notele ediției, ghidul jocului și dovezile de testare. În secțiunea **Jocul** a README-ului principal puneți două linkuri, către release și APK-ul direct. Verificați legăturile locale și rulați `ReleaseGovernanceTest`.
+4. Creați commitul candidat local și exportați exact acel commit în TMP. Rulați `mvn test`, care pornește `ChessJvmSuite`, și păstrați raportul Extent al componentelor și guvernanței. Activați probele AI relevante când diff-ul afectează motorul sau corpusul. [Suitele și raportarea](../testing/README.md#suite-jvm)
+5. Construiți APK-ul și testele Android cu Gradle și cheia de distribuție. Verificați semnătura și `versionCode`. Rulați sanity-ul semnat pe emulator, inclusiv repornirea, ultima mutare și istoricul partidei. Păstrați hash-ul APK-ului instalat și rapoartele Extent.
+6. Treceți APK-ul, commitul și dovezile prin `ReleaseGate qualification`. Rezolvați abaterile și repetați verificările afectate înainte de publicare.
+7. După autorizare și calificare, împingeți tagul candidat fără a rescrie istoricul, publicați asset-urile GitHub și împingeți commitul cu linkurile pe `main`. Păstrați identitatea tagului și a asset-urilor în dosarul ediției.
+8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.

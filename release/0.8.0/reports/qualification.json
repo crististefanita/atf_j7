@@ -1,0 +1,49 @@
+{
+  "version": "0.8.0",
+  "versionCode": 11,
+  "sourceCommit": "353bf69f2372389716b73aac6e88ab2953e4f249",
+  "apkBytes": 886323,
+  "apkSha256": "c4f3f2e467f673def4877dd4801a983e6dc317058336f0f3cb368ba5590d501b",
+  "signingCertificateSha256": "4f15d961364d331531f78348b4aa167ad87ceceac442126ef802a8202a50344f",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "alignment": "PASS",
+  "signature": "PASS",
+  "qualificationGate": "PASS",
+  "zipCrc": "PASS",
+  "components": {
+    "extentSha256": "b44803cdcdd4b0297405a1c02b0fdecd8446576613031e7f1261f940287eaead",
+    "status": "PASS",
+    "passed": 108,
+    "skipped": 9
+  },
+  "android": {
+    "device": "127.0.0.1:5555",
+    "api": "28",
+    "apkSha256": "c4f3f2e467f673def4877dd4801a983e6dc317058336f0f3cb368ba5590d501b",
+    "sourceCommit": "353bf69f2372389716b73aac6e88ab2953e4f249",
+    "assertions": 96,
+    "receipts": {
+      "match-prepare": "5b00f2e93c5ecd6b2eba51a7431c715b61c5ea6b0ce0efe1989d78dfab3c3f42",
+      "match-restore": "d77bacdb0af0f01558d75e307c2a2ebefa50861651e57639c27b73f12fa843b1",
+      "match-settled": "f22e1dc8b1cb458f4ee124b1686c9d16c13ee1546b96840e516707e802f22e65",
+      "prepare": "8197c09866d2c6f278f18792c82bbecfd5676b8fe83b4f4b7edf0e59f9b590e6",
+      "restore": "53bad72f3b2bab1491486ae6249e6bacd89e64903e84c53c5686d79d90318127"
+    },
+    "variant": "release",
+    "status": "PASS",
+    "extentSha256": "49e74fd277b3939ca2b49af93b508534b8787c20a2c9856c8f9a2a2c39c464c2"
+  },
+  "openings": {
+    "status": "PASS",
+    "scope": "openings-only",
+    "device": "127.0.0.1:5555",
+    "api": "28",
+    "apkSha256": "c4f3f2e467f673def4877dd4801a983e6dc317058336f0f3cb368ba5590d501b",
+    "sourceCommit": "353bf69f2372389716b73aac6e88ab2953e4f249",
+    "variant": "release",
+    "assertions": 24,
+    "receiptSha256": "ad9fd2b3f0702e7ae106d8454806a7e9a7df24590eacc2622c706a1cd1c95899",
+    "extentSha256": "5033145baa99d86321df00292d3957fc5c25b30701afd3693599a01ed1359603"
+  }
+}
