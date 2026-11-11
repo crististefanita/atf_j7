@@ -4,4 +4,4 @@
 - Aplică exact promovarea indicată. Dacă selectezi o piesă după afișarea indiciului, selecția ta are prioritate.
 - Indiciul se șterge la încheierea partidei. Poți consulta variantele din istoric înainte de a alege **Continuă de aici**.
 
-[Descarcă APK 0.10.1](https://github.com/crististefanita/atf_j7/releases/download/v0.10.1/ChessLab-0.10.1.apk) · [Ghidul tablei](../../docs/board/README.md)
+[Descarcă APK 0.10.1](https://github.com/crististefanita/atf_j7/releases/download/v0.10.1/ChessLab-0.10.1.apk) · [Ghidul tablei](../../docs/board/README.md) · [Dovezile ediției](reports/README.md)
