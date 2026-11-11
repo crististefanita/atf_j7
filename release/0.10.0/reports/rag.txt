@@ -1,0 +1,54 @@
+ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 62571030bab758e1449366c75263483be10cd25f5acddde7169bbb41cad9ad8f
+  Verify ChessComponentTest și QuestCatalogTest
+docs/board/ai-quality.md:17 ## Control la fiecare schimbare
+  SHA-256 6e9bffe6f7899d03bb5946ea7ed268771e8451c053f3fa710fcb0b1ba8930900
+  Verify ChessBenchmarkSuite: Stockfish și liga offline
+docs/testing/README.md:116 ## Partidă și istoric
+  SHA-256 62571030bab758e1449366c75263483be10cd25f5acddde7169bbb41cad9ad8f
+  Verify ChessMatchTest și BoardSanity
+docs/board/quest-curation.md:50 ## Mat în trei mutări
+  SHA-256 1e5c30c00122110b25c62518ceee1ff4a0fa0f890e964994cabd78f77386e4ee
+  Verify MateInThreeCatalogTest și verify-mate-in-three.cjs
+docs/board/quest-curation.md:38 ## Mat în două mutări
+  SHA-256 1e5c30c00122110b25c62518ceee1ff4a0fa0f890e964994cabd78f77386e4ee
+  Verify MateInTwoCatalogTest și verify-mate-in-two.cjs
+docs/board/quest-curation.md:10 ## Configurarea capitolelor
+  SHA-256 1e5c30c00122110b25c62518ceee1ff4a0fa0f890e964994cabd78f77386e4ee
+  Verify QuestCatalogTest și update-mate-one-order.ps1
+docs/testing/README.md:39 ## Tactică și punctaj
+  SHA-256 62571030bab758e1449366c75263483be10cd25f5acddde7169bbb41cad9ad8f
+  Verify TacticsCatalogTest și verify-tactics.cjs
+docs/testing/README.md:82 ## Sanity Android
+  SHA-256 62571030bab758e1449366c75263483be10cd25f5acddde7169bbb41cad9ad8f
+  Verify BoardSanity
+docs/testing/README.md:116 ## Partidă și istoric
+  SHA-256 62571030bab758e1449366c75263483be10cd25f5acddde7169bbb41cad9ad8f
+  Verify GameReviewTest, GameReviewGovernanceTest și BoardSanity -IncludeGameReview
+docs/testing/README.md:134 ## Tablă de analiză
+  SHA-256 62571030bab758e1449366c75263483be10cd25f5acddde7169bbb41cad9ad8f
+  Verify AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly
+docs/board/ai-quality.md:103 ### Rezultatele ancorei externe
+  SHA-256 6e9bffe6f7899d03bb5946ea7ed268771e8451c053f3fa710fcb0b1ba8930900
+  Verify AiAnchorBenchmarkTest și GameReviewGovernanceTest
+docs/testing/README.md:47 ## Suite JVM
+  SHA-256 62571030bab758e1449366c75263483be10cd25f5acddde7169bbb41cad9ad8f
+  Verify ChessJvmSuite și ChessGovernanceSuite
+docs/testing/README.md:5 ## Motor și proiecție
+  SHA-256 62571030bab758e1449366c75263483be10cd25f5acddde7169bbb41cad9ad8f
+  Verify BoardPanelLayoutTest și QuestHintTest
+docs/feedback/README.md:1 # Feedback · Chess Lab
+  SHA-256 aa885edc7254bd7e03cec6e4684bf0182ca26068440115d367caf8cdc0e06c94
+  Verify Revizuiți criteriile deschise înaintea promovării
+docs/release/README.md:3 ## Calificare și publicare
+  SHA-256 39b6563871c21ab0ac61b53f21068a72e779b9c204dd2824645e89b010f3bfc5
+  Verify ReleaseGovernanceTest
+1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
+2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului.
+3. Actualizați notele ediției, ghidul jocului și dovezile de testare. În secțiunea **Jocul** a README-ului principal puneți două linkuri, către release și APK-ul direct. Verificați legăturile locale și rulați `ReleaseGovernanceTest`.
+4. Creați commitul candidat local și exportați exact acel commit în TMP. Rulați `mvn test`, care pornește `ChessJvmSuite`, și păstrați raportul Extent al componentelor și guvernanței. Activați probele AI relevante când diff-ul afectează motorul sau corpusul. [Suitele și raportarea](../testing/README.md#suite-jvm)
+5. Construiți APK-ul și testele Android cu Gradle și cheia de distribuție. Verificați semnătura și `versionCode`. Rulați sanity-ul semnat pe emulator, inclusiv repornirea, ultima mutare și istoricul partidei. Păstrați hash-ul APK-ului instalat și rapoartele Extent.
+6. Treceți APK-ul, commitul și dovezile prin `ReleaseGate qualification`. Rezolvați abaterile și repetați verificările afectate înainte de publicare.
+7. După autorizare și calificare, împingeți tagul candidat fără a rescrie istoricul, publicați asset-urile GitHub și împingeți commitul cu linkurile pe `main`. Păstrați identitatea tagului și a asset-urilor în dosarul ediției.
+8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.

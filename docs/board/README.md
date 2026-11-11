@@ -42,7 +42,7 @@ Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația ră
 
 [`mate-in-three.yaml`](../../chess-core/src/main/resources/mate-in-three.yaml) conține 200 de poziții de mat exact în trei, cu o singură primă mutare câștigătoare. Jocul aplică cele două apărări de referință, afișează câte mutări au mai rămas după prima apărare și acceptă orice mat legal pe ultima mutare. [Selecție și proveniență](quest-curation.md#mat-în-trei-mutări)
 
-[`tactics.yaml`](../../chess-core/src/main/resources/tactics.yaml) adaugă 100 de poziții cu o singură mutare care câștigă material la orizontul capitolului. Selecția include furculițe, legări, atacuri descoperite și îndepărtarea apărătorului.
+[`tactics.yaml`](../../chess-core/src/main/resources/tactics.yaml) adaugă 100 de poziții cu o singură mutare care câștigă material la orizontul capitolului. Selecția include furculițe, legări, atacuri descoperite și devieri.
 
 ## Tablă de analiză
 
