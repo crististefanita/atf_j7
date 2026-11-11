@@ -1211,10 +1211,10 @@ public final class BoardSanity extends Instrumentation {
         boolean[] available = {false};
         runOnMainSync(() -> {
             available[0] = view.getGlobalVisibleRect(visible) && view.isEnabled();
-            int[] location = new int[2];
-            view.getLocationOnScreen(location);
-            center[0] = location[0] + view.getWidth() / 2f;
-            center[1] = location[1] + view.getHeight() / 2f;
+            int[] rootOnScreen = new int[2];
+            view.getRootView().getLocationOnScreen(rootOnScreen);
+            center[0] = rootOnScreen[0] + visible.exactCenterX();
+            center[1] = rootOnScreen[1] + visible.exactCenterY();
         });
         if (!available[0]) {
             throw new AssertionError("Touch target unavailable: " + (view instanceof Button control ? control.getText() : view.getContentDescription()));

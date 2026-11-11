@@ -59,7 +59,17 @@ Extent consemnează rezultatele pe perechi, iar TSV păstrează secvențele UCI 
 | Hard – Advanced | 10 / 11 / 2 / 1 | +232 → +120 | +14 … +211 |
 | Hard – Basic | 19 / 3 / 1 / 1 | +470 → +338 | +120 … +669 |
 
-V, R, Î și N înseamnă victorii, remize, înfrângeri și partide neterminate pentru primul profil. În această ligă, Basic a finalizat în medie adâncimea 3,00, Advanced 3,94 și Hard 4,43. Capturile au reprezentat 20,5%, 23,1% și 24,7% dintre mutările lor. Șahurile au reprezentat 5,9%, 11,9% și 15,1%. Cele 11 remize dintre Hard și Advanced au venit prin repetiție. În Alehină, cu Hard la alb, Stockfish a evaluat la `+8,57` poziția de la începutul ciclului, la semimutarea 36, într-o căutare fără istoricul partidei. [Feedback](../feedback/README.md)
+V, R, Î și N înseamnă victorii, remize, înfrângeri și partide neterminate pentru primul profil. În această ligă, Basic a finalizat în medie adâncimea 3,00, Advanced 3,94 și Hard 4,43. Capturile au reprezentat 20,5%, 23,1% și 24,7% dintre mutările lor. Șahurile au reprezentat 5,9%, 11,9% și 15,1%. Cele 11 remize dintre Hard și Advanced au venit prin repetiție. În Alehină, cu Hard la alb, Stockfish a evaluat la `+8,57` poziția de la începutul ciclului, la semimutarea 36, într-o căutare fără istoricul partidei.
+
+### Retestarea pentru 0.7.0
+
+| Confruntare | V / R / Î / N | Diferență Elo centrală | Interval empiric 95% |
+|---|---:|---:|---:|
+| Advanced – Basic | 19 / 2 / 3 / 0 | +280 | +154 … +470 |
+| Hard – Advanced | 14 / 7 / 2 / 1 | +191 | +104 … +307 |
+| Hard – Basic | 22 / 0 / 1 / 1 | +470 | +191 … ∞ |
+
+Hard a câștigat toate cele opt partide din Pirc și Benoni, din ambele perspective, contra Basic și Advanced. În partida Alehină Hard–Advanced, a jucat `Nc3` după semimutarea 44 și a ieșit din ciclul care ducea anterior la remiză la 52. Stockfish indică +6,71 pentru ieșire, cu istoricul partidei și pierdere WDL de 0‰. Partida a ajuns la plafonul de 160 de semimutări. Stockfish arată −5,19 pentru alb la finalul probei. În partida cu culorile inversate, Hard a câștigat la semimutarea 108. [Feedback pentru conversia avantajului](../feedback/README.md)
 
 ### Rezultatele ancorei externe
 
