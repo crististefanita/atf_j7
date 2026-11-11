@@ -1,0 +1,78 @@
+{
+  "version": "0.11.0",
+  "versionCode": 15,
+  "sourceCommit": "49799990b463fa5d03c5181175e9dc1421fc0f46",
+  "apkBytes": 1088675,
+  "apkSha256": "bfff932a83e8c965a96686fe783cb8e719d0ce2e505132f6d41a31c5c74811d0",
+  "signingCertificateSha256": "4f15d961364d331531f78348b4aa167ad87ceceac442126ef802a8202a50344f",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "alignment": "PASS",
+  "signature": "PASS",
+  "matchAnalysis": {
+    "status": "PASS",
+    "scope": "analysis-only",
+    "device": "127.0.0.1:5565",
+    "api": "28",
+    "apkSha256": "bfff932a83e8c965a96686fe783cb8e719d0ce2e505132f6d41a31c5c74811d0",
+    "sourceCommit": "49799990b463fa5d03c5181175e9dc1421fc0f46",
+    "variant": "release",
+    "pids": [
+      "8815",
+      "8996"
+    ],
+    "assertions": {
+      "analysis-prepare": 17,
+      "analysis-restore": 9
+    },
+    "receipts": {
+      "analysis-prepare": "ce93323563946d151a8a0f9eec289bf85bb709ffc06260cc5fdfb5576dfdf489",
+      "analysis-restore": "36b258a53151b2bb758c135bc9fc1e236edae9bdac22e160a076a87b116bbdac"
+    },
+    "extentSha256": "2de07357c441bb74391456f0962d51562159b6d38bec7bf37058c03d436940c8"
+  },
+  "manualAnalysis": {
+    "status": "PASS",
+    "scope": "manual-analysis",
+    "device": "127.0.0.1:5565",
+    "api": "28",
+    "apkSha256": "bfff932a83e8c965a96686fe783cb8e719d0ce2e505132f6d41a31c5c74811d0",
+    "sourceCommit": "49799990b463fa5d03c5181175e9dc1421fc0f46",
+    "variant": "release",
+    "assertions": 15,
+    "receiptSha256": "a94c1a474f56047902799455f6aa6c5faf69f0db668f89e186921adb0e97ebf6",
+    "extentSha256": "0a0c59a1dc349317fb78ed1804942d1d226f6659faefa6f09a8ee070beac50c0"
+  },
+  "matchSlots": {
+    "status": "PASS",
+    "scope": "match-slots",
+    "device": "127.0.0.1:5565",
+    "api": "28",
+    "apkSha256": "bfff932a83e8c965a96686fe783cb8e719d0ce2e505132f6d41a31c5c74811d0",
+    "sourceCommit": "49799990b463fa5d03c5181175e9dc1421fc0f46",
+    "variant": "release",
+    "assertions": 5,
+    "receiptSha256": "f20d44a0cff03f044d723932acb43fb6836907d9688474d4bbcb56a3e18241f0",
+    "extentSha256": "9359ed943d9d69ad6e79552b17d187e4d5294b6681f889b9e482a0e9c4b33c9f"
+  },
+  "matchArchive": {
+    "status": "PASS",
+    "scope": "match-archive",
+    "device": "127.0.0.1:5565",
+    "api": "28",
+    "apkSha256": "bfff932a83e8c965a96686fe783cb8e719d0ce2e505132f6d41a31c5c74811d0",
+    "sourceCommit": "49799990b463fa5d03c5181175e9dc1421fc0f46",
+    "variant": "release",
+    "assertions": 4,
+    "receiptSha256": "64831f409e365c819aca18b3df297459d15dc57a6947bbc3d70b8502106b72ab",
+    "extentSha256": "55d8df648b96daa11bdccc75d2fe69597f80fc31e65835fc8404e63f389b5e9c"
+  },
+  "qualificationGate": "PASS",
+  "zipCrc": "PASS",
+  "components": {
+    "status": "PASS",
+    "passed": 156,
+    "skipped": 2,
+    "extentSha256": "81810a006520a82db0372d1461155e7a3f3d6a6e13910506cfaa540908179d7b"
+  }
+}
