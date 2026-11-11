@@ -1,0 +1,37 @@
+{
+  "version": "0.7.0",
+  "versionCode": 10,
+  "sourceCommit": "dd1abc1f7b08a68d80574102ebde69f0d250e269",
+  "apkBytes": 882763,
+  "apkSha256": "5f3423e15964ecbbc904dc10966b3b256b58eba752ca4d3a1a67c214e8e3cb7e",
+  "signingCertificateSha256": "4f15d961364d331531f78348b4aa167ad87ceceac442126ef802a8202a50344f",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "alignment": "PASS",
+  "signature": "PASS",
+  "qualificationGate": "PASS",
+  "zipCrc": "PASS",
+  "components": {
+    "passed": 106,
+    "extentSha256": "c5ad5a075999e718df40efd81600e7b736b8ed483fbfcdb340e9d9fe7e988e52",
+    "skipped": 1,
+    "status": "PASS"
+  },
+  "android": {
+    "device": "127.0.0.1:5555",
+    "api": "28",
+    "apkSha256": "5f3423e15964ecbbc904dc10966b3b256b58eba752ca4d3a1a67c214e8e3cb7e",
+    "sourceCommit": "dd1abc1f7b08a68d80574102ebde69f0d250e269",
+    "assertions": 96,
+    "receipts": {
+      "match-prepare": "993fc8f466edf2fea89c09606562a7dd268352b81d0f10ffbe0fe120c006f155",
+      "match-restore": "7ecac219cf17f70e655d279972c9607c5715baaf55500f7d63da0a916065dd62",
+      "match-settled": "9fb8f61d05a790d338786300cad7a44926c47f63c661168ca578b4bb73ff6ec4",
+      "prepare": "730a299c3e8e9a36b464cd8ddf4565dd7a1d5232a9c99008c0a22eecaff0369d",
+      "restore": "903c9d64b343d62c71e8a83cd0a743f1634017e02056263cae006d05f075cbff"
+    },
+    "variant": "release",
+    "status": "PASS",
+    "extentSha256": "00f090946e6c0faf317779da3e5d6c0dfcec74b7436e8c544327f9d2a834d236"
+  }
+}
