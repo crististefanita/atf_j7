@@ -120,6 +120,11 @@ class ReleaseGovernanceTest {
         check.same("History changes cite both consumers and the release workflow",
                 List.of("## Sanity Android", "## Partidă și istoric", "## Tablă de analiză", "## Calificare și publicare"),
                 history.stream().map(ReleaseRag.Citation::heading).toList());
+        var hints = ReleaseRag.retrieve(root, List.of("chess-core/src/main/java/ro/atf/chess/MatchHint.java",
+                "android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java"));
+        check.same("Shared hint changes cite both signed Android journeys once",
+                List.of("MatchHintTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
+                hints.stream().filter(item -> item.heading().equals("## Partidă și istoric")).map(ReleaseRag.Citation::check).toList());
         var tactics = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/tactics.yaml",
                 "chess-core/src/main/java/ro/atf/chess/QuestRewards.java"));
         check.same("The new catalog and reward policy cite their specific verification",

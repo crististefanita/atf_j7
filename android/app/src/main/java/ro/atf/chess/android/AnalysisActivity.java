@@ -87,7 +87,7 @@ public final class AnalysisActivity extends Activity {
         top.setId(View.generateViewId());
         bottom.setId(View.generateViewId());
         board = new BoardView(this, this::tap);
-        analysis = new MatchAnalysisView(this, this::notation, this::render);
+        analysis = new MatchAnalysisView(this, this::notation, () -> select(study));
         screen.addView(new BoardPanel(this, top, board, bottom, analysis.evaluationBar()), new LinearLayout.LayoutParams(-1, 0, 1));
         status = text(14);
         status.setGravity(Gravity.CENTER);
@@ -131,6 +131,11 @@ public final class AnalysisActivity extends Activity {
 
     private void tap(int square) {
         if (study.result() != ChessMatch.Result.IN_PROGRESS) return;
+        var guided = analysis.moveForTap(study.position(), selected, square);
+        if (guided != null) {
+            select(study.play(guided));
+            return;
+        }
         var targets = options.stream().filter(move -> move.to() == square).collect(Collectors.toList());
         if (targets.size() == 1) {
             select(study.play(targets.get(0)));

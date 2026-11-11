@@ -30,6 +30,7 @@ final class MatchAnalysisView extends TextView {
     private final EvaluationBar evaluationBar;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private ChessPosition shownPosition;
+    private double shownTerminal = Double.NaN;
     private MatchHint hint;
     private MatchEvaluation shownEvaluation;
     private Future<?> pending;
@@ -65,6 +66,10 @@ final class MatchAnalysisView extends TextView {
         return revealed == null ? null : revealed.move();
     }
 
+    Move moveForTap(ChessPosition position, int selected, int square) {
+        return position == shownPosition && hint != null ? hint.moveForTap(position, selected, square) : null;
+    }
+
     QuestHint.Cue cue() {
         var move = revealedMove();
         return move == null ? new QuestHint.Cue(-1, -1) : QuestHint.SOLUTION.cue(move);
@@ -87,9 +92,10 @@ final class MatchAnalysisView extends TextView {
     }
 
     private void show(ChessPosition position, Supplier<List<TacticalAnalysis.Variation>> search, double terminal) {
-        if (position == shownPosition) return;
+        if (position == shownPosition && Double.compare(terminal, shownTerminal) == 0) return;
         cancel();
         shownPosition = position;
+        shownTerminal = terminal;
         setText(R.string.match_analysis_pending);
         setContentDescription(null);
         int currentRequest = request;
@@ -120,6 +126,7 @@ final class MatchAnalysisView extends TextView {
     void cancel() {
         request++;
         shownPosition = null;
+        shownTerminal = Double.NaN;
         hint = null;
         shownEvaluation = null;
         setOnClickListener(null);

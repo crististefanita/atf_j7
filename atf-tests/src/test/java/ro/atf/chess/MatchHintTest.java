@@ -10,6 +10,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class MatchHintTest {
+    @Test void playsOnlyTheRevealedLegalDestinationWithoutReplacingAnExplicitSelection(Checks check) {
+        var position = ChessPosition.fromFen("7k/P7/8/8/8/8/8/7K w - - 0 1");
+        var knight = ChessPosition.Move.fromUci("a7a8n");
+        var queen = ChessPosition.Move.fromUci("a7a8q");
+        var hint = new MatchHint(List.of(new TacticalAnalysis.Variation(List.of(knight), 0, 0, TacticalAnalysis.Ending.HORIZON),
+                new TacticalAnalysis.Variation(List.of(queen), 0, 0, TacticalAnalysis.Ending.HORIZON)));
+        check.same("A hidden recommendation cannot play a move", null, hint.moveForTap(position, -1, knight.to()));
+        hint.revealNext();
+        check.same("Only the indicated destination plays the exact suggested promotion", knight, hint.moveForTap(position, -1, knight.to()));
+        check.same("A tap on the source goes to ordinary piece selection", null, hint.moveForTap(position, -1, knight.from()));
+        check.same("Selecting the pawn explicitly keeps the ordinary promotion chooser", null,
+                hint.moveForTap(position, knight.from(), knight.to()));
+        check.same("The hint cannot override an explicit selection of a different piece", null,
+                hint.moveForTap(position, BoardSquare.parse("h1"), knight.to()));
+        hint.revealNext();
+        check.same("Cycling a shared destination plays the newly suggested promotion", queen, hint.moveForTap(position, -1, queen.to()));
+        check.same("A move no longer legal for the current side cannot be applied", null,
+                hint.moveForTap(position.play(ChessPosition.Move.fromUci("h1g1")), -1, queen.to()));
+    }
+
     @Test void hidesThenCyclesAtMostFiveContinuationsWithoutPlayingThem(Checks check) {
         String checkpoint = "2|analysis|e2e4 c7c5";
         var match = ChessMatch.restore(checkpoint);

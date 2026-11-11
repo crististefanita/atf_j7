@@ -113,9 +113,21 @@ public final class BoardSanity extends Instrumentation {
         var next = branch.findViewById(R.id.match_history_next);
         compare("Analysis opens at the selected history position and retains its forward moves", true,
                 hasPawn(branch, branchBoard, "e4") && next.isEnabled() && !hasPawn(branch, branchBoard, "e5"));
+        if (!awaitHiddenAnalysis(branch, 1)) throw new AssertionError("The historical study hint did not become ready");
+        var studyLines = ro.atf.chess.TacticalAnalysis.recommendations(saved.positionAt(1));
+        var guided = studyLines.get(0).move();
+        var tokens = (ViewGroup) branch.findViewById(R.id.match_history_moves);
+        tap(branch.findViewById(R.id.match_hint));
+        boolean marked = hintShown(branch, branchBoard, studyLines, 0);
+        tap(cell(branchBoard, BoardSquare.name(guided.to())));
+        var played = tokens.getChildAt(2);
+        compare("Tapping the hint destination plays the suggested Black move in the study only", true,
+                marked && played instanceof TextView chip && chip.isSelected()
+                        && chip.getText().toString().endsWith(ChessActivity.compactNotation(guided))
+                        && saved.checkpoint().equals(store.readMatch().checkpoint()));
+        tap(branch.findViewById(R.id.manual_reset_line));
         tap(cell(branchBoard, "c7"));
         tap(cell(branchBoard, "c5"));
-        var tokens = (ViewGroup) branch.findViewById(R.id.match_history_moves);
         compare("A new branch replaces the analysis suffix without changing the saved game", true,
                 hasPawn(branch, branchBoard, "c5") && tokens.getChildCount() == 3 && !next.isEnabled()
                         && saved.checkpoint().equals(store.readMatch().checkpoint()));
@@ -555,27 +567,42 @@ public final class BoardSanity extends Instrumentation {
         var initialBounds = boardFootprints(activity, board);
         compare("The enabled panel shows the evaluation and waits for the bulb press", true, awaitHiddenAnalysis(activity, 0));
         TextView panel = activity.findViewById(R.id.match_analysis);
-        compare("A localized zero score leaves the board anchored", true,
-                panel.getText().toString().equals("0,00 · Echilibru") && initialBounds.equals(boardFootprints(activity, board)));
-        View bulb = activity.findViewById(R.id.match_hint);
         var initial = store.readMatch();
         var lines = initial.bestLinesAt(0);
+        int cp = ro.atf.chess.MatchEvaluation.forPosition(initial.position(), lines.get(0)).whiteCentipawns();
+        String pawns = (cp > 0 ? "+" : cp < 0 ? "−" : "") + String.format(Locale.forLanguageTag("ro-RO"), "%.2f", Math.abs(cp) / 100.0);
+        String score = cp == 0 ? activity.getString(R.string.match_analysis_equal, pawns)
+                : activity.getString(R.string.match_analysis_advantage, pawns, activity.getString(cp > 0 ? R.string.white : R.string.black));
+        compare("The localized initial evaluation leaves the board anchored", List.of(score, initialBounds),
+                List.of(panel.getText().toString(), boardFootprints(activity, board)));
+        View bulb = activity.findViewById(R.id.match_hint);
         tap(bulb);
         compare("The first bulb press reveals line one and marks its first destination", true,
-                lines.size() > 1 && hintShown(activity, board, lines, 0) && initialBounds.equals(boardFootprints(activity, board)));
+                hintShown(activity, board, lines, 0) && initialBounds.equals(boardFootprints(activity, board)));
+        int nextHint = Math.min(1, lines.size() - 1);
         tap(bulb);
-        compare("The second press shows the next eligible line without playing a move", true,
-                hintShown(activity, board, lines, 1) && initial.checkpoint().equals(store.readMatch().checkpoint()));
-        tap(cell(board, "e2"));
-        tap(cell(board, "e4"));
+        compare("The second press follows the available lines without playing a move", true,
+                hintShown(activity, board, lines, nextHint) && initial.checkpoint().equals(store.readMatch().checkpoint()));
+        var guided = lines.get(nextHint).move();
+        tap(cell(board, BoardSquare.name(guided.to())));
         long deadline = SystemClock.uptimeMillis() + 20_000;
         while (store.readMatch().ply() < 2 && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
         var live = store.readMatch();
+        compare("Tapping only the hinted destination saves the exact recommended first move", true,
+                live.ply() > 0 && guided.equals(live.moveAt(1)));
         compare("The bot reply resets the hint for its new live position", true, live.ply() == 2 && awaitHiddenAnalysis(activity, 2));
         var currentBounds = boardFootprints(activity, board);
         runOnMainSync(() -> activity.findViewById(R.id.match_history_previous).performClick());
         compare("Reviewing Black's turn resets the hint and leaves the saved game untouched", true,
                 awaitHiddenAnalysis(activity, 1) && live.checkpoint().equals(store.readMatch().checkpoint()));
+        var historicalLines = live.bestLinesAt(1);
+        tap(bulb);
+        boolean marked = hintShown(activity, board, historicalLines, 0);
+        var historicalDestination = cell(board, BoardSquare.name(historicalLines.get(0).move().to()));
+        var historicalTarget = screenBounds(historicalDestination);
+        tapAt(historicalTarget.exactCenterX(), historicalTarget.exactCenterY());
+        compare("The hint stays visible in history without allowing the saved game to change", true,
+                marked && !historicalDestination.isEnabled() && live.checkpoint().equals(store.readMatch().checkpoint()));
         var earlierBounds = boardFootprints(activity, board);
         runOnMainSync(() -> activity.findViewById(R.id.match_history_next).performClick());
         var latestBounds = awaitHiddenAnalysis(activity, 2) ? boardFootprints(activity, board) : List.<BoardFootprint>of();
@@ -586,6 +613,14 @@ public final class BoardSanity extends Instrumentation {
                 hintShown(activity, board, live.bestLinesAt(2), 0) && currentBounds.equals(boardFootprints(activity, board)));
         captureFrame("match-analysis", "The compact evaluation and recommendation are rendered below the board",
                 image -> fullyVisible(panel) && hasTwoRenderedLines(image, panel));
+        tap(activity.findViewById(R.id.match_actions));
+        clickMenuItem(activity.getString(R.string.match_resign));
+        tapDialog(activity.getString(R.string.match_confirm_resign));
+        long endingDeadline = SystemClock.uptimeMillis() + 5000;
+        while (!store.readMatch().resigned() && SystemClock.uptimeMillis() < endingDeadline) SystemClock.sleep(40);
+        waitForIdleSync();
+        compare("Ending the game without changing its squares clears the previous recommendation", true,
+                store.readMatch().resigned() && !bulb.isEnabled() && !bulb.isSelected());
         checkMatchCaptures(activity, store, live);
     }
 

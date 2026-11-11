@@ -48,6 +48,7 @@ Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația ră
 
 - Din meniul principal pornești de la poziția inițială. Dintr-o partidă, lupa de lângă istoric deschide exact poziția afișată și păstrează mutările partidei disponibile pentru navigare.
 - Joci manual pentru alb și negru. Evaluarea se actualizează local după fiecare poziție, iar becul arată o continuare. Săgețile și mutările din bandă selectează poziții. O mutare diferită înlocuiește continuarea din tablă, iar **Resetează linia** readuce poziția și continuarea de la intrare.
+- După afișarea unei variante, atinge destinația indicată pentru a juca prima mutare, inclusiv promovarea sugerată. Dacă alegi mai întâi o piesă, selecția manuală are prioritate. În studiul unei poziții istorice, gestul se aplică liniei deschise în studiu.
 - După abandon sau remiză prin acord, ultima poziție rămâne jucabilă în analiză. Matul și finalurile automate rămân finale. Poți explora de la o poziție anterioară.
 - Înapoi revii în partidă la poziția afișată înainte de analiză. Pentru a relua efectiv partida de la o mutare anterioară, folosești **Continuă de aici** și confirmi. La închiderea tablei de analiză, varianta explorată se încheie, iar partida salvată rămâne disponibilă la repornire.
 
@@ -73,7 +74,9 @@ La final, apasă **Analiza partidei** sub rezultat. Graficul urmărește avantaj
 
 Bifează **Analiză AI** înainte de pornire. Bara verticală reflectă evaluarea poziției afișate, inclusiv în istoric. Segmentul mai lung indică partea în avantaj, iar la întoarcerea tablei segmentele își schimbă capetele. Textul arată scorul pozițional în unități de pion. `+1,25 · Alb` favorizează albul, iar `−1,25 · Negru` favorizează negrul. Bara se umple la opt unități sau la mat și se împarte egal la remiză. [Convenția de evaluare Chess.com](https://support.chess.com/en/articles/8379354-computer-evaluation-numbers-on-chess-com)
 
-Apasă becul din bara de sub tablă pentru cea mai bine evaluată linie și săgeata primei mutări. Indiciul pornește de la căutarea Hard și are un buget propriu de verificare, indiferent de nivelul adversarului. Apăsările următoare parcurg până la cinci variante, în ordinea scorului. Lista se oprește când o mutare pierde mai mult de un sfert de pion față de prima. În poziții cu mat demonstrat, apar doar maturile cu același rezultat și aceeași distanță. Atinge textul pentru linia completă. Schimbarea poziției ascunde indiciul, iar analiza se păstrează la reluare. [Evaluarea AI](ai-quality.md)
+Apasă becul din bara de sub tablă pentru cea mai bine evaluată linie și săgeata primei mutări. Când e rândul tău, atinge destinația din săgeată ca să joci mutarea indicată. Din istoric, alege **Continuă de aici** pentru a juca din poziția afișată. În timpul turei AI, indiciul este consultativ.
+
+Indiciul pornește de la căutarea Hard și are un buget propriu de verificare, indiferent de nivelul adversarului. Apăsările următoare parcurg până la cinci variante, în ordinea scorului. Lista se oprește când o mutare pierde mai mult de un sfert de pion față de prima. În poziții cu mat demonstrat, apar doar maturile cu același rezultat și aceeași distanță. Atinge textul pentru linia completă. Schimbarea poziției și încheierea partidei ascund indiciul. Opțiunea **Analiză AI** se păstrează la reluare. [Evaluarea AI](ai-quality.md)
 
 Sub fiecare nume apar piesele capturate, cu un număr lângă simbol când sunt mai multe de același fel. Jucătorul cu avantaj material vede `+N` în același rând. Capturile și avantajul urmează semimutarea afișată, inclusiv în istoric și după reluare. [Referința de afișare Chess.com](https://support.chess.com/en/articles/8708638-how-can-i-see-the-captured-pieces-and-material-count)
 

@@ -81,7 +81,7 @@ class AndroidSanityPublication {
 
     @Test void publishManualAnalysisSanity() throws Exception {
         publishFocusedSanity("manual-analysis", "Explore a line without changing the saved game",
-                "Play both colors, branch from history and return to the saved game", 9,
+                  "Play both colors, apply a hint from history and return to the saved game", 10,
                 List.of(new Frame("manual-analysis.png", "Manual analysis board")));
     }
 
@@ -117,7 +117,7 @@ class AndroidSanityPublication {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-match-analysis.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var prepare = readPhase(receipt, "analysis-prepare", 14);
+        var prepare = readPhase(receipt, "analysis-prepare", 17);
         var restore = readPhase(receipt.resolveSibling("analysis-restore.txt"), "analysis-restore", 9);
         boolean restarted = !prepare.pid().isEmpty() && !restore.pid().isEmpty() && !prepare.pid().equals(restore.pid());
         var frames = List.of(new Frame("match-analysis.png", "Evaluation and suggestion below the board"),

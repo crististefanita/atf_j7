@@ -320,7 +320,11 @@ public final class ChessActivity extends Activity {
         topPlayer = playerLabel();
         bottomPlayer = playerLabel();
         board = new BoardView(this, this::tap);
-        matchAnalysis = inMatch && match.analysisEnabled() ? new MatchAnalysisView(this, this::notation, this::renderMatch) : null;
+        matchAnalysis = inMatch && match.analysisEnabled() ? new MatchAnalysisView(this, this::notation, () -> {
+            selected = -1;
+            options = List.of();
+            renderMatch();
+        }) : null;
         View topSeat = topPlayer;
         View bottomSeat = bottomPlayer;
         if (inMatch) {
@@ -577,6 +581,11 @@ public final class ChessActivity extends Activity {
 
     private void tap(int square) {
         if (inMatch ? !playerCanMove() : completedQuest != null || step.defensePending()) return;
+        var guided = inMatch && matchAnalysis != null ? matchAnalysis.moveForTap(position, selected, square) : null;
+        if (guided != null) {
+            play(guided);
+            return;
+        }
         List<Move> targets = new ArrayList<>();
         for (Move move : options) if (move.to() == square) targets.add(move);
         if (targets.size() == 1) {

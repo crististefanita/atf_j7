@@ -4,7 +4,7 @@
 
 Marcajul de lângă tablă arată cine mută. În probleme, becul de sub tablă arată întâi piesa, apoi mutarea și explicația. Flacăra apare de la a doua rezolvare consecutivă fără greșeli sau indicii. **Reia partida** cu calculatorul readuce tabla la ultima mutare salvată. Săgețile și lista de sub tablă redau istoricul mutărilor.
 
-În **Profil** poți edita numele afișat. La **Partidă nouă**, alegi Alb, Negru sau Aleatoriu și nivelul Basic, Advanced sau Hard. Bifa **Analiză AI** adaugă bara de evaluare și becul. Becul pornește cu cea mai bine evaluată continuare și parcurge până la cinci variante apropiate ca scor. Sub nume apar capturile și avantajul material.
+În **Profil** poți edita numele afișat. La **Partidă nouă**, alegi Alb, Negru sau Aleatoriu și nivelul Basic, Advanced sau Hard. Bifa **Analiză AI** adaugă bara de evaluare și becul. Becul parcurge până la cinci variante apropiate ca scor. Pe tabla de analiză și când e rândul tău în partida cu AI, atingerea destinației indicate joacă mutarea sugerată. Sub nume apar capturile și avantajul material.
 
 **Continuă de aici** reia partida din poziția aleasă în istoric. În timpul jocului, **Opțiunile partidei** permite o ofertă de remiză sau renunțarea. După rezultat, **📊 Analiza partidei** deschide pe tot ecranul graficul, estimările Elo și tabelul mutărilor pe categorii pentru jucător și AI. [Partida cu calculatorul](docs/board/README.md#partidă-cu-calculatorul)
 
@@ -14,8 +14,8 @@ Marcajul de lângă tablă arată cine mută. În probleme, becul de sub tablă 
 
 ## Jocul
 
-- **[Chess Lab 0.10.0 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.10.0)** — ediția Android curentă.
-- **[Descarcă APK 0.10.0](https://github.com/crististefanita/atf_j7/releases/download/v0.10.0/ChessLab-0.10.0.apk)** — APK Android semnat.
+- **[Chess Lab 0.10.1 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.10.1)** — ediția Android curentă.
+- **[Descarcă APK 0.10.1](https://github.com/crististefanita/atf_j7/releases/download/v0.10.1/ChessLab-0.10.1.apk)** — APK Android semnat.
 
 ## Proiectul
 
@@ -26,4 +26,4 @@ Marcajul de lângă tablă arată cine mută. În probleme, becul de sub tablă 
 | `atf-tests` | Componente, guvernanță și publicarea dovezii Android în Extent |
 | `release-tools` | Context RAG consultativ și verificarea identității dovezilor |
 
-[Tabla de joc](docs/board/README.md) · [Configurarea problemelor](docs/board/quest-curation.md#configurarea-capitolelor) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.10.0](release/0.10.0/README.md) · [Feedback](docs/feedback/README.md)
+[Tabla de joc](docs/board/README.md) · [Configurarea problemelor](docs/board/quest-curation.md#configurarea-capitolelor) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Dosarul ediției 0.10.1](release/0.10.1/README.md) · [Feedback](docs/feedback/README.md)

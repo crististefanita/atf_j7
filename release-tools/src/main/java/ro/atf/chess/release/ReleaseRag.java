@@ -38,6 +38,8 @@ public final class ReleaseRag {
             manualAnalysis("chess-core/src/main/java/ro/atf/chess/AnalysisLine.java"),
             manualAnalysis("android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java"),
             manualAnalysis("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java"),
+            matchHints("chess-core/src/main/java/ro/atf/chess/MatchHint.java"),
+            matchHints("android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java"),
             anchor("atf-tests/src/test/resources/ai-anchor.yaml"),
             anchor("atf-tests/src/test/resources/ai-anchor-observations.yaml"),
             anchor("atf-tests/src/test/java/ro/atf/chess/PairedElo.java"),
@@ -74,6 +76,11 @@ public final class ReleaseRag {
     private static Route manualAnalysis(String path) {
         return new Route(path, "docs/testing/README.md", "## Tablă de analiză",
                 "AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly");
+    }
+
+    private static Route matchHints(String path) {
+        return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
+                "MatchHintTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis");
     }
 
     private static Route anchor(String path) {

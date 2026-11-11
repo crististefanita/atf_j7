@@ -18,6 +18,13 @@ public final class MatchHint {
     public TacticalAnalysis.Variation first() { return lines.get(0); }
     public TacticalAnalysis.Variation revealed() { return index < 0 ? null : lines.get(index); }
 
+    public ChessPosition.Move moveForTap(ChessPosition position, int selected, int square) {
+        var line = revealed();
+        if (selected >= 0 || line == null || line.move().to() != square) return null;
+        var move = line.move();
+        return position.legalMovesFrom(move.from()).contains(move) ? move : null;
+    }
+
     public void hide() { index = -1; }
 
     public void revealNext() {

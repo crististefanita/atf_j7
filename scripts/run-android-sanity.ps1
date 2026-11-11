@@ -24,7 +24,6 @@ $adbExe = (Get-Command $Adb -CommandType Application).Source
 $app = if ($Distribution) { 'ro.atf.chess.android' } else { 'ro.atf.chess.android.sanity' }
 $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
-if ($AnalysisOnly -and $Distribution) { throw 'AnalysisOnly uses the isolated sanity package.' }
 if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
 if ($IncludeOpenings -and ($OpeningsOnly -or $AnalysisOnly)) { throw 'IncludeOpenings extends the board sanity phases.' }
 if ($GameReviewOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis)) {
@@ -34,8 +33,8 @@ if ($IncludeGameReview -and ($AnalysisOnly -or $OpeningsOnly)) { throw 'IncludeG
 if ($ManualAnalysisOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis)) {
     throw 'ManualAnalysisOnly uses the isolated sanity package and its own phase.'
 }
-if ($IncludeManualAnalysis -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly)) {
-    throw 'IncludeManualAnalysis extends the board sanity phases.'
+if ($IncludeManualAnalysis -and ($OpeningsOnly -or $GameReviewOnly)) {
+    throw 'IncludeManualAnalysis extends board or match analysis sanity.'
 }
 $native = 'android/app/build/outputs/apk'
 $apk = Join-Path $root "$native/$variant/app-$variant.apk"
@@ -174,7 +173,7 @@ try {
         return
     }
     if ($ManualAnalysisOnly) {
-        Invoke-FocusedSanity $run 'manual-analysis' 9
+        Invoke-FocusedSanity $run 'manual-analysis' 10
         return
     }
     if ($OpeningsOnly) {
@@ -188,7 +187,7 @@ try {
             $lines = @(Invoke-Device ($instrument + @('-e','phase',$phase,$runner)))
             $lines | Set-Content -LiteralPath (Join-Path $run "$phase.txt") -Encoding utf8NoBOM
             $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
-            $expected = if ($phase -eq 'analysis-prepare') { 14 } else { 9 }
+            $expected = if ($phase -eq 'analysis-prepare') { 17 } else { 9 }
             if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne $expected) {
                 Receive-Frame 'failure'
                 throw "Analysis phase $phase did not pass. See $run."
@@ -202,8 +201,19 @@ try {
             Invoke-Device @('shell','am','force-stop',$app)
         }
         if ($pids[0] -eq $pids[1]) { throw 'The analysis restore phase reused the same process.' }
+        if ($IncludeManualAnalysis) {
+            $clear = Invoke-Device @('shell','pm','clear',$app)
+            if ($clear -cnotcontains 'Success') { throw 'Could not reset for the manual analysis board.' }
+            $manualDirectory = Join-Path $run 'manual-analysis'
+            $null = New-Item -ItemType Directory $manualDirectory
+            Invoke-FocusedSanity $manualDirectory 'manual-analysis' 10
+        }
+        $receiptHashes = [ordered]@{}
+        foreach ($phase in $checks.Keys) {
+            $receiptHashes[$phase] = (Get-FileHash -LiteralPath (Join-Path $run "$phase.txt")).Hash.ToLowerInvariant()
+        }
         [ordered]@{status='PASS'; scope='analysis-only'; device=$Serial; api=$api; apkSha256=$hash;
-            sourceCommit=$SourceCommit; pids=$pids; assertions=$checks} |
+            sourceCommit=$SourceCommit; variant=$variant; pids=$pids; assertions=$checks; receipts=$receiptHashes} |
             ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'execution.json') -Encoding utf8NoBOM
         return
     }
@@ -265,7 +275,7 @@ try {
         if ($clear -cnotcontains 'Success') { throw 'Could not reset for the manual analysis board.' }
         $manualDirectory = Join-Path $run 'manual-analysis'
         $null = New-Item -ItemType Directory $manualDirectory
-        Invoke-FocusedSanity $manualDirectory 'manual-analysis' 9
+        Invoke-FocusedSanity $manualDirectory 'manual-analysis' 10
     }
 } finally {
     try {
