@@ -27,6 +27,8 @@ class ChessComponentTest {
         check.same("Legal positions at ply one", 20L, positions(start, 1));
         check.same("Legal positions at ply two", 400L, positions(start, 2));
         check.same("Legal positions at ply three", 8902L, positions(start, 3));
+        var kiwipete = ChessPosition.fromFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+        check.same("Stockfish reference includes both castling sides and all replies in Kiwipete", 2039L, positions(kiwipete, 2));
     }
 
     @Test void enPassantConsumesTheImmediateRight(Checks check) {

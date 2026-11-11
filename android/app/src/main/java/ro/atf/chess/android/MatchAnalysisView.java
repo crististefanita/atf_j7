@@ -1,5 +1,6 @@
 package ro.atf.chess.android;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.view.Gravity;
@@ -7,10 +8,12 @@ import android.view.LayoutInflater;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import java.util.StringJoiner;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
@@ -27,6 +30,7 @@ final class MatchAnalysisView extends TextView {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private ChessPosition shownPosition;
     private MatchHint hint;
+    private MatchEvaluation shownEvaluation;
     private Future<?> pending;
     private int request;
 
@@ -61,7 +65,16 @@ final class MatchAnalysisView extends TextView {
     }
 
     void show(ChessMatch match, int ply) {
-        var position = match.positionAt(ply);
+        double terminal = match.result() != ChessMatch.Result.IN_PROGRESS && ply == match.ply()
+                ? MatchEvaluation.terminalWhiteShare(match.result()) : Double.NaN;
+        show(match.positionAt(ply), () -> match.bestLinesAt(ply), terminal);
+    }
+
+    void show(ChessPosition position) {
+        show(position, () -> TacticalAnalysis.recommendations(position), Double.NaN);
+    }
+
+    private void show(ChessPosition position, Supplier<List<TacticalAnalysis.Variation>> search, double terminal) {
         if (position == shownPosition) return;
         cancel();
         shownPosition = position;
@@ -69,30 +82,39 @@ final class MatchAnalysisView extends TextView {
         setContentDescription(null);
         int currentRequest = request;
         pending = worker.submit(() -> {
-            var lines = match.bestLinesAt(ply);
+            var lines = search.get();
+            var evaluation = lines.isEmpty() ? null : MatchEvaluation.forPosition(position, lines.get(0));
             post(() -> {
                 if (request != currentRequest) return;
                 pending = null;
                 if (lines.isEmpty()) {
                     setText(R.string.match_analysis_ended);
-                    if (match.result() != ChessMatch.Result.IN_PROGRESS && ply == match.ply()) {
-                        evaluationBar.setWhiteShare(MatchEvaluation.terminalWhiteShare(match.result()));
-                    }
+                    evaluationBar.setWhiteShare(terminal);
                     return;
                 }
                 hint = new MatchHint(lines);
+                shownEvaluation = evaluation;
                 display();
             });
         });
+    }
+
+    void hideSuggestion() {
+        if (hint == null || hint.revealed() == null) return;
+        hint.hide();
+        display();
     }
 
     void cancel() {
         request++;
         shownPosition = null;
         hint = null;
+        shownEvaluation = null;
+        setOnClickListener(null);
+        setClickable(false);
         evaluationBar.setWhiteShare(Double.NaN);
         updateBulb();
-        if (pending != null) pending.cancel(false);
+        if (pending != null) pending.cancel(true);
         pending = null;
     }
 
@@ -108,7 +130,7 @@ final class MatchAnalysisView extends TextView {
     private void display() {
         var context = getContext();
         var revealed = hint.revealed();
-        var evaluation = MatchEvaluation.from(shownPosition.turn(), revealed == null ? hint.first() : revealed);
+        var evaluation = shownEvaluation;
         evaluationBar.setWhiteShare(evaluation.whiteShare());
         String score = switch (evaluation.ending()) {
             case CHECKMATE -> context.getString(R.string.match_analysis_mate,
@@ -125,17 +147,24 @@ final class MatchAnalysisView extends TextView {
         if (revealed == null) {
             setText(score);
             setContentDescription(spokenScore);
+            setOnClickListener(null);
+            setClickable(false);
         } else {
             var compact = new StringJoiner(" · ");
             var spoken = new StringJoiner(". ");
-            for (Move move : revealed.line()) {
-                compact.add(ChessActivity.compactNotation(move));
+            int shown = Math.min(3, revealed.line().size());
+            for (int index = 0; index < revealed.line().size(); index++) {
+                Move move = revealed.line().get(index);
+                if (index < shown) compact.add(ChessActivity.compactNotation(move));
                 spoken.add(notation.apply(move));
             }
-            boolean tied = hint.count() > 1;
-            String line = tied ? context.getString(R.string.match_analysis_variant, hint.number(), hint.count(), compact.toString()) : compact.toString();
+            if (shown < revealed.line().size()) compact.add("…");
+            String line = hint.count() > 1 ? context.getString(R.string.match_analysis_variant, hint.number(), hint.count(), compact.toString()) : compact.toString();
             setText(score + "\n" + line);
-            setContentDescription(spokenScore + ". " + context.getString(R.string.match_analysis_variant_spoken, hint.number(), hint.count(), spoken.toString()));
+            String full = context.getString(R.string.match_analysis_variant_spoken, hint.number(), hint.count(), spoken.toString());
+            setContentDescription(spokenScore + ". " + full);
+            setOnClickListener(view -> new AlertDialog.Builder(context).setMessage(score + "\n\n" + full)
+                    .setPositiveButton(android.R.string.ok, null).show());
         }
         updateBulb();
     }

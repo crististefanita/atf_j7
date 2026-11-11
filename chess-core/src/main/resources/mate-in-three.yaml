@@ -237,9 +237,9 @@ quests:
     fen: "6rk/3Q2bp/p2p4/5p2/Pq6/2p4P/2P5/K3R1R1 w - - 9 35"
     line: [d7g7, g8g7, e1e8, g7g8, g1g8]
     rating: 1517
-  - id: mate3-02GAF
-    fen: "7k/R7/8/1p4KP/p4p2/1r3P2/8/8 w - - 7 44"
-    line: [g5g6, b3c3, a7a8, c3c8, a8c8]
+  - id: mate3-0Ytul
+    fen: "6k1/5p1p/p5p1/4b3/2q1PN2/P1r1Q2P/6P1/3R2K1 w - - 0 40"
+    line: [d1d8, g8g7, f4h5, g6h5, e3g5]
     rating: 1535
   - id: mate3-00j3i
     fen: "5rk1/R5p1/5q1p/8/3p2Q1/1P6/P3rPPP/5RK1 b - - 3 38"

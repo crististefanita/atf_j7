@@ -1,0 +1,9 @@
+schema: 1
+# Verified with Stockfish 19 at depth 13. Matching includes turn, castling rights and legal en passant.
+positions:
+  - id: pirc-austrian
+    moves: "e2e4 d7d6 d2d4 g8f6 b1c3 g7g6 f2f4"
+    reply: f8g7
+  - id: modern-benoni
+    moves: "d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5"
+    reply: d7d6

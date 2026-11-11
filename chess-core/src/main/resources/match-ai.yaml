@@ -1,0 +1,14 @@
+schema: 1
+opponents:
+  BASIC: {max-plies: 3, extra-nodes: 0}
+  ADVANCED: {max-plies: 4, extra-nodes: 16000}
+  HARD: {max-plies: 5, extra-nodes: 44000}
+hint:
+  max-plies: 5
+  extra-nodes: 220000
+  verification-nodes: 32000
+  tactical-extension-plies: 1
+  max-variants: 5
+  max-loss-cp: 25
+evaluation: {nodes: 16000, max-horizon-correction-cp: 25}
+repetition: {min-advantage-cp: 100, max-score-loss-cp: 50}

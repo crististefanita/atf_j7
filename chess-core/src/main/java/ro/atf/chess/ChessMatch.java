@@ -16,7 +16,6 @@ public final class ChessMatch {
     private static final String FORMAT = "1|";
     private static final String ANALYSIS_FORMAT = "2|analysis|";
     private static final String SETUP_FORMAT = "3|";
-    private static final int SEARCH_PLIES = 3;
     private static final MatchSetup DEFAULT_SETUP = new MatchSetup(Side.WHITE, MatchSetup.Level.BASIC, false);
     private final List<ChessPosition> positions;
     private final List<Move> moves;
@@ -42,12 +41,17 @@ public final class ChessMatch {
         return new ChessMatch(List.of(ChessPosition.initial()), List.of(), 0, setup);
     }
 
-    static ChessMatch fromPosition(ChessPosition position) { return new ChessMatch(List.of(position), List.of(), 0, DEFAULT_SETUP); }
+    static ChessMatch fromPosition(ChessPosition position) { return fromPosition(position, DEFAULT_SETUP); }
+
+    static ChessMatch fromPosition(ChessPosition position, MatchSetup setup) {
+        return new ChessMatch(List.of(position), List.of(), 0, setup);
+    }
 
     public ChessPosition position() { return positionAt(ply()); }
     public int ply() { return moves.size(); }
     public Move lastMove() { return moveAt(ply()); }
     public ChessPosition positionAt(int ply) { return positions.get(ply); }
+    public MatchMaterial materialAt(int ply) { return MatchMaterial.at(this, ply); }
 
     /** Move that produced the given position, or null at the starting position. */
     public Move moveAt(int ply) { return ply == 0 ? null : moves.get(ply - 1); }
@@ -61,11 +65,11 @@ public final class ChessMatch {
         return bestLinesAt(ply).stream().findFirst();
     }
 
-    /** Returns one continuation per best-scoring legal first move, in engine order. */
+    /** Returns the strongest hint and nearby alternatives for the displayed position. */
     public List<TacticalAnalysis.Variation> bestLinesAt(int ply) {
         var board = positionAt(ply);
         if (!analysisEnabled() || ply == ply() && result != Result.IN_PROGRESS) return Collections.emptyList();
-        return TacticalAnalysis.analyze(board, SEARCH_PLIES).best();
+        return TacticalAnalysis.recommendations(board);
     }
 
     public ChessMatch play(Move move) {
@@ -109,14 +113,29 @@ public final class ChessMatch {
     }
 
     public Move chooseBotMove() {
+        return botDecision().move();
+    }
+
+    record BotDecision(Move move, int depth, int extraNodes) { }
+
+    BotDecision botDecision() {
         if (!awaitingBot()) throw new IllegalStateException("It is not the computer's turn");
+        return botDecision(setup.level());
+    }
+
+    BotDecision botDecision(MatchSetup.Level level) {
+        if (result != Result.IN_PROGRESS) throw new IllegalStateException("The match has ended");
         var board = position();
+        boolean hard = level == MatchSetup.Level.HARD;
+        boolean cycle = hard && occurrences(board, positions.size() - 2) >= 2;
+        var policy = MatchAiPolicy.CURRENT.repetition;
+        var search = TacticalAnalysis.botAnalysis(board, level, cycle ? policy.maxScoreLossCp() : 0);
         Move chosen = null;
         int fewestVisits = Integer.MAX_VALUE;
         int mostActivity = Integer.MIN_VALUE;
-        for (var variation : TacticalAnalysis.botAnalysis(board, setup.level()).best()) {
+        for (var variation : search.result().best()) {
             Move move = variation.move();
-            int visits = occurrences(board.play(move), positions.size() - 1);
+            int visits = visitsAfter(move);
             int activity = activity(board, move);
             if (visits < fewestVisits || visits == fewestVisits && activity > mostActivity) {
                 chosen = move;
@@ -124,10 +143,26 @@ public final class ChessMatch {
                 mostActivity = activity;
             }
         }
-        return chosen;
+        if (hard) {
+            var leader = search.result().ranked().get(0);
+            if (leader.score() < 0 && quietPlies >= 15) {
+                // Four prior occurrences need at least sixteen reversible plies, including the draw move.
+                chosen = board.legalMoves().stream().filter(move -> visitsAfter(move) >= 4).findFirst().orElse(chosen);
+            } else if (cycle && fewestVisits >= 2 && leader.ending() == TacticalAnalysis.Ending.HORIZON) {
+                int floor = Math.max(policy.minAdvantageCp(), leader.score() - policy.maxScoreLossCp());
+                int visits = fewestVisits;
+                chosen = search.result().ranked().stream().filter(line -> line.score() >= floor)
+                        .map(TacticalAnalysis.Variation::move).filter(move -> visitsAfter(move) < visits).findFirst().orElse(chosen);
+            }
+        }
+        return new BotDecision(chosen, search.depth(), search.extraNodes());
     }
 
-    private static int activity(ChessPosition board, Move move) {
+    private int visitsAfter(Move move) {
+        return occurrences(position().playGenerated(move), positions.size() - 1);
+    }
+
+    static int activity(ChessPosition board, Move move) {
         Kind kind = board.pieceAt(move.from()).kind();
         int centralization = center(move.to()) - center(move.from());
         return switch (kind) {

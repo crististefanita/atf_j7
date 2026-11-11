@@ -17,7 +17,10 @@ public record QuestProgress(String currentId, Set<String> solvedIds) {
 
     public static QuestProgress restore(String savedId, Set<String> solvedIds, List<String> order) {
         if (order.isEmpty()) throw new IllegalArgumentException("Cannot restore progress with an empty catalog");
-        return new QuestProgress(savedId != null && order.contains(savedId) ? savedId : order.get(0), solvedIds);
+        String current = savedId;
+        if (current == null) current = order.get(0);
+        else if (!order.contains(current)) current = order.stream().filter(id -> !solvedIds.contains(id)).findFirst().orElse(order.get(0));
+        return new QuestProgress(current, solvedIds);
     }
 
     public QuestProgress select(String id) { return new QuestProgress(id, solvedIds); }

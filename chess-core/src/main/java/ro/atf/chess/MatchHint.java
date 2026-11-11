@@ -18,6 +18,8 @@ public final class MatchHint {
     public TacticalAnalysis.Variation first() { return lines.get(0); }
     public TacticalAnalysis.Variation revealed() { return index < 0 ? null : lines.get(index); }
 
+    public void hide() { index = -1; }
+
     public void revealNext() {
         if (!lines.isEmpty()) index = (index + 1) % lines.size();
     }

@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +19,9 @@ class TacticsCatalogTest {
         var catalog = QuestCatalog.loadTactics();
         var proof = new StringBuilder();
         check.same("The initial chapter has twelve tactics", 12, catalog.size());
-        for (var quest : catalog) {
+        check.same("The YAML difficulty starts with a direct capture and ends with a quiet key",
+                List.of("tactic-005", "tactic-012"), List.of(catalog.getFirst().id(), catalog.getLast().id()));
+        for (var quest : catalog.stream().sorted(Comparator.comparing(QuestCatalog.Quest::id)).toList()) {
             var variations = TacticalAnalysis.analyze(quest.position(), 3);
             var best = variations.best().get(0);
             check.same(quest.id() + " has a single best move", List.of(quest.solution()), variations.best().stream().map(TacticalAnalysis.Variation::move).toList());

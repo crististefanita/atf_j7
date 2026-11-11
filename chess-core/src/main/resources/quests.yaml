@@ -33,16 +33,8 @@ quests:
     fen: "8/8/5p2/6Pk/1P3n1p/5N1P/1P2N3/5K2 w - - 3 44"
     solution: e2f4
     theme: TACTIC
-  - id: mate-009
-    fen: "3k4/8/3KP2p/7P/5P2/1P3P2/6R1/8 w - - 5 50"
-    solution: g2g8
-    theme: TACTIC
   - id: mate-010
     fen: "r1b5/p2pb1pQ/2q2k2/1P6/6P1/2P5/7r/4K2R w K - 0 28"
-    solution: h7f5
-    theme: TACTIC
-  - id: mate-011
-    fen: "r1b5/p2pb1pQ/2q2k2/1p6/P5P1/2P4r/7P/4K2R w K - 0 27"
     solution: h7f5
     theme: TACTIC
   - id: mate-012
@@ -57,10 +49,6 @@ quests:
     fen: "3k4/3pp3/n5pn/2p4p/8/4PRBP/b1r5/R5K1 w - - 0 26"
     solution: f3f8
     theme: TACTIC
-  - id: mate-015
-    fen: "3k4/3pp3/n5pn/2p4p/8/4PRBP/Rr6/6K1 w - - 1 27"
-    solution: f3f8
-    theme: TACTIC
   - id: mate-016
     fen: "rnb2b1r/3kBpp1/ppp5/7p/PP3P1q/6P1/3PP3/RN1QKBN1 b Q - 0 11"
     solution: h4g3
@@ -69,18 +57,10 @@ quests:
     fen: "7k/1p6/3p1pR1/p2P4/P7/1BK5/R7/8 w - - 0 42"
     solution: a2h2
     theme: TACTIC
-  - id: mate-018
-    fen: "6n1/4r2p/6k1/P4R2/1b5P/3P4/2P2PP1/3K1B1R b - - 2 34"
-    solution: e7e1
-    theme: TACTIC
   - id: mate-019
     fen: "3k4/1P6/4K3/8/8/5B2/2B5/8 w - - 5 57"
     solution: b7b8q
     theme: PROMOTION
-  - id: mate-020
-    fen: "6n1/p3rk1p/8/8/P2R3P/2bP4/2P2PP1/3K1B1R b - - 2 27"
-    solution: e7e1
-    theme: TACTIC
   - id: mate-021
     fen: "rnb1k1nr/pppp2p1/7p/4p3/P3Pp2/3K1P2/2PPQ1PP/RNB2BqR b kq - 1 9"
     solution: g1d4
@@ -89,49 +69,17 @@ quests:
     fen: "8/8/3pkb2/4q3/8/8/K7/8 b - - 13 62"
     solution: e5b2
     theme: TACTIC
-  - id: mate-023
-    fen: "4r1n1/7p/6k1/PR6/1b5P/3P4/2P2PP1/3K1B1R b - - 0 33"
-    solution: e8e1
-    theme: TACTIC
-  - id: mate-024
-    fen: "rnb1kb1r/4ppp1/ppp2B2/7p/PP3P1q/6P1/3PP3/RN1QKBN1 b Qkq - 0 10"
-    solution: h4g3
-    theme: TACTIC
   - id: mate-025
     fen: "8/r3k3/3p4/5p2/7n/8/7r/2K5 b - - 7 37"
     solution: a7a1
-    theme: TACTIC
-  - id: mate-026
-    fen: "3R2n1/p3rk1p/8/8/7P/2bP4/P1P2PP1/3K1B1R b - - 1 25"
-    solution: e7e1
-    theme: TACTIC
-  - id: mate-027
-    fen: "6n1/4rk1p/8/p2R4/P6P/2bP4/2P2PP1/3K1B1R b - - 1 28"
-    solution: e7e1
     theme: TACTIC
   - id: mate-028
     fen: "rnbqkbn1/3p1ppr/3p4/p1p5/5pP1/PP6/2PPP2P/R1BQKB1R b Kq - 2 11"
     solution: d8h4
     theme: TACTIC
-  - id: mate-029
-    fen: "r1b1k1nr/pppp4/2n3pp/4p3/P3Pp2/3K1P2/2PPQ1PP/RNB2BqR b kq - 1 11"
-    solution: g1d4
-    theme: TACTIC
   - id: mate-030
     fen: "4r1k1/5Rb1/8/1P3pQ1/3Pp3/q3P3/5P2/4K3 w - - 0 32"
     solution: g5g7
-    theme: TACTIC
-  - id: mate-031
-    fen: "4r1k1/1R4b1/8/1Pq2pQ1/3Pp3/4P3/5P2/4K3 w - - 2 33"
-    solution: g5g7
-    theme: TACTIC
-  - id: mate-032
-    fen: "4r1k1/1R1Q4/8/7q/3Pp3/8/5P2/4K3 w - - 2 37"
-    solution: d7g7
-    theme: TACTIC
-  - id: mate-033
-    fen: "rnb2b2/3kBpp1/ppp4r/5P1p/PP5q/6P1/3PP3/RN1QKBN1 b Q - 0 12"
-    solution: h4g3
     theme: TACTIC
   - id: mate-034
     fen: "8/8/2p3p1/P7/6Q1/1k6/1P1PPp2/R1B2KN1 w - - 0 31"
@@ -149,25 +97,9 @@ quests:
     fen: "1nb1k3/3p1p1p/2r2p1R/p3p3/3p1PB1/B2KP3/P1P5/R2Qq3 b - - 0 21"
     solution: e1e3
     theme: TACTIC
-  - id: mate-038
-    fen: "4r1n1/5k1p/8/1R6/Pb5P/3P4/2P2PP1/3K1B1R b - - 2 32"
-    solution: e8e1
-    theme: TACTIC
-  - id: mate-039
-    fen: "3k4/3pp3/n5pn/2p4p/8/4P1BP/brP5/R4RK1 w - - 0 25"
-    solution: f1f8
-    theme: TACTIC
-  - id: mate-040
-    fen: "3k4/3pp3/n5pn/5R1p/2p5/4P1BP/Rr6/6K1 w - - 0 28"
-    solution: f5f8
-    theme: TACTIC
   - id: mate-041
     fen: "8/2r1k3/3p4/5p2/7n/8/4r3/K7 b - - 11 39"
     solution: c7c1
-    theme: TACTIC
-  - id: mate-042
-    fen: "rnbqkbn1/3p1pp1/3p4/p1p5/2P2pP1/PP6/3PP2r/R1BQKB1R b Kq - 0 12"
-    solution: d8h4
     theme: TACTIC
   - id: mate-043
     fen: "rn2k3/p1p2p2/2r5/1p6/P4Pbp/1P2p3/R6P/1N2KRN1 b - - 2 25"
@@ -176,10 +108,6 @@ quests:
   - id: mate-044
     fen: "1nbq1br1/2pppQ2/3k2p1/8/4P3/3P4/PP1P1PPP/RNB1K1NR w KQ - 3 11"
     solution: f7d5
-    theme: TACTIC
-  - id: mate-045
-    fen: "3R2n1/p3r2p/6k1/8/P6P/2bP4/2P2PP1/3K1B1R b - - 0 26"
-    solution: e7e1
     theme: TACTIC
   - id: mate-046
     fen: "1b2k1r1/6p1/q3p2B/8/4N2P/5P2/1P6/5R1K b - - 0 27"
@@ -201,17 +129,9 @@ quests:
     fen: "5Q2/3n4/2p5/8/3k2P1/3P4/R2KP3/8 w - - 3 35"
     solution: f8d6
     theme: TACTIC
-  - id: mate-051
-    fen: "rnbqkbn1/3p1pp1/3p4/p1p5/5pP1/PP5r/R1PPP2P/2BQKB1R b Kq g3 0 10"
-    solution: d8h4
-    theme: TACTIC
   - id: mate-052
     fen: "8/p4p1p/3b4/5k2/8/2N5/2PK4/2n3r1 b - - 7 39"
     solution: d6f4
-    theme: TACTIC
-  - id: mate-053
-    fen: "1b2k1r1/6p1/4p2p/1q6/4N2P/5P2/1P6/2B2R1K b - - 2 26"
-    solution: b5f1
     theme: TACTIC
   - id: mate-054
     fen: "8/8/4Q3/8/5ppk/PR1P4/P4P2/4K1N1 w - - 2 30"
@@ -219,10 +139,6 @@ quests:
     theme: TACTIC
   - id: mate-055
     fen: "r1bqkbn1/pp1pp3/2p5/5Pp1/1n1PPP2/6K1/PPP5/RNBQ2NR w q g6 0 12"
-    solution: d1h5
-    theme: TACTIC
-  - id: mate-056
-    fen: "r1bqkbn1/1p1pp3/p1p5/5PP1/3PP3/6KR/nPP5/RNBQ2N1 w q - 0 14"
     solution: d1h5
     theme: TACTIC
   - id: mate-057
@@ -249,10 +165,6 @@ quests:
     fen: "4Q3/3N4/1K1k4/8/4P3/8/2R4P/5n1R w - - 0 44"
     solution: c2c6
     theme: TACTIC
-  - id: mate-063
-    fen: "r1bqkbn1/pp1pp3/2p5/5PP1/3PP3/6K1/nPP5/RNBQ2NR w q - 0 13"
-    solution: d1h5
-    theme: TACTIC
   - id: mate-064
     fen: "1r2kbQr/ppQ2p1p/8/8/P3p1b1/8/RP1PPPP1/2B1KBN1 w k - 1 15"
     solution: g8f7
@@ -261,17 +173,9 @@ quests:
     fen: "rnb1kb1r/1p1p1p1p/p3p1p1/5nq1/8/2pPPP2/PN3KPP/R2Q1BNR b kq - 1 10"
     solution: g5e3
     theme: TACTIC
-  - id: mate-066
-    fen: "1n2k1nr/2p1pp2/7q/1r4N1/3PP3/6P1/5P2/2B3K1 b k - 2 22"
-    solution: h6h1
-    theme: TACTIC
   - id: mate-067
     fen: "1R1r1k1r/3bnpp1/p4N1p/4N3/3P4/8/P2KP1PP/5B1R w - - 1 22"
     solution: e5d7
-    theme: TACTIC
-  - id: mate-068
-    fen: "4k3/8/3Q4/8/5P2/2KB3p/1P1N4/1N5b w - - 2 40"
-    solution: d3g6
     theme: TACTIC
   - id: mate-069
     fen: "1rbqkbn1/1p1pp3/p1p5/5PP1/3PP3/6KR/RPP5/1NBQ2N1 w - - 1 15"
@@ -284,10 +188,6 @@ quests:
   - id: mate-071
     fen: "rnbk3r/1B1p1ppp/2p5/2b1B3/1P2P3/n4p1q/3P3P/RN1RK3 b - - 0 18"
     solution: a3c2
-    theme: TACTIC
-  - id: mate-072
-    fen: "4kb1r/r1p3p1/p4p1n/P2B1n2/8/1PPP1b1P/2N2N1K/r7 b k - 0 24"
-    solution: f8d6
     theme: TACTIC
   - id: mate-073
     fen: "r1b1k3/p4n2/4p2n/p2r1q2/7K/8/8/8 b q - 13 41"
@@ -309,10 +209,6 @@ quests:
     fen: "BB3bnr/4p1p1/4kp1p/p6Q/b3p3/7P/PPP3PR/RN2K1N1 w - - 2 16"
     solution: h5d5
     theme: TACTIC
-  - id: mate-078
-    fen: "1r2kb1r/1pQ2pQp/8/p7/P3p1b1/8/RP1PPPP1/2B1KBN1 w k - 0 16"
-    solution: g7f7
-    theme: TACTIC
   - id: mate-079
     fen: "3n4/3p4/3p3k/5p2/8/pp3q2/3K4/6r1 b - - 5 53"
     solution: g1d1
@@ -324,10 +220,6 @@ quests:
   - id: mate-081
     fen: "rn4n1/p1pp1k2/1P6/5p2/Nr4q1/R7/2P2P1P/5K2 b - - 0 22"
     solution: b4b1
-    theme: TACTIC
-  - id: mate-082
-    fen: "8/7k/8/8/3Qp3/3P2R1/P3K2P/4R3 w - - 0 36"
-    solution: d4g7
     theme: TACTIC
   - id: mate-083
     fen: "rn2k1nr/pb1p2pp/8/4p3/1P1b2P1/7N/P3PP1P/1RqQKB1R b K - 1 13"
@@ -353,20 +245,12 @@ quests:
     fen: "r1b1k3/p4n2/4p3/p6r/6n1/8/7q/5K2 b q - 21 45"
     solution: h2f2
     theme: TACTIC
-  - id: mate-089
-    fen: "rn2k1nr/pb1p2pp/4p3/8/1P1b2P1/7N/P3PP1P/R1qQKB1R b KQ - 0 12"
-    solution: d4c3
-    theme: TACTIC
   - id: mate-090
     fen: "rn4nr/4p2p/Bpp1k3/5p2/1P1Q1P1P/2P5/P4KP1/1R5R w - - 1 17"
     solution: a6c4
     theme: TACTIC
   - id: mate-091
     fen: "4k3/3p3R/2p5/5pp1/2Q1P3/8/1P1B1P2/1N2KBN1 w - - 0 24"
-    solution: c4g8
-    theme: TACTIC
-  - id: mate-092
-    fen: "4k3/3p3R/2p5/6p1/2Q1Pp2/8/1P1B1P2/1N1K1BN1 w - - 0 25"
     solution: c4g8
     theme: TACTIC
   - id: mate-093
@@ -381,17 +265,9 @@ quests:
     fen: "r1b3r1/ppppk3/7K/n1P1p3/2q5/7P/8/4b3 b - - 0 31"
     solution: c4h4
     theme: TACTIC
-  - id: mate-096
-    fen: "r1b3r1/pppp1k2/2P4K/n3p3/2q5/7P/8/4b3 b - - 0 32"
-    solution: c4h4
-    theme: TACTIC
   - id: mate-097
     fen: "8/8/7k/8/3QP3/6R1/P3K2P/4R3 w - - 1 37"
     solution: d4h8
-    theme: TACTIC
-  - id: mate-098
-    fen: "8/7k/8/8/3QP3/6R1/P3K2P/7R w - - 3 38"
-    solution: d4g7
     theme: TACTIC
   - id: mate-099
     fen: "r1b1k3/p4n2/4p3/p6r/5qn1/8/8/6K1 b q - 19 44"
@@ -408,4 +284,159 @@ quests:
   - id: mate-102
     fen: "8/8/8/3p1p2/P5nR/1P5P/4PK1k/8 w - - 1 39"
     solution: h3g4
+    theme: TACTIC
+  # Calibration game 1320-05.pgn, before ply 73
+  - id: mate-103
+    fen: "k3r3/5R2/2p5/r4pbp/1p2p3/8/1P2NPPB/R4K2 w - - 2 37"
+    solution: a1a5
+    theme: TACTIC
+  # Calibration game 1320-21.pgn, before ply 78
+  - id: mate-104
+    fen: "k7/8/p7/p3p1p1/P2r2P1/1pb5/8/1K6 b - - 3 39"
+    solution: d4d1
+    theme: TACTIC
+  # Calibration game 1320-02.pgn, before ply 55
+  - id: mate-105
+    fen: "r1b5/1p1pQR2/6pk/p1p4p/2P1P3/1P4P1/P1P4P/R5K1 w - - 9 28"
+    solution: f7h7
+    theme: TACTIC
+  # Calibration game 1320-15.pgn, before ply 70
+  - id: mate-106
+    fen: "7k/8/1p2p2p/1r1P4/4n3/P6P/3r2P1/4K3 b - - 0 35"
+    solution: b5b1
+    theme: TACTIC
+  # Calibration game 1320-19.pgn, before ply 45
+  - id: mate-107
+    fen: "r1b2rk1/1p3p2/4pB2/pB1pP2p/P7/1KPQP1q1/7P/6RR w - - 3 23"
+    solution: g1g3
+    theme: TACTIC
+  # Calibration game 1320-04.pgn, before ply 62
+  - id: mate-108
+    fen: "7k/8/1bB1p1p1/5p1r/1P4p1/2P3KP/P4NR1/8 b - - 1 31"
+    solution: b6c7
+    theme: TACTIC
+  # Calibration game 1320-18.pgn, before ply 179
+  - id: mate-109
+    fen: "7k/R7/2R5/7p/7P/4K3/8/8 w - - 9 90"
+    solution: c6c8
+    theme: TACTIC
+  # Calibration game 1320-03.pgn, before ply 34
+  - id: mate-110
+    fen: "rn2k2r/p1p2ppp/1p2p3/8/1b2qB2/6NN/PP3P1n/R5Kb b kq - 1 17"
+    solution: e4g2
+    theme: TACTIC
+  # Calibration game 1500-24.pgn, before ply 149
+  - id: mate-111
+    fen: "6Q1/1R4P1/8/k2B4/5N2/8/7p/7K w - - 1 75"
+    solution: g8a8
+    theme: TACTIC
+  # Calibration game 1500-09.pgn, before ply 82
+  - id: mate-112
+    fen: "2k5/8/3r3P/1pp5/1r4p1/K3b3/8/8 b - - 6 41"
+    solution: d6a6
+    theme: TACTIC
+  # Calibration game 1320-06.pgn, before ply 73
+  - id: mate-113
+    fen: "6k1/6q1/3P2Q1/p1p1B3/P3p1b1/7P/6P1/R5K1 w - - 1 37"
+    solution: g6g7
+    theme: TACTIC
+  # Calibration game 1320-17.pgn, before ply 58
+  - id: mate-114
+    fen: "3r2k1/p1p2p1p/2p2qp1/4P3/4K3/P7/2P2bPP/3R3R b - - 0 29"
+    solution: f6f5
+    theme: TACTIC
+  # Calibration game 1320-01.pgn, before ply 103
+  - id: mate-115
+    fen: "4r1k1/5p2/3rpQ1B/2p1Pp2/pP1P4/6P1/R6P/5RK1 w - - 1 52"
+    solution: f6g7
+    theme: TACTIC
+  # Calibration game 1500-15.pgn, before ply 82
+  - id: mate-116
+    fen: "7k/8/p5q1/p1ppp3/P2bbpPK/8/8/8 b - - 3 41"
+    solution: g6h6
+    theme: TACTIC
+  # Calibration game 1320-07.pgn, before ply 83
+  - id: mate-117
+    fen: "2k5/Q7/1P2r3/3b1p1p/3B3p/5P2/6PK/8 w - - 2 42"
+    solution: a7c7
+    theme: TACTIC
+  # Calibration game 1320-22.pgn, before ply 54
+  - id: mate-118
+    fen: "r4rk1/1p3ppp/1p1p4/n1pP4/4nP1b/5Bq1/8/7K b - - 0 27"
+    solution: e4f2
+    theme: TACTIC
+  # Calibration game 1500-07.pgn, before ply 79
+  - id: mate-119
+    fen: "3r3r/p2b3p/Qpk1p3/3p4/1B3P2/P1b5/5KPP/2R5 w - - 2 40"
+    solution: c1c3
+    theme: TACTIC
+  # Calibration game 1500-12.pgn, before ply 68
+  - id: mate-120
+    fen: "k7/4b3/p7/Q5p1/2pN2p1/2K1P3/PP2bP2/3q4 b - - 5 34"
+    solution: d1d3
+    theme: TACTIC
+  # Calibration game 1320-08.pgn, before ply 69
+  - id: mate-121
+    fen: "3r2k1/8/1p5Q/pNpqBp1p/6P1/P5P1/3R3K/8 w - - 0 35"
+    solution: h6g7
+    theme: TACTIC
+  # Calibration game 1320-12.pgn, before ply 82
+  - id: mate-122
+    fen: "5rk1/5p2/4bbp1/1p1p1P1p/3q4/1p3PPK/8/6q1 b - - 3 41"
+    solution: g1h1
+    theme: TACTIC
+  # Calibration game 1320-13.pgn, before ply 105
+  - id: mate-123
+    fen: "5r2/3b1k2/3qN2R/1p1p1p2/3N1P1B/P2K3P/6Q1/8 w - - 3 53"
+    solution: g2g6
+    theme: TACTIC
+  # Calibration game 1320-09.pgn, before ply 35 (colors and ranks reflected)
+  - id: mate-124
+    fen: "1r3rk1/p2b1ppp/8/P3p1q1/3PBn2/P4P2/3P1P1P/R1BQ1R1K b - - 4 18"
+    solution: g5g2
+    theme: TACTIC
+  # Calibration game 1500-08.pgn, before ply 163
+  - id: mate-125
+    fen: "7k/5Q2/8/8/8/K3B3/8/8 w - - 4 82"
+    solution: e3d4
+    theme: TACTIC
+  # Calibration game 1320-14.pgn, before ply 107 (colors and ranks reflected)
+  - id: mate-126
+    fen: "8/3k4/3P4/5ppP/6n1/8/r7/4r1BK b - - 3 54"
+    solution: a2h2
+    theme: TACTIC
+  # Calibration game 1500-04.pgn, before ply 151
+  - id: mate-127
+    fen: "2Q5/k7/pb6/8/1p1N4/1R6/4N3/3K4 w - - 11 76"
+    solution: d4c6
+    theme: TACTIC
+  # Calibration game 1500-21.pgn, before ply 73 (colors and ranks reflected)
+  - id: mate-128
+    fen: "3r4/p4kp1/2p5/2P4p/P4P1P/6rq/6R1/4B1K1 b - - 7 37"
+    solution: h3g2
+    theme: TACTIC
+  # Calibration game 1500-01.pgn, before ply 119
+  - id: mate-129
+    fen: "8/5Q2/3Q4/4p1k1/6p1/6p1/6P1/6K1 w - - 2 60"
+    solution: d6f6
+    theme: TACTIC
+  # Calibration game 1500-18.pgn, before ply 101 (colors and ranks reflected)
+  - id: mate-130
+    fen: "6k1/6n1/7p/PP1q4/6Pn/8/8/6K1 b - - 20 51"
+    solution: d5g2
+    theme: TACTIC
+  # Calibration game 1500-13.pgn, before ply 99 (colors and ranks reflected)
+  - id: mate-131
+    fen: "8/6pk/7p/p2PRP1P/P2PP3/2r3q1/8/1r3R1K b - - 3 50"
+    solution: b1f1
+    theme: TACTIC
+  # Calibration game 1320-11.pgn, before ply 143 (colors and ranks reflected)
+  - id: mate-132
+    fen: "2r5/4k2P/4P2P/8/1p1K4/2n5/8/1q6 b - - 11 72"
+    solution: b1e4
+    theme: TACTIC
+  # Calibration game 1500-10.pgn, before ply 37 (colors and ranks reflected)
+  - id: mate-133
+    fen: "4k2r/1p2b1pp/p1n5/2P3N1/QP2nrbK/8/P3P1PP/RNq2B1R b k - 5 19"
+    solution: e7g5
     theme: TACTIC

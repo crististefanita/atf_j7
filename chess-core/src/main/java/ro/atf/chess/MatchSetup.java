@@ -24,14 +24,6 @@ public record MatchSetup(Side humanSide, Level level, boolean analysisEnabled) {
     }
 
     public enum Level {
-        BASIC(3, 0), ADVANCED(4, 12_000), HARD(5, 40_000);
-
-        final int maxPlies;
-        final int extraNodes;
-
-        Level(int maxPlies, int extraNodes) {
-            this.maxPlies = maxPlies;
-            this.extraNodes = extraNodes;
-        }
+        BASIC, ADVANCED, HARD
     }
 }

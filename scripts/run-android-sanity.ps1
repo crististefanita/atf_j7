@@ -8,6 +8,7 @@ param(
     [int]$AdbPort = 5037,
     [switch]$Distribution,
     [switch]$AnalysisOnly,
+    [switch]$OpeningsOnly,
     [string]$SourceCommit
 )
 $ErrorActionPreference = 'Stop'
@@ -19,6 +20,7 @@ $app = if ($Distribution) { 'ro.atf.chess.android' } else { 'ro.atf.chess.androi
 $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
 if ($AnalysisOnly -and $Distribution) { throw 'AnalysisOnly uses the isolated sanity package.' }
+if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
 $native = 'android/app/build/outputs/apk'
 $apk = Join-Path $root "$native/$variant/app-$variant.apk"
 $tests = Join-Path $root "$native/androidTest/$variant/app-$variant-androidTest.apk"
@@ -113,6 +115,22 @@ try {
     $runner = "$app.test/ro.atf.chess.android.BoardSanity"
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
+    if ($OpeningsOnly) {
+        $lines = @(Invoke-Device ($instrument + @('-e','phase','openings',$runner)))
+        $lines | Set-Content -LiteralPath (Join-Path $run 'openings.txt') -Encoding utf8NoBOM
+        $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
+        if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne 15) {
+            Receive-Frame 'failure'
+            throw "Opening lessons did not pass. See $run."
+        }
+        Receive-Frame 'opening-catalog'
+        Receive-Frame 'opening-catalog-end'
+        Receive-Frame 'opening-hint'
+        Receive-Frame 'opening-ai'
+        [ordered]@{status='PASS'; scope='openings-only'; device=$Serial; api=$api; apkSha256=$hash; assertions=$passed.Count} |
+            ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'execution.json') -Encoding utf8NoBOM
+        return
+    }
     if ($AnalysisOnly) {
         $pids = @()
         $checks = [ordered]@{}
@@ -120,7 +138,7 @@ try {
             $lines = @(Invoke-Device ($instrument + @('-e','phase',$phase,$runner)))
             $lines | Set-Content -LiteralPath (Join-Path $run "$phase.txt") -Encoding utf8NoBOM
             $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
-            $expected = if ($phase -eq 'analysis-prepare') { 12 } else { 9 }
+            $expected = if ($phase -eq 'analysis-prepare') { 14 } else { 9 }
             if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne $expected) {
                 Receive-Frame 'failure'
                 throw "Analysis phase $phase did not pass. See $run."
@@ -129,7 +147,7 @@ try {
             $pidLine = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: pid=[0-9]+$' })
             if ($pidLine.Count -ne 1) { throw "Missing process identity for $phase." }
             $pids += $pidLine[0].Split('=')[1]
-            if ($phase -eq 'analysis-prepare') { Receive-Frame 'match-analysis' }
+            if ($phase -eq 'analysis-prepare') { Receive-Frame 'match-analysis'; Receive-Frame 'match-captures' }
             else { Receive-Frame 'match-setup'; Receive-Frame 'match-black' }
             Invoke-Device @('shell','am','force-stop',$app)
         }

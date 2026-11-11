@@ -3,8 +3,16 @@
     <item name="match_analysis" type="id" />
     <item name="match_hint" type="id" />
     <item name="match_evaluation_bar" type="id" />
+    <item name="match_top_captures" type="id" />
+    <item name="match_bottom_captures" type="id" />
     <item name="match_history_previous" type="id" />
     <item name="match_history_next" type="id" />
     <item name="match_history_latest" type="id" />
     <item name="match_history_moves" type="id" />
+    <item name="opening_catalog" type="id" />
+    <item name="opening_progress" type="id" />
+    <item name="opening_board" type="id" />
+    <item name="opening_message" type="id" />
+    <item name="opening_theory_hint" type="id" />
+    <item name="opening_toggle_ai" type="id" />
 </resources>

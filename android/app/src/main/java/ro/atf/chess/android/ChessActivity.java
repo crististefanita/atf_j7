@@ -86,6 +86,8 @@ public final class ChessActivity extends Activity {
     private TextView status;
     private TextView topPlayer;
     private TextView bottomPlayer;
+    private MatchCapturesView topCaptures;
+    private MatchCapturesView bottomCaptures;
     private TextView recentMove;
     private TextView solvedCount;
     private TextView milestone;
@@ -163,6 +165,7 @@ public final class ChessActivity extends Activity {
         profile.setOnClickListener(view -> PlayerNameEditor.show(this, store.playerName(), store::savePlayerName,
                 () -> profile.setText(getString(R.string.profile_name, humanName()))));
         menu.findViewById(R.id.open_puzzles).setOnClickListener(view -> showPuzzles());
+        menu.findViewById(R.id.open_openings).setOnClickListener(view -> startActivity(new android.content.Intent(this, OpeningActivity.class)));
         menu.findViewById(R.id.new_match).setOnClickListener(view -> showMatchSetup());
         View resume = menu.findViewById(R.id.resume_match);
         resume.setVisibility(match == null ? View.GONE : View.VISIBLE);
@@ -309,7 +312,15 @@ public final class ChessActivity extends Activity {
         bottomPlayer = playerLabel();
         board = new BoardView(this, this::tap);
         matchAnalysis = inMatch && match.analysisEnabled() ? new MatchAnalysisView(this, this::notation, this::renderMatch) : null;
-        screen.addView(new BoardPanel(this, topPlayer, board, bottomPlayer, matchAnalysis == null ? null : matchAnalysis.evaluationBar()),
+        View topSeat = topPlayer;
+        View bottomSeat = bottomPlayer;
+        if (inMatch) {
+            topCaptures = new MatchCapturesView(this, R.id.match_top_captures);
+            bottomCaptures = new MatchCapturesView(this, R.id.match_bottom_captures);
+            topSeat = matchSeat(topPlayer, topCaptures);
+            bottomSeat = matchSeat(bottomPlayer, bottomCaptures);
+        }
+        screen.addView(new BoardPanel(this, topSeat, board, bottomSeat, matchAnalysis == null ? null : matchAnalysis.evaluationBar()),
                 new LinearLayout.LayoutParams(-1, 0, 1));
         status = text(R.string.mate_objective, 16, PRIMARY);
         status.setGravity(Gravity.CENTER);
@@ -458,12 +469,9 @@ public final class ChessActivity extends Activity {
     }
 
     private void openChapter(int index) {
-        var destination = chapters.get(index);
-        String first = destination.ids().get(0);
-        String remembered = store.remembered(first);
-        var chapterIds = destination.ids();
-        String target = chapterIds.contains(remembered) ? remembered : first;
-        if (!save(progress.select(target))) return;
+        var chapterIds = chapters.get(index).ids();
+        var resumed = QuestProgress.restore(store.remembered(chapterIds.get(0)), progress.solvedIds(), chapterIds);
+        if (!save(resumed)) return;
         displayChapter(index);
         render();
         scheduleDefense();
@@ -509,6 +517,15 @@ public final class ChessActivity extends Activity {
         label.setPadding(dp(14), dp(6), dp(14), dp(6));
         BoardCaption.reserve(label, 1);
         return label;
+    }
+
+    private View matchSeat(TextView name, MatchCapturesView captures) {
+        var seat = new LinearLayout(this);
+        seat.setOrientation(LinearLayout.VERTICAL);
+        name.setPadding(dp(14), dp(4), dp(14), 0);
+        seat.addView(name, new LinearLayout.LayoutParams(-2, -2));
+        seat.addView(captures, new LinearLayout.LayoutParams(-2, -2));
+        return seat;
     }
 
     private TextView text(int label, int size, int color) {
@@ -778,6 +795,9 @@ public final class ChessActivity extends Activity {
         var bottom = blackBelow ? ChessPosition.Side.BLACK : ChessPosition.Side.WHITE;
         renderMatchPlayer(topPlayer, bottom.other(), markTurn && shownPosition.turn() == bottom.other());
         renderMatchPlayer(bottomPlayer, bottom, markTurn && shownPosition.turn() == bottom);
+        var material = match.materialAt(ply);
+        topCaptures.show(bottom.other(), material.forSide(bottom.other()));
+        bottomCaptures.show(bottom, material.forSide(bottom));
         recentMove.setText(shownMove == null
                 ? getString(R.string.match_history_initial_position)
                 : getString(reviewing ? R.string.match_history_showing_move : R.string.match_last_move, notation(shownMove)));

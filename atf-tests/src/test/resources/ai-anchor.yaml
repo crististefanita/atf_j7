@@ -1,0 +1,5 @@
+schema: 1
+stockfish: "Stockfish 19"
+uci-elo: 1500
+nodes-per-move: 6000
+openings: [english-symmetrical, pirc-austrian, nimzo-rubinstein, kings-gambit, slav, catalan, vienna, petroff, modern-benoni, reti, dutch, alekhine]

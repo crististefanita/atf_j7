@@ -6,6 +6,12 @@ import ro.atf.chess.ChessPosition.Side;
 
 /** Normalizes a side-to-move search score to the same perspective across a match. */
 public record MatchEvaluation(TacticalAnalysis.Ending ending, int whiteCentipawns, int whiteMateMoves) {
+    public static MatchEvaluation forPosition(ChessPosition position, TacticalAnalysis.Variation best) {
+        if (best.ending() != TacticalAnalysis.Ending.HORIZON) return from(position.turn(), best);
+        int perspective = position.turn() == Side.WHITE ? 1 : -1;
+        return new MatchEvaluation(best.ending(), perspective * TacticalAnalysis.positionEstimate(position, best.score()), 0);
+    }
+
     public static MatchEvaluation from(Side turn, TacticalAnalysis.Variation variation) {
         int perspective = turn == Side.WHITE ? 1 : -1;
         return switch (variation.ending()) {

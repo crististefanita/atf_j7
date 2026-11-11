@@ -4,7 +4,6 @@ import static ro.atf.chess.ChessYaml.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,13 +12,13 @@ import ro.atf.chess.ChessPosition.Side;
 
 final class ChessRules {
     record Vector(int file, int rank) { }
-    record Pattern(boolean ray, List<Vector> vectors) { }
     record Pawn(int forward, int home, int promotion) { }
     record Castle(int rookFrom, int kingTo, int rookTo) { }
 
     static final ChessRules STANDARD = new ChessRules(resource("chess-rules.yaml"));
 
-    private final Map<Kind, Pattern> patterns = new EnumMap<>(Kind.class);
+    private final boolean[] rays = new boolean[Kind.values().length];
+    private final boolean[][][] directions = new boolean[Kind.values().length][5][5];
     private final Pawn white;
     private final Pawn black;
     final int initialAdvance;
@@ -50,7 +49,8 @@ final class ChessRules {
                 vectors.add(new Vector(x, y));
             }
             if (new HashSet<>(vectors).size() != vectors.size()) throw invalid();
-            patterns.put(kind, new Pattern(ray, Collections.unmodifiableList(vectors)));
+            rays[kind.ordinal()] = ray;
+            for (Vector vector : vectors) directions[kind.ordinal()][vector.file() + 2][vector.rank() + 2] = true;
         }
         var pawn = map(root, "pawn");
         white = pawn(map(pawn, "white"), 1, 2, 8);
@@ -72,7 +72,11 @@ final class ChessRules {
 
     Pawn pawn(Side side) { return side == Side.WHITE ? white : black; }
 
-    Pattern pattern(Kind kind) { return patterns.get(kind); }
+    boolean ray(Kind kind) { return rays[kind.ordinal()]; }
+
+    boolean direction(Kind kind, int dx, int dy) {
+        return Math.abs(dx) <= 2 && Math.abs(dy) <= 2 && directions[kind.ordinal()][dx + 2][dy + 2];
+    }
 
     private static Pawn pawn(Map<?, ?> data, int forward, int home, int promotion) {
         Pawn rule = new Pawn(number(data, "forward"), number(data, "home") - 1, number(data, "promotion") - 1);

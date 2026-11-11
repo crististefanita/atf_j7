@@ -1,0 +1,35 @@
+schema: 1
+# Saved progress can still contain these IDs. Do not assign them to new exercises.
+ids:
+  - mate-009
+  - mate-011
+  - mate-015
+  - mate-018
+  - mate-020
+  - mate-023
+  - mate-024
+  - mate-026
+  - mate-027
+  - mate-029
+  - mate-031
+  - mate-032
+  - mate-033
+  - mate-038
+  - mate-039
+  - mate-040
+  - mate-042
+  - mate-045
+  - mate-051
+  - mate-053
+  - mate-056
+  - mate-063
+  - mate-066
+  - mate-068
+  - mate-072
+  - mate-078
+  - mate-082
+  - mate-089
+  - mate-092
+  - mate-096
+  - mate-098
+  - mate3-02GAF

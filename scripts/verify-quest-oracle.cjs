@@ -1,17 +1,35 @@
 const fs = require('node:fs');
 const { createHash } = require('node:crypto');
-const { resolve } = require('node:path');
+const { dirname, join, resolve } = require('node:path');
 
-const [modulePath, yamlPath, oraclePath] = process.argv.slice(2);
-if (!modulePath || !yamlPath) throw Error('Usage: node verify-quest-oracle.cjs <chess.js CJS file> <quests.yaml> [quest-oracle.yaml]');
-const { Chess } = require(resolve(modulePath));
-const yaml = fs.readFileSync(yamlPath, 'utf8').replaceAll('\r\n', '\n');
-const rows = [...yaml.matchAll(/^  - id: (mate-\d{3})\n    fen: "([^"\n]+)"\n    solution: ([a-h][1-8][a-h][1-8][qrbn]?)\n    theme: (TACTIC|PROMOTION|EN_PASSANT|CASTLING)$/gm)];
-if (rows.length !== 102) throw Error('Expected 102 canonical entries');
+const [modulePath, inputPath, oraclePath] = process.argv.slice(2);
+if (!modulePath || !inputPath) throw Error('Usage: node verify-quest-oracle.cjs <chess.js CJS file> <quest TSV or -> [quest-oracle.yaml]');
+const engine = resolve(modulePath);
+let folder = dirname(engine);
+while (!fs.existsSync(join(folder, 'package.json')) && folder !== dirname(folder)) folder = dirname(folder);
+const manifest = join(folder, 'package.json');
+const pkg = fs.existsSync(manifest) ? JSON.parse(fs.readFileSync(manifest, 'utf8')) : {};
+if (pkg.name !== 'chess.js' || pkg.version !== '1.4.0') throw Error('Use the CommonJS file from the chess.js 1.4.0 package.');
+const { Chess } = require(engine);
+const source = fs.readFileSync(inputPath === '-' ? 0 : inputPath, 'utf8').trim();
+if (!source) throw Error('Empty mate-in-one oracle input');
+const rows = source.split(/\r?\n/).map(line => {
+  const fields = line.split('\t');
+  const [id, fen, solution, theme] = fields;
+  if (fields.length !== 4 || !/^mate-\d{3,}$/.test(id) || !fen ||
+      !/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(solution) || !/^(TACTIC|PROMOTION|EN_PASSANT|CASTLING)$/.test(theme)) {
+    throw Error('Malformed mate-in-one oracle entry: ' + id);
+  }
+  return fields;
+});
+rows.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+const ids = new Set();
 const keys = new Set();
 const normalized = [];
 const explanations = [];
-for (const [, id, fen, expected, theme] of rows) {
+for (const [id, fen, expected, theme] of rows) {
+  if (ids.has(id)) throw Error('Repeated ID: ' + id);
+  ids.add(id);
   const key = fen.split(' ').slice(0, 4).join(' ');
   if (keys.has(key)) throw Error('Repeated position: ' + id);
   keys.add(key);

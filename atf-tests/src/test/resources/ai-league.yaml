@@ -1,0 +1,18 @@
+schema: 1
+max-plies: 160
+bootstrap-samples: 10000
+bootstrap-seed: 27183
+# Frozen starts. Every pairing plays the same position twice, with the profiles reversed.
+openings:
+  - {id: english-symmetrical, moves: "c2c4 c7c5 b1c3 b8c6 g2g3 g7g6"}
+  - {id: pirc-austrian, moves: "e2e4 d7d6 d2d4 g8f6 b1c3 g7g6 f2f4"}
+  - {id: nimzo-rubinstein, moves: "d2d4 g8f6 c2c4 e7e6 b1c3 f8b4 e2e3"}
+  - {id: kings-gambit, moves: "e2e4 e7e5 f2f4 e5f4 g1f3 g7g5"}
+  - {id: slav, moves: "d2d4 d7d5 c2c4 c7c6 g1f3 g8f6 b1c3 d5c4"}
+  - {id: catalan, moves: "d2d4 g8f6 c2c4 e7e6 g2g3 d7d5 f1g2 f8e7"}
+  - {id: vienna, moves: "e2e4 e7e5 b1c3 g8f6 f2f4 d7d5"}
+  - {id: petroff, moves: "e2e4 e7e5 g1f3 g8f6 f3e5 d7d6"}
+  - {id: modern-benoni, moves: "d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5"}
+  - {id: reti, moves: "g1f3 d7d5 c2c4 d5d4"}
+  - {id: dutch, moves: "d2d4 f7f5 g2g3 g8f6 f1g2 e7e6"}
+  - {id: alekhine, moves: "e2e4 g8f6 e4e5 f6d5 d2d4 d7d6"}

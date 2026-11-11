@@ -1,0 +1,27 @@
+schema: 1
+hard-regression:
+  id: french-after-nf3
+  moves: "e2e4 e7e6 d2d4 d7d5 e4e5 c7c5 c2c3 b8c6 g1f3"
+  max-loss: 80
+hard-controls:
+  max-mean-loss: 40
+  positions:
+    - {id: french-after-c3, moves: "e2e4 e7e6 d2d4 d7d5 e4e5 c7c5 c2c3"}
+    - {id: french-after-qb6, moves: "e2e4 e7e6 d2d4 d7d5 e4e5 c7c5 c2c3 b8c6 g1f3 d8b6"}
+    - {id: french-queen-tempo, moves: "e2e4 e7e6 d2d4 d7d5 e4e5 c7c5 c2c3 b8c6 g1f3 d8a5 d4c5"}
+    - {id: scotch-before-d4, moves: "e2e4 e7e5 g1f3 b8c6"}
+    - {id: scotch-after-bc5, moves: "e2e4 e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 f8c5"}
+    - {id: scotch-after-qf6, moves: "e2e4 e7e5 g1f3 b8c6 d2d4 e5d4 f3d4 f8c5 c1e3 d8f6"}
+evaluation:
+  max-anchor-error-cp: 30
+  max-control-mean-error-cp: 35
+  max-control-case-error-cp: 65
+  anchor: {id: open-after-e5, moves: "e2e4 e7e5"}
+  controls:
+    - {id: four-knights, moves: "e2e4 e7e5 g1f3 g8f6 b1c3 b8c6"}
+    - {id: queens-pawns, moves: "d2d4 d7d5"}
+    - {id: black-open-turn, moves: "e2e4 e7e5 g1f3 b8c6 b1c3"}
+    - {id: sicilian-first, moves: "e2e4 c7c5"}
+    - {id: ruy-after-a6, moves: "e2e4 e7e5 g1f3 b8c6 f1b5 a7a6"}
+    - {id: caro-first, moves: "e2e4 c7c6"}
+    - {id: gambit-offered, moves: "d2d4 d7d5 c2c4"}

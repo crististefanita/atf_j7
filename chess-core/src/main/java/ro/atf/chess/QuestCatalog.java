@@ -2,10 +2,12 @@ package ro.atf.chess;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
 
@@ -133,16 +135,21 @@ public final class QuestCatalog {
 
     public static List<Quest> loadTactics() {
         var root = ChessYaml.resource("tactics.yaml");
-        if (ChessYaml.number(root, "schema") != 1 || !"WIN_MATERIAL".equals(ChessYaml.string(root, "objective"))) {
+        if (ChessYaml.number(root, "schema") != 2 || !"WIN_MATERIAL".equals(ChessYaml.string(root, "objective"))) {
             throw new IllegalArgumentException("Invalid tactics catalog schema or objective");
         }
         var quests = new ArrayList<Quest>();
         var ids = new HashSet<String>();
         var positions = new HashSet<String>();
+        var difficulty = new HashMap<String, Integer>();
+        var ranks = new HashSet<Integer>();
         for (Object item : ChessYaml.list(root, "quests")) {
-            if (!(item instanceof Map<?, ?> row) || row.size() != 3) throw new IllegalArgumentException("Invalid tactics quest row");
+            if (!(item instanceof Map<?, ?> row) || row.size() != 4) throw new IllegalArgumentException("Invalid tactics quest row");
             String id = ChessYaml.string(row, "id");
+            requireAvailableId(id);
             String fen = ChessYaml.string(row, "fen");
+            int rank = ChessYaml.number(row, "difficulty");
+            if (rank < 1 || !ranks.add(rank)) throw new IllegalArgumentException("Invalid or duplicate tactics difficulty at " + id);
             if (!id.matches("tactic-[0-9]{3}") || !ids.add(id) || !positions.add(fen.replaceFirst(" [0-9]+ [0-9]+$", ""))) {
                 throw new IllegalArgumentException("Invalid or duplicate tactics quest " + id);
             }
@@ -150,8 +157,10 @@ public final class QuestCatalog {
                     List.of(Move.fromUci(ChessYaml.string(row, "solution"))), Objective.MATERIAL);
             if (quest.solvedPosition().isCheckmate()) throw new IllegalArgumentException("Unexpected mate in " + id);
             quests.add(quest);
+            difficulty.put(id, rank);
         }
         if (quests.isEmpty()) throw new IllegalArgumentException("Empty tactics catalog");
+        quests.sort(Comparator.comparingInt(quest -> difficulty.get(quest.id())));
         return Collections.unmodifiableList(quests);
     }
 
@@ -167,6 +176,7 @@ public final class QuestCatalog {
         for (Object item : ChessYaml.list(root, "quests")) {
             if (!(item instanceof Map<?, ?> row) || row.size() != 4) throw new IllegalArgumentException("Invalid row in " + file);
             String id = ChessYaml.string(row, "id");
+            requireAvailableId(id);
             String fen = ChessYaml.string(row, "fen");
             int rating = ChessYaml.number(row, "rating");
             var moves = ChessYaml.list(row, "line");
@@ -189,10 +199,14 @@ public final class QuestCatalog {
         var root = ChessYaml.resource("quest-order.yaml");
         if (ChessYaml.number(root, "schema") != 1) throw new IllegalArgumentException("Invalid quest order schema");
         var ranks = new ArrayList<QuestDifficulty.Rank>();
+        int previousScore = -1;
         for (Object item : ChessYaml.list(root, "order")) {
             if (!(item instanceof List<?> row) || row.size() != 2 || !(row.get(0) instanceof String id)
-                    || !(row.get(1) instanceof Integer score) || score < 0) throw new IllegalArgumentException("Invalid quest rank");
+                    || !(row.get(1) instanceof Integer score) || score <= previousScore) {
+                throw new IllegalArgumentException("Quest order must have strictly increasing scores: " + item);
+            }
             ranks.add(new QuestDifficulty.Rank(id, score));
+            previousScore = score;
         }
         return Collections.unmodifiableList(ranks);
     }
@@ -203,20 +217,61 @@ public final class QuestCatalog {
             throw new IllegalArgumentException("Invalid quest catalog schema or objective");
         }
         var result = new ArrayList<Quest>();
-        var positions = new HashSet<String>();
+        var ids = new HashSet<String>();
         for (Object item : ChessYaml.list(root, "quests")) {
             if (!(item instanceof Map<?, ?> row) || row.size() != 4) throw new IllegalArgumentException("Invalid quest row");
             String id = ChessYaml.string(row, "id");
-            String expected = String.format(java.util.Locale.ROOT, "mate-%03d", result.size() + 1);
+            requireAvailableId(id);
             String fen = ChessYaml.string(row, "fen");
             String theme = ChessYaml.string(row, "theme");
-            String boardKey = fen.replaceFirst(" [0-9]+ [0-9]+$", "");
-            if (!id.equals(expected) || !positions.add(boardKey) || !theme.matches("TACTIC|EN_PASSANT|CASTLING|PROMOTION")) {
+            if (!id.matches("mate-[0-9]{3,}") || !ids.add(id) || !theme.matches("TACTIC|EN_PASSANT|CASTLING|PROMOTION")) {
                 throw new IllegalArgumentException("Invalid or duplicate quest " + id);
             }
-            result.add(new Quest(id, fen, Move.fromUci(ChessYaml.string(row, "solution")), theme, ChessPosition.fromFen(fen)));
+            var quest = new Quest(id, fen, Move.fromUci(ChessYaml.string(row, "solution")), theme, ChessPosition.fromFen(fen));
+            requireReferenceMate(quest);
+            result.add(quest);
         }
-        if (result.size() != 102) throw new IllegalArgumentException("Expected exactly 102 mate-in-one quests");
+        QuestDiversity.requireDistinct(result);
         return Collections.unmodifiableList(result);
+    }
+
+    static void requireReferenceMate(Quest quest) {
+        String label = quest.id() + " " + quest.solution().uci();
+        ChessPosition after;
+        try {
+            after = quest.solvedPosition();
+        } catch (IllegalArgumentException illegalMove) {
+            throw new IllegalArgumentException("Illegal reference mate " + label, illegalMove);
+        }
+        if (!after.isCheckmate()) throw new IllegalArgumentException("Invalid reference mate " + label);
+        MatePattern pattern = quest.matingPattern();
+        String actualTheme = switch (pattern) {
+            case DIRECT, DISCOVERED -> "TACTIC";
+            default -> pattern.name();
+        };
+        if (!actualTheme.equals(quest.theme())) {
+            throw new IllegalArgumentException("Wrong theme for " + label + ": expected " + actualTheme);
+        }
+    }
+
+    static void requireAvailableId(String id) {
+        if (Retired.IDS.contains(id)) throw new IllegalArgumentException("Retired quest ID cannot be reused: " + id);
+    }
+
+    private static final class Retired {
+        private static final Set<String> IDS = load();
+
+        private static Set<String> load() {
+            var root = ChessYaml.resource("quest-retired.yaml");
+            if (!root.keySet().equals(Set.of("schema", "ids")) || ChessYaml.number(root, "schema") != 1) {
+                throw new IllegalArgumentException("Invalid retired quest schema");
+            }
+            var ids = new HashSet<String>();
+            for (Object item : ChessYaml.list(root, "ids")) {
+                if (!(item instanceof String id) || !id.matches("mate-[0-9]{3,}|mate[23]-[A-Za-z0-9]{5}|tactic-[0-9]{3}")
+                        || !ids.add(id)) throw new IllegalArgumentException("Invalid or repeated retired quest ID: " + item);
+            }
+            return Collections.unmodifiableSet(ids);
+        }
     }
 }

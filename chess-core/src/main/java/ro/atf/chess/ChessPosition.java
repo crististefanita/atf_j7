@@ -39,6 +39,7 @@ public final class ChessPosition {
     }
 
     private static final ChessRules RULES = ChessRules.STANDARD;
+    private static final int[][][][] TARGETS = possibleTargets();
     private static final String START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     private final Piece[] board;
@@ -120,7 +121,7 @@ public final class ChessPosition {
                 && (enPassant == other.enPassant || legalEnPassant() == other.legalEnPassant());
     }
 
-    private int legalEnPassant() {
+    int legalEnPassant() {
         if (enPassant < 0) return -1;
         int adjacentRank = enPassant - 8 * RULES.pawn(turn).forward();
         for (int offset : new int[]{-1, 1}) {
@@ -134,16 +135,23 @@ public final class ChessPosition {
     }
 
     public List<Move> legalMovesFrom(int from) {
+        return legalMovesFrom(from, false, false);
+    }
+
+    private List<Move> legalMovesFrom(int from, boolean tacticalOnly, boolean firstOnly) {
         if (from < 0 || from >= board.length || board[from] == null || board[from].side() != turn) {
             return Collections.emptyList();
         }
         List<Move> result = new ArrayList<>();
-        for (int to = 0; to < board.length; to++) {
-            boolean promotes = board[from].kind() == Kind.PAWN && to / 8 == RULES.pawn(turn).promotion();
+        Kind kind = board[from].kind();
+        for (int to : TARGETS[turn.ordinal()][kind.ordinal()][from]) {
+            boolean promotes = kind == Kind.PAWN && to / 8 == RULES.pawn(turn).promotion();
+            if (tacticalOnly && !promotes && board[to] == null && !(kind == Kind.PAWN && to == enPassant)) continue;
             Move move = new Move(from, to, promotes ? RULES.promotions.get(0) : null);
             if (isLegal(move)) {
+                if (firstOnly) return Collections.singletonList(move);
                 if (promotes) {
-                    for (Kind kind : RULES.promotions) result.add(new Move(from, to, kind));
+                    for (Kind promotion : RULES.promotions) result.add(new Move(from, to, promotion));
                 } else {
                     result.add(move);
                 }
@@ -157,10 +165,19 @@ public final class ChessPosition {
         return apply(move);
     }
 
+    // Used by search with moves generated as legal on this exact position.
+    ChessPosition playGenerated(Move move) { return apply(move); }
+
     public List<Move> legalMoves() {
         var moves = new ArrayList<Move>();
         for (int square = 0; square < 64; square++) moves.addAll(legalMovesFrom(square));
         return Collections.unmodifiableList(moves);
+    }
+
+    List<Move> legalCapturesAndPromotions() {
+        var moves = new ArrayList<Move>();
+        for (int square = 0; square < 64; square++) moves.addAll(legalMovesFrom(square, true, false));
+        return moves;
     }
 
     public boolean isCheckmate() {
@@ -168,7 +185,7 @@ public final class ChessPosition {
     }
 
     boolean hasLegalMove() {
-        for (int square = 0; square < 64; square++) if (!legalMovesFrom(square).isEmpty()) return true;
+        for (int square = 0; square < 64; square++) if (!legalMovesFrom(square, false, true).isEmpty()) return true;
         return false;
     }
 
@@ -275,11 +292,37 @@ public final class ChessPosition {
         int dx = to % 8 - from % 8;
         int dy = to / 8 - from / 8;
         if (piece.kind() == Kind.PAWN) return Math.abs(dx) == RULES.captureFileStep && dy == RULES.pawn(piece.side()).forward();
-        var pattern = RULES.pattern(piece.kind());
-        if (!pattern.ray()) return pattern.vectors().contains(new ChessRules.Vector(dx, dy));
+        return geometry(piece.kind(), dx, dy) && (!RULES.ray(piece.kind()) || clearPath(from, to));
+    }
+
+    private static boolean geometry(Kind kind, int dx, int dy) {
+        if (!RULES.ray(kind)) return RULES.direction(kind, dx, dy);
         int distance = Math.max(Math.abs(dx), Math.abs(dy));
         if (distance == 0 || dx % distance != 0 || dy % distance != 0) return false;
-        return pattern.vectors().contains(new ChessRules.Vector(dx / distance, dy / distance)) && clearPath(from, to);
+        return RULES.direction(kind, dx / distance, dy / distance);
+    }
+
+    private static int[][][][] possibleTargets() {
+        var targets = new int[Side.values().length][Kind.values().length][64][];
+        for (Side side : Side.values()) for (Kind kind : Kind.values()) for (int from = 0; from < 64; from++) {
+            int[] squares = new int[64];
+            int count = 0;
+            for (int to = 0; to < 64; to++) if (possibleTarget(side, kind, from, to)) squares[count++] = to;
+            targets[side.ordinal()][kind.ordinal()][from] = Arrays.copyOf(squares, count);
+        }
+        return targets;
+    }
+
+    private static boolean possibleTarget(Side side, Kind kind, int from, int to) {
+        int dx = to % 8 - from % 8;
+        int dy = to / 8 - from / 8;
+        if (kind == Kind.PAWN) {
+            var pawn = RULES.pawn(side);
+            return dy == pawn.forward() && Math.abs(dx) <= RULES.captureFileStep
+                    || dx == 0 && from / 8 == pawn.home() && dy == pawn.forward() * RULES.initialAdvance;
+        }
+        int base = homeBase(side);
+        return geometry(kind, dx, dy) || kind == Kind.KING && from == base + RULES.kingFrom && castleAt(to, base) != null;
     }
 
     private boolean clearPath(int from, int to) {

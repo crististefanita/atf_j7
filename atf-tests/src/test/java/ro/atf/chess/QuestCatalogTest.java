@@ -3,12 +3,17 @@ package ro.atf.chess;
 import atf.testkit.AtfComponentTest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ro.atf.chess.ChessPosition.Move;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
@@ -33,14 +38,104 @@ class QuestCatalogTest {
     @Test void displayOrderMatchesTheDifficultyModelWithoutRenamingAnyQuest(Checks check) {
         var canonical = QuestCatalog.loadPositions();
         var order = QuestCatalog.loadOrder();
-        check.same("All scores and their tie breaks reproduce", QuestDifficulty.rank(canonical), order);
+        check.same("All scores and their editorial tie breaks reproduce from YAML", QuestDifficulty.rank(canonical), order);
         check.same("Catalog follows the scored order", order.stream().map(QuestDifficulty.Rank::id).toList(),
                 QuestCatalog.load().stream().map(QuestCatalog.Quest::id).toList());
-        check.same("The introductory mate is first", "mate-001", order.getFirst().id());
-        check.same("The highest ranks include a substantial decoy or special-move burden", true, order.getLast().score() >= 35);
-        check.same("Equal counter-mate scores use stable IDs as the tie break",
-                List.of(new QuestDifficulty.Rank("mate-101", 32), new QuestDifficulty.Rank("mate-102", 32)),
-                order.stream().filter(rank -> rank.id().equals("mate-101") || rank.id().equals("mate-102")).toList());
+        check.same("The configured introduction is first", ChessYaml.string(ChessYaml.resource("quest-difficulty.yaml"), "introduction"), order.getFirst().id());
+        check.same("Every position advances in estimated difficulty", (long) order.size() - 1,
+                IntStream.range(1, order.size()).filter(i -> order.get(i - 1).score() < order.get(i).score()).count());
+    }
+
+    @Test void changingTheDecoyWeightInYamlChangesTheCurriculumScore(Checks check) {
+        var root = new HashMap<Object, Object>(ChessYaml.resource("quest-difficulty.yaml"));
+        root.put("introduction", "mate-001");
+        root.put("tie-breaks", Map.of());
+        var weights = new HashMap<Object, Object>(ChessYaml.map(root, "weights"));
+        weights.put("checking-decoy", ChessYaml.number(weights, "checking-decoy") + 1);
+        root.put("weights", weights);
+        var quests = QuestCatalog.loadPositions();
+        var amended = QuestDifficulty.rank(quests, QuestDifficulty.Profile.read(root));
+        var baseline = new HashMap<Object, Object>(root);
+        baseline.put("weights", ChessYaml.map(ChessYaml.resource("quest-difficulty.yaml"), "weights"));
+        int before = QuestDifficulty.rank(quests, QuestDifficulty.Profile.read(baseline)).stream()
+                .filter(rank -> rank.id().equals("mate-129")).findFirst().orElseThrow().score();
+        int after = amended.stream().filter(rank -> rank.id().equals("mate-129")).findFirst().orElseThrow().score();
+        check.same("The decoy-rich sample gains ten score units per decoy before editorial ties", 14, after / 10 - before / 10);
+        weights.put("checking-decoy", -1);
+        check.same("A negative weight is rejected with the offending YAML key", true,
+                assertThrows(IllegalArgumentException.class, () -> QuestDifficulty.Profile.read(root)).getMessage().contains("checking-decoy"));
+    }
+
+    @Test void noChapterRepeatsAnExerciseFromTheSameOrAnotherChapter(Checks check) {
+        var all = new ArrayList<>(QuestCatalog.load());
+        all.addAll(QuestCatalog.loadMateInTwo());
+        all.addAll(QuestCatalog.loadMateInThree());
+        all.addAll(QuestCatalog.loadTactics());
+        QuestDiversity.requireDistinct(all);
+        check.same("All chapters contribute 314 distinct IDs and positions", 314L, all.stream().map(QuestCatalog.Quest::id).distinct().count());
+    }
+
+    @Test void ignoresAnEditorialTieBreakOnceTheBaseScoresDiffer(Checks check) {
+        var root = new HashMap<Object, Object>(ChessYaml.resource("quest-difficulty.yaml"));
+        root.put("introduction", "mate-001");
+        root.put("tie-breaks", Map.of("mate-014", 1));
+        var quests = QuestCatalog.loadPositions().stream().filter(q -> List.of("mate-001", "mate-014", "mate-047").contains(q.id())).toList();
+        var weights = new HashMap<Object, Object>(ChessYaml.map(root, "weights"));
+        weights.replaceAll((key, value) -> 0);
+        root.put("weights", weights);
+        var tied = QuestDifficulty.rank(quests, QuestDifficulty.Profile.read(root));
+        check.same("An explicit tie-break orders two equal base scores", "mate-014", tied.getLast().id());
+        weights.put("legal-move", 1);
+        var separated = QuestDifficulty.rank(quests, QuestDifficulty.Profile.read(root));
+        check.same("The old tie-break contributes zero after the scores diverge",
+                new QuestDifficulty.Rank("mate-014", 270), separated.get(1));
+    }
+
+    @Test void rejectsAnAlternativeMateEvenInTheIntroduction(Checks check) {
+        var problem = fixture("mate-001", "7k/5Q2/6K1/8/8/8/8/8 w - - 0 1", "f7g7");
+        var root = new HashMap<Object, Object>(ChessYaml.resource("quest-difficulty.yaml"));
+        root.put("introduction", "mate-001");
+        root.put("tie-breaks", Map.of());
+        QuestCatalog.requireReferenceMate(problem);
+        String error = assertThrows(IllegalArgumentException.class,
+                () -> QuestDifficulty.rank(List.of(problem), QuestDifficulty.Profile.read(root))).getMessage();
+        check.same("The diagnostic names the position, declared key and alternative", true,
+                error.startsWith("Multiple mates for mate-001: f7g7 and f7"));
+    }
+
+    @Test void rejectsAWrongSpecialMoveThemeAndReusedHistoricalIds(Checks check) {
+        var ep = QuestCatalog.load().stream().filter(q -> q.id().equals("mate-004")).findFirst().orElseThrow();
+        var mislabeled = fixture(ep.id(), ep.fen(), ep.solution().uci());
+        check.same("A legal en passant mate cannot be labeled as an ordinary tactic", "Wrong theme for mate-004 e5d6: expected EN_PASSANT",
+                assertThrows(IllegalArgumentException.class, () -> QuestCatalog.requireReferenceMate(mislabeled)).getMessage());
+        for (String id : List.of("mate-011", "mate3-02GAF")) {
+            check.same("Progress ID remains reserved after retirement: " + id, "Retired quest ID cannot be reused: " + id,
+                    assertThrows(IllegalArgumentException.class, () -> QuestCatalog.requireAvailableId(id)).getMessage());
+        }
+    }
+
+    @Test void rejectsARepeatedKeyAndColorSwappedCopies(Checks check) {
+        var original = fixture("mate-010", "r1b5/p2pb1pQ/2q2k2/1P6/6P1/2P5/7r/4K2R w K - 0 28", "h7f5");
+        var near = fixture("mate-011", "r1b5/p2pb1pQ/2q2k2/1p6/P5P1/2P4r/7P/4K2R w K - 0 27", "h7f5");
+        var exact = fixture("mate-003", "3k4/8/3KP2p/7P/5P2/1P3PR1/8/8 w - - 1 48", "g3g8");
+        var swapped = fixture("mate-999", "8/8/1p3pr1/5p2/7p/3kp2P/8/3K4 b - - 0 50", "g6g1");
+        check.same("The duplicate diagnostic identifies both published IDs", "Repeated chess exercise: mate-010 / mate-011",
+                assertThrows(IllegalArgumentException.class, () -> QuestDiversity.requireDistinct(List.of(original, near))).getMessage());
+        check.same("Swapping colors and reflecting ranks still repeats the same exercise", "Repeated chess exercise: mate-003 / mate-999",
+                assertThrows(IllegalArgumentException.class, () -> QuestDiversity.requireDistinct(List.of(exact, swapped))).getMessage());
+    }
+
+    @Test void rejectsAQuarterTurnOfAPawnlessPosition(Checks check) {
+        var original = fixture("mate-900", "7k/8/5KQ1/8/8/8/8/8 w - - 0 1", "g6g7");
+        var rotated = fixture("mate-901", "k7/2Q5/2K5/8/8/8/8/8 w - - 0 1", "c7b7");
+        QuestCatalog.requireReferenceMate(original);
+        QuestCatalog.requireReferenceMate(rotated);
+        check.same("The same pawnless mate cannot reappear at a different angle", "Repeated chess exercise: mate-900 / mate-901",
+                assertThrows(IllegalArgumentException.class, () -> QuestDiversity.requireDistinct(List.of(original, rotated))).getMessage());
+    }
+
+    private static QuestCatalog.Quest fixture(String id, String fen, String uci) {
+        return new QuestCatalog.Quest(id, fen, Move.fromUci(uci), "TACTIC", ChessPosition.fromFen(fen));
     }
 
     @Test void everyHintIdentifiesTheActualMatingPieceAndMove(Checks check) {
@@ -54,7 +149,8 @@ class QuestCatalogTest {
         var promotion = catalog.stream().filter(q -> q.solution().uci().equals("f7f8n")).findFirst().orElseThrow().guidance();
         check.same("Underpromotion hint starts with a pawn", ChessPosition.Kind.PAWN, promotion.piece().kind());
         check.same("The revealed solution preserves the knight promotion", ChessPosition.Kind.KNIGHT, promotion.move().promotion());
-        check.same("The first mating move is direct", QuestCatalog.MatePattern.DIRECT, catalog.getFirst().guidance().pattern());
+        var direct = catalog.stream().filter(q -> q.id().equals("mate-001")).findFirst().orElseThrow();
+        check.same("The Fool's Mate hint is direct", QuestCatalog.MatePattern.DIRECT, direct.guidance().pattern());
     }
 
     @Test void ordinaryCheckAndStalemateNeverSatisfyTheObjective(Checks check) {

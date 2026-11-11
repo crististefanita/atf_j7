@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.QuestProgress;
 import ro.atf.chess.QuestRewards;
@@ -45,7 +46,13 @@ final class ChessProgressStore {
     }
 
     QuestProgress read(List<String> order) {
-        return QuestProgress.restore(preferences.getString(CURRENT, null), preferences.getStringSet(SOLVED, Collections.emptySet()), order);
+        String saved = preferences.getString(CURRENT, null);
+        if (saved != null && !order.contains(saved)) {
+            String key = chapterKey(saved);
+            var chapter = order.stream().filter(id -> chapterKey(id).equals(key)).collect(Collectors.toList());
+            if (!chapter.isEmpty()) order = chapter;
+        }
+        return QuestProgress.restore(saved, preferences.getStringSet(SOLVED, Collections.emptySet()), order);
     }
 
     QuestRewards readRewards() {

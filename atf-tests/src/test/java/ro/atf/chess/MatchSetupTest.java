@@ -35,7 +35,20 @@ class MatchSetupTest {
     @Test void theThreeLevelsReachDifferentCompletedHorizonsOnTheSamePosition(Checks check) {
         var position = ChessPosition.fromFen("4k3/8/8/7p/P7/8/8/4K3 w - - 0 1");
         var depths = java.util.Arrays.stream(Level.values())
-                .map(level -> TacticalAnalysis.botAnalysis(position, level).best().getFirst().line().size()).toList();
+                .map(level -> TacticalAnalysis.botAnalysis(position, level).depth()).toList();
         check.same("Basic, Advanced and Hard complete three distinct depths", List.of(3, 4, 5), depths);
+    }
+
+    @Test void hardConfirmsUnstableOpeningMovesWithinTheExistingBudget(Checks check) {
+        var catalog = OpeningCatalog.load();
+        for (String id : List.of("french", "scandinavian")) {
+            var lesson = catalog.stream().filter(item -> item.id().equals(id)).findFirst().orElseThrow();
+            boolean french = id.equals("french");
+            var position = lesson.positionAt(french ? 9 : 7);
+            var match = ChessMatch.fromPosition(position, new MatchSetup(Side.WHITE, Level.HARD, false));
+            var decision = match.botDecision();
+            check.same(id + " Hard decision rejects the premature queen move", french ? "c5d4" : "g8f6", decision.move().uci());
+            check.same(id + " uses at most the Hard budget", true, decision.extraNodes() <= MatchAiPolicy.CURRENT.opponent(Level.HARD).extraNodes());
+        }
     }
 }

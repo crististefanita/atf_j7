@@ -2,7 +2,8 @@
 
 | Prioritate | Pas | Criteriu de închidere |
 |---|---|---|
-| P2 | Calibrare cu jucători | Măsurați fără indicii timpul până la mat și încercările greșite pentru cele două contra-maturi și pozițiile vecine. Folosiți rezultatele pentru a calibra ponderea de 16 din scorul intern de dificultate. Punctele afișate jucătorului urmează [regula de recompensare](../board/README.md#tactică-și-puncte). [Pozițiile de control](../board/quest-curation.md#calibrarea-contra-maturilor) |
+| P2 | Semnul barei la Gambitul damei | După `1.d4 d5 2.c4`, J7 afișează `−0,19`, iar Stockfish 19 la adâncimea 13 indică `+0,22` pentru alb. Urmăriți ce schimbă evaluarea după acceptarea gambitului și în variantele cu `…e6` și `…c6`. Reduceți diferența și păstrați porțile actuale de calibrare. [Măsurători](../board/ai-quality.md#calibrarea-hard-și-a-barei) |
+| P2 | Calibrare cu jucători | Amestecați poziții din cele trei zone ale capitolului Mat în 1 și comparați medianele timpului și ale încercărilor greșite, fără indicii. Analizați separat problemele pornite din șah și cele cu apărări unice. Ajustați ponderile YAML după inversiuni care se repetă între sesiuni. [Pozițiile de control](../board/quest-curation.md#calibrarea-dificultății) |
 
 ## Verificat în surse
 

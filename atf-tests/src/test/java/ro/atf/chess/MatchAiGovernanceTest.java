@@ -1,0 +1,156 @@
+package ro.atf.chess;
+
+import atf.testkit.AtfComponentTest;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@AtfComponentTest
+@ExtendWith(ExtentAudit.class)
+class MatchAiGovernanceTest {
+    @Test void repetitionPolicyRequiresAnAdvantageAndBoundsTheCostOfEscaping(Checks check) {
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        var repetition = new HashMap<Object, Object>(ChessYaml.map(root, "repetition"));
+        root.put("repetition", repetition);
+        int advantage = ChessYaml.number(repetition, "min-advantage-cp");
+        repetition.put("min-advantage-cp", 0);
+        check.same("An equal position does not qualify as an advantage", true, assertThrows(IllegalArgumentException.class,
+                () -> MatchAiPolicy.read(root)).getMessage().contains("min-advantage-cp"));
+        repetition.put("min-advantage-cp", advantage);
+        repetition.put("max-score-loss-cp", 100);
+        check.same("Escaping the cycle cannot cost an entire pawn", true, assertThrows(IllegalArgumentException.class,
+                () -> MatchAiPolicy.read(root)).getMessage().contains("max-score-loss-cp"));
+    }
+
+    @Test void opponentLevelsCannotShareADepthAndTheCoachNeedsItsOwnHeadroom(Checks check) {
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        var opponents = new HashMap<Object, Object>(ChessYaml.map(root, "opponents"));
+        root.put("opponents", opponents);
+        var hard = ChessYaml.map(opponents, "HARD");
+        opponents.put("HARD", ChessYaml.map(opponents, "ADVANCED"));
+        check.same("Two identical opponent profiles are rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("strictly"));
+        opponents.put("HARD", hard);
+        var hint = new HashMap<Object, Object>(ChessYaml.map(root, "hint"));
+        root.put("hint", hint);
+        hint.put("extra-nodes", ChessYaml.number(hard, "extra-nodes"));
+        check.same("The coach cannot use only the Hard budget", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("larger budget"));
+    }
+
+    @Test void calibrationControlsAreNewAndTheirLimitsStayBounded(Checks check) {
+        var calibration = ChessYaml.resource("opening-calibration.yaml");
+        var hard = ChessYaml.map(calibration, "hard-controls");
+        var display = ChessYaml.map(calibration, "evaluation");
+        var frozen = new HashSet<String>();
+        for (Object item : ChessYaml.list(ChessYaml.resource("opening-ai-benchmark.yaml"), "checkpoints")) {
+            frozen.add(ChessYaml.string((Map<?, ?>) item, "moves"));
+        }
+        var target = ChessYaml.map(calibration, "hard-regression");
+        check.same("The French anchor is the original failed checkpoint", true, frozen.contains(ChessYaml.string(target, "moves")));
+        var anchor = ChessYaml.map(display, "anchor");
+        check.same("The display anchor remains the position after 1.e4 e5", "e2e4 e7e5", ChessYaml.string(anchor, "moves"));
+        check.same("The calibration schema", 1, ChessYaml.number(calibration, "schema"));
+        var ids = new HashSet<String>();
+        for (var controls : List.of(ChessYaml.list(hard, "positions"), ChessYaml.list(display, "controls"))) {
+            var colors = new HashSet<ChessPosition.Side>();
+            check.same("Each calibration group has at least six control positions", true, controls.size() >= 6);
+            for (Object item : controls) {
+                var row = (Map<?, ?>) item;
+                String id = ChessYaml.string(row, "id");
+                String prefix = ChessYaml.string(row, "moves");
+                check.same(id + " is a distinct control position", true, ids.add(id) && frozen.add(prefix));
+                var position = ChessPosition.initial();
+                for (String move : prefix.split(" ")) position = position.play(ChessPosition.Move.fromUci(move));
+                colors.add(position.turn());
+            }
+            check.same("Both sides to move are represented in each group", 2, colors.size());
+        }
+        check.same("Hard regression and display comparison caps are enforced", true,
+                ChessYaml.number(target, "max-loss") <= 80 && ChessYaml.number(hard, "max-mean-loss") <= 40
+                        && ChessYaml.number(display, "max-anchor-error-cp") <= 30
+                        && ChessYaml.number(display, "max-control-mean-error-cp") <= 35
+                        && ChessYaml.number(display, "max-control-case-error-cp") <= 65);
+    }
+
+    @Test void rejectsDisplaySettingsThatDefeatTheSearchBudgetOrHorizonBound(Checks check) {
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        var evaluation = new HashMap<Object, Object>(ChessYaml.map(root, "evaluation"));
+        root.put("evaluation", evaluation);
+        int nodes = ChessYaml.number(evaluation, "nodes");
+        evaluation.put("nodes", 0);
+        check.same("An empty display budget is rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("nodes"));
+        evaluation.put("nodes", nodes);
+        evaluation.put("max-horizon-correction-cp", 100);
+        check.same("A full pawn correction is rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("max-horizon-correction-cp"));
+    }
+
+    @Test void frozenOpeningCorpusCoversTheLiveCatalogWithBothColors(Checks check) {
+        var catalog = OpeningCatalog.load();
+        var suite = ChessYaml.resource("opening-ai-benchmark.yaml");
+        var ids = new HashSet<String>();
+        var prefixes = new HashSet<String>();
+        var colors = new HashSet<ChessPosition.Side>();
+        check.same("Opening benchmark schema", 1, ChessYaml.number(suite, "schema"));
+        for (Object entry : ChessYaml.list(suite, "checkpoints")) {
+            var row = (Map<?, ?>) entry;
+            String id = ChessYaml.string(row, "id");
+            String prefix = ChessYaml.string(row, "moves");
+            var opening = catalog.stream().filter(item -> item.id().equals(id)).findFirst().orElseThrow();
+            var moves = List.of(prefix.split(" "));
+            check.same(id + " has a unique, frozen opening checkpoint", true, ids.add(id) && prefixes.add(prefix));
+            check.same(id + " still begins with the recorded moves", moves,
+                    opening.steps().stream().limit(moves.size()).map(step -> step.move().uci()).toList());
+            colors.add(opening.positionAt(moves.size()).turn());
+        }
+        check.same("Every lesson is represented in the oracle corpus", catalog.size(), ids.size());
+        check.same("White and Black must each have a turn to analyze", 2, colors.size());
+        var limits = ChessYaml.map(suite, "limits");
+        var hint = ChessYaml.map(limits, "HINT");
+        var hard = ChessYaml.map(limits, "HARD");
+        check.same("Opening hints prohibit a major loss and use a tighter mean cap than Hard", true,
+                ChessYaml.number(hint, "major-losses") == 0 && ChessYaml.number(hint, "mean-loss") > 0
+                        && ChessYaml.number(hint, "mean-loss") <= 30 && ChessYaml.number(hard, "mean-loss") <= 65
+                        && ChessYaml.number(hard, "major-losses") <= 1);
+    }
+
+    @Test void rejectsAnOverlongHintListOrSearchWeakerThanHard(Checks check) {
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        var hint = new HashMap<Object, Object>(ChessYaml.map(root, "hint"));
+        root.put("hint", hint);
+        hint.put("max-variants", 6);
+        check.same("Six suggestions violate the product limit", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("max-variants"));
+        hint.put("max-variants", 5);
+        hint.put("extra-nodes", 1);
+        check.same("The coaching budget cannot be lower than Hard", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("Hard"));
+    }
+
+    @Test void corpusCoversBothColorsAndRejectsUnrestrictedRegressionLimits(Checks check) {
+        var settings = ChessYaml.resource("match-ai-benchmark.yaml");
+        var colors = new HashSet<ChessPosition.Side>();
+        var ids = new HashSet<String>();
+        var boards = new HashSet<String>();
+        for (Object entry : ChessYaml.list(settings, "positions")) {
+            var position = (Map<?, ?>) entry;
+            String fen = ChessYaml.string(position, "fen");
+            check.same("Independent benchmark case has a unique ID and FEN", true, ids.add(ChessYaml.string(position, "id")) && boards.add(fen));
+            colors.add(ChessPosition.fromFen(fen).turn());
+        }
+        check.same("Both colors have benchmark positions", 2, colors.size());
+        check.same("The benchmark has at least ten varied positions", true, ids.size() >= 10);
+        var limits = ChessYaml.map(settings, "limits");
+        for (String profile : java.util.List.of("BASIC", "ADVANCED", "HARD", "HINT")) {
+            var limit = ChessYaml.map(limits, profile);
+            check.same(profile + " has a meaningful loss cap", true, ChessYaml.number(limit, "mean-loss") < 500);
+            check.same(profile + " has a meaningful major-loss cap", true, ChessYaml.number(limit, "major-losses") < ids.size());
+        }
+    }
+}

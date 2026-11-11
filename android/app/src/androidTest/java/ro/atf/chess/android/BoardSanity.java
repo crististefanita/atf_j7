@@ -48,7 +48,8 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("phase", phase);
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         try {
-            if (phase.startsWith("analysis-")) checkAnalysis();
+            if ("openings".equals(phase)) checkOpenings();
+            else if (phase.startsWith("analysis-")) checkAnalysis();
             else if (phase.startsWith("match-")) checkMatch();
             else checkQuests();
             receipt.putString("result", "PASS");
@@ -66,6 +67,143 @@ public final class BoardSanity extends Instrumentation {
             }
             finish(Activity.RESULT_CANCELED, receipt);
         }
+    }
+
+    private void checkOpenings() throws Exception {
+        var home = launch();
+        var monitor = addMonitor(OpeningActivity.class.getName(), null, false);
+        tap(home.findViewById(R.id.open_openings));
+        Activity lesson = waitForMonitorWithTimeout(monitor, 7000);
+        if (lesson == null) throw new AssertionError("Home did not open the Openings screen");
+        waitForIdleSync();
+        var cards = (ViewGroup) lesson.findViewById(R.id.opening_catalog);
+        var catalog = ro.atf.chess.OpeningCatalog.load();
+        compare("The Openings button exposes every configured lesson", catalog.size(), cards.getChildCount());
+        captureFrame("opening-catalog", "The first opening cards are fully visible",
+                image -> fullyVisible(cards.getChildAt(0)) && fullyVisible(cards.getChildAt(1)));
+        var scroll = (android.widget.ScrollView) cards.getParent();
+        var last = cards.getChildAt(cards.getChildCount() - 1);
+        Bitmap beforeScroll = getUiAutomation().takeScreenshot();
+        if (beforeScroll == null) throw new AssertionError("Missing opening catalog frame");
+        try {
+            var catalogBounds = screenBounds(scroll);
+            runOnMainSync(() -> scroll.scrollTo(0, cards.getHeight()));
+            captureFrame("opening-catalog-end", "The last opening card is fully rendered after scrolling",
+                    image -> fullyVisible(last) && catalogScrolled(beforeScroll, image, catalogBounds));
+        } finally { beforeScroll.recycle(); }
+        tap(last);
+        var locale = lesson.getResources().getConfiguration().getLocales().get(0);
+        compare("The last lesson opens with the King’s Indian plan", true,
+                dialogNode(catalog.get(catalog.size() - 1).title().in(locale)) != null);
+        tapDialog(lesson.getString(R.string.opening_train_white));
+        awaitOpeningBoard(lesson);
+        runOnMainSync(lesson::onBackPressed);
+        waitForIdleSync();
+        var firstPage = (ViewGroup) lesson.findViewById(R.id.opening_catalog);
+        tap(firstPage.getChildAt(0));
+        var title = ro.atf.chess.OpeningCatalog.load().get(0).title().in(lesson.getResources().getConfiguration().getLocales().get(0));
+        compare("The first lesson explains the Italian line and offers both colors", true,
+                dialogNode(title) != null && dialogNode(lesson.getString(R.string.opening_train_white)) != null
+                        && dialogNode(lesson.getString(R.string.opening_train_black)) != null);
+        tapDialog(lesson.getString(R.string.opening_train_white));
+        var board = (BoardView) awaitOpeningBoard(lesson);
+        var status = (TextView) lesson.findViewById(R.id.opening_progress);
+        var explanation = (TextView) lesson.findViewById(R.id.opening_message);
+        var initial = screenBounds(board);
+        tap(cell(board, "d2"));
+        tap(cell(board, "d4"));
+        compare("A legal alternative receives feedback and leaves the board at the initial step", true,
+                status.getText().toString().startsWith("0 / 12") && lesson.getString(R.string.opening_off_line).contentEquals(explanation.getText())
+                        && "d4".contentEquals(cell(board, "d4").getContentDescription()));
+        View hint = lesson.findViewById(R.id.opening_theory_hint);
+        tap(hint);
+        compare("The first lesson hint reveals the source square only", true,
+                cell(board, "e2").getContentDescription().toString().contains(lesson.getString(R.string.hint_origin, ""))
+                        && "e4".contentEquals(cell(board, "e4").getContentDescription()));
+        tap(hint);
+        captureFrame("opening-hint", "The opening lesson draws its arrow and explains the move",
+                image -> hasColor(image, cell(board, "e3"), HINT_TINT, 12) && fullyVisible(explanation));
+        tap(cell(board, "e2"));
+        getUiAutomation().waitForIdle(100, 2_000);
+        runOnMainSync(() -> {
+            if (!cell(board, "e2").isSelected()) throw new AssertionError("The e2 tap must select the pawn before its destination is tapped");
+        });
+        tap(cell(board, "e4"));
+        long deadline = SystemClock.uptimeMillis() + 6000;
+        while (!status.getText().toString().startsWith("2 / 12") && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        compare("The configured e5 reply is played once and the board stays anchored", true,
+                status.getText().toString().startsWith("2 / 12") && screenBounds(board).equals(initial)
+                        && cell(board, "e5").getContentDescription().toString().contains(lesson.getString(R.string.pawn)));
+        tap(lesson.findViewById(R.id.opening_toggle_ai));
+        var bulb = lesson.findViewById(R.id.match_hint);
+        deadline = SystemClock.uptimeMillis() + 15_000;
+        while (!bulb.isEnabled() && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        compare("Optional AI evaluates the current position without advancing the lesson", true, bulb.isEnabled()
+                && lesson.findViewById(R.id.match_evaluation_bar).getVisibility() == View.VISIBLE && status.getText().toString().startsWith("2 / 12"));
+        var analysisText = (TextView) lesson.findViewById(R.id.match_analysis);
+        String positionScore = analysisText.getText().toString();
+        tap(bulb);
+        captureFrame("opening-ai", "The AI recommendation keeps the calibrated position score and the previous-move explanation visible",
+                image -> bulb.isSelected() && hasTwoRenderedLines(image, analysisText) && positionScore.startsWith("+0")
+                        && analysisText.getText().toString().startsWith(positionScore + "\n")
+                        && explanation.getText().toString().startsWith("1… " + lesson.getString(R.string.solution_move, "e7", "e5")));
+        tap(status);
+        compare("The lesson offers an annotated review of moves already played", true, dialogNode(lesson.getString(R.string.opening_review)) != null);
+        tapDialog(lesson.getString(R.string.opening_initial));
+        deadline = SystemClock.uptimeMillis() + 15_000;
+        while (!bulb.isEnabled() && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        compare("The historical position can be analyzed on the anchored, read-only board", true,
+                status.getText().toString().contains(lesson.getString(R.string.opening_reviewing))
+                        && "e4".contentEquals(cell(board, "e4").getContentDescription()) && !cell(board, "e2").isEnabled()
+                        && screenBounds(board).equals(initial) && bulb.isEnabled() && !bulb.isSelected());
+        tap(hint);
+        compare("Back to lesson restores the same live position and move count", true,
+                status.getText().toString().startsWith("2 / 12") && cell(board, "g1").isEnabled()
+                        && cell(board, "e5").getContentDescription().toString().contains(lesson.getString(R.string.pawn)));
+        runOnMainSync(lesson::onBackPressed);
+        waitForIdleSync();
+        var returnedCards = (ViewGroup) lesson.findViewById(R.id.opening_catalog);
+        tap(returnedCards.getChildAt(0));
+        tapDialog(lesson.getString(R.string.opening_train_black));
+        var reversed = (BoardView) awaitOpeningBoard(lesson);
+        var blackProgress = (TextView) lesson.findViewById(R.id.opening_progress);
+        deadline = SystemClock.uptimeMillis() + 6000;
+        while (!blackProgress.getText().toString().startsWith("1 / 12") && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        compare("Training as Black flips the board and starts with the scripted White move", true,
+                blackProgress.getText().toString().startsWith("1 / 12") && "h1".equals(coordinate(reversed.getChildAt(0)))
+                        && cell(reversed, "e4").getContentDescription().toString().contains(lesson.getString(R.string.pawn)));
+    }
+
+    private static boolean catalogScrolled(Bitmap before, Bitmap after, Rect area) {
+        int right = Math.min(area.right, Math.min(before.getWidth(), after.getWidth()));
+        int bottom = Math.min(area.bottom, Math.min(before.getHeight(), after.getHeight()));
+        int changed = 0;
+        for (int y = Math.max(0, area.top); y < bottom; y += 8) {
+            for (int x = Math.max(0, area.left); x < right; x += 8) {
+                if (before.getPixel(x, y) != after.getPixel(x, y) && ++changed >= 100) return true;
+            }
+        }
+        return false;
+    }
+
+    private View awaitOpeningBoard(Activity lesson) {
+        long deadline = SystemClock.uptimeMillis() + 6000;
+        var current = new View[1];
+        do {
+            runOnMainSync(() -> current[0] = lesson.findViewById(R.id.opening_board));
+            if (current[0] != null && current[0].getWidth() > 0) return current[0];
+            SystemClock.sleep(40);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("Color selection did not display the lesson board");
+    }
+
+    private void tapDialog(String label) throws Exception {
+        var node = dialogNode(label, candidate -> candidate.isClickable() && candidate.isEnabled()
+                && candidate.getText() != null && label.equalsIgnoreCase(candidate.getText().toString()));
+        if (node == null) throw new AssertionError("Dialog touch target unavailable: " + label);
+        var bounds = new Rect();
+        node.getBoundsInScreen(bounds);
+        tapAt(bounds.exactCenterX(), bounds.exactCenterY());
     }
 
     private void checkQuests() throws Exception {
@@ -168,7 +306,7 @@ public final class BoardSanity extends Instrumentation {
         compare("The first bulb press reveals line one and marks its first destination", true,
                 lines.size() > 1 && hintShown(activity, board, lines, 0) && initialBounds.equals(boardFootprints(activity, board)));
         tap(bulb);
-        compare("The second press shows the next tied line without playing a move", true,
+        compare("The second press shows the next eligible line without playing a move", true,
                 hintShown(activity, board, lines, 1) && initial.checkpoint().equals(store.readMatch().checkpoint()));
         tap(cell(board, "e2"));
         tap(cell(board, "e4"));
@@ -190,6 +328,47 @@ public final class BoardSanity extends Instrumentation {
                 hintShown(activity, board, live.bestLinesAt(2), 0) && currentBounds.equals(boardFootprints(activity, board)));
         captureFrame("match-analysis", "The compact evaluation and recommendation are rendered below the board",
                 image -> fullyVisible(panel) && hasTwoRenderedLines(image, panel));
+        checkMatchCaptures(activity, store, live);
+    }
+
+    private void checkMatchCaptures(Activity activity, ChessProgressStore store, ChessMatch original) throws Exception {
+        runOnMainSync(activity::finish);
+        waitForIdleSync();
+        if (!store.saveMatch(ChessMatch.restore("1|e2e4 d7d5 e4d5 d8d5"), false)) {
+            throw new AssertionError("Could not save the capture fixture");
+        }
+        var captures = launch(true);
+        try {
+            var board = findBoard(viewsOf(captures));
+            var bounds = boardFootprints(captures, board);
+            boolean even = captureRow(captures, R.id.match_top_captures, "") && captureRow(captures, R.id.match_bottom_captures, "");
+            runOnMainSync(() -> captures.findViewById(R.id.match_history_previous).performClick());
+            boolean leadVisible = captureRow(captures, R.id.match_bottom_captures, "+1");
+            boolean otherHidden = captures.findViewById(R.id.match_top_captures).getVisibility() == View.INVISIBLE;
+            boolean anchored = bounds.equals(boardFootprints(captures, board));
+            if (!leadVisible || !otherHidden || !anchored) {
+                throw new AssertionError("Capture history frame: lead=" + leadVisible + ", opponent hidden=" + otherHidden + ", anchored=" + anchored);
+            }
+            View whiteCaptures = captures.findViewById(R.id.match_bottom_captures);
+            captureFrame("match-captures", "The captured pawn and material lead render below the player's name",
+                    image -> fullyVisible(whiteCaptures) && hasColor(image, whiteCaptures, 0xff65666d, 2)
+                            && hasColor(image, whiteCaptures, 0xffb8d88a, 2));
+            tap(button(captures, viewsOf(captures), R.string.flip));
+            compare("Capture rows follow history and switch seats with board orientation", true, even
+                    && captureRow(captures, R.id.match_top_captures, "+1")
+                    && captures.findViewById(R.id.match_bottom_captures).getVisibility() == View.INVISIBLE);
+        } finally {
+            runOnMainSync(captures::finish);
+            waitForIdleSync();
+            if (!store.saveMatch(original, false)) throw new AssertionError("Could not restore the analysis fixture");
+        }
+    }
+
+    private static boolean captureRow(Activity activity, int id, String suffix) {
+        TextView row = activity.findViewById(id);
+        return row.getVisibility() == View.VISIBLE && row.getText() instanceof android.text.Spanned span
+                && span.getSpans(0, span.length(), android.text.style.ImageSpan.class).length == 1
+                && (suffix.isEmpty() ? !span.toString().contains("+") : span.toString().endsWith(suffix));
     }
 
     private void checkQuestBoardNavigation(Activity activity) {
@@ -201,11 +380,13 @@ public final class BoardSanity extends Instrumentation {
         tap(cell(board, "d8"));
         tap(cell(board, "h4"));
         tap(button(activity, views, R.string.next_quest));
-        boolean whiteAtTop = turnLabel(activity, board, R.string.white, R.string.black, false);
+        var side = QuestCatalog.load().get(1).position().turn();
+        boolean activeSeat = turnLabel(activity, board, BoardView.sideLabel(side), BoardView.sideLabel(side.other()),
+                side == ro.atf.chess.ChessPosition.Side.BLACK);
         var next = boardFootprints(activity, board);
         tap(button(activity, views, R.string.previous_quest));
         compare("Quest Previous and Next keep the board and orientation even as the active color changes", true,
-                whiteAtTop && first.equals(next) && first.equals(boardFootprints(activity, board)));
+                activeSeat && first.equals(next) && first.equals(boardFootprints(activity, board)));
         tap(button(activity, views, R.string.main_menu));
         click(activity, R.id.puzzles_home);
     }
@@ -251,10 +432,14 @@ public final class BoardSanity extends Instrumentation {
         var panel = (ViewGroup) board.getParent();
         var bar = activity.findViewById(R.id.match_evaluation_bar);
         compare("The player's name is below, the AI level is above, and the bar matches the board height", true,
-                awaitHiddenAnalysis(activity, 1) && ((TextView) panel.getChildAt(0)).getText().toString().contains("Atlas · AI Hard")
-                        && ((TextView) panel.getChildAt(2)).getText().toString().contains("Mara") && bar.getHeight() == board.getHeight());
+                awaitHiddenAnalysis(activity, 1) && seatName(panel, 0).contains("Atlas · AI Hard")
+                        && seatName(panel, 2).contains("Mara") && bar.getHeight() == board.getHeight());
         captureFrame("match-black", "Black's named seat and the vertical evaluation render with the board",
                 image -> fullyVisible(board) && hasColor(image, bar, 0xffedeadf, 16));
+    }
+
+    private static String seatName(ViewGroup panel, int index) {
+        return ((TextView) ((ViewGroup) panel.getChildAt(index)).getChildAt(0)).getText().toString();
     }
 
     private boolean evaluationBarMirrors(Activity activity) {
@@ -295,7 +480,10 @@ public final class BoardSanity extends Instrumentation {
     private static boolean hintShown(Activity activity, BoardView board, List<ro.atf.chess.TacticalAnalysis.Variation> lines, int index) {
         var variation = lines.get(index);
         var sequence = new java.util.StringJoiner(" · ");
-        for (Move move : variation.line()) sequence.add(ChessActivity.compactNotation(move));
+        for (int step = 0; step < Math.min(3, variation.line().size()); step++) {
+            sequence.add(ChessActivity.compactNotation(variation.line().get(step)));
+        }
+        if (variation.line().size() > 3) sequence.add("…");
         String expected = lines.size() == 1 ? sequence.toString()
                 : activity.getString(R.string.match_analysis_variant, index + 1, lines.size(), sequence.toString());
         TextView panel = activity.findViewById(R.id.match_analysis);
@@ -606,33 +794,46 @@ public final class BoardSanity extends Instrumentation {
         runOnMainSync(activity::finish);
         waitForIdleSync();
         var order = new ArrayList<String>();
-        for (var quest : QuestCatalog.load()) order.add(quest.id());
+        var catalog = QuestCatalog.load();
+        for (var quest : catalog) order.add(quest.id());
         var store = new ChessProgressStore(getTargetContext());
-        if (!store.save(store.read(order).select("mate-101"), store.readRewards())) {
-            throw new AssertionError("Could not select the counter-mate fixture");
-        }
-        Activity counter = launch();
+        Activity counter = launchSavedQuest(store, order, "mate-101");
         List<View> counterViews = viewsOf(counter);
         BoardView counterBoard = findBoard(counterViews);
-        compare("mate-101 opens at position 57", true, atQuest(counter, counterViews, 57));
+        compare("mate-101 opens at its configured position", true, atQuest(counter, counterViews, order.indexOf("mate-101") + 1));
         compare("The counter-mate opens with both legacy solves", true, solvedCount(counter, counterViews, 2));
         solveCounterMate(counter, counterViews, counterBoard, "mate-101", "h6", "d2", R.string.bishop);
-        tap(button(counter, counterViews, R.string.next_quest));
-        compare("mate-102 follows at position 58", true, atQuest(counter, counterViews, 58));
-        solveCounterMate(counter, counterViews, counterBoard, "mate-102", "h3", "g4", R.string.pawn);
-        compare("The two new solves add to the two legacy solves", true, solvedCount(counter, counterViews, 4));
-        tap(button(counter, counterViews, R.string.next_quest));
-        var fifth = QuestCatalog.load().get(58).solution();
-        if (fifth.promotion() != null) throw new AssertionError("The milestone fixture requires a move without promotion");
-        tap(cell(counterBoard, BoardSquare.name(fifth.from())));
-        tap(cell(counterBoard, BoardSquare.name(fifth.to())));
-        var track = progressTrack(counterViews);
-        String milestone = counter.getString(R.string.milestone_reached, 5, 15);
+        runOnMainSync(counter::finish);
+        waitForIdleSync();
+        Activity capture = launchSavedQuest(store, order, "mate-102");
+        var captureViews = viewsOf(capture);
+        compare("mate-102 opens at its configured position", true, atQuest(capture, captureViews, order.indexOf("mate-102") + 1));
+        solveCounterMate(capture, captureViews, findBoard(captureViews), "mate-102", "h3", "g4", R.string.pawn);
+        compare("The two new solves add to the two legacy solves", true, solvedCount(capture, captureViews, 4));
+        runOnMainSync(capture::finish);
+        waitForIdleSync();
+        var progress = store.read(order);
+        var fifth = catalog.stream().filter(quest -> !progress.solvedIds().contains(quest.id()) && quest.solution().promotion() == null)
+                .findFirst().orElseThrow();
+        Activity milestoneActivity = launchSavedQuest(store, order, fifth.id());
+        var milestoneViews = viewsOf(milestoneActivity);
+        var milestoneBoard = findBoard(milestoneViews);
+        tap(cell(milestoneBoard, BoardSquare.name(fifth.solution().from())));
+        tap(cell(milestoneBoard, BoardSquare.name(fifth.solution().to())));
+        var track = progressTrack(milestoneViews);
+        String milestone = milestoneActivity.getString(R.string.milestone_reached, 5, 15);
         compare("The fifth solve unlocks the next milestone without hiding the board or controls", true,
-                solvedCount(counter, counterViews, 5) && track.getProgress() == 5
-                        && hasText(counterViews, milestone) && hasDescription(counterViews, counter.getString(R.string.quest_solved) + ". " + milestone)
-                        && fullyVisible(counterBoard) && fullyVisible(guidance(counter, R.string.why_mate)));
+                solvedCount(milestoneActivity, milestoneViews, 5) && track.getProgress() == 5 && hasText(milestoneViews, milestone)
+                        && hasDescription(milestoneViews, milestoneActivity.getString(R.string.quest_solved) + ". " + milestone)
+                        && fullyVisible(milestoneBoard) && fullyVisible(guidance(milestoneActivity, R.string.why_mate)));
         captureFrame("milestone", "The progress bar visibly fills at the first milestone", image -> hasColor(image, track, 0xffb8d88a, 8));
+    }
+
+    private Activity launchSavedQuest(ChessProgressStore store, List<String> order, String id) {
+        if (!store.save(store.read(order).select(id), store.readRewards())) {
+            throw new AssertionError("Could not select quest " + id);
+        }
+        return launch();
     }
 
     private void prepareMateInTwo(Activity activity) throws Exception {
@@ -1018,9 +1219,13 @@ public final class BoardSanity extends Instrumentation {
         if (!available[0]) {
             throw new AssertionError("Touch target unavailable: " + (view instanceof Button control ? control.getText() : view.getContentDescription()));
         }
+        tapAt(center[0], center[1]);
+    }
+
+    private void tapAt(float x, float y) {
         long start = SystemClock.uptimeMillis();
-        inject(start, MotionEvent.ACTION_DOWN, center[0], center[1]);
-        inject(start, MotionEvent.ACTION_UP, center[0], center[1]);
+        inject(start, MotionEvent.ACTION_DOWN, x, y);
+        inject(start, MotionEvent.ACTION_UP, x, y);
         waitForIdleSync();
     }
 

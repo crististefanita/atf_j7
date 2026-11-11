@@ -22,9 +22,9 @@ class QuestProgressTest {
 
     @Test void missingCurrentFallsBackAndHistoricalSolvesSurviveCatalogChanges(Checks check) {
         var saved = new HashSet<>(Set.of("retired", "visible"));
-        var progress = QuestProgress.restore("retired", saved, List.of("first", "visible"));
+        var progress = QuestProgress.restore("retired", saved, List.of("visible", "first"));
         saved.clear();
-        check.same("Fallback uses the first displayed ID", "first", progress.currentId());
+        check.same("Fallback skips an already-solved exercise", "first", progress.currentId());
         check.same("Stored identities are a defensive copy", Set.of("retired", "visible"), progress.solvedIds());
         check.same("Only current catalog IDs count toward visible progress", 1, progress.solvedCount(List.of("first", "visible")));
         check.same("A reintroduced quest retains its solved state", true, progress.select("retired").currentSolved());
@@ -52,16 +52,16 @@ class QuestProgressTest {
         check.same("A shorter catalog completes at its actual size", true, reached.milestone(order.subList(0, 5)).complete());
     }
 
-    @Test void theTwoNewPositionsKeepTheSavedSelectionAndSolvesFromTheHundredQuestCatalog(Checks check) {
+    @Test void replacingRepeatedPositionsPreservesActiveSolvesAndDoesNotCreditTheirReplacements(Checks check) {
         var current = QuestCatalog.load().stream().map(QuestCatalog.Quest::id).toList();
-        var old = current.stream().filter(id -> !Set.of("mate-101", "mate-102").contains(id)).toList();
-        String previousSelection = old.getLast();
-        Set<String> solved = Set.of(old.getFirst(), old.get(1));
-        var before = QuestProgress.restore(previousSelection, solved, old);
-        var after = QuestProgress.restore(before.currentId(), before.solvedIds(), current);
-        check.same("The saved legacy position moves two places in the curriculum", old.indexOf(previousSelection) + 2, current.indexOf(after.currentId()));
-        check.same("The same stable ID reopens after the catalog grows", previousSelection, after.currentId());
-        check.same("Existing solves are retained by ID", solved, after.solvedIds());
-        check.same("New counter-mates start unsolved", false, after.select("mate-101").currentSolved() || after.select("mate-102").currentSolved());
+        Set<String> solved = Set.of("mate-001", "mate-010", "mate-011");
+        var kept = QuestProgress.restore("mate-010", solved, current);
+        check.same("The same surviving ID reopens after reordering", "mate-010", kept.currentId());
+        var retired = QuestProgress.restore("mate-011", solved, current);
+        check.same("Historical solves are retained by ID", solved, retired.solvedIds());
+        check.same("Only surviving IDs count toward the current chapter", 2, retired.solvedCount(current));
+        check.same("A new exercise starts unsolved", false, retired.select("mate-103").currentSolved());
+        check.same("The retired checkpoint resumes on the first unsolved active position",
+                current.stream().filter(id -> !solved.contains(id)).findFirst().orElseThrow(), retired.currentId());
     }
 }

@@ -30,14 +30,46 @@ class AndroidSanityPublication {
             new Frame("match-resumed.png", "Computer game · last move after restart"),
             new Frame("match-history.png", "Computer game · reviewing an earlier move"));
 
+    @Test void publishOpeningSanity() throws Exception {
+        Path receipt = Path.of(System.getProperty("chess.android.receipt"));
+        Path report = receipt.resolveSibling("android-openings.html");
+        if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
+        var evidence = readPhase(receipt, "openings", 15);
+        var frames = List.of(new Frame("opening-catalog.png", "Opening catalog · first lessons"),
+                new Frame("opening-catalog-end.png", "Opening catalog · last lessons"),
+                new Frame("opening-hint.png", "Theory arrow and move explanation"),
+                new Frame("opening-ai.png", "Independent AI analysis in an opening lesson"));
+        boolean complete = evidence.passed() && frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
+        var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+        try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
+             var scenario = session.startScenario("BoardSanity", "Study the Italian opening on Android", List.of("e2e", "android", "openings"));
+             var phase = scenario.startPhase("TEST BODY")) {
+            publish(phase, "Choose a color, practise the line and consult the AI", evidence.rows(), evidence.passed());
+            for (var frame : frames) {
+                Path image = receipt.resolveSibling(frame.file());
+                if (isPng(image)) {
+                    try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {
+                        action.screenshot(frame.title(), Base64.getEncoder().encodeToString(Files.readAllBytes(image)));
+                        action.complete(AtfReportStatus.PASS);
+                    }
+                } else publish(phase, frame.title(), List.of(receiptFailure("openings", "Missing PNG: " + frame.file())), false);
+            }
+            phase.complete(status);
+            scenario.complete(status);
+        }
+        System.out.println("J7 Android Extent: " + report);
+        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android opening evidence: " + receipt);
+    }
+
     @Test void publishMatchAnalysisSanity() throws Exception {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-match-analysis.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var prepare = readPhase(receipt, "analysis-prepare", 12);
+        var prepare = readPhase(receipt, "analysis-prepare", 14);
         var restore = readPhase(receipt.resolveSibling("analysis-restore.txt"), "analysis-restore", 9);
         boolean restarted = !prepare.pid().isEmpty() && !restore.pid().isEmpty() && !prepare.pid().equals(restore.pid());
         var frames = List.of(new Frame("match-analysis.png", "Evaluation and suggestion below the board"),
+                new Frame("match-captures.png", "Captured pawn and material advantage beneath the player"),
                 new Frame("match-setup.png", "Color, AI level and analysis setup"), new Frame("match-black.png", "Named Black seat and evaluation bar"));
         boolean rendered = frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
         boolean complete = prepare.passed() && restore.passed() && restarted && rendered;

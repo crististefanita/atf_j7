@@ -1,4 +1,26 @@
 <resources>
+    <string name="openings_title">Deschideri</string>
+    <string name="opening_train_white">Cu albele</string>
+    <string name="opening_train_black">Cu negrele</string>
+    <string name="opening_source">Sursă</string>
+    <string name="opening_source_unavailable">Nu există un browser disponibil pentru a deschide sursa.</string>
+    <string name="opening_back">Înapoi</string>
+    <string name="opening_progress_label">%1$d / %2$d · %3$s</string>
+    <string name="opening_your_turn">Rândul tău</string>
+    <string name="opening_book_reply">Replica din lecție</string>
+    <string name="opening_complete">Linie parcursă</string>
+    <string name="opening_hint">Indiciu lecție</string>
+    <string name="opening_show_move">Arată mutarea</string>
+    <string name="opening_hide_hint">Ascunde indiciul</string>
+    <string name="opening_retry">Exersează din nou</string>
+    <string name="opening_ai">Analiză AI</string>
+    <string name="opening_ai_enabled">Ascunde AI</string>
+    <string name="opening_off_line">Mutarea este legală. Încearcă să urmezi continuarea din lecție.</string>
+    <string name="opening_hint_piece">Încearcă să muți piesa %1$s.</string>
+    <string name="opening_review">Vezi mutările jucate</string>
+    <string name="opening_reviewing">Revizuire</string>
+    <string name="opening_initial">Poziția inițială</string>
+    <string name="opening_resume">Înapoi la lecție</string>
     <string name="menu_play">Partide</string>
     <string name="menu_puzzles">Probleme</string>
     <string name="profile_title">Profil</string>
@@ -15,6 +37,14 @@
     <string name="match_start">Joacă</string>
     <string name="match_bot_label">%1$s · AI %2$s</string>
     <string name="match_seat_description">%1$s. %2$s</string>
+    <string name="match_capture_count">%1$d × %2$s</string>
+    <string name="match_captures_description">Piese capturate: %1$s</string>
+    <string name="match_material_plus">+%1$d</string>
+    <plurals name="match_material_advantage">
+        <item quantity="one">Avantaj material de %1$d punct</item>
+        <item quantity="few">Avantaj material de %1$d puncte</item>
+        <item quantity="other">Avantaj material de %1$d de puncte</item>
+    </plurals>
     <string name="match_player_wins">Mat · Ai câștigat</string>
     <string name="match_bot_wins">Mat · AI a câștigat</string>
     <string name="match_analysis_option">Analiză AI pentru o partidă nouă</string>

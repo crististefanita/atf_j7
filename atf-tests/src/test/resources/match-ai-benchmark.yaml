@@ -1,0 +1,21 @@
+schema: 1
+stockfish: "Stockfish 19"
+depth: 13
+major-loss-permille: 150
+# Regression allowances are expected-score losses on this fixed suite, in thousandths.
+limits:
+  BASIC: {mean-loss: 230, major-losses: 2}
+  ADVANCED: {mean-loss: 25, major-losses: 0}
+  HARD: {mean-loss: 25, major-losses: 0}
+  HINT: {mean-loss: 45, major-losses: 1}
+positions:
+  - {id: initial, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"}
+  - {id: sicilian, fen: "rnbqkbnr/pp1p1ppp/8/2p1p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3"}
+  - {id: italian, fen: "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"}
+  - {id: white-fork, fen: "r2qkb1r/1p2ppp1/p2p3p/4n1B1/3NnPb1/2N4P/PPPQ2P1/R3KB1R w KQkq - 0 11"}
+  - {id: black-capture, fen: "rn1qk2r/p1p2ppp/1p2p3/8/1b2qB2/6NN/PP3P1n/R5Kb b kq - 1 17"}
+  - {id: white-mate-in-three, fen: "2r3k1/pb3ppp/1p2pq2/1P6/2Q1PP2/6P1/P5BP/2R3K1 w - - 1 25"}
+  - {id: quiet-material, fen: "r1b2rk1/1ppp1p1p/2nq4/p2NpNp1/2P1P3/1P6/P1P2RPP/R1BQ2K1 b - - 1 14"}
+  - {id: rook-ending, fen: "8/8/6p1/PR3p2/1P3k1P/8/r5P1/7K b - - 0 39"}
+  - {id: black-mate-in-one, fen: "rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2"}
+  - {id: white-mate-in-two, fen: "3r2k1/4nppp/pq3b2/1p2p3/2r2P2/2P1NR2/PP1Q2BP/3R2K1 w - - 0 25"}

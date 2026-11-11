@@ -1,4 +1,26 @@
 <resources>
+    <string name="openings_title">Openings</string>
+    <string name="opening_train_white">Play White</string>
+    <string name="opening_train_black">Play Black</string>
+    <string name="opening_source">Source</string>
+    <string name="opening_source_unavailable">No browser is available to open the source.</string>
+    <string name="opening_back">Back</string>
+    <string name="opening_progress_label">%1$d / %2$d · %3$s</string>
+    <string name="opening_your_turn">Your move</string>
+    <string name="opening_book_reply">Book reply</string>
+    <string name="opening_complete">Line complete</string>
+    <string name="opening_hint">Lesson hint</string>
+    <string name="opening_show_move">Show move</string>
+    <string name="opening_hide_hint">Hide hint</string>
+    <string name="opening_retry">Practise again</string>
+    <string name="opening_ai">AI analysis</string>
+    <string name="opening_ai_enabled">Hide AI</string>
+    <string name="opening_off_line">That move is legal. Try the continuation for this lesson.</string>
+    <string name="opening_hint_piece">Try moving the %1$s.</string>
+    <string name="opening_review">Review played moves</string>
+    <string name="opening_reviewing">Review</string>
+    <string name="opening_initial">Starting position</string>
+    <string name="opening_resume">Back to lesson</string>
     <string name="menu_play">Games</string>
     <string name="menu_puzzles">Puzzles</string>
     <string name="profile_title">Profile</string>
@@ -18,6 +40,13 @@
     <string name="match_start">Play</string>
     <string name="match_bot_label">%1$s · AI %2$s</string>
     <string name="match_seat_description">%1$s. %2$s</string>
+    <string name="match_capture_count">%1$d × %2$s</string>
+    <string name="match_captures_description">Captured pieces: %1$s</string>
+    <string name="match_material_plus">+%1$d</string>
+    <plurals name="match_material_advantage">
+        <item quantity="one">Material advantage of %1$d point</item>
+        <item quantity="other">Material advantage of %1$d points</item>
+    </plurals>
     <string name="match_player_wins">Checkmate · You win</string>
     <string name="match_bot_wins">Checkmate · AI wins</string>
     <string name="match_analysis_option">AI analysis for a new game</string>

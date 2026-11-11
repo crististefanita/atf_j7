@@ -7,15 +7,29 @@
 
 Pentru o poziție nouă, validați FEN-ul, enumerați toate mutările în ambele motoare și cereți exact un mat. Dați poziției un ID propriu, independent de rang. Ratingurile Lichess reflectă încercări reale ale jucătorilor, iar scorul local folosește caracteristicile poziției. [Metodologia și formatul Lichess](https://database.lichess.org/)
 
-Din copia TMP, după build, scorurile pot fi regenerate pentru revizie. Verificați apoi catalogul cu `QuestCatalogTest`.
+## Configurarea capitolelor
+
+| Capitol | Ce se editează |
+|---|---|
+| Mat în 1 | ID, FEN, soluție UCI și temă în [quests.yaml](../../chess-core/src/main/resources/quests.yaml). Introducerea, ponderile și departajările se configurează în [quest-difficulty.yaml](../../chess-core/src/main/resources/quest-difficulty.yaml). |
+| Mat în 2 | FEN, linie UCI și rating în [mate-in-two.yaml](../../chess-core/src/main/resources/mate-in-two.yaml). Păstrați ratingurile în ordine crescătoare. La rating egal contează ordinea din listă. |
+| Mat în 3 | Același format, cu cinci semimutări, în [mate-in-three.yaml](../../chess-core/src/main/resources/mate-in-three.yaml). Poziția `mate3-0Ytul` înlocuiește exercițiul apropiat `mate3-02GAF` la același rating. |
+| Tactică | FEN, soluție UCI și `difficulty` în [tactics.yaml](../../chess-core/src/main/resources/tactics.yaml). Folosiți valori întregi pozitive distincte. Selecția actuală pornește de la capturi directe și trece la mutări fără captură imediată. |
+
+Pentru Mat în 1, ponderile mai mari mută mai târziu pozițiile care au caracteristica respectivă. O departajare de la 1 la 9 se aplică numai când cel puțin două poziții au același scor de bază. Generatorul raportează ID-urile oricărei egalități rămase și refuză o poziție cu mai multe soluții. Rulați din copia TMP, cu JDK 21 și Maven. Pentru verificarea independentă, setați `$chessJs` la fișierul CommonJS din chess.js 1.4.0. Adăugați `-Offline` dacă dependențele sunt deja în cache sau `-MavenRepo` dacă folosiți alt depozit Maven.
 
 ```powershell
-java -cp 'atf-tests/target/classes;target/maven-repo/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar' ro.atf.chess.QuestDifficulty
+./scripts/update-mate-one-order.ps1 -ChessJs $chessJs
+./scripts/update-mate-one-order.ps1 -Write -ChessJs $chessJs
 ```
 
-## Calibrarea contra-maturilor
+Prima comandă compară ordinea existentă cu cea calculată. A doua regenerează ordinea după modificarea ponderilor. După o schimbare revizuită de poziții sau soluții, adăugați `-RefreshOracle` la a doua comandă, apoi rulați suitele de catalog. Chess.js recalculează dovada din pozițiile exportate de parserul YAML al proiectului.
 
-Chess.js confirmă că `mate-101` și `mate-102` pornesc în șah, au 6 și 5 mutări legale și o singură soluție. Pozițiile vecine `mate-012` și `mate-067` au același scor editorial de 32, dar oferă 25 și 43 de mutări legale și câte un șah înșelător cu o singură apărare. `mate-022` și `mate-044` au scor 33, cu 5 și 6 șahuri înșelătoare. Pentru calibrarea cu jucători, alternați ordinea pozițiilor și înregistrați timpul și încercările greșite înainte de primul indiciu.
+Păstrați ID-ul la reordonare. Pentru o înlocuire, puneți ID-ul vechi în registrul de retrageri și atribuiți un ID nou poziției. Verificarea compară toate cele patru capitole. Normalizează culoarea și reflexiile permise, inclusiv rotațiile unei table fără pioni și fără drepturi de rocadă. Pentru poziții apropiate compară tipul mutării, destinația, câmpul regelui advers și maximum zece câmpuri diferite. Cele 31 de poziții noi de Mat în 1 provin din partidele offline de calibrare. Comentariile din YAML indică partida, semimutarea și eventualul schimb de culori și reflexie. [Registrul de ID-uri](../../chess-core/src/main/resources/quest-retired.yaml) · [Comenzi de verificare](../testing/README.md)
+
+## Calibrarea dificultății
+
+Pentru calibrarea cu jucători, alternați ordinea unui eșantion din începutul, mijlocul și finalul capitolului. Includeți `mate-101` și `mate-102`, care au doar șase, respectiv cinci mutări legale, dar încep în șah. Includeți `mate-129`, care are 14 șahuri înșelătoare, dintre care șase cu o singură apărare. Măsurați timpul și încercările greșite înainte de primul indiciu. Scorul local este o estimare până la această calibrare.
 
 ## Mat în două mutări
 

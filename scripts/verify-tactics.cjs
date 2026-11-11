@@ -44,8 +44,9 @@ function verify(id, fen, solution) {
 }
 
 const source = fs.readFileSync(catalog, 'utf8').replaceAll('\r\n', '\n');
-const rows = [...source.matchAll(/^  - id: (tactic-[0-9]{3})\n    fen: "([^"\n]+)"\n    solution: ([a-h][1-8][a-h][1-8][qrbn]?)$/gm)];
+const rows = [...source.matchAll(/^  - id: (tactic-[0-9]{3})\n    fen: "([^"\n]+)"\n    solution: ([a-h][1-8][a-h][1-8][qrbn]?)\n    difficulty: [1-9][0-9]*$/gm)];
 if (!rows.length || rows.length !== (source.match(/^  - id:/gm) || []).length) throw Error('Malformed tactics catalog');
+rows.sort(([, a], [, b]) => a.localeCompare(b));
 const hash = createHash('sha256').update(rows.map(([, id, fen, solution]) => verify(id, fen, solution)).join('')).digest('hex');
 if (proof && fs.readFileSync(proof, 'utf8').trim() !== hash) throw Error('Tactics proof fingerprint changed');
 console.log(`Verified ${rows.length} unique material-winning tactics.\n${hash}`);

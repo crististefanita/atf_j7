@@ -12,6 +12,39 @@ import ro.atf.chess.TacticalAnalysis.Variation;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class MatchEvaluationTest {
+    @Test void positionEstimateSettlesTheOpeningWithoutChangingTheSuggestion(Checks check) {
+        var board = OpeningCatalog.load().getFirst().positionAt(2);
+        var lines = TacticalAnalysis.recommendations(board);
+        var best = lines.getFirst();
+        var display = MatchEvaluation.forPosition(board, best);
+        check.same("Nf3 remains the leading recommendation", "g1f3", best.move().uci());
+        check.same("The White advantage after e4 e5 is smaller than one pawn", true,
+                display.whiteCentipawns() > 0 && display.whiteCentipawns() < 70);
+        check.same("Computing the displayed score leaves the recommended lines and scores unchanged", lines, TacticalAnalysis.recommendations(board));
+
+        var mate = ChessMatch.restore("1|f2f3 e7e5 g2g4").position();
+        var forced = TacticalAnalysis.recommendations(mate).getFirst();
+        check.same("A proved Black mate still fills the Black side exactly", 0.0, MatchEvaluation.forPosition(mate, forced).whiteShare());
+        var draw = new Variation(List.of(), 0, 0, Ending.STALEMATE);
+        check.same("A stalemate keeps the bar centered", .5, MatchEvaluation.forPosition(board, draw).whiteShare());
+    }
+
+    @Test void givesDevelopmentAnOpeningValueWithAColorSymmetricPerspective(Checks check) {
+        var board = ChessPosition.initial();
+        check.same("Symmetric starting pieces have no positional advantage", 0, MatchPositionEvaluation.bonus(board));
+        var whiteDevelops = board.play(ro.atf.chess.ChessPosition.Move.fromUci("g1f3"));
+        var rim = board.play(ro.atf.chess.ChessPosition.Move.fromUci("g1h3"));
+        check.same("Developing toward the center scores higher for White", true,
+                MatchPositionEvaluation.bonus(whiteDevelops) < MatchPositionEvaluation.bonus(rim));
+        var whiteAndBlackDevelop = whiteDevelops.play(ro.atf.chess.ChessPosition.Move.fromUci("g8f6"));
+        check.same("Mirrored development cancels exactly", 0, MatchPositionEvaluation.bonus(whiteAndBlackDevelop));
+        var italian = OpeningCatalog.load().getFirst().positionAt(5);
+        var blocksPawn = italian.play(ro.atf.chess.ChessPosition.Move.fromUci("f8d6"));
+        var clearsCastle = italian.play(ro.atf.chess.ChessPosition.Move.fromUci("g8f6"));
+        check.same("Black scores better developing Nf6 than blocking d7 with Bd6", true,
+                MatchPositionEvaluation.bonus(clearsCastle) < MatchPositionEvaluation.bonus(blocksPawn));
+    }
+
     @Test void mapsEvaluationToTheBarWithEqualAndTerminalPositions(Checks check) {
         var ending = TacticalAnalysis.Ending.HORIZON;
         check.same("Zero keeps the split at the center", .5, new MatchEvaluation(ending, 0, 0).whiteShare());
@@ -41,7 +74,7 @@ class MatchEvaluationTest {
         var whiteMate = QuestCatalog.loadMateInTwo().getFirst().position();
         var best = TacticalAnalysis.analyze(whiteMate, 3).best().getFirst();
         check.same("Three individual moves mean mate in two for White", 2, MatchEvaluation.from(whiteMate.turn(), best).whiteMateMoves());
-        var blackMate = QuestCatalog.load().getFirst().position();
+        var blackMate = QuestCatalog.load().stream().filter(quest -> quest.id().equals("mate-001")).findFirst().orElseThrow().position();
         var mate = TacticalAnalysis.analyze(blackMate, 1).best().getFirst();
         check.same("Black's immediate mate has a negative mate distance", -1, MatchEvaluation.from(blackMate.turn(), mate).whiteMateMoves());
         var pat = MatchEvaluation.from(Side.WHITE, new Variation(List.of(), 0, 0, Ending.STALEMATE));

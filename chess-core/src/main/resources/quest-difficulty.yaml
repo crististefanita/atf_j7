@@ -1,0 +1,34 @@
+schema: 1
+introduction: mate-001
+weights:
+  legal-move: 2
+  checking-decoy: 17
+  single-reply: 13
+  piece-on-board: 1
+  key-travel: 3
+  non-capture: 7
+  discovered: 54
+  castling: 70
+  en-passant: 88
+  queen-promotion: 38
+  underpromotion: 92
+  in-check: 56
+# Only for otherwise equal scores. Values 1–9 cannot overtake a different base score.
+tie-breaks:
+  mate-014: 1
+  mate-102: 1
+  mate-103: 1
+  mate-107: 1
+  mate-111: 1
+  mate-105: 1
+  mate-128: 1
+  mate-113: 1
+  mate-067: 1
+  mate-117: 2
+  mate-112: 3
+  mate-006: 1
+  mate-010: 2
+  mate-034: 1
+  mate-071: 1
+  mate-085: 1
+  mate-123: 1
