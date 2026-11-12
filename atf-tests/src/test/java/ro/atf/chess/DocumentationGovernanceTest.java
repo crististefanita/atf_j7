@@ -30,7 +30,7 @@ class DocumentationGovernanceTest {
     @Test void currentDocumentationResolvesEveryLocalTargetAndHeading(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         Path readme = root.resolve("README.md");
-        var documents = new ArrayList<>(List.of(readme, root.resolve("lib/README.md")));
+        var documents = new ArrayList<>(List.of(readme, root.resolve("lib/README.md"), root.resolve("release/README.md")));
         String tag = ReleaseEvidence.gameLinks(Files.readString(readme)).getFirst();
         Path release = root.resolve("release").resolve(tag.substring(tag.lastIndexOf('/') + 2));
         documents.add(release.resolve("README.md"));
@@ -92,6 +92,26 @@ class DocumentationGovernanceTest {
         }
         check.same("The main README links only to a release with matching asset, qualification and complete public/authenticated download receipts",
                 true, complete);
+    }
+
+    @Test void releaseCatalogKeepsOnlyTheCurrentDownloadAndSeparatesItsCandidate(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        String catalog = Files.readString(root.resolve("release/index.json"));
+        List<String> links = ReleaseEvidence.gameLinks(Files.readString(root.resolve("README.md")));
+        String current = jsonValue(catalog, "currentVersion");
+        String linkedTag = links.getFirst().substring(links.getFirst().lastIndexOf("/tag/") + 5);
+        var versions = Pattern.compile("\\\"versions\\\"\\s*:\\s*\\[\\s*\\\"([^\\\"]+)\\\"\\s*\\]").matcher(catalog);
+        String android = Files.readString(root.resolve("android/app/build.gradle"));
+        var androidVersion = Pattern.compile("(?m)^\\s*versionName '([0-9]+\\.[0-9]+\\.[0-9]+)'$").matcher(android);
+        var androidCode = Pattern.compile("(?m)^\\s*versionCode ([0-9]+)$").matcher(android);
+        boolean aligned = versions.find() && androidVersion.find() && androidCode.find()
+                && current.equals(linkedTag.substring(1))
+                && versions.group(1).equals(current)
+                && jsonValue(catalog, "version").equals(androidVersion.group(1))
+                && jsonValue(catalog, "versionCode").equals(androidCode.group(1))
+                && !jsonValue(catalog, "version").equals(current)
+                && jsonValue(catalog, "repository").equals("crististefanita/atf_j7");
+        check.same("The root download, single active edition and separate candidate agree with release metadata and Android versioning", true, aligned);
     }
 
     @Test void releaseAndTestingGuidesLeadToTheirEvidenceOwners(Checks check) throws IOException {

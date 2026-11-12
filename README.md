@@ -4,7 +4,7 @@
 
 ## Jocul
 
-- [Chess Lab 0.11.2 pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.11.2)
+- [Chess Lab 0.11.2 · ultima ediție publicată](https://github.com/crististefanita/atf_j7/releases/tag/v0.11.2)
 - [Descarcă APK 0.11.2](https://github.com/crististefanita/atf_j7/releases/download/v0.11.2/ChessLab-0.11.2.apk)
 
 ## În joc
