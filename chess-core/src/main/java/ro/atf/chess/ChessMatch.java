@@ -203,7 +203,8 @@ public final class ChessMatch {
         boolean cycle = hard && occurrences(board, positions.size() - 2) >= 2;
         var policy = MatchAiPolicy.CURRENT.repetition;
         var repetitionOffers = cycle ? repetitionOffers(board) : Set.<Move>of();
-        var search = TacticalAnalysis.botAnalysis(board, level, cycle ? policy.maxScoreLossCp() : 0, repetitionOffers);
+        var search = TacticalAnalysis.botAnalysis(board, level, cycle ? policy.maxScoreLossCp() : 0, repetitionOffers,
+                positions.subList(0, positions.size() - 1));
         Move chosen = null;
         int fewestVisits = Integer.MAX_VALUE;
         int mostActivity = Integer.MIN_VALUE;

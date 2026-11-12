@@ -2,6 +2,10 @@
 
 Nivelul adversarului și indiciul au adâncimi și bugete configurate separat. O căutare păstrează ultima adâncime evaluată complet. Indiciul încearcă cinci semimutări, cu o semimutare suplimentară pentru capturi, promovări sau ieșirea din șah la capătul căutării. În partide și lecții, evaluarea adaugă la material dezvoltarea pieselor, centrul, poziția regelui și perechea de nebuni. Ponderea termenilor se schimbă odată cu materialul rămas, astfel încât un rege activ să fie util în final. Căutarea verifică întâi capturile, promovările și mutările care activează piesele. Testele de tactică păstrează obiectivul lor explicit de material sau mat. [Politica de căutare](../../chess-core/src/main/resources/match-ai.yaml)
 
+În finalul de turnuri, Hard folosește istoricul integral pentru a evalua repetițiile în arbore, nu doar la rădăcină. Poate extinde căutarea cu o semimutare, până la adâncimea 6, în același plafon de 44.000 de noduri. Extensia și fereastra de 50 cp pentru candidații rădăcină sunt fixate în `rook-endgame` din YAML; guvernanța respinge extensii sau ferestre în afara limitelor validate.
+
+În jocurile Hard din afara repertoriului și a finalului special de turnuri, mutările care dau șah primesc prioritate numai în ordinea de căutare. Bonusul de 10.000 este configurabil și plafonat în `hard-ordering`; nu se adună la evaluarea poziției și nu crește limita de 44.000 de noduri. Basic, Advanced, indiciul și evaluarea barei păstrează ordonarea anterioară.
+
 Indiciul pornește de la căutarea Hard și verifică separat maturile și răspunsurile tactice. Dacă primele mutări diferă fără un mat dovedit, motorul compară alternativele la adâncimea Hard deja încheiată. Dacă verificarea își consumă bugetul, indiciul folosește rezultatul complet Hard. Lista arată până la cinci prime mutări distincte, la cel mult 25 cp de prima. La mat rămân doar variantele cu același rezultat și aceeași distanță. La scor egal, activitatea mutării și ordinea UCI stabilesc ordinea.
 
 La Hard, într-o poziție cu material egal, clasamentul disponibil după patru semimutări folosește și scorul aceleiași mutări la trei. Contribuția liniei mai scurte este limitată. Pentru o mutare liniștită, creditul scade când linia provizorie sugerează un câștig de peste un pion. Maturile și remizele evaluate păstrează scorul terminal. Dacă se încheie căutarea la cinci semimutări, motorul folosește clasamentul acelei căutări. Bugetul Hard este de 44.000 de noduri suplimentare.
@@ -89,16 +93,60 @@ Față de 0.7.0, 69 din 72 de partide au același rezultat. Hard transformă în
 
 #### Rejucarea finalului de turnuri
 
-Adăugați aceste 24 de semimutări după secvența istorică de la 72. Trimiteți secvența integrală la Stockfish prin `position startpos moves ...` și evaluați `e1d1` și `e1f1` separat la adâncimea 13.
+`RookEndgameHistoryTest` reconstruiește aceeași partidă completă până la semimutările 96, 108 și 112. Cazul de la 108 separă evaluarea numai după tablă de evaluarea cu istoricul păstrat: fără istoric, `a7a8` duce în linia de remiză; cu istoricul, Hard evită repetiția și joacă `h2h4`.
+
+Pentru comparație independentă, trimiteți istoricul integral la Stockfish prin `position startpos moves ...` și evaluați mutările restrânse la adâncimea 13. Același fixture și aceeași comandă se folosesc pentru fiecare versiune.
 
 ```text
 f5f6 g7f6 g1f1 a7a5 a1b1 b7b5 b1b5 e8d8 e2c3 d8c8 c3e2 a5a4
 b5f5 c8c2 f2f4 c2a2 e2c1 a2d2 f1e1 d2g2 c1d3 f8g7 f5a5 h8e8
 ```
 
-Hard alege `Kd1` cu 339 cp, față de 338 cp pentru `Kf1`. Stockfish evaluează `Kd1` la −1,05 și `Kf1` la +2,94 în căutări restrânse, o pierdere de 783‰ în scor așteptat. Mai târziu, turnul alternează între a7 și a8, iar al doilea turn rămâne pe h1 în pozițiile de la 108 și 112.
+| Ply | Hard cu istoric | Stockfish 19, d13 | Pierdere așteptată | Noduri Hard |
+|---:|---|---|---:|---:|
+| 96 | `Kf1` | `Kf1`, +2,86 | 0‰ | 39.504 |
+| 108 | `h2h4` | `h1g1`, +5,38; `h2h4`, +4,08 | 0‰ | 41.376 |
+| 112 | `a7a8` | `d3e1`, +2,63; `a7a8`, +2,40 | 0‰ | 8.045 |
 
-Într-o probă, o semimutare suplimentară pentru capturi și ieșiri din șah, în același buget Hard, a găsit `Kf1`. În cinci poziții ulterioare a păstrat aceleași mutări și a coborât de la adâncimea 5 la 4. Extensia rămâne în afara motorului de joc. [Următorul control](../feedback/README.md)
+La 108, Stockfish evaluează `a7a8` la 500‰, iar `h1g1` la 1.000‰. Cheia de repetare include tabla, partea la mutare, drepturile de rocadă și doar un en passant legal. Cheia transpoziției păstrează și traseul căutării, astfel încât o valoare cu repetiție să nu fie reutilizată pe un traseu diferit. Toate cele trei decizii respectă limita Hard; profilurile Basic, Advanced și Indiciu nu folosesc această cale.
+
+Verificarea acoperă regresia istorică și setul fix de 10 poziții Stockfish. Nu recalibrați Elo-ul Hard din aceste trei poziții: comparația de ligă completă rămâne necesară pentru o nouă estimare. [Următorul control](../feedback/README.md)
+
+#### Transferul Hard către colecția de quest-uri
+
+`HardQuestTransferBenchmarkTest` măsoară mutarea aleasă de adversarul Hard pe toate cele 1.172 de poziții din cele șase capitole. Mat în 1 verifică matul, mat în 2/3 verifică prima cheie acceptată, iar exercițiile materiale verifică soluția catalogului. Pragurile de bază sunt în [hard-quest-transfer.yaml](../../atf-tests/src/test/resources/hard-quest-transfer.yaml); sunt praguri de regresie, nu ținte finale.
+
+| Capitol | Rezolvat de Hard |
+|---|---:|
+| Mat în 1 | 500 / 500 |
+| Mat în 2 | 300 / 300 |
+| Mat în 3 | 190 / 200 |
+| Tactici | 86 / 100 |
+| Antrenament | 39 / 48 |
+| Intermezzo | 24 / 24 |
+
+Ordonarea șahurilor la rădăcina căutării Hard ridică transferul M3 de la 172 la 190 fără creșterea plafonului de noduri. Rămân 10 poziții M3, 14 tactice și 9 de antrenament de diagnosticat. Testul păstrează podelele de regresie în suita benchmark și publică nodurile, adâncimea și exemplele ratate în Extent.
+
+#### Liga paralelă și reglajul ordonării șahurilor
+
+Pe 12 noiembrie 2026, am comparat bonusurile 5.000 și 10.000 pe aceleași 72 de partide, cu cel mult trei workeri, aceleași deschideri, culori și bugete. Ambele rulări au trecut, iar fiecare partidă s-a rejucat din checkpoint.
+
+| Bonus | Hard–Advanced V / R / Î / N | Elo central | Interval 95% | Hard–Basic V / R / Î / N | Noduri Hard / tură |
+|---:|---:|---:|---:|---:|---:|
+| 5.000 | 19 / 2 / 1 / 2 | +338 | +154 … ∞ | 22 / 1 / 1 / 0 | 29.891 |
+| 10.000 | 19 / 2 / 2 / 1 | +307 | +154 … +669 | 22 / 1 / 1 / 0 | 29.518 |
+
+Advanced–Basic a rămas identic la 18 / 3 / 3 / 0 și +255 Elo, cu intervalul +137…+417. Între 5.000 și 10.000 s-a schimbat rezultatul unei singure partide: Vienna, Advanced cu albele contra Hard cu negrele, s-a încheiat cu victorie albă în loc să rămână neterminată la plafon. Stockfish 19 la adâncimea 13 a evaluat prima divergență `e8g8`→`f5c2` la −915→−926 cp; pierderea WDL a rămas 0‰ pentru ambele alegeri. Așadar liga nu demonstrează o creștere Elo la 10.000; poziția era deja pierdută pentru Hard, iar intervalele sunt largi.
+
+Am ales 10.000 pentru câștigul măsurat în colecția de quest-uri: Mat în 3 a urcat la 172/200 față de 170/200 la 5.000, celelalte capitole nu au scăzut, iar media ponderată a nodurilor pe toate cele 1.172 de poziții a coborât cu 16,6%, de la aproximativ 7.554 la 6.299. Setul fix de 10 poziții Stockfish a rămas 10/10, cu pierdere WDL 0‰ pentru Hard. Aceste rezultate nu justifică recalibrarea Elo-ului. Extensia tactică globală și varianta limitată la poziții în șah au fost respinse: prima a coborât Antrenamentul la 35/48 și a încălcat porțile Stockfish, iar a doua Matul în 3 la 166/200. Rapoartele Extent și TSV rămân în TMP.
+
+Am verificat și bonusuri de 15.000 și 20.000 pe aceleași 1.172 de quest-uri și pe poarta Stockfish. Ambele au păstrat aceleași rezultate ca 10.000 în toate capitolele și 10/10 contra Stockfish; media ponderată a scăzut doar la aproximativ 6.255 și 6.254 de noduri, sub 1% față de 10.000. Nu există câștig de transfer care să justifice bonusul mai mare, deci plafonul și valoarea de 10.000 rămân. Măsurătorile de timp din rulările concurente nu sunt folosite pentru comparație.
+
+Am testat separat ordonarea mutărilor la rădăcină: Hard caută mai întâi șahurile și păstrează ordinea evaluării în interiorul grupurilor de șah și non-șah. Basic, Advanced, Indiciul, repertoriul și finalurile speciale de turnuri nu intră pe această cale. Pe toate quest-urile, M3 a urcat la 190/200, Antrenamentul a rămas 39/48, iar celelalte capitole nu s-au schimbat; media ponderată a nodurilor a coborât de la 6.299 la aproximativ 5.703. Setul Stockfish a rămas 10/10.
+
+Liga pereche de 72 de partide a păstrat scorul Hard–Basic la 22/1/1/0 și Advanced–Basic la 18/3/3/0. Hard–Advanced a trecut de la 19/2/2/1, +307 Elo, la 19/3/1/1, +338 Elo; o victorie a albului în Vienna, cu Hard negru, s-a transformat în remiză prin repetiție. Intervalele 95% se suprapun larg (+154…+669 față de +191…+669), deci rezultatul susține lipsa unei regresii în eșantion, nu o creștere Elo confirmată. Media Hard a coborât de la 29.518 la 29.305 noduri pe tură.
+
+O sortare mai agresivă a tuturor mutărilor rădăcină după capturi și activitate a dat tot 190/200 la M3, dar Hard–Advanced a scăzut la 14/6/2/2 (+191 Elo central). Am respins-o; câștigul la puzzle-uri nu justifică o slăbire în joc. Estimările absolute Elo se actualizează doar după cele trei sesiuni Stockfish 19 descrise mai jos.
 
 ### Rezultatele ancorei externe
 
@@ -145,6 +193,18 @@ Prima măsurare, păstrată ca reper:
 | Hard | 5 / 0 / 11 / 8 | 1411 | 955 … 1654 |
 
 În prima măsurare, 21 dintre cele 72 de partide au rămas active la plafon. Variația între rulări apare și la Basic și Advanced, ale căror reguli de căutare au rămas aceleași. Pentru o comparație între versiuni, păstrați bugetul și plafonul și repetați perechile în mai multe sesiuni.
+
+#### Calibrare exploratorie a ordonării șahurilor · 12 noiembrie 2026
+
+Am rulat trei sesiuni noi pe candidatul local cu prioritate stabilă pentru șahuri la rădăcina căutării Hard. Stockfish 19 a folosit `UCI_Elo 1500`, cererea de 6.000 de noduri pe mutare și un fir; fiecare profil a jucat 72 de partide pe aceleași 12 deschideri, cu ambele culori. Limita de 160 de semimutări și bugetele profilurilor au rămas neschimbate. Hash-ul executabilului Stockfish a corespuns ancorei.
+
+| Profil | V / R / Î / N | Elo estimat | Interval pereche 95% |
+|---|---:|---:|---:|
+| Basic | 7 / 0 / 56 / 9 | 1212 | 1008–1369 |
+| Advanced | 23 / 0 / 30 / 19 | 1466 | 1237–1654 |
+| Hard | 34 / 0 / 23 / 15 | 1553 | 1411–1718 |
+
+Intervalul reeșantionează cele 12 deschideri ca unități independente și tratează fiecare partidă neterminată ca scor între zero și un punct. Rulările au generat rapoarte Extent și TSV în TMP; fixture-ul, pragurile și bugetele nu s-au schimbat. Aceste valori descriu candidatul din copia locală, nu sunt promovate în `game-review.yaml` sau `ai-anchor-observations.yaml`: codul nu are încă un commit de proveniență pentru această calibrare. Intervalele sunt largi și se suprapun, deci rezultatul nu dovedește o creștere Elo și nici o separare statistică sigură între niveluri. Recalibrarea guvernată se face după fixarea sursei într-un commit și păstrarea hash-urilor rapoartelor.
 
 ## Analiza partidei
 

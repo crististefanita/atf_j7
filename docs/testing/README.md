@@ -86,11 +86,15 @@ mvn test '-Dtest=ChessGovernanceSuite' '-Dchess.extent=target/governance.html'
 
 JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Configurarea Stockfish, a ligii și a ancorei Elo](../board/ai-quality.md#control-la-fiecare-schimbare)
 
+`AiLeagueBenchmarkTest` joacă cele 72 de partide ale ligii într-un pool de cel mult trei workeri și verifică separat replay-ul fiecărui rezultat; folosiți o cale TSV nouă în `-Dchess.league` și un Extent nou. Astfel, testul acoperă căutările simultane și păstrarea checkpoint-urilor fiecărui joc.
+
+`HardQuestTransferBenchmarkTest` rulează separat în `ChessBenchmarkSuite`: măsoară toate cele 1.172 de quest-uri prin decizia adversarului Hard și păstrează podelele de regresie în `hard-quest-transfer.yaml`. Nu intră în suita rapidă de componente; folosiți-i propriul raport Extent la ajustarea căutării sau a bugetului.
+
 `SuiteGovernanceTest` compară planurile descoperite de JUnit. Fiecare metodă JVM cu audit aparține unei singure suite primare. Publicarea recepțiilor Android și TalkBack are intrări explicite. `DocumentationGovernanceTest` verifică fișierele și ancorele Markdown locale, inclusiv cele din feedback.
 
 ## Raportare Extent
 
-`MatchAiGovernanceTest` verifică limitele YAML, iar `MatchHintTest` verifică pragul, limita de cinci și un mat găsit la adâncime mai mare, inclusiv în partida configurată pe Basic. `MatchMaterialTest` acoperă capturile, en passant, promovarea și reluarea. Pentru comparația cu Stockfish 19, folosiți suita separată și același set de poziții la fiecare revizie. [Protocol și comenzi](../board/ai-quality.md)
+`MatchAiGovernanceTest` verifică limitele YAML, inclusiv plafonul pentru extensia finalului de turnuri și fereastra de selecție. `RookEndgameHistoryTest` reconstruiește alegerile Hard la semimutările 96, 108 și 112, verifică diferența dintre căutarea cu istoric și cea numai după tablă și poate compara fiecare alegere cu Stockfish 19 la adâncimea 13. Decizia rămâne sub plafonul existent de noduri. `MatchHintTest` verifică pragul, limita de cinci și un mat găsit la adâncime mai mare, inclusiv în partida configurată pe Basic. `MatchMaterialTest` acoperă capturile, en passant, promovarea și reluarea. Pentru comparația cu Stockfish 19, folosiți suita separată și același set de poziții la fiecare revizie. [Protocol și comenzi](../board/ai-quality.md)
 
 `MatchSetupTest` acoperă decizia Hard în Franceză și Scandinavă în bugetul existent. `MatchEvaluationTest` verifică estimarea poziției, ordinea indiciilor și scorurile terminale. Benchmarkul cu Stockfish compară separat pierderea mutărilor Hard și eroarea numerică a barei, pe poziții suplimentare fixate în YAML. [Pozițiile de calibrare](../../atf-tests/src/test/resources/opening-calibration.yaml)
 

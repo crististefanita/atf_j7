@@ -17,6 +17,7 @@ public final class ChessPosition {
     public enum Outcome { PLAYING, CHECK, CHECKMATE, STALEMATE }
 
     public record Piece(Side side, Kind kind) { }
+    record SearchKey(long first, long second, long third, long fourth, int turn, int castleRights, int enPassant) { }
 
     public record Threat(int square, Piece piece) { }
 
@@ -115,6 +116,27 @@ public final class ChessPosition {
     public Side turn() { return turn; }
 
     public Piece pieceAt(int square) { return board[square]; }
+
+    SearchKey searchKey() {
+        long first = 0;
+        long second = 0;
+        long third = 0;
+        long fourth = 0;
+        int kinds = Kind.values().length;
+        for (int square = 0; square < board.length; square++) {
+            Piece piece = board[square];
+            int code = piece == null ? 0 : 1 + piece.side().ordinal() * kinds + piece.kind().ordinal();
+            long packed = (long) code << ((square & 15) * 4);
+            switch (square >>> 4) {
+                case 0 -> first |= packed;
+                case 1 -> second |= packed;
+                case 2 -> third |= packed;
+                case 3 -> fourth |= packed;
+                default -> throw new IllegalStateException("Board square is outside the search key");
+            }
+        }
+        return new SearchKey(first, second, third, fourth, turn.ordinal(), castleRights, legalEnPassant());
+    }
 
     boolean sameForRepetition(ChessPosition other) {
         return turn == other.turn && castleRights == other.castleRights && Arrays.equals(board, other.board)

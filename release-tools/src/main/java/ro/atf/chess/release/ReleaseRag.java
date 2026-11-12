@@ -105,6 +105,10 @@ public final class ReleaseRag {
             new Route("docs/release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("scripts/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
+            new Route("scripts/Initialize-J7Signing.ps1", "docs/release/README.md", "## Identitatea de semnare și instalare curată",
+                    "ReleaseGovernanceTest și ReleaseGate signing-continuity"),
+            new Route("scripts/verify-signing-continuity.ps1", "docs/release/README.md", "## Identitatea de semnare și instalare curată",
+                    "ReleaseGovernanceTest și ReleaseGate signing-continuity"),
             new Route("scripts/verify-tactics.cjs", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
                     "verify-tactics.cjs și chess.js 1.4.0"),
             new Route("pom.xml", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
@@ -123,7 +127,7 @@ public final class ReleaseRag {
 
     private static Route ai(String path) {
         return new Route(path, "docs/board/ai-quality.md", "## Control la fiecare schimbare",
-                "ChessBenchmarkSuite: Stockfish și liga offline");
+                "HardQuestTransferBenchmarkTest, RookEndgameHistoryTest și ChessBenchmarkSuite: Stockfish și liga offline");
     }
 
     private static Route openings(String path) {

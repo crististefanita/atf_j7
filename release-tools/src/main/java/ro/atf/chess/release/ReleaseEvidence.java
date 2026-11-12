@@ -62,6 +62,22 @@ public final class ReleaseEvidence {
         apk(candidate, download.apk());
     }
 
+    public static String signingContinuity(String previousFingerprint, String candidateFingerprint, String installMode)
+            throws IOException {
+        String previous = fingerprint(previousFingerprint);
+        String candidate = fingerprint(candidateFingerprint);
+        require(List.of("UPGRADE", "CLEAN_INSTALL").contains(installMode), "Unknown signing transition mode");
+        if (previous.equals(candidate)) return "UPGRADE_COMPATIBLE";
+        require("CLEAN_INSTALL".equals(installMode),
+                "Signing certificate differs; an in-place upgrade is blocked and requires an explicit clean-install mode");
+        return "CLEAN_INSTALL_REQUIRED";
+    }
+
+    private static String fingerprint(String value) throws IOException {
+        require(value != null && value.replace(":", "").matches("(?i)[0-9a-f]{64}"), "Invalid signing certificate fingerprint");
+        return value.replace(":", "").toLowerCase(java.util.Locale.ROOT);
+    }
+
     public static List<String> gameLinks(String readme) throws IOException {
         var game = GAME.matcher(readme);
         require(game.find(), "Missing Jocul section");

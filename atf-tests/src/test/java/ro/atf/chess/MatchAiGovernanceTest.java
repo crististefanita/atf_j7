@@ -14,6 +14,57 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @Tag("governance")
 @ExtendWith(ExtentAudit.class)
 class MatchAiGovernanceTest {
+    @Test void hardCheckOrderingIsBoundedAndGovernedByYaml(Checks check) {
+        check.same("Only the game Hard profile uses the configured check-order bonus", 10_000,
+                MatchAiPolicy.CURRENT.hardOrdering.checkBonus());
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        var ordering = new HashMap<Object, Object>(ChessYaml.map(root, "hard-ordering"));
+        root.put("hard-ordering", ordering);
+        ordering.put("check-bonus", 10_001);
+        check.same("An oversized move-order bonus is rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("check-bonus"));
+        ordering.put("check-bonus", -1);
+        check.same("A negative move-order bonus is rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("check-bonus"));
+        ordering.put("check-bonus", 0);
+        check.same("A zero bonus cleanly disables the heuristic", 0, MatchAiPolicy.read(root).hardOrdering.checkBonus());
+    }
+
+    @Test void hardQuestTransferFloorsStayWithinEachFrozenChapter(Checks check) {
+        var root = ChessYaml.resource("hard-quest-transfer.yaml");
+        var floors = ChessYaml.map(root, "minimum-solved");
+        var chapters = Map.of("mate-in-one", QuestCatalog.load().size(), "mate-in-two", QuestCatalog.loadMateInTwo().size(),
+                "mate-in-three", QuestCatalog.loadMateInThree().size(), "tactics", QuestCatalog.loadTactics().size(),
+                "training", QuestCatalog.loadTraining().size(), "intermezzo", QuestCatalog.loadIntermezzo().size());
+        var expectedFloors = Map.of("mate-in-one", 500, "mate-in-two", 300, "mate-in-three", 190,
+                "tactics", 86, "training", 39, "intermezzo", 24);
+        check.same("Hard quest transfer floor schema", 1, ChessYaml.number(root, "schema"));
+        check.same("Every quest chapter has one governed floor", chapters.keySet(), floors.keySet());
+        chapters.forEach((chapter, count) -> {
+            int floor = ChessYaml.number(floors, chapter);
+            check.same(chapter + " regression floor is frozen until the baseline is reviewed", expectedFloors.get(chapter), floor);
+            check.same(chapter + " floor is positive and no larger than its catalog", true, floor > 0 && floor <= count);
+        });
+    }
+
+    @Test void rookEndgameSearchHasOneGovernedExtensionAndANarrowCandidateWindow(Checks check) {
+        var policy = MatchAiPolicy.CURRENT.rookEndgame;
+        check.same("Rook endings allow one extra selective ply", 1, policy.extensionPlies());
+        check.same("Rook root comparisons keep the validated 50 cp window", 50, policy.candidateGapCp());
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        var rook = new HashMap<Object, Object>(ChessYaml.map(root, "rook-endgame"));
+        root.put("rook-endgame", rook);
+        rook.put("extension-plies", 2);
+        check.same("Unvalidated endgame extensions are rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root))
+                        .getMessage().contains("extension-plies"));
+        rook.put("extension-plies", 1);
+        rook.put("candidate-gap-cp", 300);
+        check.same("A wide root window that admits dominated rook moves is rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root))
+                        .getMessage().contains("candidate-gap-cp"));
+    }
+
     @Test void repetitionPolicyRequiresAnAdvantageAndBoundsTheCostOfEscaping(Checks check) {
         var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
         var repetition = new HashMap<Object, Object>(ChessYaml.map(root, "repetition"));

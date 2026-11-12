@@ -25,6 +25,11 @@ public final class ReleaseGate {
             System.out.println("PASS preflight " + String.join(", ", GOVERNANCE));
             return;
         }
+        if (args.length == 4 && "signing-continuity".equals(args[0])) {
+            String status = ReleaseEvidence.signingContinuity(args[1], args[2], args[3]);
+            System.out.println("PASS signing-continuity " + status);
+            return;
+        }
         if (args.length < 5) throw new IllegalArgumentException("Expected check, version, commit, APK and receipt values");
         Path apk = Path.of(args[3]);
         var candidate = new ReleaseEvidence.Candidate(args[1], args[2], Files.size(apk), ReleaseEvidence.digest(apk));

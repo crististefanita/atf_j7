@@ -135,6 +135,45 @@ class ReleaseGovernanceTest {
                 decision(() -> ReleaseEvidence.publication(candidate, new Download(SOURCE, SOURCE, README, REPOSITORY, URL, "AUTHENTICATED", 200, sameLength))));
     }
 
+    @Test void aNewSigningCertificateCannotMasqueradeAsAnInPlaceUpgrade(Checks check) throws IOException {
+        String previous = "4f15d961364d331531f78348b4aa167ad87ceceac442126ef802a8202a50344f";
+        String candidate = "8a572946eeb3d73b517efcf053e2066616dd121c9f742dd4cb3b764aaa725416";
+        check.same("The existing release signer keeps the in-place upgrade path", "UPGRADE_COMPATIBLE",
+                ReleaseEvidence.signingContinuity(previous, previous, "UPGRADE"));
+        check.same("A different certificate is accepted only as an explicit clean install", "CLEAN_INSTALL_REQUIRED",
+                ReleaseEvidence.signingContinuity(previous, candidate, "CLEAN_INSTALL"));
+        check.same("The old app cannot be silently updated with a new signer", true,
+                decision(() -> ReleaseEvidence.signingContinuity(previous, candidate, "UPGRADE"))
+                        .contains("in-place upgrade is blocked"));
+        check.same("Unknown installation modes cannot bypass signer continuity", true,
+                decision(() -> ReleaseEvidence.signingContinuity(previous, candidate, "AUTO"))
+                        .contains("Unknown signing transition mode"));
+        check.same("Malformed certificate fingerprints fail closed", true,
+                decision(() -> ReleaseEvidence.signingContinuity("not-a-certificate", candidate, "CLEAN_INSTALL"))
+                        .contains("Invalid signing certificate fingerprint"));
+    }
+
+    @Test void signingRecoveryUsesTheProtectedIdentityAndExplicitlyGatesRotation(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        String initializer = Files.readString(root.resolve("scripts/Initialize-J7Signing.ps1"));
+        check.same("Signing secrets use a protected external DPAPI record", true,
+                initializer.contains("password.dpapi") && initializer.contains("ConvertFrom-SecureString")
+                        && initializer.contains("SetAccessRuleProtection"));
+        check.same("A missing published key cannot rotate silently", true,
+                initializer.contains("release/0.11.2/reports/qualification.json")
+                        && initializer.contains("-StartNewIdentity")
+                        && initializer.contains("accept a clean-install transition"));
+        check.same("Incomplete key records are preserved for recovery", true,
+                initializer.contains("Incomplete J7 signing identity") && initializer.contains("do not rotate automatically"));
+        check.same("The actual keystore alias is checked against the protected certificate manifest", true,
+                initializer.contains("identity-verification.log") && initializer.contains("stored keystore certificate differs")
+                        && initializer.contains("(Get-Content -Raw -LiteralPath $credential).Trim()"));
+        var rag = ReleaseRag.inspect(root, List.of("scripts/Initialize-J7Signing.ps1", "scripts/verify-signing-continuity.ps1"));
+        check.same("Both signing operations cite the same owner guidance", List.of("docs/release/README.md"),
+                rag.citations().stream().map(ReleaseRag.Citation::path).distinct().toList());
+        check.same("The signer path is fully governed", List.of(), rag.needsReview());
+    }
+
     @Test void readmeKeepsTheDownloadSectionFirstAndRejectsOtherApkRoutes(Checks check) throws IOException {
         check.same("A brief introduction, two canonical bullets and a guide qualify", "accepted",
                 decision(() -> publish(SOURCE, README.replace("\n", "\r\n"), 200, apk)));
@@ -234,7 +273,8 @@ class ReleaseGovernanceTest {
         for (String source : aiPaths) {
             var citations = ReleaseRag.retrieve(root, List.of(source));
             var ai = citations.stream().filter(citation -> citation.path().equals("docs/board/ai-quality.md")).toList();
-            check.same(source + " cites the Stockfish and league protocol", List.of("ChessBenchmarkSuite: Stockfish și liga offline"),
+            check.same(source + " cites Hard-transfer, history and external AI controls",
+                    List.of("HardQuestTransferBenchmarkTest, RookEndgameHistoryTest și ChessBenchmarkSuite: Stockfish și liga offline"),
                     ai.stream().map(ReleaseRag.Citation::check).toList());
         }
         check.same("A multi-file AI diff cites the protocol once", 1L,

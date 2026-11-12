@@ -131,9 +131,18 @@ class ChessMatchTest {
         String rook = "4k3/8/8/8/8/8/8/4K2R w ";
         check.same("A pinned pawn cannot distinguish an otherwise repeated position", true,
                 ChessPosition.fromFen(pinned + "d6 0 1").sameForRepetition(ChessPosition.fromFen(pinned + "- 0 1")));
+        check.same("The search key uses the same legal en passant rule as repetition", true,
+                ChessPosition.fromFen(pinned + "d6 0 1").searchKey()
+                        .equals(ChessPosition.fromFen(pinned + "- 0 1").searchKey()));
         check.same("An available en passant capture distinguishes two positions", false,
                 ChessPosition.fromFen(free + "d6 0 1").sameForRepetition(ChessPosition.fromFen(free + "- 0 1")));
+        check.same("A legal en passant right remains part of the search key", false,
+                ChessPosition.fromFen(free + "d6 0 1").searchKey()
+                        .equals(ChessPosition.fromFen(free + "- 0 1").searchKey()));
         check.same("A castling right distinguishes positions with identical pieces", false,
                 ChessPosition.fromFen(rook + "K - 0 1").sameForRepetition(ChessPosition.fromFen(rook + "- - 0 1")));
+        check.same("Castling rights remain part of the search key", false,
+                ChessPosition.fromFen(rook + "K - 0 1").searchKey()
+                        .equals(ChessPosition.fromFen(rook + "- - 0 1").searchKey()));
     }
 }

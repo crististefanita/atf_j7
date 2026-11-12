@@ -125,12 +125,23 @@ public final class TacticalAnalysis {
     }
 
     static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers) {
+        return botAnalysis(position, level, gap, repetitionOffers, List.of());
+    }
+
+    static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers,
+                                    List<ChessPosition> repetitionHistory) {
         boolean hard = level == MatchSetup.Level.HARD;
         var repertoire = gap == 0 ? OpeningRepertoire.CURRENT.reply(position, level) : null;
         var root = new RootSearch(position, repetitionOffers);
         var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
         var base = analyze(root, MatchAiPolicy.BASE_PLIES, moves, Objective.POSITION);
-        return matchSearch(root, MatchAiPolicy.CURRENT.opponent(level), gap, 0, hard && repertoire == null, base);
+        if (hard && repertoire == null && rookEndgame(position)) {
+            var policy = MatchAiPolicy.CURRENT.rookEndgame;
+            return rookEndgameSearch(root, MatchAiPolicy.CURRENT.opponent(level),
+                    Math.max(gap, policy.candidateGapCp()), base, repetitionHistory, policy);
+        }
+        return matchSearch(root, MatchAiPolicy.CURRENT.opponent(level), gap, 0, hard && repertoire == null,
+                hard && repertoire == null, base);
     }
 
     static SearchReport hintAnalysis(ChessPosition position) {
@@ -139,14 +150,14 @@ public final class TacticalAnalysis {
         var root = new RootSearch(position, Set.of());
         if (repertoire != null) {
             var base = analyze(position, MatchAiPolicy.BASE_PLIES, List.of(repertoire), Objective.POSITION);
-            return matchSearch(root, policy.search(), 0, policy.tacticalExtensionPlies(), false, base);
+            return matchSearch(root, policy.search(), 0, policy.tacticalExtensionPlies(), false, false, base);
         }
         var hardPolicy = MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD);
         var base = openingSearch(position);
-        var hard = matchSearch(root, hardPolicy, 0, 0, true, base);
+        var hard = matchSearch(root, hardPolicy, 0, 0, true, false, base);
         int available = policy.search().extraNodes() - hard.extraNodes();
         var tacticalPolicy = new MatchAiPolicy.Search(policy.search().maxPlies(), available - policy.verificationNodes());
-        var tactical = matchSearch(root, tacticalPolicy, policy.maxLossCp(), policy.tacticalExtensionPlies(), false, base);
+        var tactical = matchSearch(root, tacticalPolicy, policy.maxLossCp(), policy.tacticalExtensionPlies(), false, false, base);
         var verified = chooseCoachingSearch(position, base, hard, tactical, policy);
         return new SearchReport(new Result(hintLines(new Result(coachingOrder(position, verified.result())), policy)),
                 verified.depth(), hard.extraNodes() + tactical.extraNodes() + verified.extraNodes());
@@ -239,7 +250,7 @@ public final class TacticalAnalysis {
     }
 
     private static SearchReport matchSearch(RootSearch root, MatchAiPolicy.Search policy, int gap, int tacticalExtension,
-                                            boolean confirmAcrossHorizons, Result base) {
+                                            boolean confirmAcrossHorizons, boolean prioritizeChecks, Result base) {
         int completed = MatchAiPolicy.BASE_PLIES;
         Result best = base;
         if (policy.maxPlies() == completed || best.ranked().isEmpty() || best.ranked().get(0).signedMatePlies() == 1) {
@@ -247,10 +258,12 @@ public final class TacticalAnalysis {
         }
         var moves = new ArrayList<Move>();
         for (var line : best.ranked()) moves.add(line.move());
+        if (prioritizeChecks) orderCheckingRootMovesFirst(root.position(), moves);
         // In an unequal position, let the deeper search resolve immediate material recovery on its own.
         var shallowScores = confirmAcrossHorizons && material(root.position()) == 0
                 ? boundedShallowScores(root.position(), best) : Map.<Move, Integer>of();
         var budget = new SearchBudget(policy.extraNodes(), tacticalExtension);
+        budget.checkOrderBonus = prioritizeChecks ? MatchAiPolicy.CURRENT.hardOrdering.checkBonus() : 0;
         for (int depth = completed + 1; depth <= policy.maxPlies(); depth++) {
             try {
                 // Give Hard a two-horizon ranking if the next full iteration cannot finish.
@@ -264,6 +277,99 @@ public final class TacticalAnalysis {
             catch (BudgetExhausted exhausted) { break; }
         }
         return new SearchReport(best, completed, policy.extraNodes() - budget.remaining);
+    }
+
+    static void orderCheckingRootMovesFirst(ChessPosition position, List<Move> moves) {
+        var checks = new HashMap<Move, Boolean>();
+        for (Move move : moves) checks.put(move, position.playGenerated(move).isCheck());
+        moves.sort(Comparator.comparingInt((Move move) -> checks.get(move) ? 1 : 0).reversed());
+    }
+
+    private static SearchReport rookEndgameSearch(RootSearch root, MatchAiPolicy.Search policy, int gap, Result base,
+                                                 List<ChessPosition> repetitionHistory, MatchAiPolicy.RookEndgame endgamePolicy) {
+        int completed = MatchAiPolicy.BASE_PLIES;
+        Result best = base;
+        if (policy.maxPlies() == completed || best.ranked().isEmpty()) return new SearchReport(best, completed, 0);
+        var moves = new ArrayList<>(best.ranked().stream().map(Variation::move).toList());
+        var budget = new RookSearchBudget(policy.extraNodes(), repetitionHistory, root.position());
+        for (int depth = completed + 1; depth <= policy.maxPlies() + endgamePolicy.extensionPlies(); depth++) {
+            try {
+                var previousScores = new HashMap<Move, Integer>();
+                best.ranked().forEach(line -> previousScores.put(line.move(), line.score()));
+                best = deepenRookEndgame(root, moves, depth, budget, endgamePolicy.candidateGapCp(), previousScores);
+                completed = depth;
+                var nextMoves = new ArrayList<>(best.ranked().stream().map(Variation::move).toList());
+                boolean closeCandidates = best.ranked().size() > 1
+                        && best.ranked().get(0).ending() == Ending.HORIZON
+                        && best.ranked().get(1).ending() == Ending.HORIZON
+                        && best.ranked().get(0).score() - best.ranked().get(1).score() <= gap;
+                if (closeCandidates) {
+                    nextMoves.sort(Comparator.comparingInt((Move move) -> ChessMatch.activity(root.position(), move)).reversed()
+                            .thenComparing(Move::uci));
+                } else {
+                    Move leader = best.ranked().get(0).move();
+                    nextMoves.remove(leader);
+                    nextMoves.add(0, leader);
+                }
+                moves.clear();
+                moves.addAll(nextMoves);
+            } catch (BudgetExhausted exhausted) {
+                break;
+            }
+        }
+        return new SearchReport(best, completed, policy.extraNodes() - budget.remaining);
+    }
+
+    private static boolean rookEndgame(ChessPosition position) {
+        int whiteRooks = 0;
+        int blackRooks = 0;
+        int minors = 0;
+        for (int square = 0; square < 64; square++) {
+            var piece = position.pieceAt(square);
+            if (piece == null) continue;
+            switch (piece.kind()) {
+                case PAWN, KING -> { }
+                case ROOK -> { if (piece.side() == ChessPosition.Side.WHITE) whiteRooks++; else blackRooks++; }
+                case KNIGHT, BISHOP -> { if (++minors > 1) return false; }
+                case QUEEN -> { return false; }
+            }
+        }
+        return whiteRooks > 0 && blackRooks > 0;
+    }
+
+    private static Result deepenRookEndgame(RootSearch root, List<Move> moves, int plies, RookSearchBudget budget,
+                                            int gap, Map<Move, Integer> previousScores) {
+        var best = new ArrayList<Variation>();
+        int top = -LIMIT;
+        int startingBalance = material(root.position());
+        for (int index = 0; index < moves.size(); index++) {
+            Move move = moves.get(index);
+            int cutoff = top - gap;
+            int previous = previousScores.getOrDefault(move, -LIMIT);
+            int alpha = index == 0 ? -LIMIT : cutoff;
+            int beta = index == 0 ? LIMIT : top + 1;
+            if (index == 0 && previous > -LIMIT) {
+                int window = POLICY.values[Kind.PAWN.ordinal()] * 2;
+                alpha = Math.max(-LIMIT, previous - window);
+                beta = Math.min(LIMIT, previous + window);
+            }
+            var line = root.lineRook(move, plies, alpha, beta, budget, startingBalance);
+            int score = line.score();
+            if (index == 0 && previous > -LIMIT && (score <= alpha || score >= beta)) {
+                line = root.lineRook(move, plies, -LIMIT, LIMIT, budget, startingBalance);
+                score = line.score();
+            } else if (index > 0 && score >= top + 1) {
+                line = root.lineRook(move, plies, top, LIMIT, budget, startingBalance);
+                score = line.score();
+            }
+            if (score < cutoff) continue;
+            top = Math.max(top, score);
+            best.add(new Variation(line.moves(), score, line.balance() - startingBalance, line.ending()));
+        }
+        int floor = top - gap;
+        best.removeIf(line -> line.score() < floor);
+        best.sort(RANK);
+        return new Result(best);
     }
 
     private static Map<Move, Integer> boundedShallowScores(ChessPosition position, Result shallow) {
@@ -326,6 +432,17 @@ public final class TacticalAnalysis {
             if (repetitionOffers.contains(move)) return new Line(0, startingBalance, List.of(move), Ending.HORIZON);
             return search(position.playGenerated(move), plies - 1, 1, -LIMIT, beta, budget, objective).prepend(move);
         }
+
+        Line lineRook(Move move, int plies, int alpha, int beta, RookSearchBudget budget, int startingBalance) {
+            if (repetitionOffers.contains(move)) return new Line(0, startingBalance, List.of(move), Ending.HORIZON);
+            var child = position.playGenerated(move);
+            budget.repetitions.push(child);
+            try {
+                return searchRook(child, plies - 1, 1, -beta, -alpha, budget).prepend(move);
+            } finally {
+                budget.repetitions.pop(child);
+            }
+        }
     }
 
     private static Line search(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget, Objective objective) {
@@ -338,7 +455,16 @@ public final class TacticalAnalysis {
         if (moves.isEmpty()) return leaf(position, distance, false, objective);
         if (objective == Objective.POSITION) {
             moves = new ArrayList<>(moves);
-            moves.sort(Comparator.comparingInt((Move move) -> moveOrder(position, move)).reversed());
+            if (budget != null && budget.checkOrderBonus > 0) {
+                var order = new HashMap<Move, Integer>();
+                for (Move move : moves) {
+                    int score = moveOrder(position, move) + (position.playGenerated(move).isCheck() ? budget.checkOrderBonus : 0);
+                    order.put(move, score);
+                }
+                moves.sort(Comparator.comparingInt(order::get).reversed());
+            } else {
+                moves.sort(Comparator.comparingInt((Move move) -> moveOrder(position, move)).reversed());
+            }
         }
 
         Line best = null;
@@ -348,6 +474,62 @@ public final class TacticalAnalysis {
             if (best == null || score > best.score()) best = child.prepend(move);
             alpha = Math.max(alpha, score);
             if (alpha >= beta) break;
+        }
+        return best;
+    }
+
+    private static Line searchRook(ChessPosition position, int left, int distance, int alpha, int beta, RookSearchBudget budget) {
+        budget.visit();
+        var positionKey = position.searchKey();
+        if (budget.repetitions.count(position) >= 3) {
+            return new Line(0, material(position), Collections.emptyList(), Ending.HORIZON);
+        }
+        var key = new RookTranspositionKey(positionKey, left, budget.repetitions.path());
+        var cached = budget.transpositions.get(key);
+        if (cached != null) return cached;
+        if (left == 0) {
+            Line result = leaf(position, distance, position.hasLegalMove(), Objective.POSITION);
+            budget.remember(key, result);
+            return result;
+        }
+        var moves = position.legalMoves();
+        if (moves.isEmpty()) return leaf(position, distance, false, Objective.POSITION);
+        moves = new ArrayList<>(moves);
+        Move preferred = budget.preferredMoves.get(positionKey);
+        moves.sort((first, second) -> {
+            boolean preferredFirst = first.equals(preferred);
+            boolean preferredSecond = second.equals(preferred);
+            if (preferredFirst != preferredSecond) return preferredFirst ? -1 : 1;
+            int firstOrder = moveOrder(position, first) + budget.orderingBonus(position, first, left);
+            int secondOrder = moveOrder(position, second) + budget.orderingBonus(position, second, left);
+            return Integer.compare(secondOrder, firstOrder);
+        });
+        int initialAlpha = alpha;
+        Line best = null;
+        boolean cutoff = false;
+        for (Move move : moves) {
+            var next = position.playGenerated(move);
+            budget.repetitions.push(next);
+            Line child;
+            try {
+                child = searchRook(next, left - 1, distance + 1, -beta, -alpha, budget);
+            } finally {
+                budget.repetitions.pop(next);
+            }
+            int score = -child.score();
+            if (best == null || score > best.score()) best = child.prepend(move);
+            alpha = Math.max(alpha, score);
+            if (alpha >= beta) {
+                cutoff = true;
+                budget.recordCutoff(position, move, left);
+                break;
+            }
+        }
+        if (best != null && !best.moves().isEmpty()) {
+            budget.preferredMoves.put(positionKey, best.moves().getFirst());
+            if (!cutoff && best.ending() == Ending.HORIZON && best.score() > initialAlpha && best.score() < beta) {
+                budget.remember(key, best);
+            }
         }
         return best;
     }
@@ -392,9 +574,92 @@ public final class TacticalAnalysis {
         return captureOrder(position, move) + ChessMatch.activity(position, move);
     }
 
+    private record RookSearchPath(RookSearchPath previous, ChessPosition.SearchKey position) { }
+
+    private record RookTranspositionKey(ChessPosition.SearchKey position, int plies, RookSearchPath path) { }
+
+    private static final class RookSearchBudget {
+        private int remaining;
+        private final int transpositionLimit;
+        private final Map<RookTranspositionKey, Line> transpositions = new HashMap<>();
+        private final Map<ChessPosition.SearchKey, Move> preferredMoves = new HashMap<>();
+        private final Move[][] killers = new Move[16][2];
+        private final int[][] history = new int[2][64 * 64];
+        private final RookRepetitionContext repetitions;
+
+        RookSearchBudget(int remaining, List<ChessPosition> history, ChessPosition root) {
+            this.remaining = remaining;
+            transpositionLimit = Math.min(50_000, Math.max(1, remaining / 2));
+            repetitions = new RookRepetitionContext(history, root);
+        }
+
+        private static final class RookRepetitionContext {
+            private final Map<ChessPosition.SearchKey, Integer> counts = new HashMap<>();
+            private RookSearchPath path;
+
+            RookRepetitionContext(List<ChessPosition> history, ChessPosition root) {
+                history.forEach(position -> counts.merge(position.searchKey(), 1, Integer::sum));
+                counts.merge(root.searchKey(), 1, Integer::sum);
+            }
+
+            int count(ChessPosition position) { return counts.getOrDefault(position.searchKey(), 0); }
+
+            void push(ChessPosition position) {
+                var key = position.searchKey();
+                path = new RookSearchPath(path, key);
+                counts.merge(key, 1, Integer::sum);
+            }
+
+            void pop(ChessPosition position) {
+                var key = position.searchKey();
+                if (path == null || !path.position().equals(key)) throw new IllegalStateException("Unbalanced rook search path");
+                path = path.previous();
+                int count = counts.get(key);
+                if (count == 1) counts.remove(key); else counts.put(key, count - 1);
+            }
+
+            RookSearchPath path() { return path; }
+        }
+
+        int orderingBonus(ChessPosition position, Move move, int plies) {
+            int depth = Math.min(plies, killers.length - 1);
+            if (captureOrder(position, move) == 0) {
+                if (move.equals(killers[depth][0])) return 100_000;
+                if (move.equals(killers[depth][1])) return 90_000;
+            }
+            return history[position.turn().ordinal()][move.from() * 64 + move.to()];
+        }
+
+        void recordCutoff(ChessPosition position, Move move, int plies) {
+            if (captureOrder(position, move) != 0) return;
+            int depth = Math.min(plies, killers.length - 1);
+            if (!move.equals(killers[depth][0])) {
+                killers[depth][1] = killers[depth][0];
+                killers[depth][0] = move;
+            }
+            int index = move.from() * 64 + move.to();
+            int side = position.turn().ordinal();
+            history[side][index] = Math.min(1_000_000, history[side][index] + plies * plies * 32);
+        }
+
+        void remember(RookTranspositionKey key, Line line) {
+            if (line.ending() == Ending.HORIZON
+                    && (transpositions.containsKey(key) || transpositions.size() < transpositionLimit)) {
+                transpositions.putIfAbsent(key, line);
+            }
+        }
+
+        void visit() {
+            checkInterrupted();
+            if (remaining == 0) throw new BudgetExhausted();
+            remaining--;
+        }
+    }
+
     private static final class SearchBudget {
         private int remaining;
         private final int tacticalExtension;
+        private int checkOrderBonus;
 
         SearchBudget(int remaining, int tacticalExtension) {
             this.remaining = remaining;

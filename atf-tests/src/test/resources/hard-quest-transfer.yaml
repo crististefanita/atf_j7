@@ -1,0 +1,8 @@
+schema: 1
+minimum-solved:
+  mate-in-one: 500
+  mate-in-two: 300
+  mate-in-three: 190
+  tactics: 86
+  training: 39
+  intermezzo: 24

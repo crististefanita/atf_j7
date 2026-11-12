@@ -94,24 +94,48 @@ class DocumentationGovernanceTest {
                 true, complete);
     }
 
-    @Test void releaseCatalogKeepsOnlyTheCurrentDownloadAndSeparatesItsCandidate(Checks check) throws IOException {
+    @Test void releaseCatalogKeepsTheCurrentAndOneComparisonVersion(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         String catalog = Files.readString(root.resolve("release/index.json"));
         List<String> links = ReleaseEvidence.gameLinks(Files.readString(root.resolve("README.md")));
         String current = jsonValue(catalog, "currentVersion");
         String linkedTag = links.getFirst().substring(links.getFirst().lastIndexOf("/tag/") + 5);
-        var versions = Pattern.compile("\\\"versions\\\"\\s*:\\s*\\[\\s*\\\"([^\\\"]+)\\\"\\s*\\]").matcher(catalog);
+        var versionBlock = Pattern.compile("\\\"versions\\\"\\s*:\\s*\\[([^\\]]*)\\]").matcher(catalog);
+        List<String> versions = new ArrayList<>();
+        if (versionBlock.find()) {
+            var entries = Pattern.compile("\\\"([^\\\"]+)\\\"").matcher(versionBlock.group(1));
+            while (entries.find()) versions.add(entries.group(1));
+        }
         String android = Files.readString(root.resolve("android/app/build.gradle"));
         var androidVersion = Pattern.compile("(?m)^\\s*versionName '([0-9]+\\.[0-9]+\\.[0-9]+)'$").matcher(android);
         var androidCode = Pattern.compile("(?m)^\\s*versionCode ([0-9]+)$").matcher(android);
-        boolean aligned = versions.find() && androidVersion.find() && androidCode.find()
-                && current.equals(linkedTag.substring(1))
-                && versions.group(1).equals(current)
-                && jsonValue(catalog, "version").equals(androidVersion.group(1))
-                && jsonValue(catalog, "versionCode").equals(androidCode.group(1))
-                && !jsonValue(catalog, "version").equals(current)
+        String catalogVersion = jsonValue(catalog, "version");
+        String catalogCode = jsonValue(catalog, "versionCode");
+        String previous = jsonValue(catalog, "previousVersion");
+        boolean candidate = !catalogVersion.isBlank() && !catalogVersion.equals(current);
+        List<String> expectedVersions = List.of(current, previous);
+        var releaseIndex = prose(root.resolve("release/README.md"));
+        boolean releaseReadmeMatches = releaseIndex.stream().anyMatch(line -> line.startsWith("| Curentă | " + current + " |")
+                && line.contains("(" + current + "/README.md)"))
+                && releaseIndex.stream().anyMatch(line -> line.startsWith("| Precedentă | " + previous + " |")
+                        && line.contains("(" + previous + "/README.md)"));
+        boolean aligned = androidVersion.find() && androidCode.find() && current.equals(linkedTag.substring(1))
+                && versions.equals(expectedVersions)
+                && releaseReadmeMatches
+                && (candidate ? catalogVersion.equals(androidVersion.group(1)) && !previous.isBlank()
+                        : catalogVersion.equals(current) && !previous.isBlank() && !previous.equals(current))
+                && catalogCode.equals(androidCode.group(1))
                 && jsonValue(catalog, "repository").equals("crististefanita/atf_j7");
-        check.same("The root download, single active edition and separate candidate agree with release metadata and Android versioning", true, aligned);
+        check.same("The root points only to the current APK while the catalog retains at most one immediate comparison release", true, aligned);
+        if (!candidate && aligned) {
+            try (var directories = Files.list(root.resolve("release"))) {
+                List<String> local = directories.filter(Files::isDirectory).map(path -> path.getFileName().toString())
+                        .filter(name -> name.matches("[0-9]+\\.[0-9]+\\.[0-9]+"))
+                        .toList();
+                check.same("Local release evidence keeps only the current and immediate predecessor", true,
+                        local.size() == versions.size() && local.containsAll(versions));
+            }
+        }
     }
 
     @Test void releaseAndTestingGuidesLeadToTheirEvidenceOwners(Checks check) throws IOException {

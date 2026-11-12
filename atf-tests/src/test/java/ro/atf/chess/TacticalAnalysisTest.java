@@ -1,6 +1,7 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +12,16 @@ import ro.atf.chess.TacticalAnalysis.Variation;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class TacticalAnalysisTest {
+    @Test void hardRootOrderingPromotesChecksAndPreservesTheEvaluatedOrderWithinEachGroup(Checks check) {
+        var position = ChessPosition.fromFen("4k3/8/8/8/8/8/8/3QK3 w - - 0 1");
+        var moves = new ArrayList<>(List.of(Move.fromUci("e1d2"), Move.fromUci("d1h5"), Move.fromUci("d1b3")));
+        check.same("The fixture starts with one forcing check and two quiet alternatives", List.of(false, true, false),
+                moves.stream().map(move -> position.play(move).isCheck()).toList());
+        TacticalAnalysis.orderCheckingRootMovesFirst(position, moves);
+        check.same("Checking moves move first while evaluated order remains stable inside each group",
+                List.of("d1h5", "e1d2", "d1b3"), moves.stream().map(Move::uci).toList());
+    }
+
     @Test void aReplyChangesAnApparentGainIntoALoss(Checks check) {
         var position = ChessPosition.fromFen("4k3/8/3p4/4r3/3Q4/8/8/4K3 w - - 0 1");
         var shallow = variation(position, 1, "d4e5");

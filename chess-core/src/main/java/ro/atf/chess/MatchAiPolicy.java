@@ -14,24 +14,31 @@ final class MatchAiPolicy {
     record Hint(Search search, int maxVariants, int maxLossCp, int tacticalExtensionPlies, int verificationNodes) { }
     record Evaluation(int nodes, int maxHorizonCorrectionCp) { }
     record Repetition(int minAdvantageCp, int maxScoreLossCp) { }
+    record RookEndgame(int extensionPlies, int candidateGapCp) { }
+    record HardOrdering(int checkBonus) { }
 
     private final Map<Level, Search> opponents;
     final Hint hint;
     final Evaluation evaluation;
     final Repetition repetition;
+    final RookEndgame rookEndgame;
+    final HardOrdering hardOrdering;
 
-    private MatchAiPolicy(Map<Level, Search> opponents, Hint hint, Evaluation evaluation, Repetition repetition) {
+    private MatchAiPolicy(Map<Level, Search> opponents, Hint hint, Evaluation evaluation, Repetition repetition,
+                          RookEndgame rookEndgame, HardOrdering hardOrdering) {
         this.opponents = opponents;
         this.hint = hint;
         this.evaluation = evaluation;
         this.repetition = repetition;
+        this.rookEndgame = rookEndgame;
+        this.hardOrdering = hardOrdering;
     }
 
     Search opponent(Level level) { return opponents.get(level); }
 
     static MatchAiPolicy read(Map<?, ?> root) {
-        requireKeys(root, "schema", "opponents", "hint", "evaluation", "repetition");
-        if (ChessYaml.number(root, "schema") != 1) throw new IllegalArgumentException("Unknown match AI schema");
+        requireKeys(root, "schema", "opponents", "hint", "evaluation", "repetition", "rook-endgame", "hard-ordering");
+        if (ChessYaml.number(root, "schema") != 3) throw new IllegalArgumentException("Unknown match AI schema");
         var settings = ChessYaml.map(root, "opponents");
         requireKeys(settings, "BASIC", "ADVANCED", "HARD");
         var opponents = new EnumMap<Level, Search>(Level.class);
@@ -57,11 +64,21 @@ final class MatchAiPolicy {
         requireKeys(evaluation, "nodes", "max-horizon-correction-cp");
         var repetition = ChessYaml.map(root, "repetition");
         requireKeys(repetition, "min-advantage-cp", "max-score-loss-cp");
+        var rookEndgame = ChessYaml.map(root, "rook-endgame");
+        requireKeys(rookEndgame, "extension-plies", "candidate-gap-cp");
+        int extension = bounded(rookEndgame, "extension-plies", 0, 1);
+        if (opponents.get(Level.HARD).maxPlies() + extension > MAX_PLIES) {
+            throw new IllegalArgumentException("Rook endgame extension exceeds the supported search horizon");
+        }
+        var hardOrdering = ChessYaml.map(root, "hard-ordering");
+        requireKeys(hardOrdering, "check-bonus");
         return new MatchAiPolicy(opponents, new Hint(search,
                 bounded(row, "max-variants", 1, 5), bounded(row, "max-loss-cp", 0, 100),
                 bounded(row, "tactical-extension-plies", 0, 2), verification), new Evaluation(
                         bounded(evaluation, "nodes", 1_000, 40_000), bounded(evaluation, "max-horizon-correction-cp", 0, 50)),
-                new Repetition(bounded(repetition, "min-advantage-cp", 75, 250), bounded(repetition, "max-score-loss-cp", 1, 75)));
+                new Repetition(bounded(repetition, "min-advantage-cp", 75, 250), bounded(repetition, "max-score-loss-cp", 1, 75)),
+                new RookEndgame(extension, bounded(rookEndgame, "candidate-gap-cp", 25, 75)),
+                new HardOrdering(bounded(hardOrdering, "check-bonus", 0, 10_000)));
     }
 
     private static Search search(Map<?, ?> row) {
