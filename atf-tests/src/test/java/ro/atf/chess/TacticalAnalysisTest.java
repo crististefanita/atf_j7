@@ -22,6 +22,26 @@ class TacticalAnalysisTest {
                 List.of("d1h5", "e1d2", "d1b3"), moves.stream().map(Move::uci).toList());
     }
 
+    @Test void hardQuietHistoryLearnsCutoffsWithoutPromotingChecksOrCaptures(Checks check) {
+        var position = ChessPosition.fromFen("4k3/8/8/8/8/8/8/3QK3 w - - 0 1");
+        var quiet = Move.fromUci("d1b3");
+        var checking = Move.fromUci("d1h5");
+        var ordering = new TacticalAnalysis.QuietMoveOrdering();
+        check.same("A new search has no inherited history", 0, ordering.bonus(position, quiet, false));
+        ordering.recordCutoff(position, quiet, 4, false);
+        check.same("A quiet cutoff gains depth-squared history", 512, ordering.bonus(position, quiet, false));
+        for (int cutoff = 0; cutoff < 7; cutoff++) ordering.recordCutoff(position, quiet, 5, false);
+        check.same("Quiet history stays within its ordering cap", 6_000, ordering.bonus(position, quiet, false));
+        ordering.recordCutoff(position, checking, 5, true);
+        check.same("A checking move does not enter the quiet history", 0, ordering.bonus(position, checking, true));
+
+        var capturePosition = ChessPosition.fromFen("3rk3/8/8/8/8/8/8/3QK3 w - - 0 1");
+        var capture = Move.fromUci("d1d8");
+        check.same("The capture fixture is a legal tactical move", true, capturePosition.legalMoves().contains(capture));
+        ordering.recordCutoff(capturePosition, capture, 5, true);
+        check.same("A capture does not enter the quiet history", 0, ordering.bonus(capturePosition, capture, true));
+    }
+
     @Test void aReplyChangesAnApparentGainIntoALoss(Checks check) {
         var position = ChessPosition.fromFen("4k3/8/3p4/4r3/3Q4/8/8/4K3 w - - 0 1");
         var shallow = variation(position, 1, "d4e5");

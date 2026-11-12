@@ -153,6 +153,19 @@ class DocumentationGovernanceTest {
                 prose(root.resolve("docs/board/quest-curation.md")).stream().anyMatch(line -> line.contains("../testing/README.md#progresul-problemelor")));
     }
 
+    @Test void androidVisualAssertionsMapScreenCoordinatesToCapturePixels(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        String sanity = Files.readString(root.resolve("android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java"));
+        var testing = prose(root.resolve("docs/testing/README.md"));
+        boolean scalesBothAxes = sanity.contains("getDefaultDisplay().getRealMetrics(display)")
+                && sanity.contains("(double) image.getWidth() / display.widthPixels")
+                && sanity.contains("(double) image.getHeight() / display.heightPixels");
+        check.same("Android pixel checks map real screen bounds to both captured bitmap axes", true, scalesBothAxes);
+        check.same("The test strategy records why raster and display dimensions can differ", true,
+                testing.stream().anyMatch(line -> line.contains("Captura UI Automation")
+                        && line.contains("dimensiuni raster") && line.contains("bitmapului")));
+    }
+
     @Test void documentationStartsFromTheLocalOwnersAndTheirVerification(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         check.same("The project README links to its documentation index", true,

@@ -264,6 +264,7 @@ public final class TacticalAnalysis {
                 ? boundedShallowScores(root.position(), best) : Map.<Move, Integer>of();
         var budget = new SearchBudget(policy.extraNodes(), tacticalExtension);
         budget.checkOrderBonus = prioritizeChecks ? MatchAiPolicy.CURRENT.hardOrdering.checkBonus() : 0;
+        budget.quietMoveOrdering = prioritizeChecks ? new QuietMoveOrdering() : null;
         for (int depth = completed + 1; depth <= policy.maxPlies(); depth++) {
             try {
                 // Give Hard a two-horizon ranking if the next full iteration cannot finish.
@@ -453,15 +454,21 @@ public final class TacticalAnalysis {
         }
         var moves = position.legalMoves();
         if (moves.isEmpty()) return leaf(position, distance, false, objective);
+        Map<Move, Boolean> checks = Map.of();
         if (objective == Objective.POSITION) {
             moves = new ArrayList<>(moves);
             if (budget != null && budget.checkOrderBonus > 0) {
                 var order = new HashMap<Move, Integer>();
+                var detected = new HashMap<Move, Boolean>();
                 for (Move move : moves) {
-                    int score = moveOrder(position, move) + (position.playGenerated(move).isCheck() ? budget.checkOrderBonus : 0);
+                    boolean givesCheck = position.playGenerated(move).isCheck();
+                    detected.put(move, givesCheck);
+                    int score = moveOrder(position, move) + (givesCheck ? budget.checkOrderBonus : 0)
+                            + (givesCheck ? 0 : budget.quietMoveOrdering.bonus(position, move, false));
                     order.put(move, score);
                 }
                 moves.sort(Comparator.comparingInt(order::get).reversed());
+                checks = detected;
             } else {
                 moves.sort(Comparator.comparingInt((Move move) -> moveOrder(position, move)).reversed());
             }
@@ -473,7 +480,13 @@ public final class TacticalAnalysis {
             int score = -child.score();
             if (best == null || score > best.score()) best = child.prepend(move);
             alpha = Math.max(alpha, score);
-            if (alpha >= beta) break;
+            if (alpha >= beta) {
+                if (budget != null && budget.checkOrderBonus > 0 && !checks.getOrDefault(move, false)
+                        && captureOrder(position, move) == 0) {
+                    budget.quietMoveOrdering.recordCutoff(position, move, left, false);
+                }
+                break;
+            }
         }
         return best;
     }
@@ -656,10 +669,29 @@ public final class TacticalAnalysis {
         }
     }
 
+    static final class QuietMoveOrdering {
+        private static final int MAX_ORDER_BONUS = 6_000;
+        private static final int MAX_HISTORY = 1_000_000;
+        private final int[][] history = new int[2][64 * 64];
+
+        int bonus(ChessPosition position, Move move, boolean givesCheck) {
+            if (givesCheck || captureOrder(position, move) != 0) return 0;
+            return Math.min(MAX_ORDER_BONUS, history[position.turn().ordinal()][move.from() * 64 + move.to()]);
+        }
+
+        void recordCutoff(ChessPosition position, Move move, int plies, boolean givesCheck) {
+            if (givesCheck || captureOrder(position, move) != 0) return;
+            int index = move.from() * 64 + move.to();
+            int side = position.turn().ordinal();
+            history[side][index] = Math.min(MAX_HISTORY, history[side][index] + plies * plies * 32);
+        }
+    }
+
     private static final class SearchBudget {
         private int remaining;
         private final int tacticalExtension;
         private int checkOrderBonus;
+        private QuietMoveOrdering quietMoveOrdering;
 
         SearchBudget(int remaining, int tacticalExtension) {
             this.remaining = remaining;

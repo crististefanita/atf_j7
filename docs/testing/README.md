@@ -106,6 +106,8 @@ JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Co
 
 Pentru cele două meniuri Android, fiecare checkpoint grupează acțiunea, comparația nativă și captura PNG încorporată. La reluarea unei partide, aserțiunea verifică poziția și evidențierea ultimei mutări în imagine. Verificați că aserțiunile se pot extinde și că amprentele corespund recepției, APK-ului, commitului și capturilor. O captură absentă, invalidă, substituită sau repetată între cele două ecrane produce FAIL cu diagnostic în HTML. `ExtentGovernanceTest` exercită publicarea offline. [Calificarea ediției](../release/README.md#calificare-și-publicare)
 
+Captura UI Automation poate avea dimensiuni raster mai mici decât ecranul real al emulatorului. Comparațiile de pixeli proiectează dreptunghiurile din coordonate de ecran în coordonatele bitmapului folosind dimensiunile reale ale displayului; verificarea vizibilității elementelor rămâne bazată pe limitele native ale ferestrei. Astfel, redimensionarea capturii nu devine un fals eșec vizual.
+
 ## Sanity Android
 
 Din aceeași copie TMP, setați `ANDROID_HOME` către SDK 36 și construiți `:app:assembleSanity :app:assembleSanityAndroidTest` din `android` cu `gradlew.bat`. Varianta `sanity` are identitate separată de APK-ul debug folosit pentru joc.

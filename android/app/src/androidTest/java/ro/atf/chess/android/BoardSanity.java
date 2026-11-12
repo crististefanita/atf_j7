@@ -8,10 +8,12 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.DisplayMetrics;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -1727,7 +1729,17 @@ public final class BoardSanity extends Instrumentation {
         return hasColor(image, new Rect(location[0], location[1], location[0] + view.getWidth(), location[1] + view.getHeight()), color, required);
     }
 
-    private static boolean hasColor(Bitmap image, Rect bounds, int color, int required) {
+    private boolean hasColor(Bitmap image, Rect screenBounds, int color, int required) {
+        var display = new DisplayMetrics();
+        ((WindowManager) getTargetContext().getSystemService(android.content.Context.WINDOW_SERVICE))
+                .getDefaultDisplay().getRealMetrics(display);
+        if (display.widthPixels <= 0 || display.heightPixels <= 0) {
+            throw new IllegalStateException("The emulator reported invalid real-display dimensions.");
+        }
+        double scaleX = (double) image.getWidth() / display.widthPixels;
+        double scaleY = (double) image.getHeight() / display.heightPixels;
+        Rect bounds = new Rect((int) Math.floor(screenBounds.left * scaleX), (int) Math.floor(screenBounds.top * scaleY),
+                (int) Math.ceil(screenBounds.right * scaleX), (int) Math.ceil(screenBounds.bottom * scaleY));
         int marked = 0;
         int right = Math.min(image.getWidth(), bounds.right);
         int bottom = Math.min(image.getHeight(), bounds.bottom);
