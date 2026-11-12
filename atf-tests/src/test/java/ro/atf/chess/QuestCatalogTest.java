@@ -71,8 +71,10 @@ class QuestCatalogTest {
         all.addAll(QuestCatalog.loadMateInTwo());
         all.addAll(QuestCatalog.loadMateInThree());
         all.addAll(QuestCatalog.loadTactics());
+        all.addAll(QuestCatalog.loadTraining());
+        all.addAll(QuestCatalog.loadIntermezzo());
         QuestDiversity.requireDistinct(all);
-        check.same("All chapters contribute 1,100 distinct IDs and positions", 1100L, all.stream().map(QuestCatalog.Quest::id).distinct().count());
+        check.same("All chapters contribute 1,172 distinct IDs and positions", 1172L, all.stream().map(QuestCatalog.Quest::id).distinct().count());
     }
 
     @Test void ignoresAnEditorialTieBreakOnceTheBaseScoresDiffer(Checks check) {

@@ -15,6 +15,8 @@ Pentru o poziție nouă, validați FEN-ul, enumerați toate mutările în ambele
 | Mat în 2 | FEN, linie UCI și rating în [mate-in-two.yaml](../../chess-core/src/main/resources/mate-in-two.yaml). Păstrați ratingurile în ordine crescătoare. La rating egal contează ordinea din listă. |
 | Mat în 3 | Același format, cu cinci semimutări, în [mate-in-three.yaml](../../chess-core/src/main/resources/mate-in-three.yaml). Poziția `mate3-0Ytul` înlocuiește exercițiul apropiat `mate3-02GAF` la același rating. |
 | Tactică | FEN, soluție UCI și `difficulty` în [tactics.yaml](../../chess-core/src/main/resources/tactics.yaml). Folosiți valori întregi pozitive distincte. Selecția actuală pornește de la capturi directe și trece la mutări fără captură imediată. |
+| Antrenament tactic | FEN, cheie și ordine în [training.yaml](../../chess-core/src/main/resources/training.yaml). Păstrați ID-urile și checksum-ul catalogului. |
+| Mutarea intermediară | FEN, cheie și rating în [intermezzo.yaml](../../chess-core/src/main/resources/intermezzo.yaml). Ratingurile definesc ordinea crescătoare. |
 
 Pentru Mat în 1, ponderile mai mari mută mai târziu pozițiile care au caracteristica respectivă. O departajare de la 1 la 9 se aplică numai la același scor de bază. Egalitățile rămase urmează ID-ul, iar scorul din fișierul de ordine crește strict. Generatorul refuză o poziție cu mai multe soluții. Rulați din copia TMP, cu JDK 21 și Maven. Pentru verificarea independentă, setați `$chessJs` la fișierul CommonJS din chess.js 1.4.0. Adăugați `-Offline` dacă dependențele sunt deja în cache sau `-MavenRepo` dacă folosiți alt depozit Maven.
 
@@ -25,7 +27,7 @@ Pentru Mat în 1, ponderile mai mari mută mai târziu pozițiile care au caract
 
 Prima comandă compară ordinea existentă cu cea calculată. A doua regenerează ordinea după modificarea ponderilor. După o schimbare revizuită de poziții sau soluții, adăugați `-RefreshOracle` la a doua comandă, apoi rulați suitele de catalog. Chess.js recalculează dovada din pozițiile exportate de parserul YAML al proiectului.
 
-Păstrați ID-ul la reordonare. Pentru o înlocuire, puneți ID-ul vechi în registrul de retrageri și atribuiți un ID nou poziției. Verificarea compară toate cele patru capitole. Normalizează culoarea și reflexiile permise, inclusiv rotațiile unei table fără pioni și fără drepturi de rocadă. Pentru poziții apropiate compară tipul mutării, destinația, câmpul regelui advers și maximum zece câmpuri diferite. Cele 31 de poziții noi de Mat în 1 provin din partidele offline de calibrare. Comentariile din YAML indică partida, semimutarea și eventualul schimb de culori și reflexie. [Registrul de ID-uri](../../chess-core/src/main/resources/quest-retired.yaml) · [Comenzi de verificare](../testing/README.md)
+Păstrați ID-ul la reordonare. Pentru o înlocuire, puneți ID-ul vechi în registrul de retrageri și atribuiți un ID nou poziției. Verificarea compară toate cele șase capitole. Normalizează culoarea și reflexiile permise, inclusiv rotațiile unei table fără pioni și fără drepturi de rocadă. Pentru poziții apropiate compară tipul mutării, destinația, câmpul regelui advers și maximum zece câmpuri diferite. Cele 31 de poziții noi de Mat în 1 provin din partidele offline de calibrare. Comentariile din YAML indică partida, semimutarea și eventualul schimb de culori și reflexie. [Registrul de ID-uri](../../chess-core/src/main/resources/quest-retired.yaml) · [Comenzi de verificare](../testing/README.md#progresul-problemelor)
 
 ## Calibrarea dificultății
 
@@ -52,3 +54,15 @@ node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> --import <pagini-TMP> 
 Cele 200 de poziții provin din baza Lichess CC0. Selecția are 100 de poziții cu albul la mutare și 100 cu negrul, ordonate după ratingul importat. ID-ul `mate3-<PuzzleId>` trimite la problema originală Lichess. [Baza Lichess](https://database.lichess.org/#puzzles) · [Revizia subsetului inițial](https://huggingface.co/datasets/lczerolens/lichess-puzzles-mate-in-3/tree/680d12e5e6447800d5cbe2b2321d4cffd6a024d1)
 
 Ambele motoare verifică o singură primă mutare care forțează matul în trei, fără soluție mai scurtă. Pentru fiecare primă apărare se verifică toate mutările care forțează matul în următoarele două. Linia jucată în aplicație are și a doua mutare unică.
+
+## Antrenament tactic și lot de verificare
+
+Capitolul **Antrenament tactic** conține 48 de poziții fără obiectiv de mat, ordonate după ratingul sursă. Pozițiile acoperă apărarea, devierea, mutarea liniștită, sacrificiul, furculița și legarea, cu ambele culori. Primele 24 de ID-uri și ordinea lor relativă se păstrează la extindere. [Catalog](../../chess-core/src/main/resources/training.yaml)
+
+Catalogul de verificare este separat de capitolul public. `QuestCatalogTest` validează încărcarea și unicitatea pozițiilor, iar `verify-tactics.cjs` verifică legalitatea cheii și câștigul de material prin chess.js 1.4.0. Nu folosiți pozițiile de validare pentru a modifica ponderile sau ordinea publică.
+
+## Mutarea intermediară
+
+Capitolul **Mutarea intermediară** are 24 de poziții în trei trepte de rating: introducere (1150–1549), consolidare (1550–1849) și avansat (1850–2400), cu patru poziții pentru fiecare culoare în fiecare treaptă. Cheia dă șah sau capturează înaintea recapturii și trebuie să păstreze câștigul material cerut de catalog. [Catalog](../../chess-core/src/main/resources/intermezzo.yaml)
+
+Progresul și totalul acestui capitol sunt independente de **Tactică** și **Antrenament tactic**. Verificați în componentă ID-ul curent, rezolvarea idempotentă și totalul separat înainte de extinderea YAML-ului.

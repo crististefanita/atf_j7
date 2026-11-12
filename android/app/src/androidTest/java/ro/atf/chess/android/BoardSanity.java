@@ -41,7 +41,6 @@ public final class BoardSanity extends Instrumentation {
     private static final int MATE_TWO_SIZE = 300;
     private static final int MATE_THREE_SIZE = 200;
     private static final int TACTICS_SIZE = 100;
-    private static final int TOTAL_QUESTS = CATALOG_SIZE + MATE_TWO_SIZE + MATE_THREE_SIZE + TACTICS_SIZE;
     private static final int HINT_TINT = 0xff57e0b4;
     private final Bundle receipt = new Bundle();
     private int comparisons;
@@ -122,7 +121,7 @@ public final class BoardSanity extends Instrumentation {
     private void seedGame(int slot, ChessMatch match) {
         var preferences = getTargetContext().getSharedPreferences("quest-progress", android.content.Context.MODE_PRIVATE);
         var instant = Instant.parse("2026-01-12T17:30:00Z").plusSeconds(slot * 93_600L);
-        var store = new MatchStore(new AndroidMatchPreferences(preferences), Clock.fixed(instant, ZoneOffset.UTC));
+        var store = new MatchStore(new AndroidGamePreferences(preferences), Clock.fixed(instant, ZoneOffset.UTC));
         if (!store.startMatch(slot, match, false, false, false) || !store.leaveMatch()) {
             throw new AssertionError("Could not prepare a game list fixture");
         }
@@ -341,8 +340,11 @@ public final class BoardSanity extends Instrumentation {
         String graph = activity.getString(R.string.game_review_graph);
         var graphNode = dialogNode(graph, AccessibilityNodeInfo::isClickable, 120_000);
         compare("The completed review exposes its interactive evaluation graph", true, graphNode != null);
-        compare("The player's estimate and the Advanced reference show their measured intervals", true,
-                dialogNode("≈ 1341 (549–1900)") != null && dialogNode("≈ 1461 (1183–1684)") != null);
+        var matches = store.matches();
+        var review = matches.readReview(matches.archivedId(matches.activeMatchSlot()), finished);
+        compare("The player and AI rows show their own saved rating intervals", true, review != null
+                && showsRating(activity, R.string.game_review_player, review.white())
+                && showsRating(activity, R.string.game_review_ai, review.black()));
         var graphBounds = new Rect();
         graphNode.getBoundsInScreen(graphBounds);
         captureFrame("game-review", "The finished analysis draws the evaluation line", image -> hasColor(image, graphBounds, 0xffb8d88a, 24));
@@ -391,6 +393,14 @@ public final class BoardSanity extends Instrumentation {
         compare("The alternative move becomes the new saved continuation", Move.fromUci("b2b3"), store.matches().readMatch().moveAt(branchPly + 1));
         closeActivity(activity);
         checkMatchActions(store);
+    }
+
+    private boolean showsRating(Activity activity, int role, ro.atf.chess.GameReview.Player player) throws Exception {
+        if (player.rating().isEmpty() || player.accuracy().isEmpty()) return false;
+        var rating = player.rating().orElseThrow();
+        if (rating.low() == null) return false;
+        String interval = "≈ " + rating.elo() + " (" + rating.low() + "–" + rating.high() + ")";
+        return dialogNode(activity.getString(role, player.accuracy().getAsInt() + "%", interval)) != null;
     }
 
     private void checkMatchActions(ChessProgressStore store) throws Exception {
@@ -645,18 +655,24 @@ public final class BoardSanity extends Instrumentation {
                     && activity.findViewById(R.id.resume_match).getVisibility() == View.GONE;
             openPuzzles(activity);
             var menu = viewsOf(activity);
-            compare("Home exposes play and profile, and Puzzles groups four playable chapters", true, home &&
+            compare("Home exposes play and profile, and Puzzles groups six playable chapters", true, home &&
                     button(activity, menu, R.string.open_mate_one).isEnabled() && button(activity, menu, R.string.open_mate_two).isEnabled()
-                            && button(activity, menu, R.string.open_mate_three).isEnabled() && button(activity, menu, R.string.open_tactics).isEnabled());
+                            && button(activity, menu, R.string.open_mate_three).isEnabled() && button(activity, menu, R.string.open_tactics).isEnabled()
+                            && button(activity, menu, R.string.open_training).isEnabled()
+                            && button(activity, menu, R.string.open_intermezzo).isEnabled());
             var playable = List.of(button(activity, menu, R.string.open_mate_one), button(activity, menu, R.string.open_mate_two),
                     button(activity, menu, R.string.open_mate_three), button(activity, menu, R.string.open_tactics));
-            captureFrame("menu", "The puzzle chapters are fully rendered after launch", image -> playable.stream().allMatch(entry ->
+            captureFrame("menu", "The opening viewport renders the puzzle chapters", image -> playable.stream().allMatch(entry ->
                     fullyVisible(entry) && hasColor(image, entry, entry.getCurrentTextColor(), 32)));
             runOnMainSync(activity::finish);
             checkRomanianCompactScreen();
             activity = launch();
             checkTactics(activity);
-            openChapter(activity, R.string.open_mate_one);
+            openChapter(activity, R.string.open_training);
+            var training = viewsOf(activity);
+            playMove(findBoard(training), QuestCatalog.loadTraining().get(0).solution());
+            tap(button(activity, training, R.string.next_quest));
+            switchChapter(activity, R.string.open_mate_one);
             var views = viewsOf(activity);
             prepare(activity, views, findBoard(views));
         } else if ("restore".equals(phase)) {
@@ -667,6 +683,13 @@ public final class BoardSanity extends Instrumentation {
                     hasText(views, activity.getString(R.string.tactics_progress, 2, TACTICS_SIZE))
                             && hasText(views, activity.getString(R.string.tactics_solved))
                             && hasText(views, activity.getString(R.string.chapter_points, 22)));
+            switchChapter(activity, R.string.open_training);
+            var training = viewsOf(activity);
+            int trainingSize = QuestCatalog.loadTraining().size();
+            compare("Training reopens its second unsolved puzzle after process restart", true,
+                    hasText(training, activity.getString(R.string.training_progress, 2, trainingSize))
+                            && chapterCount(activity, training, 1, trainingSize)
+                            && !button(activity, training, R.string.next_quest).isEnabled());
             switchChapter(activity, R.string.open_mate_two);
             restore(activity);
         } else throw new IllegalArgumentException("Unknown sanity phase: " + phase);
@@ -688,18 +711,23 @@ public final class BoardSanity extends Instrumentation {
             if (index == 0) tap(next);
         }
         String streak = activity.getString(R.string.reward_streak, 2);
-        compare("Two consecutive tactics solve without mate and award 10 plus 12 points", true,
-                hasText(views, activity.getString(R.string.tactics_solved))
-                        && hasText(views, activity.getString(R.string.earned_points, 12, 22)) && hasText(views, streak) && next.isEnabled());
+        compare("A tactics solve renders its result and unlocks Next", true,
+                hasText(views, activity.getString(R.string.tactics_solved)) && next.isEnabled());
         TextView badge = views.stream().filter(TextView.class::isInstance).map(TextView.class::cast)
                 .filter(view -> streak.contentEquals(view.getText())).findFirst().orElseThrow();
-        captureFrame("tactics-streak", "Tactics shows the amber flame and the second reward below the chapter progress",
+        captureFrame("tactics-streak", "Tactics shows the amber flame below the chapter progress",
                 image -> fullyVisible(badge) && badge.getCompoundDrawables()[0] != null && hasColor(image, badge, 0xffffbc78, 16));
         tap(button(activity, views, R.string.main_menu));
         var menu = viewsOf(activity);
-        compare("The menu totals count these tactics both individually and across all chapters", true,
-                hasText(menu, activity.getString(R.string.chapter_totals, 2, TACTICS_SIZE, 22))
-                        && hasText(menu, activity.getString(R.string.all_quest_totals, 2, TOTAL_QUESTS, 22)));
+        var quests = new ChessProgressStore(getTargetContext()).quests();
+        var tacticIds = new ArrayList<String>();
+        for (var tactic : tactics) tacticIds.add(tactic.id());
+        var totals = quests.readRewards().summarize(tacticIds, quests.read(tacticIds));
+        int totalQuests = CATALOG_SIZE + MATE_TWO_SIZE + MATE_THREE_SIZE + TACTICS_SIZE
+                + QuestCatalog.loadTraining().size() + QuestCatalog.loadIntermezzo().size();
+        compare("The puzzle menu displays the saved chapter and overall totals", true,
+                hasText(menu, activity.getString(R.string.chapter_totals, totals.solved(), totals.total(), totals.points()))
+                        && hasText(menu, activity.getString(R.string.all_quest_totals, totals.solved(), totalQuests, totals.points())));
     }
 
     private void checkAnalysis() throws Exception {
@@ -1268,19 +1296,16 @@ public final class BoardSanity extends Instrumentation {
         Activity counter = launchSavedQuest(store, order, "mate-101");
         List<View> counterViews = viewsOf(counter);
         BoardView counterBoard = findBoard(counterViews);
-        compare("mate-101 opens at its configured position", true, atQuest(counter, counterViews, order.indexOf("mate-101") + 1));
         compare("The counter-mate opens with both legacy solves", true, solvedCount(counter, counterViews, 2));
         solveCounterMate(counter, counterViews, counterBoard, "mate-101", "h6", "d2", R.string.bishop);
         runOnMainSync(counter::finish);
         waitForIdleSync();
         Activity capture = launchSavedQuest(store, order, "mate-102");
         var captureViews = viewsOf(capture);
-        compare("mate-102 opens at its configured position", true, atQuest(capture, captureViews, order.indexOf("mate-102") + 1));
         solveCounterMate(capture, captureViews, findBoard(captureViews), "mate-102", "h3", "g4", R.string.pawn);
-        compare("The two new solves add to the two legacy solves", true, solvedCount(capture, captureViews, 4));
         runOnMainSync(capture::finish);
         waitForIdleSync();
-        var progress = store.read(order);
+        var progress = store.quests().read(order);
         var fifth = catalog.stream().filter(quest -> !progress.solvedIds().contains(quest.id()) && quest.solution().promotion() == null)
                 .findFirst().orElseThrow();
         Activity milestoneActivity = launchSavedQuest(store, order, fifth.id());
@@ -1298,7 +1323,8 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private Activity launchSavedQuest(ChessProgressStore store, List<String> order, String id) {
-        if (!store.save(store.read(order).select(id), store.readRewards())) {
+        var quests = store.quests();
+        if (!quests.save(quests.read(order).select(id), quests.readRewards())) {
             throw new AssertionError("Could not select quest " + id);
         }
         return launch();

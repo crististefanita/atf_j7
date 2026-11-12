@@ -1,0 +1,243 @@
+schema: 2
+objective: WIN_MATERIAL
+quests:
+  # Lichess 0199s · rating 1450 · sacrifice · https://lichess.org/game/alW9L2kD/black#40
+  - id: training-001
+    fen: "r3qr1k/1p2b1p1/4p1Qp/2ppP3/p4P2/2P1P1P1/PP4P1/1K1R3R w - - 1 21"
+    solution: h1h6
+    difficulty: 1
+  # Lichess 00TLz · rating 1477 · deflection · https://lichess.org/game/iQZPp2A2/black#72
+  - id: training-002
+    fen: "8/p3Q2p/5qp1/4p1k1/8/8/Pr4PP/6K1 w - - 2 37"
+    solution: h2h4
+    difficulty: 2
+  # Lichess 00Nf5 · rating 1563 · fork · https://lichess.org/game/JkE5qS7u#21
+  - id: training-003
+    fen: "r1bq1rk1/pp2bppp/2pp1n2/8/5P2/2N2N2/PBPPB1PP/R2Q1RK1 b - - 6 11"
+    solution: d8b6
+    difficulty: 3
+  # Lichess 00m5H · rating 1567 · quietMove · https://lichess.org/game/P8apABHK/black#86
+  - id: training-004
+    fen: "8/1p5p/6p1/2P5/1P2k3/P3qp1Q/8/5K2 w - - 6 44"
+    solution: h3e6
+    difficulty: 4
+  # Lichess 011RD · rating 1684 · fork · https://lichess.org/game/rBgndHmx/black#76
+  - id: training-025
+    fen: "7r/2p2k2/1p6/p3R2r/P2Q1pb1/2P5/q1PK1PP1/6R1 w - - 1 39"
+    solution: d4f4
+    difficulty: 5
+  # Lichess 00734 · rating 1692 · pin · https://lichess.org/game/jM0Jnw0u/black#52
+  - id: training-026
+    fen: "r4bk1/2rqp2p/n1p3p1/3p1p2/3P1P1B/pP1BP3/P1Q2PRP/1KR5 w - - 1 27"
+    solution: d3f5
+    difficulty: 6
+  # Lichess 04TQD · rating 1714 · quietMove · https://lichess.org/game/lmDAzyCc/black#58
+  - id: training-027
+    fen: "3r1rk1/pp2qp2/2p1p1pQ/8/8/1P4R1/6PP/5R1K w - - 0 30"
+    solution: g3h3
+    difficulty: 7
+  # Lichess 035Fa · rating 1741 · defensiveMove · https://lichess.org/game/tHLkgNN2#75
+  - id: training-028
+    fen: "8/2P5/5k2/p7/P3K3/8/2r2Rp1/8 b - - 0 38"
+    solution: c2f2
+    difficulty: 8
+  # Lichess 01X5n · rating 1769 · deflection · https://lichess.org/game/WJVPHTRz/black#80
+  - id: training-029
+    fen: "8/8/7p/p3r1p1/2PKpkP1/7P/4R3/8 w - - 3 41"
+    solution: e2f2
+    difficulty: 9
+  # Lichess 04Vom · rating 1816 · quietMove · https://lichess.org/game/TguJkcMT#53
+  - id: training-030
+    fen: "r1bQ1B2/3p2pk/5p1p/pNP2P2/P3q3/3n4/1P4PP/R4RK1 b - - 1 27"
+    solution: c8b7
+    difficulty: 10
+  # Lichess 00Knu · rating 1821 · defensiveMove · https://lichess.org/game/ICZqsNVs/black#36
+  - id: training-031
+    fen: "r2q1rk1/p3bpp1/2pp2b1/4p1Q1/4n3/1B3N1P/PPP3P1/R1B2RK1 w - - 1 19"
+    solution: g5g6
+    difficulty: 11
+  # Lichess 02Hhq · rating 1821 · pin · https://lichess.org/game/jDpqJItu#79
+  - id: training-032
+    fen: "1b6/p6k/1p5p/3p1p2/PP1QnP2/2P3Pq/7P/4R2K b - - 2 40"
+    solution: e4g3
+    difficulty: 12
+  # Lichess 04BvX · rating 1833 · sacrifice · https://lichess.org/game/E1acHhKI/black#100
+  - id: training-033
+    fen: "8/3P2kp/2K2b2/3B4/1P6/3r4/5p2/7R w - - 0 51"
+    solution: h1h7
+    difficulty: 13
+  # Lichess 00dwJ · rating 1852 · defensiveMove · https://lichess.org/game/jAiL6A2t/black#64
+  - id: training-005
+    fen: "2r5/2r3k1/p3b1pp/3pn3/3R4/4P1N1/PQ4PP/R1q3K1 w - - 8 33"
+    solution: a1c1
+    difficulty: 14
+  # Lichess 01phf · rating 1853 · sacrifice · https://lichess.org/game/xhkwjXqa#27
+  - id: training-034
+    fen: "5k1r/p1p1qppp/8/1r6/1b1p2b1/1P4P1/PBPPPPBP/R2QK2R b KQ - 2 14"
+    solution: g4e2
+    difficulty: 15
+  # Lichess 00IDw · rating 1862 · quietMove · https://lichess.org/game/KmTVU8Fo#59
+  - id: training-006
+    fen: "4r3/pN3kpp/2N1b3/2R5/5b2/P5P1/1P3P1P/7K b - - 0 30"
+    solution: e6h3
+    difficulty: 16
+  # Lichess 00eSU · rating 1996 · deflection · https://lichess.org/game/RCXs5UcQ#67
+  - id: training-035
+    fen: "5r2/p2R4/1P3pk1/1Q4p1/4p1q1/4P1P1/6PK/8 b - - 0 34"
+    solution: f8h8
+    difficulty: 17
+  # Lichess 016vg · rating 2063 · fork · https://lichess.org/game/h2gQMWMU#61
+  - id: training-036
+    fen: "4r1k1/2R3p1/p3r2p/1p2P3/1q6/1P4P1/P3Q2P/4R1K1 b - - 0 31"
+    solution: e6e5
+    difficulty: 18
+  # Lichess 00DKr · rating 2152 · defensiveMove · https://lichess.org/game/mYdqj7UD#83
+  - id: training-007
+    fen: "3r1k2/2p1R3/p2p2n1/1p6/1P1P2Q1/7P/5qPK/4R3 b - - 3 42"
+    solution: g6e7
+    difficulty: 19
+  # Lichess 00mca · rating 2252 · pin · https://lichess.org/game/EIg6vKLO#39
+  - id: training-008
+    fen: "7Q/p3nkpp/3p2q1/3P4/4P3/B1r2B1b/P4PPP/R4RK1 b - - 0 20"
+    solution: c3f3
+    difficulty: 20
+  # Lichess 00Gz6 · rating 2253 · fork · https://lichess.org/game/F80hPRFE/black#50
+  - id: training-009
+    fen: "r7/p4kp1/1p4p1/2qNn3/Q7/4PP2/PP3K2/6R1 w - - 1 26"
+    solution: a4f4
+    difficulty: 21
+  # Lichess 01JEA · rating 2281 · sacrifice · https://lichess.org/game/rcwW2M7E#87
+  - id: training-010
+    fen: "5rkr/1QN5/4R3/p1P5/P2p4/1B1q3P/1P4P1/6K1 b - - 0 44"
+    solution: f8f1
+    difficulty: 22
+  # Lichess 006XF · rating 2372 · pin · https://lichess.org/game/Ynra1LLE/black#34
+  - id: training-011
+    fen: "r5kr/pp1qb1p1/2p4p/3pP2Q/3Pb3/2P1B3/PP4PP/R4RK1 w - - 2 18"
+    solution: h5f7
+    difficulty: 23
+  # Lichess 00rnW · rating 2533 · deflection · https://lichess.org/game/UpjEipzv#47
+  - id: training-012
+    fen: "4r1k1/1rp2ppp/5q2/2R5/8/P2P4/R2Q1PPP/6K1 b - - 0 24"
+    solution: b7b1
+    difficulty: 24
+  # Lichess 04WpL · rating 2540 · fork · https://lichess.org/game/lIKYwACn#25
+  - id: training-037
+    fen: "N1bk1bnr/pp3pp1/3N3p/4p3/4q3/4B3/PPn1KPPP/R2Q1B1R b - - 1 13"
+    solution: c8g4
+    difficulty: 25
+  # Lichess 01p6X · rating 2545 · pin · https://lichess.org/game/WvyBfJYA/black#54
+  - id: training-013
+    fen: "r7/1p1qNp1k/p2p2rn/2p5/4P2Q/7P/PPP3P1/5RK1 w - - 3 28"
+    solution: f1f7
+    difficulty: 26
+  # Lichess 0DYqt · rating 2555 · pin · https://lichess.org/game/7IVNwaUn#35
+  - id: training-038
+    fen: "r3q1r1/pppb1p1k/3p1B1p/7Q/3PP3/3P1R2/PP4PP/4R1K1 b - - 4 18"
+    solution: d7g4
+    difficulty: 27
+  # Lichess 0Y28B · rating 2556 · deflection · https://lichess.org/game/5YYQtDkr/black#58
+  - id: training-039
+    fen: "R3Q3/8/1p1p1r1k/4p2p/4Ppq1/1P1P4/1PP3pP/6K1 w - - 2 30"
+    solution: e8h8
+    difficulty: 28
+  # Lichess 01icD · rating 2558 · fork · https://lichess.org/game/S74huRTI/black#48
+  - id: training-040
+    fen: "3r1rk1/2p1q1p1/p7/Q2Rp2b/7P/2N1P1B1/PP3P2/2K5 w - - 2 25"
+    solution: d5e5
+    difficulty: 29
+  # Lichess 04QI4 · rating 2567 · sacrifice · https://lichess.org/game/Crduc3Ns/black#58
+  - id: training-041
+    fen: "4r2k/2R3b1/6p1/p2qn1P1/1p1pN3/1P1Q4/P4PP1/6K1 w - - 1 30"
+    solution: d3h3
+    difficulty: 30
+  # Lichess 0AByd · rating 2576 · quietMove · https://lichess.org/game/7dizJ2Gf#113
+  - id: training-042
+    fen: "8/8/8/p7/1b3B2/3Q4/2k2PK1/8 b - - 0 57"
+    solution: c2d3
+    difficulty: 31
+  # Lichess 05SOm · rating 2587 · deflection · https://lichess.org/game/mya3BFq3#51
+  - id: training-014
+    fen: "6rk/3b1prp/p2Q4/2pPp3/3qP1P1/5B1P/5PK1/R6R b - - 0 26"
+    solution: d7g4
+    difficulty: 32
+  # Lichess 0C6d3 · rating 2588 · deflection · https://lichess.org/game/3MTrj1wH#69
+  - id: training-043
+    fen: "8/8/pkb1Q2p/1p1RP3/5rP1/1NK5/q3B2P/4R3 b - - 0 35"
+    solution: b5b4
+    difficulty: 33
+  # Lichess 0Ajqd · rating 2590 · defensiveMove · https://lichess.org/game/p04jgftI/black#88
+  - id: training-044
+    fen: "8/1p5p/6p1/pP6/b2pkP2/3N2PP/4K3/8 w - - 0 45"
+    solution: d3c5
+    difficulty: 34
+  # Lichess 0E5S0 · rating 2591 · pin · https://lichess.org/game/Txx6VTfm/black#34
+  - id: training-045
+    fen: "r4rk1/pp1b1ppp/4pb1q/2p1n3/4N3/4PNRB/PP2Q2P/2K3R1 w - - 9 18"
+    solution: e4f6
+    difficulty: 35
+  # Lichess 0Tkd3 · rating 2592 · sacrifice · https://lichess.org/game/VYDv2hr3#81
+  - id: training-046
+    fen: "1r4R1/5p1p/4p2b/3pP1kN/3P3N/4P3/6P1/1q1Q2K1 b - - 10 41"
+    solution: g5h4
+    difficulty: 36
+  # Lichess 07WtO · rating 2652 · quietMove · https://lichess.org/game/eBwPZ7Qx/black#32
+  - id: training-047
+    fen: "rn1q1rk1/3nb1pp/b1p1p3/6PP/3P1B2/1Qp2N2/PP3PB1/R3K2R w KQ - 0 17"
+    solution: b3e6
+    difficulty: 37
+  # Lichess 06z4K · rating 2658 · defensiveMove · https://lichess.org/game/wmovUCj7#57
+  - id: training-048
+    fen: "5rrk/3q2p1/1pp1p1PB/8/1PbPp3/P4Q1R/6P1/R5K1 b - - 0 29"
+    solution: f8f3
+    difficulty: 38
+  # Lichess 03NIM · rating 2659 · fork · https://lichess.org/game/88MQXu8t#41
+  - id: training-015
+    fen: "r1b1r2k/pp2q3/2pp1NQP/6P1/1bP5/7N/P2P2P1/R2K1R2 b - - 0 21"
+    solution: e7e2
+    difficulty: 39
+  # Lichess 00Aul · rating 2666 · quietMove · https://lichess.org/game/WWumMDnF/black#66
+  - id: training-016
+    fen: "4r3/1p3R1p/1pb2R1B/8/6k1/8/r6P/6K1 w - - 0 34"
+    solution: f7g7
+    difficulty: 40
+  # Lichess 00qFT · rating 2669 · quietMove · https://lichess.org/game/TQpdTR2b#81
+  - id: training-017
+    fen: "8/8/7p/3Bk1p1/P3p3/7P/8/6K1 b - - 0 41"
+    solution: e5d5
+    difficulty: 41
+  # Lichess 00jdm · rating 2690 · fork · https://lichess.org/game/6snrVDus/black#44
+  - id: training-018
+    fen: "r3r1k1/ppp2p1N/3p2p1/2bq1b1Q/3p4/3B1P2/PPP4P/R1B3K1 w - - 0 23"
+    solution: h7f6
+    difficulty: 42
+  # Lichess 00sJ9 · rating 2700 · sacrifice · https://lichess.org/game/gyFeQsOE#35
+  - id: training-019
+    fen: "r3r1k1/p4ppp/2p2n2/1p6/3P1qb1/2NQ2R1/PPB2PP1/R1B3K1 b - - 6 18"
+    solution: e8e1
+    difficulty: 43
+  # Lichess 054Xh · rating 2707 · defensiveMove · https://lichess.org/game/2RsJfxQT#91
+  - id: training-020
+    fen: "8/4k3/6R1/1p5R/8/1P2p3/KP4r1/8 b - - 0 46"
+    solution: g2g6
+    difficulty: 44
+  # Lichess 07pPl · rating 2716 · deflection · https://lichess.org/game/Ow91PQjS/black#86
+  - id: training-021
+    fen: "3r4/6k1/3q4/5ppQ/8/6R1/6PK/8 w - - 0 44"
+    solution: h5g5
+    difficulty: 45
+  # Lichess 04KAc · rating 2834 · sacrifice · https://lichess.org/game/93oUfehr/black#62
+  - id: training-022
+    fen: "3qr2k/p4Q1p/3BPnp1/7n/p1BP4/7R/5KPP/3r4 w - - 1 32"
+    solution: h3h5
+    difficulty: 46
+  # Lichess 03MPe · rating 2877 · pin · https://lichess.org/game/rA7KF7Yp#59
+  - id: training-023
+    fen: "1R6/1P2qpkp/3p2p1/2pP4/1pPb1Q2/1P1B2PP/5P1K/r7 b - - 0 30"
+    solution: e7e1
+    difficulty: 47
+  # Lichess 03dIU · rating 2984 · defensiveMove · https://lichess.org/game/bICPltU1/black#80
+  - id: training-024
+    fen: "8/4k3/2p1rp2/pp3P2/3PK2p/PPP4P/8/8 w - - 0 41"
+    solution: f5e6
+    difficulty: 48

@@ -21,4 +21,4 @@
 | `atf-tests` | Componente, guvernanță și publicarea dovezii Android în Extent |
 | `release-tools` | Context RAG consultativ și verificarea identității dovezilor |
 
-[Configurarea problemelor](docs/board/quest-curation.md#configurarea-capitolelor) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Feedback](docs/feedback/README.md)
+[Documentația proiectului](docs/README.md) · [Configurarea problemelor](docs/board/quest-curation.md#configurarea-capitolelor) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Feedback](docs/feedback/README.md)

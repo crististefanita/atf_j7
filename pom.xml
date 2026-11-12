@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ro.atf</groupId>
     <artifactId>chess-lab</artifactId>
-    <version>0.11.2-SNAPSHOT</version>
+    <version>0.12.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules><module>atf-tests</module></modules>
     <properties>
@@ -33,8 +33,8 @@
                         <phase>initialize</phase>
                         <goals><goal>install-file</goal></goals>
                         <configuration>
-                            <file>${project.basedir}/lib/atf-reporting-1.0.0-j24.jar</file>
-                            <pomFile>${project.basedir}/lib/atf-reporting-1.0.0-j24.pom</pomFile>
+                            <file>${project.basedir}/lib/atf-reporting-1.0.0-j25.jar</file>
+                            <pomFile>${project.basedir}/lib/atf-reporting-1.0.0-j25.pom</pomFile>
                         </configuration>
                     </execution>
                     <execution>

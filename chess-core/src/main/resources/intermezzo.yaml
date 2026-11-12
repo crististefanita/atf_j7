@@ -1,0 +1,123 @@
+schema: 2
+objective: WIN_MATERIAL
+quests:
+  # Lichess 01e5j · rating 1297 · intermezzo · https://lichess.org/game/MuXVKVOI/black#46
+  - id: intermezzo-001
+    fen: "Q4rk1/5ppp/4p3/1q1p4/8/8/P5PP/1R5K w - - 0 24"
+    solution: a8f8
+    difficulty: 1297
+  # Lichess 0155R · rating 1377 · intermezzo · https://lichess.org/game/Z7m6cvFe#47
+  - id: intermezzo-002
+    fen: "4r1k1/pp2qR2/3p2pB/2nP4/P1P5/2P5/5QPP/4rRK1 b - - 0 24"
+    solution: e1f1
+    difficulty: 1377
+  # Lichess 00km1 · rating 1397 · intermezzo · https://lichess.org/game/W2y2Akcv/black#34
+  - id: intermezzo-003
+    fen: "1R3rk1/p4ppp/3bpn2/3p4/q2P4/2N3P1/P3PP1P/2B2RK1 w - - 0 18"
+    solution: b8f8
+    difficulty: 1397
+  # Lichess 00qIK · rating 1496 · intermezzo · https://lichess.org/game/sFoTW7Rq#31
+  - id: intermezzo-004
+    fen: "B4rk1/p3b1pp/1q2bp2/1p2p3/2p2P2/3PR1P1/PPPN3P/R1BQ2K1 b - - 0 16"
+    solution: b6e3
+    difficulty: 1496
+  # Lichess 00bnu · rating 1587 · intermezzo · https://lichess.org/game/zPFxVXT4#39
+  - id: intermezzo-005
+    fen: "2Q2rk1/3R1p1p/p3p1p1/1p4q1/5P2/P1N5/BPP3bP/2K4R b - - 0 20"
+    solution: g5f4
+    difficulty: 1587
+  # Lichess 03NZY · rating 1591 · intermezzo · https://lichess.org/game/asfBGGIB#39
+  - id: intermezzo-006
+    fen: "2kr3r/1pp1B1pn/p2q4/4pp1p/3n4/3P1B1P/PPP1NPP1/R2QR1K1 b - - 0 20"
+    solution: d4f3
+    difficulty: 1591
+  # Lichess 03Cz5 · rating 1625 · intermezzo · https://lichess.org/game/OpOW7hZg/black#52
+  - id: intermezzo-007
+    fen: "3r1r1k/pp4pp/2qbP1p1/8/3p1B2/1P3QP1/P6P/R4R1K w - - 0 27"
+    solution: f3c6
+    difficulty: 1625
+  # Lichess 00eae · rating 1824 · intermezzo · https://lichess.org/game/MLbXS3BJ/black#52
+  - id: intermezzo-008
+    fen: "2r3kr/1pq3p1/p1n1p1P1/3p1pb1/3P3p/P3Q3/1PP1N3/1K4RR w - - 0 27"
+    solution: e3e6
+    difficulty: 1824
+  # Lichess 02smc · rating 2005 · intermezzo · https://lichess.org/game/J4fmydbz/black#32
+  - id: intermezzo-009
+    fen: "2N1k2r/1p1n1p2/1q4p1/1Bb1p2p/4n2P/4BN2/2P2PP1/r2Q1K1R w k - 0 17"
+    solution: b5d7
+    difficulty: 2005
+  # Lichess 03jS0 · rating 2027 · intermezzo · https://lichess.org/game/1gIC1m7y/black#38
+  - id: intermezzo-010
+    fen: "r3r1k1/2p2ppp/p1pb4/3p2n1/3P1BN1/2P3qP/PP3PP1/RN2R1K1 w - - 0 20"
+    solution: e1e8
+    difficulty: 2027
+  # Lichess 04lOJ · rating 2189 · intermezzo · https://lichess.org/game/gDM9cpqx#25
+  - id: intermezzo-011
+    fen: "rn1qk2r/pbp4p/1p1ppbN1/7Q/3P4/3B4/PPP3PP/RN3RK1 b kq - 0 13"
+    solution: f6d4
+    difficulty: 2189
+  # Lichess 06nUb · rating 2337 · intermezzo · https://lichess.org/game/pBKxtAZR#59
+  - id: intermezzo-012
+    fen: "1k1q3r/pp2b3/3p1p2/3P4/1P2PpP1/P5P1/2Q1B1P1/2R2RK1 b - - 0 30"
+    solution: d8b6
+    difficulty: 2337
+  # Lichess 03ney · rating 1162 · intermezzo · https://lichess.org/game/4Cv5lJP6/black#46
+  - id: intermezzo-013
+    fen: "2R2rk1/5ppp/3qpn2/n7/3P4/4rPPP/4N1B1/2Q2RK1 w - - 0 24"
+    solution: c8f8
+    difficulty: 1162
+  # Lichess 04H0e · rating 1243 · intermezzo · https://lichess.org/game/KElX8Mzr/black#46
+  - id: intermezzo-014
+    fen: "4r1k1/pp2qppp/2p5/3N3P/3b2n1/1P2P3/1P1K2P1/R3R3 w - - 0 24"
+    solution: d5e7
+    difficulty: 1243
+  # Lichess 04G9v · rating 1255 · intermezzo · https://lichess.org/game/rOVkK3Vu#71
+  - id: intermezzo-015
+    fen: "8/p1r3pk/8/3R4/2Rp4/3r1P2/P3K1PP/8 b - - 0 36"
+    solution: d3e3
+    difficulty: 1255
+  # Lichess 08QKN · rating 1326 · intermezzo · https://lichess.org/game/4nkCxkSN#37
+  - id: intermezzo-016
+    fen: "2kr2r1/1pp1bp1p/p1n5/3NP2q/3PnPp1/4B1R1/PPB1QP1P/R6K b - - 0 19"
+    solution: e4g3
+    difficulty: 1326
+  # Lichess 05Loy · rating 1560 · intermezzo · https://lichess.org/game/SJZnlylT/black#30
+  - id: intermezzo-017
+    fen: "r2q1rk1/1p2bppp/p1N1p3/2p5/8/2nP3P/PPP1QPP1/R1B2RK1 w - - 0 16"
+    solution: c6e7
+    difficulty: 1560
+  # Lichess 06vF7 · rating 1592 · intermezzo · https://lichess.org/game/IQTJw5sl#23
+  - id: intermezzo-018
+    fen: "rn2k1nr/1pp2p1p/p2pb1Q1/8/2BPPp2/2N5/PPP3P1/R1B2K1R b kq - 0 12"
+    solution: e6c4
+    difficulty: 1592
+  # Lichess 08mpr · rating 1644 · intermezzo · https://lichess.org/game/hKXEqqzn#41
+  - id: intermezzo-019
+    fen: "1n3rk1/r4ppp/p1Q1p3/8/1p3P2/1B5q/PPP1N1P1/3R1RK1 b - - 0 21"
+    solution: h3e3
+    difficulty: 1644
+  # Lichess 03Mqr · rating 1647 · intermezzo · https://lichess.org/game/GrALWMPf/black#26
+  - id: intermezzo-020
+    fen: "1r1q1rk1/p2bbpp1/2ppp2p/8/3Nn2B/2N3R1/PPP2PPP/R2Q2K1 w - - 0 14"
+    solution: h4e7
+    difficulty: 1647
+  # Lichess 0Hxk4 · rating 1872 · intermezzo · https://lichess.org/game/qhVtTM5a/black#86
+  - id: intermezzo-021
+    fen: "8/6p1/3kp1Pp/3p3P/p1PP2K1/P4r2/8/8 w - - 0 44"
+    solution: c4c5
+    difficulty: 1872
+  # Lichess 07iSx · rating 1890 · intermezzo · https://lichess.org/game/jGyNXGlk#35
+  - id: intermezzo-022
+    fen: "1n2k3/1bpp2rB/1p1bp2p/2N5/p4P2/8/PPP3PP/R2Q1R1K b - - 0 18"
+    solution: b7g2
+    difficulty: 1890
+  # Lichess 09KUf · rating 1928 · intermezzo · https://lichess.org/game/C1SI4Lbu/black#58
+  - id: intermezzo-023
+    fen: "1rq3k1/3nb1pp/1pP5/1R1p1p2/3P4/r3BQ2/6PP/5RK1 w - - 0 30"
+    solution: f3d5
+    difficulty: 1928
+  # Lichess 0BlI4 · rating 1966 · intermezzo · https://lichess.org/game/WQWcNOfL#79
+  - id: intermezzo-024
+    fen: "2R5/2p2p2/3p1kp1/2n4p/R4P2/P1p3P1/1P3K1P/8 b - - 0 40"
+    solution: c3b2
+    difficulty: 1966

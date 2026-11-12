@@ -43,6 +43,14 @@ class ReleaseGovernanceTest {
                 menus.citations().stream().anyMatch(citation -> citation.check().contains("MainMenuLayoutTest")
                         && citation.check().contains("-MatchMenusOnly")));
     }
+
+    @Test void libraryPackagingMetadataRoutesToItsLocalAuditOwner(Checks check) throws IOException {
+        var paths = List.of(".gitattributes", "library-provenance.json");
+        var result = ReleaseRag.inspect(ProjectRoot.locate(), paths);
+        check.same("Both packaging metadata files are covered", paths, result.covered());
+        check.same("Byte and provenance rules share one deduplicated audit route", List.of("PlatformLibraryProvenanceTest"),
+                result.citations().stream().map(ReleaseRag.Citation::check).toList());
+    }
     private static final String SOURCE = "1".repeat(40);
     private static final String OTHER = "2".repeat(40);
     private static final String REPOSITORY = "example/atf_j7";
@@ -149,16 +157,23 @@ class ReleaseGovernanceTest {
         }
     }
 
-    @Test void rootReadmeLeadsToTheVersionDeclaredByAndroid(Checks check) throws IOException {
+    @Test void rootReadmePublishesTheCandidateOnlyAfterDistributionEvidenceExists(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         String gradle = Files.readString(root.resolve("android/app/build.gradle"));
         var version = java.util.regex.Pattern.compile("(?m)^\\s*versionName '([0-9]+\\.[0-9]+\\.[0-9]+)'$").matcher(gradle);
         if (!version.find()) throw new IOException("Missing Android versionName");
         String name = version.group(1);
         String base = "https://github.com/crististefanita/atf_j7/releases/";
-        String readme = Files.readString(root.resolve("README.md"));
-        check.same("Jocul links to the matching release and exact APK", List.of(base + "tag/v" + name, base + "download/v" + name + "/ChessLab-" + name + ".apk"),
-                ReleaseEvidence.gameLinks(readme));
+        List<String> links = ReleaseEvidence.gameLinks(Files.readString(root.resolve("README.md")));
+        Path publication = root.resolve("release").resolve(name).resolve("reports/distribution-verification.json");
+        boolean candidatePublished = Files.isRegularFile(publication)
+                && Files.readString(publication).contains("\"status\": \"PASS\"");
+        if (candidatePublished) {
+            check.same("Jocul links to the published candidate and exact APK", List.of(base + "tag/v" + name, base + "download/v" + name + "/ChessLab-" + name + ".apk"), links);
+        } else {
+            check.same("Jocul withholds an unqualified candidate from the download links", false,
+                    links.contains(base + "tag/v" + name) || links.contains(base + "download/v" + name + "/ChessLab-" + name + ".apk"));
+        }
     }
 
     @Test void ragRetrievesOnlyAffectedGuidanceAndVerifiesTheAnchor(Checks check) throws IOException {
@@ -244,8 +259,19 @@ class ReleaseGovernanceTest {
         var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths).stream()
                 .filter(citation -> citation.heading().equals("## Partidă și istoric")).toList();
         check.same("Game review changes cite the signed scenario and both JVM layers once",
-                List.of("GameReviewTest, GameReviewGovernanceTest și BoardSanity -IncludeGameReview"),
+                List.of("GameReviewTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly"),
                 citations.stream().map(ReleaseRag.Citation::check).toList());
+    }
+
+    @Test void questStorageRoutesToOfflineContractsAndTheNativeRestart(Checks check) throws IOException {
+        var paths = List.of("chess-core/src/main/java/ro/atf/chess/QuestStore.java",
+                "android/app/src/main/java/ro/atf/chess/android/AndroidGamePreferences.java");
+        var result = ReleaseRag.inspect(ProjectRoot.locate(), paths);
+        check.same("Both storage layers have release guidance", paths, result.covered());
+        check.same("The progress contract selects the component, receipt and restart probes",
+                List.of("QuestStoreTest, AndroidReceiptTest și BoardSanity la restart"),
+                result.citations().stream().filter(citation -> citation.heading().equals("## Progresul problemelor"))
+                        .map(ReleaseRag.Citation::check).toList());
     }
 
     @Test void manualAnalysisAndAnchorChangesHaveDistinctVerification(Checks check) throws IOException {
@@ -261,9 +287,9 @@ class ReleaseGovernanceTest {
         check.same("Anchor observations and protocol changes cite the same independent calibration",
                 List.of("AiAnchorBenchmarkTest și GameReviewGovernanceTest"),
                 citations.stream().filter(item -> item.heading().equals("### Rezultatele ancorei externe")).map(ReleaseRag.Citation::check).toList());
-        check.same("Progress changes cite both the navigation component and the signed upgrade probe",
-                List.of("QuestProgressTest și upgrade Android pe două APK-uri semnate"),
-                citations.stream().filter(item -> item.heading().equals("## Upgrade al progresului")).map(ReleaseRag.Citation::check).toList());
+        check.same("Progress changes cite their component and native restart evidence",
+                List.of("QuestStoreTest, AndroidReceiptTest și BoardSanity la restart"),
+                citations.stream().filter(item -> item.heading().equals("## Progresul problemelor")).map(ReleaseRag.Citation::check).toList());
     }
 
     private Suite suite(String name, String installedApk) throws IOException {

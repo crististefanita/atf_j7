@@ -15,4 +15,5 @@ import org.junit.platform.suite.api.Suite;
 @IncludeEngines("junit-jupiter")
 @IncludeTags("component & !governance & !benchmark")
 @ConfigurationParameter(key = TestRunScope.CONFIGURATION_PARAMETER, value = "suite")
+@ConfigurationParameter(key = "chess.suite", value = "ChessComponentSuite")
 public class ChessComponentSuite { }

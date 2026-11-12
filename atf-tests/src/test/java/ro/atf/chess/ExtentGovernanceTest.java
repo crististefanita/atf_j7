@@ -1,11 +1,13 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import atf.testkit.scope.TestRunScope;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,6 +25,7 @@ import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 import ro.atf.chess.release.ReleaseEvidence;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectMethod;
 
 @AtfComponentTest
 @Tag("governance")
@@ -30,31 +33,73 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 class ExtentGovernanceTest {
     @TempDir Path folder;
 
+    @Test void publishingAComparisonDoesNotEvaluateItTwice(Checks check) {
+        var comparisons = new AtomicInteger();
+        Object observed = "observed";
+        Object expected = new Object() {
+            @Override public boolean equals(Object value) {
+                comparisons.incrementAndGet();
+                return value == observed;
+            }
+
+            @Override public int hashCode() { return observed.hashCode(); }
+            @Override public String toString() { return "expected"; }
+        };
+        check.same("The observed value passes the comparison", expected, observed);
+        check.same("JUnit evaluates equality once before Extent records it", 1, comparisons.get());
+    }
+
     @Test void extentReflectsRealJUnitOutcomesAndKeepsTheAssertionRows(Checks check) throws IOException {
         var path = folder.resolve("audit-probe.html");
         var summary = new SummaryGeneratingListener();
         LauncherFactory.create().execute(LauncherDiscoveryRequestBuilder.request().selectors(selectClass(AuditProbe.class))
                 .configurationParameter("chess.extent", path.toString()).build(), summary);
-        check.same("One test succeeds", 1L, summary.getSummary().getTestsSucceededCount());
-        check.same("Four tests fail, including setup and teardown", 4L, summary.getSummary().getTestsFailedCount());
+        check.same("Two tests succeed, including a cleanup-only comparison", 2L, summary.getSummary().getTestsSucceededCount());
+        check.same("Five tests fail, including a caught cleanup comparison", 5L, summary.getSummary().getTestsFailedCount());
         check.same("A runtime assumption is aborted", 1L, summary.getSummary().getTestsAbortedCount());
 
         var report = Jsoup.parse(path, "UTF-8");
         check.same("The successful scenario is marked Pass", "Pass", status(report, "recordsValues"));
-        for (String method : new String[]{"setupFails", "teardownFails", "comparisonFails", "noComparisons"}) {
+        for (String method : new String[]{"setupFails", "teardownFails", "comparisonFails", "noComparisons", "swallowedInCleanup"}) {
             check.same(method + " is marked Fail in Extent", "Fail", status(report, method));
         }
         check.same("The aborted scenario is marked Skip", "Skip", status(report, "aborted"));
-        var body = scenario(report, "recordsValues");
+        var body = phase(report, "recordsValues", "TEST BODY");
         var evidence = body.selectFirst(".atf-ui-assertions");
         check.same("The rendered evidence is inside a collapsible node", true, evidence.closest(".collapse") != null);
         check.same("The report retains expected and actual values", "Probe comparison 7 7 ✅", evidence.selectFirst("tbody tr").text());
         check.same("A failed assertion publishes expected and observed exception types", true,
                 scenario(report, "comparisonFails").text().contains("Probe rejection java.lang.IllegalStateException No exception"));
+        check.same("Setup evidence is attached to setup", true, phase(report, "recordsValues", "SETUP").text().contains("Probe setup"));
+        check.same("Cleanup evidence is attached to teardown", true, phase(report, "recordsValues", "TEARDOWN").text().contains("Probe cleanup"));
+        check.same("Setup failure belongs to the setup phase", "Fail", phase(report, "setupFails", "SETUP").selectFirst(".card-header .log").text());
         check.same("Setup failure retains its diagnostic", true, scenario(report, "setupFails").text().contains("Probe setup error"));
-        check.same("Teardown failure retains earlier comparisons and the later diagnostic", true,
+        check.same("Teardown failure belongs to the cleanup phase", "Fail",
+                phase(report, "teardownFails", "TEARDOWN").selectFirst(".card-header .log").text());
+        check.same("Teardown failure preserves the diagnostic and earlier comparison", true,
                 scenario(report, "teardownFails").text().contains("Probe teardown error")
-                        && scenario(report, "teardownFails").text().contains("Before teardown"));
+                        && phase(report, "teardownFails", "TEST BODY").text().contains("Before teardown"));
+        check.same("The failed cleanup comparison survives the caught exception", true,
+                phase(report, "swallowedInCleanup", "TEARDOWN").text().contains("Probe caught comparison"));
+        check.same("A comparison performed in cleanup is sufficient for an audited success", "Pass", status(report, "checksOnlyDuringCleanup"));
+        check.same("Direct selection is identifiable in the report", true, report.text().contains("Direct JUnit selection"));
+    }
+
+    @Test void suiteSelectionUsesTheSameAuditAndPublishesTheEffectiveSettings(Checks check) throws IOException {
+        Path path = folder.resolve("suite-probe.html");
+        LauncherFactory.create().execute(LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectMethod(AuditProbe.class, "recordsValues", Checks.class))
+                .configurationParameter("chess.extent", path.toString())
+                .configurationParameter(TestRunScope.CONFIGURATION_PARAMETER, "suite")
+                .configurationParameter("chess.suite", "Chess audit fixture").build());
+        var report = Jsoup.parse(path, "UTF-8");
+        check.same("The suite name is visible", true, report.text().contains("Chess audit fixture"));
+        var table = phase(report, "recordsValues", "TEST BODY").selectFirst(".atf-ui-assertions");
+        check.same("Suite and direct entry use the same recorded comparison", "Probe comparison 7 7 ✅", table.selectFirst("tbody tr").text());
+        String effectiveLimit = table.attr("data-atf-preview-limit");
+        check.same("The rendered limit is present in report metadata", true,
+                !effectiveLimit.isBlank() && report.select("tr").stream().anyMatch(row -> row.select("td").eachText()
+                        .equals(java.util.List.of("Assertion preview", effectiveLimit + " characters"))));
     }
 
     @Test void nativeMenuEvidenceBindsEachAssertionAndCaptureToTheSameExecution(Checks check) throws Exception {
@@ -151,14 +196,30 @@ class ExtentGovernanceTest {
                 .findFirst().orElseThrow().closest(".card");
     }
 
+    private static Element phase(Document report, String method, String label) {
+        return scenario(report, method).select("a.node").stream().filter(node -> node.text().equals(label))
+                .findFirst().orElseThrow().closest(".card");
+    }
+
     @ExtendWith(ExtentAudit.class)
     static class AuditProbe {
-        @BeforeEach void before(TestInfo test) {
+        @BeforeEach void before(TestInfo test, Checks check) {
             if (test.getTestMethod().orElseThrow().getName().equals("setupFails")) throw new IllegalStateException("Probe setup error");
+            if (test.getTestMethod().orElseThrow().getName().equals("recordsValues")) check.same("Probe setup", 3, 3);
         }
 
-        @AfterEach void after(TestInfo test) {
-            if (test.getTestMethod().orElseThrow().getName().equals("teardownFails")) throw new IllegalStateException("Probe teardown error");
+        @AfterEach void after(TestInfo test, Checks check) {
+            switch (test.getTestMethod().orElseThrow().getName()) {
+                case "teardownFails" -> throw new IllegalStateException("Probe teardown error");
+                case "recordsValues", "checksOnlyDuringCleanup" -> check.same("Probe cleanup", 5, 5);
+                case "swallowedInCleanup" -> {
+                    try {
+                        check.same("Probe caught comparison", 1, 2);
+                    } catch (AssertionError expected) {
+                        // This deliberate catch proves that the audit still fails the lifecycle.
+                    }
+                }
+            }
         }
 
         @Test void recordsValues(Checks check) { check.same("Probe comparison", 7, 7); }
@@ -166,6 +227,8 @@ class ExtentGovernanceTest {
         @Test void teardownFails(Checks check) { check.same("Before teardown", 3, 3); }
         @Test void comparisonFails(Checks check) { check.rejects("Probe rejection", IllegalStateException.class, () -> { }); }
         @Test void noComparisons() { }
+        @Test void checksOnlyDuringCleanup() { }
+        @Test void swallowedInCleanup() { }
         @Test void aborted() { assumeTrue(false, "Probe unavailable"); }
     }
 }

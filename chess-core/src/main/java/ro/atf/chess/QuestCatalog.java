@@ -136,7 +136,18 @@ public final class QuestCatalog {
     }
 
     public static List<Quest> loadTactics() {
-        var root = ChessYaml.resource("tactics.yaml");
+        return readMaterial(ChessYaml.resource("tactics.yaml"), "tactic");
+    }
+
+    public static List<Quest> loadTraining() {
+        return readMaterial(ChessYaml.resource("training.yaml"), "training");
+    }
+
+    public static List<Quest> loadIntermezzo() {
+        return readMaterial(ChessYaml.resource("intermezzo.yaml"), "intermezzo");
+    }
+
+    static List<Quest> readMaterial(Map<?, ?> root, String chapter) {
         if (ChessYaml.number(root, "schema") != 2 || !"WIN_MATERIAL".equals(ChessYaml.string(root, "objective"))) {
             throw new IllegalArgumentException("Invalid tactics catalog schema or objective");
         }
@@ -152,7 +163,7 @@ public final class QuestCatalog {
             String fen = ChessYaml.string(row, "fen");
             int rank = ChessYaml.number(row, "difficulty");
             if (rank < 1 || !ranks.add(rank)) throw new IllegalArgumentException("Invalid or duplicate tactics difficulty at " + id);
-            if (!id.matches("tactic-[0-9]{3}") || !ids.add(id) || !positions.add(fen.replaceFirst(" [0-9]+ [0-9]+$", ""))) {
+            if (!id.matches(chapter + "-[0-9]{3}") || !ids.add(id) || !positions.add(fen.replaceFirst(" [0-9]+ [0-9]+$", ""))) {
                 throw new IllegalArgumentException("Invalid or duplicate tactics quest " + id);
             }
             var quest = new Quest(id, fen, "MATERIAL", ChessPosition.fromFen(fen),

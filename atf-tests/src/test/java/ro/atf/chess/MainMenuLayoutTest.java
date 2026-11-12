@@ -57,11 +57,19 @@ class MainMenuLayoutTest {
             var button = (Element) buttons.item(index);
             entries.add(button.getAttribute("android:text").replace("@string/", ""));
         }
-        check.same("All four chapters are grouped under Puzzles", List.of("open_mate_one", "open_mate_two", "open_mate_three", "open_tactics"), entries);
+        check.same("All six chapters are grouped under Puzzles", List.of("open_mate_one", "open_mate_two", "open_mate_three", "open_tactics", "open_training", "open_intermezzo"), entries);
         check.same("English labels identify each mode",
-                List.of("Mate in 1", "Mate in 2", "Mate in 3", "Tactics"), labels("values/strings.xml", entries));
+                List.of("Mate in 1", "Mate in 2", "Mate in 3", "Tactics", "Tactical training", "In-between move"), labels("values/strings.xml", entries));
         check.same("Romanian labels identify each mode",
-                List.of("Mat în 1", "Mat în 2", "Mat în 3", "Tactică"), labels("values-ro/strings.xml", entries));
+                List.of("Mat în 1", "Mat în 2", "Mat în 3", "Tactică", "Antrenament tactic", "Mutarea intermediară"), labels("values-ro/strings.xml", entries));
+    }
+
+    @Test void intermezzoExplainsTheMotifInBothLanguages(Checks check) throws Exception {
+        var key = List.of("intermezzo_lesson");
+        check.same("The chapter explains the forcing move before recapture", List.of("Find the forcing move before the recapture."),
+                labels("values/strings.xml", key));
+        check.same("The same lesson is localized", List.of("Găsește mutarea forțată înaintea recapturii."),
+                labels("values-ro/strings.xml", key));
     }
 
     @Test void gameListsFollowThePuzzleMenuAndKeepBackOutsideTheScroll(Checks check) throws Exception {
@@ -155,7 +163,7 @@ class MainMenuLayoutTest {
             if (id.endsWith("_totals")) totals.add(id);
         }
         check.same("Overall and per-chapter totals each have a dedicated text view", List.of("@+id/quest_totals", "@+id/chapter_one_totals",
-                "@+id/chapter_two_totals", "@+id/chapter_three_totals", "@+id/chapter_tactics_totals"), totals);
+                "@+id/chapter_two_totals", "@+id/chapter_three_totals", "@+id/chapter_tactics_totals", "@+id/chapter_training_totals", "@+id/chapter_intermezzo_totals"), totals);
         var bulb = read("layout/quest_guidance.xml");
         check.same("Guidance is icon-only and retains its accessible label", List.of("ImageButton", "@drawable/quest_bulb", "@string/hint"),
                 List.of(bulb.getTagName(), bulb.getAttribute("android:src"), bulb.getAttribute("android:contentDescription")));

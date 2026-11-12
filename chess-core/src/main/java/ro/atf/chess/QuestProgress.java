@@ -36,6 +36,15 @@ public record QuestProgress(String currentId, Set<String> solvedIds) {
 
     public boolean canAdvance(int index, int chapterSize) { return currentSolved() && index + 1 < chapterSize; }
 
+    public int nextIndex(int index, List<String> order) {
+        if (index < 0 || index >= order.size() || !order.get(index).equals(currentId)) return -1;
+        if (canAdvance(index, order.size())) return index + 1;
+        if (currentSolved()) for (int earlier = 0; earlier < index; earlier++) {
+            if (!solvedIds.contains(order.get(earlier))) return earlier;
+        }
+        return -1;
+    }
+
     public int solvedCount(List<String> order) {
         int count = 0;
         for (String id : order) if (solvedIds.contains(id)) count++;

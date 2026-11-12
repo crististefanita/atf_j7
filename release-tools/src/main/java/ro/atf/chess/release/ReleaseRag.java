@@ -33,10 +33,24 @@ public final class ReleaseRag {
             new Route("chess-core/src/main/resources/mate-in-two.yaml", "docs/board/quest-curation.md", "## Mat în două mutări", "MateInTwoCatalogTest și verify-mate-in-two.cjs"),
             new Route("chess-core/src/main/resources/quests.yaml", "docs/board/quest-curation.md", "## Configurarea capitolelor",
                     "QuestCatalogTest și update-mate-one-order.ps1"),
+            new Route("chess-core/src/main/resources/training.yaml", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
+                    "QuestCatalogTest și verify-tactics.cjs"),
+            new Route("chess-core/src/main/resources/training.sha256", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
+                    "QuestCatalogTest și verify-tactics.cjs"),
+            new Route("chess-core/src/main/resources/intermezzo.yaml", "docs/board/quest-curation.md", "## Mutarea intermediară",
+                    "QuestCatalogTest și verify-tactics.cjs"),
+            new Route("chess-core/src/main/resources/intermezzo.sha256", "docs/board/quest-curation.md", "## Mutarea intermediară",
+                    "QuestCatalogTest și verify-tactics.cjs"),
+            new Route("chess-core/src/main/java/ro/atf/chess/QuestCatalog.java", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
+                    "QuestCatalogTest"),
             new Route("chess-core/src/main/resources/tactics.yaml", "docs/testing/README.md", "## Tactică și punctaj", "TacticsCatalogTest și verify-tactics.cjs"),
             new Route("chess-core/src/main/java/ro/atf/chess/QuestRewards.java", "docs/testing/README.md", "## Tactică și punctaj", "QuestRewardsTest și MainMenuLayoutTest"),
-            new Route("chess-core/src/main/java/ro/atf/chess/QuestProgress.java", "docs/testing/README.md", "## Upgrade al progresului",
-                    "QuestProgressTest și upgrade Android pe două APK-uri semnate"),
+            questProgress("chess-core/src/main/java/ro/atf/chess/QuestProgress.java"),
+            questProgress("chess-core/src/main/java/ro/atf/chess/QuestStore.java"),
+            questProgress("android/app/src/main/java/ro/atf/chess/android/ChessProgressStore.java"),
+            questProgress("android/app/src/main/java/ro/atf/chess/android/AndroidGamePreferences.java"),
+            questProgress("atf-tests/src/test/java/ro/atf/chess/QuestStoreTest.java"),
+            questProgress("atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java"),
             new Route("android/", "docs/testing/README.md", "## Sanity Android", "BoardSanity"),
             new Route("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
             review("chess-core/src/main/java/ro/atf/chess/GameReview.java"),
@@ -81,17 +95,27 @@ public final class ReleaseRag {
             audit("docs/testing/README.md"),
             new Route("atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("docs/testing/README.md", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
+            new Route("docs/README.md", "docs/README.md", "## Verificarea documentației", "DocumentationGovernanceTest și ReleaseGovernanceTest"),
             new Route("docs/board/", "docs/testing/README.md", "## Motor și proiecție", "BoardPanelLayoutTest și QuestHintTest"),
             new Route("docs/feedback/", "docs/feedback/README.md", "# Feedback · Chess Lab",
                     "DocumentationGovernanceTest și revizia criteriilor deschise"),
             new Route("lib/", "lib/README.md", "## Proveniență", "ReleaseGovernanceTest"),
+            new Route(".gitattributes", "lib/README.md", "## Proveniență", "PlatformLibraryProvenanceTest"),
+            new Route("library-provenance.json", "lib/README.md", "## Proveniență", "PlatformLibraryProvenanceTest"),
             new Route("docs/release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("scripts/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
+            new Route("scripts/verify-tactics.cjs", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
+                    "verify-tactics.cjs și chess.js 1.4.0"),
             new Route("pom.xml", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("README.md", RELEASE.document(), RELEASE.heading(), RELEASE.check()), RELEASE);
 
     private ReleaseRag() { }
+
+    private static Route questProgress(String path) {
+        return new Route(path, "docs/testing/README.md", "## Progresul problemelor",
+                "QuestStoreTest, AndroidReceiptTest și BoardSanity la restart");
+    }
 
     private static Route audit(String path) {
         return new Route(path, "docs/testing/README.md", "## Raportare Extent", "ExtentGovernanceTest");
@@ -108,7 +132,7 @@ public final class ReleaseRag {
 
     private static Route review(String path) {
         return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "GameReviewTest, GameReviewGovernanceTest și BoardSanity -IncludeGameReview");
+                "GameReviewTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly");
     }
 
     private static Route manualAnalysis(String path) {

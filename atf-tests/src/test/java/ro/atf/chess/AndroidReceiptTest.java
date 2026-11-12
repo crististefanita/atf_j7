@@ -1,9 +1,14 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import javax.imageio.ImageIO;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -11,6 +16,8 @@ import org.junit.jupiter.api.io.TempDir;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class AndroidReceiptTest {
+    private static final String TACTICS_RESTART = "A real process restart keeps the tactics chapter position and its two awards";
+    private static final String TRAINING_RESTART = "Training reopens its second unsolved puzzle after process restart";
     private static final String PASSING = """
             INSTRUMENTATION_RESULT: check_01=The board is visible	true	true	true
             INSTRUMENTATION_RESULT: phase=openings
@@ -55,6 +62,57 @@ class AndroidReceiptTest {
                 lines.toString().replace(learner, "An unrelated passing comparison")));
         check.same("The total alone cannot qualify the opening receipt", false, invalid.passed());
         check.same("The diagnostic names the missing Next transition", true, invalid.rows().getLast().actual().contains(learner));
+    }
+
+    @Test void rendersChapterRestartEvidenceAndRejectsAnUnrelatedComparisonAtTheSameCount(Checks check) throws Exception {
+        Path valid = boardReceipt(Files.createDirectory(folder.resolve("complete")), TRAINING_RESTART);
+        AndroidSanityPublication.publishBoardSanity(valid);
+        var resume = restoreStep(valid);
+        check.same("The chapter restore step passes with both native checkpoints", "Pass", resume.selectFirst(".card-header .log").text());
+        var table = resume.selectFirst(".atf-ui-assertions");
+        check.same("Both comparisons are available in the collapsible Extent assertion table", true,
+                table.closest(".collapse") != null && table.text().contains(TACTICS_RESTART) && table.text().contains(TRAINING_RESTART));
+
+        Path incomplete = boardReceipt(Files.createDirectory(folder.resolve("wrong-check")), "Unrelated passing comparison");
+        check.rejects("A passing line from an unrelated check cannot qualify the restart", AssertionError.class,
+                () -> AndroidSanityPublication.publishBoardSanity(incomplete));
+        resume = restoreStep(incomplete);
+        check.same("The chapter restore step renders Fail despite the correct count", "Fail", resume.selectFirst(".card-header .log").text());
+        check.same("The missing Training restart is named and the Tactics comparison is preserved", true,
+                resume.text().contains("Missing or duplicate chapter restart checks: [" + TRAINING_RESTART + "]")
+                        && resume.text().contains(TACTICS_RESTART));
+    }
+
+    private static Path boardReceipt(Path directory, String training) throws IOException {
+        writePhase(directory, "prepare", 111, 46, List.of());
+        writePhase(directory, "restore", 222, 26, List.of(TACTICS_RESTART, training));
+        writePhase(directory, "match-prepare", 333, 3, List.of());
+        writePhase(directory, "match-restore", 444, 15, List.of());
+        writePhase(directory, "match-settled", 555, 4, List.of());
+        var pixel = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        for (String frame : List.of("hint-piece", "hint-solution", "board", "milestone", "mate-two", "menu",
+                "mate-three", "tactics-streak", "match-resumed", "match-history")) {
+            ImageIO.write(pixel, "png", directory.resolve(frame + ".png").toFile());
+        }
+        return directory.resolve("prepare.txt");
+    }
+
+    private static void writePhase(Path directory, String phase, int pid, int checks, List<String> required) throws IOException {
+        var text = new StringBuilder();
+        text.append("INSTRUMENTATION_RESULT: phase=").append(phase).append('\n');
+        text.append("INSTRUMENTATION_RESULT: pid=").append(pid).append('\n');
+        for (int index = 0; index < checks; index++) {
+            String name = index < required.size() ? required.get(index) : "Fixture comparison " + (index + 1);
+            text.append("INSTRUMENTATION_RESULT: check_%02d=%s\ttrue\ttrue\ttrue%n".formatted(index + 1, name));
+        }
+        text.append("INSTRUMENTATION_RESULT: result=PASS\nINSTRUMENTATION_CODE: -1\n");
+        Files.writeString(directory.resolve(phase + ".txt"), text);
+    }
+
+    private static Element restoreStep(Path receipt) throws IOException {
+        var report = Jsoup.parse(receipt.resolveSibling("android-board-sanity.html"), "UTF-8");
+        return report.select("a.node").stream().filter(node -> node.text().equals("Resume pending quests and restore tactics, training and mate progress"))
+                .findFirst().orElseThrow().closest(".card");
     }
 
     private AndroidSanityPublication.PhaseEvidence read(String file, String contents) throws IOException {

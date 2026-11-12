@@ -5,7 +5,7 @@
     <parent>
         <groupId>ro.atf</groupId>
         <artifactId>chess-lab</artifactId>
-        <version>0.11.2-SNAPSHOT</version>
+        <version>0.12.0-SNAPSHOT</version>
     </parent>
     <artifactId>chess-tests</artifactId>
     <dependencies>
@@ -17,7 +17,7 @@
         <dependency>
             <groupId>atf.api</groupId>
             <artifactId>atf-reporting</artifactId>
-            <version>1.0.0-j24</version>
+            <version>1.0.0-j25</version>
             <scope>test</scope>
         </dependency>
         <dependency>

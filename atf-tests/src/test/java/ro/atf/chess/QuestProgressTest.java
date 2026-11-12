@@ -35,6 +35,25 @@ class QuestProgressTest {
         check.same("Repeated solve retains one stable ID", Set.of("a"), solved.solveCurrent().solvedIds());
     }
 
+    @Test void completedCatalogEndOffersTheFirstUnsolvedAfterAnExpansion(Checks check) {
+        var chapters = List.of(QuestCatalog.load(), QuestCatalog.loadMateInTwo(), QuestCatalog.loadMateInThree());
+        var formerFinals = List.of("mate-129", "mate2-024nn", "mate3-02YEp");
+        for (int chapter = 0; chapter < chapters.size(); chapter++) {
+            var order = chapters.get(chapter).stream().map(QuestCatalog.Quest::id).toList();
+            var formerFinal = formerFinals.get(chapter);
+            check.same("The released final puzzle remains last in the expanded chapter", formerFinal, order.getLast());
+            var restored = QuestProgress.restore(formerFinal, Set.of(order.getFirst(), formerFinal), order);
+            check.same("The saved ID remains selected", formerFinal, restored.currentId());
+            check.same("The action selects the first newly reachable unsolved position", 1, restored.nextIndex(order.size() - 1, order));
+            var selected = restored.select(order.get(1));
+            check.same("Changing the cursor leaves all solved identities intact", restored.solvedIds(), selected.solvedIds());
+            check.same("The next action is unavailable until this puzzle is solved", -1, selected.nextIndex(1, order));
+            check.same("Solving an interior puzzle preserves sequential navigation", 2, selected.solveCurrent().nextIndex(1, order));
+            check.same("A genuinely complete chapter has no next action", -1,
+                    QuestProgress.restore(formerFinal, Set.copyOf(order), order).nextIndex(order.size() - 1, order));
+        }
+    }
+
     @Test void milestonesTrackUniqueVisibleSolvesAcrossRestartAndCatalogChanges(Checks check) {
         var order = QuestCatalog.load().stream().map(QuestCatalog.Quest::id).toList();
         int size = order.size();

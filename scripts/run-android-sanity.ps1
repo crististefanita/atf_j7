@@ -35,8 +35,8 @@ if ($MatchMenusOnly -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -o
 }
 if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
 if ($IncludeOpenings -and ($OpeningsOnly -or $AnalysisOnly)) { throw 'IncludeOpenings extends the board sanity phases.' }
-if ($GameReviewOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview)) {
-    throw 'GameReviewOnly uses the isolated sanity package and its own phase.'
+if ($GameReviewOnly -and ($AnalysisOnly -or $OpeningsOnly -or $IncludeOpenings -or $IncludeGameReview)) {
+    throw 'GameReviewOnly selects the game review phase on its own.'
 }
 if ($IncludeGameReview -and ($AnalysisOnly -or $OpeningsOnly)) { throw 'IncludeGameReview extends the board sanity phases.' }
 if ($ManualAnalysisOnly -and ($Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots)) {

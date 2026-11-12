@@ -121,6 +121,11 @@
     <string name="match_analysis_pawn_units">%1$s, in pawn units</string>
     <string name="open_tactics">Tactics</string>
     <string name="tactics_progress">Tactics · %1$d/%2$d</string>
+    <string name="open_training">Tactical training</string>
+    <string name="open_intermezzo">In-between move</string>
+    <string name="intermezzo_lesson">Find the forcing move before the recapture.</string>
+    <string name="intermezzo_progress">In-between move · %1$d/%2$d</string>
+    <string name="training_progress">Tactical training · %1$d/%2$d</string>
     <string name="find_tactic">Find the move that wins the most material.</string>
     <string name="tactics_solved">Material won · Solved</string>
     <string name="tactics_try_again">There is a better move. Try again.</string>
@@ -193,6 +198,7 @@
     <string name="mate_exit_occupied">%1$s is occupied by the defending %2$s.</string>
     <string name="previous_quest">Previous</string>
     <string name="next_quest">Next</string>
+    <string name="first_unsolved_quest">First unsolved</string>
     <string name="quest_solved">Checkmate · Solved</string>
     <string name="quest_try_again">That move does not give checkmate. Try again.</string>
     <string name="quest_check_reply">Check. Opponent line: %1$s</string>

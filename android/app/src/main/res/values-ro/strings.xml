@@ -120,6 +120,11 @@
     <string name="match_analysis_pawn_units">%1$s, în unități de pion</string>
     <string name="open_tactics">Tactică</string>
     <string name="tactics_progress">Tactică · %1$d/%2$d</string>
+    <string name="open_training">Antrenament tactic</string>
+    <string name="open_intermezzo">Mutarea intermediară</string>
+    <string name="intermezzo_lesson">Găsește mutarea forțată înaintea recapturii.</string>
+    <string name="intermezzo_progress">Mutarea intermediară · %1$d/%2$d</string>
+    <string name="training_progress">Antrenament tactic · %1$d/%2$d</string>
     <string name="find_tactic">Găsește mutarea care câștigă cel mai mult material.</string>
     <string name="tactics_solved">Material câștigat · Rezolvat</string>
     <string name="tactics_try_again">Există o mutare mai bună. Încearcă din nou.</string>
@@ -189,6 +194,7 @@
     <string name="mate_exit_occupied">%1$s este ocupat de o piesă proprie (%2$s).</string>
     <string name="previous_quest">Precedentă</string>
     <string name="next_quest">Următoarea</string>
+    <string name="first_unsolved_quest">Prima nerezolvată</string>
     <string name="quest_solved">Șah mat · Rezolvat</string>
     <string name="quest_try_again">Mutarea nu dă mat. Încearcă din nou.</string>
     <string name="quest_check_reply">Șah. Linia adversarului: %1$s</string>

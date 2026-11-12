@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import ro.atf.chess.release.ReleaseEvidence;
 
 @AtfComponentTest
 @Tag("governance")
@@ -28,15 +29,69 @@ class DocumentationGovernanceTest {
 
     @Test void currentDocumentationResolvesEveryLocalTargetAndHeading(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
-        var documents = new ArrayList<>(List.of(root.resolve("README.md"), root.resolve("lib/README.md")));
+        Path readme = root.resolve("README.md");
+        var documents = new ArrayList<>(List.of(readme, root.resolve("lib/README.md")));
+        String tag = ReleaseEvidence.gameLinks(Files.readString(readme)).getFirst();
+        Path release = root.resolve("release").resolve(tag.substring(tag.lastIndexOf('/') + 2));
+        documents.add(release.resolve("README.md"));
+        Path reports = release.resolve("reports/README.md");
+        if (Files.isRegularFile(reports)) documents.add(reports);
         try (var paths = Files.walk(root.resolve("docs"))) {
             paths.filter(path -> path.toString().endsWith(".md")).sorted().forEach(documents::add);
         }
         var failures = new ArrayList<String>();
         for (Path document : documents) {
+            if (!Files.isRegularFile(document)) {
+                failures.add(root.relativize(document) + " is missing");
+                continue;
+            }
             for (String broken : brokenLinks(root, document)) failures.add(root.relativize(document) + " → " + broken);
         }
         check.same("All local links in current guides, release process and feedback resolve", List.of(), failures);
+    }
+
+    @Test void mainReadmeLinksOnlyToAReleaseWithCompletePublicationEvidence(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        List<String> links = ReleaseEvidence.gameLinks(Files.readString(root.resolve("README.md")));
+        String releaseUrl = links.getFirst();
+        String assetUrl = links.getLast();
+        String tag = releaseUrl.substring(releaseUrl.lastIndexOf("/tag/") + 5);
+        Path reports = root.resolve("release").resolve(tag.substring(1)).resolve("reports");
+        Path githubRelease = reports.resolve("github-release.json");
+        Path publicDownload = reports.resolve("public-download.json");
+        Path authenticatedDownload = reports.resolve("distribution-verification.json");
+        Path qualification = reports.resolve("qualification.json");
+        boolean evidenceExists = List.of(githubRelease, publicDownload, authenticatedDownload, qualification)
+                .stream().allMatch(Files::isRegularFile);
+        boolean complete = false;
+        if (evidenceExists) {
+            String release = Files.readString(githubRelease);
+            String direct = Files.readString(publicDownload);
+            String authenticated = Files.readString(authenticatedDownload);
+            String qualified = Files.readString(qualification);
+            String apkSha = jsonValue(qualified, "apkSha256");
+            String apkBytes = jsonValue(qualified, "apkBytes");
+            complete = jsonValue(release, "tag").equals(tag)
+                    && jsonValue(release, "releaseUrl").equals(releaseUrl)
+                    && jsonValue(release, "assetUrl").equals(assetUrl)
+                    && jsonValue(direct, "status").equals("PASS")
+                    && jsonValue(direct, "assetUrl").equals(assetUrl)
+                    && jsonValue(direct, "httpStatus").equals("200")
+                    && jsonValue(direct, "zipCrc").equals("PASS")
+                    && jsonValue(direct, "sha256").equals(apkSha)
+                    && jsonValue(direct, "bytes").equals(apkBytes)
+                    && jsonValue(authenticated, "status").equals("PASS")
+                    && jsonValue(authenticated, "tag").equals(tag)
+                    && jsonValue(authenticated, "releaseUrl").equals(releaseUrl)
+                    && jsonValue(authenticated, "assetUrl").equals(assetUrl)
+                    && jsonValue(authenticated, "channel").toLowerCase(Locale.ROOT).contains("authenticated")
+                    && jsonValue(authenticated, "httpStatus").equals("200")
+                    && jsonValue(authenticated, "zipCrc").equals("PASS")
+                    && jsonValue(authenticated, "sha256").equals(apkSha)
+                    && jsonValue(authenticated, "bytes").equals(apkBytes);
+        }
+        check.same("The main README links only to a release with matching asset, qualification and complete public/authenticated download receipts",
+                true, complete);
     }
 
     @Test void releaseAndTestingGuidesLeadToTheirEvidenceOwners(Checks check) throws IOException {
@@ -48,8 +103,36 @@ class DocumentationGovernanceTest {
                         && release.stream().anyMatch(line -> line.contains("../testing/README.md#raportare-extent")));
         check.same("Audit guidance links to the qualification owner", true,
                 testing.stream().anyMatch(line -> line.contains("../release/README.md#calificare-și-publicare")));
-        check.same("Feedback retains a distinct list of open acceptance criteria", true,
-                prose(root.resolve("docs/feedback/README.md")).contains("| Prioritate | Pas | Criteriu de închidere |"));
+        check.same("The test strategy defines the level before the test inventory", true,
+                testing.indexOf("## Alegerea nivelului") >= 0 && testing.indexOf("## Alegerea nivelului") < testing.indexOf("## Suite JVM"));
+        check.same("The catalog leads to the owner of the progress verification", true,
+                prose(root.resolve("docs/board/quest-curation.md")).stream().anyMatch(line -> line.contains("../testing/README.md#progresul-problemelor")));
+    }
+
+    @Test void documentationStartsFromTheLocalOwnersAndTheirVerification(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        check.same("The project README links to its documentation index", true,
+                prose(root.resolve("README.md")).stream().anyMatch(line -> line.contains("](docs/README.md)")));
+        var index = prose(root.resolve("docs/README.md"));
+        var targets = List.of("board/README.md", "board/quest-curation.md", "testing/README.md#alegerea-nivelului",
+                "testing/README.md#raportare-extent", "release/README.md#calificare-și-publicare", "feedback/README.md");
+        check.same("The index routes readers to each local owner", List.of(), targets.stream()
+                .filter(target -> index.stream().noneMatch(line -> line.contains("](" + target + ")"))).toList());
+        check.same("The document verification has a stable section", true, anchors(root.resolve("docs/README.md")).contains("verificarea-documentației"));
+    }
+
+    @Test void feedbackKeepsOpenCriteriaAndReportsStayWithTheirEdition(Checks check) throws IOException {
+        Path feedback = ProjectRoot.locate().resolve("docs/feedback");
+        var backlog = prose(feedback.resolve("README.md"));
+        check.same("Feedback exposes the owner area, observation and closure criterion", true,
+                backlog.contains("| Prioritate | Zonă | Observație | Criteriu de închidere |"));
+        var incomplete = backlog.stream().filter(line -> line.startsWith("| P")).filter(line -> !line.startsWith("| Prioritate"))
+                .filter(line -> !line.matches("\\| P[0-9] \\| [^|]+ \\| [^|]+ \\| [^|]+ \\|")).toList();
+        check.same("Every open item has an owner area and a concrete closure criterion", List.of(), incomplete);
+        try (var files = Files.walk(feedback)) {
+            check.same("Generated Extent HTML belongs with release evidence", List.of(),
+                    files.filter(path -> path.toString().endsWith(".html")).map(feedback::relativize).toList());
+        }
     }
 
     @Test void catchesMissingFilesAndRenamedAnchorsWithoutReadingCodeExamples(Checks check) throws IOException {
@@ -121,5 +204,11 @@ class DocumentationGovernanceTest {
 
     private static String decode(String value) {
         return java.net.URLDecoder.decode(value.replace("+", "%2B"), StandardCharsets.UTF_8);
+    }
+
+    private static String jsonValue(String source, String name) {
+        var matcher = Pattern.compile("\"" + Pattern.quote(name) + "\"\\s*:\\s*(?:\"([^\"]*)\"|([0-9]+))")
+                .matcher(source);
+        return matcher.find() ? matcher.group(1) == null ? matcher.group(2) : matcher.group(1) : "";
     }
 }

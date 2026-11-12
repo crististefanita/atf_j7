@@ -2,6 +2,14 @@
 
 Construiți în TMP dintr-o copie a sursei. Componentele rulează fără emulator. Android păstrează un singur parcurs scurt pentru gesturi, geometrie și randare.
 
+## Alegerea nivelului
+
+- **Componentă** pentru reguli, progres, persistență, ordonare și layout măsurabil. Folosiți store-ul real cu preferințe în memorie și aserțiuni pe valori observabile.
+- **Sanity Android** când comportamentul depinde de Activity, preferințele Android, procese, randarea nativă sau accesibilitate. Păstrați doar parcursul care validează integrarea lipsă din componente.
+- **Benchmark** numai pentru comparații cu Stockfish, calibrarea boților sau măsurători de timp. Țineți intrările fixe și raportați separat rezultatele opționale.
+
+Alegeți cel mai mic nivel care poate observa contractul. Nu înlocuiți un test de componentă cu un parcurs UI dacă aceeași regulă poate fi verificată în JVM; păstrați sanity-ul Android pentru integrare și restart real. Toate nivelurile publică aserțiunile și diagnosticul în Extent.
+
 ## Motor și proiecție
 
 `ChessComponentTest` verifică poziția inițială, orientarea și legalitatea, cu oracole independente. Cazurile includ numărul pozițiilor la primele trei mutări individuale, rocada, en passant, promovarea și matul.
@@ -42,6 +50,19 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 ```powershell
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/tactics.yaml chess-core/src/main/resources/tactics.sha256
+```
+
+## Progresul problemelor
+
+`QuestStoreTest` folosește store-ul de producție cu preferințe în memorie. Verifică reluarea cursorului după ID în **Tactică** și **Antrenament tactic**, rezolvarea fără puncte duplicate, seria comună și totalurile separate. Include preferințele moștenite și retry-ul după o scriere respinsă. `QuestProgressTest` verifică următoarea problemă nerezolvată după extinderea catalogului.
+
+`QuestCatalogTest` încarcă toate capitolele și cere 1.172 de ID-uri și poziții distincte. `MainMenuLayoutTest` verifică titlurile și totalurile. Testele rulează fără emulator în `ChessComponentSuite`; `DocumentationGovernanceTest` și `ReleaseGovernanceTest` verifică linkurile locale, versiunea și secțiunea de descărcare.
+
+La schimbarea catalogului material, rulați independent verificarea cheii și checksum-ului pentru ambele fișiere:
+
+```powershell
+node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/training.yaml chess-core/src/main/resources/training.sha256
+node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/intermezzo.yaml chess-core/src/main/resources/intermezzo.sha256
 ```
 
 ## Suite JVM
@@ -91,13 +112,13 @@ Din aceeași copie TMP, setați `ANDROID_HOME` către SDK 36 și construiți `:a
 
 Folosiți registrul comun de rezervare pe dispozitivele partajate.
 
-1. Prima instrumentare verifică meniul, culoarea, cele două trepte ale becului și încadrarea în română la font 1,3×. În Tactică rezolvă două poziții și verifică flacăra, bonusul și totalurile. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
-2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, deblocarea comenzii **Următoarea**, pragul de cinci rezolvări și restaurarea poziției și punctelor în Tactică.
-3. Extent cere PID-uri distincte, aserțiunile celor cinci faze și zece capturi PNG. Raportul include meniul, indiciile, flacăra, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare în aserțiunea rezultatului nativ.
+1. Prima instrumentare verifică meniul, culoarea, cele două trepte ale becului și încadrarea în română la font 1,3×. Rezolvă două poziții în Tactică și trece la a doua poziție nerezolvată din Antrenament tactic. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
+2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, pragul de cinci rezolvări, poziția și punctele restaurate în Tactică și reluarea celei de-a doua probleme nerezolvate din Antrenament tactic.
+3. Extent cere PID-uri distincte, 46 de comparații la pregătire, 26 la reluare și recepțiile celorlalte faze. Raportul include meniul, indiciile, flacăra, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare lângă comparația nativă.
 
 La modificarea instrumentării, sincronizați numărul de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt`.
 
-`AndroidReceiptTest` verifică offline importul recepției native. O fază trece cu un singur verdict PASS, un cod de succes, un PID valid și toate aserțiunile așteptate. Marcajele contradictorii și valorile neconcordante apar ca FAIL.
+`AndroidReceiptTest` verifică offline importul și randarea HTML a recepției native. Testul negativ înlocuiește comparația obligatorie pentru Antrenament tactic cu una fără legătură, păstrând numărul total corect; Extent trebuie să marcheze faza FAIL și să numească verificarea lipsă.
 
 ## Upgrade al progresului
 
@@ -163,6 +184,6 @@ Pentru parcursul Android folosiți `-ManualAnalysisOnly`. Proba joacă ambele cu
 
 Pentru republicare, rulați `TalkBackPublication#publishTalkBackGestures` din copia TMP și indicați logul prin `-Dchess.talkback.gestures`. Logul unei singure probe conține evenimentele `J7FocusProbe` și markerii `J7ProbeMarker`, de la `BLACK_ANCHOR_START` la `WHITE_DESTINATION_END`. În același director puneți `emulator.json`, capturile `BLACK-color.png`, `BLACK-PIECE.png`, `BLACK-DESTINATION.png` și echivalentele `WHITE-*`.
 
-Pentru vorbire, activați **Display speech output**. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. Proba anterioară compară ediția 0.3.0 cu build-ul corectat și consemnează cererile TalkBack și audio PCM sintetizat. [Extent vorbire](../feedback/talkback-extent.html)
+Pentru vorbire, activați **Display speech output**. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. Proba anterioară compară ediția 0.3.0 cu build-ul corectat și consemnează cererile TalkBack și audio PCM sintetizat. [Extent vorbire](../../release/0.3.1/reports/talkback-extent.html)
 
 [Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)

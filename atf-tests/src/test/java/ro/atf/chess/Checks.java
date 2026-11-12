@@ -11,8 +11,13 @@ final class Checks {
     private final List<AtfAssertion> rows = new ArrayList<>();
 
     void same(String name, Object expected, Object actual) {
-        rows.add(new AtfAssertion(name, String.valueOf(expected), String.valueOf(actual), java.util.Objects.equals(expected, actual)));
-        Assertions.assertEquals(expected, actual, name);
+        try {
+            Assertions.assertEquals(expected, actual, name);
+            rows.add(new AtfAssertion(name, String.valueOf(expected), String.valueOf(actual), true));
+        } catch (AssertionFailedError failure) {
+            rows.add(new AtfAssertion(name, String.valueOf(expected), String.valueOf(actual), false));
+            throw failure;
+        }
     }
 
     void rejects(String name, Class<? extends Throwable> type, Executable operation) {
@@ -25,6 +30,10 @@ final class Checks {
             throw failure;
         }
     }
+
+    int size() { return rows.size(); }
+
+    boolean failedSince(int first) { return rows.subList(first, rows.size()).stream().anyMatch(row -> !row.passed()); }
 
     List<AtfAssertion> rows() { return List.copyOf(rows); }
 }

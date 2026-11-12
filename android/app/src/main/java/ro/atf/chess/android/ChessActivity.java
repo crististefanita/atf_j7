@@ -121,12 +121,14 @@ public final class ChessActivity extends Activity {
                 new Chapter(R.id.chapter_one, R.string.quest_progress, R.id.chapter_one_totals, QuestCatalog.load()),
                 new Chapter(R.id.chapter_two, R.string.mate_two_progress, R.id.chapter_two_totals, QuestCatalog.loadMateInTwo()),
                 new Chapter(R.id.chapter_three, R.string.mate_three_progress, R.id.chapter_three_totals, QuestCatalog.loadMateInThree()),
-                new Chapter(R.id.chapter_tactics, R.string.tactics_progress, R.id.chapter_tactics_totals, QuestCatalog.loadTactics()));
+                new Chapter(R.id.chapter_tactics, R.string.tactics_progress, R.id.chapter_tactics_totals, QuestCatalog.loadTactics()),
+                new Chapter(R.id.chapter_training, R.string.training_progress, R.id.chapter_training_totals, QuestCatalog.loadTraining()),
+                new Chapter(R.id.chapter_intermezzo, R.string.intermezzo_progress, R.id.chapter_intermezzo_totals, QuestCatalog.loadIntermezzo()));
         allIds = chapters.stream().flatMap(chapter -> chapter.ids().stream()).collect(Collectors.toList());
         store = new ChessProgressStore(this);
         store.matches().migrateCompletedMatches();
-        progress = store.read(allIds);
-        rewards = store.readRewards();
+        progress = store.quests().read(allIds);
+        rewards = store.quests().readRewards();
         if (Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, this::back);
         }
@@ -143,7 +145,7 @@ public final class ChessActivity extends Activity {
             displayMatch(store.matches().matchBlackBelow());
             return;
         }
-        if (store.resumeChapter()) for (int index = 0; index < chapters.size(); index++) {
+        if (store.quests().resumeChapter()) for (int index = 0; index < chapters.size(); index++) {
             var chapterIds = chapters.get(index).ids();
             if (!chapterIds.contains(progress.currentId())) continue;
             displayChapter(index);
@@ -305,7 +307,7 @@ public final class ChessActivity extends Activity {
     }
 
     private void leaveChapter() {
-        if (store.leaveChapter()) showPuzzles();
+        if (store.quests().leaveChapter()) showPuzzles();
         else showSaveError();
     }
 
@@ -546,12 +548,13 @@ public final class ChessActivity extends Activity {
         button.setAllCaps(false);
         button.setText(label);
         button.setOnClickListener(view -> {
-            if (step.defensePending() || offset > 0 && !progress.canAdvance(questIndex, quests.size())) return;
-            int nextIndex = questIndex + offset;
+            if (step.defensePending()) return;
+            int nextIndex = offset > 0 ? progress.nextIndex(questIndex, order) : questIndex + offset;
             if (nextIndex < 0) return;
             if (save(progress.select(order.get(nextIndex)))) {
                 loadQuest(nextIndex);
                 render();
+                scheduleDefense();
             }
         });
         return button;
@@ -559,7 +562,7 @@ public final class ChessActivity extends Activity {
 
     private void openChapter(int index) {
         var chapterIds = chapters.get(index).ids();
-        var resumed = QuestProgress.restore(store.remembered(chapterIds.get(0)), progress.solvedIds(), chapterIds);
+        var resumed = QuestProgress.restore(store.quests().remembered(chapterIds.get(0)), progress.solvedIds(), chapterIds);
         if (!save(resumed)) return;
         displayChapter(index);
         render();
@@ -588,13 +591,13 @@ public final class ChessActivity extends Activity {
     private void loadQuest(int index) {
         questIndex = index;
         var quest = quests.get(index);
-        completedQuest = progress.currentSolved() ? quest.restoreFinish(store.finish(quest.id())) : null;
+        completedQuest = progress.currentSolved() ? quest.restoreFinish(store.quests().finish(quest.id())) : null;
         earned = 0;
         announceMilestone = false;
         attemptMessage = null;
         hint = QuestHint.NONE;
         selected = -1;
-        step = QuestStep.restore(completedQuest == null ? store.ply(quest.id()) : 0, quest);
+        step = QuestStep.restore(completedQuest == null ? store.quests().ply(quest.id()) : 0, quest);
         last = completedQuest == null ? step.lastMove(quest) : completedQuest.finishingMove();
         position = completedQuest == null ? step.position(quest) : completedQuest.solvedPosition();
         options = Collections.emptyList();
@@ -922,7 +925,7 @@ public final class ChessActivity extends Activity {
     }
 
     private boolean saveStep(QuestStep next) {
-        if (!store.save(progress, rewards, next.ply())) {
+        if (!store.quests().save(progress, rewards, next.ply())) {
             showSaveError();
             return false;
         }
@@ -942,7 +945,7 @@ public final class ChessActivity extends Activity {
     }
 
     private boolean save(QuestProgress nextProgress, QuestRewards nextRewards, String finish) {
-        boolean saved = finish == null ? store.save(nextProgress, nextRewards) : store.saveFinish(nextProgress, nextRewards, finish);
+        boolean saved = finish == null ? store.quests().save(nextProgress, nextRewards) : store.quests().saveFinish(nextProgress, nextRewards, finish);
         if (!saved) {
             showSaveError();
             return false;
@@ -967,7 +970,9 @@ public final class ChessActivity extends Activity {
         renderProgress();
         boolean pending = step.defensePending();
         previous.setEnabled(!pending && questIndex > 0);
-        next.setEnabled(progress.canAdvance(questIndex, quests.size()));
+        int nextIndex = progress.nextIndex(questIndex, order);
+        next.setText(nextIndex >= 0 && nextIndex < questIndex ? R.string.first_unsolved_quest : R.string.next_quest);
+        next.setEnabled(!pending && nextIndex >= 0);
         guidance.setEnabled(!pending);
         var quest = quests.get(questIndex);
         int explanation = quest.objective() == QuestCatalog.Objective.MATE ? R.string.why_mate : R.string.why_tactic;

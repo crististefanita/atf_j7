@@ -4,7 +4,6 @@ import atf.testkit.AtfComponentTest;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -104,37 +103,5 @@ class MatchStoreTest {
 
     private static List<String> ids(MatchStore store) {
         return store.archivedMatches().stream().map(MatchStore.ArchivedMatch::id).toList();
-    }
-
-    private static final class MemoryPreferences implements MatchStore.Preferences {
-        private final Map<String, Object> data = new HashMap<>();
-        private boolean rejectCommit;
-        private int commitAttempts;
-
-        @Override public String getString(String key, String fallback) { return (String) data.getOrDefault(key, fallback); }
-        @Override public boolean getBoolean(String key, boolean fallback) { return (boolean) data.getOrDefault(key, fallback); }
-        @Override public int getInt(String key, int fallback) { return (int) data.getOrDefault(key, fallback); }
-        @Override public long getLong(String key, long fallback) { return (long) data.getOrDefault(key, fallback); }
-        @Override public boolean contains(String key) { return data.containsKey(key); }
-        @Override public MatchStore.Editor edit() { return new Transaction(); }
-
-        private final class Transaction implements MatchStore.Editor {
-            private final Map<String, Object> writes = new HashMap<>();
-
-            @Override public MatchStore.Editor putString(String key, String value) { writes.put(key, value); return this; }
-            @Override public MatchStore.Editor putBoolean(String key, boolean value) { writes.put(key, value); return this; }
-            @Override public MatchStore.Editor putInt(String key, int value) { writes.put(key, value); return this; }
-            @Override public MatchStore.Editor putLong(String key, long value) { writes.put(key, value); return this; }
-            @Override public MatchStore.Editor remove(String key) { writes.put(key, null); return this; }
-            @Override public boolean commit() {
-                commitAttempts++;
-                if (rejectCommit) return false;
-                writes.forEach((key, value) -> {
-                    if (value == null) data.remove(key);
-                    else data.put(key, value);
-                });
-                return true;
-            }
-        }
     }
 }

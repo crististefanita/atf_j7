@@ -16,6 +16,11 @@
         <TextView android:id="@+id/chapter_three_totals" style="@style/ChapterTotals" />
         <Button android:id="@+id/chapter_tactics" style="@style/ChapterEntry" android:text="@string/open_tactics" />
         <TextView android:id="@+id/chapter_tactics_totals" style="@style/ChapterTotals" />
+        <Button android:id="@+id/chapter_training" style="@style/ChapterEntry" android:text="@string/open_training" />
+        <TextView android:id="@+id/chapter_training_totals" style="@style/ChapterTotals" />
+        <Button android:id="@+id/chapter_intermezzo" style="@style/ChapterEntry" android:text="@string/open_intermezzo" />
+        <TextView style="@style/ChapterTotals" android:text="@string/intermezzo_lesson" />
+        <TextView android:id="@+id/chapter_intermezzo_totals" style="@style/ChapterTotals" />
         <Button android:id="@+id/puzzles_home" style="@style/ChapterEntry" android:text="@string/main_menu" />
     </LinearLayout>
 </ScrollView>
