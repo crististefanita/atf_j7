@@ -127,13 +127,16 @@ class DocumentationGovernanceTest {
                 && catalogCode.equals(androidCode.group(1))
                 && jsonValue(catalog, "repository").equals("crististefanita/atf_j7");
         check.same("The root points only to the current APK while the catalog retains at most one immediate comparison release", true, aligned);
-        if (!candidate && aligned) {
+        if (aligned) {
             try (var directories = Files.list(root.resolve("release"))) {
                 List<String> local = directories.filter(Files::isDirectory).map(path -> path.getFileName().toString())
                         .filter(name -> name.matches("[0-9]+\\.[0-9]+\\.[0-9]+"))
                         .toList();
-                check.same("Local release evidence keeps only the current and immediate predecessor", true,
-                        local.size() == versions.size() && local.containsAll(versions));
+                List<String> expectedLocal = candidate
+                        ? java.util.stream.Stream.concat(versions.stream(), java.util.stream.Stream.of(catalogVersion)).toList()
+                        : versions;
+                check.same("Local release evidence keeps only current, immediate predecessor, and active candidate", true,
+                        local.size() == expectedLocal.size() && local.containsAll(expectedLocal));
             }
         }
     }

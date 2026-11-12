@@ -75,7 +75,7 @@ V, R, Î și N înseamnă victorii, remize, înfrângeri și partide neterminate
 | Hard – Advanced | 14 / 7 / 2 / 1 | +191 | +104 … +307 |
 | Hard – Basic | 22 / 0 / 1 / 1 | +470 | +191 … ∞ |
 
-Hard a câștigat toate cele opt partide din Pirc și Benoni, din ambele perspective, contra Basic și Advanced. În partida Alehină Hard–Advanced, a jucat `Nc3` după semimutarea 44 și a ieșit din ciclul care ducea anterior la remiză la 52. Stockfish indică +6,71 pentru ieșire, cu istoricul partidei și pierdere WDL de 0‰. Partida a ajuns la plafonul de 160 de semimutări. Stockfish arată −5,19 pentru alb la finalul probei. În partida cu culorile inversate, Hard a câștigat la semimutarea 108. [Rejucarea 0.7.0](../../release/0.7.0/reports/league.tsv)
+Hard a câștigat toate cele opt partide din Pirc și Benoni, din ambele perspective, contra Basic și Advanced. În partida Alehină Hard–Advanced, a jucat `Nc3` după semimutarea 44 și a ieșit din ciclul care ducea anterior la remiză la 52. Stockfish indică +6,71 pentru ieșire, cu istoricul partidei și pierdere WDL de 0‰. Partida a ajuns la plafonul de 160 de semimutări. Stockfish arată −5,19 pentru alb la finalul probei. În partida cu culorile inversate, Hard a câștigat la semimutarea 108. [Rejucarea istorică 0.7.0](https://github.com/crististefanita/atf_j7/blob/v0.7.0/release/0.7.0/reports/league.tsv) rămâne în tagul Git, nu în catalogul scurt de release-uri.
 
 ### Conversia avantajului în Alehină
 
