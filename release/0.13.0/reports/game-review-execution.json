@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "game-review",
+  "device": "127.0.0.1:5555",
+  "api": "28",
+  "apkSha256": "afd820b1e4cfd9d952dd198c3fd249209da407997a0b129aad55937e88e4b3d8",
+  "sourceCommit": "66ae83d170db4406ef0d7d712bf1180e8bbb1bfc",
+  "variant": "release",
+  "assertions": 23,
+  "receiptSha256": "01b81629dd5e516f6484251ba09d9b5a4093f5441fc63905a758722fbf9957b9",
+  "captureSha256": {
+    "game-review.png": "0454d23140fd9b5e7447bac14eeccbe61e275d3dcdc6002c25e3d37d3ae70d96",
+    "game-review-navigation.png": "5b27deadcd10a54456d422d257a1b10acc2764634e25bebe8e66bd56bcb4cbef",
+    "game-review-line.png": "35ab26a4aca0b36049411dc1946b31322fc6b4b92abf1c0cf51128f33ee83491",
+    "game-review-comparison.png": "4f022e44a2ebc56f86e1e42781b788b0b1650fa466f1fff1d48dcdbf47d919e6",
+    "game-review-actions.png": "6f0d872950a6327a9cc21a39f51a13c427d317b672421b909f14076e4b882eb2"
+  }
+}

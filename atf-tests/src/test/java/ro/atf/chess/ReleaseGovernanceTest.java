@@ -222,7 +222,9 @@ class ReleaseGovernanceTest {
                 initializer.contains("password.dpapi") && initializer.contains("ConvertFrom-SecureString")
                         && initializer.contains("SetAccessRuleProtection"));
         check.same("A missing published key cannot rotate silently", true,
-                initializer.contains("release/0.11.2/reports/qualification.json")
+                initializer.contains("release/index.json")
+                        && initializer.contains("qualification.json") && initializer.contains("build-artifact.json")
+                        && initializer.contains("Published signing evidence is missing")
                         && initializer.contains("-StartNewIdentity")
                         && initializer.contains("accept a clean-install transition"));
         check.same("Incomplete key records are preserved for recovery", true,

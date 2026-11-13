@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "analysis-only",
+  "device": "127.0.0.1:5555",
+  "api": "28",
+  "apkSha256": "afd820b1e4cfd9d952dd198c3fd249209da407997a0b129aad55937e88e4b3d8",
+  "sourceCommit": "66ae83d170db4406ef0d7d712bf1180e8bbb1bfc",
+  "variant": "release",
+  "pids": [
+    "6309",
+    "7121"
+  ],
+  "assertions": {
+    "analysis-prepare": 17,
+    "analysis-restore": 10
+  },
+  "receipts": {
+    "analysis-prepare": "081452f543894f8fc948dc77b5eabe85ffd82bf792616193137a1c14ef2b4e77",
+    "analysis-restore": "32026c7cda4c022f7184c4ddba2582845fef47e4fefa7aaef001d6ea0efd109c"
+  }
+}

@@ -29,10 +29,20 @@ if ($present.Count -gt 0 -and $present.Count -ne $files.Count) {
 }
 
 if ($present.Count -eq 0) {
-    $publishedIdentity = Join-Path $projectRoot 'release/0.11.2/reports/qualification.json'
-    $previousFingerprint = $null
-    if (Test-Path -LiteralPath $publishedIdentity) {
-        $previousFingerprint = (Get-Content -Raw -LiteralPath $publishedIdentity | ConvertFrom-Json).signingCertificateSha256
+    $catalog = Get-Content -Raw -LiteralPath (Join-Path $projectRoot 'release/index.json') | ConvertFrom-Json
+    if ($catalog.currentVersion -cnotmatch '^\d+\.\d+\.\d+$') { throw 'Published release version is missing or invalid.' }
+    $reports = Join-Path $projectRoot "release/$($catalog.currentVersion)/reports"
+    $qualification = Join-Path $reports 'qualification.json'
+    $publishedIdentity = if (Test-Path -LiteralPath $qualification -PathType Leaf) {
+        $qualification
+    } else {
+        Join-Path $reports 'build-artifact.json'
+    }
+    if (!(Test-Path -LiteralPath $publishedIdentity -PathType Leaf)) { throw 'Published signing evidence is missing.' }
+    $evidence = Get-Content -Raw -LiteralPath $publishedIdentity | ConvertFrom-Json
+    $previousFingerprint = if ($evidence.signingCertificateSha256) { $evidence.signingCertificateSha256 } else { $evidence.certificateSha256 }
+    if ($evidence.version -cne $catalog.currentVersion -or $previousFingerprint -notmatch '^[a-f0-9]{64}$') {
+        throw 'Published signing evidence does not identify the current release certificate.'
     }
     if ($previousFingerprint -and !$StartNewIdentity) {
         throw 'The published J7 signer is missing. Recover it, or explicitly use -StartNewIdentity and accept a clean-install transition.'

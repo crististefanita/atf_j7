@@ -14,4 +14,4 @@ Folosește APK-ul semnat atașat acestui release. Ediția 0.13.0 păstrează ide
 
 ## Verificare
 
-Dovezile pentru componente, sanity Android, Extent și descărcarea din README sunt în [`reports/`](reports/README.md). README-ul principal indică această ediție și APK-ul ei după publicare.
+Dovezile pentru componente, sanity Android, Extent și descărcarea din README sunt în [`reports/`](reports/README.md). README-ul principal indică această ediție și APK-ul ei.

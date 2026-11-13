@@ -40,7 +40,7 @@ verifică poarta.
 
 Fără un baseline explicit, `verify-signing-continuity.ps1` caută dovada
 certificatului în dosarul ediției curente. La recuperarea unei chei absente,
-inițializarea are încă o referință fixă. [Feedback de semnare](../feedback/README.md)
+inițializarea citește și ea catalogul și oprește rotația dacă dovada ediției curente lipsește.
 
 În copia TMP, după execuția Maven și înainte de semnare:
 
