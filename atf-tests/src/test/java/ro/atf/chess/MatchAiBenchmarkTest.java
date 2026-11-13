@@ -77,12 +77,12 @@ class MatchAiBenchmarkTest {
             check.same("Pinned independent coaching reference", ChessYaml.string(settings, "stockfish"), engine.name());
             for (var opening : league.openings()) {
                 var match = opening.start();
-                var hint = TacticalAnalysis.hintAnalysis(match.position());
+                var hint = TacticalAnalysis.verifiedHints(match.position());
                 var hard = match.botDecision(MatchSetup.Level.HARD);
                 String position = "startpos moves " + opening.moves();
                 var reference = engine.evaluatePosition(position, depth, null);
                 String hardMove = hard.move().uci();
-                String hintMove = hint.result().ranked().getFirst().move().uci();
+                String hintMove = hint.lines().getFirst().move().uci();
                 int hardCase = moveLoss(engine, position, depth, reference, hardMove);
                 int hintCase = hardMove.equals(hintMove) ? hardCase : moveLoss(engine, position, depth, reference, hintMove);
                 hardLoss += hardCase;

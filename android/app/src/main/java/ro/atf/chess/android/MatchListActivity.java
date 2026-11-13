@@ -65,7 +65,8 @@ public final class MatchListActivity extends Activity {
     private void showSaved(LinearLayout rows, MatchStore store) {
         for (int slot : store.savedMatchSlots()) {
             var saved = store.readSavedMatch(slot);
-            var entry = MatchListEntry.saved(slot, saved, saved == null ? 0 : store.startedAt(slot));
+            if (saved == null) continue;
+            var entry = MatchListEntry.saved(slot, saved, store.startedAt(slot));
             addRow(rows, entry, new Intent().putExtra(SAVED_SLOT, slot));
         }
     }
@@ -80,17 +81,13 @@ public final class MatchListActivity extends Activity {
         var row = getLayoutInflater().inflate(R.layout.match_list_row, rows, false);
         TextView title = row.findViewById(R.id.match_row_label);
         TextView details = row.findViewById(R.id.match_row_details);
-        var available = entry.status() != MatchListEntry.Status.UNAVAILABLE;
         String label = rowTitle(entry);
         title.setText(label);
         row.setAccessibilityDelegate(ROW_ACCESSIBILITY);
-        String summary = getString(statusLabel(entry.status()));
-        if (available) {
-            String moves = getResources().getQuantityString(R.plurals.match_row_moves, entry.moves(), entry.moves());
-            summary = moves + " · " + summary;
-            if (entry.reviewed()) summary += " · " + getString(R.string.match_archive_reviewed);
-            row.setOnClickListener(view -> select(selection));
-        } else row.setEnabled(false);
+        String moves = getResources().getQuantityString(R.plurals.match_row_moves, entry.moves(), entry.moves());
+        String summary = moves + " · " + getString(statusLabel(entry.status()));
+        if (entry.reviewed()) summary += " · " + getString(R.string.match_archive_reviewed);
+        row.setOnClickListener(view -> select(selection));
         details.setText(summary);
         String description = label + ", " + summary;
         if (entry.hasTimestamp()) {
@@ -107,7 +104,6 @@ public final class MatchListActivity extends Activity {
     }
 
     private String rowTitle(MatchListEntry entry) {
-        if (entry.status() == MatchListEntry.Status.UNAVAILABLE) return getString(R.string.match_saved_number, entry.slot());
         String opponent = MatchLabels.opponentName(entry.opponent());
         return entry.slot() > 0 ? getString(R.string.match_saved_title, entry.slot(), opponent)
                 : getString(R.string.match_finished_title, opponent);
@@ -116,11 +112,9 @@ public final class MatchListActivity extends Activity {
     private static int statusLabel(MatchListEntry.Status status) {
         return switch (status) {
             case IN_PROGRESS -> R.string.match_slot_active;
-            case FINISHED -> R.string.match_slot_finished;
             case WON -> R.string.match_list_won;
             case LOST -> R.string.match_list_lost;
             case DRAW -> R.string.match_archive_draw;
-            case UNAVAILABLE -> R.string.match_list_unavailable;
         };
     }
 

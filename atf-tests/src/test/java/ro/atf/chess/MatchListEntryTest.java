@@ -25,9 +25,6 @@ class MatchListEntryTest {
         check.same("The starting timestamp is retained", List.of(STARTED, true), List.of(dated.timestamp(), dated.hasTimestamp()));
         check.same("A legacy save still displays its opponent and moves", List.of(Level.ADVANCED, 1, false),
                 List.of(legacy.opponent(), legacy.moves(), legacy.hasTimestamp()));
-        var unreadable = MatchListEntry.saved(8, null, STARTED);
-        check.same("An unreadable save keeps its slot and drops stale metadata", List.of(8, Status.UNAVAILABLE, false),
-                List.of(unreadable.slot(), unreadable.status(), unreadable.hasTimestamp()));
     }
 
     @Test void resultsUseThePlayersSideAndKeepTheActualMoveCount(Checks check) {
@@ -41,7 +38,11 @@ class MatchListEntryTest {
         check.same("Resigning before any move is a loss with zero moves", List.of(0, Status.LOST, false),
                 List.of(resignation.moves(), resignation.status(), resignation.reviewed()));
         check.same("A legacy draw has a result and no invented date", List.of(Status.DRAW, false), List.of(draw.status(), draw.hasTimestamp()));
-        check.same("The same completed game is marked finished in Saved games", Status.FINISHED, MatchListEntry.saved(4, won, STARTED).status());
+        var completed = won;
+        check.rejects("A completed game cannot create a Saved games row", IllegalArgumentException.class,
+                () -> MatchListEntry.saved(4, completed, STARTED));
+        check.rejects("An active game cannot create a Finished games row", IllegalArgumentException.class,
+                () -> finished(ChessMatch.start(), false, 0));
     }
 
     private static MatchListEntry finished(ChessMatch match, boolean reviewed, long timestamp) {

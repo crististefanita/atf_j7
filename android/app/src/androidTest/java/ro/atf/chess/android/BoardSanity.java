@@ -126,9 +126,10 @@ public final class BoardSanity extends Instrumentation {
         seedGame(1, mate);
         seedGame(2, ChessMatch.start(new MatchSetup(Side.WHITE, MatchSetup.Level.ADVANCED, false)).offerDraw());
         seedGame(3, ChessMatch.start(new MatchSetup(Side.WHITE, MatchSetup.Level.HARD, false)).resign());
+        seedGame(4, ChessMatch.start());
         var home = launch();
         var list = openMatchList(home, R.id.match_archive);
-        captureLastGameRow(list, "finished-games");
+        captureLastGameRow(list, "finished-games", 3);
         chooseListEntry(list, 2);
         awaitListTransition(home);
         var board = findBoard(viewsOf(home));
@@ -145,10 +146,11 @@ public final class BoardSanity extends Instrumentation {
             if (slot % 3 != 0) match = match.play(Move.fromUci("e2e4")).play(Move.fromUci("e7e5"));
             seedGame(slot, match);
         }
+        seedGame(MatchSlots.LIMIT, ChessMatch.start().resign());
         var activity = launch(true);
         var list = openMatchList(activity, R.id.resume_match);
-        captureLastGameRow(list, "saved-games");
-        chooseListEntry(list, MatchSlots.LIMIT - 1);
+        captureLastGameRow(list, "saved-games", MatchSlots.LIMIT - 1);
+        chooseListEntry(list, MatchSlots.LIMIT - 2);
         awaitListTransition(activity);
         var board = findBoard(viewsOf(activity));
         captureFrame("match-slots", "Selecting a saved row restores the recorded position",
@@ -191,10 +193,12 @@ public final class BoardSanity extends Instrumentation {
         if (!activity.hasWindowFocus()) throw new AssertionError("The game list transition did not transfer window focus");
     }
 
-    private void captureLastGameRow(Activity list, String frame) throws IOException {
+    private void captureLastGameRow(Activity list, String frame, int expectedRows) throws IOException {
         var scroll = (ScrollView) list.findViewById(R.id.match_list_scroll);
         var rows = (ViewGroup) list.findViewById(R.id.match_list_rows);
-        if (rows.getChildCount() == 0) throw new AssertionError("The fixture did not produce game rows");
+        if (rows.getChildCount() != expectedRows) {
+            throw new AssertionError(frame + " expected " + expectedRows + " rows, found " + rows.getChildCount());
+        }
         var last = rows.getChildAt(rows.getChildCount() - 1);
         var badge = (TextView) last.findViewById(R.id.match_row_date);
         var label = (TextView) last.findViewById(R.id.match_row_label);

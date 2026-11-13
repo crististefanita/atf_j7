@@ -9,6 +9,10 @@ import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.model.diagnostic.ReportPhaseDiagnostic.Kind;
 import atf.reporting.model.timing.ReportPhaseTiming;
+import atf.testkit.assertions.AssertionValueDisplay;
+import atf.testkit.assertions.ComponentAssertionAudit;
+import atf.testkit.assertions.ComponentAssertionAudit.AssertionRequirement;
+import atf.testkit.assertions.ComponentAssertionAudit.Phase;
 import atf.testkit.scope.TestRunScope;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -67,7 +71,8 @@ final class ExtentAudit implements InvocationInterceptor, ParameterResolver, Aft
         var tags = Stream.concat(Stream.of("chess"), context.getTags().stream()).distinct().sorted().toList();
         var trail = trail(context);
         var reported = context.getExecutionException().orElse(null);
-        var missing = reported == null && trail.checks.size() == 0 ? new AssertionError("An audited component test requires comparisons") : null;
+        var body = trail.stage(Stage.BODY);
+        var missing = reported == null && body.rows.isEmpty() ? missingBodyAssertion(body) : null;
         Throwable failure = missing == null ? reported : missing;
         if (failure != null && trail.stages.values().stream().noneMatch(stage -> stage.failures.contains(failure))) {
             trail.stage(Stage.BODY).failures.add(failure);
@@ -75,6 +80,19 @@ final class ExtentAudit implements InvocationInterceptor, ParameterResolver, Aft
         report.write(context.getRequiredTestClass().getSimpleName(), context.getDisplayName(), tags,
                 trail.stages, status(failure));
         if (missing != null) throw missing;
+    }
+
+    private static AssertionError missingBodyAssertion(StageEvidence body) {
+        var policy = new ComponentAssertionAudit(new AssertionValueDisplay(AssertionValueDisplay.DEFAULT_LIMIT, (name, value) -> value),
+                System::nanoTime, AssertionRequirement.TEST_BODY);
+        policy.start(Phase.TEST_BODY);
+        var result = policy.finish(null);
+        for (var phase : result.phases()) {
+            for (var check : phase.checks()) {
+                body.rows.add(new AtfAssertion(check.name(), check.expected(), check.actual(), check.passed()));
+            }
+        }
+        return (AssertionError) result.failure();
     }
 
     private static AuditTrail trail(ExtensionContext context) {

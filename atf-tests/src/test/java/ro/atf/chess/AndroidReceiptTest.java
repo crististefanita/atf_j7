@@ -16,6 +16,7 @@ import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import ro.atf.chess.release.ReleaseEvidence;
 
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
@@ -152,6 +153,130 @@ class AndroidReceiptTest {
         }
     }
 
+    @Test void archivedHintsRejectChangedReportsCapturesAndForeignPhases(Checks check) throws Exception {
+        Path archive = Files.createDirectory(folder.resolve("archive"));
+        String commit = "c".repeat(40);
+        String apk = "a".repeat(64);
+        var candidate = new ReleaseEvidence.Candidate("0.13.6", commit, 2048, apk);
+        String run = "1".repeat(32);
+        Path raw = Files.createDirectory(folder.resolve("hint-raw"));
+        Path prepare = writeAnalysisFixture(raw, commit, "release", apk, run, run);
+        Path manual = raw.resolve("manual-analysis/manual-analysis.txt");
+        AndroidSanityPublication.publishMatchAnalysis(prepare);
+        AndroidSanityPublication.publishManualAnalysis(manual);
+        var json = new ObjectMapper();
+        Files.writeString(archive.resolve("components.html"), "<html>Components</html>");
+        Files.writeString(archive.resolve("android-game-review.html"), "<html>Game Review</html>");
+        var review = json.createObjectNode().put("status", "PASS").put("scope", "game-review").put("variant", "release")
+                .put("sourceCommit", commit).put("apkSha256", apk).put("assertions", 30);
+        json.writeValue(archive.resolve("game-review-execution.json").toFile(), review);
+        var qualification = json.createObjectNode().put("version", candidate.version()).put("qualificationGate", "PASS")
+                .put("sourceCommit", commit).put("apkSha256", apk).put("apkBytes", candidate.apkBytes())
+                .put("componentTests", 1).put("componentExtentSha256", ReleaseEvidence.digest(archive.resolve("components.html")));
+        qualification.putObject("android").putObject("game-review").put("sourceCommit", commit).put("nativeAssertions", 30)
+                .put("report", "android-game-review.html").put("execution", "game-review-execution.json")
+                .put("extentSha256", ReleaseEvidence.digest(archive.resolve("android-game-review.html")));
+        Path qualified = archive.resolve("qualification.json");
+        json.writeValue(qualified.toFile(), qualification);
+        var hint = json.createObjectNode().put("status", "PASS").put("runId", run).put("sourceCommit", commit)
+                .put("apkSha256", apk).put("assertions", 12);
+        var phases = hint.putObject("phases");
+        archivePhase(json, phases.putObject("analysis-prepare"), raw, archive, "android-match-analysis.html");
+        archivePhase(json, phases.putObject("analysis-restore"), raw.resolve("analysis-restore"), archive, "");
+        var manualPhase = phases.putObject("manual-analysis");
+        archivePhase(json, manualPhase, manual.getParent(), archive, "android-manual-analysis.html");
+        Path receipt = archive.resolve("hint-analysis-execution.json");
+        json.writeValue(receipt.toFile(), hint);
+        check.same("The publisher's archived HTML and captures identify the qualified APK", candidate,
+                ArchivedReleaseEvidence.verify(archive, candidate.version()));
+
+        Path manualHtml = archive.resolve("android-manual-analysis.html");
+        String original = Files.readString(manualHtml);
+        Files.writeString(manualHtml, original + "<!-- changed -->");
+        assertArchiveRejection(check, archive, candidate, "A byte change in the manual HTML fails",
+                "Archived Extent hash mismatch: android-manual-analysis.html");
+
+        Path matchHtml = archive.resolve("android-match-analysis.html");
+        String originalMatch = Files.readString(matchHtml);
+        Files.writeString(matchHtml, originalMatch + "<!-- changed -->");
+        assertArchiveRejection(check, archive, candidate, "A byte change in the match HTML fails",
+                "Archived Extent hash mismatch: android-match-analysis.html");
+        Files.writeString(matchHtml, originalMatch);
+
+        String originalDigest = manualPhase.path("extentSha256").asText();
+        var rendered = Jsoup.parse(original);
+        String otherCapture = Jsoup.parse(matchHtml, "UTF-8").selectFirst("a.atf-ui-action-screenshot-link").attr("href");
+        rendered.selectFirst("a.atf-ui-action-screenshot-link").attr("href", otherCapture);
+        Files.writeString(manualHtml, rendered.outerHtml());
+        manualPhase.put("extentSha256", ReleaseEvidence.digest(manualHtml));
+        json.writeValue(receipt.toFile(), hint);
+        assertArchiveRejection(check, archive, candidate, "A substituted PNG fails even with a recomputed HTML hash",
+                "Archived hint embedded PNG SHA-256 mismatch: manual-analysis.png");
+
+        Files.writeString(manualHtml, original);
+        manualPhase.put("extentSha256", originalDigest);
+        var manualExecution = (com.fasterxml.jackson.databind.node.ObjectNode) manualPhase.path("execution");
+        manualExecution.put("runId", "2".repeat(32));
+        json.writeValue(receipt.toFile(), hint);
+        assertArchiveRejection(check, archive, candidate, "A phase from another run of the same signed APK fails",
+                "Archived hint phase belongs to another run, device or API: manual-analysis");
+
+        String foreignRun = "2".repeat(32);
+        hint.put("runId", foreignRun);
+        phases.properties().forEach(phase -> ((com.fasterxml.jackson.databind.node.ObjectNode) phase.getValue().path("execution"))
+                .put("runId", foreignRun));
+        json.writeValue(receipt.toFile(), hint);
+        assertArchiveRejection(check, archive, candidate, "A rewritten run ID must match the archived Extent observations",
+                "Archived hint Extent phase identity differs: analysis-prepare");
+
+        hint.put("runId", run);
+        phases.properties().forEach(phase -> ((com.fasterxml.jackson.databind.node.ObjectNode) phase.getValue().path("execution"))
+                .put("runId", run));
+        json.writeValue(receipt.toFile(), hint);
+        qualification.put("hintAnalysisExecutionSha256", ReleaseEvidence.digest(receipt));
+        json.writeValue(qualified.toFile(), qualification);
+        check.same("The optional qualification digest binds the archived hint receipt", candidate,
+                ArchivedReleaseEvidence.verify(archive, candidate.version()));
+        var next = new ReleaseEvidence.Candidate("0.13.7", commit, candidate.apkBytes(), apk);
+        qualification.put("version", next.version());
+        json.writeValue(qualified.toFile(), qualification);
+        check.same("New releases can qualify the same two reports through the receipt digest", next,
+                ArchivedReleaseEvidence.verify(archive, next.version()));
+        String receiptDigest = qualification.remove("hintAnalysisExecutionSha256").asText();
+        json.writeValue(qualified.toFile(), qualification);
+        assertArchiveRejection(check, archive, next, "A new hint archive requires the qualification digest",
+                "Archived hint receipt SHA-256 mismatch");
+        qualification.put("version", candidate.version()).put("hintAnalysisExecutionSha256", receiptDigest);
+        json.writeValue(qualified.toFile(), qualification);
+        Files.writeString(receipt, Files.readString(receipt) + "\n");
+        assertArchiveRejection(check, archive, candidate, "Editing a receipt bound by qualification fails",
+                "Archived hint receipt SHA-256 mismatch");
+        Files.delete(receipt);
+        qualification.remove("hintAnalysisExecutionSha256");
+        json.writeValue(qualified.toFile(), qualification);
+        check.rejects("A published edition with this evidence cannot omit the whole receipt", IOException.class,
+                () -> ArchivedReleaseEvidence.verify(archive, candidate.version()));
+        qualification.put("version", "0.13.4");
+        json.writeValue(qualified.toFile(), qualification);
+        check.same("A legacy archive without the hint receipt remains valid", "0.13.4",
+                ArchivedReleaseEvidence.verify(archive, "0.13.4").version());
+    }
+
+    private static void archivePhase(ObjectMapper json, com.fasterxml.jackson.databind.node.ObjectNode phase, Path raw,
+                                     Path archive, String report) throws IOException {
+        phase.set("execution", json.readTree(raw.resolve("execution.json").toFile()));
+        if (report.isEmpty()) return;
+        Path copy = Files.copy(raw.resolve(report), archive.resolve(report));
+        phase.put("report", report).put("extentSha256", ReleaseEvidence.digest(copy));
+    }
+
+    private static void assertArchiveRejection(Checks check, Path archive, ReleaseEvidence.Candidate candidate, String label,
+                                               String expected) {
+        var failure = org.junit.jupiter.api.Assertions.assertThrows(IOException.class,
+                () -> ArchivedReleaseEvidence.verify(archive, candidate.version()));
+        check.same(label, expected, failure.getMessage());
+    }
+
     @Test void rejectsSubstitutedReadablePngOnBothAnalysisSurfaces(Checks check) throws Exception {
         Path receipt = analysisFixture("analysis-foreign-frame", "1".repeat(32), "1".repeat(32));
         Path manual = receipt.resolveSibling("manual-analysis").resolve("manual-analysis.txt");
@@ -201,7 +326,11 @@ class AndroidReceiptTest {
 
     private Path analysisFixture(String name, String restoreRun, String manualRun) throws Exception {
         Path directory = Files.createDirectory(folder.resolve(name));
-        var identity = new ReviewIdentity("", "sanity", "a".repeat(64), "1".repeat(32));
+        return writeAnalysisFixture(directory, "", "sanity", "a".repeat(64), restoreRun, manualRun);
+    }
+
+    static Path writeAnalysisFixture(Path directory, String commit, String variant, String apk, String restoreRun, String manualRun) throws Exception {
+        var identity = new ReviewIdentity(commit, variant, apk, "1".repeat(32));
         var preview = List.of("Next shows the calculated reply and Previous returns to the first move",
                 "The suggested line and its navigation are visible with a fixed preview board");
         var prepare = new java.util.ArrayList<>(preview);

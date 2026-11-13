@@ -100,13 +100,11 @@ JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Co
 
 ## Raportare Extent
 
-`MatchAiGovernanceTest` verifică limitele YAML, inclusiv plafonul pentru extensia finalului de turnuri și fereastra de selecție. `RookEndgameHistoryTest` reconstruiește alegerile Hard la semimutările 96, 108 și 112, verifică diferența dintre căutarea cu istoric și cea numai după tablă și poate compara fiecare alegere cu Stockfish 19 la adâncimea 13. Decizia rămâne sub plafonul existent de noduri. `MatchHintTest` verifică pragul, limita de cinci și un mat găsit la adâncime mai mare, inclusiv în partida configurată pe Basic. `MatchMaterialTest` acoperă capturile, en passant, promovarea și reluarea. Pentru comparația cu Stockfish 19, folosiți suita separată și același set de poziții la fiecare revizie. [Protocol și comenzi](../board/ai-quality.md)
-
-`MatchSetupTest` acoperă decizia Hard în Franceză și Scandinavă în bugetul existent. `MatchEvaluationTest` verifică estimarea poziției, ordinea indiciilor și scorurile terminale. Benchmarkul cu Stockfish compară separat pierderea mutărilor Hard și eroarea numerică a barei, pe poziții suplimentare fixate în YAML. [Pozițiile de calibrare](../../atf-tests/src/test/resources/opening-calibration.yaml)
-
-`AiOpeningRegressionTest` verifică repertoriul Pirc și Benoni, transpoziția, ieșirea Hard din ciclul Alehină și remiza disponibilă apărării. La semimutarea 72, compară alegerea Hard cu și fără istoricul aceleiași poziții și verifică bugetul. Proba Stockfish folosește toate mutările precedente ca să poată evalua repetiția. `AiLeagueComponentTest` verifică perechile cu culori inversate, transpozițiile duplicate, intervalul partidelor neterminate și finalurile elementare. Probele opționale scriu rejucarea UCI și raportul Extent. [Comenzile și interpretarea Elo](../board/ai-quality.md#liga-offline)
-
-`TacticalAnalysisTest` compară o captură înainte și după recaptură, două câștiguri egale și un mat care devine vizibil abia la al treilea pas. Pozițiile din partida italiană verifică alegerea unei replici superioare primei mutări generate și evitarea unui mat imediat. Raportul de componente păstrează linia și câștigul așteptat ca aserțiuni.
+Un test JVM auditat care se încheie normal trebuie să evalueze cel puțin o
+aserțiune în **TEST BODY**. O comparație exclusiv în setup sau teardown
+produce FAIL în JUnit și în Extent. Eșecurile și întreruperile existente
+își păstrează diagnosticul. `ExtentGovernanceTest` verifică execuția directă
+și în suită.
 
 În Extent, deschideți scenariul, **TEST BODY** și **Assertions** pentru a vedea valorile așteptate, valorile observate și rezultatul fiecărei comparații. Extensia măsoară execuția de la setup la teardown, apoi publică starea și diagnosticul JUnit. `ExtentGovernanceTest` verifică HTML-ul produs pentru PASS, FAIL, SKIP și pentru un caz fără comparații.
 
@@ -190,7 +188,7 @@ Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <s
 
 ## Partidă și istoric
 
-`MatchStoreTest` rulează persistența de producție cu preferințe în memorie și ceas fix. Verifică migrarea, cele nouă salvări păstrate, ordinea la redeschidere, datele, rezultatul vechi păstrat până la final și eliminarea analizei odată cu rezultatul. `MatchArchiveTest` verifică și codec-ul analizei, plafonul și identitatea checkpoint-ului.
+`MatchStoreTest` rulează persistența de producție cu preferințe în memorie și ceas fix. Verifică listele disjuncte după migrare și restart, salvarea atomică la încheiere, reutilizarea locului arhivat și plafonul celor zece partide active. `MatchListEntryTest` respinge construirea unui rând pentru meniul greșit. `MatchArchiveTest` verifică și codec-ul analizei, plafonul și identitatea checkpoint-ului.
 
 `MatchListEntryTest` verifică datele afișate pentru partide în curs, partide încheiate, remize, renunțări și salvări vechi. `MainMenuLayoutTest` verifică textele în română și engleză, ierarhia dintre titlu, mutări și dată, contrastul etichetei și poziția butonului **Înapoi**. `MatchSlotsTest` verifică ordinea de înlocuire, controlul manual și respingerea replicilor AI vechi. Android păstrează un parcurs pe meniu, cu o captură a listei și o verificare a deschiderii partidei.
 

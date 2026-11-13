@@ -83,6 +83,13 @@ Pentru schimbările din Tabla de analiză, folosiți `-ManualAnalysisOnly` în d
 
 Pentru indiciile comune, rulați `-Distribution -AnalysisOnly -IncludeManualAnalysis -SourceCommit <sha>`. Publicați ambele rapoarte Extent cât timp directoarele brute păstrează structura produsă de runner. Cele trei faze folosesc același ID, iar publicatoarele compară sursa, APK-ul și amprentele din instrumentare. Păstrați aceste rapoarte ca dovezi ale fluxurilor afectate alături de calificarea Game Review. [Partidă și istoric](../testing/README.md#partidă-și-istoric)
 
+Arhiva indiciilor conține cele două HTML-uri și `hint-analysis-execution.json`.
+În `qualification.json`, înregistrați SHA-256 al recepției finale sub
+`hintAnalysisExecutionSha256`. Guvernanța recitește cele trei faze, confruntă
+identitatea rulării și APK-ului cu tabelele Extent și recalculează amprentele
+HTML-urilor și ale PNG-urilor încorporate. Edițiile 0.13.5 și 0.13.6 folosesc
+recepția existentă. Edițiile fără acest traseu își păstrează formatul.
+
 Pentru schimbări la listele de partide, rulați proba semnată a celor două meniuri. Runnerul păstrează aceeași instalare și resetează datele de test între faze. Calificați separat cele două rapoarte Extent cu identitatea comună a APK-ului. Verificările de persistență rulează în `MatchStoreTest`.
 
 ```powershell
@@ -105,6 +112,10 @@ După publicare, rulați verificarea cu autentificarea GitHub existentă în Git
 ```
 
 ## Context consultativ
+
+Pentru citările noi, RAG calculează SHA-256 din textul UTF-8 după conversia
+separatorilor CRLF la LF. Ancora și amprenta provin din aceeași lectură a
+documentului. Citările istorice păstrează amprentele publicate la ediția lor.
 
 După compilare, apelați `ReleaseRag` din copia TMP cu rădăcina sursei și căile afectate:
 

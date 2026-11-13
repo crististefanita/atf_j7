@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 
 /** Small local retriever. It cites tracked guidance and leaves execution to the evidence gates. */
@@ -31,6 +35,7 @@ public final class ReleaseRag {
             ai("chess-core/src/main/resources/ai-repertoire.yaml"),
             ai("chess-core/src/main/resources/match-ai.yaml"),
             ai("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java"),
+            matchHints("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java"),
             new Route("chess-core/src/main/java/ro/atf/chess/ForcedMateSearch.java", "docs/board/ai-quality.md", "## Rezolvarea quest-urilor cu obiectiv declarat",
                     "TacticalAnalysisTest și HardQuestTransferBenchmarkTest"),
             new Route("chess-core/src/main/java/ro/atf/chess/HardQuestSolver.java", "docs/board/ai-quality.md", "## Rezolvarea quest-urilor cu obiectiv declarat",
@@ -106,6 +111,8 @@ public final class ReleaseRag {
             matchHints("chess-core/src/main/java/ro/atf/chess/HintComparison.java"),
             matchHints("atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java"),
             matchHints("atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java"),
+            matchHints("atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java"),
+            ai("atf-tests/src/test/java/ro/atf/chess/MatchAiBenchmarkTest.java"),
             matchHints("android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java"),
             matchHints("android/app/src/main/java/ro/atf/chess/android/HintPreviewDialog.java"),
             matchHints("android/app/src/main/res/values/hint_preview.xml"),
@@ -130,6 +137,8 @@ public final class ReleaseRag {
             audit("atf-tests/src/test/java/ro/atf/chess/ExtentAudit.java"),
             audit("atf-tests/src/test/java/ro/atf/chess/ExtentGovernanceTest.java"),
             audit("atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java"),
+            matchHints("atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java"),
+            matchHints("atf-tests/src/test/java/ro/atf/chess/ArchivedReleaseEvidence.java"),
             audit("scripts/run-android-sanity.ps1"),
             audit("docs/testing/README.md"),
             new Route("atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
@@ -211,19 +220,36 @@ public final class ReleaseRag {
         var paths = changedPaths.stream().map(path -> path.replace('\\', '/')).distinct().toList();
         var covered = new java.util.HashSet<String>();
         var result = new ArrayList<Citation>();
+        var documents = new HashMap<String, Guidance>();
         for (var route : ROUTES) {
             var matches = paths.stream().filter(route::matches).toList();
             if (matches.isEmpty()) continue;
             covered.addAll(matches);
-            Path document = root.resolve(route.document());
-            var lines = Files.readAllLines(document, StandardCharsets.UTF_8);
-            int line = lines.indexOf(route.heading()) + 1;
+            var document = documents.get(route.document());
+            if (document == null) {
+                document = Guidance.read(root.resolve(route.document()));
+                documents.put(route.document(), document);
+            }
+            int line = document.lines().indexOf(route.heading()) + 1;
             if (line == 0) throw new IOException("Missing citation anchor: " + route.document() + " " + route.heading());
-            var citation = new Citation(route.document(), line, route.heading(), ReleaseEvidence.digest(document), route.check());
+            var citation = new Citation(route.document(), line, route.heading(), document.sha256(), route.check());
             if (!result.contains(citation)) result.add(citation);
         }
         return new Inventory(result, paths.stream().filter(covered::contains).toList(),
                 paths.stream().filter(path -> !covered.contains(path)).toList());
+    }
+
+    private record Guidance(List<String> lines, String sha256) {
+        static Guidance read(Path path) throws IOException {
+            String source = Files.readString(path, StandardCharsets.UTF_8).replace("\r\n", "\n");
+            try {
+                byte[] bytes = source.getBytes(StandardCharsets.UTF_8);
+                String hash = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+                return new Guidance(source.lines().toList(), hash);
+            } catch (NoSuchAlgorithmException impossible) {
+                throw new IllegalStateException(impossible);
+            }
+        }
     }
 
     public static void main(String[] args) throws IOException {

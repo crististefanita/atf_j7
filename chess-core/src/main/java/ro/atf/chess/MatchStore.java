@@ -62,14 +62,15 @@ public final class MatchStore {
 
     public ChessMatch readSavedMatch(int slot) {
         try {
-            return readMatch(slot);
+            var match = readMatch(slot);
+            return match != null && match.result() == ChessMatch.Result.IN_PROGRESS ? match : null;
         } catch (IllegalArgumentException | IllegalStateException | ClassCastException invalid) {
             return null;
         }
     }
 
     public List<Integer> savedMatchSlots() {
-        return MatchSlots.newestFirst(this::hasMatch, this::matchCreationOrder);
+        return MatchSlots.newestFirst(slot -> readSavedMatch(slot) != null, this::matchCreationOrder);
     }
 
     private long matchCreationOrder(int slot) { return preferences.getLong(MatchSlots.key(MATCH_CREATION, slot), slot); }
@@ -78,8 +79,21 @@ public final class MatchStore {
 
     public int activeMatchSlot() { return preferences.getInt(ACTIVE_MATCH_SLOT, 1); }
     public boolean hasMatch(int slot) { return preferences.contains(MatchSlots.key(MATCH, slot)); }
-    public int freeMatchSlot() { return MatchSlots.firstFree(this::hasMatch); }
-    public int slotForNewMatch() { return MatchSlots.forNewGame(this::hasMatch, this::matchCreationOrder); }
+    public int freeMatchSlot() {
+        int empty = MatchSlots.firstFree(this::hasMatch);
+        if (empty != 0) return empty;
+        var archived = MatchSlots.newestFirst(this::canReuseArchivedSlot, this::matchCreationOrder);
+        return archived.isEmpty() ? 0 : archived.get(archived.size() - 1);
+    }
+
+    public int slotForNewMatch() {
+        int available = freeMatchSlot();
+        return available != 0 ? available : MatchSlots.forNewGame(this::hasMatch, this::matchCreationOrder);
+    }
+
+    private boolean canReuseArchivedSlot(int slot) {
+        return preferences.getBoolean(MatchSlots.key(MATCH_ARCHIVED, slot), false) && readSavedMatch(slot) == null;
+    }
     public boolean resumeMatch() { return preferences.getBoolean(RESUME_MATCH, false); }
     public boolean matchBlackBelow() { return matchBlackBelow(activeMatchSlot()); }
     public boolean matchBlackBelow(int slot) { return preferences.getBoolean(MatchSlots.key(MATCH_BLACK_BELOW, slot), false); }

@@ -174,6 +174,54 @@ class MatchStoreTest {
         check.same("The damaged result cannot be reopened by ID", null, store.readArchivedMatch(broken));
     }
 
+    @Test void movesCompletedGamesOutOfSavedAfterCommitAndRestart(Checks check) {
+        var disk = new MemoryPreferences();
+        disk.data.put("match-checkpoint", MATE);
+        var first = store(disk, START);
+        first.migrateCompletedMatches();
+        String legacy = first.archivedId(1);
+        first.startMatch(2, ChessMatch.restore(LEGACY), false, false, false);
+        first.startMatch(3, ChessMatch.start(), false, false, false);
+        String ending = first.archivedId(3);
+        disk.data.put("match-checkpoint-4", "broken");
+        check.same("Saved exposes only playable checkpoints; Finished already contains the migrated result",
+                List.of(List.of(3, 2), List.of(legacy)), List.of(first.savedMatchSlots(), ids(first)));
+
+        disk.rejectCommit = true;
+        check.same("A failed completion leaves the game active", false,
+                first.saveMatch(3, ChessMatch.start().resign(), false, false, false));
+        check.same("A failed completion publishes neither half of the transition", List.of(List.of(3, 2), List.of(legacy)),
+                List.of(first.savedMatchSlots(), ids(first)));
+        disk.rejectCommit = false;
+        var finish = store(disk, FINISH);
+        check.same("The result and checkpoint are saved together", true,
+                finish.saveMatch(3, ChessMatch.start().resign(), false, false, false));
+
+        var reopened = store(disk, FINISH.plusSeconds(1));
+        reopened.migrateCompletedMatches();
+        check.same("Restart keeps active and finished games in disjoint menus", List.of(List.of(2), List.of(ending, legacy)),
+                List.of(reopened.savedMatchSlots(), ids(reopened)));
+        check.same("A stale Saved row cannot reopen a finished game", null, reopened.readSavedMatch(3));
+        check.same("The result keeps its ID, outcome and finish time", List.of(ChessMatch.Result.BLACK_WINS, FINISH.toEpochMilli()),
+                List.of(reopened.readArchivedMatch(ending).match().result(), reopened.readArchivedMatch(ending).finishedAt()));
+    }
+
+    @Test void reusesACompletedSlotBeforeEvictingAnActiveGame(Checks check) {
+        var disk = new MemoryPreferences();
+        var store = store(disk, START);
+        for (int slot = 1; slot <= MatchSlots.LIMIT; slot++) store.startMatch(slot, ChessMatch.restore(LEGACY), false, false, false);
+        check.same("Ten active games still replace the oldest when a new game starts", List.of(0, 1),
+                List.of(store.freeMatchSlot(), store.slotForNewMatch()));
+        store.saveMatch(6, ChessMatch.restore(LEGACY).offerDraw(), false, false, false);
+        String finished = store.archivedId(6);
+        check.same("A completed slot is available even if all ten checkpoints exist", List.of(6, 6),
+                List.of(store.freeMatchSlot(), store.slotForNewMatch()));
+        store.startMatch(store.slotForNewMatch(), ChessMatch.start(), false, false, false);
+        var reopened = store(disk, FINISH);
+        check.same("The new game, nine earlier active games and the old result all remain accessible", List.of(10, 6, 2, List.of(finished)),
+                List.of(reopened.savedMatchSlots().size(), reopened.savedMatchSlots().getFirst(), reopened.readSavedMatch(1).ply(), ids(reopened)));
+    }
+
     private static MatchStore store(MemoryPreferences disk, Instant instant) {
         return new MatchStore(disk, Clock.fixed(instant, ZoneOffset.UTC));
     }

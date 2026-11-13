@@ -365,7 +365,10 @@ class ReleaseGovernanceTest {
         Path root = ProjectRoot.locate();
         var citations = ReleaseRag.retrieve(root, List.of("android/app/src/main/AndroidManifest.xml", "README.md"));
         check.same("Two affected contracts cited", List.of("## Sanity Android", "## Calificare și publicare"), citations.stream().map(ReleaseRag.Citation::heading).toList());
-        check.same("The cited document bytes match their hash", ReleaseEvidence.digest(root.resolve(citations.getFirst().path())), citations.getFirst().sha256());
+        Path cited = root.resolve(citations.getFirst().path());
+        Path canonical = folder.resolve("canonical.md");
+        Files.writeString(canonical, Files.readString(cited).replace("\r\n", "\n"));
+        check.same("The cited document hash uses UTF-8 with LF line endings", ReleaseEvidence.digest(canonical), citations.getFirst().sha256());
         var chapter = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/mate-in-three.yaml", "docs/feedback/README.md"));
         check.same("A chapter release cites its independent oracle and open feedback", List.of("## Motor și proiecție", "## Mat în trei mutări", "# Feedback · Chess Lab"),
                 chapter.stream().map(ReleaseRag.Citation::heading).toList());
@@ -427,6 +430,34 @@ class ReleaseGovernanceTest {
                 ReleaseRag.retrieve(root, aiPaths).stream().filter(citation -> citation.path().equals("docs/board/ai-quality.md")).count());
         check.same("A root README-only change cites just the release workflow", List.of("docs/release/README.md"),
                 ReleaseRag.retrieve(root, List.of("README.md")).stream().map(ReleaseRag.Citation::path).toList());
+    }
+
+    @Test void ragRoutesHintSearchPublisherAndArchiveIndependently(Checks check) throws IOException {
+        var root = ProjectRoot.locate();
+        for (String path : List.of("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java",
+                "atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java",
+                "atf-tests/src/test/java/ro/atf/chess/ArchivedReleaseEvidence.java")) {
+            var citations = ReleaseRag.retrieve(root, List.of(path));
+            check.same(path + " cites the hint comparison and native receipts", true, citations.stream().anyMatch(citation ->
+                    citation.heading().equals("## Partidă și istoric") && citation.check().contains("HintComparisonTest")
+                            && citation.check().contains("AndroidReceiptTest")));
+        }
+        check.same("The Android publisher still cites the general Extent contract", true,
+                ReleaseRag.retrieve(root, List.of("atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java"))
+                        .stream().anyMatch(citation -> citation.heading().equals("## Raportare Extent")));
+    }
+
+    @Test void ragCitationsSurviveCheckoutLineEndingsAndDetectContentChanges(Checks check) throws IOException {
+        Path guide = Files.createDirectories(folder.resolve("docs/release")).resolve("README.md");
+        String source = "# Release\n\n## Calificare și publicare\n\nRegula ediției.\n";
+        Files.writeString(guide, source);
+        var lf = ReleaseRag.retrieve(folder, List.of("README.md"));
+        Files.writeString(guide, source.replace("\n", "\r\n"));
+        check.same("LF and CRLF cite the same heading, line, and digest", lf, ReleaseRag.retrieve(folder, List.of("README.md")));
+        Files.writeString(guide, source.replace("Regula", "Dovada"));
+        var changed = ReleaseRag.retrieve(folder, List.of("README.md")).getFirst();
+        check.same("A prose edit changes the digest even when the anchor stays in place", true,
+                changed.line() == lf.getFirst().line() && !changed.sha256().equals(lf.getFirst().sha256()));
     }
 
     @Test void openingNavigationRoutesToItsSignedSanityAndComponentTest(Checks check) throws IOException {

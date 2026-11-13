@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 import org.jsoup.Jsoup;
@@ -54,8 +55,8 @@ class ExtentGovernanceTest {
         var summary = new SummaryGeneratingListener();
         LauncherFactory.create().execute(LauncherDiscoveryRequestBuilder.request().selectors(selectClass(AuditProbe.class))
                 .configurationParameter("chess.extent", path.toString()).build(), summary);
-        check.same("Two tests succeed, including a cleanup-only comparison", 2L, summary.getSummary().getTestsSucceededCount());
-        check.same("Five tests fail, including a caught cleanup comparison", 5L, summary.getSummary().getTestsFailedCount());
+        check.same("The test with evaluated body comparisons succeeds", 1L, summary.getSummary().getTestsSucceededCount());
+        check.same("Seven tests fail, including the setup-only and cleanup-only comparisons", 7L, summary.getSummary().getTestsFailedCount());
         check.same("A runtime assumption is aborted", 1L, summary.getSummary().getTestsAbortedCount());
 
         var report = Jsoup.parse(path, "UTF-8");
@@ -81,14 +82,19 @@ class ExtentGovernanceTest {
                         && phase(report, "teardownFails", "TEST BODY").text().contains("Before teardown"));
         check.same("The failed cleanup comparison survives the caught exception", true,
                 phase(report, "swallowedInCleanup", "TEARDOWN").text().contains("Probe caught comparison"));
-        check.same("A comparison performed in cleanup is sufficient for an audited success", "Pass", status(report, "checksOnlyDuringCleanup"));
+        for (String method : List.of("checksOnlyDuringSetup", "checksOnlyDuringCleanup")) {
+            check.same(method + " fails in Extent", "Fail", status(report, method));
+            check.same(method + " names the missing body assertion", true,
+                    phase(report, method, "TEST BODY").text().contains("Audited assertion coverage / TEST BODY"));
+        }
         check.same("Direct selection is identifiable in the report", true, report.text().contains("Direct JUnit selection"));
     }
 
     @Test void suiteSelectionUsesTheSameAuditAndPublishesTheEffectiveSettings(Checks check) throws IOException {
         Path path = folder.resolve("suite-probe.html");
         LauncherFactory.create().execute(LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectMethod(AuditProbe.class, "recordsValues", Checks.class))
+                .selectors(selectMethod(AuditProbe.class, "recordsValues", Checks.class),
+                        selectMethod(AuditProbe.class, "checksOnlyDuringCleanup"))
                 .configurationParameter("chess.extent", path.toString())
                 .configurationParameter(TestRunScope.CONFIGURATION_PARAMETER, "suite")
                 .configurationParameter("chess.suite", "Chess audit fixture").build());
@@ -96,6 +102,7 @@ class ExtentGovernanceTest {
         check.same("The suite name is visible", true, report.text().contains("Chess audit fixture"));
         var table = phase(report, "recordsValues", "TEST BODY").selectFirst(".atf-ui-assertions");
         check.same("Suite and direct entry use the same recorded comparison", "Probe comparison 7 7 ✅", table.selectFirst("tbody tr").text());
+        check.same("Suite execution also rejects cleanup-only evidence", "Fail", status(report, "checksOnlyDuringCleanup"));
         String effectiveLimit = table.attr("data-atf-preview-limit");
         check.same("The rendered limit is present in report metadata", true,
                 !effectiveLimit.isBlank() && report.select("tr").stream().anyMatch(row -> row.select("td").eachText()
@@ -205,7 +212,9 @@ class ExtentGovernanceTest {
     static class AuditProbe {
         @BeforeEach void before(TestInfo test, Checks check) {
             if (test.getTestMethod().orElseThrow().getName().equals("setupFails")) throw new IllegalStateException("Probe setup error");
-            if (test.getTestMethod().orElseThrow().getName().equals("recordsValues")) check.same("Probe setup", 3, 3);
+            if (List.of("recordsValues", "checksOnlyDuringSetup").contains(test.getTestMethod().orElseThrow().getName())) {
+                check.same("Probe setup", 3, 3);
+            }
         }
 
         @AfterEach void after(TestInfo test, Checks check) {
@@ -227,6 +236,7 @@ class ExtentGovernanceTest {
         @Test void teardownFails(Checks check) { check.same("Before teardown", 3, 3); }
         @Test void comparisonFails(Checks check) { check.rejects("Probe rejection", IllegalStateException.class, () -> { }); }
         @Test void noComparisons() { }
+        @Test void checksOnlyDuringSetup() { }
         @Test void checksOnlyDuringCleanup() { }
         @Test void swallowedInCleanup() { }
         @Test void aborted() { assumeTrue(false, "Probe unavailable"); }

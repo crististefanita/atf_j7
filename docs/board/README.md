@@ -69,7 +69,7 @@ Meniul principal grupează **Partidă nouă**, **Partide salvate** și **Partide
 
 **Partide încheiate** păstrează ultimele zece rezultate, în ordinea încheierii, de la cel mai recent. Poți redeschide tabla și istoricul fiecărei partide. Dacă ai lăsat analiza să se termine, lista o marchează ca salvată, iar **📊 Analiza partidei** o deschide direct. Continuarea pornită din arhivă folosește un loc liber și păstrează rezultatul original. La al unsprezecelea rezultat, cel mai vechi rezultat și analiza lui ies din arhivă.
 
-**Partide salvate** arată până la zece partide, de la cea mai recent începută. **Partidă nouă** folosește primul loc liber. Când toate sunt ocupate, configurarea anunță că noua partidă va înlocui cea mai veche salvare. Reluarea unei partide îi păstrează locul în ordine, iar redeschiderea aplicației reia ultima partidă activă. Pentru salvările din edițiile anterioare, ordinea inițială urmează numărul locului.
+**Partide salvate** arată doar partidele în desfășurare, până la zece, de la cea mai recent începută. La încheiere, partida trece în **Partide încheiate** în aceeași salvare. **Partidă nouă** folosește primul loc gol, apoi poate reutiliza locul unei partide arhivate. Când toate locurile sunt ocupate de partide active, configurarea anunță înlocuirea celei mai vechi salvări. Reluarea unei partide îi păstrează locul în ordine. Pentru salvările din edițiile anterioare, ordinea inițială urmează numărul locului.
 
 Rândul începe cu numărul partidei și numele adversarului în **Partide salvate** și cu numele adversarului în **Partide încheiate**. Sub titlu apar numărul de mutări înregistrate și starea sau rezultatul. Fiecare mutare a albului sau a negrului se numără o dată.
 

@@ -230,6 +230,24 @@ class DocumentationGovernanceTest {
                 () -> ArchivedReleaseEvidence.verify(reports, "0.13.3"));
     }
 
+    @Test void theComparisonEditionKeepsReadableArchivedQualification(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        String version = jsonValue(Files.readString(root.resolve("release/index.json")), "previousVersion");
+        if (!version.matches("[0-9]+\\.[0-9]+\\.[0-9]+")) {
+            check.same("The comparison edition must have a valid version", true, false);
+            return;
+        }
+        Path reports = root.resolve("release").resolve(version).resolve("reports");
+        if (Files.isRegularFile(reports.resolve("qualification.json"))) {
+            check.same("The retained comparison edition passes offline archive verification", version,
+                    ArchivedReleaseEvidence.verify(reports, version).version());
+        } else {
+            check.same("A comparison edition without strict qualification has an installation exception and build evidence", true,
+                    List.of("publication-exception.json", "build-artifact.json", "github-release.json").stream()
+                            .map(reports::resolve).allMatch(Files::isRegularFile));
+        }
+    }
+
     @Test void releaseCatalogKeepsTheCurrentAndOneComparisonVersion(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         String catalog = Files.readString(root.resolve("release/index.json"));
