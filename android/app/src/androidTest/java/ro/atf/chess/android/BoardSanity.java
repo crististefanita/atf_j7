@@ -418,6 +418,8 @@ public final class BoardSanity extends Instrumentation {
         clickDialog(retry);
         clickDialog(activity.getString(android.R.string.cancel));
         compare("Cancelling retry preserves the original archived result", finished.checkpoint(), store.matches().readMatch().checkpoint());
+        tap(status);
+        clickDialog(activity.getString(R.string.game_review_previous));
         String showPosition = activity.getString(R.string.game_review_on_board_move, moveLabel(activity, blunder));
         var showOnBoard = dialogNode(showPosition, node -> node.isVisibleToUser() && node.isEnabled() && node.isClickable()
                 && showPosition.contentEquals(node.getContentDescription()));
