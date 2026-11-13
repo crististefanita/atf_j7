@@ -2,15 +2,14 @@
 
 ## Ediția publicată
 
-[`index.json`](index.json) este catalogul tehnic. `currentVersion` identifică ultima ediție publicată; `versions` păstrează ediția curentă și o singură ediție anterioară pentru comparație. README-ul principal leagă doar ediția curentă; catalogul local indică și dosarul anterior.
+[`index.json`](index.json) identifică versiunea curentă și păstrează alături o singură ediție anterioară pentru comparație. Cele două legături din [README-ul principal](../README.md#jocul) indică release-ul și APK-ul aceleiași versiuni.
 
-| Rol | Versiune | Dovezi |
-|---|---|---|
-| Curentă | 0.11.2 | [APK și calificare](0.11.2/README.md) |
-| Precedentă | 0.11.1 | [Ediția de comparație](0.11.1/README.md) |
+## Dovezi și arhivare
+
+Release-ul GitHub conține APK-ul de distribuție. Dosarul ediției din repository păstrează rapoartele Extent, receptele verificabile, notele și RAG-ul. Păstrăm dosarul ediției imediat anterioare pentru comparație; celelalte rapoarte vechi pot fi consultate în tagurile Git. Înlocuim ediția curentă numai după publicare și verificarea completă a descărcării pornind din README-ul de pe `main`.
 
 ## Candidat
 
-Un `candidate` din catalog este pregătire internă; nu intră în lista descărcabilă și nu schimbă README-ul principal. După semnare, calificare și verificarea asset-ului, promovați candidatul în `currentVersion`, puneți versiunea anterioară imediată pe locul al doilea în `versions` și eliminați `candidate`. Pe GitHub și în dosarele locale rămân doar aceste două ediții; tagurile Git mai vechi se păstrează pentru proveniența sursei.
+Pregătirea unui candidat rămâne internă până la build-ul semnat, verificările de guvernanță, publicarea asset-ului și proba de download. Actualizarea `currentVersion` și a README-ului are loc după publicarea asset-ului.
 
-[Procesul de release](../docs/release/README.md) · [Dovezile ediției publicate](0.11.2/reports/README.md) · [Candidatul pregătit](0.12.0/README.md)
+[Procesul de release](../docs/release/README.md) · [Dovezile ediției publicate](0.12.0/reports/README.md) · [Comparația anterioară](0.11.2/reports/README.md)

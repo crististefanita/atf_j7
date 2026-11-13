@@ -1,14 +1,15 @@
 # Chess Lab 0.12.0
 
-- **Probleme și Antrenament tactic** păstrează separat progresul și reiau capitolul curent după repornire.
-- Hard încearcă 6 semimutări cu lider stabil; bugetul rămâne 44.000. Finalurile de turnuri pot extinde la 7, cu istoricul complet al repetițiilor.
-- Ordonarea mutărilor liniștite rămâne limitată; șahurile și capturile păstrează prioritatea. Basic și Advanced nu se schimbă.
-- Benchmarkul Hard măsoară toate capitolele fără să relaxeze pragurile: Mat în 1 `500/500`, Mat în 2 `300/300`, Mat în 3 `194/200`, Tactici `87/100`, Antrenament `39/48`, Intermezzo `24/24`, în plafonul existent de noduri.
-- Testele de componentă și guvernanță verifică limitele euristicii, legalitatea mutărilor, pragurile de transfer și reluarea după restart; sanity-ul Android publică acțiunile, aserțiunile și capturile în Extent.
-- Rapoartele Extent leagă aserțiunile de fază de recepțiile și capturile Android.
+## Îmbunătățiri
 
-**Stare:** candidat, încă nepublicat. Ultima ediție disponibilă rămâne 0.11.2; la promovare, aceasta va fi singura ediție păstrată pentru comparație.
+- Profilul Advanced folosește 10.000 de noduri suplimentare la patru semimutări, calibrare măsurată contra Stockfish 19.
+- Bugetul Hard și pragurile de transfer rămân neschimbate; catalogul a trecut toate pragurile: Mat în 1 500/500, Mat în 2 300/300, Mat în 3 194/200, Tactici 87/100, Antrenament 39/48 și Intermezzo 24/24.
+- Evaluările AI experimentale care nu au trecut criteriile au rămas în feedback și nu au intrat în codul distribuibil.
 
-**Instalare:** 0.12.0 folosește o identitate nouă de semnare; nu se poate instala peste 0.11.2. Dezinstalarea ediției vechi șterge datele ei locale. Noua cheie este protejată în afara repository-ului. Release-urile vechi dincolo de ediția curentă și comparația imediată, împreună cu dosarele lor locale, au fost eliminate; tagurile Git au fost păstrate. După calificarea și publicarea 0.12.0, retenția se mută la 0.12.0 și 0.11.2.
+## Instalare
 
-[Ghidul tablei](../../docs/board/README.md) · [Dovezile ediției](reports/README.md) · [Procesul de release](../../docs/release/README.md)
+APK-ul este destinat instalării curate. Certificatul 0.12.0 diferă de certificatul ediției 0.11.2, astfel Android nu poate actualiza instalarea veche. Păstrează instalarea 0.11.2 și datele ei dacă vrei să revii la ele. Cheia 0.12.0 este păstrată în infrastructura locală de semnare pentru edițiile următoare; cheia privată nu este inclusă în Git.
+
+## Verificare
+
+Testele, Extent-urile și receptele de release sunt în [`reports/`](reports/README.md). README-ul principal oferă linkul către această ediție și descărcarea APK-ului.

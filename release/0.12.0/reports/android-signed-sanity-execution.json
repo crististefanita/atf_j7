@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "sourceCommit": "40a707b45dc7eedd9ac3ced0c7906924b10209f5",
+  "apkSha256": "65b662c92aa0ceaca3148a48c58cefb880f1fafac15d466a61782a541abda9a6",
+  "assertions": 94,
+  "extentSha256": "cd7aa133579b50a94667a782afe5ab6610bd279772e0025a89ce54b3eb0b82f9",
+  "device": "127.0.0.1:5555",
+  "api": 28,
+  "variant": "sanity",
+  "receipts": {
+    "match-prepare": "9a0f39bb651b62542f9cad138960fef03a503975e1b3903c50312f13a17f8592",
+    "match-restore": "736b12697de76996e3545ab384ce87651529623dbb4ac5de420af8248c8f8286",
+    "match-settled": "a9b92c972ff002764bd86d5a6d6b57b079e95f2740b2877ea878721edcf48a21",
+    "prepare": "bd9407bc62c66d0a8dda8c59a79d1cc0c8eaca2d497ba0fcb34d7f35ba39352e",
+    "restore": "f649932b31ae5dfd93dc17aaeabc740226ea53090d341eee855dae2281167b5c"
+  },
+  "observedUtc": "2026-11-13T08:11:17.7700127Z"
+}

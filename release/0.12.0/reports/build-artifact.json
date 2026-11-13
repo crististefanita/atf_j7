@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "version": "0.12.0",
+  "versionCode": 18,
+  "sourceCommit": "40a707b45dc7eedd9ac3ced0c7906924b10209f5",
+  "apkBytes": 1111783,
+  "apkSha256": "925d3db2b047b91bba774a56729b67e55cb86657604fdc33fad200f37895e0c4",
+  "certificateSha256": "4bc8b9639475dbf550b066f74a8493d20c713aed77388d52f7526b227051d247",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "alignment": "PASS",
+  "signature": "PASS",
+  "signatureV2Verified": true,
+  "zipalignVerified": true,
+  "observedUtc": "2026-11-13T08:16:19.3435506Z"
+}
