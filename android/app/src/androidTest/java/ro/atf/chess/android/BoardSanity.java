@@ -1,5 +1,6 @@
 package ro.atf.chess.android;
 
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Intent;
@@ -46,6 +47,7 @@ public final class BoardSanity extends Instrumentation {
     private static final int MATE_THREE_SIZE = 200;
     private static final int TACTICS_SIZE = 100;
     private static final int HINT_TINT = 0xff57e0b4;
+    private static final int MAX_REVIEW_SCROLLS = 12;
     private final Bundle receipt = new Bundle();
     private int comparisons;
     private String phase;
@@ -320,6 +322,10 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void checkGameReview() throws Exception {
+        var automation = getUiAutomation();
+        var service = automation.getServiceInfo();
+        service.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
+        automation.setServiceInfo(service);
         var store = new ChessProgressStore(getTargetContext());
         String cycle = "b1a3 b8a6 a3b1 a6b8";
         var finished = ChessMatch.restore("3|WHITE|ADVANCED|0|" + String.join(" ", cycle, cycle, cycle,
@@ -340,95 +346,141 @@ public final class BoardSanity extends Instrumentation {
         var reviewBounds = activeWindowBounds();
         compare("Game review fills the app window as soon as it opens", true,
                 close != null && reviewBounds.contains(screenBounds(activity.findViewById(android.R.id.content))));
-        String graph = activity.getString(R.string.game_review_graph);
-        var graphNode = dialogNode(graph, AccessibilityNodeInfo::isClickable, 120_000);
-        compare("The completed review exposes its interactive evaluation graph", true, graphNode != null);
+        var reviewBoard = reviewNode(R.id.game_review_board, 120_000);
+        var reviewBoardBounds = nodeBounds(reviewBoard);
+        var scrollableReport = reviewNode(R.id.game_review_moves, 4500);
+        var scrollBounds = nodeBounds(scrollableReport);
+        var opening = reviewNode(R.id.game_review_opening, 4500);
         var matches = store.matches();
         var review = matches.readReview(matches.archivedId(matches.activeMatchSlot()), finished);
-        compare("The player and AI rows show their own saved rating intervals", true, review != null
-                && showsRating(activity, R.string.game_review_player, review.white())
-                && showsRating(activity, R.string.game_review_ai, review.black()));
-        var graphBounds = new Rect();
-        graphNode.getBoundsInScreen(graphBounds);
-        captureFrame("game-review", "The finished analysis draws the evaluation line", image -> hasColor(image, graphBounds, 0xffb8d88a, 24));
-        var list = graphNode.getParent();
-        while (list != null && !list.isScrollable()) list = list.getParent();
-        if (list == null) throw new AssertionError("The review summary and move list are not scrollable");
-        String brilliant = activity.getString(R.string.game_review_grade_counts, activity.getString(R.string.game_review_brilliant), "0", "0");
-        var scrollBounds = new Rect();
-        list.getBoundsInScreen(scrollBounds);
+        float density = activity.getResources().getDisplayMetrics().density;
+        boolean tallPortrait = reviewBounds.height() >= reviewBounds.width() * 1.6f;
+        boolean separateReport = scrollBounds.top >= reviewBoardBounds.bottom || scrollBounds.left >= reviewBoardBounds.right;
+        var entryGaps = new ArrayList<String>();
+        if (reviewBoardBounds.isEmpty() || reviewBoardBounds.width() != reviewBoardBounds.height()
+                || !reviewBounds.contains(reviewBoardBounds) || tallPortrait && reviewBoardBounds.width() < reviewBounds.width() * .8f) {
+            entryGaps.add("square board " + reviewBoardBounds + " in " + reviewBounds);
+        }
+        if (!separateReport || scrollableReport == null || !scrollableReport.isScrollable()
+                || scrollBounds.height() < Math.round(72 * density) || !reviewBounds.contains(scrollBounds)) {
+            entryGaps.add("scrollable report " + scrollBounds);
+        }
+        if (review == null || review.opening() == null || opening == null || opening.getText() == null
+                || !opening.getText().toString().contains(review.opening().name())) entryGaps.add("opening name");
+        if (!reviewIcon(activity, R.id.game_review_previous, R.string.game_review_previous)) entryGaps.add("previous arrow");
+        if (!reviewIcon(activity, R.id.game_review_next, R.string.game_review_next)) entryGaps.add("next arrow");
+        if (!reviewIcon(activity, R.id.game_review_show_best, R.string.game_review_show_best)) entryGaps.add("best-line bulb");
+        compare("The entry presents a large square board, opening and accessible icons with a visible scrollable report", List.of(), entryGaps);
+        var graphNode = reviewNode(R.id.game_review_graph, 4500);
+        var graphBounds = nodeBounds(graphNode);
+        captureFrame("game-review", "The finished review visibly draws its interactive evaluation line",
+                image -> graphNode != null && graphNode.isClickable() && hasColor(image, graphBounds, 0xffb8d88a, 24));
         int scrolls = 0;
+        boolean playerRatingVisible = false;
+        boolean aiRatingVisible = false;
+        while (review != null) {
+            playerRatingVisible |= showsRating(activity, R.string.game_review_player, review.white());
+            aiRatingVisible |= showsRating(activity, R.string.game_review_ai, review.black());
+            if ((playerRatingVisible && aiRatingVisible) || scrolls >= MAX_REVIEW_SCROLLS) break;
+            swipeReview(scrollBounds, true);
+            scrolls++;
+        }
+        compare("The player and AI rows show their own saved rating intervals", true, playerRatingVisible && aiRatingVisible);
+        String brilliant = activity.getString(R.string.game_review_grade_counts, activity.getString(R.string.game_review_brilliant), "0", "0");
         var row = dialogNode(brilliant, AccessibilityNodeInfo::isVisibleToUser, 500);
-        while (row == null && scrolls < 6) {
+        while (row == null && scrolls < MAX_REVIEW_SCROLLS) {
             swipeReview(scrollBounds, true);
             scrolls++;
             row = dialogNode(brilliant, AccessibilityNodeInfo::isVisibleToUser, 500);
         }
-        boolean tableVisible = row != null && reviewBounds.equals(activeWindowBounds());
-        captureFrame("game-review-comparison", "The full-screen comparison exposes zero counts for the player and AI", image -> tableVisible);
-        for (int scroll = 0; scroll < scrolls; scroll++) swipeReview(scrollBounds, false);
-        graphNode = dialogNode(graph, AccessibilityNodeInfo::isClickable);
-        if (graphNode == null) throw new AssertionError("The evaluation graph did not return after viewing the comparison");
-        graphNode.getBoundsInScreen(graphBounds);
+        boolean tableVisible = row != null && reviewBounds.equals(activeWindowBounds()) && sameReviewBoard(reviewBoardBounds);
+        captureFrame("game-review-comparison", "The scrollable report exposes both comparison counts without moving the board", image -> tableVisible);
+        var returnedGraph = visibleReviewNode(R.id.game_review_graph);
+        while ((returnedGraph == null || visibleReviewNode(R.id.game_review_opening) == null) && scrolls > 0) {
+            swipeReview(scrollBounds, false);
+            scrolls--;
+            returnedGraph = visibleReviewNode(R.id.game_review_graph);
+        }
+        if (returnedGraph == null) throw new AssertionError("The evaluation graph did not return after viewing the comparison");
+        Rect returnedGraphBounds = nodeBounds(returnedGraph);
         float earlierPosition = branchPly / (float) finished.ply();
-        tapAt(graphBounds.left + graphBounds.width() * earlierPosition, graphBounds.exactCenterY());
+        tapAt(returnedGraphBounds.left + returnedGraphBounds.width() * earlierPosition, returnedGraphBounds.exactCenterY());
         review = store.matches().readReview(store.matches().archivedId(store.matches().activeMatchSlot()), finished);
         if (review == null) throw new AssertionError("The completed game review was not saved");
         var selectedEarlier = review.turns().get(branchPly - 1);
         String selectedEarlierText = activity.getString(R.string.game_review_selected_move,
                 moveLabel(activity, selectedEarlier), gradeLabel(activity, selectedEarlier.grade()));
-        compare("Selecting a graph point synchronizes the move cursor and classification", true,
-                dialogNode(selectedEarlierText) != null);
-        clickDialog(activity.getString(R.string.game_review_next_key));
         var blunder = review.turns().get(branchPly);
         String selectedBlunderText = activity.getString(R.string.game_review_selected_move,
                 moveLabel(activity, blunder), gradeLabel(activity, blunder.grade()));
+        boolean graphSelected = reviewSelection(selectedEarlierText) && visibleReviewNode(R.id.game_review_opening) == null
+                && sameReviewBoard(reviewBoardBounds);
+        clickReviewIcon(R.id.game_review_next);
+        boolean nextSelected = reviewSelection(selectedBlunderText) && sameReviewBoard(reviewBoardBounds);
+        clickReviewIcon(R.id.game_review_previous);
+        compare("Graph and arrow navigation synchronize the selected move, hide the opening and keep the board anchored", true,
+                graphSelected && nextSelected && reviewSelection(selectedEarlierText) && sameReviewBoard(reviewBoardBounds));
+        clickReviewIcon(R.id.game_review_next_key);
         String g4Pawn = pieceDescription(activity, ChessPosition.Side.WHITE, ChessPosition.Kind.PAWN, "g4");
         compare("Next key moment synchronizes the blunder, score context and played board position", true,
-                dialogNode(selectedBlunderText) != null && dialogNode(g4Pawn) != null);
-        var reviewBoard = dialogNode(activity.getString(R.string.game_review_board));
-        if (reviewBoard == null) throw new AssertionError("The synchronized review board is missing");
-        var reviewBoardBounds = new Rect();
-        reviewBoard.getBoundsInScreen(reviewBoardBounds);
+                reviewSelection(selectedBlunderText) && dialogNode(g4Pawn) != null && sameReviewBoard(reviewBoardBounds));
         captureFrame("game-review-navigation", "The selected blunder and synchronized review board are visible",
                 image -> hasColor(image, reviewBoardBounds, 0xff769556, 20));
 
-        clickDialog(activity.getString(R.string.game_review_show_best));
+        clickReviewIcon(R.id.game_review_show_best);
         String firstStep = activity.getString(R.string.game_review_line_step, 0, blunder.bestLine().size());
         var recommended = blunder.bestLine().get(0);
         String beforeDestination = pieceDescription(activity, finished.positionAt(branchPly).pieceAt(recommended.to()),
                 recommended.to());
-        compare("Show best starts from before the played move and marks step zero", true,
-                dialogNode(firstStep) != null && (beforeDestination == null || dialogNode(beforeDestination) == null));
+        compare("The bulb starts the best line before the played move at step zero", true,
+                reviewLineStep(firstStep) && (beforeDestination == null || dialogNode(beforeDestination) == null)
+                        && sameReviewBoard(reviewBoardBounds)
+                        && reviewIcon(activity, R.id.game_review_line_previous, R.string.game_review_line_previous)
+                        && reviewIcon(activity, R.id.game_review_line_next, R.string.game_review_line_next)
+                        && reviewIcon(activity, R.id.game_review_show_best, R.string.game_review_hide_best));
         captureFrame("game-review-line", "The recommended first move is marked on the review board",
                 image -> hasColor(image, reviewBoardBounds, 0xff57e0b4, 20));
-        clickDialog(activity.getString(R.string.game_review_line_next));
+        clickReviewIcon(R.id.game_review_line_next);
         var afterRecommended = finished.positionAt(branchPly).play(recommended);
         String destinationPiece = pieceDescription(activity, afterRecommended.pieceAt(recommended.to()), recommended.to());
         compare("Forward PV step applies the legal recommendation to the preview board", true,
-                dialogNode(activity.getString(R.string.game_review_line_step, 1, blunder.bestLine().size())) != null
-                        && destinationPiece != null && dialogNode(destinationPiece) != null);
-        clickDialog(activity.getString(R.string.game_review_line_previous));
-        compare("Backward PV step restores the pre-move position without changing the saved game", true,
-                dialogNode(firstStep) != null && (beforeDestination == null || dialogNode(beforeDestination) == null)
-                        && finished.checkpoint().equals(store.matches().readMatch().checkpoint()));
+                reviewLineStep(activity.getString(R.string.game_review_line_step, 1, blunder.bestLine().size()))
+                        && destinationPiece != null && dialogNode(destinationPiece) != null && sameReviewBoard(reviewBoardBounds));
+        clickReviewIcon(R.id.game_review_line_previous);
+        boolean returnedToLineStart = reviewLineStep(firstStep)
+                && (beforeDestination == null || dialogNode(beforeDestination) == null) && sameReviewBoard(reviewBoardBounds);
+        clickReviewIcon(R.id.game_review_show_best);
+        compare("Backward PV restores step zero and the bulb returns to the played move without changing the saved game", true,
+                returnedToLineStart && reviewSelection(selectedBlunderText) && dialogNode(g4Pawn) != null
+                        && sameReviewBoard(reviewBoardBounds) && finished.checkpoint().equals(store.matches().readMatch().checkpoint()));
 
         String retry = activity.getString(R.string.game_review_retry);
-        compare("Retry is available for the player's selected move", true, dialogNode(retry) != null);
-        clickDialog(retry);
+        clickReviewIcon(R.id.game_review_actions);
+        boolean retryAvailable = menuItem(retry) != null;
+        clickMenuItem(activity.getString(R.string.game_review_opening_details));
+        String expectedOpening = review.opening().name() + " · " + review.opening().eco();
+        var openingDetails = dialogNode(expectedOpening, node -> node.isVisibleToUser() && node.getText() != null
+                && expectedOpening.contentEquals(node.getText()));
+        tapDialog(activity.getString(android.R.string.ok));
+        var returnedBoard = reviewNode(R.id.game_review_board, 4500);
+        var actionGaps = new ArrayList<String>();
+        if (!retryAvailable) actionGaps.add("Retry unavailable");
+        if (openingDetails == null) actionGaps.add("opening details missing: " + expectedOpening);
+        if (returnedBoard == null) actionGaps.add("board unavailable after dismissing opening details");
+        else if (!reviewBoardBounds.equals(nodeBounds(returnedBoard))) actionGaps.add("board moved after dismissing opening details");
+        if (visibleReviewNode(R.id.game_review_opening) != null) actionGaps.add("inline opening visible again");
+        compare("Review actions expose Retry and the exact opening details without reopening the inline heading", List.of(), actionGaps);
+        clickReviewIcon(R.id.game_review_actions);
+        clickMenuItem(retry);
         clickDialog(activity.getString(android.R.string.cancel));
         compare("Cancelling retry preserves the original archived result", finished.checkpoint(), store.matches().readMatch().checkpoint());
         tap(status);
-        clickDialog(activity.getString(R.string.game_review_previous));
-        String showPosition = activity.getString(R.string.game_review_on_board_move, moveLabel(activity, blunder));
-        var showOnBoard = dialogNode(showPosition, node -> node.isVisibleToUser() && node.isEnabled() && node.isClickable()
-                && showPosition.contentEquals(node.getContentDescription()));
-        if (showOnBoard == null || !showOnBoard.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-            throw new AssertionError("The selected move's show-on-board action is unavailable: " + showPosition);
-        }
-        waitForIdleSync();
+        boolean openingOnReentry = reviewNode(R.id.game_review_opening, 4500) != null;
+        clickReviewIcon(R.id.game_review_previous);
+        clickReviewIcon(R.id.game_review_actions);
+        clickMenuItem(activity.getString(R.string.game_review_on_board));
         compare("Opening the selected move in the match keeps the archived game intact", true,
-                status.getText().toString().contains(activity.getString(R.string.match_continue_from_here))
+                openingOnReentry && status.getText().toString().contains(activity.getString(R.string.match_continue_from_here))
                         && finished.checkpoint().equals(store.matches().readMatch().checkpoint()));
         tap(activity.findViewById(R.id.match_history_previous));
         compare("History keeps the board anchored and offers continuation from the selected position", true,
@@ -450,6 +502,64 @@ public final class BoardSanity extends Instrumentation {
         compare("The alternative move becomes the new saved continuation", Move.fromUci("b2b3"), store.matches().readMatch().moveAt(branchPly + 1));
         closeActivity(activity);
         checkMatchActions(store);
+    }
+
+    private AccessibilityNodeInfo visibleReviewNode(int id) {
+        var root = getUiAutomation().getRootInActiveWindow();
+        if (root == null) return null;
+        String name = getTargetContext().getResources().getResourceName(id);
+        return root.findAccessibilityNodeInfosByViewId(name).stream().filter(AccessibilityNodeInfo::isVisibleToUser)
+                .findFirst().orElse(null);
+    }
+
+    private AccessibilityNodeInfo reviewNode(int id, long timeoutMs) {
+        long deadline = SystemClock.uptimeMillis() + timeoutMs;
+        do {
+            var node = visibleReviewNode(id);
+            if (node != null) return node;
+            SystemClock.sleep(80);
+        } while (SystemClock.uptimeMillis() < deadline);
+        return null;
+    }
+
+    private static Rect nodeBounds(AccessibilityNodeInfo node) {
+        var bounds = new Rect();
+        if (node != null) node.getBoundsInScreen(bounds);
+        return bounds;
+    }
+
+    private boolean sameReviewBoard(Rect expected) {
+        return expected.equals(nodeBounds(visibleReviewNode(R.id.game_review_board)));
+    }
+
+    private boolean reviewIcon(Activity activity, int id, int label) {
+        var node = visibleReviewNode(id);
+        if (node == null || node.getContentDescription() == null
+                || !activity.getString(label).contentEquals(node.getContentDescription())) return false;
+        var bounds = nodeBounds(node);
+        int touchSize = Math.round(48 * activity.getResources().getDisplayMetrics().density);
+        return bounds.width() >= touchSize && bounds.height() >= touchSize
+                && (node.getText() == null || node.getText().length() == 0);
+    }
+
+    private boolean reviewSelection(String text) {
+        var node = visibleReviewNode(R.id.game_review_selection);
+        return node != null && node.getText() != null && text.contentEquals(node.getText());
+    }
+
+    private boolean reviewLineStep(String text) {
+        var node = visibleReviewNode(R.id.game_review_selection);
+        return node != null && node.getContentDescription() != null && node.getContentDescription().toString().contains(text);
+    }
+
+    private void clickReviewIcon(int id) throws Exception {
+        var node = reviewNode(id, 4500);
+        var bounds = nodeBounds(node);
+        if (node == null || !node.isEnabled() || !node.isClickable() || bounds.isEmpty()) {
+            throw new AssertionError("Review icon unavailable: " + getTargetContext().getResources().getResourceName(id));
+        }
+        tapAt(bounds.exactCenterX(), bounds.exactCenterY());
+        getUiAutomation().waitForIdle(100, 2500);
     }
 
     private void swipeReview(Rect bounds, boolean forward) {
@@ -477,7 +587,7 @@ public final class BoardSanity extends Instrumentation {
         var rating = player.rating().orElseThrow();
         if (rating.low() == null) return false;
         String interval = "≈ " + rating.elo() + " (" + rating.low() + "–" + rating.high() + ")";
-        return dialogNode(activity.getString(role, player.accuracy().getAsInt() + "%", interval)) != null;
+        return dialogNode(activity.getString(role, player.accuracy().getAsInt() + "%", interval), AccessibilityNodeInfo::isVisibleToUser, 500) != null;
     }
 
     private String moveLabel(Activity activity, ro.atf.chess.GameReview.Turn turn) {

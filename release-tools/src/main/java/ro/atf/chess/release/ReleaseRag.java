@@ -61,11 +61,13 @@ public final class ReleaseRag {
             new Route("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
             review("chess-core/src/main/java/ro/atf/chess/GameReview.java"),
             review("chess-core/src/main/java/ro/atf/chess/GameReviewTimeline.java"),
+            review("chess-core/src/main/java/ro/atf/chess/GameReviewLayout.java"),
             review("chess-core/src/main/java/ro/atf/chess/GameReviewPolicy.java"),
             review("chess-core/src/main/java/ro/atf/chess/OpeningIndex.java"),
             review("chess-core/src/main/resources/game-review.yaml"),
             review("chess-core/src/main/resources/opening-book.tsv"),
             review("android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java"),
+            review("android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java"),
             games("chess-core/src/main/java/ro/atf/chess/MatchArchive.java"),
             games("chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java"),
             games("chess-core/src/main/java/ro/atf/chess/MatchSlots.java"),
@@ -151,7 +153,7 @@ public final class ReleaseRag {
 
     private static Route review(String path) {
         return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "GameReviewTest, GameReviewTimelineTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly");
+                "GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly");
     }
 
     private static Route manualAnalysis(String path) {

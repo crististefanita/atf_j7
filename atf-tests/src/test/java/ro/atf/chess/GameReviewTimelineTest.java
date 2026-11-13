@@ -15,8 +15,11 @@ class GameReviewTimelineTest {
         var timeline = new GameReviewTimeline(source, review);
 
         check.same("The review opens on the final recorded position", source.ply(), timeline.ply());
+        check.same("The opening belongs to the entry state", true, timeline.atEntry());
         check.same("The final frame has no following key moment", true, timeline.nextKeyMomentPly().isEmpty());
+        check.same("An unavailable next move leaves the entry intact", List.of(false, true), List.of(timeline.next(), timeline.atEntry()));
         timeline.seek(1);
+        check.same("Selecting a move hides the entry opening", false, timeline.atEntry());
         check.same("Next key moment skips ordinary moves and selects the missed defense", 3,
                 timeline.nextKeyMomentPly().orElse(-1));
         check.same("Previous stops at the initial position", true, timeline.previous());
@@ -40,11 +43,18 @@ class GameReviewTimelineTest {
         check.same("PV step one is the position after the recommended move", true,
                 source.positionAt(2).play(recommended).sameForRepetition(timeline.position()));
         check.same("Previous PV returns to the pre-move position", true, timeline.previousBestLineStep());
+        timeline.hideBestLine();
+        check.same("Turning off the bulb restores the same played move without showing the opening again", List.of(3, false, false),
+                List.of(timeline.ply(), timeline.showingBestLine(), timeline.atEntry()));
+        check.same("The restored frame shows the exact played position", true, source.positionAt(3).sameForRepetition(timeline.position()));
+        timeline.showBestLine();
         check.same("Selecting a different game ply exits PV mode", true, timeline.next());
         check.same("Selecting a different game ply restores the archived line", true,
                 source.positionAt(4).sameForRepetition(timeline.position()));
         check.same("Review and PV exploration never modify the archived checkpoint or result",
                 List.of(archived, ChessMatch.Result.BLACK_WINS), List.of(source.checkpoint(), source.result()));
+        check.same("Returning to the final move keeps the opening hidden until reopening", false, timeline.atEntry());
+        check.same("Reopening restores the entry state", true, new GameReviewTimeline(source, review).atEntry());
         check.rejects("A cached review cannot be paired with a different game having the same length",
                 IllegalArgumentException.class, () -> new GameReviewTimeline(
                         ChessMatch.restore("1|e2e4 e7e5 g1f3 b8c6"), review));

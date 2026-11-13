@@ -105,24 +105,28 @@ Rezultatul unic actualizează o distribuție uniformă a scorului așteptat la `
 
 ## Navigarea în review și variantele recomandate
 
-Review-ul păstrează tabla și raportul pe același ecran. Cursorul pornește pe poziția finală. **Anterior** și **Următor** schimbă câte o semimutare; **Moment-cheie următor** sare înainte la o mutare strălucită, excelentă tactic, imprecizie, greșeală, ocazie ratată sau greșeală gravă. Selectarea unei mutări din listă ori a unui punct din grafic actualizează împreună tabla, indicatorul grafic, notația, clasificarea și scorurile recomandat/jucat. Startul este o poziție selectabilă, iar comenzile se dezactivează la capetele liniei în loc să facă wrap.
+Review-ul măsoară spațiul util al ferestrei după antet și zonele de sistem. În portret, tabla este cel mai mare pătrat care lasă loc barei de comenzi și începutului raportului derulabil. Într-o fereastră lată, raportul trece lateral când rămâne lizibil și tabla poate crește. Cursorul, indiciul și numele deschiderii se pot schimba fără să deplaseze tabla.
+
+Cursorul pornește la finalul partidei. Săgețile discrete schimbă câte o semimutare, iar comanda **Moment-cheie următor** sare la următoarea poziție marcată. Lista și graficul permit selecția directă. Tabla, notația, categoria, scorurile și markerul graficului urmăresc același cursor. Săgețile se dezactivează la capete. Bara are ținte de 48 dp și etichete accesibile în română și engleză. În ferestre foarte înguste, bara derulează orizontal. Detaliile de scor, graficul, precizia, Elo, comparația și lista mutărilor se derulează împreună.
+
+Numele deschiderii identificate apare la intrare. Prima navigare sau activarea variantei îl retrage din raport. **Detalii despre deschidere** din meniul de acțiuni afișează la cerere numele și codul ECO.
 
 ```mermaid
 flowchart LR
     L["Listă de mutări"] --> C["GameReviewTimeline · cursor"]
     G["Punct selectat pe grafic"] --> C
-    N["Anterior / Următor / Moment-cheie"] --> C
+    N["Săgeți și moment-cheie"] --> C
     C --> B["Poziție pe tablă"]
     C --> S["Scor, notație și clasificare"]
     C --> M["Markerul cursorului pe grafic"]
-    C --> R["Linia recomandată · pas 0"]
-    R -->|"Înainte"| P["Aplică următoarea mutare pe o copie"]
-    P -->|"Înapoi"| R
+    C -->|"Bec aprins"| R["Linia recomandată · pas 0"]
+    R -->|"Săgeți"| P["Parcurge varianta pe o copie"]
+    P -->|"Bec stins"| C
     P --> A["Partida arhivată rămâne neschimbată"]
 ```
 
-**Arată varianta** reconstruiește poziția de dinaintea mutării selectate și marchează prima recomandare. Navigarea liniei aplică mutările pe poziția din memorie, nu în `ChessMatch`; **Înapoi** revine la pasul anterior, iar selectarea altei mutări părăsește ramura. Textul de sub controale anunță pasul și notația mutării următoare, iar săgeata de pe tablă oferă aceeași destinație vizual. La capătul variantei săgeata și **Următorul pas** se dezactivează. Astfel, pozițiile analizate nu se confundă cu mutările jucate sau cu ramura de continuare.
+Becul deschide varianta optimă înaintea mutării selectate și marchează prima recomandare pe tablă. Aceleași săgeți parcurg varianta cât timp becul este activ. Bara arată pasul curent, iar raportul oferă notația următoarei recomandări. Stingerea becului revine la mutarea selectată. Alegerea unei poziții din listă sau grafic ori saltul la un moment-cheie închide varianta. Ramura de analiză lucrează pe o copie a poziției și păstrează istoricul partidei.
 
-**Vezi pe tablă** închide review-ul și mută cursorul activ la semimutarea aleasă, fără să rescrie istoricul. **Reîncearcă mutarea** este disponibil pentru mutarea jucătorului (sau pentru ambele culori în studiu); cere confirmarea continuării din poziția anterioară. Pentru o partidă arhivată, continuarea se salvează într-un loc separat. Refuzul confirmării, explorarea PV-ului și închiderea review-ului păstrează rezultatul original.
+În meniul de acțiuni, **Vezi pe tablă** închide review-ul și mută cursorul activ la semimutarea aleasă. **Reîncearcă mutarea** cere confirmarea continuării din poziția anterioară pentru mutările jucătorului sau pentru ambele culori în studiu. Pentru o partidă arhivată, continuarea se salvează într-un loc separat. Refuzul confirmării, explorarea variantei și închiderea review-ului păstrează rezultatul original.
 
-`GameReviewTimeline` validează că fiecare rând al raportului se potrivește cu mutarea și culoarea din sursă. `GameReviewTimelineTest` verifică navigarea, saltul la moment-cheie, limitele, legalitatea PV-ului, revenirea înaintea mutării și imutabilitatea partidei. `BoardSanity -GameReviewOnly` verifică pe Android sincronizarea grafic–cursor–tablă, redarea PV înainte/înapoi, anularea reluării și capturile Extent. Chess.com este reper de interacțiune; pragurile și clasificările rămân cele configurate și testate în J7. [Sanity și Extent](../testing/README.md#partidă-și-istoric)
+`GameReviewTimeline` validează fiecare mutare și culoare față de sursă. `GameReviewLayout` alege geometria din dimensiunile măsurate. Verificările componentelor și parcursul Android urmăresc sincronizarea, navigarea variantei și păstrarea partidei. [Sanity și Extent](../testing/README.md#partidă-și-istoric)

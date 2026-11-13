@@ -244,10 +244,13 @@
     <string name="game_review_previous">Previous</string>
     <string name="game_review_next">Next</string>
     <string name="game_review_next_key">Next key moment</string>
-    <string name="game_review_line_previous">‹ Line</string>
+    <string name="game_review_line_previous">Previous line step</string>
     <string name="game_review_show_best">Show best line</string>
-    <string name="game_review_restart_best">Restart line</string>
-    <string name="game_review_line_next">Line ›</string>
+    <string name="game_review_hide_best">Hide best line</string>
+    <string name="game_review_line_next">Next line step</string>
+    <string name="game_review_actions">Review actions</string>
+    <string name="game_review_opening_details">Opening details</string>
+    <string name="game_review_pv_caption" translatable="false">%1$s · %2$d/%3$d</string>
     <string name="game_review_line_step">Recommended line · %1$d / %2$d</string>
     <string name="game_review_line_ready">Recommended line · %1$d moves</string>
     <string name="game_review_line_next_move">Next: %1$s</string>

@@ -240,10 +240,12 @@
     <string name="game_review_previous">Anterior</string>
     <string name="game_review_next">Următor</string>
     <string name="game_review_next_key">Moment-cheie următor</string>
-    <string name="game_review_line_previous">‹ Linie</string>
+    <string name="game_review_line_previous">Pasul anterior al variantei</string>
     <string name="game_review_show_best">Arată varianta</string>
-    <string name="game_review_restart_best">Reia linia</string>
-    <string name="game_review_line_next">Linie ›</string>
+    <string name="game_review_hide_best">Ascunde varianta</string>
+    <string name="game_review_line_next">Pasul următor al variantei</string>
+    <string name="game_review_actions">Acțiuni de analiză</string>
+    <string name="game_review_opening_details">Detalii despre deschidere</string>
     <string name="game_review_line_step">Varianta recomandată · %1$d / %2$d</string>
     <string name="game_review_line_ready">Varianta recomandată · %1$d mutări</string>
     <string name="game_review_line_next_move">Urmează: %1$s</string>

@@ -14,4 +14,6 @@
     <item type="id" name="game_review_retry" />
     <item type="id" name="game_review_moves" />
     <item type="id" name="game_review_graph" />
+    <item type="id" name="game_review_actions" />
+    <item type="id" name="game_review_opening" />
 </resources>

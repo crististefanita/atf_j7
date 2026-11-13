@@ -17,6 +17,7 @@ public final class GameReviewTimeline {
     private int ply;
     private int bestLineStep;
     private boolean bestLineVisible;
+    private boolean atEntry = true;
 
     public GameReviewTimeline(ChessMatch source, GameReview review) {
         if (source == null || review == null || source.ply() != review.turns().size()) {
@@ -40,6 +41,7 @@ public final class GameReviewTimeline {
     public boolean hasNext() { return ply < source.ply(); }
     public Optional<Turn> turn() { return ply == 0 ? Optional.empty() : Optional.of(review.turns().get(ply - 1)); }
     public boolean showingBestLine() { return bestLineVisible; }
+    public boolean atEntry() { return atEntry; }
     public int bestLineStep() { return bestLineStep; }
     public int bestLineLength() { return turn().map(value -> value.bestLine().size()).orElse(0); }
     public boolean canShowBestLine() { return turn().map(value -> !value.bestLine().isEmpty()).orElse(false); }
@@ -49,6 +51,11 @@ public final class GameReviewTimeline {
     public void seek(int selectedPly) {
         if (selectedPly < 0 || selectedPly > source.ply()) throw new IllegalArgumentException("Invalid review ply: " + selectedPly);
         ply = selectedPly;
+        atEntry = false;
+        hideBestLine();
+    }
+
+    public void hideBestLine() {
         bestLineVisible = false;
         bestLineStep = 0;
     }
@@ -76,6 +83,7 @@ public final class GameReviewTimeline {
     /** Starts the recommended line before the selected played move. */
     public boolean showBestLine() {
         if (!canShowBestLine()) return false;
+        atEntry = false;
         bestLineVisible = true;
         bestLineStep = 0;
         return true;
