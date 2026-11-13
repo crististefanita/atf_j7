@@ -1,9 +1,9 @@
 {
   "status": "PASS",
-  "observedUtc": "2026-11-13T08:34:46.7123748Z",
+  "observedUtc": "2026-11-13T09:05:42.3331183Z",
   "channel": "Anonymous browser-compatible release asset",
   "repository": "crististefanita/atf_j7",
-  "readmeCommit": "624195a51620b7cca5732eda6dfc03e99e82c551",
+  "readmeCommit": "f3d3a0c993ce1a0a3aae52d93224d9c2ad2ab0bd",
   "tag": "v0.12.0",
   "targetCommit": "40a707b45dc7eedd9ac3ced0c7906924b10209f5",
   "releaseUrl": "https://github.com/crististefanita/atf_j7/releases/tag/v0.12.0",

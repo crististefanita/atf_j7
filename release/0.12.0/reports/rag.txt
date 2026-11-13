@@ -165,7 +165,6 @@ COVERED | release/0.3.0/reports/rag.txt
 COVERED | release/0.3.0/reports/README.md
 COVERED | release/0.3.1/README.md
 COVERED | release/0.3.1/reports/android-board-sanity.html
-COVERED | release/0.3.1/reports/components.html
 COVERED | release/0.3.1/reports/distribution-verification.json
 COVERED | release/0.3.1/reports/github-release.json
 COVERED | release/0.3.1/reports/public-download.json

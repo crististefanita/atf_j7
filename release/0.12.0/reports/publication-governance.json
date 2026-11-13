@@ -16,7 +16,7 @@
     }
   },
   "extentReport": "publication-governance.html",
-  "extentSha256": "7b251e125127fc02ebaf461a7486e9417915c64df2810c8bb10e7e509bd9ad00",
-  "observedUtc": "2026-11-13T08:53:31Z",
+  "extentSha256": "884b7c730d30cfb15254475e03a3b47cee96742aa99b207ee211e554707c983c",
+  "observedUtc": "2026-11-13T09:08:34Z",
   "qualificationNote": "This report covers the listed governance suites only. It does not claim that the 0.12.0 APK was installed over 0.11.2; the signing certificate changed and that upgrade path requires a clean install."
 }
