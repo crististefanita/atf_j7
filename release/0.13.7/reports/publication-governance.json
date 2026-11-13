@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "candidateCommit": "bcdf8056b4ddef3db14d5de8738ab5cc7f47bc0a",
+  "extentSha256": "5688c56099de7f28ab8f8df20e08dd0dd5c27e4d1469693dd39a28e6c614182e",
+  "checks": [
+    "DocumentationGovernanceTest",
+    "ReleaseGovernanceTest",
+    "ExtentGovernanceTest"
+  ]
+}
