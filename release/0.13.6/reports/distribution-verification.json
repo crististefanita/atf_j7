@@ -1,10 +1,10 @@
 {
   "status": "PASS",
-  "observedUtc": "2026-11-13T21:46:21.6703543Z",
+  "observedUtc": "2026-11-13T21:48:06.1879941Z",
   "channel": "GitHub API authenticated",
   "repository": "crististefanita/atf_j7",
-  "readmeSource": "staged",
-  "readmeCommit": "a8bd1670a8e3830a0406790583a1a515f6c9c1a1",
+  "readmeSource": "main",
+  "readmeCommit": "82ab4df16fa515435275dcab0267222149fc0b4f",
   "readmeBlob": "463b6822e16aa7967b0e61ad13a75c8c9ca564c0",
   "tag": "v0.13.6",
   "targetCommit": "13e8c00460230eacdba37a936587a07e9a995cea",
