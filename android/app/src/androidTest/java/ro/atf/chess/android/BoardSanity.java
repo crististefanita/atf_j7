@@ -2,7 +2,6 @@ package ro.atf.chess.android;
 
 import android.app.Activity;
 import android.app.Instrumentation;
-import android.accessibilityservice.AccessibilityService;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -11,6 +10,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -1000,9 +1000,7 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void systemBack() {
-        if (!getUiAutomation().performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)) {
-            throw new AssertionError("System Back could not be dispatched");
-        }
+        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
         waitForIdleSync();
     }
 
