@@ -418,7 +418,13 @@ public final class BoardSanity extends Instrumentation {
         clickDialog(retry);
         clickDialog(activity.getString(android.R.string.cancel));
         compare("Cancelling retry preserves the original archived result", finished.checkpoint(), store.matches().readMatch().checkpoint());
-        clickDialog(activity.getString(R.string.game_review_on_board));
+        String showPosition = activity.getString(R.string.game_review_on_board_move, moveLabel(activity, blunder));
+        var showOnBoard = dialogNode(showPosition, node -> node.isVisibleToUser() && node.isEnabled() && node.isClickable()
+                && showPosition.contentEquals(node.getContentDescription()));
+        if (showOnBoard == null || !showOnBoard.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+            throw new AssertionError("The selected move's show-on-board action is unavailable: " + showPosition);
+        }
+        waitForIdleSync();
         compare("Opening the selected move in the match keeps the archived game intact", true,
                 status.getText().toString().contains(activity.getString(R.string.match_continue_from_here))
                         && finished.checkpoint().equals(store.matches().readMatch().checkpoint()));
