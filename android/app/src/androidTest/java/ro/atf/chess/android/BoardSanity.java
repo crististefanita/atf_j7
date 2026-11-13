@@ -335,8 +335,7 @@ public final class BoardSanity extends Instrumentation {
                 status.getText().toString().contains(activity.getString(R.string.match_game_review))
                         && status.getText().toString().contains("📊") && status.isClickable()
                         && activity.findViewById(R.id.match_analysis) == null);
-        tap(activity.findViewById(R.id.match_actions));
-        clickMenuItem(activity.getString(R.string.match_game_review));
+        tap(status);
         var close = dialogNode(activity.getString(R.string.game_review_close), AccessibilityNodeInfo::isClickable);
         var reviewBounds = activeWindowBounds();
         compare("Game review fills the app window as soon as it opens", true,
