@@ -269,7 +269,10 @@ public final class TacticalAnalysis {
             try {
                 // Give Hard a two-horizon ranking if the next full iteration cannot finish.
                 var confirmation = depth == MatchAiPolicy.BASE_PLIES + 1 ? shallowScores : Map.<Move, Integer>of();
-                best = deepen(root, moves, depth, budget, gap, confirmation);
+                var candidate = deepen(root, moves, depth, budget, gap, confirmation);
+                if (prioritizeChecks && depth == policy.maxPlies()
+                        && !stableHardLeader(moves.getFirst(), candidate)) break;
+                best = candidate;
                 completed = depth;
                 var leader = best.ranked().get(0).move();
                 moves.remove(leader);
@@ -278,6 +281,11 @@ public final class TacticalAnalysis {
             catch (BudgetExhausted exhausted) { break; }
         }
         return new SearchReport(best, completed, policy.extraNodes() - budget.remaining);
+    }
+
+    static boolean stableHardLeader(Move previousLeader, Result deeper) {
+        return previousLeader != null && !deeper.ranked().isEmpty()
+                && previousLeader.equals(deeper.ranked().getFirst().move());
     }
 
     static void orderCheckingRootMovesFirst(ChessPosition position, List<Move> moves) {

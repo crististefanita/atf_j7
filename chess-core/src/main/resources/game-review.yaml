@@ -1,5 +1,5 @@
 schema: 1
-depth: 5
+depth: 6
 extra-nodes: 85000
 score-scale: 220
 minimum-rated-moves: 10

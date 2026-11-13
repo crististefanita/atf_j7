@@ -7,7 +7,7 @@ import ro.atf.chess.MatchSetup.Level;
 
 final class MatchAiPolicy {
     static final int BASE_PLIES = 3;
-    static final int MAX_PLIES = 6;
+    static final int MAX_PLIES = 7;
     static final MatchAiPolicy CURRENT = read(ChessYaml.resource("match-ai.yaml"));
 
     record Search(int maxPlies, int extraNodes) { }

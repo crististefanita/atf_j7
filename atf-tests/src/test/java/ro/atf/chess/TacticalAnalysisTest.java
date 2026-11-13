@@ -22,6 +22,16 @@ class TacticalAnalysisTest {
                 List.of("d1h5", "e1d2", "d1b3"), moves.stream().map(Move::uci).toList());
     }
 
+    @Test void hardAcceptsTheExtraHorizonOnlyWhenItsLeaderIsStable(Checks check) {
+        var previous = Move.fromUci("e2e4");
+        var changed = new TacticalAnalysis.Result(List.of(new Variation(List.of(Move.fromUci("d2d4")), 20, 0, Ending.HORIZON)));
+        var stable = new TacticalAnalysis.Result(List.of(new Variation(List.of(previous), 10, 0, Ending.HORIZON)));
+        check.same("A changed depth-six leader falls back to the completed depth-five choice", false,
+                TacticalAnalysis.stableHardLeader(previous, changed));
+        check.same("A stable depth-six leader may replace the completed choice", true,
+                TacticalAnalysis.stableHardLeader(previous, stable));
+    }
+
     @Test void hardQuietHistoryLearnsCutoffsWithoutPromotingChecksOrCaptures(Checks check) {
         var position = ChessPosition.fromFen("4k3/8/8/8/8/8/8/3QK3 w - - 0 1");
         var quiet = Move.fromUci("d1b3");
