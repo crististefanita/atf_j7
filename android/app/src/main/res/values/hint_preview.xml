@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_preview_open">Open the suggested line on a board</string>
+    <string name="hint_preview_title">Suggested line</string>
+    <string name="hint_preview_return">Back to position</string>
+    <string name="hint_preview_start">Starting position</string>
+    <string name="hint_preview_played">%1$s played %2$s</string>
+    <string name="hint_preview_step">%1$d/%2$d · %3$s</string>
+    <string name="hint_preview_mate">In this line, %1$s gives mate with %2$s.</string>
+    <string name="hint_preview_mate_against">The reply delivers mate with %1$s on %2$s.</string>
+    <string name="hint_preview_capture">%1$s captures a piece (%2$s). Net material: +%3$d.</string>
+    <string name="hint_preview_estimate">Engine score for the starting side: %1$s. Follow the calculated replies.</string>
+    <string name="hint_compare_pending">Comparing two moves at the same depth…</string>
+    <string name="hint_compare_unavailable">A second verified line is unavailable.</string>
+    <string name="hint_compare_scores">Depth %1$d plies · Best %2$s · Alternative %3$s</string>
+    <string name="hint_compare_best">Best · %1$s</string>
+    <string name="hint_compare_equal">Equal · %1$s</string>
+    <string name="hint_compare_other">Alternative · %1$s</string>
+    <string name="hint_compare_stronger_label">Best line</string>
+    <string name="hint_compare_other_label">Alternative</string>
+    <string name="hint_compare_mate_score">%1$s mate (%2$d plies)</string>
+    <string name="hint_compare_mate">%1$s, ply %2$d: %3$s gives mate with %4$s.</string>
+    <string name="hint_compare_capture">%1$s, ply %2$d: %3$s captures %4$s.</string>
+    <string name="hint_compare_estimate">Follow the calculated replies to compare the two scores.</string>
+    <string name="hint_compare_jump">Show this move on the board.</string>
+</resources>

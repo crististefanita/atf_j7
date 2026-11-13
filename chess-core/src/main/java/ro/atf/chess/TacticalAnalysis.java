@@ -224,6 +224,40 @@ public final class TacticalAnalysis {
         return hintAnalysis(position).result().ranked();
     }
 
+    /** Verifies both root moves with full windows and one completed horizon. */
+    public static java.util.Optional<HintComparison> compareHints(ChessPosition position, Move preferred, Move alternative) {
+        var legal = position.legalMoves();
+        if (legal.size() < 2 || !legal.contains(preferred)
+                || alternative != null && (!legal.contains(alternative) || alternative.equals(preferred))) {
+            return java.util.Optional.empty();
+        }
+        if (alternative == null) {
+            alternative = analyze(position, 2, legal, Objective.POSITION).ranked().stream().map(Variation::move)
+                    .filter(move -> !move.equals(preferred)).findFirst().orElseThrow();
+        }
+        var root = new RootSearch(position, Set.of());
+        int balance = material(position);
+        int nodesPerMove = MatchAiPolicy.CURRENT.hint.verificationNodes() / 2;
+        var firstBudget = new SearchBudget(nodesPerMove, 0);
+        var secondBudget = new SearchBudget(nodesPerMove, 0);
+        Variation first = null;
+        Variation second = null;
+        int completed = 0;
+        for (int depth = 2; depth <= MatchAiPolicy.CURRENT.hint.search().maxPlies(); depth++) {
+            try {
+                var nextFirst = root.line(preferred, depth, LIMIT, firstBudget, Objective.POSITION, balance);
+                var nextSecond = root.line(alternative, depth, LIMIT, secondBudget, Objective.POSITION, balance);
+                first = new Variation(nextFirst.moves(), nextFirst.score(), nextFirst.balance() - balance, nextFirst.ending());
+                second = new Variation(nextSecond.moves(), nextSecond.score(), nextSecond.balance() - balance, nextSecond.ending());
+                completed = depth;
+            } catch (BudgetExhausted exhausted) {
+                break;
+            }
+        }
+        return completed == 0 ? java.util.Optional.empty()
+                : java.util.Optional.of(HintComparison.of(position, first, second, completed));
+    }
+
     static int positionEstimate(ChessPosition position, int fallback) {
         var policy = MatchAiPolicy.CURRENT.evaluation;
         var budget = new SearchBudget(policy.nodes(), 2);

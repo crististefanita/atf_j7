@@ -138,6 +138,84 @@ class AndroidReceiptTest {
         return Jsoup.parse(receipt.resolveSibling("android-game-review.html"), "UTF-8").text();
     }
 
+    @Test void publishesBothAnalysisSurfacesWithBoundCapturesAndVisibleResults(Checks check) throws Exception {
+        Path receipt = analysisFixture("analysis-valid", "1".repeat(32), "1".repeat(32));
+        AndroidSanityPublication.publishMatchAnalysis(receipt);
+        Path manual = receipt.resolveSibling("manual-analysis").resolve("manual-analysis.txt");
+        AndroidSanityPublication.publishManualAnalysis(manual);
+        for (var result : List.of(analysisReport(receipt, "match-analysis"), analysisReport(manual, "manual-analysis"))) {
+            check.same("Extent renders a PASS scenario with the native comparison and one bound PNG", true,
+                    result.select("li.test-item[status=pass]").size() == 1
+                            && result.select("a[href^=data:image/png;base64]").size() == 1
+                            && result.select(".atf-ui-assertions").text().contains("Next shows the calculated reply")
+                            && result.text().contains("1".repeat(32)));
+        }
+    }
+
+    @Test void rejectsSubstitutedReadablePngOnBothAnalysisSurfaces(Checks check) throws Exception {
+        Path receipt = analysisFixture("analysis-foreign-frame", "1".repeat(32), "1".repeat(32));
+        Path manual = receipt.resolveSibling("manual-analysis").resolve("manual-analysis.txt");
+        Path matchPng = receipt.resolveSibling("match-analysis.png");
+        Path manualPng = manual.resolveSibling("manual-analysis.png");
+        byte[] originalMatch = Files.readAllBytes(matchPng);
+        Files.copy(manualPng, matchPng, StandardCopyOption.REPLACE_EXISTING);
+        Files.write(manualPng, originalMatch);
+        // Even a rewritten metadata hash cannot replace the digest recorded in instrumentation.
+        var metadata = manual.resolveSibling("execution.json");
+        var json = new ObjectMapper().readTree(metadata.toFile());
+        ((com.fasterxml.jackson.databind.node.ObjectNode) json.path("captureSha256")).put("manual-analysis.png", sha256(manualPng));
+        Files.writeString(metadata, json.toString());
+        check.rejects("A different but readable match PNG fails", AssertionError.class, () -> AndroidSanityPublication.publishMatchAnalysis(receipt));
+        check.rejects("A substituted manual PNG fails even when its metadata hash was updated",
+                AssertionError.class, () -> AndroidSanityPublication.publishManualAnalysis(manual));
+        assertRejectedCapture(check, receipt, "match-analysis");
+        assertRejectedCapture(check, manual, "manual-analysis");
+    }
+
+    @Test void rejectsAnalysisPhasesFromAnotherRunOfTheSameApk(Checks check) throws Exception {
+        Path receipt = analysisFixture("analysis-mixed-run", "2".repeat(32), "3".repeat(32));
+        check.rejects("A complete restore with the same APK but a different run fails",
+                AssertionError.class, () -> AndroidSanityPublication.publishMatchAnalysis(receipt));
+        var result = analysisReport(receipt, "match-analysis");
+        check.same("Extent identifies the two different runs and does not attach the unqualified PNG", true,
+                result.select("li.test-item[status=fail]").size() == 1 && result.select("a[href^=data:image/png;base64]").isEmpty()
+                        && result.text().contains("Missing or mismatched phase run identity")
+                        && result.text().contains("1".repeat(32)) && result.text().contains("2".repeat(32)));
+        Path manual = receipt.resolveSibling("manual-analysis").resolve("manual-analysis.txt");
+        check.rejects("A self-consistent manual phase from a different combined run fails",
+                AssertionError.class, () -> AndroidSanityPublication.publishManualAnalysis(manual));
+        check.same("The manual Extent records the run mismatch", true,
+                analysisReport(manual, "manual-analysis").text().contains("Missing or mismatched phase run identity"));
+    }
+
+    private static void assertRejectedCapture(Checks check, Path receipt, String scope) throws IOException {
+        var result = analysisReport(receipt, scope);
+        check.same("Extent fails without embedding the substituted " + scope + " capture", true,
+                result.select("li.test-item[status=fail]").size() == 1 && result.select("a[href^=data:image/png;base64]").isEmpty()
+                        && result.text().contains("Capture SHA-256 mismatch: " + scope + ".png"));
+    }
+
+    private static org.jsoup.nodes.Document analysisReport(Path receipt, String scope) throws IOException {
+        return Jsoup.parse(receipt.resolveSibling("android-" + scope + ".html"), "UTF-8");
+    }
+
+    private Path analysisFixture(String name, String restoreRun, String manualRun) throws Exception {
+        Path directory = Files.createDirectory(folder.resolve(name));
+        var identity = new ReviewIdentity("", "sanity", "a".repeat(64), "1".repeat(32));
+        var preview = List.of("Next shows the calculated reply and Previous returns to the first move",
+                "The suggested line and its navigation are visible with a fixed preview board");
+        var prepare = new java.util.ArrayList<>(preview);
+        prepare.add("Returning to history preserves the selected move and the saved game");
+        var manual = new java.util.ArrayList<>(preview);
+        manual.add("Returning to the study lets the player apply the hint without saving a match");
+        writeReviewRun(directory, "analysis-prepare", 111, 5, identity, prepare, List.of("match-analysis"), 4);
+        writeReviewRun(Files.createDirectory(directory.resolve("analysis-restore")), "analysis-restore", 222, 2, identity.withRunId(restoreRun),
+                List.of("The reopened match analyzes its live position with the hint hidden"), List.of(), 5);
+        writeReviewRun(Files.createDirectory(directory.resolve("manual-analysis")), "manual-analysis", 333, 5, identity.withRunId(manualRun),
+                manual, List.of("manual-analysis"), 6);
+        return directory.resolve("analysis-prepare.txt");
+    }
+
     private static Path reviewReceipt(Path directory, int restorePid) throws Exception {
         return reviewReceipt(directory, restorePid, "1".repeat(32));
     }
@@ -182,8 +260,7 @@ class AndroidReceiptTest {
         Files.writeString(receipt, "INSTRUMENTATION_RESULT: runId=" + identity.runId() + "\n", java.nio.file.StandardOpenOption.APPEND);
         var execution = new ObjectMapper().createObjectNode();
         execution.put("status", "PASS").put("scope", phase).put("variant", identity.variant()).put("sourceCommit", identity.commit()).put("runId", identity.runId())
-                .put("device", "fixture").put("api", "28").put("apkSha256", identity.apkSha256()).put("assertions", checks)
-                .put("receiptSha256", sha256(directory.resolve(phase + ".txt")));
+                .put("device", "fixture").put("api", "28").put("apkSha256", identity.apkSha256()).put("assertions", checks);
         var hashes = execution.putObject("captureSha256");
         var image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         int color = firstColor;
@@ -191,8 +268,11 @@ class AndroidReceiptTest {
             Path png = directory.resolve(frame + ".png");
             image.setRGB(0, 0, color++);
             ImageIO.write(image, "png", png.toFile());
-            hashes.put(png.getFileName().toString(), sha256(png));
+            String digest = sha256(png);
+            hashes.put(png.getFileName().toString(), digest);
+            Files.writeString(receipt, "INSTRUMENTATION_RESULT: capture_" + frame + "=" + digest + "\n", java.nio.file.StandardOpenOption.APPEND);
         }
+        execution.put("receiptSha256", sha256(receipt));
         Files.writeString(directory.resolve("execution.json"), execution.toString());
     }
 

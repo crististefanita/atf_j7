@@ -379,7 +379,7 @@ class ReleaseGovernanceTest {
         var hints = ReleaseRag.retrieve(root, List.of("chess-core/src/main/java/ro/atf/chess/MatchHint.java",
                 "android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java"));
         check.same("Shared hints cite both signed Android journeys once",
-                List.of("MatchHintTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
+                List.of("MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest și BoardSanity -AnalysisOnly -IncludeManualAnalysis"),
                 hints.stream().filter(item -> item.heading().equals("## Partidă și istoric")).map(ReleaseRag.Citation::check).toList());
         var tactics = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/tactics.yaml",
                 "chess-core/src/main/java/ro/atf/chess/QuestRewards.java"));

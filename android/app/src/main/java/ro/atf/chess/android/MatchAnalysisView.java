@@ -3,6 +3,8 @@ package ro.atf.chess.android;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.widget.ImageButton;
@@ -33,6 +35,8 @@ final class MatchAnalysisView extends TextView {
     private double shownTerminal = Double.NaN;
     private MatchHint hint;
     private MatchEvaluation shownEvaluation;
+    private AlertDialog preview;
+    private Future<?> comparisonTask;
     private Future<?> pending;
     private int request;
 
@@ -124,6 +128,10 @@ final class MatchAnalysisView extends TextView {
     }
 
     void cancel() {
+        if (preview != null) preview.dismiss();
+        preview = null;
+        if (comparisonTask != null) comparisonTask.cancel(true);
+        comparisonTask = null;
         request++;
         shownPosition = null;
         shownTerminal = Double.NaN;
@@ -179,13 +187,36 @@ final class MatchAnalysisView extends TextView {
             }
             if (shown < revealed.line().size()) compact.add("…");
             String line = hint.count() > 1 ? context.getString(R.string.match_analysis_variant, hint.number(), hint.count(), compact.toString()) : compact.toString();
-            setText(score + "\n" + line);
+            var caption = new SpannableString(score + "\n" + line);
+            caption.setSpan(new UnderlineSpan(), score.length() + 1, caption.length(), 0);
+            setText(caption);
             String full = context.getString(R.string.match_analysis_variant_spoken, hint.number(), hint.count(), spoken.toString());
-            setContentDescription(spokenScore + ". " + full);
-            setOnClickListener(view -> new AlertDialog.Builder(context).setMessage(score + "\n\n" + full)
-                    .setPositiveButton(android.R.string.ok, null).show());
+            setContentDescription(spokenScore + ". " + full + ". " + context.getString(R.string.hint_preview_open));
+            setOnClickListener(view -> openPreview());
         }
         updateBulb();
+    }
+
+    private void openPreview() {
+        var position = shownPosition;
+        var selected = hint.revealed();
+        var current = hint;
+        current.preview(position).ifPresent(replay -> {
+            var screen = HintPreviewDialog.show(getContext(), position, replay, selected, evaluationBar.blackBelow(), notation);
+            preview = screen.dialog();
+            comparisonTask = worker.submit(() -> {
+                var comparison = current.compare(position);
+                post(() -> {
+                    if (preview == screen.dialog() && screen.dialog().isShowing()) screen.showComparison(comparison);
+                });
+            });
+            screen.dialog().setOnDismissListener(dialog -> {
+                if (preview != screen.dialog()) return;
+                preview = null;
+                if (comparisonTask != null) comparisonTask.cancel(true);
+                comparisonTask = null;
+            });
+        });
     }
 
     private String leadingColor(int advantage) { return getContext().getString(advantage > 0 ? R.string.white : R.string.black); }

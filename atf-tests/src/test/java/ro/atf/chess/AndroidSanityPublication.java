@@ -8,6 +8,7 @@ import atf.reporting.model.ReportField;
 import atf.reporting.model.ReportObservation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,8 +48,8 @@ class AndroidSanityPublication {
 
     private record Frame(String file, String title) { }
     private record MenuCheckpoint(String action, String assertion, String frame) { }
-    private record ReviewRun(String scope, String title, Path receipt, PhaseEvidence evidence,
-                             JsonNode execution, List<ReportField> identity, List<Frame> frames) { }
+    private record BoundRun(String scope, String title, Path receipt, PhaseEvidence evidence,
+                            JsonNode execution, List<ReportField> identity, List<Frame> frames, List<String> nativeMarkers) { }
     private static final String DATED_LAST_ROW = "The last game shows its title, moves and local time with Back visible";
 
     private static final List<Frame> FRAMES = List.of(new Frame("hint-piece.png", "Simple hint · piece only"),
@@ -119,9 +120,7 @@ class AndroidSanityPublication {
         var runs = List.of(reviewRun, whyRun, restoredRun);
         boolean restarted = !whyRun.evidence().pid().isEmpty() && !restoredRun.evidence().pid().isEmpty()
                 && !whyRun.evidence().pid().equals(restoredRun.evidence().pid());
-        boolean sameExecution = runs.stream().allMatch(run -> !run.identity().isEmpty()
-                && List.of("runId", "apkSha256", "sourceCommit", "variant", "device", "api").stream()
-                        .allMatch(field -> run.execution().path(field).equals(reviewRun.execution().path(field))));
+        boolean sameExecution = sameExecution(runs);
         boolean complete = restarted && sameExecution;
         var acceptedCaptures = new HashSet<String>();
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
@@ -135,15 +134,7 @@ class AndroidSanityPublication {
                             sameExecution ? "Matching run ID, APK, source, variant, device and API" : "Missing or mismatched phase run identity", sameExecution)),
                     complete);
             for (var run : runs) {
-                if (!run.identity().isEmpty()) {
-                    var audit = new ArrayList<>(run.identity());
-                    audit.add(new ReportField("Run ID", run.execution().path("runId").asText()));
-                    audit.add(new ReportField("Android process", run.evidence().pid()));
-                    phase.observation(new ReportObservation(run.scope() + " execution identity", audit, List.of(), List.of()));
-                }
-                publish(phase, run.title(), run.evidence().rows(), run.evidence().passed());
-                complete &= run.evidence().passed();
-                for (var frame : run.frames()) complete &= publishReviewFrame(phase, run, frame, acceptedCaptures);
+                complete &= publishBoundRun(phase, run, acceptedCaptures, false, true);
             }
             var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
             phase.complete(status);
@@ -153,30 +144,64 @@ class AndroidSanityPublication {
         org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android Game Review evidence: " + receipt);
     }
 
-    private static ReviewRun reviewRun(String scope, String title, Path receipt, int checks, List<String> required,
+    private static BoundRun reviewRun(String scope, String title, Path receipt, int checks, List<String> required,
                                        List<Frame> frames) throws IOException, java.security.NoSuchAlgorithmException {
-        var evidence = requireChecks(readPhase(receipt, scope, checks), scope, required, "Game Review");
-        var execution = readExecution(receipt.resolveSibling("execution.json"));
-        boolean hasReceipt = Files.isRegularFile(receipt);
-        String receiptHash = hasReceipt ? sha256(Files.readAllBytes(receipt)) : "";
-        String runId = execution.path("runId").asText();
-        boolean bound = runId.matches("[a-f0-9]{32}") && hasReceipt
-                && markerValues(Files.readAllLines(receipt), "INSTRUMENTATION_RESULT: runId=").equals(List.of(runId));
-        var identity = bound ? menuIdentity(execution, scope, receiptHash, checks) : List.<ReportField>of();
-        return new ReviewRun(scope, title, receipt, evidence, execution, identity, frames);
+        return boundRun(scope, title, receipt, checks, required, "Game Review", frames);
     }
 
-    private static boolean publishReviewFrame(atf.reporting.contract.AtfReportPorts.Phase phase, ReviewRun run, Frame frame,
-                                              Set<String> acceptedCaptures) throws IOException, java.security.NoSuchAlgorithmException {
+    private static BoundRun boundRun(String scope, String title, Path receipt, int checks, List<String> required,
+                                     String contract, List<Frame> frames) throws IOException, java.security.NoSuchAlgorithmException {
+        var evidence = requireChecks(readPhase(receipt, scope, checks), scope, required, contract);
+        var execution = readExecution(receipt.resolveSibling("execution.json"));
+        boolean hasReceipt = Files.isRegularFile(receipt);
+        byte[] raw = hasReceipt ? Files.readAllBytes(receipt) : new byte[0];
+        String receiptHash = hasReceipt ? sha256(raw) : "";
+        var markers = new String(raw, java.nio.charset.StandardCharsets.UTF_8).lines().toList();
+        String runId = execution.path("runId").asText();
+        boolean bound = runId.matches("[a-f0-9]{32}")
+                && markerValues(markers, "INSTRUMENTATION_RESULT: runId=").equals(List.of(runId));
+        var identity = bound ? menuIdentity(execution, scope, receiptHash, checks) : List.<ReportField>of();
+        return new BoundRun(scope, title, receipt, evidence, execution, identity, frames, markers);
+    }
+
+    private static boolean sameExecution(List<BoundRun> runs) {
+        var first = runs.getFirst().execution();
+        return runs.stream().allMatch(run -> !run.identity().isEmpty()
+                && List.of("runId", "apkSha256", "sourceCommit", "variant", "device", "api").stream()
+                        .allMatch(field -> run.execution().path(field).equals(first.path(field))));
+    }
+
+    private static boolean publishBoundRun(atf.reporting.contract.AtfReportPorts.Phase phase, BoundRun run,
+                                           Set<String> captures, boolean nativeDigest, boolean attach)
+            throws IOException, java.security.NoSuchAlgorithmException {
+        if (!run.identity().isEmpty()) {
+            var audit = new ArrayList<>(run.identity());
+            audit.add(new ReportField("Run ID", run.execution().path("runId").asText()));
+            audit.add(new ReportField("Android process", run.evidence().pid()));
+            phase.observation(new ReportObservation(run.scope() + " execution identity", audit, List.of(), List.of()));
+        }
+        publish(phase, run.title(), run.evidence().rows(), run.evidence().passed());
+        boolean passed = run.evidence().passed();
+        for (var frame : run.frames()) passed &= publishBoundFrame(phase, run, frame, captures, nativeDigest, attach);
+        return passed;
+    }
+
+    private static boolean publishBoundFrame(atf.reporting.contract.AtfReportPorts.Phase phase, BoundRun run, Frame frame,
+                                             Set<String> acceptedCaptures, boolean nativeDigest, boolean attach)
+            throws IOException, java.security.NoSuchAlgorithmException {
         Path path = run.receipt().resolveSibling(frame.file());
         byte[] image = isPng(path) ? Files.readAllBytes(path) : null;
         String captureHash = image == null ? "" : sha256(image);
-        boolean matchesCapture = image != null && captureHash.equals(run.execution().path("captureSha256").path(frame.file()).asText());
+        String nativeKey = frame.file().substring(0, frame.file().length() - ".png".length());
+        boolean matchesNative = !nativeDigest || markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: capture_" + nativeKey + "=")
+                .equals(List.of(captureHash));
+        boolean matchesCapture = image != null && matchesNative && captureHash.equals(run.execution().path("captureSha256").path(frame.file()).asText());
         if (!matchesCapture || !acceptedCaptures.add(captureHash)) {
             String reason = image == null ? "Missing or invalid PNG: " : matchesCapture ? "Capture repeated: " : "Capture SHA-256 mismatch: ";
             publish(phase, frame.title(), List.of(receiptFailure(run.scope(), reason + frame.file())), false);
             return false;
         }
+        if (!attach) return false;
         try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {
             action.detail("Capture SHA-256", captureHash);
             action.screenshot(frame.title(), Base64.getEncoder().encodeToString(image));
@@ -186,9 +211,7 @@ class AndroidSanityPublication {
     }
 
     @Test void publishManualAnalysisSanity() throws Exception {
-        publishFocusedSanity("manual-analysis", "Explore a line without changing the saved game",
-                "Play the hinted move and continue from history in a separate game", 15,
-                List.of(new Frame("manual-analysis.png", "Manual analysis board")));
+        publishManualAnalysis(Path.of(System.getProperty("chess.android.receipt")));
     }
 
     @Test void publishMatchSlotsSanity() throws Exception {
@@ -261,7 +284,8 @@ class AndroidSanityPublication {
 
     private static JsonNode readExecution(Path execution) {
         try {
-            var identity = new ObjectMapper().readTree(execution.toFile());
+            var identity = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY)
+                    .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readTree(execution.toFile());
             return identity == null ? MissingNode.getInstance() : identity;
         } catch (IOException invalid) {
             return MissingNode.getInstance();
@@ -276,7 +300,7 @@ class AndroidSanityPublication {
         String device = identity.path("device").asText();
         if (!identity.path("status").asText().equals("PASS") || !identity.path("scope").asText().equals(scope)
                 || !receiptHash.matches("[a-f0-9]{64}") || !receiptHash.equals(identity.path("receiptSha256").asText())
-                || identity.path("assertions").asInt() != count || !apk.matches("[a-f0-9]{64}")
+                || !identity.path("assertions").isIntegralNumber() || identity.path("assertions").asLong() != count || !apk.matches("[a-f0-9]{64}")
                 || !api.matches("[0-9]+") || device.isBlank()
                 || !(variant.equals("sanity") || variant.equals("release") && commit.matches("[a-f0-9]{40}"))) return List.of();
         return List.of(new ReportField("Phase", scope), new ReportField("Android API", api), new ReportField("Device", device),
@@ -287,72 +311,64 @@ class AndroidSanityPublication {
         return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
     }
 
-    private static void publishFocusedSanity(String scope, String scenarioTitle, String stepTitle, int checks, List<Frame> frames) throws Exception {
-        Path receipt = Path.of(System.getProperty("chess.android.receipt"));
+    private static final String PREVIEW_REPLY = "Next shows the calculated reply and Previous returns to the first move";
+    private static final String PREVIEW_FRAME = "The suggested line and its navigation are visible with a fixed preview board";
+
+    @Test void publishMatchAnalysisSanity() throws Exception {
+        publishMatchAnalysis(Path.of(System.getProperty("chess.android.receipt")));
+    }
+
+    static void publishMatchAnalysis(Path receipt) throws Exception {
+        var prepare = matchPreparation(receipt);
+        var restore = boundRun("analysis-restore", "THEN restart at the live position with the hint hidden",
+                receipt.resolveSibling("analysis-restore").resolve("analysis-restore.txt"), 2,
+                List.of("The reopened match analyzes its live position with the hint hidden"), "match analysis", List.of());
+        publishAnalysis("match-analysis", "Explore a recommendation and reopen the saved game", receipt, List.of(prepare, restore), null);
+    }
+
+    private static BoundRun matchPreparation(Path receipt) throws Exception {
+        return boundRun("analysis-prepare", "GIVEN a saved game, explore the recommendation from history", receipt, 5,
+                List.of(PREVIEW_REPLY, PREVIEW_FRAME, "Returning to history preserves the selected move and the saved game"),
+                "match analysis", List.of(new Frame("match-analysis.png", "Suggested reply in match history")));
+    }
+
+    static void publishManualAnalysis(Path receipt) throws Exception {
+        var manual = boundRun("manual-analysis", "WHEN exploring the recommended line on the manual board", receipt, 5,
+                List.of(PREVIEW_REPLY, PREVIEW_FRAME, "Returning to the study lets the player apply the hint without saving a match"),
+                "manual analysis", List.of(new Frame("manual-analysis.png", "Suggested reply on the manual board")));
+        Path combined = receipt.toAbsolutePath().getParent().resolveSibling("analysis-prepare.txt");
+        var anchor = Files.exists(combined) ? matchPreparation(combined) : null;
+        publishAnalysis("manual-analysis", "Explore a line and play the hint in a manual study", receipt, List.of(manual), anchor);
+    }
+
+    private static void publishAnalysis(String scope, String scenarioTitle, Path receipt, List<BoundRun> runs, BoundRun anchor) throws Exception {
         Path report = receipt.resolveSibling("android-" + scope + ".html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var evidence = readPhase(receipt, scope, checks);
-        boolean rendered = frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
-        boolean complete = evidence.passed() && rendered;
-        var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+        boolean sameExecution = sameExecution(runs) && (anchor == null || anchor.evidence().passed() && sameExecution(List.of(anchor, runs.getFirst())));
+        var pids = runs.stream().map(run -> run.evidence().pid()).toList();
+        boolean restarted = runs.size() == 1 || !pids.contains("") && pids.stream().distinct().count() == runs.size();
+        boolean complete = sameExecution && restarted;
         try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
              var scenario = session.startScenario("BoardSanity", scenarioTitle, List.of("e2e", "android", scope));
              var phase = scenario.startPhase("TEST BODY")) {
-            publish(phase, stepTitle, evidence.rows(), evidence.passed());
-            for (var frame : frames) {
-                Path image = receipt.resolveSibling(frame.file());
-                if (isPng(image)) {
-                    try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {
-                        action.screenshot(frame.title(), Base64.getEncoder().encodeToString(Files.readAllBytes(image)));
-                        action.complete(AtfReportStatus.PASS);
-                    }
-                } else publish(phase, frame.title(), List.of(receiptFailure(scope, "Missing " + frame.file())), false);
+            var checks = new ArrayList<AtfAssertion>();
+            checks.add(new AtfAssertion("Analysis run identity", "Matching native run ID, source, APK, device and receipt hash",
+                    sameExecution ? "Matching native run ID, source, APK, device and receipt hash" : "Missing or mismatched phase run identity"
+                            + (anchor == null ? "" : " · match run " + anchor.execution().path("runId").asText()),
+                    sameExecution));
+            if (runs.size() > 1) {
+                checks.add(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs", String.join(" → ", pids), restarted));
             }
+            publish(phase, "Verify native provenance", checks, complete);
+            var acceptedCaptures = new HashSet<String>();
+            for (var run : runs) complete &= publishBoundRun(phase, run, acceptedCaptures, true, sameExecution);
+            var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
             phase.complete(status);
             scenario.complete(status);
         }
         System.out.println("J7 Android Extent: " + report);
         org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android " + scope + " evidence: " + receipt);
     }
-
-    @Test void publishMatchAnalysisSanity() throws Exception {
-        Path receipt = Path.of(System.getProperty("chess.android.receipt"));
-        Path report = receipt.resolveSibling("android-match-analysis.html");
-        if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var prepare = readPhase(receipt, "analysis-prepare", 17);
-        var restore = readPhase(receipt.resolveSibling("analysis-restore.txt"), "analysis-restore", 10);
-        boolean restarted = !prepare.pid().isEmpty() && !restore.pid().isEmpty() && !prepare.pid().equals(restore.pid());
-        var frames = List.of(new Frame("match-analysis.png", "Evaluation and suggestion below the board"),
-                new Frame("match-captures.png", "Captured pawn and material advantage beneath the player"),
-                new Frame("match-setup.png", "Color, AI level and analysis setup"), new Frame("match-black.png", "Named Black seat and evaluation bar"));
-        boolean rendered = frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
-        boolean complete = prepare.passed() && restore.passed() && restarted && rendered;
-        var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
-        try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
-             var scenario = session.startScenario("BoardSanity", "Enable optional AI analysis and restore the game across a process restart", List.of("e2e", "android", "analysis"));
-             var phase = scenario.startPhase("TEST BODY")) {
-            publish(phase, "Navigate puzzles and game history with an anchored board", prepare.rows(), prepare.passed());
-            publish(phase, "Restart the Android process", List.of(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs",
-                    prepare.pid() + " → " + restore.pid(), restarted)), restarted);
-            publish(phase, "Resume the game, edit the profile and start a Black match", restore.rows(), restore.passed());
-            for (var frame : frames) {
-                Path file = receipt.resolveSibling(frame.file());
-                if (isPng(file)) {
-                    try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {
-                        action.screenshot(frame.title(), Base64.getEncoder().encodeToString(Files.readAllBytes(file)));
-                        action.complete(AtfReportStatus.PASS);
-                    }
-                } else {
-                    publish(phase, frame.title(), List.of(new AtfAssertion("PNG evidence", "Readable PNG", "Missing or invalid " + frame.file(), false)), false);
-                }
-            }
-            phase.complete(status);
-            scenario.complete(status);
-        }
-        System.out.println("J7 Android Extent: " + report);
-        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android analysis evidence: " + receipt);
-    }
-
     @Test void publishBoardSanity() throws Exception {
         publishBoardSanity(Path.of(System.getProperty("chess.android.receipt")));
     }

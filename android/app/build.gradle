@@ -12,8 +12,8 @@ android {
         applicationId 'ro.atf.chess.android'
         minSdk 26
         targetSdk 36
-        versionCode 23
-        versionName '0.13.4'
+        versionCode 24
+        versionName '0.13.5'
         testInstrumentationRunner 'ro.atf.chess.android.BoardSanity'
     }
 

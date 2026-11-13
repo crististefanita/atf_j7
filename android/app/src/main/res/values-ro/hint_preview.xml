@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint_preview_open">Deschide varianta recomandată pe tablă</string>
+    <string name="hint_preview_title">Varianta recomandată</string>
+    <string name="hint_preview_return">Înapoi la poziție</string>
+    <string name="hint_preview_start">Poziția de plecare</string>
+    <string name="hint_preview_played">%1$s a jucat %2$s</string>
+    <string name="hint_preview_step">%1$d/%2$d · %3$s</string>
+    <string name="hint_preview_mate">În această variantă, %1$s dă mat cu %2$s.</string>
+    <string name="hint_preview_mate_against">Replica dă mat cu piesa %1$s la mutarea %2$s.</string>
+    <string name="hint_preview_capture">%1$s capturează piesa %2$s. Bilanț material: +%3$d.</string>
+    <string name="hint_preview_estimate">Evaluarea motorului pentru partea care mută prima: %1$s. Urmărește replicile calculate.</string>
+    <string name="hint_compare_pending">Compar două mutări la aceeași adâncime…</string>
+    <string name="hint_compare_unavailable">Nu există a doua variantă verificată.</string>
+    <string name="hint_compare_scores">Adâncime %1$d semimutări · Recomandare %2$s · Alternativă %3$s</string>
+    <string name="hint_compare_best">Recomandare · %1$s</string>
+    <string name="hint_compare_equal">Egal · %1$s</string>
+    <string name="hint_compare_other">Alternativă · %1$s</string>
+    <string name="hint_compare_stronger_label">Recomandare</string>
+    <string name="hint_compare_other_label">Alternativă</string>
+    <string name="hint_compare_mate_score">%1$s mat (%2$d semimutări)</string>
+    <string name="hint_compare_mate">%1$s, pasul %2$d: %3$s dă mat cu piesa %4$s.</string>
+    <string name="hint_compare_capture">%1$s, pasul %2$d: %3$s capturează piesa %4$s.</string>
+    <string name="hint_compare_estimate">Urmărește replicile calculate pentru a compara scorurile.</string>
+    <string name="hint_compare_jump">Arată această mutare pe tablă.</string>
+</resources>

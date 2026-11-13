@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ro.atf</groupId>
     <artifactId>chess-lab</artifactId>
-    <version>0.13.4-SNAPSHOT</version>
+    <version>0.13.5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules><module>atf-tests</module></modules>
     <properties>

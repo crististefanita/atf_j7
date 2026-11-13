@@ -102,7 +102,15 @@ public final class ReleaseRag {
             manualAnalysis("android/app/src/main/java/ro/atf/chess/android/ChessActivity.java"),
             manualAnalysis("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java"),
             matchHints("chess-core/src/main/java/ro/atf/chess/MatchHint.java"),
+            matchHints("chess-core/src/main/java/ro/atf/chess/HintPreview.java"),
+            matchHints("chess-core/src/main/java/ro/atf/chess/HintComparison.java"),
+            matchHints("atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java"),
+            matchHints("atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java"),
             matchHints("android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java"),
+            matchHints("android/app/src/main/java/ro/atf/chess/android/HintPreviewDialog.java"),
+            matchHints("android/app/src/main/res/values/hint_preview.xml"),
+            matchHints("android/app/src/main/res/values-ro/hint_preview.xml"),
+            matchHints("android/app/src/main/res/values/hint_preview_ids.xml"),
             anchor("atf-tests/src/test/resources/ai-anchor.yaml"),
             anchor("atf-tests/src/test/resources/ai-anchor-observations.yaml"),
             anchor("atf-tests/src/test/java/ro/atf/chess/PairedElo.java"),
@@ -182,7 +190,7 @@ public final class ReleaseRag {
 
     private static Route matchHints(String path) {
         return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "MatchHintTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis");
+                "MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest și BoardSanity -AnalysisOnly -IncludeManualAnalysis");
     }
 
     private static Route anchor(String path) {

@@ -81,7 +81,7 @@ Pentru o schimbare limitată la Analiza partidei, folosiți `-Distribution -Game
 
 Pentru schimbările din Tabla de analiză, folosiți `-ManualAnalysisOnly` în dezvoltare și `-IncludeManualAnalysis` pentru sanity-ul semnat. Publicați Extent din `manual-analysis/manual-analysis.txt` și verificați identitatea APK-ului prin `manual-analysis/execution.json`. Pentru schimbarea reperelor Elo, păstrați cele trei perechi de rapoarte și reluări TSV și verificați calculul cu `GameReviewGovernanceTest`. [Tabla de analiză](../testing/README.md#tablă-de-analiză) · [Protocolul ancorei](../board/ai-quality.md#rezultatele-ancorei-externe)
 
-Pentru indiciile comune, rulați `-Distribution -AnalysisOnly -IncludeManualAnalysis -SourceCommit <sha>`. Calificați cele două rapoarte Extent față de același commit și APK semnat. [Partidă și istoric](../testing/README.md#partidă-și-istoric)
+Pentru indiciile comune, rulați `-Distribution -AnalysisOnly -IncludeManualAnalysis -SourceCommit <sha>`. Publicați ambele rapoarte Extent cât timp directoarele brute păstrează structura produsă de runner. Cele trei faze folosesc același ID, iar publicatoarele compară sursa, APK-ul și amprentele din instrumentare. Păstrați aceste rapoarte ca dovezi ale fluxurilor afectate alături de calificarea Game Review. [Partidă și istoric](../testing/README.md#partidă-și-istoric)
 
 Pentru schimbări la listele de partide, rulați proba semnată a celor două meniuri. Runnerul păstrează aceeași instalare și resetează datele de test între faze. Calificați separat cele două rapoarte Extent cu identitatea comună a APK-ului. Verificările de persistență rulează în `MatchStoreTest`.
 

@@ -112,7 +112,19 @@ Bifează **Analiză AI** înainte de pornire. Bara verticală reflectă evaluare
 
 Apasă becul din bara de sub tablă pentru cea mai bine evaluată linie și săgeata primei mutări. Când controlezi culoarea la mutare, atinge destinația indicată ca să joci prima mutare. În istoric poți consulta varianta și alege **Continuă de aici** pentru a juca din poziția afișată. În tura automată a AI-ului, așteaptă replica sau activează **Joacă și mutările AI-ului**.
 
-Indiciul pornește de la căutarea Hard și are un buget propriu de verificare, indiferent de nivelul adversarului. Apăsările următoare parcurg până la cinci variante, în ordinea scorului. Lista se oprește când o mutare pierde mai mult de un sfert de pion față de prima. În poziții cu mat demonstrat, apar doar maturile cu același rezultat și aceeași distanță. Atinge textul pentru linia completă. Schimbarea poziției și încheierea partidei ascund indiciul. Opțiunea **Analiză AI** se păstrează la reluare. [Evaluarea AI](ai-quality.md)
+Indiciul pornește de la căutarea Hard și are un buget propriu de verificare, indiferent de nivelul adversarului. Apăsările următoare parcurg până la cinci variante, în ordinea scorului. Lista se oprește când o mutare pierde mai mult de un sfert de pion față de prima. În poziții cu mat demonstrat, apar doar maturile cu același rezultat și aceeași distanță. Schimbarea poziției și încheierea partidei ascund indiciul. Opțiunea **Analiză AI** se păstrează la reluare. [Evaluarea AI](ai-quality.md)
+
+După ce apeși becul, atinge varianta subliniată. Tabla ei pornește de la poziția
+consultată. Prima săgeată înainte joacă recomandarea, a doua arată replica
+adversarului calculată de motor. Eticheta indică semimutarea și culoarea care
+a jucat. Săgeata înapoi parcurge linia invers, iar **Înapoi la poziție** revine
+la mutarea din istoric cu indiciul păstrat. Același parcurs este disponibil pe
+tabla manuală. Explicația numește piesa care dă mat sau captura care păstrează
+un câștig material în linia calculată. În rest arată evaluarea motorului.
+Comparația recalculează două mutări din aceeași poziție. Poți selecta oricare
+dintre cele două linii și parcurge replicile. Scorurile folosesc ultima
+adâncime terminată pentru ambele mutări. Când apare o captură care explică
+diferența sau o replică de mat, atinge explicația pentru a sări la acel pas.
 
 Sub fiecare nume apar piesele capturate, cu un număr lângă simbol când sunt mai multe de același fel. Jucătorul cu avantaj material vede `+N` în același rând. Capturile și avantajul urmează semimutarea afișată, inclusiv în istoric și după reluare. [Referința de afișare Chess.com](https://support.chess.com/en/articles/8708638-how-can-i-see-the-captured-pieces-and-material-count)
 

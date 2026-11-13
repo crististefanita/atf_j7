@@ -22,6 +22,8 @@ final class EvaluationBar extends View {
         invalidate();
     }
 
+    boolean blackBelow() { return blackBelow; }
+
     void setWhiteShare(double share) {
         if (Double.compare(whiteShare, share) == 0) return;
         whiteShare = share;

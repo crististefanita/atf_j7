@@ -151,6 +151,8 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
     }
     $frames = @($Phase)
     switch ($Phase) {
+        'analysis-prepare' { $frames = @('match-analysis') }
+        'analysis-restore' { $frames = @() }
         'match-slots' { $frames += 'saved-games' }
         'match-archive' { $frames += 'finished-games' }
         'game-review' { $frames += 'game-review-navigation', 'game-review-line', 'game-review-comparison', 'game-review-actions' }
@@ -161,6 +163,12 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         Receive-Frame $frame $Directory
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
+        if ($Phase -in 'analysis-prepare','manual-analysis') {
+            $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
+            if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
+                throw "Pulled PNG does not match the native capture: $file."
+            }
+        }
     }
     $execution = [ordered]@{status='PASS'; scope=$Phase; device=$Serial; api=$api; apkSha256=$hash;
         sourceCommit=$SourceCommit; variant=$variant; assertions=$passed.Count;
@@ -175,12 +183,12 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
     $execution | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
 }
 
-function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expected) {
+function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expected, [string]$RunId = '') {
     $clear = Invoke-Device @('shell','pm','clear',$app)
     if ($clear -cnotcontains 'Success') { throw "Could not reset for $Phase." }
     $phaseDirectory = Join-Path $Directory $Phase
     $null = New-Item -ItemType Directory $phaseDirectory
-    Invoke-FocusedSanity $phaseDirectory $Phase $Expected
+    Invoke-FocusedSanity $phaseDirectory $Phase $Expected $RunId
 }
 
 function Invoke-GameReviewSanity([string]$Directory) {
@@ -201,8 +209,8 @@ function Invoke-GameReviewSanity([string]$Directory) {
     }
 }
 
-function Invoke-SelectedMatchSanity([string]$Directory) {
-    if ($IncludeManualAnalysis) { Invoke-IncludedSanity $Directory 'manual-analysis' 15 }
+function Invoke-SelectedMatchSanity([string]$Directory, [string]$RunId = [guid]::NewGuid().ToString('N')) {
+    if ($IncludeManualAnalysis) { Invoke-IncludedSanity $Directory 'manual-analysis' 5 $RunId }
     if ($IncludeMatchSlots) { Invoke-IncludedSanity $Directory 'match-slots' 2 }
     if ($IncludeMatchArchive) { Invoke-IncludedSanity $Directory 'match-archive' 2 }
 }
@@ -242,7 +250,7 @@ try {
         return
     }
     if ($ManualAnalysisOnly) {
-        Invoke-FocusedSanity $run 'manual-analysis' 15
+        Invoke-FocusedSanity $run 'manual-analysis' 5 ([guid]::NewGuid().ToString('N'))
         return
     }
     if ($MatchSlotsOnly) {
@@ -263,34 +271,13 @@ try {
         return
     }
     if ($AnalysisOnly) {
-        $pids = @()
-        $checks = [ordered]@{}
-        foreach ($phase in 'analysis-prepare','analysis-restore') {
-            $lines = @(Invoke-Device ($instrument + @('-e','phase',$phase,$runner)))
-            $lines | Set-Content -LiteralPath (Join-Path $run "$phase.txt") -Encoding utf8NoBOM
-            $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
-            $expected = if ($phase -eq 'analysis-prepare') { 17 } else { 10 }
-            if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne $expected) {
-                Receive-Frame 'failure'
-                throw "Analysis phase $phase did not pass. See $run."
-            }
-            $checks[$phase] = $passed.Count
-            $pidLine = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: pid=[0-9]+$' })
-            if ($pidLine.Count -ne 1) { throw "Missing process identity for $phase." }
-            $pids += $pidLine[0].Split('=')[1]
-            if ($phase -eq 'analysis-prepare') { Receive-Frame 'match-analysis'; Receive-Frame 'match-captures' }
-            else { Receive-Frame 'match-setup'; Receive-Frame 'match-black' }
-            Invoke-Device @('shell','am','force-stop',$app)
-        }
-        if ($pids[0] -eq $pids[1]) { throw 'The analysis restore phase reused the same process.' }
-        Invoke-SelectedMatchSanity $run
-        $receiptHashes = [ordered]@{}
-        foreach ($phase in $checks.Keys) {
-            $receiptHashes[$phase] = (Get-FileHash -LiteralPath (Join-Path $run "$phase.txt")).Hash.ToLowerInvariant()
-        }
-        [ordered]@{status='PASS'; scope='analysis-only'; device=$Serial; api=$api; apkSha256=$hash;
-            sourceCommit=$SourceCommit; variant=$variant; pids=$pids; assertions=$checks; receipts=$receiptHashes} |
-            ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'execution.json') -Encoding utf8NoBOM
+        $analysisRunId = [guid]::NewGuid().ToString('N')
+        $restoreDirectory = Join-Path $run 'analysis-restore'
+        $null = New-Item -ItemType Directory $restoreDirectory
+        Invoke-FocusedSanity $run 'analysis-prepare' 5 $analysisRunId
+        Invoke-Device @('shell','am','force-stop',$app)
+        Invoke-FocusedSanity $restoreDirectory 'analysis-restore' 2 $analysisRunId
+        Invoke-SelectedMatchSanity $run $analysisRunId
         return
     }
     Invoke-Device ($instrument + @('-e','phase','prepare',$runner)) |

@@ -204,11 +204,22 @@ Pentru integrarea nativă, rulați `run-android-sanity.ps1 -GameReviewOnly` dup�
 
 `GameReviewTest` reconciliază tabelul cu mutările individuale, inclusiv zerourile și rolurile inversate când jucătorul are negrul. `MatchActionsTest` verifică refuzul, redeschiderea rezultatului salvat, mutarea din istoric și respingerea unei salvări care suprascrie un mat. [Fluxul jucătorului](../board/README.md#partidă-cu-calculatorul)
 
-Pentru analiza AI, rulați runnerul cu `-AnalysisOnly` pe varianta `sanity`. Prima fază are 17 aserțiuni. Verifică bifa, schimbarea variantei, salvarea mutării sugerate prin atingerea destinației și ascunderea indiciului după replică sau renunțare. În istoric verifică săgeata și păstrarea salvării la atingerea destinației. Măsoară tabla, colțurile `a1` și `h8` și zonele de atingere în fereastra reală și două profiluri compacte cu text mărit și interfață română. A doua fază verifică opțiunea și poziția după repornire. Dovezile se scriu în `execution.json` și în cele două rezultate de instrumentare.
+Pentru analiza AI, rulați `-AnalysisOnly`. Prima fază pornește dintr-un joc
+salvat și verifică becul din istoric, două semimutări ale variantei, geometria
+tablei și revenirea la cursor fără schimbarea salvării. Faza din
+`analysis-restore/` verifică poziția și indiciul ascuns după restart. Sunt
+cinci aserțiuni înainte de restart și două după. `-IncludeManualAnalysis`
+rulează și tabla manuală cu același ID.
 
 `MatchHintTest` verifică ordinea variantelor, destinația jucabilă, promovarea exactă și prioritatea selecției manuale. Include un caz în care mutarea indicată aparține culorii care a mutat deja. `MatchEvaluationTest` verifică perspectiva albului, formatarea și proporțiile barei pentru avantaj, egalitate și final. `MatchSetupTest` verifică alegerile de culoare, adâncimile AI, salvările anterioare și mutarea de deschidere a motorului când omul joacă cu negrul. `PlayerProfileTest` verifică validarea numelui, iar `MainMenuLayoutTest` verifică gruparea și opțiunile celor două dropdownuri.
 
-Proba Android verifică și editorul numelui, jocul cu negrul la Hard, crestătura nebunului și inversarea barei. Publicați aserțiunile și capturile celor două faze în `android-match-analysis.html` prin același adaptor Extent:
+`HintPreviewTest` verifică pașii motorului pe poziții reale, revenirea exactă,
+matul, schimbul compensat și respingerea unei linii ilegale. `HintComparisonTest`
+verifică orizontul comun, ambele linii jucabile, replica de mat și captura
+necompensată, inclusiv cazurile în care scorurile rămân singura explicație. `AndroidReceiptTest`
+reproduce fără emulator PNG-ul substituit și faza străină, inclusiv când
+metadatele au fost actualizate. Extent păstrează rezultatele native, ID-ul,
+amprenta APK-ului și capturile confirmate de amprentele din instrumentare.
 
 ```powershell
 mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishMatchAnalysisSanity' '-Dchess.android.receipt=<dosar>/analysis-prepare.txt'
@@ -220,7 +231,13 @@ mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication
 
 `AnalysisLineTest` verifică navigarea, ramificarea, mutările speciale și exportul prefixului. Un cursor în istoric poate deschide analiza partidei sursă încheiate dacă linia întreagă îi păstrează mutările. O ramură diferită, o partidă în curs și un mat jucat manual folosesc analiza de studiu. `GameReviewTest` verifică analiza tuturor mutărilor și criteriile Elo. `MatchSlotsTest` verifică locul zece, refuzul la capacitate și respingerea răspunsurilor AI vechi. `MainMenuLayoutTest` acoperă intrarea localizată din meniu.
 
-Pentru parcursul Android folosiți `-ManualAnalysisOnly`. Proba joacă ambele culori și aplică indiciul negrului prin atingerea destinației într-o poziție deschisă din istoric. Verifică păstrarea partidei sursă, comutarea analizei, raportul complet și continuarea într-un loc nou. Verifică raportul partidei în curs și o singură replică atunci când se reactivează AI-ul. Publicați `manual-analysis.txt` cu `-Dtest=AndroidSanityPublication#publishManualAnalysisSanity` și `-Dchess.android.receipt=<cale>`. Raportul include 15 aserțiuni și captura integrată. [Utilizare](../board/README.md#tablă-de-analiză)
+Pentru Android folosiți `-ManualAnalysisOnly` sau `-IncludeManualAnalysis`.
+Proba deschide tabla din meniu, navighează în varianta sugerată, revine și joacă
+mutarea indicată fără a crea o partidă salvată. Publicați `manual-analysis.txt`
+cu `-Dtest=AndroidSanityPublication#publishManualAnalysisSanity` și
+`-Dchess.android.receipt=<cale>`. Raportul are cinci aserțiuni și o captură
+legată de recepție. În rularea combinată, publicatorul Extent confruntă și ID-ul
+fazei de joc din directorul părinte. [Utilizare](../board/README.md#tablă-de-analiză)
 
 `-MatchMenusOnly` rulează cele două meniuri pe aceeași instalare. Pentru probe separate de dezvoltare, folosiți `-MatchSlotsOnly` sau `-MatchArchiveOnly`. Publicați cu `AndroidSanityPublication#publishMatchSlotsSanity` sau `#publishMatchArchiveSanity` și recepția fazei. Extent leagă aserțiunea, captura încorporată și amprenta ei de același pas Android. Identitatea execuției include procesul, commitul și amprenta APK-ului pentru distribuție. [Partide salvate și încheiate](../board/README.md#partidă-cu-calculatorul)
 
