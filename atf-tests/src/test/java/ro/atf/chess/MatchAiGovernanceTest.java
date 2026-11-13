@@ -14,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @Tag("governance")
 @ExtendWith(ExtentAudit.class)
 class MatchAiGovernanceTest {
-    @Test void hardDepthSixKeepsItsExistingBudgetAndLowerProfilesUnchanged(Checks check) {
+    @Test void opponentBudgetsMatchTheMeasuredProfiles(Checks check) {
         check.same("Basic keeps its baseline depth and zero extra-node budget", new MatchAiPolicy.Search(3, 0),
                 MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.BASIC));
-        check.same("Advanced keeps its baseline depth and node budget", new MatchAiPolicy.Search(4, 16_000),
+        check.same("Advanced uses the calibrated four-ply, 10,000-node budget", new MatchAiPolicy.Search(4, 10_000),
                 MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.ADVANCED));
         check.same("Hard gains one stable horizon without a node-budget increase", new MatchAiPolicy.Search(6, 44_000),
                 MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD));

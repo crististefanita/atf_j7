@@ -1,7 +1,7 @@
 schema: 4
 opponents:
   BASIC: {max-plies: 3, extra-nodes: 0}
-  ADVANCED: {max-plies: 4, extra-nodes: 16000}
+  ADVANCED: {max-plies: 4, extra-nodes: 10000}
   HARD: {max-plies: 6, extra-nodes: 44000}
 hint:
   max-plies: 6

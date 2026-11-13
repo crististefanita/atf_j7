@@ -312,3 +312,11 @@ Sursa `0e6a62f` a jucat 216 partide în trei serii, cu Stockfish 19 la `UCI_Elo 
 | Hard | 30 / 2 / 23 / 17 | 1534 | 1396–1672 |
 
 Advanced cu 10.000 de noduri suplimentare și patru semimutări a jucat încă 72 de partide după același protocol. A obținut 19 victorii, 3 remize, 35 înfrângeri și 15 partide neterminate. Estimarea centrală a coborât de la 1466 la 1421, cu intervalul 1245–1553. În suita de zece poziții, pierderea medie Advanced a rămas la 14,1‰ și au existat zero pierderi majore. Estimarea centrală este sub plafonul cerut de 1450, iar intervalul încă îl traversează.
+
+### Captura de la capătul căutării Hard
+
+În poziția Siciliană din suita fixă, căutarea de patru semimutări alege `Nxe5` și vede replica. La cinci semimutări, caută `Nc3` și mută aceeași captură la capătul variantei. Prototipul a păstrat clasamentul par când liderul la adâncime impară amâna captura până la orizont.
+
+Prototipul a crescut de la 9/10 la 10/10 alegeri identice cu Stockfish. Pierderea medie a scăzut de la 45,9‰ la 0‰, iar scorurile din cele 1.172 de probleme au rămas la 500/500, 300/300, 194/200, 87/100, 39/48 și 24/24. În duelul cu versiunea live a înregistrat 8 victorii, 6 remize și 10 înfrângeri. Diferența estimată este −29 Elo, cu interval de 95% între −89 și 0. Duelul a dus la retragerea prototipului din codul live.
+
+Comparația indiciului cu Hard pe 12 deschideri are o diferență cumulată de 281‰ față de 257‰. În Catalană, indiciul alege `c4d5` cu o pierdere de 49‰, iar Hard alege `b1c3` cu 25‰.
