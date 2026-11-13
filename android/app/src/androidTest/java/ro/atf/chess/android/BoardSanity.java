@@ -559,12 +559,24 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void clickMenuItem(String label) throws Exception {
+        getUiAutomation().waitForIdle(150, 2500);
         var item = menuItem(label);
         if (item == null) throw new AssertionError("Menu item unavailable: " + label);
+        for (var target = item; target != null; target = target.getParent()) {
+            if (target.isClickable() && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                getUiAutomation().waitForIdle(150, 2500);
+                return;
+            }
+        }
         var bounds = new Rect();
         item.getBoundsInScreen(bounds);
         if (bounds.isEmpty()) throw new AssertionError("Menu item has no visible bounds: " + label);
         tapAt(bounds.exactCenterX(), bounds.exactCenterY());
+        getUiAutomation().waitForIdle(150, 2500);
+        if (dialogNode(label, node -> node.isVisibleToUser() && node.getText() != null
+                && label.contentEquals(node.getText()), 500) != null) {
+            throw new AssertionError("Native menu did not dismiss after selecting: " + label);
+        }
     }
 
     private void checkOpenings() throws Exception {
