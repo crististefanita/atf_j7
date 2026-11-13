@@ -9,7 +9,11 @@ import java.util.List;
 
 /** Small local retriever. It cites tracked guidance and leaves execution to the evidence gates. */
 public final class ReleaseRag {
-    private record Route(String prefix, String document, String heading, String check) { }
+    private record Route(String path, String document, String heading, String check) {
+        boolean matches(String changedPath) {
+            return path.endsWith("/") ? changedPath.startsWith(path) : changedPath.equals(path);
+        }
+    }
 
     public record Citation(String path, int line, String heading, String sha256, String check) { }
     public record Inventory(List<Citation> citations, List<String> covered, List<String> needsReview) {
@@ -31,8 +35,8 @@ public final class ReleaseRag {
                     "TacticalAnalysisTest și HardQuestTransferBenchmarkTest"),
             new Route("chess-core/src/main/java/ro/atf/chess/HardQuestSolver.java", "docs/board/ai-quality.md", "## Rezolvarea quest-urilor cu obiectiv declarat",
                     "TacticalAnalysisTest și HardQuestTransferBenchmarkTest"),
-            new Route("atf-tests/src/test/resources/tactical-transfer-holdout.", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
-                    "QuestCatalogTest, TacticsCatalogTest și HardQuestTransferBenchmarkTest"),
+            tacticalHoldout("atf-tests/src/test/resources/tactical-transfer-holdout.yaml"),
+            tacticalHoldout("atf-tests/src/test/resources/tactical-transfer-holdout.sha256"),
             ai("chess-core/src/main/java/ro/atf/chess/ChessMatch.java"),
             new Route("chess-core/src/main/java/ro/atf/chess/ChessMatch.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
             new Route("chess-core/src/main/resources/mate-in-three.yaml", "docs/board/quest-curation.md", "## Mat în trei mutări", "MateInThreeCatalogTest și verify-mate-in-three.cjs"),
@@ -66,13 +70,18 @@ public final class ReleaseRag {
             review("docs/board/game-review.md"),
             review("chess-core/src/main/java/ro/atf/chess/GameReviewLayout.java"),
             review("chess-core/src/main/java/ro/atf/chess/GameReviewGraphLayout.java"),
+            review("atf-tests/src/test/java/ro/atf/chess/GameReviewTest.java"),
+            review("atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java"),
+            review("atf-tests/src/test/java/ro/atf/chess/GameReviewLayoutTest.java"),
             review("atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java"),
+            review("atf-tests/src/test/java/ro/atf/chess/GameReviewGovernanceTest.java"),
             review("chess-core/src/main/java/ro/atf/chess/GameReviewPolicy.java"),
             review("chess-core/src/main/java/ro/atf/chess/OpeningIndex.java"),
             review("chess-core/src/main/resources/game-review.yaml"),
             review("chess-core/src/main/resources/opening-book.tsv"),
             review("android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java"),
             review("android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java"),
+            review("android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java"),
             games("chess-core/src/main/java/ro/atf/chess/MatchArchive.java"),
             games("chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java"),
             games("chess-core/src/main/java/ro/atf/chess/MatchSlots.java"),
@@ -156,6 +165,11 @@ public final class ReleaseRag {
         return new Route(path, "docs/testing/README.md", "## Deschideri", "OpeningLessonTest și BoardSanity -IncludeOpenings");
     }
 
+    private static Route tacticalHoldout(String path) {
+        return new Route(path, "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
+                "QuestCatalogTest, TacticsCatalogTest și HardQuestTransferBenchmarkTest");
+    }
+
     private static Route review(String path) {
         return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
                 "GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest, MatchStoreTest și BoardSanity -Distribution -GameReviewOnly");
@@ -190,8 +204,7 @@ public final class ReleaseRag {
         var covered = new java.util.HashSet<String>();
         var result = new ArrayList<Citation>();
         for (var route : ROUTES) {
-            var matches = paths.stream().filter(route.prefix().endsWith("/")
-                    ? path -> path.startsWith(route.prefix()) : path -> path.equals(route.prefix())).toList();
+            var matches = paths.stream().filter(route::matches).toList();
             if (matches.isEmpty()) continue;
             covered.addAll(matches);
             Path document = root.resolve(route.document());

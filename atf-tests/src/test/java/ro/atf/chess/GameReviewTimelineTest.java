@@ -149,6 +149,61 @@ class GameReviewTimelineTest {
                 List.of(source.result(), timeline.lastMove(), source.positionAt(4).sameForRepetition(timeline.position())));
     }
 
+    @Test void namesThePromotedPieceInTheGeneratedMatingLine(Checks check) {
+        var source = ChessMatch.fromPosition(ChessPosition.fromFen(
+                "1rb3k1/q4rP1/4p2p/3p3p/3P1P2/2P5/2QK3P/3R2R1 w - - 1 30")).play(Move.fromUci("d2e2"));
+        var timeline = new GameReviewTimeline(source, GameReview.analyzeLine(source, ignored -> { }));
+        var explanation = timeline.explanation().orElseThrow();
+        check.same("The analyzed king move misses a mate ending in queen promotion", Reason.MISSES_MATE, explanation.reason());
+        check.same("The witness names the resulting queen on g8", new MoveEvidence(Move.fromUci("g7g8q"), Kind.QUEEN, null),
+                explanation.evidence().orElseThrow());
+        check.same("The recommendation is playable from the selected position", true, timeline.showBranch(Branch.RECOMMENDED));
+        while (timeline.stepForward()) { }
+        check.same("The recommended line really ends with a queen giving mate",
+                List.of(true, Kind.QUEEN), List.of(timeline.position().isCheckmate(),
+                        timeline.position().pieceAt(Move.fromUci("g7g8q").to()).kind()));
+    }
+
+    @Test void keepsTheUnderpromotionAndCapturedPieceInMatingEvidence(Checks check) {
+        var source = ChessMatch.fromPosition(ChessPosition.fromFen("5b1k/4P3/6K1/8/8/8/8/8 w - - 0 1"))
+                .play(Move.fromUci("g6f5"));
+        var report = review(source, 1, Grade.MISS, 1000, 500, moves("e7f8r"), moves("g6f5"));
+        var timeline = new GameReviewTimeline(source, report);
+        var explanation = timeline.explanation().orElseThrow();
+        check.same("The mating capture names a rook and the bishop it takes",
+                new MoveEvidence(Move.fromUci("e7f8r"), Kind.ROOK, Kind.BISHOP), explanation.evidence().orElseThrow());
+        check.same("The underpromotion branch is replayable", true, timeline.showBranch(Branch.RECOMMENDED));
+        check.same("The rook promotion really gives mate", List.of(true, true),
+                List.of(timeline.stepForward(), timeline.position().isCheckmate()));
+    }
+
+    @Test void namesTheDecisiveQueenCaptureAndRejectsAnUnmatchedHorizon(Checks check) {
+        var source = ChessMatch.restore("1|e2e4 e7e5 d1h5 b8c6 h5f7");
+        var played = moves("h5f7", "e8f7", "a2a3", "f8a3");
+        var recommended = moves("b1c3", "g8f6", "h5f3", "f8c5");
+        var report = review(source, 5, Grade.BLUNDER, 800, 200, recommended, played);
+        var explanation = new GameReviewTimeline(source, report).explanation().orElseThrow();
+        check.same("The queen capture is decisive while the line's net deficit also includes the final pawn capture",
+                new GameReviewExplanation(Reason.LOSES_MATERIAL, Side.WHITE, 600, 4, 900,
+                        Optional.of(new MoveEvidence(Move.fromUci("e8f7"), Kind.KING, Kind.QUEEN))), explanation);
+        var shorter = review(source, 5, Grade.BLUNDER, 800, 200, recommended.subList(0, 3), played);
+        check.same("A missing comparison step leaves only the common search evaluation",
+                new GameReviewExplanation(Reason.EVALUATION, Side.WHITE, 600, 4, 0, Optional.empty()),
+                new GameReviewTimeline(source, shorter).explanation().orElseThrow());
+    }
+
+    @Test void excludesAQueenCaptureRecoveredBeforeTheLastingPawnLoss(Checks check) {
+        var source = ChessMatch.fromPosition(ChessPosition.fromFen("7k/3q3r/8/8/8/8/P6P/K1RQ4 w - - 0 1"))
+                .play(Move.fromUci("a2a3"));
+        var report = review(source, 1, Grade.INACCURACY, 560, 500,
+                moves("a2a4", "d7e7", "h2h3", "e7e6"), moves("a2a3", "d7d1", "c1d1", "h7h2"));
+        var timeline = new GameReviewTimeline(source, report);
+        check.same("The recovered queen exchange leaves the pawn capture as the only lasting loss",
+                new GameReviewExplanation(Reason.LOSES_MATERIAL, Side.WHITE, 60, 4, 100,
+                        Optional.of(new MoveEvidence(Move.fromUci("h7h2"), Kind.ROOK, Kind.PAWN))),
+                timeline.explanation().orElseThrow());
+    }
+
     @Test void rejectsIllegalCachedLinesAndFallsBackToTheSelectedHistoryPosition(Checks check) {
         var source = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
         var report = review(source, 3, Grade.BLUNDER, 544, 0, moves("d2d5"), moves("g2g4", "d8h4", "a2a3"));

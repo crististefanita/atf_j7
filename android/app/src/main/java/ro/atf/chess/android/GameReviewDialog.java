@@ -35,6 +35,7 @@ import java.util.function.Function;
 import java.util.function.IntConsumer;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.BoardSquare;
+import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.GameReview;
@@ -280,6 +281,7 @@ final class GameReviewDialog {
         explanationPanel.addView(reason);
         var branches = row();
         playedBranch = branchAction(R.id.game_review_played_branch, R.string.game_review_played_branch, Branch.PLAYED);
+        playedBranch.setContentDescription(context.getString(R.string.game_review_played_branch_description));
         recommendedBranch = branchAction(R.id.game_review_recommended_branch, R.string.game_review_recommended_branch, Branch.RECOMMENDED);
         branches.addView(playedBranch, new LinearLayout.LayoutParams(0, -2, 1));
         branches.addView(recommendedBranch, new LinearLayout.LayoutParams(0, -2, 1));
@@ -457,7 +459,7 @@ final class GameReviewDialog {
             selectedMove.setContentDescription(null);
             selectedMove.setText(caption);
         }
-        refreshExplanation();
+        refreshExplanation(selected);
         if (graph != null) graph.select(timeline.ply());
         if (moveRows != null) moveRows.select(timeline.ply());
         var snapshot = timeline.snapshot();
@@ -467,7 +469,7 @@ final class GameReviewDialog {
         }
     }
 
-    private void refreshExplanation() {
+    private void refreshExplanation(GameReview.Turn turn) {
         var explanation = timeline.explanation().filter(value -> value.loss() > 0).orElse(null);
         why.setVisibility(explanation == null ? View.GONE : View.VISIBLE);
         if (explanation == null) explanationOpen = false;
@@ -475,27 +477,34 @@ final class GameReviewDialog {
         why.setContentDescription(context.getString(explanationOpen ? R.string.game_review_hide_why : R.string.game_review_why));
         explanationPanel.setVisibility(explanationOpen ? View.VISIBLE : View.GONE);
         if (!explanationOpen) return;
-        reason.setText(explain(explanation));
+        reason.setText(explain(explanation, turn));
         playedBranch.setEnabled(timeline.canShowBranch(Branch.PLAYED));
         recommendedBranch.setEnabled(timeline.canShowBranch(Branch.RECOMMENDED));
         playedBranch.setSelected(timeline.branch() == Branch.PLAYED);
         recommendedBranch.setSelected(timeline.branch() == Branch.RECOMMENDED);
     }
 
-    private String explain(GameReviewExplanation explanation) {
-        String side = context.getString(BoardView.sideLabel(explanation.side()));
-        String gap = context.getString(R.string.game_review_why_score, side, explanation.loss() / 10.0, explanation.depth());
-        var evidence = explanation.evidence().orElse(null);
-        if (evidence == null) return gap;
-        String piece = context.getString(BoardView.kindLabel(evidence.piece()));
+    private String explain(GameReviewExplanation explanation, GameReview.Turn turn) {
+        return explanation.evidence().map(evidence -> explainMove(explanation, evidence)).orElseGet(() ->
+                context.getString(R.string.game_review_why_score, context.getString(BoardView.sideLabel(turn.side())),
+                        turn.playedPoints() / 10.0, turn.bestPoints() / 10.0, turn.depth()));
+    }
+
+    private String explainMove(GameReviewExplanation explanation, GameReviewExplanation.MoveEvidence evidence) {
+        String piece = pieceName(evidence.piece());
         String square = BoardSquare.name(evidence.move().to());
         return switch (explanation.reason()) {
             case ALLOWS_MATE -> context.getString(R.string.game_review_why_allows_mate, piece, square);
             case MISSES_MATE -> context.getString(R.string.game_review_why_misses_mate, piece, square);
             case LOSES_MATERIAL -> context.getString(R.string.game_review_why_material, piece, square,
-                    context.getString(BoardView.kindLabel(evidence.captured())), explanation.materialCp() / 100.0) + "\n" + gap;
-            case EVALUATION -> gap;
+                    pieceName(evidence.captured()), explanation.materialCp() / 100.0);
+            case EVALUATION -> throw new IllegalArgumentException("A score-only explanation has no move evidence");
         };
+    }
+
+    private String pieceName(Kind piece) {
+        var locale = context.getResources().getConfiguration().getLocales().get(0);
+        return context.getString(BoardView.kindLabel(piece)).toLowerCase(locale);
     }
 
     private void labelIcon(ImageButton button, int label) {

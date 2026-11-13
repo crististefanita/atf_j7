@@ -123,33 +123,66 @@ class AndroidReceiptTest {
         check.same("Extent exposes both identical process IDs", true, gameReviewReport(sameProcess).contains("222 → 222"));
     }
 
+    @Test void rejectsAReviewPhaseFromAnotherRunOfTheSameBuild(Checks check) throws Exception {
+        Path directory = Files.createDirectory(folder.resolve("review-mixed-run"));
+        Path receipt = reviewReceipt(directory, 333, "2".repeat(32));
+        check.rejects("A complete phase from another run of the same APK cannot pass", AssertionError.class,
+                () -> AndroidSanityPublication.publishGameReview(receipt));
+        String report = gameReviewReport(receipt);
+        check.same("Extent exposes the mismatched run identity while retaining the restart PIDs", true,
+                report.contains("Missing or mismatched phase run identity") && report.contains("222 → 333")
+                        && report.contains("1".repeat(32)) && report.contains("2".repeat(32)));
+    }
+
     private static String gameReviewReport(Path receipt) throws IOException {
         return Jsoup.parse(receipt.resolveSibling("android-game-review.html"), "UTF-8").text();
     }
 
     private static Path reviewReceipt(Path directory, int restorePid) throws Exception {
-        writeReviewRun(directory, "game-review", 111, 23,
+        return reviewReceipt(directory, restorePid, "1".repeat(32));
+    }
+
+    private static Path reviewReceipt(Path directory, int restorePid, String restoreRunId) throws Exception {
+        var identity = new ReviewIdentity("", "sanity", "a".repeat(64), "1".repeat(32));
+        return reviewReceipt(directory, restorePid, identity, restoreRunId);
+    }
+
+    static Path releaseReviewReceipt(Path directory, String commit, String apkSha256, String runId) throws Exception {
+        return reviewReceipt(directory, 333, new ReviewIdentity(commit, "release", apkSha256, runId), runId);
+    }
+
+    private record ReviewIdentity(String commit, String variant, String apkSha256, String runId) {
+        ReviewIdentity withRunId(String replacement) {
+            return new ReviewIdentity(commit, variant, apkSha256, replacement);
+        }
+    }
+
+    private static Path reviewReceipt(Path directory, int restorePid, ReviewIdentity identity, String restoreRunId) throws Exception {
+        writeReviewRun(directory, "game-review", 111, 23, identity,
                 List.of("A plotted point in a 185-ply review selects ply 184 on the board and highlights its move row"),
                 List.of("game-review", "game-review-navigation", "game-review-line", "game-review-comparison", "game-review-actions"), 1);
-        writeReviewRun(Files.createDirectory(directory.resolve("why")), "game-review-why", 222, 4,
-                List.of("Why names the mating queen on h4 for the archived g4 blunder",
+        writeReviewRun(Files.createDirectory(directory.resolve("why")), "game-review-why", 222, 5, identity,
+                List.of("Why shows both expected scores and search depth when the line proves no concrete reason",
+                        "Why names the mating queen on h4 for the archived g4 blunder",
                         "The recommended branch starts before g4 and replays its first legal move",
                         "The played branch replays g4 and the mating reply from the same starting position",
                         "Cancelling Try again keeps the played line and the original review open"),
-                List.of("game-review-why", "game-review-why-recommended"), 6);
-        writeReviewRun(Files.createDirectory(directory.resolve("why-restore")), "game-review-why-restore", restorePid, 2,
+                List.of("game-review-why", "game-review-why-recommended", "game-review-why-score"), 6);
+        writeReviewRun(Files.createDirectory(directory.resolve("why-restore")), "game-review-why-restore", restorePid, 2, identity.withRunId(restoreRunId),
                 List.of("A restarted process reopens the archived analysis on the played mating reply",
                         "Confirming from the reopened review creates a separate game and keeps the archived analysis"),
-                List.of("game-review-why-restore"), 8);
+                List.of("game-review-why-restore"), 9);
         return directory.resolve("game-review.txt");
     }
 
-    private static void writeReviewRun(Path directory, String phase, int pid, int checks, List<String> required,
+    private static void writeReviewRun(Path directory, String phase, int pid, int checks, ReviewIdentity identity, List<String> required,
                                        List<String> frames, int firstColor) throws Exception {
         writePhase(directory, phase, pid, checks, required);
+        Path receipt = directory.resolve(phase + ".txt");
+        Files.writeString(receipt, "INSTRUMENTATION_RESULT: runId=" + identity.runId() + "\n", java.nio.file.StandardOpenOption.APPEND);
         var execution = new ObjectMapper().createObjectNode();
-        execution.put("status", "PASS").put("scope", phase).put("variant", "sanity").put("sourceCommit", "")
-                .put("device", "fixture").put("api", "28").put("apkSha256", "a".repeat(64)).put("assertions", checks)
+        execution.put("status", "PASS").put("scope", phase).put("variant", identity.variant()).put("sourceCommit", identity.commit()).put("runId", identity.runId())
+                .put("device", "fixture").put("api", "28").put("apkSha256", identity.apkSha256()).put("assertions", checks)
                 .put("receiptSha256", sha256(directory.resolve(phase + ".txt")));
         var hashes = execution.putObject("captureSha256");
         var image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);

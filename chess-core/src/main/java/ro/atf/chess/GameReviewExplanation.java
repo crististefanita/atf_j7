@@ -14,7 +14,7 @@ public record GameReviewExplanation(Reason reason, Side side, int loss, int dept
                                     int materialCp, Optional<MoveEvidence> evidence) {
     public enum Reason { ALLOWS_MATE, MISSES_MATE, LOSES_MATERIAL, EVALUATION }
 
-    /** The highlighted move and the pieces involved, before applying that move. */
+    /** The highlighted move, its resulting piece, and the piece it captured. */
     public record MoveEvidence(Move move, Kind piece, Kind captured) { }
 
     static GameReviewExplanation compare(Turn turn, Line played, Line recommended) {
@@ -40,17 +40,29 @@ public record GameReviewExplanation(Reason reason, Side side, int loss, int dept
         if (played.length() != recommended.length() || played.ending() != Result.IN_PROGRESS
                 || recommended.ending() != Result.IN_PROGRESS) return Optional.empty();
         Side side = turn.side();
-        int before = MatchMaterial.balance(played.position(0), side);
-        int playedAfter = MatchMaterial.balance(played.position(played.length()), side);
-        int recommendedAfter = MatchMaterial.balance(recommended.position(recommended.length()), side);
-        int loss = Math.min(before, recommendedAfter) - playedAfter;
+        int reference = Math.min(played.materialAt(0, side), recommended.materialAt(recommended.length(), side));
+        int loss = reference - played.materialAt(played.length(), side);
         if (loss <= 0) return Optional.empty();
+        return decisiveCapture(played, side, reference, loss)
+                .map(capture -> explained(turn, Reason.LOSES_MATERIAL, loss * 100, capture));
+    }
+
+    private static Optional<MoveEvidence> decisiveCapture(Line played, Side side, int reference, int loss) {
+        int sustainedDeficit = loss;
+        int largestLoss = 0;
+        MoveEvidence decisive = null;
         for (int index = played.length() - 1; index > 0; index--) {
-            if (played.position(index).turn() == side) continue;
-            var capture = played.evidenceAt(index);
-            if (capture.captured() != null) return Optional.of(explained(turn, Reason.LOSES_MATERIAL, loss * 100, capture));
+            int deficitBefore = Math.max(0, reference - played.materialAt(index, side));
+            int retainedLoss = sustainedDeficit - deficitBefore;
+            sustainedDeficit = Math.min(sustainedDeficit, deficitBefore);
+            if (retainedLoss <= 0 || retainedLoss < largestLoss || played.position(index).turn() == side) continue;
+            var evidence = played.evidenceAt(index);
+            // Do not attribute a shared or promotion-driven loss to a single capture.
+            decisive = retainedLoss > largestLoss && evidence.captured() != null && evidence.move().promotion() == null
+                    ? evidence : null;
+            largestLoss = retainedLoss;
         }
-        return Optional.empty();
+        return Optional.ofNullable(decisive);
     }
 
     record Line(List<Move> moves, List<ChessPosition> positions, Result ending) {
@@ -75,6 +87,7 @@ public record GameReviewExplanation(Reason reason, Side side, int loss, int dept
         boolean available() { return !moves.isEmpty(); }
         int length() { return moves.size(); }
         ChessPosition position(int step) { return positions.get(step); }
+        int materialAt(int step, Side side) { return MatchMaterial.balance(position(step), side); }
 
         boolean mates(Side winner) {
             return ending == (winner == Side.WHITE ? Result.WHITE_WINS : Result.BLACK_WINS);
@@ -84,7 +97,8 @@ public record GameReviewExplanation(Reason reason, Side side, int loss, int dept
             var before = position(index);
             Move move = moves.get(index);
             var victim = MatchMaterial.victim(before, move);
-            return new MoveEvidence(move, before.pieceAt(move.from()).kind(), victim == null ? null : victim.kind());
+            var moved = position(index + 1).pieceAt(move.to());
+            return new MoveEvidence(move, moved.kind(), victim == null ? null : victim.kind());
         }
     }
 }

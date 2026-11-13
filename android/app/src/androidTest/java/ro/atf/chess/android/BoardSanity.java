@@ -76,10 +76,12 @@ public final class BoardSanity extends Instrumentation {
     private int comparisons;
     private String phase;
     private boolean externalFrames;
+    private String runId;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         phase = arguments.getString("phase", "");
+        runId = arguments.getString("runId", "");
         externalFrames = "true".equals(arguments.getString("externalFrames"));
         start();
     }
@@ -87,6 +89,7 @@ public final class BoardSanity extends Instrumentation {
     @Override public void onStart() {
         receipt.putString("phase", phase);
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
+        if (!runId.isEmpty()) receipt.putString("runId", runId);
         try {
             if ("openings".equals(phase)) checkOpenings();
             else if ("game-review".equals(phase)) checkGameReview();
@@ -537,8 +540,13 @@ public final class BoardSanity extends Instrumentation {
         var review = GameReview.analyze(match, ignored -> { });
         if (!store.saveReview(archiveId, match, review)) throw new AssertionError("Could not prepare the archived review");
         var activity = openArchivedReview();
-        clickReviewIcon(R.id.game_review_previous);
         var board = nodeBounds(reviewNode(R.id.game_review_board, 4500));
+        for (int ply = match.ply(); ply > 1; ply--) clickReviewIcon(R.id.game_review_previous);
+        clickReviewIcon(R.id.game_review_why);
+        checkReviewFallback(activity, board, review.turns().get(0));
+        clickReviewIcon(R.id.game_review_why);
+        clickReviewIcon(R.id.game_review_next);
+        clickReviewIcon(R.id.game_review_next);
         clickReviewIcon(R.id.game_review_why);
         var reason = reviewNode(R.id.game_review_reason, 4500);
         String reasonText = reason == null || reason.getText() == null ? "" : reason.getText().toString();
@@ -581,6 +589,26 @@ public final class BoardSanity extends Instrumentation {
         compare("Cancelling Try again keeps the played line and the original review open", true,
                 restoredSelection != null && matingReplyVisible(activity) && sameReviewBoard(board) && archiveMatches(store, archiveId, match, review));
         // Leave the dialog open. The runner stops this process before the restore phase.
+    }
+
+    private void checkReviewFallback(Activity activity, Rect board, GameReview.Turn turn) throws IOException {
+        var locale = activity.getResources().getConfiguration().getLocales().get(0);
+        String played = String.format(locale, "%.1f%%", turn.playedPoints() / 10.0);
+        String recommended = String.format(locale, "%.1f%%", turn.bestPoints() / 10.0);
+        String depth = Integer.toString(turn.depth());
+        String expected = "Scor estimat pentru Alb. Jucată " + played + " · Recomandată " + recommended
+                + " · Adâncime " + depth + " semimutări";
+        var frame = awaitRenderedFrame(image -> {
+            var fallback = visibleReviewNode(R.id.game_review_reason);
+            return fallback != null && expected.contentEquals(fallback.getText()) && sameReviewBoard(board);
+        });
+        if (frame != null) {
+            try { saveFrame("game-review-why-score", frame); }
+            finally { frame.recycle(); }
+        }
+        var observed = visibleReviewNode(R.id.game_review_reason);
+        compare("Why shows both expected scores and search depth when the line proves no concrete reason",
+                List.of(expected, true), List.of(observed == null ? "missing" : String.valueOf(observed.getText()), frame != null));
     }
 
     private void checkReviewExplanationRestore() throws Exception {

@@ -29,8 +29,6 @@ public final class ReleaseEvidence {
         }
     }
 
-    public record Suite(String commit, String installedApkSha256, int assertions, boolean passed, String htmlSha256, Path html) { }
-
     public record Download(String tagCommit, String readmeCommit, String readme, String repository,
                            String assetUrl, String accessMode, int httpStatus, Path apk) { }
 
@@ -41,12 +39,6 @@ public final class ReleaseEvidence {
                                         String supplementalExtentSha256, Path supplementalExtent) { }
 
     private ReleaseEvidence() { }
-
-    public static void qualification(Candidate candidate, Path apk, Suite components, Suite android) throws IOException {
-        apk(candidate, apk);
-        suite(candidate, components, "components", "");
-        suite(candidate, android, "Android E2E", candidate.apkSha256());
-    }
 
     public static void installationException(Candidate candidate, InstallationException exception) throws IOException {
         require(exception != null, "Missing exact-install exception receipt");
@@ -69,13 +61,6 @@ public final class ReleaseEvidence {
         require(exception.supplementalExtent() != null && Files.isRegularFile(exception.supplementalExtent())
                         && digest(exception.supplementalExtent()).equals(exception.supplementalExtentSha256()),
                 "Supplemental Extent evidence is missing or changed");
-    }
-
-    private static void suite(Candidate candidate, Suite suite, String name, String installedApk) throws IOException {
-        require(suite != null, "Missing " + name + " receipt");
-        require(candidate.commit().equals(suite.commit()) && installedApk.equals(suite.installedApkSha256()), "Wrong candidate in " + name);
-        require(suite.passed() && suite.assertions() > 0, "Missing passing assertions in " + name);
-        require(Files.isRegularFile(suite.html()) && digest(suite.html()).equals(suite.htmlSha256()), "Extent hash mismatch in " + name);
     }
 
     public static void publication(Candidate candidate, Download download) throws IOException {
@@ -127,7 +112,7 @@ public final class ReleaseEvidence {
         return List.copyOf(links);
     }
 
-    private static void apk(Candidate candidate, Path apk) throws IOException {
+    static void apk(Candidate candidate, Path apk) throws IOException {
         require(Files.isRegularFile(apk) && Files.size(apk) == candidate.apkBytes()
                 && digest(apk).equals(candidate.apkSha256()), "APK bytes or SHA-256 differ from qualification");
         try (var zip = new ZipFile(apk.toFile())) {

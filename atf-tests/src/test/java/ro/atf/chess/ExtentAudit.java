@@ -91,7 +91,9 @@ final class ExtentAudit implements InvocationInterceptor, ParameterResolver, Aft
             var settings = AtfReportConfigurationLoader.load().reportingSettings();
             String selection = TestRunScope.selected(context) == TestRunScope.SUITE
                     ? context.getConfigurationParameter("chess.suite").orElse("JUnit suite") : "Direct JUnit selection";
-            return new SuiteReport(context.getConfigurationParameter("chess.extent").orElse(""), settings, selection);
+            return new SuiteReport(context.getConfigurationParameter("chess.extent").orElse(""), settings, selection,
+                    context.getConfigurationParameter("chess.qualification.commit").orElse(""),
+                    context.getConfigurationParameter("chess.qualification.runId").orElse(""));
         } catch (IOException error) {
             throw new UncheckedIOException(error);
         }
@@ -134,16 +136,17 @@ final class ExtentAudit implements InvocationInterceptor, ParameterResolver, Aft
     private static final class SuiteReport implements ExtensionContext.Store.CloseableResource {
         private final ExtentReportSession session;
 
-        SuiteReport(String configured, ReportingSettings settings, String selection) throws IOException {
+        SuiteReport(String configured, ReportingSettings settings, String selection, String commit, String runId) throws IOException {
             Path path = configured.isBlank() ? Files.createTempDirectory("j7-extent-").resolve("components.html") : Path.of(configured).toAbsolutePath();
             if (Files.exists(path)) throw new IOException("Use a fresh Extent path: " + path);
             Files.createDirectories(path.getParent());
             var environment = ReportEnvironmentSnapshot.builder()
                     .put(ReportEnvironmentField.PROFILE, selection)
-                    .put(ReportEnvironmentField.ASSERTION_PREVIEW, settings.assertionMaxDisplayCharacters() + " characters")
-                    .build();
+                    .put(ReportEnvironmentField.ASSERTION_PREVIEW, settings.assertionMaxDisplayCharacters() + " characters");
+            if (!commit.isBlank()) environment.put(ReportEnvironmentField.SOURCE_BUILD, commit);
+            if (!runId.isBlank()) environment.put(ReportEnvironmentField.PRECONDITION, runId);
             session = new ExtentReportSession(path, settings);
-            session.updateEnvironment(environment);
+            session.updateEnvironment(environment.build());
             System.out.println("J7 component Extent: " + path);
         }
 

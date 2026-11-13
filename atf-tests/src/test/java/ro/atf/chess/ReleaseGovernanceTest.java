@@ -1,13 +1,23 @@
 package ro.atf.chess;
 
+import atf.reporting.configuration.AtfReportConfigurationLoader;
+import atf.reporting.configuration.ReportEnvironmentField;
+import atf.reporting.configuration.ReportEnvironmentSnapshot;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.extent.session.ExtentReportSession;
 import atf.testkit.AtfComponentTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.jsoup.Jsoup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -17,7 +27,6 @@ import ro.atf.chess.release.ReleaseEvidence;
 import ro.atf.chess.release.ReleaseEvidence.Candidate;
 import ro.atf.chess.release.ReleaseEvidence.Download;
 import ro.atf.chess.release.ReleaseEvidence.InstallationException;
-import ro.atf.chess.release.ReleaseEvidence.Suite;
 import ro.atf.chess.release.ReleaseGate;
 import ro.atf.chess.release.ReleaseRag;
 
@@ -54,6 +63,11 @@ class ReleaseGovernanceTest {
     }
     private static final String SOURCE = "1".repeat(40);
     private static final String OTHER = "2".repeat(40);
+    private static final String RUN_ID = "3".repeat(32);
+    private static final String FOREIGN_RUN_ID = "4".repeat(32);
+    private static final String COMPONENT_SUITE = "ro.atf.chess.suites.ChessComponentSuite";
+    private static final String COMPONENT_CLASS = "ro.atf.chess.ExampleTest";
+    private static final String COMPONENT_METHOD = "recordsPosition";
     private static final String REPOSITORY = "example/atf_j7";
     private static final String BASE = "https://github.com/" + REPOSITORY + "/releases/";
     private static final String URL = BASE + "download/v0.1.0/ChessLab-0.1.0.apk";
@@ -62,8 +76,6 @@ class ReleaseGovernanceTest {
 
     @TempDir Path folder;
     private Candidate candidate;
-    private Suite components;
-    private Suite android;
     private Path apk;
 
     @BeforeEach void fixture() throws IOException {
@@ -76,82 +88,152 @@ class ReleaseGovernanceTest {
             }
         }
         candidate = new Candidate("0.1.0", SOURCE, Files.size(apk), ReleaseEvidence.digest(apk));
-        components = suite("components", "");
-        android = suite("android", candidate.apkSha256());
     }
 
-    @Test void candidateRequiresEvidenceFromTheSameCommitAndBinary(Checks check) throws IOException {
-        check.same("Consistent fixture qualifies", "accepted", decision(() -> ReleaseEvidence.qualification(candidate, apk, components, android)));
-        check.same("Foreign component commit blocks", "Wrong candidate in components", decision(() -> ReleaseEvidence.qualification(candidate, apk,
-                new Suite(OTHER, "", 3, true, components.htmlSha256(), components.html()), android)));
-        check.same("Foreign installed APK blocks", "Wrong candidate in Android E2E", decision(() -> ReleaseEvidence.qualification(candidate, apk,
-                components, new Suite(SOURCE, "0".repeat(64), 3, true, android.htmlSha256(), android.html()))));
-        check.same("Missing native receipt blocks", "Missing Android E2E receipt", decision(() -> ReleaseEvidence.qualification(candidate, apk, components, null)));
-        check.same("Empty native assertions block even with PASS flag", "Missing passing assertions in Android E2E", decision(() -> ReleaseEvidence.qualification(
-                candidate, apk, components, new Suite(SOURCE, candidate.apkSha256(), 0, true, android.htmlSha256(), android.html()))));
-        Files.writeString(components.html(), "Substituted report");
-        check.same("Changed Extent bytes block", "Extent hash mismatch in components", decision(() -> ReleaseEvidence.qualification(candidate, apk, components, android)));
+    @Test void qualificationRequiresResultsInBothExtentReports(Checks check) throws Exception {
+        var evidence = qualificationFixture();
+        check.same("Passing raw receipts and both rendered results qualify the candidate", "accepted",
+                decision(() -> qualify(evidence)));
+
+        Path emptyComponents = withoutAssertions(evidence.componentExtent(), "components-without-results.html");
+        check.rejects("A PASS in component Extent cannot substitute for rendered results", IOException.class,
+                () -> qualify(new QualificationFixture(evidence.components(), emptyComponents, evidence.nativeRun(), evidence.nativeExtent())));
+        Path emptyAndroid = withoutAssertions(evidence.nativeExtent(), "android-without-results.html");
+        check.rejects("A PASS in Android Extent cannot substitute for rendered results", IOException.class,
+                () -> qualify(new QualificationFixture(evidence.components(), evidence.componentExtent(), evidence.nativeRun(), emptyAndroid)));
+        check.rejects("The old caller-supplied status and count cannot bypass raw validation", IllegalArgumentException.class,
+                () -> ReleaseGate.main(new String[]{"qualification", candidate.version(), SOURCE, apk.toString(),
+                        SOURCE, "1", "PASS", ReleaseEvidence.digest(evidence.componentExtent()), evidence.componentExtent().toString(),
+                        SOURCE, candidate.apkSha256(), "30", "PASS", ReleaseEvidence.digest(evidence.nativeExtent()), evidence.nativeExtent().toString()}));
+    }
+
+    private Path withoutAssertions(Path extent, String file) throws IOException {
+        var report = Jsoup.parse(extent, "UTF-8");
+        report.outputSettings().prettyPrint(false);
+        report.select(".atf-ui-assertions").remove();
+        return Files.writeString(folder.resolve(file), report.outerHtml());
+    }
+
+    @Test void qualificationRejectsNativeEvidenceFromAnotherRunOfTheSameBuild(Checks check) throws Exception {
+        var evidence = qualificationFixture();
+        Path foreignRun = Files.createDirectory(folder.resolve("foreign-native"));
+        Path foreignReceipt = AndroidReceiptTest.releaseReviewReceipt(foreignRun, SOURCE, candidate.apkSha256(), FOREIGN_RUN_ID);
+        AndroidSanityPublication.publishGameReview(foreignReceipt);
+        Path foreignExtent = foreignRun.resolve("android-game-review.html");
+        check.rejects("A complete matching APK and commit cannot qualify under another execution ID", IOException.class,
+                () -> qualify(new QualificationFixture(evidence.components(), evidence.componentExtent(), foreignRun, foreignExtent)));
+        check.rejects("A valid Extent report from another run cannot cover this run's raw receipts", IOException.class,
+                () -> qualify(new QualificationFixture(evidence.components(), evidence.componentExtent(), evidence.nativeRun(), foreignExtent)));
+        Path restore = evidence.nativeRun().resolve("why-restore");
+        Path foreignRestore = foreignRun.resolve("why-restore");
+        for (String name : List.of("game-review-why-restore.txt", "execution.json", "game-review-why-restore.png")) {
+            Files.copy(foreignRestore.resolve(name), restore.resolve(name), StandardCopyOption.REPLACE_EXISTING);
+        }
+        check.rejects("A full restore phase from another run cannot join two passing local phases", IOException.class,
+                () -> qualify(evidence));
+    }
+
+    @Test void qualificationRecomputesNativeResultsFromTheRawReceipt(Checks check) throws Exception {
+        var evidence = qualificationFixture();
+        Path why = evidence.nativeRun().resolve("why");
+        Path receipt = why.resolve("game-review-why.txt");
+        String original = Files.readString(receipt);
+        Files.delete(receipt);
+        check.rejects("A passing Extent report cannot cover a missing native phase receipt", IOException.class,
+                () -> qualify(evidence));
+        Files.writeString(receipt, original.replaceFirst("true\ttrue\ttrue", "true\tfalse\ttrue"));
+        Path executionPath = why.resolve("execution.json");
+        var mapper = new ObjectMapper();
+        var execution = (ObjectNode) mapper.readTree(executionPath.toFile());
+        execution.put("receiptSha256", ReleaseEvidence.digest(receipt));
+        mapper.writeValue(executionPath.toFile(), execution);
+        check.rejects("A rehashed raw row with unequal values cannot borrow a passing verdict from Extent", IOException.class,
+                () -> qualify(evidence));
+        Files.writeString(receipt, original);
+        execution.put("receiptSha256", ReleaseEvidence.digest(receipt));
+        execution.put("apkSha256", "0".repeat(64));
+        mapper.writeValue(executionPath.toFile(), execution);
+        check.rejects("A passing phase for another APK cannot qualify", IOException.class, () -> qualify(evidence));
+    }
+
+    @Test void qualificationRecomputesComponentResultsFromTheRawSuite(Checks check) throws Exception {
+        var evidence = qualificationFixture();
+        Path receipt = evidence.components().resolve("TEST-" + COMPONENT_CLASS + ".xml");
+        String original = Files.readString(receipt);
+        Files.delete(receipt);
+        check.rejects("The empty suite aggregate and a passing Extent cannot cover missing component results", IOException.class,
+                () -> qualify(evidence));
+        Files.writeString(receipt, original.replace(COMPONENT_METHOD, "recordsAnotherPosition"));
+        check.rejects("The same component count cannot substitute for a different testcase", IOException.class,
+                () -> qualify(evidence));
+        Files.writeString(receipt, original.replace(RUN_ID, FOREIGN_RUN_ID));
+        check.rejects("Component results from another run of the same candidate cannot qualify", IOException.class,
+                () -> qualify(evidence));
+        Files.writeString(receipt, original.replace(SOURCE, OTHER));
+        check.rejects("Component results from another commit cannot qualify", IOException.class, () -> qualify(evidence));
     }
 
     @Test void exactInstallExceptionIsNarrowExplicitAndBackedBySupplementalExtent(Checks check) throws IOException {
+        Path supplementalExtent = Files.writeString(folder.resolve("android.html"), "<html>android fixture</html>");
+        String supplementalExtentSha = ReleaseEvidence.digest(supplementalExtent);
         String supplementalApk = "3".repeat(64);
         InstallationException exception = exception("PUBLISHED_WITH_INSTALL_EXCEPTION", "exact-distribution-install",
                 "USER_DIRECTED_MAIN_README_PUBLICATION", "The available emulator retains the prior signer and user data.",
                 SOURCE, candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
-                android.htmlSha256(), android.html());
+                supplementalExtentSha, supplementalExtent);
         check.same("Explicit publication exception accepts supplemental evidence without claiming exact install",
                 "accepted", decision(() -> ReleaseEvidence.installationException(candidate, exception)));
         check.same("Unscoped exception cannot bypass exact APK install", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception("PASS", exception.scope(), exception.authorization(), exception.reason(), SOURCE,
                                 candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), android.html()))).contains("outside its narrow scope"));
+                                supplementalExtentSha, supplementalExtent))).contains("outside its narrow scope"));
         check.same("Publication needs the user's explicit direction", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), "UNAUTHORIZED", exception.reason(), SOURCE,
                                 candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), android.html()))).contains("explicit publication direction"));
+                                supplementalExtentSha, supplementalExtent))).contains("explicit publication direction"));
         check.same("Publication exception must explain the blocked installation", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), exception.authorization(), " ", SOURCE,
                                 candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), android.html()))).contains("no concrete reason"));
+                                supplementalExtentSha, supplementalExtent))).contains("no concrete reason"));
         check.same("A different candidate commit blocks the exception", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), OTHER,
                                 candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), android.html()))).contains("another source commit"));
+                                supplementalExtentSha, supplementalExtent))).contains("another source commit"));
         check.same("A different distribution APK blocks the exception", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
                                 "4".repeat(64), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), android.html()))).contains("another distribution APK"));
+                                supplementalExtentSha, supplementalExtent))).contains("another distribution APK"));
         check.same("Supplemental sanity cannot masquerade as the distribution APK", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
                                 candidate.apkSha256(), candidate.apkSha256(), 94, false, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), android.html()))).contains("different APK"));
+                                supplementalExtentSha, supplementalExtent))).contains("different APK"));
         check.same("Zero supplemental assertions cannot justify the exception", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
                                 candidate.apkSha256(), supplementalApk, 0, false, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), android.html()))).contains("only supplemental assertions"));
+                                supplementalExtentSha, supplementalExtent))).contains("only supplemental assertions"));
         check.same("Exception must never claim the distribution APK was installed", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
                                 candidate.apkSha256(), supplementalApk, 94, true, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), android.html()))).contains("only supplemental assertions"));
+                                supplementalExtentSha, supplementalExtent))).contains("only supplemental assertions"));
         check.same("An inconsistent signing transition blocks the exception", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
                                 candidate.apkSha256(), supplementalApk, 94, false, "UPGRADE_COMPATIBLE",
-                                android.htmlSha256(), android.html()))).contains("inconsistent signing transition"));
+                                supplementalExtentSha, supplementalExtent))).contains("inconsistent signing transition"));
         Path changedExtent = Files.writeString(folder.resolve("changed-android.html"), "not the supplied Extent");
         check.same("Changed supplemental Extent bytes block the exception", true,
                 decision(() -> ReleaseEvidence.installationException(candidate,
                         exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
                                 candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
-                                android.htmlSha256(), changedExtent))).contains("missing or changed"));
+                                supplementalExtentSha, changedExtent))).contains("missing or changed"));
     }
 
     @Test void signingPreflightRejectsMissingAndNonPassingGovernanceReceipts(Checks check) throws IOException {
@@ -358,6 +440,7 @@ class ReleaseGovernanceTest {
     }
 
     @Test void gameReviewRoutesToItsComponentGovernanceAndSignedAndroidChecks(Checks check) throws IOException {
+        String nativeHarness = "android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java";
         var paths = List.of("chess-core/src/main/java/ro/atf/chess/GameReview.java",
                 "chess-core/src/main/java/ro/atf/chess/GameReviewTimeline.java", "chess-core/src/main/resources/opening-book.tsv",
                 "chess-core/src/main/java/ro/atf/chess/GameReviewLayout.java",
@@ -365,9 +448,13 @@ class ReleaseGovernanceTest {
                 "chess-core/src/main/java/ro/atf/chess/GameReviewExplanation.java",
                 "chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java",
                 "docs/board/game-review.md",
+                "atf-tests/src/test/java/ro/atf/chess/GameReviewTest.java",
+                "atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java",
+                "atf-tests/src/test/java/ro/atf/chess/GameReviewLayoutTest.java",
                 "atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java",
+                "atf-tests/src/test/java/ro/atf/chess/GameReviewGovernanceTest.java",
                 "android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java",
-                "android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java");
+                "android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java", nativeHarness);
         var root = ProjectRoot.locate();
         String reviewCheck = "GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, "
                 + "GameReviewGovernanceTest, MatchStoreTest și BoardSanity -Distribution -GameReviewOnly";
@@ -381,6 +468,30 @@ class ReleaseGovernanceTest {
         check.same("Game review changes cite the signed scenario and JVM coverage once",
                 List.of(reviewCheck),
                 citations.stream().map(ReleaseRag.Citation::check).toList());
+        check.same("The shared Android harness retains its general sanity guidance",
+                List.of("BoardSanity"), ReleaseRag.retrieve(root, List.of(nativeHarness)).stream()
+                        .filter(citation -> citation.heading().equals("## Sanity Android"))
+                        .map(ReleaseRag.Citation::check).toList());
+    }
+
+    @Test void eachTacticalHoldoutAssetCitesItsOwnerAndIndependentChecks(Checks check) throws IOException {
+        var root = ProjectRoot.locate();
+        var paths = List.of("atf-tests/src/test/resources/tactical-transfer-holdout.yaml",
+                "atf-tests/src/test/resources/tactical-transfer-holdout.sha256");
+        for (var path : paths) {
+            var citations = ReleaseRag.retrieve(root, List.of(path));
+            check.same(path + " cites the independent tactical corpus owner and tests",
+                    List.of("QuestCatalogTest, TacticsCatalogTest și HardQuestTransferBenchmarkTest"),
+                    citations.stream().filter(citation -> citation.path().equals("docs/board/quest-curation.md")
+                            && citation.heading().equals("## Antrenament tactic și lot de verificare"))
+                            .map(ReleaseRag.Citation::check).toList());
+        }
+        check.same("Changing both files cites the independent checks once", 1L,
+                ReleaseRag.retrieve(root, paths).stream()
+                        .filter(citation -> citation.path().equals("docs/board/quest-curation.md")).count());
+        check.same("An unrelated sibling retains the general JVM route", List.of("## Suite JVM"),
+                ReleaseRag.retrieve(root, List.of("atf-tests/src/test/resources/tactical-transfer-holdout.notes")).stream()
+                        .map(ReleaseRag.Citation::heading).toList());
     }
 
     @Test void questStorageRoutesToOfflineContractsAndTheNativeRestart(Checks check) throws IOException {
@@ -412,9 +523,55 @@ class ReleaseGovernanceTest {
                 citations.stream().filter(item -> item.heading().equals("## Progresul problemelor")).map(ReleaseRag.Citation::check).toList());
     }
 
-    private Suite suite(String name, String installedApk) throws IOException {
-        Path html = Files.writeString(folder.resolve(name + ".html"), "<html>" + name + " fixture</html>");
-        return new Suite(SOURCE, installedApk, 3, true, ReleaseEvidence.digest(html), html);
+    private record QualificationFixture(Path components, Path componentExtent, Path nativeRun, Path nativeExtent) { }
+
+    private QualificationFixture qualificationFixture() throws Exception {
+        Path reports = Files.createDirectory(folder.resolve("surefire-reports"));
+        String properties = """
+                <properties>
+                  <property name="test" value="ChessComponentSuite"/>
+                  <property name="chess.qualification.commit" value="%s"/>
+                  <property name="chess.qualification.runId" value="%s"/>
+                </properties>
+                """.formatted(SOURCE, RUN_ID);
+        writeSuiteReceipt(reports, COMPONENT_SUITE, properties, 0, "");
+        writeSuiteReceipt(reports, COMPONENT_CLASS, properties, 1,
+                "<testcase classname=\"" + COMPONENT_CLASS + "\" name=\"" + COMPONENT_METHOD + "\" time=\"0.01\"/>");
+
+        Path componentExtent = folder.resolve("qualification-components.html");
+        var settings = AtfReportConfigurationLoader.load().reportingSettings();
+        try (var session = new ExtentReportSession(componentExtent, settings)) {
+            session.updateEnvironment(ReportEnvironmentSnapshot.builder()
+                    .put(ReportEnvironmentField.PROFILE, "ChessComponentSuite")
+                    .put(ReportEnvironmentField.SOURCE_BUILD, SOURCE)
+                    .put(ReportEnvironmentField.PRECONDITION, RUN_ID).build());
+            try (var scenario = session.startScenario("ExampleTest", COMPONENT_METHOD, List.of("chess", "component"));
+                 var phase = scenario.startPhase("TEST BODY");
+                 var step = phase.startAssertionStep("Assertions")) {
+                step.assertions(List.of(new AtfAssertion("The restored position matches", "e4", "e4", true)));
+                step.complete(AtfReportStatus.PASS);
+                phase.complete(AtfReportStatus.PASS);
+                scenario.complete(AtfReportStatus.PASS);
+            }
+        }
+
+        Path nativeRun = Files.createDirectory(folder.resolve("native"));
+        Path nativeReceipt = AndroidReceiptTest.releaseReviewReceipt(nativeRun, SOURCE, candidate.apkSha256(), RUN_ID);
+        AndroidSanityPublication.publishGameReview(nativeReceipt);
+        return new QualificationFixture(reports, componentExtent, nativeRun, nativeRun.resolve("android-game-review.html"));
+    }
+
+    private static void writeSuiteReceipt(Path reports, String suite, String properties, int tests, String cases) throws IOException {
+        Files.writeString(reports.resolve("TEST-" + suite + ".xml"), """
+                <testsuite name="%s" tests="%d" failures="0" errors="0" skipped="0">
+                  %s%s
+                </testsuite>
+                """.formatted(suite, tests, properties, cases));
+    }
+
+    private void qualify(QualificationFixture evidence) throws IOException {
+        ReleaseGate.main(new String[]{"qualification", candidate.version(), candidate.commit(), apk.toString(), evidence.components().toString(),
+                evidence.componentExtent().toString(), evidence.nativeRun().toString(), evidence.nativeExtent().toString()});
     }
 
     private InstallationException exception(String status, String scope, String authorization, String reason,

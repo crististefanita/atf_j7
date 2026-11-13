@@ -35,10 +35,11 @@ public final class ReleaseGate {
         var candidate = new ReleaseEvidence.Candidate(args[1], args[2], Files.size(apk), ReleaseEvidence.digest(apk));
         switch (args[0]) {
             case "qualification" -> {
-                if (args.length != 15) throw new IllegalArgumentException("Expected component and Android suite receipts");
-                var components = new ReleaseEvidence.Suite(args[4], "", Integer.parseInt(args[5]), "PASS".equals(args[6]), args[7], Path.of(args[8]));
-                var android = new ReleaseEvidence.Suite(args[9], args[10], Integer.parseInt(args[11]), "PASS".equals(args[12]), args[13], Path.of(args[14]));
-                ReleaseEvidence.qualification(candidate, apk, components, android);
+                if (args.length != 8) throw new IllegalArgumentException("Expected component Surefire directory, component Extent, Android run directory and Android Extent");
+                ReleaseEvidence.apk(candidate, apk);
+                var android = NativeQualification.verify(candidate, Path.of(args[6]), Path.of(args[7]));
+                int components = ComponentQualification.verify(candidate, android.runId(), Path.of(args[4]), Path.of(args[5]));
+                System.out.printf("QUALIFIED runId=%s components=%d android=%d%n", android.runId(), components, android.assertions());
             }
             case "publication" -> {
                 if (args.length != 12) throw new IllegalArgumentException("Expected GitHub tag, README and download receipts");

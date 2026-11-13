@@ -30,6 +30,7 @@ class AndroidSanityPublication {
     private static final Pattern CHECK = Pattern.compile("^INSTRUMENTATION_RESULT: check_(\\d{2})=(.*)$");
     private static final String LONG_GRAPH_CHECK = "A plotted point in a 185-ply review selects ply 184 on the board and highlights its move row";
     private static final List<String> REVIEW_EXPLANATION_CHECKS = List.of(
+            "Why shows both expected scores and search depth when the line proves no concrete reason",
             "Why names the mating queen on h4 for the archived g4 blunder",
             "The recommended branch starts before g4 and replays its first legal move",
             "The played branch replays g4 and the mating reply from the same starting position",
@@ -109,8 +110,9 @@ class AndroidSanityPublication {
                         new Frame("game-review-line.png", "Recommended line marked on the board"),
                         new Frame("game-review-comparison.png", "Move counts by type · player and AI"),
                         new Frame("game-review-actions.png", "In-game options · offer draw and resign")));
-        var whyRun = reviewRun("game-review-why", "Explain the blunder and explore both lines before restart", why, 4,
-                REVIEW_EXPLANATION_CHECKS, List.of(new Frame("game-review-why.png", "Why g4 allows mate on h4"),
+        var whyRun = reviewRun("game-review-why", "Compare both scores and explore the blunder before restart", why, 5,
+                REVIEW_EXPLANATION_CHECKS, List.of(new Frame("game-review-why-score.png", "Expected scores and depth after f3"),
+                        new Frame("game-review-why.png", "Why g4 allows mate on h4"),
                         new Frame("game-review-why-recommended.png", "Recommended branch · first move")));
         var restoredRun = reviewRun("game-review-why-restore", "Resume the archived analysis and confirm a separate continuation", restored, 2,
                 REVIEW_RESTORE_CHECKS, List.of(new Frame("game-review-why-restore.png", "Reopened played branch · mating reply")));
@@ -118,7 +120,7 @@ class AndroidSanityPublication {
         boolean restarted = !whyRun.evidence().pid().isEmpty() && !restoredRun.evidence().pid().isEmpty()
                 && !whyRun.evidence().pid().equals(restoredRun.evidence().pid());
         boolean sameExecution = runs.stream().allMatch(run -> !run.identity().isEmpty()
-                && List.of("apkSha256", "sourceCommit", "variant", "device", "api").stream()
+                && List.of("runId", "apkSha256", "sourceCommit", "variant", "device", "api").stream()
                         .allMatch(field -> run.execution().path(field).equals(reviewRun.execution().path(field))));
         boolean complete = restarted && sameExecution;
         var acceptedCaptures = new HashSet<String>();
@@ -129,12 +131,13 @@ class AndroidSanityPublication {
             publish(phase, "Android process restart and execution identity", List.of(
                     new AtfAssertion("Explanation and restore process IDs", "Two distinct Android PIDs",
                             whyRun.evidence().pid() + " → " + restoredRun.evidence().pid(), restarted),
-                    new AtfAssertion("All phases belong to the same execution", "Matching APK, source, variant, device and API",
-                            sameExecution ? "Matching APK, source, variant, device and API" : "Missing or mismatched identity", sameExecution)),
+                    new AtfAssertion("All phases belong to the same execution", "Matching run ID, APK, source, variant, device and API",
+                            sameExecution ? "Matching run ID, APK, source, variant, device and API" : "Missing or mismatched phase run identity", sameExecution)),
                     complete);
             for (var run : runs) {
                 if (!run.identity().isEmpty()) {
                     var audit = new ArrayList<>(run.identity());
+                    audit.add(new ReportField("Run ID", run.execution().path("runId").asText()));
                     audit.add(new ReportField("Android process", run.evidence().pid()));
                     phase.observation(new ReportObservation(run.scope() + " execution identity", audit, List.of(), List.of()));
                 }
@@ -154,8 +157,13 @@ class AndroidSanityPublication {
                                        List<Frame> frames) throws IOException, java.security.NoSuchAlgorithmException {
         var evidence = requireChecks(readPhase(receipt, scope, checks), scope, required, "Game Review");
         var execution = readExecution(receipt.resolveSibling("execution.json"));
-        String receiptHash = Files.isRegularFile(receipt) ? sha256(Files.readAllBytes(receipt)) : "";
-        return new ReviewRun(scope, title, receipt, evidence, execution, menuIdentity(execution, scope, receiptHash, checks), frames);
+        boolean hasReceipt = Files.isRegularFile(receipt);
+        String receiptHash = hasReceipt ? sha256(Files.readAllBytes(receipt)) : "";
+        String runId = execution.path("runId").asText();
+        boolean bound = runId.matches("[a-f0-9]{32}") && hasReceipt
+                && markerValues(Files.readAllLines(receipt), "INSTRUMENTATION_RESULT: runId=").equals(List.of(runId));
+        var identity = bound ? menuIdentity(execution, scope, receiptHash, checks) : List.<ReportField>of();
+        return new ReviewRun(scope, title, receipt, evidence, execution, identity, frames);
     }
 
     private static boolean publishReviewFrame(atf.reporting.contract.AtfReportPorts.Phase phase, ReviewRun run, Frame frame,

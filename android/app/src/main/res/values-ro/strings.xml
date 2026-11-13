@@ -249,11 +249,12 @@
     <string name="game_review_why">De ce?</string>
     <string name="game_review_hide_why">Ascunde explicația</string>
     <string name="game_review_played_branch">Jucată</string>
+    <string name="game_review_played_branch_description">Varianta calculată după mutarea jucată</string>
     <string name="game_review_recommended_branch">Recomandată</string>
-    <string name="game_review_why_score">%1$s pierde %2$.1f puncte procentuale din scorul estimat, la adâncimea %3$d.</string>
+    <string name="game_review_why_score">Scor estimat pentru %1$s. Jucată %2$.1f%% · Recomandată %3$.1f%% · Adâncime %4$d semimutări</string>
     <string name="game_review_why_allows_mate">În linia jucată, %1$s %2$s# dă mat.</string>
     <string name="game_review_why_misses_mate">În linia recomandată, %1$s %2$s# dă mat.</string>
-    <string name="game_review_why_material">În linia jucată, %1$s capturează pe %2$s (%3$s). Pierderea netă de material este de %4$.2f pioni.</string>
+    <string name="game_review_why_material">Captura decisivă în linia jucată: %1$s ia %3$s pe %2$s. Linia pierde în total material de %4$.0f pioni.</string>
     <string name="game_review_line_step">Varianta recomandată · %1$d / %2$d</string>
     <string name="game_review_line_ready">Varianta recomandată · %1$d mutări</string>
     <string name="game_review_line_next_move">Urmează: %1$s</string>

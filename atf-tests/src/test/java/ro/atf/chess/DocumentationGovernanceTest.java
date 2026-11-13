@@ -1,7 +1,10 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,10 +14,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathNodes;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.xml.sax.InputSource;
 import ro.atf.chess.release.ReleaseEvidence;
 
 @AtfComponentTest
@@ -24,6 +32,10 @@ class DocumentationGovernanceTest {
     private static final Pattern LINK = Pattern.compile("\\]\\(([^)\\s]+)\\)");
     private static final Pattern HEADING = Pattern.compile("^#{1,6}\\s+(.+)$");
     private static final Pattern FENCE = Pattern.compile("^(`{3,}|~{3,})(.*)$");
+    private static final Pattern CODE_SPAN = Pattern.compile("`([^`]+)`");
+    private static final Pattern GRADLE_INCLUDE = Pattern.compile("(?m)^\\h*include\\h*\\(?([^\\r\\n]*)");
+    private static final Pattern GRADLE_SOURCE = Pattern.compile("(?m)^\\h*sourceSets\\.main\\.(java|resources)\\.srcDir\\h*(['\"])([^'\"]+)\\2\\h*$");
+    private static final Pattern GRADLE_LITERAL = Pattern.compile("(['\"])([^'\"]+)\\1");
 
     @TempDir Path folder;
 
@@ -35,10 +47,14 @@ class DocumentationGovernanceTest {
             for (Path library : libraries) if (Files.isRegularFile(library)) documents.add(library);
         }
         String tag = ReleaseEvidence.gameLinks(Files.readString(readme)).getFirst();
-        Path release = root.resolve("release").resolve(tag.substring(tag.lastIndexOf('/') + 2));
-        documents.add(release.resolve("README.md"));
-        Path reports = release.resolve("reports/README.md");
-        if (Files.isRegularFile(reports)) documents.add(reports);
+        String current = tag.substring(tag.lastIndexOf('/') + 2);
+        String previous = jsonValue(Files.readString(root.resolve("release/index.json")), "previousVersion");
+        for (String version : List.of(current, previous)) {
+            if (!version.matches("[0-9]+\\.[0-9]+\\.[0-9]+")) continue;
+            Path release = root.resolve("release").resolve(version);
+            documents.add(release.resolve("README.md"));
+            documents.add(release.resolve("reports/README.md"));
+        }
         try (var paths = Files.walk(root.resolve("docs"))) {
             paths.filter(path -> path.toString().endsWith(".md")).sorted().forEach(documents::add);
         }
@@ -50,7 +66,7 @@ class DocumentationGovernanceTest {
             }
             for (String broken : brokenLinks(root, document)) failures.add(root.relativize(document) + " → " + broken);
         }
-        check.same("All local links in current guides, release process and feedback resolve", List.of(), failures);
+        check.same("Local links resolve in the guides, both retained editions and feedback", List.of(), failures);
     }
 
     @Test void mainReadmeLinksOnlyToAReleaseWithCompletePublicationEvidence(Checks check) throws IOException {
@@ -82,13 +98,11 @@ class DocumentationGovernanceTest {
             String apkBytes = "";
             boolean qualifiedOrException = false;
             if (Files.isRegularFile(qualification)) {
-                String qualified = Files.readString(qualification);
-                sourceCommit = jsonValue(qualified, "sourceCommit");
-                apkSha = jsonValue(qualified, "apkSha256");
-                apkBytes = jsonValue(qualified, "apkBytes");
-                qualifiedOrException = jsonValue(qualified, "qualificationGate").equals("PASS")
-                        && sourceCommit.matches("[a-f0-9]{40}") && apkSha.matches("[a-f0-9]{64}")
-                        && apkBytes.matches("[0-9]+");
+                var candidate = ArchivedReleaseEvidence.verify(reports, tag.substring(1));
+                sourceCommit = candidate.commit();
+                apkSha = candidate.apkSha256();
+                apkBytes = Long.toString(candidate.apkBytes());
+                qualifiedOrException = true;
             } else if (List.of(buildArtifact, installationException, supplementalSanity, supplementalExecution,
                     signingTransition, supplementalExtent).stream().allMatch(Files::isRegularFile)) {
                 String build = Files.readString(buildArtifact);
@@ -161,6 +175,59 @@ class DocumentationGovernanceTest {
         }
         check.same("The main README links only to a release with strict qualification or a scoped, evidenced install exception and complete downloads",
                 true, complete);
+    }
+
+    @Test void strictReleaseRejectsChangedReportsAndForeignAndroidReceipts(Checks check) throws IOException {
+        Path reports = Files.createDirectory(folder.resolve("reports"));
+        Path components = reports.resolve("components.html");
+        Path android = reports.resolve("android-game-review.html");
+        Path execution = reports.resolve("game-review-execution.json");
+        Files.writeString(components, "<html><body>Component evidence</body></html>");
+        String nativeReport = "<html><body>Android evidence</body></html>";
+        Files.writeString(android, nativeReport);
+        String commit = "a".repeat(40);
+        String apk = "b".repeat(64);
+        var json = new ObjectMapper();
+        var qualified = json.createObjectNode().put("version", "0.13.3").put("qualificationGate", "PASS")
+                .put("sourceCommit", commit).put("apkSha256", apk).put("apkBytes", 1042)
+                .put("componentTests", 7).put("componentExtentSha256", ReleaseEvidence.digest(components));
+        var nativeQualification = qualified.putObject("android").putObject("game-review")
+                .put("sourceCommit", commit).put("nativeAssertions", 2).put("extentSha256", ReleaseEvidence.digest(android))
+                .put("report", android.getFileName().toString()).put("execution", execution.getFileName().toString());
+        Path qualification = reports.resolve("qualification.json");
+        json.writeValue(qualification.toFile(), qualified);
+        ObjectNode receipt = json.createObjectNode().put("status", "PASS").put("scope", "game-review")
+                .put("sourceCommit", commit).put("apkSha256", apk).put("variant", "release").put("assertions", 2);
+        json.writeValue(execution.toFile(), receipt);
+
+        check.same("The original local reports and receipt identify the qualified candidate",
+                new ReleaseEvidence.Candidate("0.13.3", commit, 1042, apk), ArchivedReleaseEvidence.verify(reports, "0.13.3"));
+        Files.writeString(components, "<html><body>Unrelated component report</body></html>");
+        check.rejects("A substituted component report is rejected", IOException.class,
+                () -> ArchivedReleaseEvidence.verify(reports, "0.13.3"));
+        Files.writeString(components, "<html><body>Component evidence</body></html>");
+        Files.writeString(android, "<html><body>Unrelated Android report</body></html>");
+        check.rejects("A different valid HTML report is rejected", IOException.class,
+                () -> ArchivedReleaseEvidence.verify(reports, "0.13.3"));
+        Files.delete(android);
+        check.rejects("A missing Android report is rejected", IOException.class,
+                () -> ArchivedReleaseEvidence.verify(reports, "0.13.3"));
+        Files.writeString(android, nativeReport);
+        receipt.put("sourceCommit", "c".repeat(40));
+        json.writeValue(execution.toFile(), receipt);
+        check.rejects("A foreign receipt with the same assertion count is rejected", IOException.class,
+                () -> ArchivedReleaseEvidence.verify(reports, "0.13.3"));
+        receipt.put("sourceCommit", commit).put("variant", "sanity");
+        json.writeValue(execution.toFile(), receipt);
+        check.rejects("A supplemental sanity receipt cannot stand in for release", IOException.class,
+                () -> ArchivedReleaseEvidence.verify(reports, "0.13.3"));
+        receipt.put("variant", "release");
+        json.writeValue(execution.toFile(), receipt);
+        Files.writeString(folder.resolve("external.html"), nativeReport);
+        nativeQualification.put("report", "../external.html");
+        json.writeValue(qualification.toFile(), qualified);
+        check.rejects("Even matching bytes outside the edition are rejected", IOException.class,
+                () -> ArchivedReleaseEvidence.verify(reports, "0.13.3"));
     }
 
     @Test void releaseCatalogKeepsTheCurrentAndOneComparisonVersion(Checks check) throws IOException {
@@ -254,6 +321,125 @@ class DocumentationGovernanceTest {
         Path root = ProjectRoot.locate();
         check.same("README.md: architecture owners, release, testing and feedback are directly navigable",
                 List.of(), missingReadmeRoutes(prose(root.resolve("README.md"))));
+    }
+
+    @Test void projectReadmeArchitectureMatchesTheExecutableBuild(Checks check) throws Exception {
+        Path root = ProjectRoot.locate();
+        var declarations = new BuildDeclarations(Files.readString(root.resolve("pom.xml")),
+                Files.readString(root.resolve("atf-tests/pom.xml")), Files.readString(root.resolve("android/settings.gradle")),
+                Files.readString(root.resolve("android/app/build.gradle")));
+        var readme = prose(root.resolve("README.md"));
+        check.same("README build topology agrees with Maven and Gradle declarations", List.of(), architectureDrift(readme, declarations));
+    }
+
+    @Test void documentedArchitectureRejectsMissingSourcesExtraModulesAndScopeDrift(Checks check) throws Exception {
+        var readme = List.of("## Arhitectura J7",
+                "- **Maven** compilează `atf-tests`, `chess-core/src/main/java`, `chess-core/src/main/resources` și `release-tools/src/main/java`.",
+                "- **Gradle** construiește `:app` din `chess-core/src/main/java` și",
+                "  `chess-core/src/main/resources`.",
+                "- **Biblioteci ATF** folosește `atf-reporting`, `atf-test-kit`, cu scope `test`.",
+                "## Puncte de intrare");
+        String reactor = "<project><modules><module>atf-tests</module></modules></project>";
+        String tests = """
+                <project><dependencies>
+                  <dependency><groupId>atf.api</groupId><artifactId>atf-reporting</artifactId><scope>test</scope></dependency>
+                  <dependency><groupId>atf.api</groupId><artifactId>atf-test-kit</artifactId><scope>test</scope></dependency>
+                </dependencies><build>
+                  <sourceDirectory>../chess-core/src/main/java</sourceDirectory>
+                  <resources><resource><directory>../chess-core/src/main/resources</directory></resource></resources>
+                  <plugins><plugin><groupId>org.codehaus.mojo</groupId><artifactId>build-helper-maven-plugin</artifactId>
+                    <executions><execution><goals><goal>add-source</goal></goals><configuration><sources>
+                      <source>../release-tools/src/main/java</source>
+                    </sources></configuration></execution></executions>
+                  </plugin></plugins>
+                </build></project>
+                """;
+        String settings = "include ':app'";
+        String gradle = """
+                sourceSets.main.java.srcDir '../../chess-core/src/main/java'
+                sourceSets.main.resources.srcDir '../../chess-core/src/main/resources'
+                """;
+        var intact = new BuildDeclarations(reactor, tests, settings, gradle);
+        check.same("The complete fixture agrees with its build", List.of(), architectureDrift(readme, intact));
+
+        var staleReadme = new ArrayList<>(readme);
+        staleReadme.set(3, "  `chess-core/src/main/catalog`.");
+        check.same("A renamed Gradle resource path in prose is detected", List.of("Gradle"), architectureDrift(staleReadme, intact));
+        check.same("An added Maven module invalidates the documented module set", List.of("Maven"), architectureDrift(readme,
+                new BuildDeclarations(reactor.replace("</modules>", "<module>chess-core</module></modules>"), tests, settings, gradle)));
+        check.same("A release-tools path under the wrong Maven goal is ignored", List.of("Maven"), architectureDrift(readme,
+                new BuildDeclarations(reactor, tests.replace("<goal>add-source</goal>", "<goal>add-test-source</goal>"), settings, gradle)));
+        check.same("A commented Gradle resource path does not count", List.of("Gradle"), architectureDrift(readme,
+                new BuildDeclarations(reactor, tests, settings, gradle.replace("sourceSets.main.resources", "// sourceSets.main.resources"))));
+        String wrongSourceSets = gradle.replace("main.java", "main.tmp").replace("main.resources", "main.java").replace("main.tmp", "main.resources");
+        check.same("Swapping Gradle source sets is drift even when the paths are unchanged", List.of("Gradle"),
+                architectureDrift(readme, new BuildDeclarations(reactor, tests, settings, wrongSourceSets)));
+        check.same("A compile-scoped ATF dependency changes the documented boundary", List.of("Biblioteci ATF"), architectureDrift(readme,
+                new BuildDeclarations(reactor, tests.replace("atf-test-kit</artifactId><scope>test", "atf-test-kit</artifactId><scope>compile"), settings, gradle)));
+    }
+
+    private record BuildDeclarations(String reactorPom, String testsPom, String gradleSettings, String gradleApp) { }
+
+    private static List<String> architectureDrift(List<String> readme, BuildDeclarations declarations) throws Exception {
+        var architecture = readme.stream().dropWhile(line -> !line.equals("## Arhitectura J7")).skip(1)
+                .takeWhile(line -> !line.startsWith("## ")).toList();
+        var parser = DocumentBuilderFactory.newDefaultInstance();
+        parser.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        parser.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        var builder = parser.newDocumentBuilder();
+        var reactor = builder.parse(new InputSource(new StringReader(declarations.reactorPom())));
+        var tests = builder.parse(new InputSource(new StringReader(declarations.testsPom())));
+        var xpath = XPathFactory.newInstance().newXPath();
+        var maven = new HashSet<String>();
+        for (var module : xpath.evaluateExpression("/project/modules/module", reactor, XPathNodes.class)) {
+            maven.add(module.getTextContent().strip());
+        }
+        String addedSources = "/project/build/plugins/plugin[groupId='org.codehaus.mojo' and artifactId='build-helper-maven-plugin']"
+                + "/executions/execution[goals/goal='add-source']/configuration/sources/source";
+        for (var source : xpath.evaluateExpression("/project/build/sourceDirectory | /project/build/resources/resource/directory | "
+                + addedSources, tests, XPathNodes.class)) {
+            maven.add(repositoryPath("atf-tests", source.getTextContent()));
+        }
+
+        var gradle = new HashSet<String>();
+        for (var include : GRADLE_INCLUDE.matcher(declarations.gradleSettings()).results().toList()) {
+            GRADLE_LITERAL.matcher(include.group(1)).results().map(literal -> literal.group(2)).forEach(gradle::add);
+        }
+        var sourceKinds = new HashSet<String>();
+        for (var source : GRADLE_SOURCE.matcher(declarations.gradleApp()).results().toList()) {
+            String path = repositoryPath("android/app", source.group(3));
+            if (path.endsWith("/" + source.group(1))) sourceKinds.add(source.group(1));
+            gradle.add(path);
+        }
+
+        var libraries = new HashSet<String>();
+        var scopes = new ArrayList<String>();
+        for (String library : List.of("atf-reporting", "atf-test-kit")) {
+            String selector = "/project/dependencies/dependency[groupId='atf.api' and artifactId='" + library + "']";
+            if (xpath.evaluateExpression(selector, tests, XPathNodes.class).size() == 1) {
+                libraries.add(library);
+                scopes.add(xpath.evaluate(selector + "/scope", tests).strip());
+            }
+        }
+        libraries.addAll(scopes);
+        var drift = new ArrayList<String>();
+        if (!maven.equals(documentedTokens(architecture, "Maven"))) drift.add("Maven");
+        if (!sourceKinds.equals(Set.of("java", "resources")) || !gradle.equals(documentedTokens(architecture, "Gradle"))) drift.add("Gradle");
+        if (!scopes.equals(List.of("test", "test")) || !libraries.equals(documentedTokens(architecture, "Biblioteci ATF"))) drift.add("Biblioteci ATF");
+        return drift;
+    }
+
+    private static String repositoryPath(String owner, String path) {
+        return Path.of(owner).resolve(path.strip()).normalize().toString().replace('\\', '/');
+    }
+
+    private static Set<String> documentedTokens(List<String> architecture, String label) {
+        var claim = Pattern.compile("(?m)^- \\*\\*" + Pattern.quote(label) + "\\*\\*[^\\r\\n]*(?:\\R {2,}[^\\r\\n]+)*")
+                .matcher(String.join("\n", architecture));
+        if (!claim.find()) return Set.of();
+        var tokens = new HashSet<String>();
+        CODE_SPAN.matcher(claim.group()).results().map(token -> token.group(1)).forEach(tokens::add);
+        return claim.find() ? Set.of() : tokens;
     }
 
     @Test void movingTheMotorLinkOutOfTheArchitectureMapDoesNotSatisfyTheContract(Checks check) {

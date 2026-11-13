@@ -19,7 +19,8 @@ param(
     [switch]$IncludeManualAnalysis,
     [switch]$IncludeMatchSlots,
     [switch]$IncludeMatchArchive,
-    [string]$SourceCommit
+    [string]$SourceCommit,
+    [ValidatePattern('^[a-f0-9]{32}$')][string]$QualificationRunId
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -29,6 +30,9 @@ $adbExe = (Get-Command $Adb -CommandType Application).Source
 $app = if ($Distribution) { 'ro.atf.chess.android' } else { 'ro.atf.chess.android.sanity' }
 $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
+if ($QualificationRunId -and !($Distribution -and ($GameReviewOnly -or $IncludeGameReview))) {
+    throw 'A qualification run ID applies to signed Game Review evidence.'
+}
 if ($MatchMenusOnly -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or
         $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
     throw 'MatchMenusOnly selects both menu phases on its own.'
@@ -134,9 +138,11 @@ function Invoke-OpeningSanity([string]$Directory) {
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
 }
 
-function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected) {
+function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected, [string]$RunId = "") {
     $reviewReceipt = Join-Path $Directory "$Phase.txt"
-    $lines = @(Invoke-Device ($instrument + @('-e','phase',$Phase,$runner)))
+    $arguments = @('-e','phase',$Phase)
+    if ($RunId) { $arguments += @('-e','runId',$RunId) }
+    $lines = @(Invoke-Device ($instrument + $arguments + @($runner)))
     $lines | Set-Content -LiteralPath $reviewReceipt -Encoding utf8NoBOM
     $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
     if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne $Expected) {
@@ -148,7 +154,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         'match-slots' { $frames += 'saved-games' }
         'match-archive' { $frames += 'finished-games' }
         'game-review' { $frames += 'game-review-navigation', 'game-review-line', 'game-review-comparison', 'game-review-actions' }
-        'game-review-why' { $frames += 'game-review-why-recommended' }
+        'game-review-why' { $frames += 'game-review-why-recommended', 'game-review-why-score' }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
@@ -156,10 +162,17 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
     }
-    [ordered]@{status='PASS'; scope=$Phase; device=$Serial; api=$api; apkSha256=$hash;
+    $execution = [ordered]@{status='PASS'; scope=$Phase; device=$Serial; api=$api; apkSha256=$hash;
         sourceCommit=$SourceCommit; variant=$variant; assertions=$passed.Count;
-        receiptSha256=(Get-FileHash -LiteralPath $reviewReceipt).Hash.ToLowerInvariant(); captureSha256=$captureHashes} |
-        ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
+        receiptSha256=(Get-FileHash -LiteralPath $reviewReceipt).Hash.ToLowerInvariant(); captureSha256=$captureHashes}
+    if ($RunId) {
+        $nativeRunIds = @($lines | Where-Object { $_.StartsWith('INSTRUMENTATION_RESULT: runId=') })
+        if ($nativeRunIds.Count -ne 1 -or $nativeRunIds[0] -cne "INSTRUMENTATION_RESULT: runId=$RunId") {
+            throw "Unexpected run identity in Android phase $Phase."
+        }
+        $execution.runId = $RunId
+    }
+    $execution | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
 }
 
 function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expected) {
@@ -171,15 +184,16 @@ function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expecte
 }
 
 function Invoke-GameReviewSanity([string]$Directory) {
-    Invoke-FocusedSanity $Directory 'game-review' 23
+    $reviewRunId = if ($QualificationRunId) { $QualificationRunId } else { [guid]::NewGuid().ToString('N') }
+    Invoke-FocusedSanity $Directory 'game-review' 23 $reviewRunId
     $clear = Invoke-Device @('shell','pm','clear',$app)
     if ($clear -cnotcontains 'Success') { throw 'Could not reset for the archived review fixture.' }
     $why = Join-Path $Directory 'why'
     $restore = Join-Path $Directory 'why-restore'
     $null = New-Item -ItemType Directory $why, $restore
-    Invoke-FocusedSanity $why 'game-review-why' 4
+    Invoke-FocusedSanity $why 'game-review-why' 5 $reviewRunId
     Invoke-Device @('shell','am','force-stop',$app)
-    Invoke-FocusedSanity $restore 'game-review-why-restore' 2
+    Invoke-FocusedSanity $restore 'game-review-why-restore' 2 $reviewRunId
     $pids = @(Get-Content -LiteralPath (Join-Path $why 'game-review-why.txt'), (Join-Path $restore 'game-review-why-restore.txt') |
         Where-Object { $_ -match '^INSTRUMENTATION_RESULT: pid=[1-9][0-9]*$' })
     if ($pids.Count -ne 2 -or $pids[0] -ceq $pids[1]) {

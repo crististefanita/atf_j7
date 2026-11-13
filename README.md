@@ -19,6 +19,10 @@ bibliotecile ATF pentru verificare și rapoarte Extent.
 | [`release-tools`](release-tools/src/main) | RAG indică documentele și probele afectate. `ReleaseGate` verifică proveniența, calificarea și descărcarea. | [Procesul de release](docs/release/README.md) |
 | [`lib`](lib/README.md) | Perechile JAR/POM ATF și contractul lor de consum. Maven le folosește pe traseul JVM. | [Proveniența bibliotecilor](lib/README.md#proveniență) |
 
+- **Gradle** declară `:app` și include `chess-core/src/main/java` și `chess-core/src/main/resources` în build-ul Android.
+- **Maven** declară `atf-tests` ca singur modul al reactorului. Acesta compilează `chess-core/src/main/java` și `release-tools/src/main/java` și încarcă `chess-core/src/main/resources`.
+- **Biblioteci ATF** în JVM. `atf-reporting` și `atf-test-kit` sunt dependențe Maven cu scope `test`.
+
 ```mermaid
 flowchart LR
     Android["Android"] -->|folosește| Core["Motor Java"]

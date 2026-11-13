@@ -99,8 +99,10 @@ mutare a unei partide în curs; replica automată așteaptă până îl închizi
 
 - Alegerea unei mutări din listă sau din grafic sincronizează tabla, scorul,
   notația și categoria. Comenzile permit navigarea și saltul la următorul moment-cheie.
-- **Arată varianta** marchează prima recomandare. Poți parcurge linia în ambele
-  sensuri. **Vezi pe tablă** revine la poziția selectată.
+- **De ce?** explică diferența dintre mutarea aleasă și recomandare. Poți parcurge
+  ambele linii cu săgețile. Becul indică următoarea mutare din varianta recomandată.
+- O analiză arhivată se redeschide la ultima mutare, linie și pas consultat.
+  **Vezi pe tablă** revine la poziția selectată în partidă.
 - **Reîncearcă mutarea** propune reluarea din poziția anterioară. După confirmare,
   partida din arhivă rămâne disponibilă și ramura folosește un loc separat.
 - Reperul AI și estimarea Elo apar în analiza unei partide încheiate, când
