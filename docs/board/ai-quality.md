@@ -6,6 +6,8 @@ Nivelul adversarului și indiciul au adâncimi și bugete configurate separat. O
 
 În jocurile Hard din afara repertoriului și a finalului special de turnuri, mutările care dau șah primesc prioritate numai în ordinea de căutare. Bonusul de 10.000 este configurabil și plafonat în `hard-ordering`; nu se adună la evaluarea poziției și nu crește limita de 44.000 de noduri. Basic, Advanced, indiciul și evaluarea barei păstrează ordonarea anterioară.
 
+Calea de joc Hard reutilizează și liniile exacte pentru poziții transpozate. Intrările incomplete sau limitele alpha-beta nu sunt refolosite. Capacitatea este derivată și plafonată din buget în `hard-transpositions`; detaliile și rezultatele A/B sunt în [evaluarea cache-ului exact](#cache-exact-pentru-hard). Celelalte profiluri păstrează căutarea existentă.
+
 Indiciul pornește de la căutarea Hard și verifică separat maturile și răspunsurile tactice. Dacă primele mutări diferă fără un mat dovedit, motorul compară alternativele la adâncimea Hard deja încheiată. Dacă verificarea își consumă bugetul, indiciul folosește rezultatul complet Hard. Lista arată până la cinci prime mutări distincte, la cel mult 25 cp de prima. La mat rămân doar variantele cu același rezultat și aceeași distanță. La scor egal, activitatea mutării și ordinea UCI stabilesc ordinea.
 
 La Hard, într-o poziție cu material egal, clasamentul disponibil după patru semimutări folosește și scorul aceleiași mutări la trei. Contribuția liniei mai scurte este limitată. Pentru o mutare liniștită, creditul scade când linia provizorie sugerează un câștig de peste un pion. Maturile și remizele evaluate păstrează scorul terminal. Dacă bugetul împiedică încheierea adâncimii șase sau liderul se schimbă la acea adâncime, motorul păstrează ultima căutare completă. Bugetul Hard rămâne de 44.000 de noduri suplimentare.
@@ -44,7 +46,9 @@ Scorurile acestui set măsoară alegerea unei mutări din poziții fixe. Pentru 
 
 Guvernanța cere creșterea strictă a adâncimii și bugetului între adversari. Indiciul are cel puțin adâncimea Hard și propriul buget mai mare. În finalurile cu turn sau damă și regi, toate nivelurile, indiciul și bara folosesc aceeași evaluare a distanței dintre regi și a spațiului regelui apărat. Testele verifică transformarea avantajului în mat cu ambele culori și conservarea perspectivei albului în afișaj.
 
-### Proba internă pentru Hard la adâncimea 6 · 13 noiembrie 2026
+### Reper Hard6 fără cache exact · 13 noiembrie 2026
+
+Secțiunea păstrează rezultatele Hard6 înaintea cache-ului exact descris mai jos; valorile nu reprezintă comportamentul candidatului live actual.
 
 Hard a păstrat plafonul de 44.000 de noduri, iar Basic și Advanced nu și-au schimbat profunzimea sau bugetul. O probă fără filtrul de stabilitate a coborât Intermezzo la 22/24. Varianta păstrată în candidatul live acceptă rezultatul de la adâncimea 6 numai dacă mutarea lider coincide cu cea de la adâncimea 5; altfel folosește rezultatul complet anterior.
 
@@ -265,3 +269,22 @@ Când corecția la trei semimutări inversează semnul evaluării de la două, b
 | Indiciu | 7 / 8 din 10 | 20,2‰ / 2,4‰ | 1 / 0 |
 
 După calibrarea Hard, pierderea medie a acestui profil pe suita mixtă a scăzut de la 11,7‰ la 0‰. Regresia tactică din Siciliană păstrează `Nxe5` la Hard și la indiciu. Acest caz folosește altă poziție decât lecția Najdorf. Pragurile ambelor suite au rămas aceleași.
+
+## Cache exact pentru Hard
+
+Am activat reutilizarea liniilor căutate complet numai pe calea adversarului Hard. Intrarea este cheia poziției (inclusiv partea la mutare, rocada și captura en passant legală), semimutările rămase, distanța față de rădăcină, obiectivul evaluării și extensia tactică. Păstrarea distanței evită reutilizarea unui scor de mat cu altă valoare. Cache-ul acceptă numai rezultate exacte; o întrerupere alpha-beta sau un rezultat incomplet nu poate deveni oracol pentru o altă ramură. Căutările Basic, Advanced, indiciul, bara și analiza de partidă rămân pe calea existentă.
+
+Capacitatea este configurabilă în `match-ai.yaml`: 500 de intrări la 1.000 de noduri Hard suplimentare, cu plafon de 50.000. La bugetul actual de 44.000 rezultă maximum 22.000 de intrări. Am comparat și plafonul de 44.000; acesta nu a îmbunătățit rata la quest-uri sau liga, așa că păstrăm varianta cu memorie mai mică.
+
+Am rulat aceeași ligă pe 12 deschideri noi, ambele culori, 24 de partide pentru fiecare pereche de profiluri, în copii TMP cu cod Hard6 identic în afara cache-ului. Advanced–Basic a rămas 16/7/1/0 în ambele. Hard6 față de Hard6+cache a fost:
+
+| Pereche | Hard6 de referință | Hard6 cu cache exact | Estimare internă centrală |
+|---|---:|---:|---:|
+| Hard–Basic | 20/3/1/0 | 22/1/1/0 | +374 → +470 |
+| Hard–Advanced | 21/1/0/2 | 23/1/0/0 | +470 → +669 |
+
+Aceste conversii sunt doar scoruri relative în liga J7 și nu reprezintă Elo extern. Pe setul înghețat existent, câștigul a fost mai mic: o remiză a devenit victorie în Hard–Advanced. Podelele de transfer au rămas neschimbate: M1 500/500, M2 300/300, M3 194/200, tactici 87/100, antrenament 39/48 și Intermezzo 24/24. Testul de guvernanță verifică factorul, plafonul, dezactivarea și respinge valorile din afara intervalului.
+
+Rapoartele Extent și replay-urile TSV pentru candidatul, referință și capacitatea dublă au rămas în `C:\Users\Cristi\AppData\Local\Temp\j7-hard-tt-*`; nu sunt artefacte de release. [Terminologia oficială Stockfish despre transpoziții și căutare](https://official-stockfish.github.io/docs/stockfish-wiki/Terminology.html) explică rolul tabelului de transpoziții în reutilizarea pozițiilor. Documentația nu oferă o creștere Elo garantată pentru această implementare.
+
+Ancora externă actuală nu poate fi recalculată fără executabilul Stockfish local. Ultimul reper documentat este Basic 1340, Advanced 1461 și Hard 1549, cu intervale largi și cu sursă anterioară căutării Hard6. Așadar, ținta Basic 1100–1200, plafonul Advanced 1450 și ținta Hard spre 2000 rămân cerințe de calibrare, nu rezultate demonstrate de această ligă. Elo-ul depinde de adversar, buget și protocol; [FAQ-ul Stockfish](https://official-stockfish.github.io/docs/stockfish-wiki/Stockfish-FAQ.html) precizează că `UCI_Elo` slăbește intenționat motorul și nu este o conversie universală a tăriei.

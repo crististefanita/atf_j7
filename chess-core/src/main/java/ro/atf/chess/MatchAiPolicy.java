@@ -16,6 +16,13 @@ final class MatchAiPolicy {
     record Repetition(int minAdvantageCp, int maxScoreLossCp) { }
     record RookEndgame(int extensionPlies, int candidateGapCp) { }
     record HardOrdering(int checkBonus) { }
+    record HardTranspositions(int entriesPerThousandNodes, int maxEntries) {
+        int entryLimit(int extraNodes) {
+            if (entriesPerThousandNodes == 0 || extraNodes <= 0) return 0;
+            long proportional = (long) extraNodes * entriesPerThousandNodes / 1_000;
+            return (int) Math.min(maxEntries, Math.max(1, proportional));
+        }
+    }
 
     private final Map<Level, Search> opponents;
     final Hint hint;
@@ -23,22 +30,25 @@ final class MatchAiPolicy {
     final Repetition repetition;
     final RookEndgame rookEndgame;
     final HardOrdering hardOrdering;
+    final HardTranspositions hardTranspositions;
 
     private MatchAiPolicy(Map<Level, Search> opponents, Hint hint, Evaluation evaluation, Repetition repetition,
-                          RookEndgame rookEndgame, HardOrdering hardOrdering) {
+                          RookEndgame rookEndgame, HardOrdering hardOrdering, HardTranspositions hardTranspositions) {
         this.opponents = opponents;
         this.hint = hint;
         this.evaluation = evaluation;
         this.repetition = repetition;
         this.rookEndgame = rookEndgame;
         this.hardOrdering = hardOrdering;
+        this.hardTranspositions = hardTranspositions;
     }
 
     Search opponent(Level level) { return opponents.get(level); }
 
     static MatchAiPolicy read(Map<?, ?> root) {
-        requireKeys(root, "schema", "opponents", "hint", "evaluation", "repetition", "rook-endgame", "hard-ordering");
-        if (ChessYaml.number(root, "schema") != 3) throw new IllegalArgumentException("Unknown match AI schema");
+        requireKeys(root, "schema", "opponents", "hint", "evaluation", "repetition", "rook-endgame", "hard-ordering",
+                "hard-transpositions");
+        if (ChessYaml.number(root, "schema") != 4) throw new IllegalArgumentException("Unknown match AI schema");
         var settings = ChessYaml.map(root, "opponents");
         requireKeys(settings, "BASIC", "ADVANCED", "HARD");
         var opponents = new EnumMap<Level, Search>(Level.class);
@@ -72,13 +82,17 @@ final class MatchAiPolicy {
         }
         var hardOrdering = ChessYaml.map(root, "hard-ordering");
         requireKeys(hardOrdering, "check-bonus");
+        var hardTranspositions = ChessYaml.map(root, "hard-transpositions");
+        requireKeys(hardTranspositions, "entries-per-thousand-nodes", "max-entries");
         return new MatchAiPolicy(opponents, new Hint(search,
                 bounded(row, "max-variants", 1, 5), bounded(row, "max-loss-cp", 0, 100),
                 bounded(row, "tactical-extension-plies", 0, 2), verification), new Evaluation(
                         bounded(evaluation, "nodes", 1_000, 40_000), bounded(evaluation, "max-horizon-correction-cp", 0, 50)),
                 new Repetition(bounded(repetition, "min-advantage-cp", 75, 250), bounded(repetition, "max-score-loss-cp", 1, 75)),
                 new RookEndgame(extension, bounded(rookEndgame, "candidate-gap-cp", 25, 75)),
-                new HardOrdering(bounded(hardOrdering, "check-bonus", 0, 10_000)));
+                new HardOrdering(bounded(hardOrdering, "check-bonus", 0, 10_000)),
+                new HardTranspositions(bounded(hardTranspositions, "entries-per-thousand-nodes", 0, 1_000),
+                        bounded(hardTranspositions, "max-entries", 1, 50_000)));
     }
 
     private static Search search(Map<?, ?> row) {

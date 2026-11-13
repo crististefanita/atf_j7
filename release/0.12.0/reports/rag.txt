@@ -20,6 +20,7 @@ COVERED | atf-tests/src/test/java/ro/atf/chess/ExtentGovernanceTest.java
 COVERED | atf-tests/src/test/java/ro/atf/chess/HardQuestTransferBenchmarkTest.java
 COVERED | atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
 COVERED | atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchSetupTest.java
 COVERED | atf-tests/src/test/java/ro/atf/chess/MatchStoreTest.java
 COVERED | atf-tests/src/test/java/ro/atf/chess/MemoryPreferences.java
 COVERED | atf-tests/src/test/java/ro/atf/chess/PlatformLibraryProvenanceTest.java
@@ -40,6 +41,7 @@ COVERED | chess-core/src/main/java/ro/atf/chess/QuestCatalog.java
 COVERED | chess-core/src/main/java/ro/atf/chess/QuestProgress.java
 COVERED | chess-core/src/main/java/ro/atf/chess/QuestStore.java
 COVERED | chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java
+COVERED | chess-core/src/main/resources/game-review.yaml
 COVERED | chess-core/src/main/resources/intermezzo.sha256
 COVERED | chess-core/src/main/resources/intermezzo.yaml
 COVERED | chess-core/src/main/resources/match-ai.yaml
@@ -48,6 +50,7 @@ COVERED | chess-core/src/main/resources/training.yaml
 COVERED | docs/README.md
 COVERED | docs/board/README.md
 COVERED | docs/board/ai-quality.md
+COVERED | docs/board/game-review.md
 COVERED | docs/board/quest-curation.md
 COVERED | docs/feedback/README.md
 COVERED | docs/feedback/talkback-extent.html
@@ -80,9 +83,7 @@ COVERED | release/0.10.0/README.md
 COVERED | release/0.10.0/reports/README.md
 COVERED | release/0.10.0/reports/android-game-review.html
 COVERED | release/0.10.0/reports/android-manual-analysis.html
-COVERED | release/0.10.0/reports/android.html
 COVERED | release/0.10.0/reports/catalog-verification.json
-COVERED | release/0.10.0/reports/components.html
 COVERED | release/0.10.0/reports/distribution-verification.json
 COVERED | release/0.10.0/reports/github-release.json
 COVERED | release/0.10.0/reports/public-download.json
@@ -119,6 +120,13 @@ COVERED | release/0.11.2/reports/qualification.json
 COVERED | release/0.11.2/reports/rag.txt
 COVERED | release/0.12.0/README.md
 COVERED | release/0.12.0/reports/README.md
+COVERED | release/0.12.0/reports/android-signed-sanity-execution.json
+COVERED | release/0.12.0/reports/android-signed-sanity.html
+COVERED | release/0.12.0/reports/android-signed-sanity.json
+COVERED | release/0.12.0/reports/components.html
+COVERED | release/0.12.0/reports/documentation-governance.html
+COVERED | release/0.12.0/reports/rag.txt
+COVERED | release/0.12.0/reports/signing-transition.json
 COVERED | release/0.2.0/README.md
 COVERED | release/0.2.0/reports/README.md
 COVERED | release/0.2.0/reports/android-board-sanity.html
@@ -167,7 +175,6 @@ COVERED | release/0.5.0/reports/tactics-oracle.txt
 COVERED | release/0.5.1/README.md
 COVERED | release/0.5.1/reports/README.md
 COVERED | release/0.5.1/reports/analysis-e2e.json
-COVERED | release/0.5.1/reports/android-match-analysis.html
 COVERED | release/0.5.1/reports/components.html
 COVERED | release/0.5.1/reports/distribution-verification.json
 COVERED | release/0.5.1/reports/github-release.json
@@ -232,8 +239,8 @@ COVERED | scripts/verify-tactics.cjs
 docs/testing/README.md:13 ## Motor și proiecție
   SHA-256 9a02f8f459c7206a4807700351320b26089ce965fe8962d7de9ec98f899f7ea3
   Verify ChessComponentTest și QuestCatalogTest
-docs/board/ai-quality.md:21 ## Control la fiecare schimbare
-  SHA-256 ee79e98033c365cbc9a6b32f92ef36dd2c1c9205aef8e3a50c8cd35c7aaf9bee
+docs/board/ai-quality.md:23 ## Control la fiecare schimbare
+  SHA-256 e63bb0f3a610a4e53f1e944ec3f2156661509abcc1e0324dc706519a448ffa86
   Verify HardQuestTransferBenchmarkTest, RookEndgameHistoryTest și ChessBenchmarkSuite: Stockfish și liga offline
 docs/testing/README.md:155 ## Partidă și istoric
   SHA-256 9a02f8f459c7206a4807700351320b26089ce965fe8962d7de9ec98f899f7ea3
@@ -253,6 +260,9 @@ docs/testing/README.md:55 ## Progresul problemelor
 docs/testing/README.md:111 ## Sanity Android
   SHA-256 9a02f8f459c7206a4807700351320b26089ce965fe8962d7de9ec98f899f7ea3
   Verify BoardSanity
+docs/testing/README.md:155 ## Partidă și istoric
+  SHA-256 9a02f8f459c7206a4807700351320b26089ce965fe8962d7de9ec98f899f7ea3
+  Verify GameReviewTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly
 docs/testing/README.md:155 ## Partidă și istoric
   SHA-256 9a02f8f459c7206a4807700351320b26089ce965fe8962d7de9ec98f899f7ea3
   Verify MatchListEntryTest, MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -MatchMenusOnly
@@ -283,7 +293,7 @@ docs/testing/README.md:13 ## Motor și proiecție
   SHA-256 9a02f8f459c7206a4807700351320b26089ce965fe8962d7de9ec98f899f7ea3
   Verify BoardPanelLayoutTest și QuestHintTest
 docs/feedback/README.md:1 # Feedback · Chess Lab
-  SHA-256 c92e72cb56ace37c6c72d4f279291652acbbc495ab4be0616cf896f4f9d36502
+  SHA-256 1817a7af1df5f497c453e9f441fb4e4e41903fa6ef9aa742f6e1023d430c37cf
   Verify DocumentationGovernanceTest și revizia criteriilor deschise
 lib/README.md:3 ## Proveniență
   SHA-256 963e02685f14baa2116a200c07b75b10b7437116cec41b501f7b710a2f013cc6

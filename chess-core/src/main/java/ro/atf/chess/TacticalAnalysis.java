@@ -262,7 +262,9 @@ public final class TacticalAnalysis {
         // In an unequal position, let the deeper search resolve immediate material recovery on its own.
         var shallowScores = confirmAcrossHorizons && material(root.position()) == 0
                 ? boundedShallowScores(root.position(), best) : Map.<Move, Integer>of();
-        var budget = new SearchBudget(policy.extraNodes(), tacticalExtension);
+        int transpositionLimit = prioritizeChecks
+                ? MatchAiPolicy.CURRENT.hardTranspositions.entryLimit(policy.extraNodes()) : 0;
+        var budget = new SearchBudget(policy.extraNodes(), tacticalExtension, transpositionLimit);
         budget.checkOrderBonus = prioritizeChecks ? MatchAiPolicy.CURRENT.hardOrdering.checkBonus() : 0;
         budget.quietMoveOrdering = prioritizeChecks ? new QuietMoveOrdering() : null;
         for (int depth = completed + 1; depth <= policy.maxPlies(); depth++) {
@@ -456,12 +458,25 @@ public final class TacticalAnalysis {
 
     private static Line search(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget, Objective objective) {
         if (budget != null) budget.visit();
+        // Cache only exact lines; the key preserves mate distance, objective, horizon and tactical extension.
+        var key = budget != null && budget.transpositionLimit > 0
+                ? new SearchTranspositionKey(position.searchKey(), left, distance, objective, budget.tacticalExtension) : null;
+        if (key != null) {
+            var cached = budget.transpositions.get(key);
+            if (cached != null) return cached;
+        }
         if (left == 0) {
-            return budget == null || budget.tacticalExtension == 0 ? leaf(position, distance, position.hasLegalMove(), objective)
+            Line result = budget == null || budget.tacticalExtension == 0 ? leaf(position, distance, position.hasLegalMove(), objective)
                     : settle(position, budget.tacticalExtension, distance, alpha, beta, budget);
+            if (key != null && result.exact()) budget.remember(key, result);
+            return result;
         }
         var moves = position.legalMoves();
-        if (moves.isEmpty()) return leaf(position, distance, false, objective);
+        if (moves.isEmpty()) {
+            Line result = leaf(position, distance, false, objective);
+            if (key != null) budget.remember(key, result);
+            return result;
+        }
         Map<Move, Boolean> checks = Map.of();
         if (objective == Objective.POSITION) {
             moves = new ArrayList<>(moves);
@@ -483,8 +498,11 @@ public final class TacticalAnalysis {
         }
 
         Line best = null;
+        boolean exact = true;
+        boolean cutoff = false;
         for (Move move : moves) {
             var child = search(position.playGenerated(move), left - 1, distance + 1, -beta, -alpha, budget, objective);
+            exact &= child.exact();
             int score = -child.score();
             if (best == null || score > best.score()) best = child.prepend(move);
             alpha = Math.max(alpha, score);
@@ -493,10 +511,13 @@ public final class TacticalAnalysis {
                         && captureOrder(position, move) == 0) {
                     budget.quietMoveOrdering.recordCutoff(position, move, left, false);
                 }
+                cutoff = true;
                 break;
             }
         }
-        return best;
+        Line result = best.withExact(exact && !cutoff);
+        if (key != null && result.exact()) budget.remember(key, result);
+        return result;
     }
 
     private static Line searchRook(ChessPosition position, int left, int distance, int alpha, int beta, RookSearchBudget budget) {
@@ -594,6 +615,9 @@ public final class TacticalAnalysis {
     private static int moveOrder(ChessPosition position, Move move) {
         return captureOrder(position, move) + ChessMatch.activity(position, move);
     }
+
+    private record SearchTranspositionKey(ChessPosition.SearchKey position, int left, int distance, Objective objective,
+                                         int tacticalExtension) { }
 
     private record RookSearchPath(RookSearchPath previous, ChessPosition.SearchKey position) { }
 
@@ -698,12 +722,23 @@ public final class TacticalAnalysis {
     private static final class SearchBudget {
         private int remaining;
         private final int tacticalExtension;
+        private final int transpositionLimit;
         private int checkOrderBonus;
+        private final Map<SearchTranspositionKey, Line> transpositions = new HashMap<>();
         private QuietMoveOrdering quietMoveOrdering;
 
         SearchBudget(int remaining, int tacticalExtension) {
+            this(remaining, tacticalExtension, 0);
+        }
+
+        SearchBudget(int remaining, int tacticalExtension, int transpositionLimit) {
             this.remaining = remaining;
             this.tacticalExtension = tacticalExtension;
+            this.transpositionLimit = transpositionLimit;
+        }
+
+        void remember(SearchTranspositionKey key, Line line) {
+            if (transpositions.containsKey(key) || transpositions.size() < transpositionLimit) transpositions.putIfAbsent(key, line);
         }
 
         void visit() {
@@ -739,12 +774,14 @@ public final class TacticalAnalysis {
         return score;
     }
 
-    private record Line(int score, int balance, List<Move> moves, Ending ending) {
+    private record Line(int score, int balance, List<Move> moves, Ending ending, boolean exact) {
+        private Line(int score, int balance, List<Move> moves, Ending ending) { this(score, balance, moves, ending, true); }
+        Line withExact(boolean value) { return new Line(score, balance, moves, ending, value); }
         Line prepend(Move move) {
             var variation = new ArrayList<Move>(moves.size() + 1);
             variation.add(move);
             variation.addAll(moves);
-            return new Line(-score, -balance, variation, ending);
+            return new Line(-score, -balance, variation, ending, exact);
         }
     }
 

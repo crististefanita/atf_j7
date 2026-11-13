@@ -43,6 +43,35 @@ class MatchAiGovernanceTest {
         check.same("A zero bonus cleanly disables the heuristic", 0, MatchAiPolicy.read(root).hardOrdering.checkBonus());
     }
 
+    @Test void hardExactTranspositionCacheIsBoundedAndScalesWithTheHardNodeBudget(Checks check) {
+        check.same("Transposition limits use the versioned match-AI schema", 4,
+                ChessYaml.number(ChessYaml.resource("match-ai.yaml"), "schema"));
+        var settings = MatchAiPolicy.CURRENT.hardTranspositions;
+        check.same("The measured cache uses half as many entries as Hard extra nodes", 500,
+                settings.entriesPerThousandNodes());
+        check.same("The cache has a strict memory ceiling", 50_000, settings.maxEntries());
+        check.same("The current Hard budget derives a bounded 22,000-entry table", 22_000,
+                settings.entryLimit(MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD).extraNodes()));
+        check.same("A zero-node search does not allocate a table", 0, settings.entryLimit(0));
+
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        var cache = new HashMap<Object, Object>(ChessYaml.map(root, "hard-transpositions"));
+        root.put("hard-transpositions", cache);
+        cache.put("entries-per-thousand-nodes", 1_001);
+        check.same("A cache ratio above its governed range is rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root))
+                        .getMessage().contains("entries-per-thousand-nodes"));
+        cache.put("entries-per-thousand-nodes", 500);
+        cache.put("max-entries", 50_001);
+        check.same("A cache cap above 50,000 entries is rejected", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root))
+                        .getMessage().contains("max-entries"));
+        cache.put("max-entries", 50_000);
+        cache.put("entries-per-thousand-nodes", 0);
+        check.same("The cache can be disabled without changing search budgets", 0,
+                MatchAiPolicy.read(root).hardTranspositions.entryLimit(44_000));
+    }
+
     @Test void hardQuestTransferFloorsStayWithinEachFrozenChapter(Checks check) {
         var root = ChessYaml.resource("hard-quest-transfer.yaml");
         var floors = ChessYaml.map(root, "minimum-solved");
