@@ -355,15 +355,18 @@ public final class BoardSanity extends Instrumentation {
         while (list != null && !list.isScrollable()) list = list.getParent();
         if (list == null) throw new AssertionError("The review summary and move list are not scrollable");
         String brilliant = activity.getString(R.string.game_review_grade_counts, activity.getString(R.string.game_review_brilliant), "0", "0");
-        boolean scrolled = false;
+        var scrollBounds = new Rect();
+        list.getBoundsInScreen(scrollBounds);
+        int scrolls = 0;
         var row = dialogNode(brilliant, AccessibilityNodeInfo::isVisibleToUser, 500);
-        if (row == null) {
-            scrolled = list.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
-            row = dialogNode(brilliant, AccessibilityNodeInfo::isVisibleToUser);
+        while (row == null && scrolls < 6) {
+            swipeReview(scrollBounds, true);
+            scrolls++;
+            row = dialogNode(brilliant, AccessibilityNodeInfo::isVisibleToUser, 500);
         }
         boolean tableVisible = row != null && reviewBounds.equals(activeWindowBounds());
         captureFrame("game-review-comparison", "The full-screen comparison exposes zero counts for the player and AI", image -> tableVisible);
-        if (scrolled) list.performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
+        for (int scroll = 0; scroll < scrolls; scroll++) swipeReview(scrollBounds, false);
         graphNode = dialogNode(graph, AccessibilityNodeInfo::isClickable);
         if (graphNode == null) throw new AssertionError("The evaluation graph did not return after viewing the comparison");
         graphNode.getBoundsInScreen(graphBounds);
@@ -439,6 +442,26 @@ public final class BoardSanity extends Instrumentation {
         compare("The alternative move becomes the new saved continuation", Move.fromUci("b2b3"), store.matches().readMatch().moveAt(branchPly + 1));
         closeActivity(activity);
         checkMatchActions(store);
+    }
+
+    private void swipeReview(Rect bounds, boolean forward) {
+        float x = bounds.left + bounds.width() * 0.2f;
+        float upper = bounds.top + bounds.height() * 0.22f;
+        float lower = bounds.top + bounds.height() * 0.72f;
+        float start = forward ? lower : upper;
+        float end = forward ? upper : lower;
+        long down = SystemClock.uptimeMillis();
+        for (int step = 0; step <= 8; step++) {
+            int action = step == 0 ? MotionEvent.ACTION_DOWN : step == 8 ? MotionEvent.ACTION_UP : MotionEvent.ACTION_MOVE;
+            var event = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, start + (end - start) * step / 8, 0);
+            try {
+                sendPointerSync(event);
+            } finally {
+                event.recycle();
+            }
+            SystemClock.sleep(35);
+        }
+        waitForIdleSync();
     }
 
     private boolean showsRating(Activity activity, int role, ro.atf.chess.GameReview.Player player) throws Exception {
