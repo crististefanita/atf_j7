@@ -1,12 +1,19 @@
 # Evaluarea AI în Chess Lab
 
+Ghidul descrie cum se verifică adversarii, indiciile și bara de evaluare.
+Pentru categoriile mutărilor, precizie și Elo afișat, consultați
+[contractul analizei](game-review.md). Calibrările experimentale descriu
+sursa măsurată; aplicația folosește reperele din configurația guvernată.
+
 Nivelul adversarului și indiciul au adâncimi și bugete configurate separat. O căutare păstrează ultima adâncime evaluată complet. Hard poate încerca șase semimutări în plafonul existent de 44.000 de noduri; acceptă rezultatul de la ultimul orizont numai dacă păstrează aceeași mutare lider ca adâncimea precedentă. În caz de schimbare a liderului, rămâne la ultima căutare completă și stabilă. Indiciul încearcă șase semimutări, cu o semimutare suplimentară pentru capturi, promovări sau ieșirea din șah la capătul căutării. În partide și lecții, evaluarea adaugă la material dezvoltarea pieselor, centrul, poziția regelui și perechea de nebuni. Ponderea termenilor se schimbă odată cu materialul rămas, astfel încât un rege activ să fie util în final. Căutarea verifică întâi capturile, promovările și mutările care activează piesele. Testele de tactică păstrează obiectivul lor explicit de material sau mat. [Politica de căutare](../../chess-core/src/main/resources/match-ai.yaml)
 
 În finalul de turnuri, Hard folosește istoricul integral pentru a evalua repetițiile în arbore, nu doar la rădăcină. Poate extinde căutarea cu o semimutare peste adâncimea profilului, până la adâncimea 7, în același plafon de 44.000 de noduri. Extensia și fereastra de 50 cp pentru candidații rădăcină sunt fixate în `rook-endgame` din YAML; guvernanța respinge extensii sau ferestre în afara limitelor validate.
 
 În jocurile Hard din afara repertoriului și a finalului special de turnuri, mutările care dau șah primesc prioritate numai în ordinea de căutare. Bonusul de 10.000 este configurabil și plafonat în `hard-ordering`; nu se adună la evaluarea poziției și nu crește limita de 44.000 de noduri. Basic, Advanced, indiciul și evaluarea barei păstrează ordonarea anterioară.
 
-Calea de joc Hard reutilizează și liniile exacte pentru poziții transpozate. Intrările incomplete sau limitele alpha-beta nu sunt refolosite. Capacitatea este derivată și plafonată din buget în `hard-transpositions`; detaliile și rezultatele A/B sunt în [evaluarea cache-ului exact](#cache-exact-pentru-hard). Celelalte profiluri păstrează căutarea existentă.
+Calea de joc Hard reutilizează și liniile exacte pentru poziții transpozate. Intrările incomplete sau limitele alpha-beta nu sunt refolosite. Capacitatea este derivată și plafonată din buget în `hard-transpositions`. [Evaluarea cache-ului exact](#cache-exact-pentru-hard)
+
+Basic caută două semimutări în pozițiile obișnuite și trei în finalurile elementare cu turnul ori dama contra regelui. Ambele căi folosesc zero noduri suplimentare. Adâncimea obișnuită se configurează prin `standard-max-plies` în YAML. Hard încheie căutarea la primul orizont complet care dovedește un mat câștigător. [Calibrarea Basic](#calibrarea-basic-cu-adâncime-selectivă) · [Dovezi de mat](#rezolvarea-quest-urilor-cu-obiectiv-declarat)
 
 Indiciul pornește de la căutarea Hard și verifică separat maturile și răspunsurile tactice. Dacă primele mutări diferă fără un mat dovedit, motorul compară alternativele la adâncimea Hard deja încheiată. Dacă verificarea își consumă bugetul, indiciul folosește rezultatul complet Hard. Lista arată până la cinci prime mutări distincte, la cel mult 25 cp de prima. La mat rămân doar variantele cu același rezultat și aceeași distanță. La scor egal, activitatea mutării și ordinea UCI stabilesc ordinea.
 
@@ -46,7 +53,14 @@ Scorurile acestui set măsoară alegerea unei mutări din poziții fixe. Pentru 
 
 Guvernanța cere creșterea strictă a adâncimii și bugetului între adversari. Indiciul are cel puțin adâncimea Hard și propriul buget mai mare. În finalurile cu turn sau damă și regi, toate nivelurile, indiciul și bara folosesc aceeași evaluare a distanței dintre regi și a spațiului regelui apărat. Testele verifică transformarea avantajului în mat cu ambele culori și conservarea perspectivei albului în afișaj.
 
-### Reper Hard6 fără cache exact · 13 noiembrie 2026
+Protocolul ligii folosește aceleași deschideri cu ambele culori și aceleași
+bugete. O partidă neterminată contribuie cu un interval, iar Elo relativ se
+raportează împreună cu incertitudinea.
+
+<details>
+<summary>Repere istorice Hard6 și experimente respinse</summary>
+
+### Reper Hard6 fără cache exact
 
 Secțiunea păstrează rezultatele Hard6 înaintea cache-ului exact descris mai jos; valorile nu reprezintă comportamentul candidatului live actual.
 
@@ -56,11 +70,15 @@ Transferul Hard a trecut podelele înghețate: mat în 1 500/500, mat în 2 300/
 
 Ultima calibrare externă Stockfish 19 înaintea probei Hard6 a estimat 1296/1406/1544 pentru Basic/Advanced/Hard, cu intervale empirice largi. Ancorele afișate în aplicație rămân însă cele verificate și guvernate în `game-review.yaml`: 1340/1461/1549, legate de observațiile cu sursa `b5c1ef3`. Nu am transferat calibrarea TMP în aplicație; ratingul Hard6 cere trei sesiuni externe pe același set de 12 deschideri și culori. Proba curentă a rămas offline. Rapoartele Extent și rejucările experimentelor sunt păstrate în TMP, nu sunt artifacte de release.
 
-### A/B offline respinse · 13 noiembrie 2026
+### A/B offline respinse
 
 PVS aplicat pe toate iterațiile a coborât Mat în 3 la 188/200, sub podeaua 190, și a fost respins fără liga de joc. PVS numai la adâncimea finală a trecut toate podelele, dar liga a rămas 20/1/0/3 și +417, identic cu Hard6 fără PVS; complexitatea în plus nu a adus forță măsurată. LMR pentru mutări liniștite târzii a trecut transferul, dar atât pragul după mutarea a patra, cât și cel după a opta au coborât Hard–Advanced la 19/1/1/3 și +338. Ambele variante LMR sunt respinse. Niciuna nu a fost copiată în codul live; rapoartele sunt în TMP.
 
-Am verificat și extensia tactică de un ply la fiecare frunză Hard: mat în 3 a crescut la 192/200 și tactici la 91/100, dar antrenamentul a coborât la 36/48, sub podeaua 39; am oprit transferul înaintea ligii. Extensia numai când frunza era în șah a coborât mat în 3 la 185/200. Ordonarea killer pentru mutările liniștite a coborât mat în 3 la 169/200 și adâncimea medie de la 5,86 la 5,45; la mat în 2, nodurile medii au crescut de la 18.529 la 27.085. Toate trei sunt respinse înainte de ligă și rămân doar în build-urile și rapoartele TMP `j7-hard-quiescence-20261113` și `j7-hard-killer-20261113`. Nu au schimbat codul live sau bugetul Hard.
+Extensia tactică la fiecare frunză a coborât Antrenamentul la 36/48, sub
+pragul 39. Extensia numai din șah a coborât matul în trei la 185/200, iar
+ordonarea killer la 169/200. Aceste variante au fost respinse înaintea ligii.
+
+</details>
 
 Pentru fiecare dintre cele trei confruntări, liga pornește din 12 deschideri și inversează culorile. Motorul folosește alegerile din aplicație și păstrează istoricul pentru repetiție. Partidele încă active la 160 de semimutări sunt înregistrate ca neterminate. La calcul, fiecare astfel de partidă poate contribui între zero și un punct. Punctul central folosește mijlocul acestui interval. Intervalul empiric de 95% provine din 10.000 de reeșantionări ale perechilor întregi, cu ambele limite pentru partidele neterminate. Diferențele Elo sunt `400 log10(p / (1 − p))`, unde `p` este scorul confruntării. [Setul ligii](../../atf-tests/src/test/resources/ai-league.yaml) · [Metoda perechilor în Fishtest](https://official-stockfish.github.io/docs/fishtest-wiki/Fishtest-Mathematics.html)
 
@@ -132,7 +150,14 @@ Verificarea acoperă regresia istorică și setul fix de 10 poziții Stockfish. 
 
 #### Transferul Hard către colecția de quest-uri
 
-`HardQuestTransferBenchmarkTest` măsoară mutarea aleasă de adversarul Hard pe toate cele 1.172 de poziții din cele șase capitole. Mat în 1 verifică matul, mat în 2/3 verifică prima cheie acceptată, iar exercițiile materiale verifică soluția catalogului. Pragurile de bază sunt în [hard-quest-transfer.yaml](../../atf-tests/src/test/resources/hard-quest-transfer.yaml); sunt praguri de regresie, nu ținte finale.
+`HardQuestTransferBenchmarkTest` măsoară mutarea aleasă de adversarul Hard
+pe catalogul încărcat la execuție. La mat se verifică prima cheie; la
+exercițiile materiale, soluția catalogului. Pragul de Antrenament tactic
+folosește lotul fix `training-001`–`training-048`; Extent afișează și totalul
+capitolului activ. [Praguri](../../atf-tests/src/test/resources/hard-quest-transfer.yaml)
+
+Rezultatele de mai jos sunt reperul istoric al experimentului de ordonare,
+anterior catalogului și politicii actuale.
 
 | Capitol | Rezolvat de Hard |
 |---|---:|
@@ -226,13 +251,13 @@ Intervalul reeșantionează cele 12 deschideri ca unități independente și tra
 
 ## Analiza partidei
 
-După rezultat, analiza locală compară mutarea jucată și recomandarea la ultima adâncime comună finalizată. Caută până la cinci semimutări, cu o extensie tactică și maximum 85.000 de noduri suplimentare pe poziție. Scorul așteptat este o transformare logistică a centipionilor, cu scară de 220 cp. Graficul păstrează perspectiva albului. Precizia fiecărei culori este procentul mediu de scor păstrat la mutările cu alegere, excluzând mutările de carte și cele forțate.
-
-Pragurile de pierdere sunt 20‰, 50‰, 100‰ și 200‰ pentru mutare bună, imprecizie, greșeală și greșeală gravă. O ocazie ratată cere o șansă câștigătoare lăsată de adversar. O mutare strălucită cere adâncime de cel puțin patru semimutări, avantaj și acceptarea unui sacrificiu de cel puțin doi pioni în replica găsită. Căutarea trebuie să găsească fie o continuare distinct mai bună, fie un singur mat demonstrat. O mutare de catalog cu o pierdere de cel puțin 100‰ este clasificată după evaluare. [Politica locală](../../chess-core/src/main/resources/game-review.yaml) · [Clasificarea Chess.com](https://support.chess.com/en/articles/8572705-how-are-moves-classified-what-is-a-blunder-or-brilliant-etc)
+Metoda de [evaluare a unei semimutări](game-review.md#evaluarea-unei-semimutări),
+[categoriile și precizia](game-review.md#categorii-și-precizie) și
+[estimarea Elo](game-review.md#cum-se-estimează-elo) sunt explicate la owner.
+Reperele AI afișate folosesc calibrarea externă guvernată din
+[`game-review.yaml`](../../chess-core/src/main/resources/game-review.yaml).
 
 Indexul recunoaște 3.865 de linii ECO. Caută ultima poziție denumită, inclusiv când partida ajunge la ea prin transpoziție, și marchează mutările de carte cât timp secvența urmează un prefix cunoscut. Numele ECO provin din catalogul englezesc CC0. Pentru regenerare, descărcați fișierele `a.tsv`–`e.tsv` de la revizia indicată și rulați scriptul de import cu chess.js 1.4.0. Guvernanța reia fiecare linie UCI și compară poziția rezultată cu EPD. [Revizia catalogului](https://github.com/lichess-org/chess-openings/tree/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39) · [Scriptul de import](../../scripts/import-review-openings.cjs)
-
-Elo de referință al AI-ului provine din retestarea contra Stockfish 19 de mai sus. După minimum zece decizii ale jucătorului, estimarea lui folosește rezultatul (s) din perspectiva sa. Media scorului așteptat este `(1 + s) / 3`, iar diferența față de reper se obține cu formula Elo standard. Intervalul combină capetele reperului cu cuantilele de 5% și 95% ale distribuției actualizate de o singură partidă. O limită deschisă a reperului rămâne deschisă în afișaj.
 
 Am verificat și o estimare Elo bazată exclusiv pe pierderea de scor la mutare. În eșantionul de 800 de partide Blitz 3+0 din ianuarie 2024, pe benzile 1200–2400, mediile lotului de calibrare au fost 74‰, 86‰, 73‰, 70‰ și 75‰. Lotul separat a dat 103‰, 77‰, 43‰, 73‰ și 54‰. Variația între benzi a dus la folosirea rezultatului contra reperului AI pentru Elo și a pierderii de scor pentru precizie și clasificare. [Arhiva Lichess](https://database.lichess.org/#standard_games) · [Game Rating pe Chess.com](https://support.chess.com/en/articles/10773754-how-is-game-rating-calculated-in-game-review)
 
@@ -332,3 +357,118 @@ Reutilizarea pozițiilor generate pentru ordonarea șahurilor a păstrat mutarea
 La șase semimutări și 88.000 de noduri suplimentare, Hard a obținut 34 de victorii, o remiză, 19 înfrângeri și 18 partide neterminate după 72 de partide contra Stockfish 19. Estimarea este 1573 Elo (1432–1798), față de 1534 (1396–1672) la 44.000. În Mat în trei, rezultatul a crescut de la 194 la 198/200. Celelalte cinci categorii au păstrat scorurile. Media la tactică a crescut de la 29.626 la 45.761 de noduri. Pe zece poziții fixe a rămas aceeași pierdere medie de 45,9‰, cu o pierdere majoră în Siciliană.
 
 Reeșantionarea perechilor după deschidere, cu jumătate de punct pentru partidele neterminate, estimează diferența la +39 Elo, cu interval de 95% între −54 și +132. Pe 48 de poziții, mediana a crescut de la 534 la 916 ms. Perechea de măsurări a rulat pe aceeași mașină, cu duelul JVM activ în fundal.
+
+## Calibrarea Basic cu adâncime selectivă
+
+Am jucat câte 72 de partide per variantă, în trei sesiuni, cu Stockfish 19 la `UCI_Elo 1500` și 6.000 de noduri cerute pe mutare. Am folosit aceleași 12 deschideri cu culori inversate și plafonul de 160 de semimutări. V, R, Î și N înseamnă victorii, remize, înfrângeri și partide neterminate pentru Basic.
+
+| Variantă | V / R / Î / N | Elo estimat | Interval 95% |
+|---|---:|---:|---:|
+| Referință la trei semimutări | 7 / 1 / 49 / 15 | 1268 | 922–1442 |
+| Două semimutări | 3 / 0 / 63 / 6 | 1083 | −∞–1322 |
+| Două semimutări, trei în șah | 4 / 0 / 59 / 9 | 1151 | −∞–1346 |
+| Basic livrat, lotul de referință | 2 / 0 / 63 / 7 | 1067 | −∞–1253 |
+| Basic livrat, 12 deschideri separate | 2 / 1 / 63 / 6 | 1067 | −∞–1245 |
+| Basic livrat, ambele loturi | 4 / 1 / 126 / 13 | 1067 | 638–1225 |
+
+Excepția pentru șah a estimat 1253 Elo pe încă 72 de partide cu 12 deschideri diferite. Două semimutări în toate pozițiile au estimat 1173 Elo pe aceleași deschideri noi, dar testul de conversie a prins un final de turn încheiat fără mat la plafonul de 30 de semimutări. Codul acordă a treia semimutare numai în finalurile elementare cu turnul ori dama contra regelui și trece din nou testele de conversie. Estimarea centrală este sub 1200 în ambele loturi, cu intervale care depășesc 1200. Ratingul istoric din `game-review.yaml` rămâne legat de dovada și commitul său. [Protocolul Stockfish](#calibrarea-versiunii-live)
+
+## Recaptura Hard la orizont
+
+Prima probă a verificat o singură replică de recaptură pe pătratul ultimei capturi la orizont, cu nodurile scăzute din plafonul de 44.000. Pozițiile în șah păstrează evaluarea de bază, iar cache-ul include pătratul recapturii. Tehnica aplică adâncime selectivă schimburilor de material. [Căutare la adâncime variabilă](https://ijcai.org/proceedings/1983/183)
+
+Pe zece poziții fixe, pierderea Hard a scăzut de la 45,9‰ la 2,4‰ și pierderile majore de la una la zero. Tactica a urcat de la 87/100 la 92/100. Mat în trei a coborât de la 194/200 la 193/200, iar `intermezzo-012` a coborât capitolul de la 24/24 la 23/24. Proba a încălcat pragul Intermezzo și a rămas în TMP.
+
+Limitarea recapturii la adâncimi pare a păstrat scorurile tuturor capitolelor de referință, inclusiv 194/200 la Mat în trei și 24/24 la Intermezzo. În lotul fix Stockfish a rămas însă pierderea de 45,9‰, cu aceeași pierdere majoră. Colecția extinsă a dat 61/72 la Antrenament tactic cu Hard live, dintre care 22/24 în exercițiile noi. [Selecția publică](quest-curation.md#antrenament-tactic-și-lot-de-verificare)
+
+Recaptura aplicată numai după ce o piesă ia una mai ieftină a trecut toate pragurile fixe. A obținut 95/100 la Tactică, 24/24 la Intermezzo și 192/200 la Mat în trei, față de 194/200 în codul live. Pe lotul fix Stockfish a păstrat 2,4‰ și zero pierderi majore. Pe 24 de poziții din 12 deschideri separate, cu ambele culori la mutare și Stockfish 19 la adâncimea 15, pierderea medie a urcat de la 53,0‰ la 68,0‰. Candidatul a îmbunătățit șase decizii, a egalat 14 și a înrăutățit patru. În Scandinavă, după `4.d4`, `…Nc6` a pierdut 399‰ față de `…Nf6`. În Siciliana clasică după `6.Bg5`, `…Nxe4` a pierdut încă 244‰ față de `…Bg4`. Candidatul rămâne în TMP.
+
+În duelul direct, cu aceleași 12 deschideri și culori inversate, candidatul a obținut 10 victorii, 4 remize, 5 înfrângeri și 5 partide neterminate. Diferența estimată în duel este +73 Elo, cu interval 95% de la −137 la +307. Lotul independent și intervalul larg lasă creșterea Hard neconfirmată.
+
+Restrângerea la recapturi după ultima mutare a lui Hard a trecut lotul fix, dar a crescut pierderea la 79,1‰ în cele 24 de poziții independente. Rezultatul arată că filtrul pe culoare singur nu rezolvă regresia.
+
+## Rezolvarea quest-urilor cu obiectiv declarat
+
+`HardQuestSolver` primește poziția și obiectivul. Pentru mat caută succesiv la o semimutare, trei și cinci, încearcă întâi șahurile și păstrează și mutările liniștite. O mutare de atac se dovedește numai dacă fiecare apărare legală permite continuarea. Tabela păstrează rezultatele exacte pe poziție și semimutările rămase. Plafonul este de 100.000 de noduri, iar epuizarea lui produce un rezultat distinct, fără soluție. Pentru material, aceeași evaluare minimax la trei semimutări cere o cheie unică și câștig forțat de cel puțin 200 cp. [Căutarea de dovezi în arbori de joc](https://research.tilburguniversity.edu/en/publications/proof-number-search-2/)
+
+| Probă pe cele 200 de poziții de mat în trei | Soluții | Noduri medii | Maxim |
+|---|---:|---:|---:|
+| A · Hard în partidă | 194/200 | 14.446 suplimentare | 44.000 suplimentare |
+| B · Dovadă, ordinea generatorului | 200/200 | 21.750 | 344.364 |
+| C · Dovadă, șahuri înaintea mutărilor liniștite | 200/200 | 2.746 | 84.920 |
+
+Comparația B/C folosește același plafon experimental de un milion de noduri. C a trecut apoi plafonul de 100.000 și a rezolvat 1.220/1.220 de quest-uri publice și 24/24 din lotul independent. Cheile YAML intră numai în aserțiune. Numărul de noduri al rezolvării și cel suplimentar al adversarului măsoară căutări diferite.
+
+În partida Hard, oprirea la primul mat demonstrat a păstrat 194/200 la mat în trei și a redus media de la 14.446 la 9.657 de noduri suplimentare. Cele 24 de poziții independente au avut aceleași decizii, iar toate cele patru perechi de partide au avut secvențe identice, cu bilanț 3/2/3. Am integrat oprirea la dovadă ca economie de căutare. Poarta Stockfish rămâne la 45,9‰ și o pierdere majoră. Varianta cu fereastră nulă după prima ramură a obținut aceeași pierdere și a rămas în TMP. Ratingul Hard rămâne la estimarea de referință. [Protocol Fishtest](https://official-stockfish.github.io/docs/fishtest-wiki/Creating-my-first-test.html)
+
+Rezervarea a 5.000 de noduri din bugetul de 44.000 pentru dovadă a dus la 199/200 la mat în trei. Antrenamentul a trecut de la 80/96 la 81/96, iar Tactica de la 87/100 la 86/100. Pe cele 24 de poziții independente cu istoric a ales aceleași mutări. Proba limita dovada la pozițiile primite fără istoric. A rămas în TMP. Cheia liniștită `…Nb4` din `mate3-005wy` a cerut 26.380 de noduri în căutarea de dovadă separată.
+
+## Costul mutărilor legale și repertoriul Hard
+
+Motorul păstrează pozițiile regilor când aplică o mutare. Verificarea șahului pornește de la rege, verifică atacurile scurte și se oprește la prima piesă pe fiecare rază. Direcțiile și atacurile folosesc în continuare regulile încărcate din YAML. La patru semimutări, cele patru poziții de control au produs 197.281, 4.085.603, 43.238 și 2.103.487 de continuări, identice cu Stockfish 19. Componenta verifică un subset rapid din aceleași poziții. [Poziții perft Stockfish](https://github.com/official-stockfish/Stockfish/blob/sf_19/tests/perft.sh)
+
+Pe 48 de poziții, mutarea, adâncimea și nodurile Hard au coincis în cele patru rulări alternante. Medianele locale au fost 879 și 934 ms pentru generatorul anterior și 281 și 478 ms pentru cel actual. Percentila 95 a variat între 664 și 2.097 ms cu generatorul actual, sub sarcina rulărilor paralele. Măsurarea descrie JVM-ul local.
+
+La 44.000 de noduri, evaluarea suplimentară a pionilor a crescut pierderea medie pe 24 de poziții independente de la 28,7‰ la 39,8‰. Adăugarea activității turnurilor și a protecției regelui a dus-o la 49,3‰. Bugetele experimentale de 110.000 și 175.000 au păstrat pierderea majoră din Siciliana cu `…e5`. Aceste variante rămân în TMP. [Model de evaluare pe faze](https://github.com/official-stockfish/Stockfish/blob/sf_14/src/evaluate.cpp)
+
+În duelurile pe șase deschideri cu culori inversate, varianta cu pioni a avut 5 victorii, 5 înfrângeri și 2 partide neterminate. Varianta cu turnuri și protecția regelui a avut 4 victorii, 6 înfrângeri și 2 neterminate. Estimările diferenței au fost 0 Elo (−280–+280) și −58 Elo (−280–+191). [Metodologia Fishtest](https://official-stockfish.github.io/docs/fishtest-wiki/Creating-my-first-test.html)
+
+Repertoriul Hard are șase replici noi pe poziții exacte. Stockfish 19 a ales aceeași replică la adâncimile 13, 16 și 19 pentru fiecare poziție. În Siciliana cu `…e5`, `Nxe5` a obținut la adâncimea 19 un scor așteptat de 993‰, față de 519‰ pentru `Nc3`. În Siciliana clasică, `…e6` a obținut 458‰ față de 277‰ pentru `…Bg4`. După replica de repertoriu, Hard caută continuarea cu plafonul de 44.000. [Repertoriu YAML](../../chess-core/src/main/resources/ai-repertoire.yaml)
+
+Poarta fixă Stockfish a trecut cu 10/10 alegeri identice, pierdere medie 0‰ și zero pierderi majore. Poziția Siciliană intră în repertoriu, astfel că rezultatul măsoară și acoperirea repertoriului. Pe lotul anterior de 24 de poziții, 23 de decizii au coincis și una s-a îmbunătățit, cu pierdere medie de la 53,0‰ la 44,5‰. Lotul include Siciliana clasică din repertoriu. În cele 12 partide începute din pozițiile celor șase replici, cu culorile inversate, candidatul a obținut 6 victorii, o remiză, 3 înfrângeri și 2 partide neterminate. Estimarea diferenței este +89 Elo, cu interval de 95% de la −154 la +338. [Protocolul ancorei](#calibrarea-versiunii-live)
+
+### Recalibrare pe cele 12 deschideri standard
+
+Fiecare rând are 24 de partide cu Stockfish 19 la `UCI_Elo 1500`, un fir, 6.000 de noduri cerute pe mutare și ambele culori. Bilanțul este victorii, remize, înfrângeri și partide neterminate.
+
+| Profil | Bilanț | Elo estimat | Interval 95% |
+|---|---:|---:|---:|
+| Basic | 2 / 0 / 22 / 0 | 1083 | −∞–1268 |
+| Advanced | 6 / 0 / 11 / 7 | 1427 | 955–1691 |
+| Hard înaintea repertoriului nou | 12 / 1 / 8 / 3 | 1558 | 1363–1755 |
+| Hard cu repertoriul nou | 8 / 0 / 8 / 8 | 1500 | 1268–1780 |
+
+Reluarea secvențelor UCI confirmă zero întâlniri cu cele șase poziții noi la mutarea lui Hard în ambele serii. Cele două estimări Hard diferă între rulările ancorei cu putere limitată. Duelul din pozițiile de repertoriu oferă măsura directă a schimbării, cu interval care include zero. [Protocolul ancorei](#calibrarea-versiunii-live)
+
+Duelul direct pe alte 12 deschideri a dat 13 victorii, două remize, șapte înfrângeri și două partide neterminate pentru candidatul de 88.000. Diferența estimată este +89 Elo, cu intervalul 95% de la −14 la +232. Păstrăm bugetul live de 44.000 și folosim proba cu 88.000 pentru a identifica pozițiile unde căutarea selectivă poate economisi noduri.
+
+## Captura imediată de pion în căutarea Hard
+
+Când adâncimea pară a clasat prima o captură imediată de pion, Hard poate păstra acel rezultat dacă linia impară preferă o mutare liniștită și abia la ultima semimutare capturează același pion. Condițiile cer material cel puțin egal în linia capturii imediate, un orizont complet pentru ambele variante și pionul prezent pe aceeași casă până la captură. Matul dovedit are prioritate. Regula se aplică în căutarea obișnuită Hard, în afara repertoriului și a căutării de final de turnuri. Cheia `hard-horizon.preserve-pawn-capture` permite dezactivarea pentru A/B. [Politica YAML](../../chess-core/src/main/resources/match-ai.yaml)
+
+| Lot | Referință → candidat | Martor |
+|---|---|---|
+| Siciliana cu pion expus, două poziții de reglaj și două de verificare | `Nc3 → Nxe5` în toate cele patru poziții | Stockfish 19 a ales `Nxe5` la adâncimile 14, 17 și 19. |
+| Poziții cu negrul la mutare | `Nc6 → Nxe4` într-o poziție; două capturi deja corecte se păstrează | Stockfish 19 a ales `Nxe4` la toate cele trei adâncimi. |
+| Pion apărat sau damă pe c7 | Deciziile martor rămân neschimbate | La adâncimea 19, Stockfish preferă dezvoltarea. |
+| Tactică în Siciliana cu …h6 și Nc3 | Hard păstrează `Nd5`; Stockfish preferă `Nxe5` | Orizontul de patru indică pierdere de material, iar următorul nu se termină în buget. |
+
+Pe patru poziții tematice, fiecare versiune a jucat cu ambele culori contra Stockfish 19, `UCI_Elo 1500`, un fir și 6.000 de noduri cerute pe mutare. A și B au refolosit răspunsul Stockfish cât timp istoricul a coincis. Șase trasee au rămas identice. În celelalte două, B a câștigat cu albele la semimutările 41 și 39; A a rămas activă la plafonul 180 și a câștigat la 135. Bilanțurile sunt 4 / 0 / 3 / 1 pentru A și 5 / 0 / 3 / 0 pentru B. Intervalele estimărilor se suprapun.
+
+Poarta fixă a păstrat 10/10 pentru Hard și plafonul de 44.000 de noduri suplimentare. Pe probleme fără obiectiv transmis motorului, rezultatele au rămas 500/500, 300/300, 194/200, 87/100, 80/96 și 24/24. Solverul cu obiectiv declarat a păstrat 1.220/1.220 publice și 24/24 independente. Testul comparativ al indiciului a dat aceeași abatere în A și B, 281‰ cumulat pentru indiciu și 257‰ pentru Hard pe 12 poziții. Diferența vine din Catalană, unde indiciul preferă `cxd5` cu 49‰ pierdere, față de `Nc3` cu 25‰ la Hard. [Feedback AI](../feedback/README.md)
+
+În repetarea tematică, după restrângerea regulii la același pion și la orizontul imediat precedent, A a obținut 3 / 0 / 2 / 3 și B 5 / 0 / 2 / 1. Una dintre cele două partide câștigate în plus s-a schimbat ulterior față de poziția de pornire. Pe șase deschideri neutre cu răspunsuri comune, cele 12 trasee au coincis și fiecare variantă a obținut 7 / 0 / 3 / 2. Estimarea Hard este 1620 Elo, cu intervalul 1500–1917. Lotul neutru nu demonstrează un câștig general.
+
+| Profil | Ultimul lot neutru | Elo estimat | Interval 95% |
+|---|---:|---:|---:|
+| Basic | 0 / 0 / 11 / 1 | 955 | −∞–1309 |
+| Advanced | 4 / 0 / 5 / 3 | 1471 | 1083–1917 |
+| Hard | 7 / 0 / 3 / 2 | 1620 | 1500–1917 |
+
+Fiecare profil are câte 12 partide cu aceeași ancoră. Basic și Advanced folosesc seria de calibrare, iar Hard seria A/B cu răspunsuri comune. Intervalele rămân largi. Reperele afișate în aplicație provin în continuare din calibrarea guvernată. [Protocolul ancorei](#calibrarea-versiunii-live)
+
+## Verificarea schimburilor după o captură de pion
+
+Hard pornește de la clasamentul obișnuit. Într-o poziție cu material egal și fără șah la rădăcină, o captură de pion care conduce la trei semimutări, cu un câștig aparent de cel puțin doi pioni, poate fi verificată dacă liderul de la patru semimutări este altul și următoarea iterație nu furnizează un rezultat acceptabil. Comparația caută separat cele două mutări la aceeași adâncime, cu până la două semimutări pentru capturi, promovări și ieșiri din șah. Captura trece înainte doar dacă ambele verificări se termină, scorul ei e mai bun și linia câștigă material de cel puțin un pion. Rezerva `hard-horizon.pawn-exchange-nodes` consumă până la 7.000 din cei 44.000 de noduri suplimentare și se poate dezactiva cu valoarea zero. [Politica YAML](../../chess-core/src/main/resources/match-ai.yaml)
+
+După `1.e4 c5 2.Nf3 h6 3.Nc3 e5`, căutarea la patru semimutări ajungea la `Nxe5 Qf6 Nxf7 Qxf7` și evalua o pierdere de material. Verificarea completă compară și alte răspunsuri. Stockfish 19, la adâncimea 20 cu mutarea forțată, a dat +241 cp pentru `Nxe5` și +37 cp pentru `Nd5`. Șase poziții de reglaj și patru dintre cele șase poziții de verificare au trecut de la o mutare diferită la `Nxe5`. Celelalte două poziții de verificare au păstrat o captură bună și au refuzat o captură de pion apărat. Martorii cu dama pe c7, calul pe c6 sau pionul pe d6 au păstrat deciziile anterioare.
+
+În cele 16 partide tematice contra Stockfish 19 cu culori inversate, bilanțurile au fost 5 / 0 / 2 / 1 pentru A și 3 / 0 / 3 / 2 pentru B. Pe lotul neutru, bilanțurile au fost 4 / 0 / 7 / 1 pentru A și 5 / 0 / 6 / 1 pentru B. În duelul direct pe patru deschideri tematice, B a obținut 3 / 0 / 2 / 3, cu o diferență estimată de +44 Elo și interval 95% de la −338 la o limită superioară deschisă. Bilanțul este victorii, remize, înfrângeri și partide neterminate. Răspunsul Stockfish este reutilizat cât timp istoricul coincide. Rezultatele confirmă corecția deciziei de captură, iar conversia avantajului rămâne o prioritate. [Metoda perechilor](https://official-stockfish.github.io/docs/fishtest-wiki/Fishtest-Mathematics.html) · [Feedback AI](../feedback/README.md)
+
+| Profil | Lot neutru | Stockfish 19 `UCI_Elo` | Elo estimat | Interval 95% |
+|---|---:|---:|---:|---:|
+| Basic | 2 / 0 / 10 / 0 | 1320 | 1040 | −∞–1200 |
+| Advanced | 1 / 0 / 6 / 5 | 1500 | 1346 | −∞–1780 |
+| Hard B | 5 / 0 / 6 / 1 | 1500 | 1471 | 1309–1691 |
+
+Basic a pierdut toate cele 12 partide contra ancorei 1500. Rularea contra 1320 oferă o estimare finită. Fiecare profil are câte șase perechi, cu un fir Stockfish și 6.000 de noduri cerute pe mutare. Ratingurile depind de lot și de adversar. [Calibrarea Stockfish](https://official-stockfish.github.io/docs/stockfish-wiki/Stockfish-FAQ.html#the-elo-rating-of-stockfish)

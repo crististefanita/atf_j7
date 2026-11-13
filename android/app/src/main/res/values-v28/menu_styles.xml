@@ -1,0 +1,8 @@
+<resources>
+    <style name="MenuHeading">
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+    <style name="HomeSection" parent="HomeSectionBase">
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+</resources>

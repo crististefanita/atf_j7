@@ -41,6 +41,8 @@ public final class ChessPosition {
 
     private static final ChessRules RULES = ChessRules.STANDARD;
     private static final int[][][][] TARGETS = possibleTargets();
+    private static final int[][] LEAP_ATTACKS = leapAttacks();
+    private static final AttackRay[][] RAY_ATTACKS = rayAttacks();
     private static final String START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     private final Piece[] board;
@@ -48,11 +50,16 @@ public final class ChessPosition {
     private final int castleRights;
     private final int enPassant;
 
-    private ChessPosition(Piece[] board, Side turn, int castleRights, int enPassant) {
+    private final int whiteKing;
+    private final int blackKing;
+
+    private ChessPosition(Piece[] board, Side turn, int castleRights, int enPassant, int whiteKing, int blackKing) {
         this.board = board;
         this.turn = turn;
         this.castleRights = castleRights;
         this.enPassant = enPassant;
+        this.whiteKing = whiteKing;
+        this.blackKing = blackKing;
     }
 
     public static ChessPosition initial() {
@@ -65,7 +72,7 @@ public final class ChessPosition {
         Piece[] board = new Piece[64];
         String[] ranks = fields[0].split("/", -1);
         if (ranks.length != 8) throw invalidFen(fen);
-        int[] kings = new int[2];
+        int[] kings = {-1, -1};
         for (int row = 0; row < 8; row++) {
             int file = 0;
             for (char token : ranks[row].toCharArray()) {
@@ -73,13 +80,16 @@ public final class ChessPosition {
                 if (file >= 8) throw invalidFen(fen);
                 Kind type = kind(Character.toLowerCase(token));
                 Side side = Character.isUpperCase(token) ? Side.WHITE : Side.BLACK;
-                if (type == Kind.KING) kings[side.ordinal()]++;
+                if (type == Kind.KING) {
+                    if (kings[side.ordinal()] != -1) throw invalidFen(fen);
+                    kings[side.ordinal()] = BoardSquare.of(file, 7 - row);
+                }
                 if (type == Kind.PAWN && (row == 0 || row == 7)) throw invalidFen(fen);
                 board[BoardSquare.of(file++, 7 - row)] = new Piece(side, type);
             }
             if (file != 8) throw invalidFen(fen);
         }
-        if (kings[0] != 1 || kings[1] != 1) throw invalidFen(fen);
+        if (kings[0] < 0 || kings[1] < 0) throw invalidFen(fen);
         Side turn = switch (fields[1]) { case "w" -> Side.WHITE; case "b" -> Side.BLACK; default -> throw invalidFen(fen); };
         if (!fields[2].matches("-|K?Q?k?q?")) throw invalidFen(fen);
         int rights = 0;
@@ -100,7 +110,7 @@ public final class ChessPosition {
             if (enPassant / 8 != previous.home() + previous.forward() || board[enPassant] != null
                     || board[enPassant - step] != null || !new Piece(turn.other(), Kind.PAWN).equals(board[enPassant + step])) throw invalidFen(fen);
         }
-        var result = new ChessPosition(board, turn, rights, enPassant);
+        var result = new ChessPosition(board, turn, rights, enPassant, kings[0], kings[1]);
         if (result.inCheck(turn.other())) throw invalidFen(fen);
         return result;
     }
@@ -296,18 +306,74 @@ public final class ChessPosition {
 
     private boolean inCheck(Side side) {
         int king = kingSquare(side);
-        for (int square = 0; square < board.length; square++) {
-            Piece piece = board[square];
-            if (piece != null && piece.side() != side && reaches(piece, square, king)) return true;
+        Side enemy = side.other();
+        for (int from : LEAP_ATTACKS[king]) {
+            Piece piece = board[from];
+            if (piece != null && piece.side() == enemy && !RULES.ray(piece.kind())
+                    && reaches(piece, from, king)) return true;
+        }
+        for (AttackRay ray : RAY_ATTACKS[king]) {
+            for (int from : ray.squares()) {
+                Piece piece = board[from];
+                if (piece == null) continue;
+                if (piece.side() == enemy && RULES.ray(piece.kind())
+                        && RULES.direction(piece.kind(), ray.file(), ray.rank())) return true;
+                break;
+            }
         }
         return false;
     }
 
-    private int kingSquare(Side side) {
-        Piece royal = new Piece(side, Kind.KING);
-        int king = 0;
-        while (!royal.equals(board[king])) king++;
-        return king;
+    private int kingSquare(Side side) { return side == Side.WHITE ? whiteKing : blackKing; }
+
+    private record AttackRay(int file, int rank, int[] squares) { }
+
+    private static int[][] leapAttacks() {
+        var attacks = new int[64][];
+        for (int king = 0; king < attacks.length; king++) {
+            var sources = new ArrayList<Integer>();
+            for (int from = 0; from < 64; from++) {
+                int file = king % 8 - from % 8;
+                int rank = king / 8 - from / 8;
+                if (Math.abs(file) == RULES.captureFileStep && Math.abs(rank) == 1) {
+                    sources.add(from);
+                    continue;
+                }
+                for (Kind kind : Kind.values()) {
+                    if (kind != Kind.PAWN && !RULES.ray(kind) && RULES.direction(kind, file, rank)) {
+                        sources.add(from);
+                        break;
+                    }
+                }
+            }
+            attacks[king] = sources.stream().mapToInt(Integer::intValue).toArray();
+        }
+        return attacks;
+    }
+
+    private static AttackRay[][] rayAttacks() {
+        var attacks = new AttackRay[64][];
+        for (int king = 0; king < attacks.length; king++) {
+            var rays = new ArrayList<AttackRay>();
+            for (int file = -1; file <= 1; file++) {
+                for (int rank = -1; rank <= 1; rank++) {
+                    if (file == 0 && rank == 0) continue;
+                    var squares = new ArrayList<Integer>();
+                    int x = king % 8 - file;
+                    int y = king / 8 - rank;
+                    while (x >= 0 && x < 8 && y >= 0 && y < 8) {
+                        squares.add(BoardSquare.of(x, y));
+                        x -= file;
+                        y -= rank;
+                    }
+                    if (!squares.isEmpty()) {
+                        rays.add(new AttackRay(file, rank, squares.stream().mapToInt(Integer::intValue).toArray()));
+                    }
+                }
+            }
+            attacks[king] = rays.toArray(new AttackRay[rays.size()]);
+        }
+        return attacks;
     }
 
     private boolean reaches(Piece piece, int from, int to) {
@@ -377,7 +443,10 @@ public final class ChessPosition {
                 next[rook] = null;
             }
         }
-        return new ChessPosition(next, turn.other(), rights, nextEnPassant);
+        boolean kingMoved = piece.kind() == Kind.KING;
+        return new ChessPosition(next, turn.other(), rights, nextEnPassant,
+                kingMoved && turn == Side.WHITE ? to : whiteKing,
+                kingMoved && turn == Side.BLACK ? to : blackKing);
     }
 
     private static int rookRight(int square) {

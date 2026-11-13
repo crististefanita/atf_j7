@@ -36,7 +36,7 @@ class MatchSetupTest {
         var position = ChessPosition.fromFen("4k3/8/8/7p/P7/8/8/4K3 w - - 0 1");
         var depths = java.util.Arrays.stream(Level.values())
                 .map(level -> TacticalAnalysis.botAnalysis(position, level).depth()).toList();
-        check.same("Basic and Advanced retain their completed horizons", List.of(3, 4), depths.subList(0, 2));
+        check.same("In a quiet position Basic completes two plies and Advanced completes four", List.of(2, 4), depths.subList(0, 2));
         check.same("Hard completes the new sixth horizon on this position", 6, depths.get(2));
     }
 

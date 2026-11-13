@@ -1,6 +1,5 @@
 package ro.atf.chess.android;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -33,7 +32,7 @@ import ro.atf.chess.OpeningPractice;
 import ro.atf.chess.OpeningPractice.Phase;
 import ro.atf.chess.QuestHint;
 
-public final class OpeningActivity extends Activity {
+public final class OpeningActivity extends BackNavigableActivity {
     private static final int BACKGROUND = 0xff262522;
     private static final int PRIMARY = 0xfff5f3ec;
     private static final int MUTED = 0xffc0bfb4;
@@ -63,7 +62,6 @@ public final class OpeningActivity extends Activity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         catalog = OpeningCatalog.load();
-        if (Build.VERSION.SDK_INT >= 33) getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, this::back);
         if (state != null && state.containsKey("opening")) {
             String id = state.getString("opening");
             int ply = state.getInt("ply");
@@ -516,13 +514,11 @@ public final class OpeningActivity extends Activity {
                 : getString(R.string.solution_promotion, from, to, getString(BoardView.kindLabel(move.promotion())));
     }
 
-    private void back() {
+    @Override protected void back() {
         if (lesson != null && lesson.reviewing()) navigate(lesson.show(practice().ply()));
         else if (lesson != null) showCatalog();
         else finish();
     }
-
-    @Override public void onBackPressed() { back(); }
 
     @Override protected void onResume() {
         super.onResume();

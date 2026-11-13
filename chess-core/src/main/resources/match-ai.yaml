@@ -1,6 +1,6 @@
-schema: 4
+schema: 7
 opponents:
-  BASIC: {max-plies: 3, extra-nodes: 0}
+  BASIC: {max-plies: 3, extra-nodes: 0, standard-max-plies: 2}
   ADVANCED: {max-plies: 4, extra-nodes: 10000}
   HARD: {max-plies: 6, extra-nodes: 44000}
 hint:
@@ -14,4 +14,5 @@ evaluation: {nodes: 16000, max-horizon-correction-cp: 25}
 repetition: {min-advantage-cp: 100, max-score-loss-cp: 50}
 rook-endgame: {extension-plies: 1, candidate-gap-cp: 50}
 hard-ordering: {check-bonus: 10000}
+hard-horizon: {preserve-pawn-capture: true, pawn-exchange-nodes: 7000}
 hard-transpositions: {entries-per-thousand-nodes: 500, max-entries: 50000}

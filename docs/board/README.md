@@ -1,11 +1,13 @@
 # Tabla de joc
 
-Tabla este elementul dominant al ecranului. Verdele și cremul delimitează cele 64 de pătrate. Piesele Staunton au contur închis, bază curbată, cal văzut din profil și coroane distincte pentru rege și damă. Mitra nebunului are o crestătură deschisă, prin care se vede pătratul. Silueta este mai înaltă decât a pionului. Coordonatele stau în marginea tablei, iar ultima mutare marchează plecarea și destinația.
+Acest ghid explică tabla, problemele și partidele din Chess Lab. Alege
+[Probleme](#tactică-și-puncte), [Tablă de analiză](#tablă-de-analiză) sau
+[Partidă cu calculatorul](#partidă-cu-calculatorul).
 
 ## Tactică și puncte
 
 - În **Tactică**, alege mutarea care câștigă cel mai mult material. Verificarea ia în calcul mutarea ta, replica adversarului și continuarea ta. Poți deschide explicația pentru linia completă.
-- În **Probleme → Antrenament tactic** găsești poziții noi de apărare, deviere, sacrificiu, mutări liniștite, furculițe și legări. Capitolul își păstrează progresul și totalurile. [Catalog și verificare](quest-curation.md#antrenament-tactic-și-lot-de-verificare)
+- În **Probleme → Antrenament tactic** găsești 96 de poziții de apărare, deviere, sacrificiu, mutări liniștite, furculițe și legări. Progresul și punctele se păstrează când revii în capitol. [Catalog și verificare](quest-curation.md#antrenament-tactic-și-lot-de-verificare)
 - În **Probleme → Mutarea intermediară**, caută șahul sau captura de forțare înaintea recapturii. Capitolul crește în dificultate pe trei trepte. [Catalog și punctaj](quest-curation.md#mutarea-intermediară)
 - Becul de sub tablă are o zonă de atingere de 48 dp. Prima apăsare marchează piesa, a doua adaugă săgeata, iar următoarea explică soluția. În timpul replicii, comanda este dezactivată.
 - Prima rezolvare a fiecărei probleme acordă 10 puncte. O serie fără greșeli sau indicii adaugă câte 2 puncte la fiecare problemă, începând de la a doua, până la 20 de puncte pe problemă. Flacăra arată lungimea seriei și funcționează între capitole.
@@ -15,6 +17,9 @@ Sistemul de puncte și bonusul de la a doua rezolvare urmează modelul Puzzle Po
 
 ## Tablă și indicii
 
+- Pătratele verzi și crem încadrează piesele Staunton. Crestătura deschisă și
+  silueta mai înaltă deosebesc nebunul de pion. Coordonatele stau pe margine,
+  iar ultima mutare marchează plecarea și destinația.
 - La intrarea în capitol, orientarea pornește cu partea care trebuie să rezolve problema jos. **Precedentă** și **Următoarea** păstrează orientarea și coordonatele. Marcajul „la mutare” urmărește culoarea activă. Folosește **Întoarce tabla** pentru a schimba orientarea.
 - Etichetele și mesajele au loc rezervat. La aceeași dimensiune de fereastră și același font, tabla își păstrează poziția și dimensiunea când se schimbă problema, mutarea din istoric sau analiza. Pe ferestre scunde, tabla rămâne pătrată și se micșorează pentru a păstra locul comenzilor.
 - Atingerea unei piese active arată numai destinațiile legale. O a doua atingere alege destinația. Promovarea cere o alegere explicită.
@@ -88,7 +93,15 @@ Sub tablă, săgețile parcurg fiecare mutare, iar săgeata cu opritor revine la
 
 Alege o poziție din istoric și apasă **Continuă de aici** sub tablă. Confirmarea păstrează poziția și mutările care duc la ea. Mutările de după poziția aleasă sunt eliminate din partida salvată. Bifa **Lasă AI-ul să mute** pornește replica atunci când e rândul calculatorului. Poți continua și dintr-o partidă terminată. Din arhivă, continuarea folosește un loc liber.
 
-La final, deschide **Analiza partidei** din **Opțiunile partidei** sau de sub rezultat. Dacă ai bifat **Analiză AI** la pornire, meniul oferă raportul și în cursul partidei, după prima mutare. Raportul din timpul jocului evaluează mutările înregistrate și pauzează replica automată cât este deschis. Graficul urmărește avantajul albului, iar lista include deschiderea, mutările de carte, impreciziile, greșelile, ocaziile ratate și mutările strălucite. **Vezi pe tablă** deschide poziția, iar **Reîncearcă mutarea** propune reluarea de dinaintea mutării tale. Reperul Elo și estimarea pentru rezultat apar în analiza partidei încheiate, când sunt aplicabile. [Metoda de analiză și estimare](ai-quality.md#analiza-partidei)
+La final, deschide **Analiza partidei** din **Opțiunile partidei** sau de sub
+rezultat. Cu **Analiză AI** activată, raportul este disponibil și după prima
+mutare a unei partide în curs; replica automată așteaptă până îl închizi.
+
+- Graficul urmărește avantajul albului, iar lista clasifică mutările.
+- **Vezi pe tablă** deschide poziția. **Reîncearcă mutarea** propune reluarea
+  de dinaintea mutării tale.
+- Reperul AI și estimarea Elo apar în analiza unei partide încheiate, când
+  sunt aplicabile. [Metoda de analiză și estimare](game-review.md)
 
 Bifează **Analiză AI** înainte de pornire. Bara verticală reflectă evaluarea poziției afișate, inclusiv în istoric. Segmentul mai lung indică partea în avantaj, iar la întoarcerea tablei segmentele își schimbă capetele. Textul arată scorul pozițional în unități de pion. `+1,25 · Alb` favorizează albul, iar `−1,25 · Negru` favorizează negrul. Bara se umple la opt unități sau la mat și se împarte egal la remiză. [Convenția de evaluare Chess.com](https://support.chess.com/en/articles/8379354-computer-evaluation-numbers-on-chess-com)
 

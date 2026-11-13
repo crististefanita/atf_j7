@@ -1,0 +1,123 @@
+schema: 2
+objective: WIN_MATERIAL
+quests:
+  # Lichess 03DYa · rating 1999 · sacrifice · https://lichess.org/game/h83Mcigb/black#92
+  - id: holdout-001
+    fen: "3N1b2/2q3kp/4Q1p1/1p2P3/8/7P/6PK/8 w - - 6 47"
+    solution: e6f6
+    difficulty: 1
+  # Lichess 09WJp · rating 2018 · quietMove · https://lichess.org/game/UPgClK4G#41
+  - id: holdout-002
+    fen: "5r1k/1b1Q2pp/p2p1b2/1pq4n/4P3/3B4/PPPBN1PP/5R1K b - - 4 21"
+    solution: b7c8
+    difficulty: 2
+  # Lichess 00x5X · rating 2024 · pin · https://lichess.org/game/3zRv22af#37
+  - id: holdout-003
+    fen: "7r/Bp1k1ppp/b7/4P3/1b6/8/PPN2rPP/R2K3R b - - 1 19"
+    solution: f2d2
+    difficulty: 3
+  # Lichess 0055Y · rating 2055 · defensiveMove · https://lichess.org/game/7Jpwzowt/black#46
+  - id: holdout-004
+    fen: "r1b2rk1/p3pp2/2B5/2Qpq3/3N2pp/4b3/2P2PPP/1R2K2R w K - 0 24"
+    solution: f2e3
+    difficulty: 4
+  # Lichess 00y3g · rating 2085 · fork · https://lichess.org/game/8yjVFUQ7/black#88
+  - id: holdout-005
+    fen: "8/4Qpk1/p3p2p/1p1b3r/7P/3B4/2P3PK/3r4 w - - 5 45"
+    solution: d3e2
+    difficulty: 5
+  # Lichess 00qJM · rating 2087 · deflection · https://lichess.org/game/vYicdpKj/black#70
+  - id: holdout-006
+    fen: "2R5/p4ppk/1p2q3/6Q1/8/7P/5PPK/4r3 w - - 1 36"
+    solution: g5h5
+    difficulty: 6
+  # Lichess 00JtR · rating 2109 · defensiveMove · https://lichess.org/game/eQy3tkuB#45
+  - id: holdout-007
+    fen: "1rbk3r/3qp1b1/p3P1Bp/1N4p1/8/P5P1/1P2Q1P1/R3K2R b KQ - 0 23"
+    solution: d7b5
+    difficulty: 7
+  # Lichess 029K1 · rating 2125 · quietMove · https://lichess.org/game/VrbQCgVu/black#86
+  - id: holdout-008
+    fen: "8/R7/3p1rp1/2p1p2p/1pPnPk2/1P3P1P/5KP1/3B4 w - - 2 44"
+    solution: h3h4
+    difficulty: 8
+  # Lichess 01jVT · rating 2142 · fork · https://lichess.org/game/vRSwvGdV#45
+  - id: holdout-009
+    fen: "r2Q1b1N/6pp/p1kn2q1/2pp4/5B2/2P2NP1/PP5P/R2K4 b - - 0 23"
+    solution: g6d3
+    difficulty: 9
+  # Lichess 01To6 · rating 2149 · pin · https://lichess.org/game/EqTv5MmL/black#58
+  - id: holdout-010
+    fen: "1b6/kr2Rp2/p5pp/3p4/3P1p2/5P1q/PPQ2P2/6K1 w - - 2 30"
+    solution: c2c5
+    difficulty: 10
+  # Lichess 02Tte · rating 2174 · sacrifice · https://lichess.org/game/Y0ZiY8y9#43
+  - id: holdout-011
+    fen: "r2q2k1/pp4p1/2n5/3p1r2/1P1P3p/P1N2P1K/4NP2/R2Q1R2 b - - 0 22"
+    solution: f5f3
+    difficulty: 11
+  # Lichess 01JlU · rating 2177 · deflection · https://lichess.org/game/GtVqTnhn#69
+  - id: holdout-012
+    fen: "4r2r/p1Q2pk1/1pp3p1/6q1/2BP2P1/8/PP2N1R1/6K1 b - - 9 35"
+    solution: g5e3
+    difficulty: 12
+  # Lichess 01HQ8 · rating 2237 · pin · https://lichess.org/game/5WPd9cpZ/black#30
+  - id: holdout-013
+    fen: "r4rk1/pp3ppp/2pp1q2/4p1B1/2BnP3/P2P1b2/1PP2P2/R1Q2RK1 w - - 2 16"
+    solution: g5f6
+    difficulty: 13
+  # Lichess 02u8i · rating 2240 · deflection · https://lichess.org/game/B974cEjO/black#54
+  - id: holdout-014
+    fen: "5r2/2q1Qpk1/6p1/1p1p1bNn/3P3P/pPr2P2/P3N3/K2R2R1 w - - 4 28"
+    solution: g5e6
+    difficulty: 14
+  # Lichess 00sJb · rating 2276 · fork · https://lichess.org/game/kiuvTFoE#33
+  - id: holdout-015
+    fen: "Q1b2r1k/p2Rp2p/5bp1/q7/5P2/4B3/PPP3PP/2K2B1R b - - 0 17"
+    solution: a5e1
+    difficulty: 15
+  # Lichess 01tei · rating 2289 · defensiveMove · https://lichess.org/game/DlcVV8pm#103
+  - id: holdout-016
+    fen: "8/8/5P2/1kr4R/8/6K1/8/8 b - - 0 52"
+    solution: c5h5
+    difficulty: 16
+  # Lichess 01YvD · rating 2323 · deflection · https://lichess.org/game/Mkc4QOBd#45
+  - id: holdout-017
+    fen: "3rr1k1/p4p2/2BBb1p1/4b2p/4P1qP/5PP1/P2Q4/3R1RK1 b - - 0 23"
+    solution: g4g3
+    difficulty: 17
+  # Lichess 02yrs · rating 2363 · pin · https://lichess.org/game/OsT1JzVm#21
+  - id: holdout-018
+    fen: "2kr1bnr/Bpq2ppp/2p1p3/3pP1N1/8/1P1Q4/P1P2PPP/RN2K2R b KQ - 0 11"
+    solution: c7e5
+    difficulty: 18
+  # Lichess 01C5B · rating 2455 · defensiveMove · https://lichess.org/game/JLP9v3nU/black#56
+  - id: holdout-019
+    fen: "1r4k1/2pr1ppp/1pP5/pQ6/8/q7/5PPP/3R2K1 w - - 0 29"
+    solution: c6d7
+    difficulty: 19
+  # Lichess 04l33 · rating 2457 · quietMove · https://lichess.org/game/dxQdQHhS/black#38
+  - id: holdout-020
+    fen: "r4rk1/ppqb1ppp/8/2bQn3/5B2/2N3P1/PP2N2P/R4R1K w - - 3 20"
+    solution: f4e5
+    difficulty: 20
+  # Lichess 038SM · rating 2494 · quietMove · https://lichess.org/game/zGFS1UM3#55
+  - id: holdout-021
+    fen: "4r3/pp2r1pk/7p/3Rpq2/4R3/2N2P2/PP5P/4Q2K b - - 0 28"
+    solution: f5f3
+    difficulty: 21
+  # Lichess 01uWs · rating 2580 · sacrifice · https://lichess.org/game/47BesqQE#27
+  - id: holdout-022
+    fen: "2kr3r/bpp2pp1/2pqbn2/P6p/1N2P3/2PP3P/4BPP1/R1BQK2R b KQ - 0 14"
+    solution: f6e4
+    difficulty: 22
+  # Lichess 00pny · rating 2619 · fork · https://lichess.org/game/dxcSKEfa/black#48
+  - id: holdout-023
+    fen: "3r2rk/p3b2p/2n2p2/2pnNPP1/1p1p3q/3P1Q2/PPP3B1/R1B1R1K1 w - - 0 25"
+    solution: e5f7
+    difficulty: 23
+  # Lichess 08hR1 · rating 2649 · sacrifice · https://lichess.org/game/XwOTXDZn/black#68
+  - id: holdout-024
+    fen: "4Q3/2q2p1k/1bNp2pp/1P1b4/8/2p3BP/5PPK/8 w - - 0 35"
+    solution: c6e7
+    difficulty: 24

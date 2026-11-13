@@ -237,7 +237,7 @@ try {
             $lines = @(Invoke-Device ($instrument + @('-e','phase',$phase,$runner)))
             $lines | Set-Content -LiteralPath (Join-Path $run "$phase.txt") -Encoding utf8NoBOM
             $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
-            $expected = if ($phase -eq 'analysis-prepare') { 17 } else { 9 }
+            $expected = if ($phase -eq 'analysis-prepare') { 17 } else { 10 }
             if ($lines -cnotcontains 'INSTRUMENTATION_RESULT: result=PASS' -or $passed.Count -ne $expected) {
                 Receive-Frame 'failure'
                 throw "Analysis phase $phase did not pass. See $run."

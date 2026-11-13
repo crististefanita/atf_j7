@@ -1,5 +1,8 @@
 # Release și RAG
 
+Acest ghid leagă commitul, APK-ul semnat, proba Android și descărcarea verificată.
+[Catalogul edițiilor](../../release/README.md) indică versiunea disponibilă și dovezile ei.
+
 ## Calificare și publicare
 
 1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
@@ -21,9 +24,24 @@ Dot-source scriptul în sesiunea de build pentru a încărca `J7_SIGNING_STORE` 
 
 ## Identitatea de semnare și instalare curată
 
-Amprenta certificatului 0.11.2 este consemnată în [calificarea publicată](../../release/0.11.2/reports/qualification.json). Dacă cheia privată nu poate fi recuperată, nu semnați în tăcere cu `debug.keystore` sau cu o cheie J5/J6: certificatele lor nu corespund. O nouă identitate cere o decizie explicită și un APK de instalare curată; nu există migrare automată a salvărilor Android peste semnături diferite.
+Identificați certificatul ediției curente din [catalog](../../release/README.md):
+calificarea strictă îl păstrează în recepția de calificare; ediția publicată cu
+excepție îl păstrează în recepția de build. Dacă lipsește cheia existentă,
+recuperați-o sau decideți explicit o instalare curată cu o identitate nouă.
+Android nu migrează salvările locale peste semnături diferite.
 
-`Initialize-J7Signing.ps1` refuză înregistrări parțiale, verifică manifestul existent și păstrează cheia, certificatul și parola DPAPI în `C:\work\chess_back\infrastructure\signing`, în afara sursei și a TMP. La prima rotație după 0.11.2, `-StartNewIdentity` este obligatoriu. `verify-signing-continuity.ps1` confruntă certificatul APK-ului semnat cu cel al ediției anterioare și scrie receipt-ul în dosarul ediției. Modul `UPGRADE` respinge orice diferență; numai `CLEAN_INSTALL` o consemnează drept incompatibilitate explicită. [Testele negative](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java) verifică această poartă.
+`Initialize-J7Signing.ps1` refuză înregistrări parțiale și păstrează cheia,
+certificatul și parola DPAPI în `infrastructure/signing` sub `-DataRoot`,
+în afara sursei și a TMP. Pentru rotația deliberată folosiți `-StartNewIdentity`.
+Poarta `signing-continuity` respinge diferența în modul `UPGRADE`; numai
+`CLEAN_INSTALL` o consemnează ca incompatibilitate.
+[Testele negative](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
+verifică poarta.
+
+**Limită a checkoutului:** scripturile cu referința fixă la 0.11.2 nu sunt
+autoritatea pentru certificatul curent. Înaintea următoarei calificări,
+reconciliați-le cu catalogul și recepția corespunzătoare.
+[Criteriul de închidere](../feedback/README.md).
 
 În copia TMP, după execuția Maven și înainte de semnare:
 

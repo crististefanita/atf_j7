@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.stream.Collectors;
 import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
 
@@ -134,7 +135,10 @@ public final class TacticalAnalysis {
         var repertoire = gap == 0 ? OpeningRepertoire.CURRENT.reply(position, level) : null;
         var root = new RootSearch(position, repetitionOffers);
         var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
-        var base = analyze(root, MatchAiPolicy.BASE_PLIES, moves, Objective.POSITION);
+        int depth = level == MatchSetup.Level.BASIC && !bareKingMateEndgame(position)
+                ? MatchAiPolicy.CURRENT.basicPlies : MatchAiPolicy.BASE_PLIES;
+        var base = analyze(root, depth, moves, Objective.POSITION);
+        if (depth < MatchAiPolicy.BASE_PLIES) return new SearchReport(base, depth, 0);
         if (hard && repertoire == null && rookEndgame(position)) {
             var policy = MatchAiPolicy.CURRENT.rookEndgame;
             return rookEndgameSearch(root, MatchAiPolicy.CURRENT.opponent(level),
@@ -142,6 +146,17 @@ public final class TacticalAnalysis {
         }
         return matchSearch(root, MatchAiPolicy.CURRENT.opponent(level), gap, 0, hard && repertoire == null,
                 hard && repertoire == null, base);
+    }
+
+    private static boolean bareKingMateEndgame(ChessPosition position) {
+        boolean hasMajor = false;
+        for (int square = 0; square < 64; square++) {
+            var piece = position.pieceAt(square);
+            if (piece == null || piece.kind() == Kind.KING) continue;
+            if (hasMajor || (piece.kind() != Kind.ROOK && piece.kind() != Kind.QUEEN)) return false;
+            hasMajor = true;
+        }
+        return hasMajor;
     }
 
     static SearchReport hintAnalysis(ChessPosition position) {
@@ -267,27 +282,89 @@ public final class TacticalAnalysis {
         var budget = new SearchBudget(policy.extraNodes(), tacticalExtension, transpositionLimit);
         budget.checkOrderBonus = prioritizeChecks ? MatchAiPolicy.CURRENT.hardOrdering.checkBonus() : 0;
         budget.quietMoveOrdering = prioritizeChecks ? new QuietMoveOrdering() : null;
+        int exchangeLimit = MatchAiPolicy.CURRENT.pawnExchangeNodes;
+        var pawnCandidate = prioritizeChecks && gap == 0 && exchangeLimit > 0 && !shallowScores.isEmpty() && !root.position().isCheck()
+                ? pawnExchangeCandidate(root.position(), base) : null;
+        int exchangeNodes = pawnCandidate == null ? 0 : Math.min(exchangeLimit, policy.extraNodes() / 6);
         for (int depth = completed + 1; depth <= policy.maxPlies(); depth++) {
             try {
                 // Give Hard a two-horizon ranking if the next full iteration cannot finish.
                 var confirmation = depth == MatchAiPolicy.BASE_PLIES + 1 ? shallowScores : Map.<Move, Integer>of();
+                if (depth == MatchAiPolicy.BASE_PLIES + 2 && exchangeNodes > 0 && best.ranked().get(0).ending() == Ending.HORIZON
+                        && !best.ranked().get(0).move().equals(pawnCandidate)) {
+                    budget.reserve = Math.min(exchangeNodes, budget.remaining);
+                }
                 var candidate = deepen(root, moves, depth, budget, gap, confirmation);
+                if (prioritizeChecks && candidate.ranked().get(0).signedMatePlies() > 0) {
+                    // The earlier horizons already had a chance to prove a shorter mate.
+                    return new SearchReport(candidate, depth, policy.extraNodes() - budget.remaining);
+                }
                 if (prioritizeChecks && depth == policy.maxPlies()
-                        && !stableHardLeader(moves.getFirst(), candidate)) break;
+                        && !stableHardLeader(moves.get(0), candidate)) break;
+                // The later capture has no opponent reply at an odd horizon. Keep the completed even ranking.
+                if (prioritizeChecks && gap == 0 && MatchAiPolicy.CURRENT.preservePawnCapture && depth % 2 == 1
+                        && completed == depth - 1 && defersPawnCapture(root.position(), best.ranked().get(0), candidate.ranked().get(0), depth)) {
+                    continue;
+                }
                 best = candidate;
                 completed = depth;
+                budget.reserve = 0;
                 var leader = best.ranked().get(0).move();
                 moves.remove(leader);
                 moves.add(0, leader);
             }
             catch (BudgetExhausted exhausted) { break; }
         }
+        if (completed == MatchAiPolicy.BASE_PLIES + 1 && budget.reserve > 0) {
+            var verification = new SearchBudget(budget.reserve, 2);
+            var capture = verifyPawnExchange(root, best.ranked().get(0).move(), pawnCandidate, completed, verification);
+            budget.remaining -= budget.reserve - verification.remaining;
+            if (capture != null) best = new Result(List.of(capture));
+        }
         return new SearchReport(best, completed, policy.extraNodes() - budget.remaining);
+    }
+
+    private static Move pawnExchangeCandidate(ChessPosition position, Result base) {
+        var leader = base.ranked().get(0);
+        var victim = position.pieceAt(leader.move().to());
+        int pawn = POLICY.values[Kind.PAWN.ordinal()];
+        return victim != null && victim.kind() == Kind.PAWN && leader.materialChange() >= 2 * pawn
+                && leader.ending() == Ending.HORIZON && leader.move().promotion() == null ? leader.move() : null;
+    }
+
+    private static Variation verifyPawnExchange(RootSearch root, Move incumbent, Move capture, int depth, SearchBudget budget) {
+        try {
+            int balance = material(root.position());
+            var stable = root.line(incumbent, depth, LIMIT, budget, Objective.POSITION, balance);
+            var exchange = root.line(capture, depth, LIMIT, budget, Objective.POSITION, balance);
+            int gain = exchange.balance() - balance;
+            if (stable.ending() == Ending.HORIZON && exchange.ending() == Ending.HORIZON
+                    && gain >= POLICY.values[Kind.PAWN.ordinal()] && exchange.score() > stable.score()) {
+                return new Variation(exchange.moves(), exchange.score(), gain, exchange.ending());
+            }
+        } catch (BudgetExhausted exhausted) {
+            // The incumbent stays if the comparison is incomplete.
+        }
+        return null;
+    }
+
+    private static boolean defersPawnCapture(ChessPosition position, Variation completed, Variation deeper, int depth) {
+        Move capture = completed.move();
+        var victim = position.pieceAt(capture.to());
+        if (completed.ending() != Ending.HORIZON || completed.materialChange() < 0
+                || victim == null || victim.kind() != Kind.PAWN || victim.side() == position.turn()
+                || deeper.ending() != Ending.HORIZON || deeper.line().size() != depth || !deeper.line().get(depth - 1).equals(capture)
+                || captureOrder(position, deeper.move()) != 0) return false;
+        // Make sure the pawn remains the target throughout the continuation.
+        for (Move move : deeper.line().subList(0, depth - 1)) {
+            if (move.from() == capture.to() || move.to() == capture.to()) return false;
+        }
+        return true;
     }
 
     static boolean stableHardLeader(Move previousLeader, Result deeper) {
         return previousLeader != null && !deeper.ranked().isEmpty()
-                && previousLeader.equals(deeper.ranked().getFirst().move());
+                && previousLeader.equals(deeper.ranked().get(0).move());
     }
 
     static void orderCheckingRootMovesFirst(ChessPosition position, List<Move> moves) {
@@ -301,7 +378,7 @@ public final class TacticalAnalysis {
         int completed = MatchAiPolicy.BASE_PLIES;
         Result best = base;
         if (policy.maxPlies() == completed || best.ranked().isEmpty()) return new SearchReport(best, completed, 0);
-        var moves = new ArrayList<>(best.ranked().stream().map(Variation::move).toList());
+        var moves = best.ranked().stream().map(Variation::move).collect(Collectors.toCollection(ArrayList::new));
         var budget = new RookSearchBudget(policy.extraNodes(), repetitionHistory, root.position());
         for (int depth = completed + 1; depth <= policy.maxPlies() + endgamePolicy.extensionPlies(); depth++) {
             try {
@@ -309,7 +386,7 @@ public final class TacticalAnalysis {
                 best.ranked().forEach(line -> previousScores.put(line.move(), line.score()));
                 best = deepenRookEndgame(root, moves, depth, budget, endgamePolicy.candidateGapCp(), previousScores);
                 completed = depth;
-                var nextMoves = new ArrayList<>(best.ranked().stream().map(Variation::move).toList());
+                var nextMoves = best.ranked().stream().map(Variation::move).collect(Collectors.toCollection(ArrayList::new));
                 boolean closeCandidates = best.ranked().size() > 1
                         && best.ranked().get(0).ending() == Ending.HORIZON
                         && best.ranked().get(1).ending() == Ending.HORIZON
@@ -568,7 +645,7 @@ public final class TacticalAnalysis {
             }
         }
         if (best != null && !best.moves().isEmpty()) {
-            budget.preferredMoves.put(positionKey, best.moves().getFirst());
+            budget.preferredMoves.put(positionKey, best.moves().get(0));
             if (!cutoff && best.ending() == Ending.HORIZON && best.score() > initialAlpha && best.score() < beta) {
                 budget.remember(key, best);
             }
@@ -721,6 +798,7 @@ public final class TacticalAnalysis {
 
     private static final class SearchBudget {
         private int remaining;
+        private int reserve;
         private final int tacticalExtension;
         private final int transpositionLimit;
         private int checkOrderBonus;
@@ -744,7 +822,7 @@ public final class TacticalAnalysis {
 
         void visit() {
             checkInterrupted();
-            if (remaining == 0) throw new BudgetExhausted();
+            if (remaining == reserve) throw new BudgetExhausted();
             remaining--;
         }
     }

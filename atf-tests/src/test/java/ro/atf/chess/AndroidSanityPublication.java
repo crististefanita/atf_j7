@@ -226,7 +226,7 @@ class AndroidSanityPublication {
         Path report = receipt.resolveSibling("android-match-analysis.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
         var prepare = readPhase(receipt, "analysis-prepare", 17);
-        var restore = readPhase(receipt.resolveSibling("analysis-restore.txt"), "analysis-restore", 9);
+        var restore = readPhase(receipt.resolveSibling("analysis-restore.txt"), "analysis-restore", 10);
         boolean restarted = !prepare.pid().isEmpty() && !restore.pid().isEmpty() && !prepare.pid().equals(restore.pid());
         var frames = List.of(new Frame("match-analysis.png", "Evaluation and suggestion below the board"),
                 new Frame("match-captures.png", "Captured pawn and material advantage beneath the player"),

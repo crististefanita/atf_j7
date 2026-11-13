@@ -28,6 +28,77 @@ class AiOpeningRegressionTest {
         check.same("The position after the verified Benoni reply uses search", null, OpeningRepertoire.CURRENT.reply(next));
     }
 
+    @Test void hardUsesTheVerifiedCaptureAtTheRepertoirePosition(Checks check) {
+        String prefix = "e2e4 c7c5 g1f3 e7e5";
+        var game = match(prefix, "BLACK");
+        var capture = Move.fromUci("f3e5");
+        check.same("Hard takes the undefended central pawn", capture, game.chooseBotMove());
+        check.same("The coach recommends the same verified capture", capture,
+                TacticalAnalysis.hintAnalysis(game.position()).result().ranked().getFirst().move());
+        for (var level : List.of(MatchSetup.Level.BASIC, MatchSetup.Level.ADVANCED)) {
+            check.same(level + " has its own evaluation at this position", null, OpeningRepertoire.CURRENT.reply(game.position(), level));
+        }
+        var neighbor = match(prefix.replace("e7e5", "d7d6"), "BLACK");
+        check.same("An adjacent Sicilian position uses search", null, OpeningRepertoire.CURRENT.reply(neighbor.position()));
+        check.same("The position after the capture returns to search", null, OpeningRepertoire.CURRENT.reply(game.position().play(capture)));
+    }
+
+    @Test void hardFindsTheImmediatePawnCaptureOutsideItsRepertoire(Checks check) {
+        for (String moves : List.of("e2e4 c7c5 g1f3 g7g6 f1e2 e7e5", "e2e4 c7c5 g1f3 a7a5 a2a4 e7e5",
+                "e2e4 c7c5 g1f3 g7g6 a2a3 e7e5", "e2e4 c7c5 g1f3 g7g6 h2h3 e7e5")) {
+            var game = match(moves, "BLACK");
+            check.same("Hard must search this position: " + moves, null, OpeningRepertoire.CURRENT.reply(game.position()));
+            var decision = game.botDecision();
+            check.same("Hard takes the pawn immediately", "f3e5", decision.move().uci());
+            check.same("The completed reply horizon is preserved", 4, decision.depth());
+            check.same("The extra search respects the Hard cap", true,
+                    decision.extraNodes() <= MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD).extraNodes());
+        }
+    }
+
+    @Test void hardCompletesTheExchangeBeforeRejectingAnExposedPawn(Checks check) {
+        for (String moves : List.of("e2e4 c7c5 g1f3 h7h6 b1c3 e7e5", "e2e4 c7c5 g1f3 h7h6 b1c3 a7a6 a2a3 e7e5",
+                "e2e4 c7c5 g1f3 h7h6 b1c3 b7b6 h2h3 e7e5", "e2e4 c7c5 g1f3 g7g6 b1c3 e7e5")) {
+            var game = match(moves, "BLACK");
+            check.same("The position has no Hard repertoire entry: " + moves, null, OpeningRepertoire.CURRENT.reply(game.position()));
+            var decision = game.botDecision();
+            check.same("Hard takes the exposed pawn on e5", "f3e5", decision.move().uci());
+            check.same("Main search and exchange verification share the Hard cap", true, decision.extraNodes() <= 44_000);
+        }
+    }
+
+    @Test void hardKeepsTheIncumbentWhenThePawnCanBeRecaptured(Checks check) {
+        for (String moves : List.of("e2e4 c7c5 g1f3 h7h6 b1c3 d7d6 a2a3 e7e5", "e2e4 c7c5 g1f3 h7h6 b1c3 d8c7 a2a3 e7e5",
+                "e2e4 c7c5 g1f3 h7h6 b1c3 b8c6 a2a3 e7e5")) {
+            var game = match(moves, "BLACK");
+            var capture = Move.fromUci("f3e5");
+            check.same("The legal capture is available outside the repertoire", true,
+                    game.position().legalMoves().contains(capture) && OpeningRepertoire.CURRENT.reply(game.position()) == null);
+            check.same("Hard declines the defended pawn", false, capture.equals(game.botDecision().move()));
+        }
+    }
+
+    @Test void hardFindsTheImmediateCaptureWithBlackToMove(Checks check) {
+        var game = match("h2h3 e7e5 c2c4 g8f6 a2a4 a7a5 e2e4", "WHITE");
+        check.same("The Black position has no repertoire entry", null, OpeningRepertoire.CURRENT.reply(game.position()));
+        var decision = game.botDecision();
+        check.same("Black takes the pawn on e4 immediately", "f6e4", decision.move().uci());
+        check.same("The search retains the opponent reply at the completed horizon", 4, decision.depth());
+        check.same("Black also uses the governed node cap", 44_000, decision.extraNodes());
+    }
+
+    @Test void hardDoesNotForceThePawnCaptureWhenThePositionDoesNotSupportIt(Checks check) {
+        for (String moves : List.of("e2e4 c7c5 g1f3 d7d6 f1e2 e7e5", "e2e4 c7c5 g1f3 d8c7 a2a3 e7e5")) {
+            var game = match(moves, "BLACK");
+            check.same("The legal capture is present and the position uses search", true,
+                    game.position().legalMoves().contains(Move.fromUci("f3e5")) && OpeningRepertoire.CURRENT.reply(game.position()) == null);
+            check.same("Hard develops when the pawn is defended", "b1c3", game.botDecision().move().uci());
+        }
+        var black = match("d2d4 d7d5 g2g3 g8f6 e2e4", "WHITE");
+        check.same("Hard still searches the Black control", null, OpeningRepertoire.CURRENT.reply(black.position()));
+        check.same("Black keeps its original capture choice", "d5e4", black.botDecision().move().uci());
+    }
+
     @Test void repertoireRejectsIllegalRepliesAndTransposedDuplicates(Checks check) {
         var pirc = Map.of("id", "pirc", "moves", PIRC, "reply", "f8g7");
         var duplicate = Map.of("id", "same-board", "moves", TRANSPOSED_PIRC, "reply", "f8g7");

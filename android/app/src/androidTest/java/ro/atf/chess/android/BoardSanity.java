@@ -2,6 +2,7 @@ package ro.atf.chess.android;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.accessibilityservice.AccessibilityService;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -488,8 +489,7 @@ public final class BoardSanity extends Instrumentation {
                 dialogNode(catalog.get(catalog.size() - 1).title().in(locale)) != null);
         tapDialog(lesson.getString(R.string.opening_train_white));
         awaitOpeningBoard(lesson);
-        runOnMainSync(lesson::onBackPressed);
-        waitForIdleSync();
+        systemBack();
         var firstPage = (ViewGroup) lesson.findViewById(R.id.opening_catalog);
         tap(firstPage.getChildAt(0));
         var title = ro.atf.chess.OpeningCatalog.load().get(0).title().in(lesson.getResources().getConfiguration().getLocales().get(0));
@@ -590,12 +590,10 @@ public final class BoardSanity extends Instrumentation {
                 status.getText().toString().startsWith("2 / 12") && cell(board, "g1").isEnabled()
                         && cell(board, "e5").getContentDescription().toString().contains(lesson.getString(R.string.pawn)));
         tap(previous);
-        runOnMainSync(lesson::onBackPressed);
-        waitForIdleSync();
+        systemBack();
         compare("System Back returns from review to the current practice position", true,
                 status.getText().toString().startsWith("2 / 12") && cell(board, "g1").isEnabled() && screenBounds(board).equals(initial));
-        runOnMainSync(lesson::onBackPressed);
-        waitForIdleSync();
+        systemBack();
         var returnedCards = (ViewGroup) lesson.findViewById(R.id.opening_catalog);
         tap(returnedCards.getChildAt(0));
         tapDialog(lesson.getString(R.string.opening_train_black));
@@ -920,6 +918,17 @@ public final class BoardSanity extends Instrumentation {
                         && seatName(panel, 2).contains("Mara") && bar.getHeight() == board.getHeight());
         captureFrame("match-black", "Black's named seat and the vertical evaluation render with the board",
                 image -> fullyVisible(board) && hasColor(image, bar, 0xffedeadf, 16));
+        systemBack();
+        compare("System Back returns to Home and preserves the Hard game checkpoint", true,
+                activity.findViewById(R.id.new_match) != null
+                        && saved.checkpoint().equals(store.matches().readMatch().checkpoint()));
+    }
+
+    private void systemBack() {
+        if (!getUiAutomation().performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)) {
+            throw new AssertionError("System Back could not be dispatched");
+        }
+        waitForIdleSync();
     }
 
     private static String seatName(ViewGroup panel, int index) {

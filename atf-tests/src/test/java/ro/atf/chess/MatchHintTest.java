@@ -92,7 +92,14 @@ class MatchHintTest {
         var board = ChessPosition.fromFen("rnbqkbnr/pp1p1ppp/8/2p1p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3");
         var hint = TacticalAnalysis.hintAnalysis(board);
         check.same("The hint takes on e5 instead of an unrelated quiet move", "f3e5", hint.result().ranked().getFirst().move().uci());
-        check.same("The recapture regression completes the full five-ply iteration", 5, hint.depth());
+        var policy = MatchAiPolicy.CURRENT.hint.search();
+        check.same("The hint completes enough plies to look past the recapture within its configured budget", true,
+                hint.depth() >= 5 && hint.depth() <= policy.maxPlies() && hint.extraNodes() <= policy.extraNodes());
+        var line = hint.result().ranked().getFirst().line();
+        int extension = MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies();
+        check.same("The continuation reaches the completed horizon within its tactical extension", true,
+                line.size() >= hint.depth() && line.size() <= hint.depth() + extension);
+        for (var move : line) board = board.play(move);
     }
 
     @Test void aSingleMateStaysVisibleAndAnotherFrameStartsHidden(Checks check) {

@@ -79,7 +79,13 @@ class MainMenuLayoutTest {
         check.same("Game lists use the Puzzles title alignment and size",
                 List.of(puzzleHeading.getAttribute("android:gravity"), puzzleHeading.getAttribute("android:textSize")),
                 List.of(heading.getAttribute("android:gravity"), heading.getAttribute("android:textSize")));
-        check.same("The page exposes an accessibility heading", "true", heading.getAttribute("android:accessibilityHeading"));
+        check.same("The list title uses the shared heading style", "@style/MenuHeading", heading.getAttribute("style"));
+        var headings = read("values-v28/menu_styles.xml").getElementsByTagName("style");
+        var titleStyle = (Element) headings.item(0);
+        var titleAttribute = (Element) titleStyle.getElementsByTagName("item").item(0);
+        check.same("API 28 and later expose the title as an accessibility heading",
+                List.of("MenuHeading", "android:accessibilityHeading", "true"),
+                List.of(titleStyle.getAttribute("name"), titleAttribute.getAttribute("name"), titleAttribute.getTextContent()));
         var scroll = (Element) page.getElementsByTagName("ScrollView").item(0);
         var back = (Element) page.getElementsByTagName("Button").item(0);
         check.same("Back is outside the weighted scroll area", List.of(true, "1", "@style/ChapterEntry"),

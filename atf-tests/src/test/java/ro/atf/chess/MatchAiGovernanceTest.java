@@ -15,8 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(ExtentAudit.class)
 class MatchAiGovernanceTest {
     @Test void opponentBudgetsMatchTheMeasuredProfiles(Checks check) {
-        check.same("Basic keeps its baseline depth and zero extra-node budget", new MatchAiPolicy.Search(3, 0),
+        check.same("Basic uses at most three plies and zero extra nodes", new MatchAiPolicy.Search(3, 0),
                 MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.BASIC));
+        check.same("Basic uses two plies outside elementary mating endings", 2, MatchAiPolicy.CURRENT.basicPlies);
         check.same("Advanced uses the calibrated four-ply, 10,000-node budget", new MatchAiPolicy.Search(4, 10_000),
                 MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.ADVANCED));
         check.same("Hard gains one stable horizon without a node-budget increase", new MatchAiPolicy.Search(6, 44_000),
@@ -25,6 +26,24 @@ class MatchAiGovernanceTest {
                 MatchAiPolicy.CURRENT.hint.search().maxPlies() >= MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD).maxPlies());
         check.same("Post-game review remains at least as deep as Hard", true,
                 GameReviewPolicy.CURRENT.search.maxPlies() >= MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD).maxPlies());
+    }
+
+    @Test void basicStandardDepthRejectsValuesOutsideTheSupportedRange(Checks check) {
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        var opponents = new HashMap<Object, Object>(ChessYaml.map(root, "opponents"));
+        var basic = new HashMap<Object, Object>(ChessYaml.map(opponents, "BASIC"));
+        root.put("opponents", opponents);
+        opponents.put("BASIC", basic);
+        for (int invalid : List.of(1, 4)) {
+            basic.put("standard-max-plies", invalid);
+            check.same("Basic rejects standard depth " + invalid, true,
+                    assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("standard-max-plies"));
+        }
+        basic.put("standard-max-plies", 3);
+        check.same("YAML accepts a three-ply standard horizon", 3, MatchAiPolicy.read(root).basicPlies);
+        basic.put("extra-nodes", 1);
+        check.same("Basic rejects a nonzero extra-node budget", true,
+                assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("zero extra nodes"));
     }
 
     @Test void hardCheckOrderingIsBoundedAndGovernedByYaml(Checks check) {
@@ -43,8 +62,28 @@ class MatchAiGovernanceTest {
         check.same("A zero bonus cleanly disables the heuristic", 0, MatchAiPolicy.read(root).hardOrdering.checkBonus());
     }
 
+    @Test void hardPawnHorizonGuardUsesAStrictBoolean(Checks check) {
+        check.same("Hard uses the pawn capture horizon guard", true, MatchAiPolicy.CURRENT.preservePawnCapture);
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        root.put("hard-horizon", Map.of("preserve-pawn-capture", false, "pawn-exchange-nodes", 0));
+        check.same("YAML can disable the guard for an A/B run", false, MatchAiPolicy.read(root).preservePawnCapture);
+        root.put("hard-horizon", Map.of("preserve-pawn-capture", "true", "pawn-exchange-nodes", 0));
+        check.rejects("A string cannot enable the guard", IllegalArgumentException.class, () -> MatchAiPolicy.read(root));
+    }
+
+    @Test void hardPawnExchangeReserveCanBeDisabledAndRejectsOversizedBudgets(Checks check) {
+        check.same("Hard reserves at most 7,000 existing search nodes for exchange verification", 7_000, MatchAiPolicy.CURRENT.pawnExchangeNodes);
+        var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
+        root.put("hard-horizon", Map.of("preserve-pawn-capture", true, "pawn-exchange-nodes", 0));
+        check.same("Zero disables the verification reserve", 0, MatchAiPolicy.read(root).pawnExchangeNodes);
+        for (int invalid : List.of(-1, 7_001)) {
+            root.put("hard-horizon", Map.of("preserve-pawn-capture", true, "pawn-exchange-nodes", invalid));
+            check.rejects("The verification reserve rejects " + invalid, IllegalArgumentException.class, () -> MatchAiPolicy.read(root));
+        }
+    }
+
     @Test void hardExactTranspositionCacheIsBoundedAndScalesWithTheHardNodeBudget(Checks check) {
-        check.same("Transposition limits use the versioned match-AI schema", 4,
+        check.same("Transposition limits use the versioned match-AI schema", 7,
                 ChessYaml.number(ChessYaml.resource("match-ai.yaml"), "schema"));
         var settings = MatchAiPolicy.CURRENT.hardTranspositions;
         check.same("The measured cache uses half as many entries as Hard extra nodes", 500,
@@ -81,6 +120,10 @@ class MatchAiGovernanceTest {
         var expectedFloors = Map.of("mate-in-one", 500, "mate-in-two", 300, "mate-in-three", 190,
                 "tactics", 86, "training", 39, "intermezzo", 24);
         check.same("Hard quest transfer floor schema", 1, ChessYaml.number(root, "schema"));
+        String trainingBaseline = ChessYaml.string(root, "training-baseline-through");
+        check.same("Training expansions preserve the original 48-position benchmark", "training-048", trainingBaseline);
+        check.same("The full training baseline is still present", 48L, QuestCatalog.loadTraining().stream()
+                .filter(quest -> quest.id().compareTo(trainingBaseline) <= 0).count());
         check.same("Every quest chapter has one governed floor", chapters.keySet(), floors.keySet());
         chapters.forEach((chapter, count) -> {
             int floor = ChessYaml.number(floors, chapter);

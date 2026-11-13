@@ -12,6 +12,53 @@ import ro.atf.chess.TacticalAnalysis.Variation;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class TacticalAnalysisTest {
+    @Test void mateProofFindsAQuietKeyAndReportsAnIncompleteSearchHonestly(Checks check) {
+        var position = ChessPosition.fromFen("4r3/2p2R2/2p5/2Pk4/KP1P4/P4P2/8/8 b - - 2 54");
+        var solution = HardQuestSolver.mate(position, 3);
+        check.same("The solver proves the quiet king key", HardQuestSolver.Status.SOLVED, solution.status());
+        check.same("The first move is the quiet black king move", Move.fromUci("d5c4"), solution.line().getFirst());
+        var horizon = HardQuestSolver.mate(position, 2);
+        check.same("A two-move proof cannot accept the longer mate", new HardQuestSolver.Solution(HardQuestSolver.Status.UNPROVEN, List.of()), horizon);
+        var capped = ForcedMateSearch.prove(position, 5, 1);
+        check.same("An exhausted proof leaves no principal variation", new ForcedMateSearch.Proof(ForcedMateSearch.Status.BUDGET_EXHAUSTED, List.of(), 1), capped);
+    }
+
+    @Test void hardEndsTheSearchAsSoonAsItProvesMate(Checks check) {
+        var position = ChessPosition.fromFen("2r3k1/pb3ppp/1p2pq2/1P6/2Q1PP2/6P1/P5BP/2R3K1 w - - 1 25");
+        var result = TacticalAnalysis.botAnalysis(position, MatchSetup.Level.HARD);
+        var best = result.result().ranked().getFirst();
+        check.same("Hard proves the mating queen sacrifice in five plies", List.of(Move.fromUci("c4c8"), 5, 5),
+                List.of(best.move(), best.signedMatePlies(), result.depth()));
+        check.same("Hard stops well below its total budget", true, result.extraNodes() < 10_000);
+    }
+
+    @Test void puzzleSolverRejectsStalemateAndAmbiguousMaterial(Checks check) {
+        var stalemate = ChessPosition.fromFen("7k/5K2/6Q1/8/8/8/8/8 b - - 0 1");
+        var equalCaptures = ChessPosition.fromFen("4k3/8/8/3r1r2/4B3/8/8/4K3 w - - 0 1");
+        check.same("A stalemated side has no mating line", HardQuestSolver.Status.UNPROVEN, HardQuestSolver.mate(stalemate, 3).status());
+        check.same("Two equal material keys do not prove a unique solution", HardQuestSolver.Status.UNPROVEN,
+                HardQuestSolver.material(equalCaptures).status());
+    }
+
+    @Test void basicKeepsAnExtraPlyInElementaryMatesAndRespondsLegallyToCheck(Checks check) {
+        var quiet = ChessPosition.fromFen("4k3/8/8/7p/P7/8/8/4K3 w - - 0 1");
+        var checked = ChessPosition.fromFen("k3r3/8/8/8/8/8/P7/4K3 w - - 0 1");
+        var basic = MatchSetup.Level.BASIC;
+        check.same("The fixture requires a legal reply to check", true, checked.isCheck());
+        var quietSearch = TacticalAnalysis.botAnalysis(quiet, basic);
+        var checkedSearch = TacticalAnalysis.botAnalysis(checked, basic);
+        check.same("Basic completes two standard plies even when in check", List.of(2, 2),
+                List.of(quietSearch.depth(), checkedSearch.depth()));
+        check.same("Neither search needs extra nodes", List.of(0, 0), List.of(quietSearch.extraNodes(), checkedSearch.extraNodes()));
+        check.same("Basic finds a legal evasion", true, checked.legalMoves().contains(checkedSearch.result().best().getFirst().move()));
+        for (String piece : List.of("R", "Q")) {
+            var mateEndgame = ChessPosition.fromFen("8/8/4k3/8/8/8/4K3/" + piece + "7 w - - 0 1");
+            var conversion = TacticalAnalysis.botAnalysis(mateEndgame, basic);
+            check.same("Basic keeps three plies and zero extra nodes for the elementary " + piece + " mate",
+                    List.of(3, 0), List.of(conversion.depth(), conversion.extraNodes()));
+        }
+    }
+
     @Test void hardRootOrderingPromotesChecksAndPreservesTheEvaluatedOrderWithinEachGroup(Checks check) {
         var position = ChessPosition.fromFen("4k3/8/8/8/8/8/8/3QK3 w - - 0 1");
         var moves = new ArrayList<>(List.of(Move.fromUci("e1d2"), Move.fromUci("d1h5"), Move.fromUci("d1b3")));

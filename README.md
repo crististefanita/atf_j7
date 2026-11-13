@@ -1,24 +1,48 @@
 # ATF J7 · Chess Lab
 
-Șah pe Android cu partide contra calculatorului, probleme și deschideri de studiat.
+Chess Lab este o aplicație Android de șah: partide cu calculatorul, probleme,
+deschideri și o tablă de analiză. J7 deține jocul și testele lui și folosește
+bibliotecile ATF pentru verificare și rapoarte Extent.
 
 ## Jocul
 
 - [Chess Lab 0.12.0 · ultima ediție publicată](https://github.com/crististefanita/atf_j7/releases/tag/v0.12.0)
 - [Descarcă APK Chess Lab 0.12.0](https://github.com/crististefanita/atf_j7/releases/download/v0.12.0/ChessLab-0.12.0.apk)
 
-## În joc
+## Arhitectura J7
 
-- **Partide** · joc cu calculatorul, salvări și arhivă. [Partida cu calculatorul](docs/board/README.md#partidă-cu-calculatorul)
-- **Studiu** · **Probleme**, **Deschideri** și **Tablă de analiză**. [Ghidul tablei](docs/board/README.md)
+| Zonă | Ce deține | Unde aprofundezi |
+|---|---|---|
+| [`chess-core`](chess-core/src/main) | Reguli, poziții și partide, căutare AI, catalog YAML și progres prin ID-uri stabile. | [Reguli și catalog](docs/board/README.md#reguli-și-probleme) · [Evaluare AI](docs/board/ai-quality.md) |
+| [`android`](android/app/src/main) | Meniuri, tablă, accesibilitate și adaptorul pentru salvările locale. Gradle împachetează interfața, motorul și resursele lui în APK. | [Tabla și jocul](docs/board/README.md) |
+| [`atf-tests`](atf-tests) | Suite JVM pentru motor și guvernanță; recepțiile instrumentării Android intră în Extent cu aserțiuni și capturi. | [Strategia de testare](docs/testing/README.md) |
+| [`release-tools`](release-tools/src/main) | RAG indică documentele și probele afectate. `ReleaseGate` verifică proveniența, calificarea și descărcarea. | [Procesul de release](docs/release/README.md) |
+| [`lib`](lib/README.md) | Perechile JAR/POM ATF și contractul lor de consum. Maven le folosește pe traseul JVM. | [Proveniența bibliotecilor](lib/README.md#proveniență) |
 
-## Proiectul
+```mermaid
+flowchart LR
+    Android["Android"] -->|folosește| Core["Motor Java"]
+    Tests["Suite JVM"] -->|verifică| Core
+    Tests -->|publică| Extent["Extent"]
+    Android -.->|recepții| Tests
+```
 
-| Zonă | Responsabilitate |
-|---|---|
-| `chess-core` | Reguli și probleme YAML, poziții FEN, mutări legale și verificarea matului |
-| `android` | Tablă, piese, selecție, promovare, indicii vizuale și accesibilitate |
-| `atf-tests` | Componente, guvernanță și publicarea dovezii Android în Extent |
-| `release-tools` | Context RAG consultativ și verificarea identității dovezilor |
+<details>
+<summary>Legendă — codul jocului și traseul dovezilor</summary>
 
-[Documentația proiectului](docs/README.md) · [Configurarea problemelor](docs/board/quest-curation.md#configurarea-capitolelor) · [Strategia de testare](docs/testing/README.md) · [Procesul de release](docs/release/README.md) · [Feedback](docs/feedback/README.md)
+- Gradle declară aplicația `:app`. Atât aplicația, cât și reactorul Maven citesc
+  sursele din `chess-core`. Maven declară `atf-tests` ca modul și compilează
+  `release-tools` ca surse adăugate.
+- Linia punctată arată recepțiile produse de instrumentarea Android. Testele
+  de componentă rulează în JVM; publicarea recepțiilor completează proba nativă.
+- Extent folosește ATF Reporting din `lib`. Numele versiunii, APK-ul și dovada
+  de publicare se reconciliază în [catalogul edițiilor](release/README.md).
+
+</details>
+
+## Puncte de intrare
+
+- [Documentația proiectului](docs/README.md) — alege ghidul după zona schimbată.
+- [Strategia de testare](docs/testing/README.md#alegerea-nivelului) — alege componentă, guvernanță sau sanity Android.
+- [Procesul de release](docs/release/README.md#calificare-și-publicare) — construiește și califică ediția în TMP.
+- [Feedback activ](docs/feedback/README.md) — urmărește lacunele și criteriile de închidere.

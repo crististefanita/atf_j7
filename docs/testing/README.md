@@ -1,14 +1,19 @@
 # Strategia de testare
 
-Construiți în TMP dintr-o copie a sursei. Componentele rulează fără emulator. Android păstrează un singur parcurs scurt pentru gesturi, geometrie și randare.
+Construiți în TMP dintr-o copie a sursei. Suitele JVM verifică motorul și
+guvernanța fără emulator. Selectați proba Android care acoperă gesturile,
+geometria, randarea sau reluarea afectată de schimbare.
 
 ## Alegerea nivelului
 
 - **Componentă** pentru reguli, progres, persistență, ordonare și layout măsurabil. Folosiți store-ul real cu preferințe în memorie și aserțiuni pe valori observabile.
+- **Guvernanță** pentru reguli de structură, proveniență, contracte de raportare și publicare. Includeți o probă negativă când un artefact incomplet ar putea primi PASS.
 - **Sanity Android** când comportamentul depinde de Activity, preferințele Android, procese, randarea nativă sau accesibilitate. Păstrați doar parcursul care validează integrarea lipsă din componente.
 - **Benchmark** numai pentru comparații cu Stockfish, calibrarea boților sau măsurători de timp. Țineți intrările fixe și raportați separat rezultatele opționale.
 
-Alegeți cel mai mic nivel care poate observa contractul. Nu înlocuiți un test de componentă cu un parcurs UI dacă aceeași regulă poate fi verificată în JVM; păstrați sanity-ul Android pentru integrare și restart real. Toate nivelurile publică aserțiunile și diagnosticul în Extent.
+Alegeți cel mai mic nivel care observă contractul. Verificați regulile în
+JVM, iar integrarea nativă și restartul real pe Android. În Extent, urmăriți
+aserțiunea, diagnosticul și, unde este necesară, captura checkpointului.
 
 ## Motor și proiecție
 
@@ -56,12 +61,13 @@ node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resour
 
 `QuestStoreTest` folosește store-ul de producție cu preferințe în memorie. Verifică reluarea cursorului după ID în **Tactică** și **Antrenament tactic**, rezolvarea fără puncte duplicate, seria comună și totalurile separate. Include preferințele moștenite și retry-ul după o scriere respinsă. `QuestProgressTest` verifică următoarea problemă nerezolvată după extinderea catalogului.
 
-`QuestCatalogTest` încarcă toate capitolele și cere 1.172 de ID-uri și poziții distincte. `MainMenuLayoutTest` verifică titlurile și totalurile. Testele rulează fără emulator în `ChessComponentSuite`; `DocumentationGovernanceTest` și `ReleaseGovernanceTest` verifică linkurile locale, versiunea și secțiunea de descărcare.
+`QuestCatalogTest` verifică 1.220 de poziții publice distincte și 24 de poziții independente. `TacticsCatalogTest` verifică dovada materială a celor 96 de exerciții de Antrenament tactic și a lotului independent. `MainMenuLayoutTest` verifică titlurile și totalurile. `ChessComponentSuite` rulează fără emulator. `DocumentationGovernanceTest` și `ReleaseGovernanceTest` verifică linkurile locale, versiunea și secțiunea de descărcare.
 
 La schimbarea catalogului material, rulați independent verificarea cheii și checksum-ului pentru ambele fișiere:
 
 ```powershell
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/training.yaml chess-core/src/main/resources/training.sha256
+node scripts/verify-tactics.cjs <cale-catre-chess.js> atf-tests/src/test/resources/tactical-transfer-holdout.yaml atf-tests/src/test/resources/tactical-transfer-holdout.sha256
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/intermezzo.yaml chess-core/src/main/resources/intermezzo.sha256
 ```
 
@@ -88,7 +94,7 @@ JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Co
 
 `AiLeagueBenchmarkTest` joacă cele 72 de partide ale ligii într-un pool de cel mult trei workeri și verifică separat replay-ul fiecărui rezultat; folosiți o cale TSV nouă în `-Dchess.league` și un Extent nou. Astfel, testul acoperă căutările simultane și păstrarea checkpoint-urilor fiecărui joc.
 
-`HardQuestTransferBenchmarkTest` rulează separat în `ChessBenchmarkSuite`: măsoară toate cele 1.172 de quest-uri prin decizia adversarului Hard și păstrează podelele de regresie în `hard-quest-transfer.yaml`. Nu intră în suita rapidă de componente; folosiți-i propriul raport Extent la ajustarea căutării sau a bugetului.
+`HardQuestTransferBenchmarkTest` rulează în `ChessBenchmarkSuite`. O probă cere soluția corectă pentru fiecare quest public și independent, folosind poziția și obiectivul. Cealaltă măsoară decizia adversarului Hard folosind numai poziția. Extent arată totalurile pe capitol, ratările și respectarea plafonului. Pragul de 39 la Antrenament tactic se aplică celor 48 de ID-uri din lotul înghețat. [Pragurile de regresie](../../atf-tests/src/test/resources/hard-quest-transfer.yaml)
 
 `SuiteGovernanceTest` compară planurile descoperite de JUnit. Fiecare metodă JVM cu audit aparține unei singure suite primare. Publicarea recepțiilor Android și TalkBack are intrări explicite. `DocumentationGovernanceTest` verifică fișierele și ancorele Markdown locale, inclusiv cele din feedback.
 
@@ -110,13 +116,26 @@ Captura UI Automation poate avea dimensiuni raster mai mici decât ecranul real 
 
 ## Sanity Android
 
-Din aceeași copie TMP, setați `ANDROID_HOME` către SDK 36 și construiți `:app:assembleSanity :app:assembleSanityAndroidTest` din `android` cu `gradlew.bat`. Varianta `sanity` are identitate separată de APK-ul debug folosit pentru joc.
+Verificați separat compatibilitatea surselor împachetate în aplicație:
+rulați `gradlew.bat :app:lintDebug` din `android`, în TMP. Maven verifică
+motorul pe JDK 21; build-ul Gradle și lint răspund la întrebări diferite
+despre compilare și API-ul minim. Proba nativă confirmă apoi comportamentul.
+
+Pentru calificare, folosiți un emulator rezervat și curat. Din copia TMP,
+setați `ANDROID_HOME` către SDK 36, încărcați identitatea de semnare și
+construiți APK-ul de distribuție și instrumentarea lui.
+[Semnare și calificare](../release/README.md#calificare-și-publicare)
 
 ```powershell
-./scripts/run-android-sanity.ps1 -Adb adb -Serial <serial> -LeaseFile <registru-rezervare>
+Push-Location android
+.\gradlew.bat -Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest
+Pop-Location
+./scripts/run-android-sanity.ps1 -Adb adb -Serial <serial> -LeaseFile <registru-rezervare> -Distribution -SourceCommit <sha>
 ```
 
-Folosiți registrul comun de rezervare pe dispozitivele partajate.
+Runnerul refuză o instalare existentă a pachetului de distribuție.
+Folosiți registrul comun de rezervare pe dispozitivele partajate. Varianta
+cu alt ID de aplicație rămâne o probă de dezvoltare și nu califică APK-ul.
 
 1. Prima instrumentare verifică meniul, culoarea, cele două trepte ale becului și încadrarea în română la font 1,3×. Rezolvă două poziții în Tactică și trece la a doua poziție nerezolvată din Antrenament tactic. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
 2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, pragul de cinci rezolvări, poziția și punctele restaurate în Tactică și reluarea celei de-a doua probleme nerezolvate din Antrenament tactic.
@@ -128,7 +147,17 @@ La modificarea instrumentării, sincronizați numărul de aserțiuni pe fază cu
 
 ## Upgrade al progresului
 
-Sanity-ul de distribuție pornește de la o instalare curată. Pentru a observa upgrade-ul, instalați pe emulator APK-ul anterior semnat, creați progres în capitole, opriți procesul și instalați APK-ul nou cu `adb install -r`. Verificați `versionCode`, timpul primei instalări, PID-urile și identitatea problemelor salvate. Comparați punctele, seria, rezolvările pe capitole și semimutarea unei apărări în curs.
+Sanity-ul de distribuție pornește de la o instalare curată. Pentru proba
+separată de upgrade, porniți de la un emulator curat, verificați că cele
+două APK-uri au același certificat și instalați întâi ediția publicată.
+Creați progres, opriți procesul și instalați candidatul cu `adb install -r`.
+Verificați `versionCode`, timpul primei instalări, PID-urile și ID-urile
+problemelor, apoi comparați punctele, seria și apărarea rămasă în curs.
+
+În componentă, `QuestStoreTest` verifică reordonarea și extinderea
+capitolului cu același ID și punctaj, inclusiv refuzul acordării duble.
+Restartul Android verifică restaurarea aceleiași instalări.
+Doar instalarea peste o ediție existentă dovedește migrarea între APK-uri.
 
 La upgrade-ul de la 0.9.0 la 0.10.0, problema `mate-008` s-a redeschis la `23/500`, cu două rezolvări și 20 de puncte. În vechiul catalog avea rangul 3. Faza Android pentru restartul aceleiași versiuni verifică rangul 3 pentru datele pregătite în acea versiune. O probă de upgrade verifică ID-ul memorat și rangul lui din noul YAML.
 

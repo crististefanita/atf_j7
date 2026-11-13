@@ -3,8 +3,8 @@
     android:background="#262522" android:orientation="vertical">
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical" android:padding="24dp">
-        <TextView android:id="@+id/match_list_title" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:accessibilityHeading="true" android:gravity="center" android:textColor="#f5f3ec"
+        <TextView android:id="@+id/match_list_title" style="@style/MenuHeading"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:textColor="#f5f3ec"
             android:textSize="30sp" android:textStyle="bold" />
         <ScrollView android:id="@+id/match_list_scroll" android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" android:layout_marginTop="12dp">

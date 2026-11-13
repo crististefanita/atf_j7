@@ -12,6 +12,24 @@ import ro.atf.chess.ChessPosition.Move;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class ChessComponentTest {
+    @Test void legalMoveTreeMatchesStockfishAcrossCastlingAndPromotion(Checks check) {
+        var castling = ChessPosition.fromFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+        var promotion = ChessPosition.fromFen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+        var pawnAndRook = ChessPosition.fromFen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
+        check.same("Stockfish 19 perft 3 from the starting position", 8_902L, legalContinuations(ChessPosition.initial(), 3));
+        check.same("Stockfish 19 perft 3 with castling rights on both sides", 97_862L, legalContinuations(castling, 3));
+        check.same("Stockfish 19 perft 3 with promotion and a discovered attack", 62_379L, legalContinuations(promotion, 3));
+        check.same("Stockfish 19 perft 4 in a pawn and rook ending", 43_238L, legalContinuations(pawnAndRook, 4));
+    }
+
+    private static long legalContinuations(ChessPosition position, int depth) {
+        var moves = position.legalMoves();
+        if (depth == 1) return moves.size();
+        long count = 0;
+        for (Move move : moves) count += legalContinuations(position.playGenerated(move), depth - 1);
+        return count;
+    }
+
     @Test void initialPositionAndFlippedCoordinates(Checks check) {
         var position = ChessPosition.initial();
         check.same("White moves first", WHITE, position.turn());

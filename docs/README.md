@@ -4,25 +4,42 @@ Porniți de la ghidul care răspunde întrebării. Verificați afirmațiile desp
 
 | Întrebare | Ghid |
 |---|---|
+| Cum se leagă motorul, aplicația și testele? | [Arhitectura J7](../README.md#arhitectura-j7) · [Bibliotecile ATF](../lib/README.md) |
 | Cum se joacă și cum se configurează problemele? | [Tabla și jocul](board/README.md) · [Catalogul](board/quest-curation.md) |
+| Cum se măsoară adversarii AI și cum se interpretează analiza unei partide? | [Protocolul AI](board/ai-quality.md#control-la-fiecare-schimbare) · [Analiza partidei](board/game-review.md) |
 | Ce trebuie verificat înaintea unei schimbări? | [Alegerea nivelului de testare](testing/README.md#alegerea-nivelului) · [Raportare Extent](testing/README.md#raportare-extent) |
-| Cum se califică și se publică un APK? | [Procesul de release](release/README.md#calificare-și-publicare) |
+| Cum se califică un APK și unde sunt dovezile ediției? | [Procesul de release](release/README.md#calificare-și-publicare) · [Edițiile publicate](../release/README.md) |
 | Ce ipoteze mai cer dovezi? | [Feedback](feedback/README.md) |
 
 ## Reguli de întreținere
 
-- Începeți cu scopul, publicul și următoarea acțiune. Păstrați la începutul README-ului principal cele două linkuri ale ediției curente.
-- Scrieți contractul stabil în ghidul zonei care îl implementează. Trimiteți cititorul direct la secțiunea care deține explicația.
-- Folosiți un tabel pentru o matrice de decizie și pași ordonați pentru o procedură. Păstrați comanda lângă prerechizite și explicați cum se verifică rezultatul.
-- Notați în feedback observația, prioritatea, zona și criteriul de închidere. Când dovada închide punctul, păstrați regula confirmată în ghidul ei și ștergeți punctul din registru.
-- Păstrați dovezile unei ediții lângă ediție. Folosiți TMP pentru build-uri, capturi și rapoarte de lucru. Verificați țintele Markdown înainte de mutarea unui document sau artifact.
+- **README principal:** scop, cele două linkuri ale ediției curente, harta
+  arhitecturii și intrările pentru testare, release și feedback.
+- **Ghidul zonei:** responsabilitate, intrări, rezultat și limite. Puneți
+  comanda lângă prerechizite și indicați dovada care confirmă rezultatul.
+- **Format:** un titlu, Markdown semantic și blocuri cu limbaj declarat.
+  Folosiți tabele pentru comparații și pași ordonați pentru proceduri.
+  Diagrama răspunde unei singure întrebări și are legenda imediat sub ea.
+- **Linkuri:** căi relative și ancore existente; verificați destinația după
+  mutarea documentului. În exemple, folosiți parametri pentru căi locale.
+- **Feedback:** observație, prioritate, responsabilitate, probă și criteriu de
+  închidere. Promovați regula confirmată în ghidul ei și eliminați punctul închis.
+- **Dovezi:** build-urile, capturile și rapoartele de lucru stau în TMP.
+  Dovezile promovate aparțin dosarului ediției și rămân legate de binar și commit.
 
 ## Verificarea documentației
 
-Rulați din copia TMP cu JDK 21 și dependențele Maven în cache.
+Rulați din copia TMP, cu JDK 21. Dacă folosiți `-o`, depozitul Maven ales
+trebuie să conțină deja dependențele și pluginurile.
 
 ```powershell
-mvn -o test '-Dtest=DocumentationGovernanceTest,ReleaseGovernanceTest'
+mvn test '-Dtest=DocumentationGovernanceTest,ReleaseGovernanceTest' '-Dchess.extent=target/doc-governance.html'
 ```
 
-`DocumentationGovernanceTest` verifică navigarea locală, destinațiile ediției curente și registrul de feedback. `ReleaseGovernanceTest` leagă versiunile și linkurile din README de contractul de publicare. La revizie, verificați și proprietarul informației, fidelitatea exemplelor și rezultatul comenzilor din ghidul schimbat. [Calificare](release/README.md#calificare-și-publicare)
+`DocumentationGovernanceTest` verifică harta README-ului, navigarea locală,
+destinațiile ediției curente și structura feedback-ului.
+`ReleaseGovernanceTest` verifică regulile de publicare și traseele RAG.
+
+La revizie, comparați afirmațiile cu sursele și declarațiile de build.
+Verificați proprietarul informației, fidelitatea exemplelor, randarea și
+rezultatul comenzilor. [Calificare](release/README.md#calificare-și-publicare)

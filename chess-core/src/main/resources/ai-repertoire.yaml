@@ -1,5 +1,6 @@
 schema: 1
-# Verified with Stockfish 19 at depth 13. Matching includes turn, castling rights and legal en passant.
+# Verified with Stockfish 19 at depth 13. The Hard additions also agree at depths 16 and 19.
+# Matching includes turn, castling rights and legal en passant.
 positions:
   - id: pirc-austrian
     moves: "e2e4 d7d6 d2d4 g8f6 b1c3 g7g6 f2f4"
@@ -28,3 +29,21 @@ positions:
     moves: "d2d4 g8f6 c2c4 c7c5 d4d5 e7e6 b1c3 e6d5 c4d5 d7d6"
     reply: h2h3
     review-only: true
+  - id: benko-accepted
+    moves: "d2d4 g8f6 c2c4 c7c5 d4d5 b7b5 c4b5 a7a6 b5a6"
+    reply: e7e6
+  - id: caro-advance
+    moves: "e2e4 c7c6 d2d4 d7d5 e4e5 c8f5 g1f3"
+    reply: e7e6
+  - id: english-hedgehog
+    moves: "c2c4 c7c5 g1f3 g8f6 g2g3 b7b6 f1g2 c8b7"
+    reply: e1g1
+  - id: french-tarrasch
+    moves: "e2e4 e7e6 d2d4 d7d5 b1d2 g8f6"
+    reply: e4e5
+  - id: sicilian-classical
+    moves: "e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f3d4 g8f6 b1c3 b8c6 c1g5"
+    reply: e7e6
+  - id: sicilian-double-center
+    moves: "e2e4 c7c5 g1f3 e7e5"
+    reply: f3e5

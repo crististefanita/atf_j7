@@ -1,6 +1,5 @@
 package ro.atf.chess.android;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.os.Build;
@@ -44,7 +43,7 @@ import ro.atf.chess.QuestRewards;
 import ro.atf.chess.QuestStep;
 import ro.atf.chess.TacticalAnalysis;
 
-public final class ChessActivity extends Activity {
+public final class ChessActivity extends BackNavigableActivity {
     private static final int BACKGROUND = 0xff262522;
     private static final int PRIMARY = 0xfff5f3ec;
     private static final int MUTED = 0xffc0bfb4;
@@ -129,9 +128,6 @@ public final class ChessActivity extends Activity {
         store.matches().migrateCompletedMatches();
         progress = store.quests().read(allIds);
         rewards = store.quests().readRewards();
-        if (Build.VERSION.SDK_INT >= 33) {
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(0, this::back);
-        }
         try {
             matchSlot = store.matches().activeMatchSlot();
             match = store.matches().readMatch();
@@ -319,13 +315,11 @@ public final class ChessActivity extends Activity {
         return button;
     }
 
-    private void back() {
+    @Override protected void back() {
         if (inMatch || chapterIndex >= 0) leaveBoard();
         else if (menuPage != MenuPage.HOME) showMenu();
         else finish();
     }
-
-    @Override public void onBackPressed() { back(); }
 
     private LinearLayout buildBoardScreen() {
         var screen = screen();

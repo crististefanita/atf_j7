@@ -30,7 +30,10 @@ class DocumentationGovernanceTest {
     @Test void currentDocumentationResolvesEveryLocalTargetAndHeading(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         Path readme = root.resolve("README.md");
-        var documents = new ArrayList<>(List.of(readme, root.resolve("lib/README.md"), root.resolve("release/README.md")));
+        var documents = new ArrayList<>(List.of(readme, root.resolve("release/README.md")));
+        try (var libraries = Files.newDirectoryStream(root.resolve("lib"), "README*.md")) {
+            for (Path library : libraries) if (Files.isRegularFile(library)) documents.add(library);
+        }
         String tag = ReleaseEvidence.gameLinks(Files.readString(readme)).getFirst();
         Path release = root.resolve("release").resolve(tag.substring(tag.lastIndexOf('/') + 2));
         documents.add(release.resolve("README.md"));
@@ -245,6 +248,45 @@ class DocumentationGovernanceTest {
         check.same("The index routes readers to each local owner", List.of(), targets.stream()
                 .filter(target -> index.stream().noneMatch(line -> line.contains("](" + target + ")"))).toList());
         check.same("The document verification has a stable section", true, anchors(root.resolve("docs/README.md")).contains("verificarea-documentației"));
+    }
+
+    @Test void projectReadmeKeepsAnArchitectureMapAndDirectRoutes(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        check.same("README.md: architecture owners, release, testing and feedback are directly navigable",
+                List.of(), missingReadmeRoutes(prose(root.resolve("README.md"))));
+    }
+
+    @Test void movingTheMotorLinkOutOfTheArchitectureMapDoesNotSatisfyTheContract(Checks check) {
+        var readme = List.of("## Arhitectura J7",
+                "| [Android](android/app/src/main) | APK |",
+                "| [Teste](atf-tests) | JVM |",
+                "| [Release](release-tools/src/main) | RAG |",
+                "| [Biblioteci](lib/README.md) | JAR |",
+                "## Puncte de intrare",
+                "- [Motor](chess-core/src/main)",
+                "- [Teste](docs/testing/README.md#alegerea-nivelului)",
+                "- [Release](docs/release/README.md#calificare-și-publicare)",
+                "- [Feedback](docs/feedback/README.md)");
+        check.same("A generic link cannot replace the motor row in the architecture section",
+                List.of("Arhitectura J7 → chess-core/src/main"), missingReadmeRoutes(readme));
+    }
+
+    private static List<String> missingReadmeRoutes(List<String> lines) {
+        var missing = new ArrayList<String>();
+        var architecture = lines.stream().dropWhile(line -> !line.equals("## Arhitectura J7")).skip(1)
+                .takeWhile(line -> !line.startsWith("## ")).filter(line -> line.startsWith("|")).toList();
+        for (String owner : List.of("chess-core/src/main", "android/app/src/main", "atf-tests", "release-tools/src/main", "lib/README.md")) {
+            if (!linksTo(architecture, owner)) missing.add("Arhitectura J7 → " + owner);
+        }
+        for (String guide : List.of("docs/testing/README.md", "docs/release/README.md", "docs/feedback/README.md")) {
+            if (!linksTo(lines, guide)) missing.add("README.md → " + guide);
+        }
+        return missing;
+    }
+
+    private static boolean linksTo(List<String> lines, String destination) {
+        return lines.stream().flatMap(line -> LINK.matcher(line).results())
+                .map(link -> link.group(1).split("#", 2)[0]).anyMatch(destination::equals);
     }
 
     @Test void feedbackKeepsOpenCriteriaAndReportsStayWithTheirEdition(Checks check) throws IOException {

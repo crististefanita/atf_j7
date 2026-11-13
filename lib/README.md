@@ -1,10 +1,18 @@
 # Bibliotecile ATF
 
+Acest director documentează adoptarea bibliotecilor ATF în testele Chess Lab.
+Implementarea și regresiile generice aparțin J0; J7 verifică integrarea proprie.
+
 ## Proveniență
 
-J7 consumă perechile versionate JAR/POM Core, Console, Mock, Reporting și Test Kit. [Proveniența](../library-provenance.json) fixează coordonatele și hash-urile fiecărui fișier.
-Maven verifică perechile și le instalează în repository-ul de build înaintea testelor. `PlatformLibraryProvenanceTest` validează proveniența; `ExtentGovernanceTest` verifică randarea raportului în proiectul consumator.
-Android împachetează motorul și interfața; bibliotecile de testare rămân pe partea JVM.
+- [POM-ul rădăcină](../pom.xml) instalează cele cinci perechi JAR/POM în
+  depozitul Maven de build. [Proveniența](../library-provenance.json)
+  fixează identitatea fișierelor livrate.
+- [POM-ul testelor](../atf-tests/pom.xml) declară Reporting și Test Kit
+  direct, cu scope `test`. Android împachetează motorul și interfața jocului.
+- [Proba de proveniență](../atf-tests/src/test/java/ro/atf/chess/PlatformLibraryProvenanceTest.java)
+  verifică perechile. [Guvernanța Extent](../atf-tests/src/test/java/ro/atf/chess/ExtentGovernanceTest.java)
+  verifică HTML-ul produs în J7, inclusiv diagnosticul și probele negative.
 
 ## Ghiduri de utilizare
 
@@ -18,4 +26,6 @@ Android împachetează motorul și interfața; bibliotecile de testare rămân p
 
 ## Mentenanță și feedback
 
-J7 păstrează acceptanța locală a bibliotecilor și a rapoartelor produse de Chess Lab. Contractul de consum și exemplele sunt în ghidurile locale de mai sus.
+Raportați integrarea Chess Lab în [feedback-ul J7](../docs/feedback/README.md).
+Pentru un defect al bibliotecii, izolați proba la ownerul J0 și repetați
+acceptanța consumatorului după înlocuirea perechii.

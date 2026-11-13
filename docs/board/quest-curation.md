@@ -57,9 +57,9 @@ Ambele motoare verifică o singură primă mutare care forțează matul în trei
 
 ## Antrenament tactic și lot de verificare
 
-Capitolul **Antrenament tactic** conține 48 de poziții fără obiectiv de mat, ordonate după ratingul sursă. Pozițiile acoperă apărarea, devierea, mutarea liniștită, sacrificiul, furculița și legarea, cu ambele culori. Primele 24 de ID-uri și ordinea lor relativă se păstrează la extindere. [Catalog](../../chess-core/src/main/resources/training.yaml)
+Capitolul **Antrenament tactic** conține 96 de poziții fără obiectiv de mat, ordonate după ratingul sursă. Pozițiile acoperă apărarea, devierea, mutarea liniștită, sacrificiul, furculița și legarea. ID-urile `training-049`–`training-072` acoperă benzile 1200–1599 și 1600–1849. ID-urile `training-073`–`training-096` adaugă câte o poziție pentru fiecare temă și culoare în benzile 1800–2199 și 2200–2699. ID-urile, pozițiile, soluțiile și ordinea relativă a exercițiilor existente păstrează progresul salvat. [Catalog](../../chess-core/src/main/resources/training.yaml) · [Exportul Lichess CC0](https://database.lichess.org/#puzzles)
 
-Catalogul de verificare este separat de capitolul public. `QuestCatalogTest` validează încărcarea și unicitatea pozițiilor, iar `verify-tactics.cjs` verifică legalitatea cheii și câștigul de material prin chess.js 1.4.0. Nu folosiți pozițiile de validare pentru a modifica ponderile sau ordinea publică.
+Stockfish 19 la adâncimea 15 a ales cheia în toate cele 24 de poziții noi și în 24 de poziții separate, din aceleași benzi și teme. J7 și chess.js 1.4.0 verifică unicitatea cheii pentru câștigul material forțat în trei semimutări. `QuestCatalogTest` verifică unicitatea între capitole și față de lotul separat. `TacticsCatalogTest` compară dovezile cu amprentele chess.js, iar `QuestStoreTest` verifică reluarea după intercalarea exercițiilor. Lotul separat rămâne în resursele de test și poate fi folosit pentru transferul motorului. [Lot independent](../../atf-tests/src/test/resources/tactical-transfer-holdout.yaml) · [Verificări locale](../testing/README.md#progresul-problemelor)
 
 ## Mutarea intermediară
 

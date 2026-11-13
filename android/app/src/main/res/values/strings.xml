@@ -92,9 +92,9 @@
     <string name="match_choose_color">Your color</string>
     <string name="match_choose_level">AI level</string>
     <string name="match_random_color">Random</string>
-    <string name="match_basic">Basic</string>
-    <string name="match_advanced">Advanced</string>
-    <string name="match_hard">Hard</string>
+    <string name="match_basic" translatable="false">Basic</string>
+    <string name="match_advanced" translatable="false">Advanced</string>
+    <string name="match_hard" translatable="false">Hard</string>
     <string name="match_start">Play</string>
     <string name="match_bot_label">%1$s · AI %2$s</string>
     <string name="match_seat_description">%1$s. %2$s</string>
@@ -136,7 +136,7 @@
     <string name="chapter_points">%1$d points</string>
     <string name="earned_points">+%1$d · %2$d points</string>
     <string name="reward_streak">Streak %1$d</string>
-    <string name="app_name">Chess Lab</string>
+    <string name="app_name" translatable="false">Chess Lab</string>
     <string name="mate_objective">Mate in one</string>
     <string name="quest_progress">Mate in one · %1$d/%2$d</string>
     <string name="mate_two_progress">Mate in two · %1$d/%2$d</string>
@@ -154,8 +154,8 @@
     <string name="match_history_next">Next move</string>
     <string name="match_history_latest">Jump to latest move</string>
     <string name="match_history_start">Start</string>
-    <string name="match_history_white_move">%1$d. %2$s</string>
-    <string name="match_history_black_move">%1$d… %2$s</string>
+    <string name="match_history_white_move" translatable="false">%1$d. %2$s</string>
+    <string name="match_history_black_move" translatable="false">%1$d… %2$s</string>
     <string name="match_history_move_description">Move %1$d, %2$s, %3$s</string>
     <string name="match_history_position">History · %1$d / %2$d</string>
     <string name="match_history_showing_move">Showing · %1$s</string>

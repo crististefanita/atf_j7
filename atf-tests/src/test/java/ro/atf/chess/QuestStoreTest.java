@@ -43,8 +43,8 @@ class QuestStoreTest {
         check.same("Restart preserves exactly the solved positions and leaves the current one unsolved", List.of(Set.copyOf(positions), false),
                 List.of(saved.solvedIds(), saved.currentSolved()));
         check.same("Tactics points survive and remain in their chapter", new QuestRewards.Summary(2, 100, 22), awards.summarize(tactics, saved));
-        check.same("Training points survive and remain in their chapter", new QuestRewards.Summary(1, 48, 14), awards.summarize(training, saved));
-        check.same("Overall progress combines the two chapters once", new QuestRewards.Summary(3, 148, 36), awards.summarize(order, saved));
+        check.same("Training points survive and remain in their chapter", new QuestRewards.Summary(1, 96, 14), awards.summarize(training, saved));
+        check.same("Overall progress combines the two chapters once", new QuestRewards.Summary(3, 196, 36), awards.summarize(order, saved));
         check.same("Revisiting a saved completion earns no second award", 0, awards.complete(saved.select(training.getFirst())).amount());
         check.same("Saving a puzzle selects puzzle resume and clears the match resume flag", List.of(true, false),
                 List.of(reopened.resumeChapter(), disk.contains(MatchStore.RESUME_MATCH)));
@@ -53,23 +53,24 @@ class QuestStoreTest {
     }
 
     @Test void trainingExpansionRestoresAnExistingCursorAndAwardById(Checks check) {
-        var oldOrder = java.util.stream.IntStream.rangeClosed(1, 24).mapToObj(number -> "training-%03d".formatted(number)).toList();
         var newOrder = QuestCatalog.loadTraining().stream().map(QuestCatalog.Quest::id).toList();
+        var oldOrder = newOrder.stream().filter(id -> id.compareTo("training-072") <= 0).toList();
+        check.same("All 72 previous exercises remain available", 72, oldOrder.size());
         var disk = new MemoryPreferences();
         var oldStore = new QuestStore(disk);
-        var completed = oldStore.read(oldOrder).select("training-013");
+        var completed = oldStore.read(oldOrder).select("training-060");
         var award = oldStore.readRewards().complete(completed);
         check.same("Save a completion and the next unsolved exercise in the previous edition", true,
-                oldStore.save(completed.solveCurrent().select("training-014"), award.rewards()));
+                oldStore.save(completed.solveCurrent().select("training-063"), award.rewards()));
 
         var store = new QuestStore(disk);
         var restored = store.read(newOrder);
         var rewards = store.readRewards();
-        check.same("Reordering keeps the cursor and completed ID", List.of("training-014", Set.of("training-013")),
+        check.same("Reordering keeps the cursor and completed ID", List.of("training-063", Set.of("training-060")),
                 List.of(restored.currentId(), restored.solvedIds()));
         check.same("The old award is included once in the new chapter total",
-                new QuestRewards.Summary(1, 48, 10), rewards.summarize(newOrder, restored));
-        check.same("The reimported position cannot earn a second award", 0, rewards.complete(restored.select("training-013")).amount());
+                new QuestRewards.Summary(1, 96, 10), rewards.summarize(newOrder, restored));
+        check.same("The reimported position cannot earn a second award", 0, rewards.complete(restored.select("training-060")).amount());
     }
 
     @Test void intermezzoKeepsItsCursorAndOnlyAwardsTheFirstCompletion(Checks check) {
@@ -90,7 +91,7 @@ class QuestStoreTest {
         check.same("The cursor and the solved ID survive a reopened store", List.of(next, Set.of(previousEditionId)),
                 List.of(saved.currentId(), saved.solvedIds()));
         check.same("Intermezzo owns its score", new QuestRewards.Summary(1, 24, 10), rewards.summarize(chapter, saved));
-        check.same("Training does not receive those points", new QuestRewards.Summary(0, 48, 0), rewards.summarize(training, saved));
+        check.same("Training points remain separate", new QuestRewards.Summary(0, 96, 0), rewards.summarize(training, saved));
         check.same("The saved completion cannot score twice", 0, rewards.complete(saved.select(previousEditionId)).amount());
     }
 

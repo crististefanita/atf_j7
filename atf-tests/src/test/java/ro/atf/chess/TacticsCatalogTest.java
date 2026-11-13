@@ -3,6 +3,7 @@ package ro.atf.chess;
 import atf.testkit.AtfComponentTest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.Comparator;
 import java.util.HexFormat;
@@ -16,10 +17,40 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class TacticsCatalogTest {
     @Test void everyTacticHasOneMaterialWinningMoveAndAnIndependentProof(Checks check) throws Exception {
         var catalog = QuestCatalog.loadTactics();
-        var proof = new StringBuilder();
         check.same("The chapter has exactly 100 tactics", 100, catalog.size());
         check.same("The introductory progression keeps its original direct capture and quiet key",
                 List.of("tactic-005", "tactic-012"), List.of(catalog.getFirst().id(), catalog.get(11).id()));
+        check.same("Both sides get fifty tactics", 50L, catalog.stream().filter(quest -> quest.position().turn() == ChessPosition.Side.BLACK).count());
+        check.same("The extended curriculum includes quiet keys beyond the introductory puzzles", true,
+                catalog.stream().skip(12).anyMatch(quest -> quest.position().pieceAt(quest.solution().to()) == null));
+        verifyMaterialProof(catalog, "tactics", check);
+    }
+
+    @Test void trainingAddsBalancedPracticeAndEveryKeyHasAnIndependentProof(Checks check) throws Exception {
+        var catalog = QuestCatalog.loadTraining();
+        check.same("The app offers 96 tactical training quests", 96, catalog.size());
+        var additions = catalog.stream().filter(quest -> quest.id().compareTo("training-072") > 0).toList();
+        check.same("Twenty-four new IDs preserve the first 72", 24, additions.size());
+        check.same("Both colors get twelve new positions", 12L,
+                additions.stream().filter(quest -> quest.position().turn() == ChessPosition.Side.BLACK).count());
+        check.same("The chapter opens with the new introductory exercises", "training-049", catalog.getFirst().id());
+        verifyMaterialProof(catalog, "training", check);
+    }
+
+    @Test void independentMaterialSampleMatchesTheExternalProof(Checks check) throws Exception {
+        var catalog = QuestCatalog.readMaterial(ChessYaml.resource("tactical-transfer-holdout.yaml"), "holdout");
+        check.same("The independent sample includes twelve positions per side", 12L,
+                catalog.stream().filter(quest -> quest.position().turn() == ChessPosition.Side.BLACK).count());
+        var proof = ProjectRoot.locate().resolve("atf-tests/src/test/resources/tactical-transfer-holdout.sha256");
+        verifyMaterialProof(catalog, proof, check);
+    }
+
+    private static void verifyMaterialProof(List<QuestCatalog.Quest> catalog, String chapter, Checks check) throws Exception {
+        verifyMaterialProof(catalog, ProjectRoot.locate().resolve("chess-core/src/main/resources/" + chapter + ".sha256"), check);
+    }
+
+    private static void verifyMaterialProof(List<QuestCatalog.Quest> catalog, Path expectedProof, Checks check) throws Exception {
+        var proof = new StringBuilder();
         for (var quest : catalog.stream().sorted(Comparator.comparing(QuestCatalog.Quest::id)).toList()) {
             var variations = TacticalAnalysis.analyze(quest.position(), 3);
             var best = variations.best().get(0);
@@ -28,12 +59,8 @@ class TacticsCatalogTest {
             check.same(quest.id() + " has no immediate checkmate", false, quest.position().legalMoves().stream().anyMatch(move -> quest.position().play(move).isCheckmate()));
             proof.append(quest.id()).append(' ').append(quest.solution().uci()).append(' ').append(best.materialChange()).append('\n');
         }
-        check.same("Both sides get fifty tactics", 50L, catalog.stream().filter(quest -> quest.position().turn() == ChessPosition.Side.BLACK).count());
-        check.same("The extended curriculum includes quiet keys beyond the introductory puzzles", true,
-                catalog.stream().skip(12).anyMatch(quest -> quest.position().pieceAt(quest.solution().to()) == null));
         String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(proof.toString().getBytes(StandardCharsets.UTF_8)));
-        check.same("Engine results agree with the chess.js proof",
-                Files.readString(ProjectRoot.locate().resolve("chess-core/src/main/resources/tactics.sha256")).trim(), digest);
+        check.same(expectedProof.getFileName() + " matches the chess.js proof", Files.readString(expectedProof).trim(), digest);
     }
 
     @Test void wrongLegalMovesKeepNextLockedAndBothHintsReferToTheWinningMove(Checks check) {
