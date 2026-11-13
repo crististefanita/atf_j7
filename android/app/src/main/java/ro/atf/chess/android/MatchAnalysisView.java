@@ -36,7 +36,6 @@ final class MatchAnalysisView extends TextView {
     private MatchHint hint;
     private MatchEvaluation shownEvaluation;
     private AlertDialog preview;
-    private Future<?> comparisonTask;
     private Future<?> pending;
     private int request;
 
@@ -82,20 +81,20 @@ final class MatchAnalysisView extends TextView {
     void show(ChessMatch match, int ply) {
         double terminal = match.result() != ChessMatch.Result.IN_PROGRESS && ply == match.ply()
                 ? MatchEvaluation.terminalWhiteShare(match.result()) : Double.NaN;
-        show(match.positionAt(ply), () -> match.bestLinesAt(ply), terminal);
+        show(match.positionAt(ply), () -> match.hintAt(ply), terminal);
     }
 
     void show(ChessPosition position) {
-        show(position, () -> TacticalAnalysis.recommendations(position), Double.NaN);
+        show(position, () -> MatchHint.analyze(position), Double.NaN);
     }
 
     void show(AnalysisLine line) {
         var position = line.position();
         if (line.result() == ChessMatch.Result.IN_PROGRESS) show(position);
-        else show(position, List::of, MatchEvaluation.terminalWhiteShare(line.result()));
+        else show(position, () -> new MatchHint(List.of()), MatchEvaluation.terminalWhiteShare(line.result()));
     }
 
-    private void show(ChessPosition position, Supplier<List<TacticalAnalysis.Variation>> search, double terminal) {
+    private void show(ChessPosition position, Supplier<MatchHint> search, double terminal) {
         if (position == shownPosition && Double.compare(terminal, shownTerminal) == 0) return;
         cancel();
         shownPosition = position;
@@ -104,17 +103,17 @@ final class MatchAnalysisView extends TextView {
         setContentDescription(null);
         int currentRequest = request;
         pending = worker.submit(() -> {
-            var lines = search.get();
-            var evaluation = lines.isEmpty() ? null : MatchEvaluation.forPosition(position, lines.get(0));
+            var analyzed = search.get();
+            var evaluation = analyzed.count() == 0 ? null : MatchEvaluation.forPosition(position, analyzed.first());
             post(() -> {
                 if (request != currentRequest) return;
                 pending = null;
-                if (lines.isEmpty()) {
+                if (evaluation == null) {
                     setText(R.string.match_analysis_ended);
                     evaluationBar.setWhiteShare(terminal);
                     return;
                 }
-                hint = new MatchHint(lines);
+                hint = analyzed;
                 shownEvaluation = evaluation;
                 display();
             });
@@ -130,8 +129,6 @@ final class MatchAnalysisView extends TextView {
     void cancel() {
         if (preview != null) preview.dismiss();
         preview = null;
-        if (comparisonTask != null) comparisonTask.cancel(true);
-        comparisonTask = null;
         request++;
         shownPosition = null;
         shownTerminal = Double.NaN;
@@ -202,20 +199,9 @@ final class MatchAnalysisView extends TextView {
         var selected = hint.revealed();
         var current = hint;
         current.preview(position).ifPresent(replay -> {
-            var screen = HintPreviewDialog.show(getContext(), position, replay, selected, evaluationBar.blackBelow(), notation);
-            preview = screen.dialog();
-            comparisonTask = worker.submit(() -> {
-                var comparison = current.compare(position);
-                post(() -> {
-                    if (preview == screen.dialog() && screen.dialog().isShowing()) screen.showComparison(comparison);
-                });
-            });
-            screen.dialog().setOnDismissListener(dialog -> {
-                if (preview != screen.dialog()) return;
-                preview = null;
-                if (comparisonTask != null) comparisonTask.cancel(true);
-                comparisonTask = null;
-            });
+            var screen = HintPreviewDialog.show(getContext(), position, replay, selected, current.compare(position), evaluationBar.blackBelow(), notation);
+            preview = screen;
+            screen.setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
         });
     }
 

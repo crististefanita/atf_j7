@@ -10,7 +10,6 @@
     <string name="hint_preview_mate_against">The reply delivers mate with %1$s on %2$s.</string>
     <string name="hint_preview_capture">%1$s captures a piece (%2$s). Net material: +%3$d.</string>
     <string name="hint_preview_estimate">Engine score for the starting side: %1$s. Follow the calculated replies.</string>
-    <string name="hint_compare_pending">Comparing two moves at the same depth…</string>
     <string name="hint_compare_unavailable">A second verified line is unavailable.</string>
     <string name="hint_compare_scores">Depth %1$d plies · Best %2$s · Alternative %3$s</string>
     <string name="hint_compare_best">Best · %1$s</string>

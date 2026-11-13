@@ -101,9 +101,14 @@ public final class ChessMatch {
 
     /** Returns the strongest hint and nearby alternatives for the displayed position. */
     public List<TacticalAnalysis.Variation> bestLinesAt(int ply) {
+        return hintAt(ply).lines();
+    }
+
+    /** Prepares the reveal cursor and its comparison for one displayed position. */
+    public MatchHint hintAt(int ply) {
         var board = positionAt(ply);
-        if (!analysisEnabled() || ply == ply() && result != Result.IN_PROGRESS) return Collections.emptyList();
-        return TacticalAnalysis.recommendations(board);
+        if (!analysisEnabled() || ply == ply() && result != Result.IN_PROGRESS) return new MatchHint(List.of());
+        return MatchHint.analyze(board);
     }
 
     public ChessMatch play(Move move) {

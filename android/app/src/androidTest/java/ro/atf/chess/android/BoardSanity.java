@@ -235,7 +235,7 @@ public final class BoardSanity extends Instrumentation {
         var lines = ro.atf.chess.TacticalAnalysis.recommendations(ChessPosition.initial());
         tap(study.findViewById(R.id.match_hint));
         compare("The manual hint marks the recommended first move", true, hintShown(study, board, lines, 0));
-        checkHintPreview(study, "manual-analysis");
+        checkHintPreview(study, "manual-analysis", lines.get(0).move());
         var destination = lines.get(0).move().to();
         tap(cell(board, BoardSquare.name(destination)));
         var history = (ViewGroup) study.findViewById(R.id.match_history_moves);
@@ -1115,17 +1115,21 @@ public final class BoardSanity extends Instrumentation {
         var lines = saved.bestLinesAt(1);
         tap(activity.findViewById(R.id.match_hint));
         compare("The historical hint marks its own legal recommendation", true, hintShown(activity, board, lines, 0));
-        checkHintPreview(activity, "match-analysis");
+        checkHintPreview(activity, "match-analysis", lines.get(0).move());
         compare("Returning to history preserves the selected move and the saved game", true,
                 bounds.equals(screenBounds(board)) && hintShown(activity, board, lines, 0)
                         && saved.checkpoint().equals(store.matches().readMatch().checkpoint()));
     }
 
-    private void checkHintPreview(Activity activity, String frame) throws Exception {
+    private void checkHintPreview(Activity activity, String frame, ChessPosition.Move expected) throws Exception {
         tap(activity.findViewById(R.id.match_analysis));
-        if (reviewNode(R.id.hint_compare_best, 12000) == null || reviewNode(R.id.hint_compare_other, 2500) == null) {
+        var recommended = reviewNode(R.id.hint_compare_best, 12000);
+        if (recommended == null || reviewNode(R.id.hint_compare_other, 2500) == null) {
             throw new AssertionError("Both verified hint lines must be selectable");
         }
+        String label = recommended.getText().toString().toLowerCase(java.util.Locale.ROOT);
+        boolean selectedRecommendation = recommended.isSelected()
+                && label.endsWith(ChessActivity.compactNotation(expected).toLowerCase(java.util.Locale.ROOT));
         var previewBoard = nodeBounds(reviewNode(R.id.hint_preview_board, 4500));
         clickReviewIcon(R.id.hint_compare_other);
         clickReviewIcon(R.id.hint_preview_next);
@@ -1139,7 +1143,8 @@ public final class BoardSanity extends Instrumentation {
         clickReviewIcon(R.id.hint_preview_previous);
         var first = reviewNode(R.id.hint_preview_step, 2500);
         compare("Next shows the calculated reply and Previous returns to the first move", true,
-                secondReached && first != null && first.getText().toString().startsWith("1/") && alternativeText.startsWith("1/")
+                selectedRecommendation && secondReached && first != null && first.getText().toString().startsWith("1/")
+                        && first.getText().toString().endsWith(ChessActivity.notation(activity, expected)) && alternativeText.startsWith("1/")
                         && !alternativeText.split(" · ", 2)[1].equals(first.getText().toString().split(" · ", 2)[1]));
         captureFrame(frame, "The suggested line and its navigation are visible with a fixed preview board",
                 image -> !previewBoard.isEmpty() && previewBoard.equals(nodeBounds(visibleReviewNode(R.id.hint_preview_board)))

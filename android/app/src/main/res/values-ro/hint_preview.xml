@@ -10,7 +10,6 @@
     <string name="hint_preview_mate_against">Replica dă mat cu piesa %1$s la mutarea %2$s.</string>
     <string name="hint_preview_capture">%1$s capturează piesa %2$s. Bilanț material: +%3$d.</string>
     <string name="hint_preview_estimate">Evaluarea motorului pentru partea care mută prima: %1$s. Urmărește replicile calculate.</string>
-    <string name="hint_compare_pending">Compar două mutări la aceeași adâncime…</string>
     <string name="hint_compare_unavailable">Nu există a doua variantă verificată.</string>
     <string name="hint_compare_scores">Adâncime %1$d semimutări · Recomandare %2$s · Alternativă %3$s</string>
     <string name="hint_compare_best">Recomandare · %1$s</string>

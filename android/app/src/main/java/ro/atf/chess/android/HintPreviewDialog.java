@@ -2,6 +2,7 @@ package ro.atf.chess.android;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -11,7 +12,6 @@ import android.widget.TextView;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
@@ -22,14 +22,10 @@ import ro.atf.chess.TacticalAnalysis;
 
 /** Plays the suggested branch on its own board and returns to the original cursor. */
 final class HintPreviewDialog {
-    record Screen(AlertDialog dialog, Consumer<Optional<HintComparison>> comparison) {
-        void showComparison(Optional<HintComparison> result) { comparison.accept(result); }
-    }
-
     private HintPreviewDialog() { }
 
-    static Screen show(Context context, ChessPosition root, HintPreview initial, TacticalAnalysis.Variation line, boolean blackBelow,
-                            Function<Move, String> notation) {
+    static AlertDialog show(Context context, ChessPosition root, HintPreview initial, TacticalAnalysis.Variation line,
+                            Optional<HintComparison> result, boolean blackBelow, Function<Move, String> notation) {
         var body = new LinearLayout(context);
         body.setOrientation(LinearLayout.VERTICAL);
         int padding = Math.round(16 * context.getResources().getDisplayMetrics().density);
@@ -40,11 +36,11 @@ final class HintPreviewDialog {
         body.addView(reason);
         var summary = new TextView(context);
         summary.setId(R.id.hint_compare_summary);
-        summary.setText(R.string.hint_compare_pending);
+        summary.setText(R.string.hint_compare_unavailable);
         body.addView(summary);
         var choices = new LinearLayout(context);
-        var best = new Button(context);
-        var other = new Button(context);
+        var best = branchButton(context);
+        var other = branchButton(context);
         best.setId(R.id.hint_compare_best);
         other.setId(R.id.hint_compare_other);
         choices.addView(best, new LinearLayout.LayoutParams(0, -2, 1));
@@ -76,16 +72,7 @@ final class HintPreviewDialog {
         var dialog = new AlertDialog.Builder(context).setTitle(R.string.hint_preview_title)
                 .setView(scroll).setPositiveButton(R.string.hint_preview_return, null).create();
         var playback = new Playback(board, step, back, forward, blackBelow, notation, initial);
-        playback.render();
-        dialog.show();
-        Button close = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        close.setId(R.id.hint_preview_return);
-        return new Screen(dialog, result -> {
-            if (result.isEmpty()) {
-                summary.setText(R.string.hint_compare_unavailable);
-                return;
-            }
-            var comparison = result.orElseThrow();
+        result.ifPresent(comparison -> {
             var bestReplay = HintPreview.open(root, comparison.stronger()).orElseThrow();
             var otherReplay = HintPreview.open(root, comparison.alternative()).orElseThrow();
             summary.setText(context.getString(R.string.hint_compare_scores, comparison.depth(),
@@ -106,7 +93,14 @@ final class HintPreviewDialog {
             choices.setVisibility(TextView.VISIBLE);
             best.setOnClickListener(view -> selectBranch(best, other, bestReplay, playback));
             other.setOnClickListener(view -> selectBranch(other, best, otherReplay, playback));
+            boolean isBest = line.equals(comparison.stronger());
+            selectBranch(isBest ? best : other, isBest ? other : best, isBest ? bestReplay : otherReplay, playback);
         });
+        if (result.isEmpty()) playback.render();
+        dialog.show();
+        Button close = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        close.setId(R.id.hint_preview_return);
+        return dialog;
     }
 
     private static void selectBranch(Button selected, Button other, HintPreview branch, Playback playback) {
@@ -114,6 +108,13 @@ final class HintPreviewDialog {
         other.setSelected(false);
         playback.preview = branch;
         playback.render();
+    }
+
+    private static Button branchButton(Context context) {
+        var button = new Button(context);
+        button.setTextColor(new ColorStateList(new int[][] {{android.R.attr.state_selected}, {}},
+                new int[] {0xff57e0b4, button.getCurrentTextColor()}));
+        return button;
     }
 
     private static final class Playback {

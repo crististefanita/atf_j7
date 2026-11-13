@@ -215,8 +215,13 @@ rulează și tabla manuală cu același ID.
 
 `HintPreviewTest` verifică pașii motorului pe poziții reale, revenirea exactă,
 matul, schimbul compensat și respingerea unei linii ilegale. `HintComparisonTest`
-verifică orizontul comun, ambele linii jucabile, replica de mat și captura
-necompensată, inclusiv cazurile în care scorurile rămân singura explicație. `AndroidReceiptTest`
+verifică ordinea comună a becului, dialogului și mutării la atingere în
+Siciliană, Caro–Kann și Catalană, pentru ambele culori. Extent consemnează
+mutările, orizontul comun și consumul sub plafonul configurat. Probele redau
+ambele linii, păstrează varianta la revenire și resping indiciul din alt cadru.
+Réti și Alehina verifică păstrarea mutării când inversarea nu este confirmată.
+Explicația verifică replica de mat, captura necompensată și diferența de scor.
+`AndroidReceiptTest`
 reproduce fără emulator PNG-ul substituit și faza străină, inclusiv când
 metadatele au fost actualizate. Extent păstrează rezultatele native, ID-ul,
 amprenta APK-ului și capturile confirmate de amprentele din instrumentare.

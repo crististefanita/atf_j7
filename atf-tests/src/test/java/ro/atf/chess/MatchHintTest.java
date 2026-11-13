@@ -31,11 +31,11 @@ class MatchHintTest {
     }
 
     @Test void hidesThenCyclesAtMostFiveContinuationsWithoutPlayingThem(Checks check) {
-        String checkpoint = "2|analysis|e2e4 c7c5";
+        String checkpoint = "2|analysis|e2e4";
         var match = ChessMatch.restore(checkpoint);
         var lines = match.bestLinesAt(match.ply());
-        var hint = new MatchHint(lines);
-        check.same("The open Sicilian has multiple eligible alternatives within the configured limit", true,
+        var hint = match.hintAt(match.ply());
+        check.same("Black has multiple eligible replies to e4 within the configured limit", true,
                 lines.size() >= 2 && lines.size() <= MatchAiPolicy.CURRENT.hint.maxVariants());
         check.same("Every displayed alternative stays within the leader's score window", true,
                 lines.stream().allMatch(line -> lines.getFirst().score() - line.score() <= MatchAiPolicy.CURRENT.hint.maxLossCp()));
