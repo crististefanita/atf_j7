@@ -361,12 +361,14 @@ class ReleaseGovernanceTest {
         var paths = List.of("chess-core/src/main/java/ro/atf/chess/GameReview.java",
                 "chess-core/src/main/java/ro/atf/chess/GameReviewTimeline.java", "chess-core/src/main/resources/opening-book.tsv",
                 "chess-core/src/main/java/ro/atf/chess/GameReviewLayout.java",
+                "chess-core/src/main/java/ro/atf/chess/GameReviewGraphLayout.java",
+                "atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java",
                 "android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java",
                 "android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java");
         var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths).stream()
                 .filter(citation -> citation.heading().equals("## Partidă și istoric")).toList();
-        check.same("Game review changes cite the signed scenario and both JVM layers once",
-                List.of("GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly"),
+        check.same("Game review changes cite the signed scenario and JVM coverage once",
+                List.of("GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly"),
                 citations.stream().map(ReleaseRag.Citation::check).toList());
     }
 

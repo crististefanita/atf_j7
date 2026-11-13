@@ -30,12 +30,16 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Predicate;
 import ro.atf.chess.BoardSquare;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
+import ro.atf.chess.GameReview;
 import ro.atf.chess.MatchSetup;
 import ro.atf.chess.MatchSlots;
 import ro.atf.chess.MatchStore;
@@ -48,6 +52,25 @@ public final class BoardSanity extends Instrumentation {
     private static final int TACTICS_SIZE = 100;
     private static final int HINT_TINT = 0xff57e0b4;
     private static final int MAX_REVIEW_SCROLLS = 12;
+    // Fixed 185-ply game from the offline J7 league, game 1500-11.
+    private static final String LONG_REVIEW_MOVES = """
+            e2e4 d7d5 e4d5 d8d5 b1c3 d5a5 h2h3 a5e5 c3e2 b8c6 d2d4 c6d4
+            d1d4 e5d4 e2d4 g8f6 d4b5 f6d5 g1f3 c8f5 f1c4 f5e4 c2c3 e4f3
+            c4d5 f3d5 b5c7 e8d8 c7d5 a8c8 d5b4 a7a5 b4c2 b7b5 c2e3 c8c5
+            h1f1 c5e5 a2a4 b5a4 a1a4 d8e8 e1d1 e5c5 d1e2 c5e5 e2d2 e5c5
+            a4a2 e7e5 d2e1 f8d6 f1h1 g7g5 e3f5 d6c7 g2g3 h8g8 g3g4 g8g6
+            f2f3 f7f6 e1e2 h7h6 c1e3 c5c4 b2b4 c4c3 e3c5 a5b4 c5b4 c3c4
+            h1b1 e8f7 b4d6 c7d6 f5d6 f7g8 a2a8 g8h7 d6c4 g6g7 a8a5 g7d7
+            c4a3 d7d4 a5b5 h7g6 a3c2 d4c4 c2e1 c4d4 e1d3 e5e4 d3c1 d4c4
+            b5b6 e4f3 e2f2 c4c2 f2e1 f3f2 e1f1 c2c4 c1e2 c4e4 b6a6 e4e2
+            b1a1 e2e1 a1e1 f2e1b f1e1 h6h5 a6a7 f6f5 g4f5 g6f5 e1e2 f5g6
+            e2f3 g6h6 f3e3 g5g4 a7a6 h6h7 h3h4 h7h8 a6a7 g4g3 a7a8 h8h7
+            a8b8 g3g2 e3f2 g2g1b f2g3 g1d4 b8b4 d4e5 g3f2 h7h8 b4b5 e5d4
+            f2g2 h8g8 b5h5 d4f6 g2h3 f6e7 h5a5 e7d6 h3g4 g8h8 a5d5 d6b4
+            h4h5 b4c3 d5d3 c3e5 d3d7 h8g8 g4g5 g8h8 g5g6 e5g7 d7d8 g7f8
+            h5h6 h8g8 d8c8 g8h8 c8b8 h8g8 b8c8 g8h8 c8b8 h8g8 b8e8 g8h8
+            e8d8 h8g8 d8e8 g8h8 e8f8
+            """;
     private final Bundle receipt = new Bundle();
     private int comparisons;
     private String phase;
@@ -327,12 +350,15 @@ public final class BoardSanity extends Instrumentation {
         service.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
         automation.setServiceInfo(service);
         var store = new ChessProgressStore(getTargetContext());
+        checkLongGameGraph(store);
         String cycle = "b1a3 b8a6 a3b1 a6b8";
         var finished = ChessMatch.restore("3|WHITE|ADVANCED|0|" + String.join(" ", cycle, cycle, cycle,
                 "a2a3 a7a6 g1h3 g8h6 h3g1 h6g8 f2f3 e7e5 g2g4 d8h4"));
         int branchPly = finished.ply() - 2;
         var branch = finished.continueFrom(branchPly);
-        if (!store.matches().saveMatch(finished, false)) throw new AssertionError("Could not seed the completed match");
+        if (!store.matches().startMatch(store.matches().activeMatchSlot(), finished, false, false, false)) {
+            throw new AssertionError("Could not seed the completed match");
+        }
         var activity = launch();
         var status = (TextView) activity.findViewById(R.id.match_status);
         var board = findBoard(viewsOf(activity));
@@ -424,8 +450,6 @@ public final class BoardSanity extends Instrumentation {
         String g4Pawn = pieceDescription(activity, ChessPosition.Side.WHITE, ChessPosition.Kind.PAWN, "g4");
         compare("Next key moment synchronizes the blunder, score context and played board position", true,
                 reviewSelection(selectedBlunderText) && dialogNode(g4Pawn) != null && sameReviewBoard(reviewBoardBounds));
-        captureFrame("game-review-navigation", "The selected blunder and synchronized review board are visible",
-                image -> hasColor(image, reviewBoardBounds, 0xff769556, 20));
 
         clickReviewIcon(R.id.game_review_show_best);
         String firstStep = activity.getString(R.string.game_review_line_step, 0, blunder.bestLine().size());
@@ -502,6 +526,85 @@ public final class BoardSanity extends Instrumentation {
         compare("The alternative move becomes the new saved continuation", Move.fromUci("b2b3"), store.matches().readMatch().moveAt(branchPly + 1));
         closeActivity(activity);
         checkMatchActions(store);
+    }
+
+    private void checkLongGameGraph(ChessProgressStore store) throws Exception {
+        var match = ChessMatch.restore("3|WHITE|ADVANCED|0|" + LONG_REVIEW_MOVES.strip().replace('\n', ' '));
+        int targetPly = 184;
+        if (match.ply() != 185 || match.result() != ChessMatch.Result.WHITE_WINS) {
+            throw new AssertionError("Invalid long Game Review fixture");
+        }
+        // Cache a complete review to test graph navigation independently of engine timing.
+        var player = new GameReview.Player(OptionalInt.empty(), Optional.empty(), 0, Map.of());
+        var turns = new ArrayList<GameReview.Turn>();
+        for (int ply = 1; ply <= match.ply(); ply++) {
+            var move = match.moveAt(ply);
+            int whitePoints = ply == targetPly ? 750 : 500;
+            turns.add(new GameReview.Turn(ply, match.positionAt(ply - 1).turn(), move, GameReview.Grade.GOOD,
+                    500, 500, 0, whitePoints, 1, List.of(move), List.of(move), 0));
+        }
+        var review = new GameReview(turns, null, 0, 500, player, player);
+        var matches = store.matches();
+        int slot = matches.activeMatchSlot();
+        if (!matches.startMatch(slot, match, false, false, false) || !matches.saveReview(matches.archivedId(slot), match, review)) {
+            throw new AssertionError("Could not seed the cached long Game Review");
+        }
+        var activity = launch(true);
+        try {
+            tap(activity.findViewById(R.id.match_status));
+            var graph = nodeBounds(reviewNode(R.id.game_review_graph, 4500));
+            var board = nodeBounds(reviewNode(R.id.game_review_board, 4500));
+            int inset = Math.round(2 * activity.getResources().getDisplayMetrics().density);
+            if (graph.width() <= 2 * inset || graph.height() <= 2 * inset || board.isEmpty()) {
+                throw new AssertionError("Game Review graph or board is not visible: " + graph + ", " + board);
+            }
+            float x = inset + (graph.width() - 2 * inset) * targetPly / (float) match.ply();
+            float y = inset + (graph.height() - 2 * inset) * .25f;
+            String geometry = graph.width() + " px wide, inset " + inset + " px, former hit ply "
+                    + Math.round(x / graph.width() * match.ply());
+            tapAt(graph.left + x, graph.top + y);
+            var turn = turns.get(targetPly - 1);
+            String move = moveLabel(activity, turn);
+            String grade = gradeLabel(activity, turn.grade());
+            String caption = activity.getString(R.string.game_review_selected_move, move, grade);
+            var selection = visibleReviewNode(R.id.game_review_selection);
+            String actual = selection == null || selection.getText() == null ? "missing" : selection.getText().toString();
+            boolean exactBoard = dialogNode(pieceDescription(activity, Side.BLACK, ChessPosition.Kind.KING, "h8"),
+                    AccessibilityNodeInfo::isVisibleToUser, 500) != null
+                    && dialogNode(pieceDescription(activity, Side.WHITE, ChessPosition.Kind.ROOK, "e8"),
+                    AccessibilityNodeInfo::isVisibleToUser, 500) != null;
+            var list = reviewNode(R.id.game_review_moves, 4500);
+            var first = turns.get(0);
+            String firstRow = activity.getString(R.string.game_review_move_row, moveLabel(activity, first),
+                    gradeLabel(activity, first.grade()), first.ply(), match.ply());
+            var listBounds = nodeBounds(list);
+            int scrolls = 0;
+            while (dialogNode(firstRow, AccessibilityNodeInfo::isVisibleToUser, 500) == null && scrolls < MAX_REVIEW_SCROLLS) {
+                swipeReview(listBounds, true);
+                scrolls++;
+            }
+            list = visibleReviewNode(R.id.game_review_moves);
+            var arguments = new Bundle();
+            arguments.putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_ROW_INT, targetPly);
+            if (list == null || !list.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_TO_POSITION.getId(), arguments)) {
+                throw new AssertionError("Could not scroll the review list to ply " + targetPly);
+            }
+            String rowText = activity.getString(R.string.game_review_move_row, move, grade, targetPly, match.ply());
+            int readableHeight = Math.round(36 * activity.getResources().getDisplayMetrics().density);
+            var row = dialogNode(rowText, node -> node.isVisibleToUser() && nodeBounds(node).height() >= readableHeight, 12000);
+            var rowBounds = nodeBounds(row);
+            if (row == null) throw new AssertionError("Ply " + targetPly + " row was not visible after scrolling past the review summary");
+            var screen = getUiAutomation().takeScreenshot();
+            boolean highlighted = false;
+            if (screen != null) {
+                try {
+                    highlighted = hasColor(screen, rowBounds, 0xff3d4933, 20);
+                    saveFrame("game-review-navigation", screen);
+                } finally { screen.recycle(); }
+            }
+            compare("A plotted point in a 185-ply review selects ply 184 on the board and highlights its move row",
+                    List.of(caption, true, true, true, geometry), List.of(actual, exactBoard, highlighted, sameReviewBoard(board), geometry));
+        } finally { closeActivity(activity); }
     }
 
     private AccessibilityNodeInfo visibleReviewNode(int id) {

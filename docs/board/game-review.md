@@ -109,6 +109,8 @@ Review-ul măsoară spațiul util al ferestrei după antet și zonele de sistem.
 
 Cursorul pornește la finalul partidei. Săgețile discrete schimbă câte o semimutare, iar comanda **Moment-cheie următor** sare la următoarea poziție marcată. Lista și graficul permit selecția directă. Tabla, notația, categoria, scorurile și markerul graficului urmăresc același cursor. Săgețile se dezactivează la capete. Bara are ținte de 48 dp și etichete accesibile în română și engleză. În ferestre foarte înguste, bara derulează orizontal. Detaliile de scor, graficul, precizia, Elo, comparația și lista mutărilor se derulează împreună.
 
+Punctele desenate și atingerea folosesc aceeași proiecție orizontală, inclusiv marginile graficului. Atingerea alege semimutarea cea mai apropiată și sincronizează markerul, tabla și evidențierea mutării din listă. Poziția inițială nu are rând în listă. Atingerea în margini selectează poziția inițială sau finală.
+
 Numele deschiderii identificate apare la intrare. Prima navigare sau activarea variantei îl retrage din raport. **Detalii despre deschidere** din meniul de acțiuni afișează la cerere numele și codul ECO.
 
 ```mermaid

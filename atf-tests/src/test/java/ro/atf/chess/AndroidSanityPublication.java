@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 @Tag("native-evidence")
 class AndroidSanityPublication {
     private static final Pattern CHECK = Pattern.compile("^INSTRUMENTATION_RESULT: check_(\\d{2})=(.*)$");
+    private static final String LONG_GRAPH_CHECK = "A plotted point in a 185-ply review selects ply 184 on the board and highlights its move row";
     private static final List<String> OPENING_GEOMETRY_CHECKS = List.of(
             "Next preserves the board and its corner squares when Resume lesson appears",
             "Next preserves the board and its corner squares when Lesson hint returns");
@@ -85,9 +86,9 @@ class AndroidSanityPublication {
 
     @Test void publishGameReviewSanity() throws Exception {
         publishFocusedSanity("game-review", "Review a completed match and continue from an earlier move",
-                "Review a completed game, navigate key moments and replay the best line", 23, List.of(
+                "Select the exact plotted move, navigate key moments and replay the best line", 23, List.of(
                         new Frame("game-review.png", "Game review summary"),
-                        new Frame("game-review-navigation.png", "Selected move and synchronized board"),
+                        new Frame("game-review-navigation.png", "Ply 184 of 185 · synchronized board and highlighted row"),
                         new Frame("game-review-line.png", "Recommended line marked on the board"),
                         new Frame("game-review-comparison.png", "Move counts by type · player and AI"),
                         new Frame("game-review-actions.png", "In-game options · offer draw and resign")));
@@ -199,7 +200,7 @@ class AndroidSanityPublication {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-" + scope + ".html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var evidence = readPhase(receipt, scope, checks);
+        var evidence = scope.equals("game-review") ? readGameReviewPhase(receipt) : readPhase(receipt, scope, checks);
         boolean rendered = frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
         boolean complete = evidence.passed() && rendered;
         var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
@@ -324,6 +325,10 @@ class AndroidSanityPublication {
 
     record PhaseEvidence(String pid, List<AtfAssertion> rows, boolean passed) {
         PhaseEvidence { rows = List.copyOf(rows); }
+    }
+
+    static PhaseEvidence readGameReviewPhase(Path receipt) throws IOException {
+        return requireChecks(readPhase(receipt, "game-review", 23), "game-review", List.of(LONG_GRAPH_CHECK), "long-game graph");
     }
 
     static PhaseEvidence readOpeningPhase(Path receipt) throws IOException {

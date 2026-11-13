@@ -34,6 +34,7 @@ import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.GameReview;
+import ro.atf.chess.GameReviewGraphLayout;
 import ro.atf.chess.GameReviewTimeline;
 import ro.atf.chess.QuestHint;
 
@@ -524,30 +525,31 @@ final class GameReviewDialog {
 
         @Override protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
-            float width = getWidth() - dp(4);
-            float height = getHeight() - dp(4);
             float inset = dp(2);
+            float width = getWidth();
+            float height = Math.max(0, getHeight() - 2 * inset);
+            int count = result.turns().size();
+            float x = (float) GameReviewGraphLayout.xForPly(0, count, width, inset);
+            float axisStart = Math.min(inset, width / 2);
             paint.setColor(0xff56564c);
             paint.setStrokeWidth(dp(1));
-            canvas.drawLine(inset, inset + height / 2, inset + width, inset + height / 2, paint);
+            canvas.drawLine(axisStart, inset + height / 2, width - axisStart, inset + height / 2, paint);
             paint.setColor(ACCENT);
             paint.setStrokeWidth(dp(2));
-            float x = inset;
             float y = inset + height * (1 - result.initialWhitePoints() / 1000f);
-            int count = result.turns().size();
             if (count == 0) {
                 paint.setColor(PRIMARY);
-                canvas.drawCircle(inset + width / 2, y, dp(5), paint);
+                canvas.drawCircle(x, y, dp(5), paint);
                 return;
             }
             for (var turn : result.turns()) {
-                float nextX = inset + width * turn.ply() / count;
+                float nextX = (float) GameReviewGraphLayout.xForPly(turn.ply(), count, width, inset);
                 float nextY = inset + height * (1 - turn.whitePoints() / 1000f);
                 canvas.drawLine(x, y, nextX, nextY, paint);
                 x = nextX;
                 y = nextY;
             }
-            float selectedX = inset + width * selected / count;
+            float selectedX = (float) GameReviewGraphLayout.xForPly(selected, count, width, inset);
             float selectedY = inset + height * (1 - (selected == 0 ? result.initialWhitePoints()
                     : result.turns().get(selected - 1).whitePoints()) / 1000f);
             paint.setColor(PRIMARY);
@@ -559,8 +561,7 @@ final class GameReviewDialog {
 
         @Override public boolean onTouchEvent(MotionEvent event) {
             if (isClickable() && event.getActionMasked() == MotionEvent.ACTION_UP && getWidth() > 0) {
-                int count = result.turns().size();
-                selected = Math.max(0, Math.min(count, Math.round(count * event.getX() / getWidth())));
+                selected = GameReviewGraphLayout.plyAtX(event.getX(), result.turns().size(), getWidth(), dp(2));
             }
             return super.onTouchEvent(event);
         }

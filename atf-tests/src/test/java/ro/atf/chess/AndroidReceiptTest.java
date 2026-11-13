@@ -64,6 +64,21 @@ class AndroidReceiptTest {
         check.same("The diagnostic names the missing Next transition", true, invalid.rows().getLast().actual().contains(learner));
     }
 
+    @Test void requiresTheExactLongGameGraphComparisonAtTheExpectedCount(Checks check) throws IOException {
+        String selection = "A plotted point in a 185-ply review selects ply 184 on the board and highlights its move row";
+        writePhase(folder, "game-review", 123, 23, List.of(selection));
+        Path receipt = folder.resolve("game-review.txt");
+        check.same("The long-game graph comparison qualifies a complete review receipt", true,
+                AndroidSanityPublication.readGameReviewPhase(receipt).passed());
+        writePhase(folder, "game-review", 123, 23, List.of("An unrelated passing comparison"));
+        var unrelated = AndroidSanityPublication.readGameReviewPhase(receipt);
+        check.same("The original assertion count cannot substitute for long-game selection", false, unrelated.passed());
+        check.same("The rejection names the missing long-game graph comparison", true,
+                unrelated.rows().getLast().actual().contains(selection));
+        writePhase(folder, "game-review", 123, 23, List.of(selection, selection));
+        check.same("A repeated long-game comparison also fails", false, AndroidSanityPublication.readGameReviewPhase(receipt).passed());
+    }
+
     @Test void rendersChapterRestartEvidenceAndRejectsAnUnrelatedComparisonAtTheSameCount(Checks check) throws Exception {
         Path valid = boardReceipt(Files.createDirectory(folder.resolve("complete")), TRAINING_RESTART);
         AndroidSanityPublication.publishBoardSanity(valid);
