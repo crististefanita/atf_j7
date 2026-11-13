@@ -1,11 +1,11 @@
 {
   "status": "PASS",
-  "observedUtc": "2026-11-13T13:10:54.1061130Z",
+  "observedUtc": "2026-11-13T13:12:51.1723631Z",
   "account": "crististefanita",
   "channel": "GitHub API authenticated",
   "repository": "crististefanita/atf_j7",
+  "readmeCommit": "e225ba8d14b95808c65249a43a459ebe9bc20ca4",
   "readmeBlob": "cf0b49f79c60311e6f0f23c8ed58fc72b035ef73",
-  "readmeScope": "promotion candidate before push",
   "tag": "v0.13.0",
   "targetCommit": "66ae83d170db4406ef0d7d712bf1180e8bbb1bfc",
   "releaseUrl": "https://github.com/crististefanita/atf_j7/releases/tag/v0.13.0",
