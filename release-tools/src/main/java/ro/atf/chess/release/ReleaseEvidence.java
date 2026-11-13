@@ -34,12 +34,41 @@ public final class ReleaseEvidence {
     public record Download(String tagCommit, String readmeCommit, String readme, String repository,
                            String assetUrl, String accessMode, int httpStatus, Path apk) { }
 
+    public record InstallationException(String status, String scope, String authorization, String reason,
+                                        String candidateCommit, String candidateApkSha256,
+                                        String supplementalApkSha256, int supplementalAssertions,
+                                        boolean distributionInstalled, String signingStatus,
+                                        String supplementalExtentSha256, Path supplementalExtent) { }
+
     private ReleaseEvidence() { }
 
     public static void qualification(Candidate candidate, Path apk, Suite components, Suite android) throws IOException {
         apk(candidate, apk);
         suite(candidate, components, "components", "");
         suite(candidate, android, "Android E2E", candidate.apkSha256());
+    }
+
+    public static void installationException(Candidate candidate, InstallationException exception) throws IOException {
+        require(exception != null, "Missing exact-install exception receipt");
+        require("PUBLISHED_WITH_INSTALL_EXCEPTION".equals(exception.status())
+                        && "exact-distribution-install".equals(exception.scope()),
+                "Publication exception is outside its narrow scope");
+        require("USER_DIRECTED_MAIN_README_PUBLICATION".equals(exception.authorization()),
+                "Publication exception lacks the user's explicit publication direction");
+        require(exception.reason() != null && !exception.reason().isBlank(), "Publication exception has no concrete reason");
+        require(candidate.commit().equals(exception.candidateCommit()), "Publication exception belongs to another source commit");
+        require(candidate.apkSha256().equals(exception.candidateApkSha256()), "Publication exception names another distribution APK");
+        require(exception.supplementalApkSha256() != null
+                        && exception.supplementalApkSha256().matches("[a-f0-9]{64}")
+                        && !candidate.apkSha256().equals(exception.supplementalApkSha256()),
+                "Supplemental sanity must identify a different APK");
+        require(exception.supplementalAssertions() > 0 && !exception.distributionInstalled(),
+                "Publication exception must disclose that only supplemental assertions ran");
+        require("CLEAN_INSTALL_REQUIRED".equals(exception.signingStatus()),
+                "Publication exception has an inconsistent signing transition");
+        require(exception.supplementalExtent() != null && Files.isRegularFile(exception.supplementalExtent())
+                        && digest(exception.supplementalExtent()).equals(exception.supplementalExtentSha256()),
+                "Supplemental Extent evidence is missing or changed");
     }
 
     private static void suite(Candidate candidate, Suite suite, String name, String installedApk) throws IOException {

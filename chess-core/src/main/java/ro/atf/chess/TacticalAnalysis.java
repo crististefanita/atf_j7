@@ -724,7 +724,7 @@ public final class TacticalAnalysis {
         private final int tacticalExtension;
         private final int transpositionLimit;
         private int checkOrderBonus;
-        private final Map<SearchTranspositionKey, Line> transpositions = new HashMap<>();
+        private final Map<SearchTranspositionKey, Line> transpositions;
         private QuietMoveOrdering quietMoveOrdering;
 
         SearchBudget(int remaining, int tacticalExtension) {
@@ -735,6 +735,7 @@ public final class TacticalAnalysis {
             this.remaining = remaining;
             this.tacticalExtension = tacticalExtension;
             this.transpositionLimit = transpositionLimit;
+            this.transpositions = transpositionLimit > 0 ? new HashMap<>() : Map.of();
         }
 
         void remember(SearchTranspositionKey key, Line line) {

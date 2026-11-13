@@ -16,6 +16,7 @@ import org.junit.jupiter.api.io.TempDir;
 import ro.atf.chess.release.ReleaseEvidence;
 import ro.atf.chess.release.ReleaseEvidence.Candidate;
 import ro.atf.chess.release.ReleaseEvidence.Download;
+import ro.atf.chess.release.ReleaseEvidence.InstallationException;
 import ro.atf.chess.release.ReleaseEvidence.Suite;
 import ro.atf.chess.release.ReleaseGate;
 import ro.atf.chess.release.ReleaseRag;
@@ -90,6 +91,67 @@ class ReleaseGovernanceTest {
                 candidate, apk, components, new Suite(SOURCE, candidate.apkSha256(), 0, true, android.htmlSha256(), android.html()))));
         Files.writeString(components.html(), "Substituted report");
         check.same("Changed Extent bytes block", "Extent hash mismatch in components", decision(() -> ReleaseEvidence.qualification(candidate, apk, components, android)));
+    }
+
+    @Test void exactInstallExceptionIsNarrowExplicitAndBackedBySupplementalExtent(Checks check) throws IOException {
+        String supplementalApk = "3".repeat(64);
+        InstallationException exception = exception("PUBLISHED_WITH_INSTALL_EXCEPTION", "exact-distribution-install",
+                "USER_DIRECTED_MAIN_README_PUBLICATION", "The available emulator retains the prior signer and user data.",
+                SOURCE, candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
+                android.htmlSha256(), android.html());
+        check.same("Explicit publication exception accepts supplemental evidence without claiming exact install",
+                "accepted", decision(() -> ReleaseEvidence.installationException(candidate, exception)));
+        check.same("Unscoped exception cannot bypass exact APK install", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception("PASS", exception.scope(), exception.authorization(), exception.reason(), SOURCE,
+                                candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), android.html()))).contains("outside its narrow scope"));
+        check.same("Publication needs the user's explicit direction", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), "UNAUTHORIZED", exception.reason(), SOURCE,
+                                candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), android.html()))).contains("explicit publication direction"));
+        check.same("Publication exception must explain the blocked installation", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), exception.authorization(), " ", SOURCE,
+                                candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), android.html()))).contains("no concrete reason"));
+        check.same("A different candidate commit blocks the exception", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), OTHER,
+                                candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), android.html()))).contains("another source commit"));
+        check.same("A different distribution APK blocks the exception", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
+                                "4".repeat(64), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), android.html()))).contains("another distribution APK"));
+        check.same("Supplemental sanity cannot masquerade as the distribution APK", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
+                                candidate.apkSha256(), candidate.apkSha256(), 94, false, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), android.html()))).contains("different APK"));
+        check.same("Zero supplemental assertions cannot justify the exception", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
+                                candidate.apkSha256(), supplementalApk, 0, false, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), android.html()))).contains("only supplemental assertions"));
+        check.same("Exception must never claim the distribution APK was installed", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
+                                candidate.apkSha256(), supplementalApk, 94, true, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), android.html()))).contains("only supplemental assertions"));
+        check.same("An inconsistent signing transition blocks the exception", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
+                                candidate.apkSha256(), supplementalApk, 94, false, "UPGRADE_COMPATIBLE",
+                                android.htmlSha256(), android.html()))).contains("inconsistent signing transition"));
+        Path changedExtent = Files.writeString(folder.resolve("changed-android.html"), "not the supplied Extent");
+        check.same("Changed supplemental Extent bytes block the exception", true,
+                decision(() -> ReleaseEvidence.installationException(candidate,
+                        exception(exception.status(), exception.scope(), exception.authorization(), exception.reason(), SOURCE,
+                                candidate.apkSha256(), supplementalApk, 94, false, "CLEAN_INSTALL_REQUIRED",
+                                android.htmlSha256(), changedExtent))).contains("missing or changed"));
     }
 
     @Test void signingPreflightRejectsMissingAndNonPassingGovernanceReceipts(Checks check) throws IOException {
@@ -335,6 +397,14 @@ class ReleaseGovernanceTest {
     private Suite suite(String name, String installedApk) throws IOException {
         Path html = Files.writeString(folder.resolve(name + ".html"), "<html>" + name + " fixture</html>");
         return new Suite(SOURCE, installedApk, 3, true, ReleaseEvidence.digest(html), html);
+    }
+
+    private InstallationException exception(String status, String scope, String authorization, String reason,
+                                            String commit, String distributionApk, String supplementalApk,
+                                            int assertions, boolean installed, String signingStatus,
+                                            String extentSha, Path extent) {
+        return new InstallationException(status, scope, authorization, reason, commit, distributionApk,
+                supplementalApk, assertions, installed, signingStatus, extentSha, extent);
     }
 
     private void publish(String tag, String readme, int status, Path downloaded) throws IOException {

@@ -61,19 +61,84 @@ class DocumentationGovernanceTest {
         Path publicDownload = reports.resolve("public-download.json");
         Path authenticatedDownload = reports.resolve("distribution-verification.json");
         Path qualification = reports.resolve("qualification.json");
-        boolean evidenceExists = List.of(githubRelease, publicDownload, authenticatedDownload, qualification)
+        Path buildArtifact = reports.resolve("build-artifact.json");
+        Path installationException = reports.resolve("publication-exception.json");
+        Path supplementalSanity = reports.resolve("android-signed-sanity.json");
+        Path supplementalExecution = reports.resolve("android-signed-sanity-execution.json");
+        Path signingTransition = reports.resolve("signing-transition.json");
+        Path supplementalExtent = reports.resolve("android-signed-sanity.html");
+        boolean evidenceExists = List.of(githubRelease, publicDownload, authenticatedDownload)
                 .stream().allMatch(Files::isRegularFile);
         boolean complete = false;
         if (evidenceExists) {
             String release = Files.readString(githubRelease);
             String direct = Files.readString(publicDownload);
             String authenticated = Files.readString(authenticatedDownload);
-            String qualified = Files.readString(qualification);
-            String apkSha = jsonValue(qualified, "apkSha256");
-            String apkBytes = jsonValue(qualified, "apkBytes");
-            complete = jsonValue(release, "tag").equals(tag)
+            String sourceCommit = "";
+            String apkSha = "";
+            String apkBytes = "";
+            boolean qualifiedOrException = false;
+            if (Files.isRegularFile(qualification)) {
+                String qualified = Files.readString(qualification);
+                sourceCommit = jsonValue(qualified, "sourceCommit");
+                apkSha = jsonValue(qualified, "apkSha256");
+                apkBytes = jsonValue(qualified, "apkBytes");
+                qualifiedOrException = jsonValue(qualified, "qualificationGate").equals("PASS")
+                        && sourceCommit.matches("[a-f0-9]{40}") && apkSha.matches("[a-f0-9]{64}")
+                        && apkBytes.matches("[0-9]+");
+            } else if (List.of(buildArtifact, installationException, supplementalSanity, supplementalExecution,
+                    signingTransition, supplementalExtent).stream().allMatch(Files::isRegularFile)) {
+                String build = Files.readString(buildArtifact);
+                sourceCommit = jsonValue(build, "sourceCommit");
+                apkSha = jsonValue(build, "apkSha256");
+                apkBytes = jsonValue(build, "apkBytes");
+                String sanity = Files.readString(supplementalSanity);
+                String execution = Files.readString(supplementalExecution);
+                String signing = Files.readString(signingTransition);
+                String exception = Files.readString(installationException);
+                try {
+                    var candidate = new ReleaseEvidence.Candidate(jsonValue(build, "version"), sourceCommit,
+                            Long.parseLong(apkBytes), apkSha);
+                    var receipt = new ReleaseEvidence.InstallationException(jsonValue(exception, "status"),
+                            jsonValue(exception, "scope"), jsonValue(exception, "authorization"),
+                            jsonValue(exception, "reason"), jsonValue(exception, "candidateCommit"),
+                            jsonValue(exception, "candidateApkSha256"), jsonValue(exception, "supplementalApkSha256"),
+                            Integer.parseInt(jsonValue(exception, "supplementalAssertions")),
+                            jsonValue(exception, "distributionInstalled").equals("true"),
+                            jsonValue(exception, "signingStatus"), jsonValue(exception, "supplementalExtentSha256"),
+                            supplementalExtent);
+                    ReleaseEvidence.installationException(candidate, receipt);
+                    String extentSha = ReleaseEvidence.digest(supplementalExtent);
+                    qualifiedOrException = candidate.version().equals(tag.substring(1))
+                            && jsonValue(build, "signatureV2Verified").equals("true")
+                            && jsonValue(build, "zipalignVerified").equals("true")
+                            && jsonValue(build, "status").equals("PASS")
+                            && jsonValue(sanity, "sourceCommit").equals(sourceCommit)
+                            && jsonValue(sanity, "status").equals("PASS_SUPPLEMENTAL_ONLY")
+                            && jsonValue(sanity, "distributionPackageInstalled").equals("false")
+                            && jsonValue(exception, "supplementalApkSha256").equals(jsonValue(sanity, "apkSha256"))
+                            && jsonValue(exception, "supplementalAssertions").equals(jsonValue(sanity, "assertions"))
+                            && jsonValue(sanity, "extentSha256").equals(extentSha)
+                            && jsonValue(execution, "sourceCommit").equals(sourceCommit)
+                            && jsonValue(execution, "status").equals("PASS")
+                            && jsonValue(execution, "apkSha256").equals(jsonValue(sanity, "apkSha256"))
+                            && jsonValue(execution, "assertions").equals(jsonValue(sanity, "assertions"))
+                            && jsonValue(execution, "extentSha256").equals(extentSha)
+                            && jsonValue(signing, "result").equals("CLEAN_INSTALL_REQUIRED")
+                            && jsonValue(signing, "apkSha256").equals(apkSha)
+                            && jsonValue(signing, "candidateCertificateSha256").equals(jsonValue(build, "certificateSha256"))
+                            && jsonValue(exception, "status").equals("PUBLISHED_WITH_INSTALL_EXCEPTION");
+                } catch (IllegalArgumentException | IOException invalidReceipt) {
+                    qualifiedOrException = false;
+                }
+            }
+            String releaseCommit = jsonValue(release, "targetCommit");
+            if (releaseCommit.isBlank()) releaseCommit = jsonValue(release, "candidateCommit");
+            complete = qualifiedOrException
+                    && jsonValue(release, "tag").equals(tag)
                     && jsonValue(release, "releaseUrl").equals(releaseUrl)
                     && jsonValue(release, "assetUrl").equals(assetUrl)
+                    && releaseCommit.equals(sourceCommit)
                     && jsonValue(direct, "status").equals("PASS")
                     && jsonValue(direct, "assetUrl").equals(assetUrl)
                     && jsonValue(direct, "httpStatus").equals("200")
@@ -82,6 +147,7 @@ class DocumentationGovernanceTest {
                     && jsonValue(direct, "bytes").equals(apkBytes)
                     && jsonValue(authenticated, "status").equals("PASS")
                     && jsonValue(authenticated, "tag").equals(tag)
+                    && jsonValue(authenticated, "targetCommit").equals(sourceCommit)
                     && jsonValue(authenticated, "releaseUrl").equals(releaseUrl)
                     && jsonValue(authenticated, "assetUrl").equals(assetUrl)
                     && jsonValue(authenticated, "channel").toLowerCase(Locale.ROOT).contains("authenticated")
@@ -90,7 +156,7 @@ class DocumentationGovernanceTest {
                     && jsonValue(authenticated, "sha256").equals(apkSha)
                     && jsonValue(authenticated, "bytes").equals(apkBytes);
         }
-        check.same("The main README links only to a release with matching asset, qualification and complete public/authenticated download receipts",
+        check.same("The main README links only to a release with strict qualification or a scoped, evidenced install exception and complete downloads",
                 true, complete);
     }
 
@@ -267,8 +333,9 @@ class DocumentationGovernanceTest {
     }
 
     private static String jsonValue(String source, String name) {
-        var matcher = Pattern.compile("\"" + Pattern.quote(name) + "\"\\s*:\\s*(?:\"([^\"]*)\"|([0-9]+))")
+        var matcher = Pattern.compile("\"" + Pattern.quote(name) + "\"\\s*:\\s*(?:\"([^\"]*)\"|([0-9]+)|(true|false))")
                 .matcher(source);
-        return matcher.find() ? matcher.group(1) == null ? matcher.group(2) : matcher.group(1) : "";
+        return matcher.find() ? matcher.group(1) != null ? matcher.group(1)
+                : matcher.group(2) != null ? matcher.group(2) : matcher.group(3) : "";
     }
 }
