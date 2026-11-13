@@ -317,6 +317,18 @@ Advanced cu 10.000 de noduri suplimentare și patru semimutări a jucat încă 7
 
 În poziția Siciliană din suita fixă, căutarea de patru semimutări alege `Nxe5` și vede replica. La cinci semimutări, caută `Nc3` și mută aceeași captură la capătul variantei. Prototipul a păstrat clasamentul par când liderul la adâncime impară amâna captura până la orizont.
 
-Prototipul a crescut de la 9/10 la 10/10 alegeri identice cu Stockfish. Pierderea medie a scăzut de la 45,9‰ la 0‰, iar scorurile din cele 1.172 de probleme au rămas la 500/500, 300/300, 194/200, 87/100, 39/48 și 24/24. În duelul cu versiunea live a înregistrat 8 victorii, 6 remize și 10 înfrângeri. Diferența estimată este −29 Elo, cu interval de 95% între −89 și 0. Duelul a dus la retragerea prototipului din codul live.
+Prototipul a crescut de la 9/10 la 10/10 alegeri identice cu Stockfish. Pierderea medie a scăzut de la 45,9‰ la 0‰, iar scorurile din cele 1.172 de probleme au rămas la 500/500, 300/300, 194/200, 87/100, 39/48 și 24/24. În duelul cu versiunea live a înregistrat 8 victorii, 6 remize și 10 înfrângeri. Diferența estimată este −29 Elo, cu interval de 95% între −89 și 0. Contra Stockfish, după 72 de partide, a obținut 1519 Elo (1357–1691) față de 1534 pentru referință. Duelul a dus la retragerea prototipului din codul live.
 
 Comparația indiciului cu Hard pe 12 deschideri are o diferență cumulată de 281‰ față de 257‰. În Catalană, indiciul alege `c4d5` cu o pierdere de 49‰, iar Hard alege `b1c3` cu 25‰.
+
+### Matul demonstrat și reutilizarea pozițiilor
+
+Acceptarea unui mat demonstrat la ultima adâncime, indiferent de liderul anterior, a păstrat toate scorurile pe probleme. În 24 de partide, fiecare pereche cu culori inversate a produs aceeași secvență de mutări și duelul s-a încheiat cu 9 victorii, 6 remize și 9 înfrângeri. Prototipul rămâne în TMP.
+
+Reutilizarea pozițiilor generate pentru ordonarea șahurilor a păstrat mutarea, adâncimea și nodurile pe 48 de poziții. Medianele au fost 594 și 639 ms față de 535 și 304 ms pentru referință în două rulări alternante. Alte probe rulau pe aceeași mașină, astfel că măsurarea are variație de sarcină. Implementarea cu hărți de poziții a fost respinsă.
+
+### Bugetul experimental de 88.000 de noduri
+
+La șase semimutări și 88.000 de noduri suplimentare, Hard a obținut 34 de victorii, o remiză, 19 înfrângeri și 18 partide neterminate după 72 de partide contra Stockfish 19. Estimarea este 1573 Elo (1432–1798), față de 1534 (1396–1672) la 44.000. În Mat în trei, rezultatul a crescut de la 194 la 198/200. Celelalte cinci categorii au păstrat scorurile. Media la tactică a crescut de la 29.626 la 45.761 de noduri. Pe zece poziții fixe a rămas aceeași pierdere medie de 45,9‰, cu o pierdere majoră în Siciliană.
+
+Reeșantionarea perechilor după deschidere, cu jumătate de punct pentru partidele neterminate, estimează diferența la +39 Elo, cu interval de 95% între −54 și +132. Pe 48 de poziții, mediana a crescut de la 534 la 916 ms. Perechea de măsurări a rulat pe aceeași mașină, cu duelul JVM activ în fundal.
