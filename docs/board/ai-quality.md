@@ -40,7 +40,7 @@ Scorurile acestui set măsoară alegerea unei mutări din poziții fixe. Pentru 
 | Profil | Adâncime maximă | Noduri suplimentare |
 |---|---:|---:|
 | Basic | 3 | 0 |
-| Advanced | 4 | 16.000 |
+| Advanced | 4 | 10.000 |
 | Hard | 6, cu lider stabil | 44.000 |
 | Indiciu | 6, plus o extensie tactică | 220.000, inclusiv Hard și până la 32.000 pentru compararea alternativelor |
 
@@ -287,4 +287,28 @@ Aceste conversii sunt doar scoruri relative în liga J7 și nu reprezintă Elo e
 
 Rapoartele Extent și replay-urile TSV pentru candidatul, referință și capacitatea dublă au rămas în `C:\Users\Cristi\AppData\Local\Temp\j7-hard-tt-*`; nu sunt artefacte de release. [Terminologia oficială Stockfish despre transpoziții și căutare](https://official-stockfish.github.io/docs/stockfish-wiki/Terminology.html) explică rolul tabelului de transpoziții în reutilizarea pozițiilor. Documentația nu oferă o creștere Elo garantată pentru această implementare.
 
-Ancora externă actuală nu poate fi recalculată fără executabilul Stockfish local. Ultimul reper documentat este Basic 1340, Advanced 1461 și Hard 1549, cu intervale largi și cu sursă anterioară căutării Hard6. Așadar, ținta Basic 1100–1200, plafonul Advanced 1450 și ținta Hard spre 2000 rămân cerințe de calibrare, nu rezultate demonstrate de această ligă. Elo-ul depinde de adversar, buget și protocol; [FAQ-ul Stockfish](https://official-stockfish.github.io/docs/stockfish-wiki/Stockfish-FAQ.html) precizează că `UCI_Elo` slăbește intenționat motorul și nu este o conversie universală a tăriei.
+Reperele configurate în aplicație provin din sursa anterioară căutării Hard6. Verificarea plafonului Advanced și a progresului Hard folosește partide cu executabilul Stockfish 19 local, identificat prin amprenta din `ai-anchor-observations.yaml`. Estimările depind de adversar, buget și protocol. [Calibrarea UCI Elo în Stockfish](https://official-stockfish.github.io/docs/stockfish-wiki/Stockfish-FAQ.html#the-elo-rating-of-stockfish)
+
+### Prototip local de limite alpha-beta · neintegrat
+
+Datele de mai jos descriu un prototip rulat separat în TMP, nu codul candidatului. Aplicația păstrează exclusiv linii exacte; nu memorează și nu reutilizează limite alpha-beta. Prototipul nu a fost promovat deoarece reducerea nodurilor la Mat în doi a venit cu o poziție mai puțin rezolvată la Mat în trei. Nu prezentați rezultatele sale drept comportament livrat.
+
+Primul prototip păstrează adâncimea și distanța de la rădăcină în cheie. O limită inferioară se poate reutiliza dacă atinge beta, iar o limită superioară dacă este cel mult alpha. La nivelul care întoarce variantele către rădăcină se reutilizează numai linii exacte. Proba diferențială a verificat 60 de cazuri cu ferestre înguste, reutilizare și revenire la fereastră completă. Scorul final a coincis cu cel calculat fără cache. [Implementarea de referință Stockfish 19](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp)
+
+Cu 44.000 de noduri și 22.000 de intrări, prototipul a trecut pragurile de transfer. Mat în două a rămas la 300/300, cu o medie de 12.430 de noduri față de 13.377. Mat în trei a coborât de la 194 la 193/200. Tactica a rămas la 87/100, antrenamentul la 39/48 și Intermezzo la 24/24.
+
+În primele cinci înfrângeri din prima serie de calibrare, prima pierdere majoră identificată de Stockfish la adâncimea 12 a apărut la semimutările 10, 13, 34, 17 și 16. Hard consumase toate cele 44.000 de noduri în fiecare poziție. Cazul cel mai sever din eșantion a fost Gambitul Regelui cu negrul la semimutarea 16. Stockfish a dat `d7d5` la +91 cp și mutarea Hard `d7d6` la −339 cp.
+
+În duelul cu versiunea live, prototipul a obținut 11 victorii, 4 remize și 9 înfrângeri în 24 de partide, cu culori inversate și plafon de 160 de semimutări. Estimarea diferenței este +29 Elo, cu interval de 95% între −58 și +120. Ordonarea după mutarea memorată la aceeași adâncime a produs un fișier de rejucare identic. Preluarea ordinii din iterația anterioară a trecut pragurile de transfer, dar a crescut media la Mat în trei de la 13.705 la 14.573 de noduri față de prototipul cu limite.
+
+### Calibrarea versiunii live
+
+Sursa `0e6a62f` a jucat 216 partide în trei serii, cu Stockfish 19 la `UCI_Elo 1500`, un fir, 6.000 de noduri cerute pe mutare și maximum 160 de semimutări. Am folosit cele 12 deschideri din protocolul de calibrare și am inversat culorile. Intervalele de 95% reeșantionează deschiderile, iar partidele active la plafon contribuie între zero și un punct.
+
+| Profil | Victorii / remize / înfrângeri / neterminate | Elo estimat | Interval 95% |
+|---|---:|---:|---:|
+| Basic | 7 / 1 / 49 / 15 | 1268 | 922–1442 |
+| Advanced | 23 / 3 / 30 / 16 | 1466 | 1316–1615 |
+| Hard | 30 / 2 / 23 / 17 | 1534 | 1396–1672 |
+
+Advanced cu 10.000 de noduri suplimentare și patru semimutări a jucat încă 72 de partide după același protocol. A obținut 19 victorii, 3 remize, 35 înfrângeri și 15 partide neterminate. Estimarea centrală a coborât de la 1466 la 1421, cu intervalul 1245–1553. În suita de zece poziții, pierderea medie Advanced a rămas la 14,1‰ și au existat zero pierderi majore. Estimarea centrală este sub plafonul cerut de 1450, iar intervalul încă îl traversează.
