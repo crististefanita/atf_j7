@@ -14,6 +14,10 @@ Acest ghid leagă commitul, APK-ul semnat, proba Android și descărcarea verifi
 7. După semnare și calificare, împingeți tagul candidat fără a rescrie istoricul și publicați asset-ul GitHub. Păstrați `currentVersion`, lista de comparație și README-ul principal pe ultima ediție verificată până când asset-ul nou există. Apoi promovați candidatul în catalog și README. Păstrați în GitHub Release și local doar ediția nouă și ediția imediat anterioară; retrageți celelalte release-uri și dosare după ce noul asset și ruta din README au trecut verificarea. Nu ștergeți tagurile Git.
 8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
 
+După publicarea unui draft, recitiți release-ul după tag și identificați asset-ul după ID. GitHub poate returna o rută provizorie cu segmentul „untagged” în răspunsul de upload. Folosiți în README doar ruta canonică din metadatele release-ului publicat și verificați descărcarea completă.
+
+Păstrați HTML-ul Extent generat la octet, inclusiv în indexul Git, pentru ca hash-urile din calificare să rămână valide. Aplicați verificarea de formatare fișierelor editate manual.
+
 ## Excepție strictă pentru instalarea APK-ului exact
 
 `ReleaseGate qualification` rămâne poarta normală și cere ca APK-ul distribuibil, commitul, aserțiunile și raportul Extent Android să fie aceeași execuție. Nu transformați o probă cu alt `applicationId`, alt hash sau alt certificat într-o calificare PASS.
