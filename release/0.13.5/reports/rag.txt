@@ -1,101 +1,76 @@
 ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
-COVERED | README.md
 COVERED | android/app/build.gradle
 COVERED | android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
-COVERED | android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java
-COVERED | android/app/src/main/java/ro/atf/chess/android/ChessActivity.java
-COVERED | android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java
-COVERED | android/app/src/main/res/values-ro/strings.xml
-COVERED | android/app/src/main/res/values/ids.xml
-COVERED | android/app/src/main/res/values/strings.xml
+COVERED | android/app/src/main/java/ro/atf/chess/android/EvaluationBar.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/HintPreviewDialog.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java
+COVERED | android/app/src/main/res/values-ro/hint_preview.xml
+COVERED | android/app/src/main/res/values/hint_preview.xml
+COVERED | android/app/src/main/res/values/hint_preview_ids.xml
 COVERED | atf-tests/pom.xml
 COVERED | atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
 COVERED | atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/MatchStoreTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
 COVERED | atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
-COVERED | chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java
-COVERED | chess-core/src/main/java/ro/atf/chess/GameReviewExplanation.java
-COVERED | chess-core/src/main/java/ro/atf/chess/GameReviewTimeline.java
-COVERED | chess-core/src/main/java/ro/atf/chess/MatchMaterial.java
-COVERED | chess-core/src/main/java/ro/atf/chess/MatchStore.java
-COVERED | docs/board/game-review.md
+COVERED | chess-core/src/main/java/ro/atf/chess/HintComparison.java
+COVERED | chess-core/src/main/java/ro/atf/chess/HintPreview.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchHint.java
+COVERED | chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java
+COVERED | docs/board/README.md
 COVERED | docs/feedback/README.md
 COVERED | docs/release/README.md
 COVERED | docs/testing/README.md
 COVERED | pom.xml
 COVERED | release-tools/src/main/java/ro/atf/chess/release/ReleaseRag.java
-COVERED | release/0.13.0/README.md
-COVERED | release/0.13.0/reports/README.md
-COVERED | release/0.13.0/reports/android-match-analysis.html
-COVERED | release/0.13.0/reports/distribution-verification.json
-COVERED | release/0.13.0/reports/game-review-execution.json
-COVERED | release/0.13.0/reports/github-release.json
-COVERED | release/0.13.0/reports/match-analysis-execution.json
-COVERED | release/0.13.0/reports/public-download.json
-COVERED | release/0.13.0/reports/publication-governance.json
-COVERED | release/0.13.0/reports/qualification.json
-COVERED | release/0.13.0/reports/rag.txt
-COVERED | release/0.13.2/reports/android-game-review.html
-COVERED | release/0.13.2/reports/components.html
-COVERED | release/0.13.2/reports/distribution-verification.json
-COVERED | release/0.13.2/reports/game-review-execution.json
-COVERED | release/0.13.2/reports/github-release.json
-COVERED | release/0.13.2/reports/public-download.json
-COVERED | release/0.13.2/reports/publication-governance.html
-COVERED | release/0.13.2/reports/publication-governance.json
-COVERED | release/0.13.2/reports/qualification.json
-COVERED | release/0.13.2/reports/rag.txt
-COVERED | release/0.13.2/reports/signing-transition.json
-COVERED | release/0.13.3/README.md
-COVERED | release/0.13.3/reports/README.md
-COVERED | release/README.md
+COVERED | release/0.13.5/README.md
+COVERED | release/0.13.5/reports/README.md
 COVERED | release/index.json
 COVERED | scripts/run-android-sanity.ps1
 docs/testing/README.md:18 ## Motor și proiecție
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
+  SHA-256 88b487d29e1653ca50bf1f1bb019504e02568d7bde2f88e6815fb2ebfbb308ad
   Verify ChessComponentTest și QuestCatalogTest
+docs/board/ai-quality.md:30 ## Control la fiecare schimbare
+  SHA-256 eaab80ba310545b66e0acdd9f0abf8d2c048fcf5ea4da1a810bebf3f1ce8f5d2
+  Verify HardQuestTransferBenchmarkTest, RookEndgameHistoryTest și ChessBenchmarkSuite: Stockfish și liga offline
 docs/testing/README.md:60 ## Progresul problemelor
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
+  SHA-256 88b487d29e1653ca50bf1f1bb019504e02568d7bde2f88e6815fb2ebfbb308ad
   Verify QuestStoreTest, AndroidReceiptTest și BoardSanity la restart
 docs/testing/README.md:119 ## Sanity Android
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
+  SHA-256 88b487d29e1653ca50bf1f1bb019504e02568d7bde2f88e6815fb2ebfbb308ad
   Verify BoardSanity
 docs/testing/README.md:191 ## Partidă și istoric
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
+  SHA-256 88b487d29e1653ca50bf1f1bb019504e02568d7bde2f88e6815fb2ebfbb308ad
   Verify GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest, MatchStoreTest și BoardSanity -Distribution -GameReviewOnly
 docs/testing/README.md:191 ## Partidă și istoric
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
-  Verify MatchListEntryTest, MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -MatchMenusOnly
-docs/testing/README.md:219 ## Tablă de analiză
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
-  Verify AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly
+  SHA-256 88b487d29e1653ca50bf1f1bb019504e02568d7bde2f88e6815fb2ebfbb308ad
+  Verify MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest și BoardSanity -AnalysisOnly -IncludeManualAnalysis
 docs/testing/README.md:74 ## Suite JVM
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
+  SHA-256 88b487d29e1653ca50bf1f1bb019504e02568d7bde2f88e6815fb2ebfbb308ad
   Verify ChessJvmSuite și ChessGovernanceSuite
-docs/release/README.md:21 ## Excepție strictă pentru instalarea APK-ului exact
-  SHA-256 2b03ddabf8e05dc34a1646666192bf4b1f8cc742830e87e023c5131e5556a795
+docs/release/README.md:25 ## Excepție strictă pentru instalarea APK-ului exact
+  SHA-256 13f3d70413cdbfc22a3c49be062e880cf50a37b02b3fa67876bd7d275ed93260
   Verify ReleaseGovernanceTest cu negative pentru commit, hash, autorizare și Extent
-docs/release/README.md:21 ## Excepție strictă pentru instalarea APK-ului exact
-  SHA-256 2b03ddabf8e05dc34a1646666192bf4b1f8cc742830e87e023c5131e5556a795
+docs/release/README.md:25 ## Excepție strictă pentru instalarea APK-ului exact
+  SHA-256 13f3d70413cdbfc22a3c49be062e880cf50a37b02b3fa67876bd7d275ed93260
   Verify DocumentationGovernanceTest și ReleaseGovernanceTest
 docs/testing/README.md:101 ## Raportare Extent
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
+  SHA-256 88b487d29e1653ca50bf1f1bb019504e02568d7bde2f88e6815fb2ebfbb308ad
   Verify ExtentGovernanceTest
 docs/testing/README.md:18 ## Motor și proiecție
-  SHA-256 4407298981b796358d77a49f82dc7274f1fd103c6b05b2a7e2f3ae202a4a494b
+  SHA-256 88b487d29e1653ca50bf1f1bb019504e02568d7bde2f88e6815fb2ebfbb308ad
   Verify BoardPanelLayoutTest și QuestHintTest
 docs/feedback/README.md:1 # Feedback · Chess Lab
-  SHA-256 c694817a97e00f25b4ec796f85ec2fb299f5ce582e7e460a74deb91165c58ab9
+  SHA-256 289766ea1495ce647f1c56a7295103c354af2f31b7a0cb22719ab639c9376c91
   Verify DocumentationGovernanceTest și revizia criteriilor deschise
 docs/release/README.md:6 ## Calificare și publicare
-  SHA-256 2b03ddabf8e05dc34a1646666192bf4b1f8cc742830e87e023c5131e5556a795
+  SHA-256 13f3d70413cdbfc22a3c49be062e880cf50a37b02b3fa67876bd7d275ed93260
   Verify DocumentationGovernanceTest, ReleaseGovernanceTest și ExtentGovernanceTest
 1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
 2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului. În `release/index.json`, `currentVersion` este ediția curentă, iar `versions` conține curentul urmat de o singură ediție anterioară pentru comparație. Candidatul rămâne separat până la publicare. [Catalogul edițiilor](../../release/README.md)
 3. Actualizați notele ediției și ghidurile afectate. Mutați regulile confirmate din feedback în ghidul care le deține și păstrați criteriile încă deschise. Puneți **Jocul** ca prima secțiune a README-ului principal, imediat după orientare. Folosiți două rânduri de listă formate fiecare dintr-un link, întâi către release, apoi către APK. În restul README-ului puneți ghidurile proiectului.
 4. Creați commitul candidat local și exportați exact acel commit într-un TMP nou. Rulați `mvn test`, care pornește `ChessJvmSuite`. Rulați `ReleaseGate preflight` pe recepțiile acelui checkout pentru `DocumentationGovernanceTest`, `ReleaseGovernanceTest` și `ExtentGovernanceTest` înaintea build-ului de distribuție. Păstrați Extent pentru componente și guvernanță. Activați probele AI relevante când diff-ul afectează motorul sau corpusul. [Suitele JVM](../testing/README.md#suite-jvm)
 5. Inițializați identitatea externă prin dot-sourcing `scripts/Initialize-J7Signing.ps1`. Pentru o cheie nouă după o ediție publicată, folosiți explicit `-StartNewIdentity`; scriptul refuză rotația implicită și protejează cheia cu ACL și DPAPI. Construiți APK-ul și testele Android cu Gradle, verificați semnătura, `versionCode` și compatibilitatea prin `scripts/verify-signing-continuity.ps1`. Rulați pe emulator parcursul potrivit schimbării și păstrați hash-ul APK-ului instalat și Extent-ul. Dacă semnarea s-a rotit și emulatorul păstrează ediția veche, nu dezinstalați instalarea cu date valoroase pentru a forța testul. Un APK sanity cu alt `applicationId` este suplimentar și nu califică binarul distribuibil.
-6. Verificați în Extent starea, comparațiile extensibile și diagnosticul. Pentru sanity, verificați identitatea execuției și captura în pasul care conține aserțiunea. În fluxul normal, treceți APK-ul, commitul și dovezile prin `ReleaseGate qualification`. Rezolvați abaterile și repetați verificările afectate înainte de publicare. [Criterii de audit Extent](../testing/README.md#raportare-extent)
+6. Rulați `ChessComponentSuite` și sanity Game Review sub același ID de calificare. Treceți APK-ul, commitul, directoarele recepțiilor brute și rapoartele Extent prin `ReleaseGate qualification`. Verificați în Extent comparațiile extensibile și capturile din pașii lor. [Criterii de audit Extent](../testing/README.md#raportare-extent)
 7. După semnare și calificare, împingeți tagul candidat fără a rescrie istoricul și publicați asset-ul GitHub. Păstrați `currentVersion`, lista de comparație și README-ul principal pe ultima ediție verificată până când asset-ul nou există. Apoi promovați candidatul în catalog și README. Păstrați în GitHub Release și local doar ediția nouă și ediția imediat anterioară; retrageți celelalte release-uri și dosare după ce noul asset și ruta din README au trecut verificarea. Nu ștergeți tagurile Git.
 8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
