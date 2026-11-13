@@ -250,12 +250,12 @@ public final class ChessActivity extends BackNavigableActivity {
         openMatch(slot, saved, store.matches().matchBlackBelow(slot), store.matches().matchManualAi(slot), store.matches().matchManualUsed(slot), false);
     }
 
-    private void openMatch(int slot, ChessMatch nextMatch, boolean flipped, boolean manual, boolean manualUsed, boolean fresh) {
+    private boolean openMatch(int slot, ChessMatch nextMatch, boolean flipped, boolean manual, boolean manualUsed, boolean fresh) {
         boolean saved = fresh ? store.matches().startMatch(slot, nextMatch, flipped, manual, manualUsed)
                 : store.matches().saveMatch(slot, nextMatch, flipped, manual, manualUsed);
         if (!saved) {
             showSaveError();
-            return;
+            return false;
         }
         if (match != nextMatch) completedReview = null;
         cancelBot();
@@ -266,6 +266,7 @@ public final class ChessActivity extends BackNavigableActivity {
         match = nextMatch;
         displayMatch(flipped);
         scheduleBot();
+        return true;
     }
 
     private boolean openArchivedMatch(String id) {
@@ -743,6 +744,10 @@ public final class ChessActivity extends BackNavigableActivity {
     }
 
     private void confirmContinuation(int ply) {
+        confirmContinuation(ply, () -> {});
+    }
+
+    private void confirmContinuation(int ply, Runnable continued) {
         if (!inMatch || choosingContinuation || ply < 0 || ply >= match.ply()) return;
         var automatic = new CheckBox(this);
         automatic.setText(R.string.match_automatic_ai);
@@ -755,24 +760,26 @@ public final class ChessActivity extends BackNavigableActivity {
                 .setNegativeButton(android.R.string.cancel, null)
                 .setOnDismissListener(dialog -> {
                     choosingContinuation = false;
-                    scheduleBot();
+                    if (reviewDialog == null) scheduleBot();
                 })
-                .setPositiveButton(R.string.match_confirm_continue, (dialog, which) -> continueMatch(ply, !automatic.isChecked())).show();
+                .setPositiveButton(R.string.match_confirm_continue, (dialog, which) -> {
+                    if (continueMatch(ply, !automatic.isChecked())) continued.run();
+                }).show();
     }
 
-    private void continueMatch(int ply, boolean manual) {
+    private boolean continueMatch(int ply, boolean manual) {
         var continuation = match.continueFrom(ply);
         if (archivedMatch != null) {
             int free = store.matches().freeMatchSlot();
-            if (free == 0) Toast.makeText(this, R.string.manual_no_free_slot, Toast.LENGTH_LONG).show();
-            else openMatch(free, continuation, blackBelow, manual, archivedMatch.manualUsed(), true);
-            return;
+            if (free > 0) return openMatch(free, continuation, blackBelow, manual, archivedMatch.manualUsed(), true);
+            Toast.makeText(this, R.string.manual_no_free_slot, Toast.LENGTH_LONG).show();
+            return false;
         }
         boolean saved = match.result() == ChessMatch.Result.IN_PROGRESS ? store.matches().saveMatch(matchSlot, continuation, blackBelow, manual)
                 : store.matches().startMatch(matchSlot, continuation, blackBelow, manual, store.matches().matchManualUsed(matchSlot));
         if (!saved) {
             showSaveError();
-            return;
+            return false;
         }
         cancelBot();
         completedReview = null;
@@ -786,6 +793,7 @@ public final class ChessActivity extends BackNavigableActivity {
         options = Collections.emptyList();
         renderMatch();
         scheduleBot();
+        return true;
     }
 
     private void showGameReview() {
@@ -808,7 +816,12 @@ public final class ChessActivity extends BackNavigableActivity {
                 botName(match.setup().level()), result -> {
                     if (match == snapshot) completedReview = result;
                     if (store.matches().hasArchived(id) && !store.matches().saveReview(id, snapshot, result)) showSaveError();
-                }, this::reviewMatch, this::confirmContinuation, () -> reviewDialog = null);
+                }, store.matches().readReviewBookmark(id, snapshot), bookmark -> {
+                    if (store.matches().hasArchived(id) && !store.matches().saveReviewBookmark(id, snapshot, bookmark)) showSaveError();
+                }, this::reviewMatch, this::confirmContinuation, () -> {
+                    reviewDialog = null;
+                    scheduleBot();
+                });
     }
 
     private void showMatchActions(View anchor) {

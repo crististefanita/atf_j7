@@ -362,13 +362,24 @@ class ReleaseGovernanceTest {
                 "chess-core/src/main/java/ro/atf/chess/GameReviewTimeline.java", "chess-core/src/main/resources/opening-book.tsv",
                 "chess-core/src/main/java/ro/atf/chess/GameReviewLayout.java",
                 "chess-core/src/main/java/ro/atf/chess/GameReviewGraphLayout.java",
+                "chess-core/src/main/java/ro/atf/chess/GameReviewExplanation.java",
+                "chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java",
+                "docs/board/game-review.md",
                 "atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java",
                 "android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java",
                 "android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java");
-        var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths).stream()
-                .filter(citation -> citation.heading().equals("## Partidă și istoric")).toList();
+        var root = ProjectRoot.locate();
+        String reviewCheck = "GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, "
+                + "GameReviewGovernanceTest, MatchStoreTest și BoardSanity -Distribution -GameReviewOnly";
+        for (var path : paths) {
+            check.same(path + " reaches the Game Review verification by itself", 1L,
+                    ReleaseRag.retrieve(root, List.of(path)).stream()
+                            .filter(citation -> citation.check().equals(reviewCheck)).count());
+        }
+        var citations = ReleaseRag.retrieve(root, paths).stream()
+                .filter(citation -> citation.check().equals(reviewCheck)).toList();
         check.same("Game review changes cite the signed scenario and JVM coverage once",
-                List.of("GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly"),
+                List.of(reviewCheck),
                 citations.stream().map(ReleaseRag.Citation::check).toList());
     }
 

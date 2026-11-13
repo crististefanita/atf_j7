@@ -148,6 +148,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         'match-slots' { $frames += 'saved-games' }
         'match-archive' { $frames += 'finished-games' }
         'game-review' { $frames += 'game-review-navigation', 'game-review-line', 'game-review-comparison', 'game-review-actions' }
+        'game-review-why' { $frames += 'game-review-why-recommended' }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
@@ -167,6 +168,23 @@ function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expecte
     $phaseDirectory = Join-Path $Directory $Phase
     $null = New-Item -ItemType Directory $phaseDirectory
     Invoke-FocusedSanity $phaseDirectory $Phase $Expected
+}
+
+function Invoke-GameReviewSanity([string]$Directory) {
+    Invoke-FocusedSanity $Directory 'game-review' 23
+    $clear = Invoke-Device @('shell','pm','clear',$app)
+    if ($clear -cnotcontains 'Success') { throw 'Could not reset for the archived review fixture.' }
+    $why = Join-Path $Directory 'why'
+    $restore = Join-Path $Directory 'why-restore'
+    $null = New-Item -ItemType Directory $why, $restore
+    Invoke-FocusedSanity $why 'game-review-why' 4
+    Invoke-Device @('shell','am','force-stop',$app)
+    Invoke-FocusedSanity $restore 'game-review-why-restore' 2
+    $pids = @(Get-Content -LiteralPath (Join-Path $why 'game-review-why.txt'), (Join-Path $restore 'game-review-why-restore.txt') |
+        Where-Object { $_ -match '^INSTRUMENTATION_RESULT: pid=[1-9][0-9]*$' })
+    if ($pids.Count -ne 2 -or $pids[0] -ceq $pids[1]) {
+        throw 'Review restore must run in a different Android process.'
+    }
 }
 
 function Invoke-SelectedMatchSanity([string]$Directory) {
@@ -206,7 +224,7 @@ try {
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
     if ($GameReviewOnly) {
-        Invoke-FocusedSanity $run 'game-review' 23
+        Invoke-GameReviewSanity $run
         return
     }
     if ($ManualAnalysisOnly) {
@@ -311,7 +329,7 @@ try {
         Invoke-Device @('shell','am','force-stop',$app)
         $reviewDirectory = Join-Path $run 'game-review'
         $null = New-Item -ItemType Directory $reviewDirectory
-        Invoke-FocusedSanity $reviewDirectory 'game-review' 23
+        Invoke-GameReviewSanity $reviewDirectory
     }
     if ((Test-Path -LiteralPath $settled) -and
             (Select-String -Quiet -LiteralPath $settled -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {

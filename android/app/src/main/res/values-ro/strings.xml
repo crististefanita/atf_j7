@@ -246,6 +246,14 @@
     <string name="game_review_line_next">Pasul următor al variantei</string>
     <string name="game_review_actions">Acțiuni de analiză</string>
     <string name="game_review_opening_details">Detalii despre deschidere</string>
+    <string name="game_review_why">De ce?</string>
+    <string name="game_review_hide_why">Ascunde explicația</string>
+    <string name="game_review_played_branch">Jucată</string>
+    <string name="game_review_recommended_branch">Recomandată</string>
+    <string name="game_review_why_score">%1$s pierde %2$.1f puncte procentuale din scorul estimat, la adâncimea %3$d.</string>
+    <string name="game_review_why_allows_mate">În linia jucată, %1$s %2$s# dă mat.</string>
+    <string name="game_review_why_misses_mate">În linia recomandată, %1$s %2$s# dă mat.</string>
+    <string name="game_review_why_material">În linia jucată, %1$s capturează pe %2$s (%3$s). Pierderea netă de material este de %4$.2f pioni.</string>
     <string name="game_review_line_step">Varianta recomandată · %1$d / %2$d</string>
     <string name="game_review_line_ready">Varianta recomandată · %1$d mutări</string>
     <string name="game_review_line_next_move">Urmează: %1$s</string>

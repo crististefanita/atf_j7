@@ -250,6 +250,15 @@
     <string name="game_review_line_next">Next line step</string>
     <string name="game_review_actions">Review actions</string>
     <string name="game_review_opening_details">Opening details</string>
+    <string name="game_review_why">Why?</string>
+    <string name="game_review_hide_why">Hide explanation</string>
+    <string name="game_review_played_branch">Played</string>
+    <string name="game_review_recommended_branch">Recommended</string>
+    <string name="game_review_branch_step" translatable="false">%1$s · %2$d / %3$d</string>
+    <string name="game_review_why_score">%1$s loses %2$.1f percentage points in expected score at depth %3$d.</string>
+    <string name="game_review_why_allows_mate">In the played line, %1$s %2$s# delivers checkmate.</string>
+    <string name="game_review_why_misses_mate">In the recommended line, %1$s %2$s# delivers checkmate.</string>
+    <string name="game_review_why_material">In the played line, %1$s takes %3$s on %2$s. Net material loss is %4$.2f pawns.</string>
     <string name="game_review_pv_caption" translatable="false">%1$s · %2$d/%3$d</string>
     <string name="game_review_line_step">Recommended line · %1$d / %2$d</string>
     <string name="game_review_line_ready">Recommended line · %1$d moves</string>

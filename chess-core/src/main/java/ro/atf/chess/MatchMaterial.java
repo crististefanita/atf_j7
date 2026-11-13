@@ -3,6 +3,7 @@ package ro.atf.chess;
 import java.util.ArrayList;
 import java.util.List;
 import ro.atf.chess.ChessPosition.Kind;
+import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Piece;
 import ro.atf.chess.ChessPosition.Side;
 
@@ -21,19 +22,29 @@ public record MatchMaterial(Seat white, Seat black) {
         var counts = new int[2][Kind.values().length];
         for (int index = 1; index <= ply; index++) {
             var before = match.positionAt(index - 1);
-            var move = match.moveAt(index);
-            Piece victim = before.pieceAt(move.to());
-            if (victim == null && before.pieceAt(move.from()).kind() == Kind.PAWN && move.from() % 8 != move.to() % 8) {
-                victim = before.pieceAt(BoardSquare.of(move.to() % 8, move.from() / 8));
-            }
+            Piece victim = victim(before, match.moveAt(index));
             if (victim != null) counts[before.turn().ordinal()][victim.kind().ordinal()]++;
         }
+        int balance = balance(board, Side.WHITE);
+        return new MatchMaterial(seat(counts[Side.WHITE.ordinal()], balance), seat(counts[Side.BLACK.ordinal()], -balance));
+    }
+
+    /** Identifies the captured piece, including en passant, for a legal move. */
+    static Piece victim(ChessPosition before, Move move) {
+        Piece target = before.pieceAt(move.to());
+        if (target == null && before.pieceAt(move.from()).kind() == Kind.PAWN && move.from() % 8 != move.to() % 8) {
+            return before.pieceAt(BoardSquare.of(move.to() % 8, move.from() / 8));
+        }
+        return target;
+    }
+
+    static int balance(ChessPosition board, Side side) {
         int balance = 0;
         for (int square = 0; square < 64; square++) {
             var piece = board.pieceAt(square);
-            if (piece != null) balance += (piece.side() == Side.WHITE ? 1 : -1) * points(piece.kind());
+            if (piece != null) balance += (piece.side() == side ? 1 : -1) * points(piece.kind());
         }
-        return new MatchMaterial(seat(counts[Side.WHITE.ordinal()], balance), seat(counts[Side.BLACK.ordinal()], -balance));
+        return balance;
     }
 
     private static Seat seat(int[] counts, int balance) {

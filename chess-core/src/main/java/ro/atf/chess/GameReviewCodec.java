@@ -23,6 +23,7 @@ import ro.atf.chess.GameReview.Rating;
 /** Versioned analysis cache bound to the exact completed checkpoint. */
 public final class GameReviewCodec {
     private static final int VERSION = 1;
+    static final int MAX_LINE_LENGTH = 64;
 
     private GameReviewCodec() { }
 
@@ -84,7 +85,7 @@ public final class GameReviewCodec {
         }
     }
 
-    private static String checkpointDigest(ChessMatch match) {
+    static String checkpointDigest(ChessMatch match) {
         try {
             var digest = MessageDigest.getInstance("SHA-256").digest(match.checkpoint().getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(digest);
@@ -133,7 +134,7 @@ public final class GameReviewCodec {
 
     private static List<Move> readLine(DataInputStream in) throws IOException {
         int size = in.readInt();
-        if (size < 0 || size > 64) throw new IllegalArgumentException("Invalid analysis line length");
+        if (size < 0 || size > MAX_LINE_LENGTH) throw new IllegalArgumentException("Invalid analysis line length");
         var line = new ArrayList<Move>(size);
         for (int i = 0; i < size; i++) line.add(Move.fromUci(in.readUTF()));
         return line;

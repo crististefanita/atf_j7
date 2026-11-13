@@ -16,4 +16,8 @@
     <item type="id" name="game_review_graph" />
     <item type="id" name="game_review_actions" />
     <item type="id" name="game_review_opening" />
+    <item type="id" name="game_review_why" />
+    <item type="id" name="game_review_reason" />
+    <item type="id" name="game_review_played_branch" />
+    <item type="id" name="game_review_recommended_branch" />
 </resources>

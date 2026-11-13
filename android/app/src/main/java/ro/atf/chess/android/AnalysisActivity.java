@@ -18,6 +18,7 @@ import android.widget.Toast;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import ro.atf.chess.AnalysisLine;
@@ -185,7 +186,7 @@ public final class AnalysisActivity extends Activity {
         if (!analysisEnabled || study.line().ply() == 0 || reviewDialog != null) return;
         var snapshot = study;
         IntConsumer seek = ply -> select(snapshot.seek(ply));
-        IntConsumer resume = ply -> confirmContinuation(snapshot.seek(ply));
+        BiConsumer<Integer, Runnable> resume = (ply, continued) -> confirmContinuation(snapshot.seek(ply), continued);
         Runnable onClose = () -> reviewDialog = null;
         if (snapshot.preservesCompletedGame(sourceMatch)) {
             var intent = getIntent();
@@ -199,6 +200,10 @@ public final class AnalysisActivity extends Activity {
                         if (store.matches().hasArchived(id) && !store.matches().saveReview(id, sourceMatch, review)) {
                             Toast.makeText(this, R.string.progress_save_failed, Toast.LENGTH_SHORT).show();
                         }
+                    }, store.matches().readReviewBookmark(id, sourceMatch), bookmark -> {
+                        if (store.matches().hasArchived(id) && !store.matches().saveReviewBookmark(id, sourceMatch, bookmark)) {
+                            Toast.makeText(this, R.string.progress_save_failed, Toast.LENGTH_SHORT).show();
+                        }
                     }, seek, resume, onClose);
             return;
         }
@@ -207,6 +212,10 @@ public final class AnalysisActivity extends Activity {
     }
 
     private void confirmContinuation(AnalysisLine cursor) {
+        confirmContinuation(cursor, () -> {});
+    }
+
+    private void confirmContinuation(AnalysisLine cursor, Runnable continued) {
         var continuation = cursor.resumeMatch(analysisEnabled);
         var automatic = new CheckBox(this);
         automatic.setText(R.string.match_automatic_ai);
@@ -221,6 +230,7 @@ public final class AnalysisActivity extends Activity {
                     }
                     setResult(RESULT_OK, new Intent().putExtra(CONTINUATION, continuation.checkpoint())
                             .putExtra(AI_AUTOMATIC, automatic.isChecked()).putExtra(ORIENTATION, blackBelow));
+                    continued.run();
                     finish();
                 }).show();
     }

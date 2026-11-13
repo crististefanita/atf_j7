@@ -1,10 +1,14 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.List;
 import javax.imageio.ImageIO;
 import org.jsoup.Jsoup;
@@ -96,6 +100,71 @@ class AndroidReceiptTest {
         check.same("The missing Training restart is named and the Tactics comparison is preserved", true,
                 resume.text().contains("Missing or duplicate chapter restart checks: [" + TRAINING_RESTART + "]")
                         && resume.text().contains(TACTICS_RESTART));
+    }
+
+    @Test void bindsReviewCapturesToTheirPhasesAndRequiresARealProcessRestart(Checks check) throws Exception {
+        var passing = reviewReceipt(Files.createDirectory(folder.resolve("review-valid")), 333);
+        AndroidSanityPublication.publishGameReview(passing);
+        var validReport = gameReviewReport(passing);
+        check.same("The explanation and resumed position appear in Extent", true,
+                validReport.contains("Why names the mating queen on h4") && validReport.contains("222 → 333"));
+
+        var wrongCapture = reviewReceipt(Files.createDirectory(folder.resolve("review-wrong-frame")), 333);
+        Path why = wrongCapture.resolveSibling("why");
+        Files.copy(why.resolve("game-review-why-recommended.png"), why.resolve("game-review-why.png"), StandardCopyOption.REPLACE_EXISTING);
+        check.rejects("A valid PNG from a different checkpoint cannot pass", AssertionError.class,
+                () -> AndroidSanityPublication.publishGameReview(wrongCapture));
+        check.same("Extent names the substituted capture", true,
+                gameReviewReport(wrongCapture).contains("Capture SHA-256 mismatch: game-review-why.png"));
+
+        var sameProcess = reviewReceipt(Files.createDirectory(folder.resolve("review-reused-process")), 222);
+        check.rejects("A passing restore receipt cannot reuse the original process", AssertionError.class,
+                () -> AndroidSanityPublication.publishGameReview(sameProcess));
+        check.same("Extent exposes both identical process IDs", true, gameReviewReport(sameProcess).contains("222 → 222"));
+    }
+
+    private static String gameReviewReport(Path receipt) throws IOException {
+        return Jsoup.parse(receipt.resolveSibling("android-game-review.html"), "UTF-8").text();
+    }
+
+    private static Path reviewReceipt(Path directory, int restorePid) throws Exception {
+        writeReviewRun(directory, "game-review", 111, 23,
+                List.of("A plotted point in a 185-ply review selects ply 184 on the board and highlights its move row"),
+                List.of("game-review", "game-review-navigation", "game-review-line", "game-review-comparison", "game-review-actions"), 1);
+        writeReviewRun(Files.createDirectory(directory.resolve("why")), "game-review-why", 222, 4,
+                List.of("Why names the mating queen on h4 for the archived g4 blunder",
+                        "The recommended branch starts before g4 and replays its first legal move",
+                        "The played branch replays g4 and the mating reply from the same starting position",
+                        "Cancelling Try again keeps the played line and the original review open"),
+                List.of("game-review-why", "game-review-why-recommended"), 6);
+        writeReviewRun(Files.createDirectory(directory.resolve("why-restore")), "game-review-why-restore", restorePid, 2,
+                List.of("A restarted process reopens the archived analysis on the played mating reply",
+                        "Confirming from the reopened review creates a separate game and keeps the archived analysis"),
+                List.of("game-review-why-restore"), 8);
+        return directory.resolve("game-review.txt");
+    }
+
+    private static void writeReviewRun(Path directory, String phase, int pid, int checks, List<String> required,
+                                       List<String> frames, int firstColor) throws Exception {
+        writePhase(directory, phase, pid, checks, required);
+        var execution = new ObjectMapper().createObjectNode();
+        execution.put("status", "PASS").put("scope", phase).put("variant", "sanity").put("sourceCommit", "")
+                .put("device", "fixture").put("api", "28").put("apkSha256", "a".repeat(64)).put("assertions", checks)
+                .put("receiptSha256", sha256(directory.resolve(phase + ".txt")));
+        var hashes = execution.putObject("captureSha256");
+        var image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        int color = firstColor;
+        for (String frame : frames) {
+            Path png = directory.resolve(frame + ".png");
+            image.setRGB(0, 0, color++);
+            ImageIO.write(image, "png", png.toFile());
+            hashes.put(png.getFileName().toString(), sha256(png));
+        }
+        Files.writeString(directory.resolve("execution.json"), execution.toString());
+    }
+
+    private static String sha256(Path path) throws Exception {
+        return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(path)));
     }
 
     private static Path boardReceipt(Path directory, String training) throws IOException {

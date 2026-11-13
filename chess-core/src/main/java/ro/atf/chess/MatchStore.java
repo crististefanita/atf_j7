@@ -4,6 +4,8 @@ import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import ro.atf.chess.GameReviewTimeline.Branch;
+import ro.atf.chess.GameReviewTimeline.Snapshot;
 
 /** Persists match slots and finished games through one atomic preferences transaction per change. */
 public final class MatchStore {
@@ -38,6 +40,8 @@ public final class MatchStore {
     private static final String MATCH_CREATION_SEQUENCE = "match-creation-sequence";
     private static final String MATCH_ARCHIVED = "match-archived";
     private static final String ARCHIVE_ORDER = "match-archive-order";
+    private static final String REVIEW_BOOKMARK = "review-bookmark";
+    private static final String BOOKMARK_VERSION = "1";
 
     private final Preferences preferences;
     private final Clock clock;
@@ -138,7 +142,9 @@ public final class MatchStore {
                 .putBoolean(archiveKey(id, "black-below"), flipped)
                 .putBoolean(archiveKey(id, "manual-used"), manualUsed).putLong(archiveKey(id, "finished-at"), finishedAt);
         for (var previous : retention.evicted()) {
-            for (var field : List.of("checkpoint", "black-below", "manual-used", "finished-at", "review")) edit.remove(archiveKey(previous, field));
+            for (var field : List.of("checkpoint", "black-below", "manual-used", "finished-at", "review", REVIEW_BOOKMARK)) {
+                edit.remove(archiveKey(previous, field));
+            }
         }
     }
 
@@ -202,7 +208,44 @@ public final class MatchStore {
     }
 
     public boolean saveReview(String id, ChessMatch match, GameReview review) {
-        if (id == null || !match.checkpoint().equals(preferences.getString(archiveKey(id, "checkpoint"), null))) return false;
+        if (!matchesArchivedCheckpoint(id, match)) return false;
         return preferences.edit().putString(archiveKey(id, "review"), GameReviewCodec.encode(match, review)).commit();
+    }
+
+    public Snapshot readReviewBookmark(String id, ChessMatch match) {
+        if (!matchesArchivedCheckpoint(id, match)) return null;
+        try {
+            String encoded = preferences.getString(archiveKey(id, REVIEW_BOOKMARK), null);
+            if (encoded == null) return null;
+            String[] fields = encoded.split("\\|", -1);
+            if (fields.length != 6 || !BOOKMARK_VERSION.equals(fields[0]) || !id.equals(fields[1])
+                    || !GameReviewCodec.checkpointDigest(match).equals(fields[2])) return null;
+            var snapshot = new Snapshot(Integer.parseInt(fields[3]), Branch.valueOf(fields[4]), Integer.parseInt(fields[5]));
+            return validBookmark(match, snapshot) ? snapshot : null;
+        } catch (IllegalArgumentException | ClassCastException invalid) {
+            return null;
+        }
+    }
+
+    public boolean saveReviewBookmark(String id, ChessMatch match, Snapshot snapshot) {
+        if (!matchesArchivedCheckpoint(id, match) || !validBookmark(match, snapshot)) return false;
+        String encoded = String.join("|", BOOKMARK_VERSION, id, GameReviewCodec.checkpointDigest(match),
+                Integer.toString(snapshot.ply()), snapshot.branch().name(), Integer.toString(snapshot.step()));
+        return preferences.edit().putString(archiveKey(id, REVIEW_BOOKMARK), encoded).commit();
+    }
+
+    private boolean matchesArchivedCheckpoint(String id, ChessMatch match) {
+        if (id == null || match == null || match.result() == ChessMatch.Result.IN_PROGRESS) return false;
+        try {
+            return match.checkpoint().equals(preferences.getString(archiveKey(id, "checkpoint"), null));
+        } catch (ClassCastException invalid) {
+            return false;
+        }
+    }
+
+    private static boolean validBookmark(ChessMatch match, Snapshot snapshot) {
+        if (snapshot == null || snapshot.branch() == null || snapshot.ply() < 0 || snapshot.ply() > match.ply()
+                || snapshot.step() < 0 || snapshot.step() > GameReviewCodec.MAX_LINE_LENGTH) return false;
+        return snapshot.branch() == Branch.HISTORY ? snapshot.step() == 0 : snapshot.ply() > 0;
     }
 }

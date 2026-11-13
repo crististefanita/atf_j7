@@ -100,16 +100,17 @@ Rezultatul unic actualizează o distribuție uniformă a scorului așteptat la `
 ## Salvare și verificare
 
 - Analiza terminată se păstrează lângă partida din arhivă. Cache-ul are versiune și amprenta SHA-256 a salvării exacte, inclusiv rezultatul și configurația. O analiză absentă, trunchiată sau incompatibilă se recalculează la redeschidere.
-- Închiderea ferestrei în timpul calculului oprește căutarea. Arhiva reține ultimele zece rezultate și elimină analiza odată cu intrarea veche. Continuarea din arhivă creează o partidă separată.
+- Raportul din arhivă include scorurile și liniile calculate pentru fiecare mutare. Marcajul de vizualizare păstrează semimutarea, linia activă și pasul după redeschidere sau restart. ID-ul arhivei și amprenta salvării leagă marcajul de partida exactă. Prima deschidere pornește la final. O linie sau un pas indisponibil readuce tabla la poziția jucată.
+- Închiderea ferestrei în timpul calculului oprește căutarea. Arhiva reține ultimele zece rezultate și elimină raportul și marcajul odată cu intrarea veche. Continuarea din arhivă creează o partidă separată.
 - `GameReviewTest` verifică evaluarea, clasificarea, estimarea Elo și reconcilierea tabelului. `GameReviewGovernanceTest` verifică pragurile, reperele și catalogul ECO. `MatchArchiveTest` verifică refacerea raportului complet și respingerea cache-urilor incompatibile. [Strategia de testare](../testing/README.md#partidă-și-istoric)
 
 ## Navigarea în review și variantele recomandate
 
 Review-ul măsoară spațiul util al ferestrei după antet și zonele de sistem. În portret, tabla este cel mai mare pătrat care lasă loc barei de comenzi și începutului raportului derulabil. Într-o fereastră lată, raportul trece lateral când rămâne lizibil și tabla poate crește. Cursorul, indiciul și numele deschiderii se pot schimba fără să deplaseze tabla.
 
-Cursorul pornește la finalul partidei. Săgețile discrete schimbă câte o semimutare, iar comanda **Moment-cheie următor** sare la următoarea poziție marcată. Lista și graficul permit selecția directă. Tabla, notația, categoria, scorurile și markerul graficului urmăresc același cursor. Săgețile se dezactivează la capete. Bara are ținte de 48 dp și etichete accesibile în română și engleză. În ferestre foarte înguste, bara derulează orizontal. Detaliile de scor, graficul, precizia, Elo, comparația și lista mutărilor se derulează împreună.
+Săgețile schimbă câte o semimutare, iar comanda **Moment-cheie următor** sare la următoarea poziție marcată. Lista și graficul permit selecția directă. Tabla, notația, categoria, scorurile și markerul graficului urmăresc același cursor. Săgețile se dezactivează la capete. Bara are ținte de 48 dp și etichete accesibile în română și engleză. În ferestre foarte înguste, bara derulează orizontal. Detaliile de scor, graficul, precizia, Elo, comparația și lista mutărilor se derulează împreună.
 
-Punctele desenate și atingerea folosesc aceeași proiecție orizontală, inclusiv marginile graficului. Atingerea alege semimutarea cea mai apropiată și sincronizează markerul, tabla și evidențierea mutării din listă. Poziția inițială nu are rând în listă. Atingerea în margini selectează poziția inițială sau finală.
+Punctele desenate și atingerea folosesc aceeași proiecție orizontală, inclusiv marginile graficului. Atingerea alege semimutarea cea mai apropiată și sincronizează markerul, tabla și evidențierea mutării din listă. Poziția inițială nu are rând în listă. Atingerea în margini selectează poziția inițială sau finală. Comanda de accesibilitate pentru un rând derulează direct până la mutarea cerută, inclusiv într-o partidă lungă.
 
 Numele deschiderii identificate apare la intrare. Prima navigare sau activarea variantei îl retrage din raport. **Detalii despre deschidere** din meniul de acțiuni afișează la cerere numele și codul ECO.
 
@@ -121,14 +122,18 @@ flowchart LR
     C --> B["Poziție pe tablă"]
     C --> S["Scor, notație și clasificare"]
     C --> M["Markerul cursorului pe grafic"]
-    C -->|"Bec aprins"| R["Linia recomandată · pas 0"]
-    R -->|"Săgeți"| P["Parcurge varianta pe o copie"]
-    P -->|"Bec stins"| C
-    P --> A["Partida arhivată rămâne neschimbată"]
+    C -->|"De ce?"| E["Motiv bazat pe linie sau pe scor"]
+    E --> R["Jucată sau Recomandată"]
+    C -->|"Bec"| R
+    R -->|"Săgeți"| P["Parcurge linia din poziția comună"]
+    P -->|"Aceeași linie selectată din nou"| C
+    P --> A["Marcaj separat pentru redeschidere"]
 ```
 
-Becul deschide varianta optimă înaintea mutării selectate și marchează prima recomandare pe tablă. Aceleași săgeți parcurg varianta cât timp becul este activ. Bara arată pasul curent, iar raportul oferă notația următoarei recomandări. Stingerea becului revine la mutarea selectată. Alegerea unei poziții din listă sau grafic ori saltul la un moment-cheie închide varianta. Ramura de analiză lucrează pe o copie a poziției și păstrează istoricul partidei.
+Becul deschide linia recomandată și indică piesa și destinația următoarei mutări. **De ce?** arată motivul și oferă acces la **Jucată** și **Recomandată**. Ambele pornesc din aceeași poziție, înaintea mutării selectate. Săgețile parcurg pașii liniei, iar eticheta accesibilă anunță linia și pasul. Apăsarea din nou a liniei active, selecția din listă sau grafic și saltul la un moment-cheie readuc tabla în istoricul partidei.
 
-În meniul de acțiuni, **Vezi pe tablă** închide review-ul și mută cursorul activ la semimutarea aleasă. **Reîncearcă mutarea** cere confirmarea continuării din poziția anterioară pentru mutările jucătorului sau pentru ambele culori în studiu. Pentru o partidă arhivată, continuarea se salvează într-un loc separat. Refuzul confirmării, explorarea variantei și închiderea review-ului păstrează rezultatul original.
+Pentru o mutare cu pierdere de scor, explicația folosește liniile validate cu regulile și istoricul poziției. În exemplul `g4`, linia jucată arată `…Dh4#`. O pierdere materială se explică printr-o captură verificată și diferența netă la același număr de pași. Pentru o diferență pozițională sau o linie incompletă, raportul arată pierderea în puncte procentuale de scor estimat, din perspectiva culorii care mută, și adâncimea comună. O linie ilegală din cache rămâne indisponibilă. [Proba mutării](../../atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java)
+
+În meniul de acțiuni, **Vezi pe tablă** închide review-ul și mută cursorul activ la semimutarea aleasă. **Reîncearcă mutarea** cere confirmarea continuării din poziția anterioară pentru mutările jucătorului sau pentru ambele culori în studiu. Anularea sau lipsa unui loc liber păstrează analiza la linia și pasul curent. Continuarea confirmată din arhivă deschide o partidă nouă din prefixul original.
 
 `GameReviewTimeline` validează fiecare mutare și culoare față de sursă. `GameReviewLayout` alege geometria din dimensiunile măsurate. Verificările componentelor și parcursul Android urmăresc sincronizarea, navigarea variantei și păstrarea partidei. [Sanity și Extent](../testing/README.md#partidă-și-istoric)

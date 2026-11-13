@@ -29,6 +29,14 @@ import org.junit.jupiter.api.Test;
 class AndroidSanityPublication {
     private static final Pattern CHECK = Pattern.compile("^INSTRUMENTATION_RESULT: check_(\\d{2})=(.*)$");
     private static final String LONG_GRAPH_CHECK = "A plotted point in a 185-ply review selects ply 184 on the board and highlights its move row";
+    private static final List<String> REVIEW_EXPLANATION_CHECKS = List.of(
+            "Why names the mating queen on h4 for the archived g4 blunder",
+            "The recommended branch starts before g4 and replays its first legal move",
+            "The played branch replays g4 and the mating reply from the same starting position",
+            "Cancelling Try again keeps the played line and the original review open");
+    private static final List<String> REVIEW_RESTORE_CHECKS = List.of(
+            "A restarted process reopens the archived analysis on the played mating reply",
+            "Confirming from the reopened review creates a separate game and keeps the archived analysis");
     private static final List<String> OPENING_GEOMETRY_CHECKS = List.of(
             "Next preserves the board and its corner squares when Resume lesson appears",
             "Next preserves the board and its corner squares when Lesson hint returns");
@@ -38,6 +46,8 @@ class AndroidSanityPublication {
 
     private record Frame(String file, String title) { }
     private record MenuCheckpoint(String action, String assertion, String frame) { }
+    private record ReviewRun(String scope, String title, Path receipt, PhaseEvidence evidence,
+                             JsonNode execution, List<ReportField> identity, List<Frame> frames) { }
     private static final String DATED_LAST_ROW = "The last game shows its title, moves and local time with Back visible";
 
     private static final List<Frame> FRAMES = List.of(new Frame("hint-piece.png", "Simple hint · piece only"),
@@ -85,13 +95,86 @@ class AndroidSanityPublication {
     }
 
     @Test void publishGameReviewSanity() throws Exception {
-        publishFocusedSanity("game-review", "Review a completed match and continue from an earlier move",
-                "Select the exact plotted move, navigate key moments and replay the best line", 23, List.of(
-                        new Frame("game-review.png", "Game review summary"),
+        publishGameReview(Path.of(System.getProperty("chess.android.receipt")));
+    }
+
+    static void publishGameReview(Path receipt) throws Exception {
+        Path report = receipt.resolveSibling("android-game-review.html");
+        if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
+        Path why = receipt.resolveSibling("why").resolve("game-review-why.txt");
+        Path restored = receipt.resolveSibling("why-restore").resolve("game-review-why-restore.txt");
+        var reviewRun = reviewRun("game-review", "Select the exact plotted move and review the completed game", receipt, 23,
+                List.of(LONG_GRAPH_CHECK), List.of(new Frame("game-review.png", "Game review summary"),
                         new Frame("game-review-navigation.png", "Ply 184 of 185 · synchronized board and highlighted row"),
                         new Frame("game-review-line.png", "Recommended line marked on the board"),
                         new Frame("game-review-comparison.png", "Move counts by type · player and AI"),
                         new Frame("game-review-actions.png", "In-game options · offer draw and resign")));
+        var whyRun = reviewRun("game-review-why", "Explain the blunder and explore both lines before restart", why, 4,
+                REVIEW_EXPLANATION_CHECKS, List.of(new Frame("game-review-why.png", "Why g4 allows mate on h4"),
+                        new Frame("game-review-why-recommended.png", "Recommended branch · first move")));
+        var restoredRun = reviewRun("game-review-why-restore", "Resume the archived analysis and confirm a separate continuation", restored, 2,
+                REVIEW_RESTORE_CHECKS, List.of(new Frame("game-review-why-restore.png", "Reopened played branch · mating reply")));
+        var runs = List.of(reviewRun, whyRun, restoredRun);
+        boolean restarted = !whyRun.evidence().pid().isEmpty() && !restoredRun.evidence().pid().isEmpty()
+                && !whyRun.evidence().pid().equals(restoredRun.evidence().pid());
+        boolean sameExecution = runs.stream().allMatch(run -> !run.identity().isEmpty()
+                && List.of("apkSha256", "sourceCommit", "variant", "device", "api").stream()
+                        .allMatch(field -> run.execution().path(field).equals(reviewRun.execution().path(field))));
+        boolean complete = restarted && sameExecution;
+        var acceptedCaptures = new HashSet<String>();
+        try (var session = new ExtentReportSession(report, AtfReportConfigurationLoader.load().reportingSettings());
+             var scenario = session.startScenario("BoardSanity", "Understand a blunder and resume its archived analysis",
+                     List.of("e2e", "android", "game-review"));
+             var phase = scenario.startPhase("TEST BODY")) {
+            publish(phase, "Android process restart and execution identity", List.of(
+                    new AtfAssertion("Explanation and restore process IDs", "Two distinct Android PIDs",
+                            whyRun.evidence().pid() + " → " + restoredRun.evidence().pid(), restarted),
+                    new AtfAssertion("All phases belong to the same execution", "Matching APK, source, variant, device and API",
+                            sameExecution ? "Matching APK, source, variant, device and API" : "Missing or mismatched identity", sameExecution)),
+                    complete);
+            for (var run : runs) {
+                if (!run.identity().isEmpty()) {
+                    var audit = new ArrayList<>(run.identity());
+                    audit.add(new ReportField("Android process", run.evidence().pid()));
+                    phase.observation(new ReportObservation(run.scope() + " execution identity", audit, List.of(), List.of()));
+                }
+                publish(phase, run.title(), run.evidence().rows(), run.evidence().passed());
+                complete &= run.evidence().passed();
+                for (var frame : run.frames()) complete &= publishReviewFrame(phase, run, frame, acceptedCaptures);
+            }
+            var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+            phase.complete(status);
+            scenario.complete(status);
+        }
+        System.out.println("J7 Android Extent: " + report);
+        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android Game Review evidence: " + receipt);
+    }
+
+    private static ReviewRun reviewRun(String scope, String title, Path receipt, int checks, List<String> required,
+                                       List<Frame> frames) throws IOException, java.security.NoSuchAlgorithmException {
+        var evidence = requireChecks(readPhase(receipt, scope, checks), scope, required, "Game Review");
+        var execution = readExecution(receipt.resolveSibling("execution.json"));
+        String receiptHash = Files.isRegularFile(receipt) ? sha256(Files.readAllBytes(receipt)) : "";
+        return new ReviewRun(scope, title, receipt, evidence, execution, menuIdentity(execution, scope, receiptHash, checks), frames);
+    }
+
+    private static boolean publishReviewFrame(atf.reporting.contract.AtfReportPorts.Phase phase, ReviewRun run, Frame frame,
+                                              Set<String> acceptedCaptures) throws IOException, java.security.NoSuchAlgorithmException {
+        Path path = run.receipt().resolveSibling(frame.file());
+        byte[] image = isPng(path) ? Files.readAllBytes(path) : null;
+        String captureHash = image == null ? "" : sha256(image);
+        boolean matchesCapture = image != null && captureHash.equals(run.execution().path("captureSha256").path(frame.file()).asText());
+        if (!matchesCapture || !acceptedCaptures.add(captureHash)) {
+            String reason = image == null ? "Missing or invalid PNG: " : matchesCapture ? "Capture repeated: " : "Capture SHA-256 mismatch: ";
+            publish(phase, frame.title(), List.of(receiptFailure(run.scope(), reason + frame.file())), false);
+            return false;
+        }
+        try (var action = phase.startRequest("Android instrumentation", "UI", frame.title())) {
+            action.detail("Capture SHA-256", captureHash);
+            action.screenshot(frame.title(), Base64.getEncoder().encodeToString(image));
+            action.complete(AtfReportStatus.PASS);
+        }
+        return true;
     }
 
     @Test void publishManualAnalysisSanity() throws Exception {
@@ -200,7 +283,7 @@ class AndroidSanityPublication {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         Path report = receipt.resolveSibling("android-" + scope + ".html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var evidence = scope.equals("game-review") ? readGameReviewPhase(receipt) : readPhase(receipt, scope, checks);
+        var evidence = readPhase(receipt, scope, checks);
         boolean rendered = frames.stream().allMatch(frame -> isPng(receipt.resolveSibling(frame.file())));
         boolean complete = evidence.passed() && rendered;
         var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
