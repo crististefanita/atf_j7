@@ -376,13 +376,13 @@ public final class BoardSanity extends Instrumentation {
         if (review == null) throw new AssertionError("The completed game review was not saved");
         var selectedEarlier = review.turns().get(branchPly - 1);
         String selectedEarlierText = activity.getString(R.string.game_review_selected_move,
-                moveLabel(selectedEarlier), gradeLabel(activity, selectedEarlier.grade()));
+                moveLabel(activity, selectedEarlier), gradeLabel(activity, selectedEarlier.grade()));
         compare("Selecting a graph point synchronizes the move cursor and classification", true,
                 dialogNode(selectedEarlierText) != null);
         clickDialog(activity.getString(R.string.game_review_next_key));
         var blunder = review.turns().get(branchPly);
         String selectedBlunderText = activity.getString(R.string.game_review_selected_move,
-                moveLabel(blunder), gradeLabel(activity, blunder.grade()));
+                moveLabel(activity, blunder), gradeLabel(activity, blunder.grade()));
         String g4Pawn = pieceDescription(activity, ChessPosition.Side.WHITE, ChessPosition.Kind.PAWN, "g4");
         compare("Next key moment synchronizes the blunder, score context and played board position", true,
                 dialogNode(selectedBlunderText) != null && dialogNode(g4Pawn) != null);
@@ -472,9 +472,13 @@ public final class BoardSanity extends Instrumentation {
         return dialogNode(activity.getString(role, player.accuracy().getAsInt() + "%", interval)) != null;
     }
 
-    private String moveLabel(ro.atf.chess.GameReview.Turn turn) {
-        return (turn.ply() + 1) / 2 + (turn.side() == ChessPosition.Side.WHITE ? ". " : "… ")
-                + ChessActivity.compactNotation(turn.played());
+    private String moveLabel(Activity activity, ro.atf.chess.GameReview.Turn turn) {
+        Move move = turn.played();
+        String from = BoardSquare.name(move.from());
+        String to = BoardSquare.name(move.to());
+        String squares = move.promotion() == null ? activity.getString(R.string.solution_move, from, to)
+                : activity.getString(R.string.solution_promotion, from, to, activity.getString(BoardView.kindLabel(move.promotion())));
+        return (turn.ply() + 1) / 2 + (turn.side() == ChessPosition.Side.WHITE ? ". " : "… ") + squares;
     }
 
     private String gradeLabel(Activity activity, ro.atf.chess.GameReview.Grade grade) {
@@ -549,13 +553,10 @@ public final class BoardSanity extends Instrumentation {
     private void clickMenuItem(String label) throws Exception {
         var item = menuItem(label);
         if (item == null) throw new AssertionError("Menu item unavailable: " + label);
-        for (var target = item; target != null; target = target.getParent()) {
-            if (target.isClickable() && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-                waitForIdleSync();
-                return;
-            }
-        }
-        throw new AssertionError("Menu item did not accept the accessibility click: " + label);
+        var bounds = new Rect();
+        item.getBoundsInScreen(bounds);
+        if (bounds.isEmpty()) throw new AssertionError("Menu item has no visible bounds: " + label);
+        tapAt(bounds.exactCenterX(), bounds.exactCenterY());
     }
 
     private void checkOpenings() throws Exception {
