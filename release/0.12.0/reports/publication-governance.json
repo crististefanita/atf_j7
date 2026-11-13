@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "applicationSourceCommit": "40a707b45dc7eedd9ac3ced0c7906924b10209f5",
+  "mainBaseCommit": "624195a51620b7cca5732eda6dfc03e99e82c551",
+  "scope": "Final release catalog, documentation, and Extent governance on the main-promotion working tree",
+  "tests": {
+    "total": 32,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": {
+      "DocumentationGovernanceTest": 8,
+      "ExtentGovernanceTest": 6,
+      "ReleaseGovernanceTest": 18
+    }
+  },
+  "extentReport": "publication-governance.html",
+  "extentSha256": "7b251e125127fc02ebaf461a7486e9417915c64df2810c8bb10e7e509bd9ad00",
+  "observedUtc": "2026-11-13T08:53:31Z",
+  "qualificationNote": "This report covers the listed governance suites only. It does not claim that the 0.12.0 APK was installed over 0.11.2; the signing certificate changed and that upgrade path requires a clean install."
+}

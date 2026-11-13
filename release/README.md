@@ -2,11 +2,16 @@
 
 ## Ediția publicată
 
-[`index.json`](index.json) identifică versiunea curentă și păstrează alături o singură ediție anterioară pentru comparație. Cele două legături din [README-ul principal](../README.md#jocul) indică release-ul și APK-ul aceleiași versiuni.
+[`index.json`](index.json) identifică versiunea curentă și păstrează imediat după ea o singură ediție anterioară pentru comparație. README-ul principal indică numai ediția curentă.
+
+| Rol | Versiune | Dovezi |
+|---|---|---|
+| Curentă | 0.12.0 | [Note și receptele APK-ului](0.12.0/README.md) |
+| Precedentă | 0.11.2 | [Ediția de comparație](0.11.2/README.md) |
 
 ## Dovezi și arhivare
 
-Release-ul GitHub conține APK-ul de distribuție. Dosarul ediției din repository păstrează rapoartele Extent, receptele verificabile, notele și RAG-ul. Păstrăm dosarul ediției imediat anterioare pentru comparație; celelalte rapoarte vechi pot fi consultate în tagurile Git. Înlocuim ediția curentă numai după publicare și verificarea completă a descărcării pornind din README-ul de pe `main`.
+Release-ul GitHub conține APK-ul de distribuție. Dosarul ediției din repository păstrează rapoartele Extent, receptele verificabile, notele și RAG-ul. Celelalte rapoarte vechi pot fi consultate în tagurile Git. Înlocuim ediția curentă numai după publicare și verificarea completă a descărcării pornind din README-ul de pe `main`.
 
 ## Candidat
 
