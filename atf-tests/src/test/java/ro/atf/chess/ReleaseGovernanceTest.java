@@ -356,12 +356,13 @@ class ReleaseGovernanceTest {
     }
 
     @Test void gameReviewRoutesToItsComponentGovernanceAndSignedAndroidChecks(Checks check) throws IOException {
-        var paths = List.of("chess-core/src/main/java/ro/atf/chess/GameReview.java", "chess-core/src/main/resources/opening-book.tsv",
+        var paths = List.of("chess-core/src/main/java/ro/atf/chess/GameReview.java",
+                "chess-core/src/main/java/ro/atf/chess/GameReviewTimeline.java", "chess-core/src/main/resources/opening-book.tsv",
                 "android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java");
         var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths).stream()
                 .filter(citation -> citation.heading().equals("## Partidă și istoric")).toList();
         check.same("Game review changes cite the signed scenario and both JVM layers once",
-                List.of("GameReviewTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly"),
+                List.of("GameReviewTest, GameReviewTimelineTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly"),
                 citations.stream().map(ReleaseRag.Citation::check).toList());
     }
 

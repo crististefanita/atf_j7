@@ -97,9 +97,12 @@ La final, deschide **Analiza partidei** din **Opțiunile partidei** sau de sub
 rezultat. Cu **Analiză AI** activată, raportul este disponibil și după prima
 mutare a unei partide în curs; replica automată așteaptă până îl închizi.
 
-- Graficul urmărește avantajul albului, iar lista clasifică mutările.
-- **Vezi pe tablă** deschide poziția. **Reîncearcă mutarea** propune reluarea
-  de dinaintea mutării tale.
+- Alegerea unei mutări din listă sau din grafic sincronizează tabla, scorul,
+  notația și categoria. Comenzile permit navigarea și saltul la următorul moment-cheie.
+- **Arată varianta** marchează prima recomandare. Poți parcurge linia în ambele
+  sensuri. **Vezi pe tablă** revine la poziția selectată.
+- **Reîncearcă mutarea** propune reluarea din poziția anterioară. După confirmare,
+  partida din arhivă rămâne disponibilă și ramura folosește un loc separat.
 - Reperul AI și estimarea Elo apar în analiza unei partide încheiate, când
   sunt aplicabile. [Metoda de analiză și estimare](game-review.md)
 

@@ -60,6 +60,7 @@ public final class ReleaseRag {
             new Route("android/", "docs/testing/README.md", "## Sanity Android", "BoardSanity"),
             new Route("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
             review("chess-core/src/main/java/ro/atf/chess/GameReview.java"),
+            review("chess-core/src/main/java/ro/atf/chess/GameReviewTimeline.java"),
             review("chess-core/src/main/java/ro/atf/chess/GameReviewPolicy.java"),
             review("chess-core/src/main/java/ro/atf/chess/OpeningIndex.java"),
             review("chess-core/src/main/resources/game-review.yaml"),
@@ -150,7 +151,7 @@ public final class ReleaseRag {
 
     private static Route review(String path) {
         return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "GameReviewTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly");
+                "GameReviewTest, GameReviewTimelineTest, GameReviewGovernanceTest și BoardSanity -Distribution -GameReviewOnly");
     }
 
     private static Route manualAnalysis(String path) {

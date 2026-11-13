@@ -1,6 +1,5 @@
 package ro.atf.chess.android;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -13,12 +12,12 @@ import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -29,6 +28,8 @@ import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.GameReview;
+import ro.atf.chess.GameReviewTimeline;
+import ro.atf.chess.QuestHint;
 
 final class GameReviewDialog {
     private static final int PRIMARY = 0xfff5f3ec;
@@ -36,6 +37,7 @@ final class GameReviewDialog {
     private static final int ACCENT = 0xffb8d88a;
     private final Context context;
     private final Side humanSide;
+    private final boolean blackBelow;
     enum Mode {
         MATCH(R.string.game_review_rating_note), MANUAL_MATCH(R.string.game_review_manual_rating),
         LIVE_MATCH(R.string.game_review_live_rating), STUDY(R.string.game_review_study_rating);
@@ -53,11 +55,27 @@ final class GameReviewDialog {
     private final IntConsumer continueFrom;
     private final LinearLayout content;
     private final Dialog dialog;
+    private GameReviewTimeline timeline;
+    private BoardView reviewBoard;
+    private TextView selectedMove;
+    private TextView selectedScore;
+    private TextView lineProgress;
+    private Button previousMove;
+    private Button nextMove;
+    private Button nextKeyMoment;
+    private Button previousLine;
+    private Button showLine;
+    private Button nextLine;
+    private Button onBoard;
+    private Button retry;
+    private MoveRows moveRows;
+    private EvaluationGraph graph;
 
-    private GameReviewDialog(Context context, Side humanSide, Mode mode, Function<Move, String> notation,
+    private GameReviewDialog(Context context, Side humanSide, boolean blackBelow, Mode mode, Function<Move, String> notation,
                              IntConsumer showPosition, IntConsumer continueFrom) {
         this.context = context;
         this.humanSide = humanSide;
+        this.blackBelow = blackBelow;
         this.mode = mode;
         this.notation = notation;
         this.showPosition = showPosition;
@@ -91,21 +109,25 @@ final class GameReviewDialog {
     }
 
     static Dialog show(Context context, ChessMatch match, GameReview cached, ExecutorService worker,
-                            Function<Move, String> notation, boolean manualMoves, String human, String bot, Consumer<GameReview> remember,
+                            Function<Move, String> notation, boolean manualMoves, boolean blackBelow,
+                            String human, String bot, Consumer<GameReview> remember,
                             IntConsumer showPosition, IntConsumer continueFrom, Runnable onClose) {
         return open(context, match, cached, worker, notation, manualMoves ? Mode.MANUAL_MATCH : Mode.MATCH,
-                human, bot, remember, showPosition, continueFrom, onClose);
+                blackBelow, human, bot, remember, showPosition, continueFrom, onClose);
     }
 
     static Dialog showLine(Context context, ChessMatch match, ExecutorService worker, Function<Move, String> notation,
-                           Mode mode, String human, String bot, IntConsumer showPosition, IntConsumer continueFrom, Runnable onClose) {
-        return open(context, match, null, worker, notation, mode, human, bot, result -> {}, showPosition, continueFrom, onClose);
+                           Mode mode, boolean blackBelow, String human, String bot,
+                           IntConsumer showPosition, IntConsumer continueFrom, Runnable onClose) {
+        return open(context, match, null, worker, notation, mode, blackBelow, human, bot,
+                result -> {}, showPosition, continueFrom, onClose);
     }
 
     private static Dialog open(Context context, ChessMatch match, GameReview cached, ExecutorService worker,
-                               Function<Move, String> notation, Mode mode, String human, String bot, Consumer<GameReview> remember,
+                               Function<Move, String> notation, Mode mode, boolean blackBelow,
+                               String human, String bot, Consumer<GameReview> remember,
                                IntConsumer showPosition, IntConsumer continueFrom, Runnable onClose) {
-        var view = new GameReviewDialog(context, mode == Mode.STUDY ? Side.WHITE : match.setup().humanSide(), mode,
+        var view = new GameReviewDialog(context, mode == Mode.STUDY ? Side.WHITE : match.setup().humanSide(), blackBelow, mode,
                 notation, showPosition, continueFrom);
         view.dialog.show();
         view.dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -120,7 +142,7 @@ final class GameReviewDialog {
     private Future<?> load(ChessMatch match, GameReview cached, ExecutorService worker, String human, String bot,
                            Consumer<GameReview> remember) {
         if (cached != null) {
-            display(cached, human, bot);
+            display(match, cached, human, bot);
             return null;
         }
         var label = text(context.getString(R.string.game_review_progress, 0, match.ply()), 16, PRIMARY);
@@ -140,7 +162,7 @@ final class GameReviewDialog {
                 content.post(() -> {
                     if (!dialog.isShowing()) return;
                     remember.accept(result);
-                    display(result, human, bot);
+                    display(match, result, human, bot);
                 });
             } catch (CancellationException cancelled) {
                 // Closing the dialog cancels the local search.
@@ -155,10 +177,85 @@ final class GameReviewDialog {
         });
     }
 
-    private void display(GameReview result, String human, String bot) {
+    private void display(ChessMatch match, GameReview result, String human, String bot) {
         content.removeAllViews();
         content.setPadding(0, 0, 0, 0);
+        timeline = new GameReviewTimeline(match, result);
+        var review = column();
+        review.setId(R.id.game_review_workspace);
+        review.setPadding(dp(8), 0, dp(8), 0);
+
+        var boardFrame = new FrameLayout(context);
+        int screenDp = Math.round(context.getResources().getDisplayMetrics().heightPixels
+                / context.getResources().getDisplayMetrics().density);
+        int boardSize = Math.max(176, Math.min(292, Math.round(screenDp * .31f)));
+        reviewBoard = new BoardView(context, ignored -> { });
+        reviewBoard.setId(R.id.game_review_board);
+        reviewBoard.setContentDescription(context.getString(R.string.game_review_board));
+        var boardParams = new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER);
+        boardFrame.addView(reviewBoard, boardParams);
+        review.addView(boardFrame, new LinearLayout.LayoutParams(-1, dp(boardSize)));
+
+        selectedMove = text("", 16, ACCENT);
+        selectedMove.setId(R.id.game_review_selection);
+        selectedMove.setGravity(Gravity.CENTER);
+        selectedMove.setMaxLines(2);
+        selectedMove.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        review.addView(selectedMove, new LinearLayout.LayoutParams(-1, -2));
+        selectedScore = text("", 12, MUTED);
+        selectedScore.setId(R.id.game_review_selected_score);
+        selectedScore.setGravity(Gravity.CENTER);
+        selectedScore.setMaxLines(2);
+        selectedScore.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        review.addView(selectedScore, new LinearLayout.LayoutParams(-1, -2));
+
+        var navigation = row();
+        previousMove = actionButton(R.string.game_review_previous, () -> moveCursor(false));
+        previousMove.setId(R.id.game_review_previous);
+        nextKeyMoment = actionButton(R.string.game_review_next_key, this::nextKeyMoment);
+        nextKeyMoment.setId(R.id.game_review_next_key);
+        nextMove = actionButton(R.string.game_review_next, () -> moveCursor(true));
+        nextMove.setId(R.id.game_review_next);
+        addWeighted(navigation, previousMove);
+        addWeighted(navigation, nextKeyMoment);
+        addWeighted(navigation, nextMove);
+        review.addView(navigation, new LinearLayout.LayoutParams(-1, -2));
+
+        var variation = row();
+        previousLine = actionButton(R.string.game_review_line_previous, () -> stepBestLine(false));
+        previousLine.setId(R.id.game_review_line_previous);
+        showLine = actionButton(R.string.game_review_show_best, this::showBestLine);
+        showLine.setId(R.id.game_review_show_best);
+        nextLine = actionButton(R.string.game_review_line_next, () -> stepBestLine(true));
+        nextLine.setId(R.id.game_review_line_next);
+        addWeighted(variation, previousLine);
+        addWeighted(variation, showLine);
+        addWeighted(variation, nextLine);
+        review.addView(variation, new LinearLayout.LayoutParams(-1, -2));
+        lineProgress = text("", 12, MUTED);
+        lineProgress.setId(R.id.game_review_line_progress);
+        lineProgress.setGravity(Gravity.CENTER);
+        review.addView(lineProgress, new LinearLayout.LayoutParams(-1, -2));
+
+        var actions = row();
+        onBoard = actionButton(R.string.game_review_on_board, () -> {
+            int selected = timeline.ply();
+            dialog.dismiss();
+            showPosition.accept(selected);
+        });
+        onBoard.setId(R.id.game_review_on_board);
+        retry = actionButton(R.string.game_review_retry, () -> {
+            int beforeMove = timeline.ply() - 1;
+            dialog.dismiss();
+            continueFrom.accept(beforeMove);
+        });
+        retry.setId(R.id.game_review_retry);
+        addWeighted(actions, onBoard);
+        addWeighted(actions, retry);
+        review.addView(actions, new LinearLayout.LayoutParams(-1, -2));
+
         var list = new ListView(context);
+        list.setId(R.id.game_review_moves);
         var summary = column();
         summary.setPadding(dp(16), dp(6), dp(16), dp(10));
         if (result.opening() != null) {
@@ -167,16 +264,111 @@ final class GameReviewDialog {
             summary.addView(text(context.getString(R.string.game_review_unknown_opening), 16, MUTED));
         }
         summary.addView(text(context.getString(R.string.game_review_graph), 13, MUTED));
-        summary.addView(new EvaluationGraph(result, ply -> detail(result.turns().get(ply - 1))),
-                new LinearLayout.LayoutParams(-1, dp(64)));
+        graph = new EvaluationGraph(result, this::selectPly);
+        graph.setId(R.id.game_review_graph);
+        summary.addView(graph, new LinearLayout.LayoutParams(-1, dp(64)));
         summary.addView(player(human, humanSide, humanSide == Side.WHITE ? result.white() : result.black()));
         summary.addView(player(bot, humanSide.other(), humanSide == Side.WHITE ? result.black() : result.white()));
         summary.addView(text(context.getString(mode.ratingNote), 12, MUTED));
         summary.addView(comparison(result));
         list.addHeaderView(summary, null, false);
-        list.setAdapter(new MoveRows(result.turns()));
-        list.setOnItemClickListener((parent, row, position, id) -> detail(result.turns().get(position - 1)));
-        content.addView(list, new LinearLayout.LayoutParams(-1, 0, 1));
+        moveRows = new MoveRows(result.turns());
+        list.setAdapter(moveRows);
+        list.setOnItemClickListener((parent, item, position, id) -> {
+            if (position > 0) selectPly(moveRows.getItem(position - 1).ply());
+        });
+        review.addView(list, new LinearLayout.LayoutParams(-1, 0, 1));
+        content.addView(review, new LinearLayout.LayoutParams(-1, -1));
+        refreshTimeline();
+    }
+
+    private LinearLayout row() {
+        var layout = new LinearLayout(context);
+        layout.setGravity(Gravity.CENTER_VERTICAL);
+        return layout;
+    }
+
+    private Button actionButton(int label, Runnable action) {
+        var button = new Button(context, null, android.R.attr.borderlessButtonStyle);
+        button.setAllCaps(false);
+        button.setText(label);
+        button.setMinHeight(dp(48));
+        button.setOnClickListener(view -> action.run());
+        return button;
+    }
+
+    private void addWeighted(LinearLayout parent, View child) {
+        parent.addView(child, new LinearLayout.LayoutParams(0, -2, 1));
+    }
+
+    private void moveCursor(boolean forward) {
+        if (forward) timeline.next();
+        else timeline.previous();
+        refreshTimeline();
+    }
+
+    private void nextKeyMoment() {
+        timeline.nextKeyMomentPly().ifPresent(timeline::seek);
+        refreshTimeline();
+    }
+
+    private void showBestLine() {
+        timeline.showBestLine();
+        refreshTimeline();
+    }
+
+    private void stepBestLine(boolean forward) {
+        if (forward) timeline.nextBestLineStep();
+        else timeline.previousBestLineStep();
+        refreshTimeline();
+    }
+
+    private void selectPly(int ply) {
+        timeline.seek(ply);
+        refreshTimeline();
+    }
+
+    private void refreshTimeline() {
+        var selected = timeline.turn().orElse(null);
+        if (selected == null) {
+            selectedMove.setText(R.string.game_review_start_position);
+            selectedScore.setText(R.string.game_review_initial_position);
+        } else {
+            selectedMove.setText(context.getString(R.string.game_review_selected_move,
+                    moveLabel(selected), gradeLabel(selected.grade())));
+            String score = context.getString(R.string.game_review_selected_score,
+                    selected.bestPoints() / 10.0, selected.playedPoints() / 10.0, selected.depth());
+            if (selected.grade() == GameReview.Grade.BRILLIANT) {
+                score += " · " + context.getString(R.string.game_review_sacrifice, selected.sacrificeCp() / 100.0);
+            }
+            selectedScore.setText(score);
+        }
+        reviewBoard.show(timeline.position(), blackBelow, -1, List.of(), timeline.lastMove(), timeline.cue(), false,
+                R.id.game_review_selection);
+        previousMove.setEnabled(timeline.hasPrevious());
+        nextMove.setEnabled(timeline.hasNext());
+        nextKeyMoment.setEnabled(timeline.nextKeyMomentPly().isPresent());
+        previousLine.setEnabled(timeline.canStepBestLineBackward());
+        showLine.setEnabled(timeline.canShowBestLine());
+        showLine.setText(timeline.showingBestLine() ? R.string.game_review_restart_best : R.string.game_review_show_best);
+        nextLine.setEnabled(timeline.canStepBestLineForward());
+        String lineState = timeline.showingBestLine()
+                ? context.getString(R.string.game_review_line_step, timeline.bestLineStep(), timeline.bestLineLength())
+                : context.getString(R.string.game_review_line_ready, timeline.bestLineLength());
+        if (timeline.showingBestLine()) {
+            lineState += timeline.nextBestMove().map(move -> " · "
+                    + context.getString(R.string.game_review_line_next_move, notation.apply(move))).orElse("");
+        }
+        lineProgress.setText(lineState);
+        retry.setVisibility(selected != null && (mode == Mode.STUDY || selected.side() == humanSide) ? View.VISIBLE : View.GONE);
+        retry.setEnabled(selected != null);
+        if (selected == null) {
+            onBoard.setContentDescription(context.getString(R.string.game_review_show_start));
+        } else {
+            onBoard.setContentDescription(context.getString(R.string.game_review_on_board_move, moveLabel(selected)));
+        }
+        if (graph != null) graph.select(timeline.ply());
+        if (moveRows != null) moveRows.select(timeline.ply());
     }
 
     private TextView player(String name, Side side, GameReview.Player player) {
@@ -231,33 +423,6 @@ final class GameReviewDialog {
         return row;
     }
 
-    private void detail(GameReview.Turn turn) {
-        String summary = context.getString(R.string.game_review_move_detail,
-                gradeLabel(turn.grade()), turn.bestPoints() / 10.0, turn.playedPoints() / 10.0, turn.depth(),
-                line(turn.bestLine()), line(turn.playedLine()));
-        if (turn.grade() == GameReview.Grade.BRILLIANT) {
-            summary += "\n" + context.getString(R.string.game_review_sacrifice, turn.sacrificeCp() / 100.0);
-        }
-        var options = new AlertDialog.Builder(context).setTitle(moveLabel(turn)).setMessage(summary)
-                .setPositiveButton(R.string.game_review_on_board, (ignored, which) -> {
-                    dialog.dismiss();
-                    showPosition.accept(turn.ply());
-                }).setNeutralButton(R.string.game_review_close, null);
-        if (mode == Mode.STUDY || turn.side() == humanSide) {
-            options.setNegativeButton(R.string.game_review_retry, (ignored, which) -> {
-                dialog.dismiss();
-                continueFrom.accept(turn.ply() - 1);
-            });
-        }
-        options.show();
-    }
-
-    private String line(List<Move> moves) {
-        var line = new StringJoiner(" · ");
-        for (var move : moves) line.add(ChessActivity.compactNotation(move));
-        return line.toString();
-    }
-
     private String moveLabel(GameReview.Turn turn) {
         return (turn.ply() + 1) / 2 + (turn.side() == Side.WHITE ? ". " : "… ") + notation.apply(turn.played());
     }
@@ -297,8 +462,10 @@ final class GameReviewDialog {
 
     private final class MoveRows extends BaseAdapter {
         private final List<GameReview.Turn> turns;
+        private int selectedPly;
 
         private MoveRows(List<GameReview.Turn> turns) { this.turns = turns; }
+        private void select(int ply) { selectedPly = ply; notifyDataSetChanged(); }
         @Override public int getCount() { return turns.size(); }
         @Override public GameReview.Turn getItem(int index) { return turns.get(index); }
         @Override public long getItemId(int index) { return getItem(index).ply(); }
@@ -314,6 +481,9 @@ final class GameReviewDialog {
                 case MISTAKE, MISS, BLUNDER -> 0xffffb591;
                 default -> PRIMARY;
             });
+            label.setBackgroundColor(turn.ply() == selectedPly ? 0xff3d4933 : 0x00000000);
+            label.setContentDescription(context.getString(R.string.game_review_move_row,
+                    moveLabel(turn), gradeLabel(turn.grade()), turn.ply(), turns.size()));
             return label;
         }
     }
@@ -322,14 +492,20 @@ final class GameReviewDialog {
         private final GameReview result;
         private final IntConsumer select;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private int selected = 1;
+        private int selected;
 
         private EvaluationGraph(GameReview result, IntConsumer select) {
             super(context);
             this.result = result;
             this.select = select;
-            setContentDescription(context.getString(R.string.game_review_graph));
+            select(timeline.ply());
             setClickable(!result.turns().isEmpty());
+        }
+
+        private void select(int ply) {
+            selected = Math.max(0, Math.min(result.turns().size(), ply));
+            setContentDescription(context.getString(R.string.game_review_graph));
+            invalidate();
         }
 
         @Override protected void onDraw(Canvas canvas) {
@@ -345,6 +521,11 @@ final class GameReviewDialog {
             float x = inset;
             float y = inset + height * (1 - result.initialWhitePoints() / 1000f);
             int count = result.turns().size();
+            if (count == 0) {
+                paint.setColor(PRIMARY);
+                canvas.drawCircle(inset + width / 2, y, dp(5), paint);
+                return;
+            }
             for (var turn : result.turns()) {
                 float nextX = inset + width * turn.ply() / count;
                 float nextY = inset + height * (1 - turn.whitePoints() / 1000f);
@@ -352,12 +533,20 @@ final class GameReviewDialog {
                 x = nextX;
                 y = nextY;
             }
+            float selectedX = inset + width * selected / count;
+            float selectedY = inset + height * (1 - (selected == 0 ? result.initialWhitePoints()
+                    : result.turns().get(selected - 1).whitePoints()) / 1000f);
+            paint.setColor(PRIMARY);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(dp(2));
+            canvas.drawCircle(selectedX, selectedY, dp(5), paint);
+            paint.setStyle(Paint.Style.FILL);
         }
 
         @Override public boolean onTouchEvent(MotionEvent event) {
             if (isClickable() && event.getActionMasked() == MotionEvent.ACTION_UP && getWidth() > 0) {
                 int count = result.turns().size();
-                selected = Math.max(1, Math.min(count, Math.round(count * event.getX() / getWidth())));
+                selected = Math.max(0, Math.min(count, Math.round(count * event.getX() / getWidth())));
             }
             return super.onTouchEvent(event);
         }

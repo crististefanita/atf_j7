@@ -795,7 +795,7 @@ public final class ChessActivity extends BackNavigableActivity {
             if (!snapshot.analysisEnabled() || snapshot.ply() == 0) return;
             cancelBot();
             reviewDialog = GameReviewDialog.showLine(this, snapshot, bot, this::notation, GameReviewDialog.Mode.LIVE_MATCH,
-                    humanName(), botName(snapshot.setup().level()), this::reviewMatch, this::confirmContinuation, () -> {
+                    blackBelow, humanName(), botName(snapshot.setup().level()), this::reviewMatch, this::confirmContinuation, () -> {
                         reviewDialog = null;
                         scheduleBot();
                     });
@@ -804,7 +804,7 @@ public final class ChessActivity extends BackNavigableActivity {
         String id = archivedMatch == null ? store.matches().archivedId(matchSlot) : archivedMatch.id();
         boolean manualUsed = archivedMatch == null ? store.matches().matchManualUsed(matchSlot) : archivedMatch.manualUsed();
         if (completedReview == null) completedReview = store.matches().readReview(id, snapshot);
-        reviewDialog = GameReviewDialog.show(this, snapshot, completedReview, bot, this::notation, manualUsed, humanName(),
+        reviewDialog = GameReviewDialog.show(this, snapshot, completedReview, bot, this::notation, manualUsed, blackBelow, humanName(),
                 botName(match.setup().level()), result -> {
                     if (match == snapshot) completedReview = result;
                     if (store.matches().hasArchived(id) && !store.matches().saveReview(id, snapshot, result)) showSaveError();

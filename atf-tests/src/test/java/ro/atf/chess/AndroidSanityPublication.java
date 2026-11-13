@@ -85,8 +85,10 @@ class AndroidSanityPublication {
 
     @Test void publishGameReviewSanity() throws Exception {
         publishFocusedSanity("game-review", "Review a completed match and continue from an earlier move",
-                "Review the completed game, change the line and verify match actions", 15, List.of(
+                "Review a completed game, navigate key moments and replay the best line", 23, List.of(
                         new Frame("game-review.png", "Game review summary"),
+                        new Frame("game-review-navigation.png", "Selected move and synchronized board"),
+                        new Frame("game-review-line.png", "Recommended line marked on the board"),
                         new Frame("game-review-comparison.png", "Move counts by type · player and AI"),
                         new Frame("game-review-actions.png", "In-game options · offer draw and resign")));
     }

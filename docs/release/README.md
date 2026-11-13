@@ -38,10 +38,9 @@ Poarta `signing-continuity` respinge diferența în modul `UPGRADE`; numai
 [Testele negative](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
 verifică poarta.
 
-**Limită a checkoutului:** scripturile cu referința fixă la 0.11.2 nu sunt
-autoritatea pentru certificatul curent. Înaintea următoarei calificări,
-reconciliați-le cu catalogul și recepția corespunzătoare.
-[Criteriul de închidere](../feedback/README.md).
+Fără un baseline explicit, `verify-signing-continuity.ps1` caută dovada
+certificatului în dosarul ediției curente. La recuperarea unei chei absente,
+inițializarea are încă o referință fixă. [Feedback de semnare](../feedback/README.md)
 
 În copia TMP, după execuția Maven și înainte de semnare:
 

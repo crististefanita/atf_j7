@@ -147,7 +147,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
     switch ($Phase) {
         'match-slots' { $frames += 'saved-games' }
         'match-archive' { $frames += 'finished-games' }
-        'game-review' { $frames += 'game-review-comparison', 'game-review-actions' }
+        'game-review' { $frames += 'game-review-navigation', 'game-review-line', 'game-review-comparison', 'game-review-actions' }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
@@ -206,7 +206,7 @@ try {
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
     if ($GameReviewOnly) {
-        Invoke-FocusedSanity $run 'game-review' 15
+        Invoke-FocusedSanity $run 'game-review' 23
         return
     }
     if ($ManualAnalysisOnly) {
@@ -311,7 +311,7 @@ try {
         Invoke-Device @('shell','am','force-stop',$app)
         $reviewDirectory = Join-Path $run 'game-review'
         $null = New-Item -ItemType Directory $reviewDirectory
-        Invoke-FocusedSanity $reviewDirectory 'game-review' 15
+        Invoke-FocusedSanity $reviewDirectory 'game-review' 23
     }
     if ((Test-Path -LiteralPath $settled) -and
             (Select-String -Quiet -LiteralPath $settled -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {

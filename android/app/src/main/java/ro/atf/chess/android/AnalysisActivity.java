@@ -193,7 +193,8 @@ public final class AnalysisActivity extends Activity {
             String id = intent.getStringExtra(ARCHIVE_ID);
             var cached = store.matches().readReview(id, sourceMatch);
             reviewDialog = GameReviewDialog.show(this, sourceMatch, cached, reviewWorker, this::notation,
-                    intent.getBooleanExtra(MANUAL_MOVES, false), intent.getStringExtra(HUMAN_NAME), intent.getStringExtra(BOT_NAME),
+                    intent.getBooleanExtra(MANUAL_MOVES, false), blackBelow,
+                    intent.getStringExtra(HUMAN_NAME), intent.getStringExtra(BOT_NAME),
                     review -> {
                         if (store.matches().hasArchived(id) && !store.matches().saveReview(id, sourceMatch, review)) {
                             Toast.makeText(this, R.string.progress_save_failed, Toast.LENGTH_SHORT).show();
@@ -201,7 +202,7 @@ public final class AnalysisActivity extends Activity {
                     }, seek, resume, onClose);
             return;
         }
-        reviewDialog = GameReviewDialog.showLine(this, snapshot.line(), reviewWorker, this::notation, GameReviewDialog.Mode.STUDY,
+        reviewDialog = GameReviewDialog.showLine(this, snapshot.line(), reviewWorker, this::notation, GameReviewDialog.Mode.STUDY, blackBelow,
                 getString(R.string.white), getString(R.string.black), seek, resume, onClose);
     }
 

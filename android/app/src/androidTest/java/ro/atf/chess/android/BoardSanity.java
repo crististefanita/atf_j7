@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.function.Predicate;
 import ro.atf.chess.BoardSquare;
 import ro.atf.chess.ChessMatch;
+import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.MatchSetup;
@@ -367,15 +368,58 @@ public final class BoardSanity extends Instrumentation {
         graphNode = dialogNode(graph, AccessibilityNodeInfo::isClickable);
         if (graphNode == null) throw new AssertionError("The evaluation graph did not return after viewing the comparison");
         graphNode.getBoundsInScreen(graphBounds);
-        float blunderPosition = (branchPly + 1f) / finished.ply();
-        tapAt(graphBounds.left + graphBounds.width() * blunderPosition, graphBounds.exactCenterY());
+        float earlierPosition = branchPly / (float) finished.ply();
+        tapAt(graphBounds.left + graphBounds.width() * earlierPosition, graphBounds.exactCenterY());
+        review = store.matches().readReview(store.matches().archivedId(store.matches().activeMatchSlot()), finished);
+        if (review == null) throw new AssertionError("The completed game review was not saved");
+        var selectedEarlier = review.turns().get(branchPly - 1);
+        String selectedEarlierText = activity.getString(R.string.game_review_selected_move,
+                moveLabel(selectedEarlier), gradeLabel(activity, selectedEarlier.grade()));
+        compare("Selecting a graph point synchronizes the move cursor and classification", true,
+                dialogNode(selectedEarlierText) != null);
+        clickDialog(activity.getString(R.string.game_review_next_key));
+        var blunder = review.turns().get(branchPly);
+        String selectedBlunderText = activity.getString(R.string.game_review_selected_move,
+                moveLabel(blunder), gradeLabel(activity, blunder.grade()));
+        String g4Pawn = pieceDescription(activity, ChessPosition.Side.WHITE, ChessPosition.Kind.PAWN, "g4");
+        compare("Next key moment synchronizes the blunder, score context and played board position", true,
+                dialogNode(selectedBlunderText) != null && dialogNode(g4Pawn) != null);
+        var reviewBoard = dialogNode(activity.getString(R.string.game_review_board));
+        if (reviewBoard == null) throw new AssertionError("The synchronized review board is missing");
+        var reviewBoardBounds = new Rect();
+        reviewBoard.getBoundsInScreen(reviewBoardBounds);
+        captureFrame("game-review-navigation", "The selected blunder and synchronized review board are visible",
+                image -> hasColor(image, reviewBoardBounds, 0xff769556, 20));
+
+        clickDialog(activity.getString(R.string.game_review_show_best));
+        String firstStep = activity.getString(R.string.game_review_line_step, 0, blunder.bestLine().size());
+        var recommended = blunder.bestLine().get(0);
+        String beforeDestination = pieceDescription(activity, finished.positionAt(branchPly).pieceAt(recommended.to()),
+                recommended.to());
+        compare("Show best starts from before the played move and marks step zero", true,
+                dialogNode(firstStep) != null && (beforeDestination == null || dialogNode(beforeDestination) == null));
+        captureFrame("game-review-line", "The recommended first move is marked on the review board",
+                image -> hasColor(image, reviewBoardBounds, 0xff57e0b4, 20));
+        clickDialog(activity.getString(R.string.game_review_line_next));
+        var afterRecommended = finished.positionAt(branchPly).play(recommended);
+        String destinationPiece = pieceDescription(activity, afterRecommended.pieceAt(recommended.to()), recommended.to());
+        compare("Forward PV step applies the legal recommendation to the preview board", true,
+                dialogNode(activity.getString(R.string.game_review_line_step, 1, blunder.bestLine().size())) != null
+                        && destinationPiece != null && dialogNode(destinationPiece) != null);
+        clickDialog(activity.getString(R.string.game_review_line_previous));
+        compare("Backward PV step restores the pre-move position without changing the saved game", true,
+                dialogNode(firstStep) != null && (beforeDestination == null || dialogNode(beforeDestination) == null)
+                        && finished.checkpoint().equals(store.matches().readMatch().checkpoint()));
+
         String retry = activity.getString(R.string.game_review_retry);
-        compare("Selecting the penultimate ply opens the blunder and the retry action", true,
-                dialogNode(activity.getString(R.string.game_review_blunder)) != null && dialogNode(retry) != null);
+        compare("Retry is available for the player's selected move", true, dialogNode(retry) != null);
         clickDialog(retry);
         clickDialog(activity.getString(android.R.string.cancel));
-        compare("Cancelling the suggested retry preserves the original saved result", finished.checkpoint(), store.matches().readMatch().checkpoint());
-        tap(activity.findViewById(R.id.match_history_previous));
+        compare("Cancelling retry preserves the original archived result", finished.checkpoint(), store.matches().readMatch().checkpoint());
+        clickDialog(activity.getString(R.string.game_review_on_board));
+        compare("Opening the selected move in the match keeps the archived game intact", true,
+                status.getText().toString().contains(activity.getString(R.string.match_continue_from_here))
+                        && finished.checkpoint().equals(store.matches().readMatch().checkpoint()));
         tap(activity.findViewById(R.id.match_history_previous));
         compare("History keeps the board anchored and offers continuation from the selected position", true,
                 bounds.equals(screenBounds(board)) && status.getText().toString().contains(activity.getString(R.string.match_continue_from_here))
@@ -404,6 +448,37 @@ public final class BoardSanity extends Instrumentation {
         if (rating.low() == null) return false;
         String interval = "≈ " + rating.elo() + " (" + rating.low() + "–" + rating.high() + ")";
         return dialogNode(activity.getString(role, player.accuracy().getAsInt() + "%", interval)) != null;
+    }
+
+    private String moveLabel(ro.atf.chess.GameReview.Turn turn) {
+        return (turn.ply() + 1) / 2 + (turn.side() == ChessPosition.Side.WHITE ? ". " : "… ")
+                + ChessActivity.compactNotation(turn.played());
+    }
+
+    private String gradeLabel(Activity activity, ro.atf.chess.GameReview.Grade grade) {
+        return activity.getString(switch (grade) {
+            case BOOK -> R.string.game_review_book;
+            case FORCED -> R.string.game_review_forced;
+            case BRILLIANT -> R.string.game_review_brilliant;
+            case GREAT -> R.string.game_review_great;
+            case BEST -> R.string.game_review_best;
+            case EXCELLENT -> R.string.game_review_excellent;
+            case GOOD -> R.string.game_review_good;
+            case INACCURACY -> R.string.game_review_inaccuracy;
+            case MISTAKE -> R.string.game_review_mistake;
+            case MISS -> R.string.game_review_miss;
+            case BLUNDER -> R.string.game_review_blunder;
+        });
+    }
+
+    private String pieceDescription(Activity activity, ChessPosition.Piece piece, int square) {
+        if (piece == null) return null;
+        return pieceDescription(activity, piece.side(), piece.kind(), BoardSquare.name(square));
+    }
+
+    private String pieceDescription(Activity activity, ChessPosition.Side side, ChessPosition.Kind kind, String square) {
+        return activity.getString(R.string.piece_square, square,
+                activity.getString(BoardView.sideLabel(side)), activity.getString(BoardView.kindLabel(kind)));
     }
 
     private void checkMatchActions(ChessProgressStore store) throws Exception {
