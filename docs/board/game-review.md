@@ -5,21 +5,30 @@
 ## De la partidă la raport
 
 ```mermaid
-flowchart TD
-    A["Partidă încheiată"] --> B["📊 Analiza partidei"]
-    K["Partidă în curs sau linie de studiu"] --> L["Analiză AI bifată și cel puțin o mutare"]
-    L --> E
-    B --> C{"Analiză disponibilă pentru această salvare?"}
+flowchart LR
+    A["Partidă încheiată"] -->|deschide| B["Analiza partidei"]
+    K["Partidă sau studiu"] -->|verifică| L["Analiză AI activă"]
+    L -->|pornește| E
+    B -->|caută| C{"Raport salvat?"}
     C -->|Da| D["Afișează raportul salvat"]
     C -->|Nu| E["Reia mutările în ordine și identifică deschiderea ECO"]
-    E --> F["Compară recomandarea și mutarea jucată pentru fiecare poziție"]
-    F --> G["Calculează graficul, categoriile și precizia"]
+    E -->|poziții| F["Compară mutările"]
+    F -->|scoruri| G["Grafic și precizie"]
     E -->|"Partidă încheiată eligibilă"| H["Estimează Elo din rezultatul partidei și reperul AI"]
-    G --> I["Raport complet"]
-    H --> I
-    I --> J["Salvează analiza dacă partida este încă în arhivă"]
-    I --> D
+    G -->|completează| I["Raport complet"]
+    H -->|adaugă Elo| I
+    I -->|persistă| J["Salvează în arhivă"]
+    I -->|afișează| D
 ```
+
+<details>
+<summary>Legendă — când se calculează și se salvează raportul</summary>
+
+- Partida în curs și studiul cer analiza activă și cel puțin o mutare.
+- Raportul calculează categoriile și precizia. Elo se adaugă pentru partida
+  încheiată eligibilă, iar salvarea cere o intrare prezentă în arhivă.
+
+</details>
 
 Indexul ECO identifică ultima poziție denumită, inclusiv dacă poziția a fost atinsă prin transpoziție. Separat, marchează prefixul de mutări care urmează efectiv o linie de carte. O mutare din acel prefix primește categoria **De carte** doar dacă pierde sub 100‰ față de recomandare. [Indexul ECO](../../chess-core/src/main/java/ro/atf/chess/OpeningIndex.java)
 
@@ -29,19 +38,27 @@ O semimutare este mutarea unei singure culori. Înaintea fiecăreia, motorul rec
 
 ```mermaid
 flowchart LR
-    P["Poziție înaintea mutării și istoric"] --> Q["Căutare la adâncime comună"]
-    R["Replică verificată la poziția exactă"] --> Q
-    Q --> B["Scor recomandat"]
-    Q --> M["Scor mutare jucată"]
-    B --> L["Pierdere în miimi"]
-    M --> L
-    L --> C["Categorie"]
-    Y["Praguri classification din game-review.yaml"] --> C
-    L --> A["Precizie"]
+    P["Poziție și istoric"] -->|alimentează| Q["Adâncime comună"]
+    R["Replică verificată"] -->|intră în| Q
+    Q -->|evaluează| B["Scor recomandat"]
+    Q -->|evaluează| M["Scor jucat"]
+    B -->|compară| L["Pierdere în miimi"]
+    M -->|compară| L
+    L -->|clasifică| C["Categorie"]
+    Y["Praguri YAML"] -->|delimitează| C
+    L -->|agregă| A["Precizie"]
     C -->|"Exclude cartea și mutarea forțată"| A
-    M --> W["Conversie la perspectiva albului"]
-    W --> G["Punct pe grafic"]
+    M -->|convertește| W["Perspectiva albului"]
+    W -->|proiectează| G["Punct pe grafic"]
 ```
+
+<details>
+<summary>Legendă — traseul scorurilor</summary>
+
+- Comparația folosește adâncimea încheiată pentru ambele mutări. Graficul
+  exprimă fiecare scor jucat din perspectiva albului.
+
+</details>
 
 Scorul intern se raportează la culoarea care mută. Motorul evaluează pozițiile obișnuite în centipioni, iar maturile demonstrabile primesc scoruri extreme. Analiza transformă scorul pe scara 0–1.000, apoi compară cele două valori.
 
@@ -80,12 +97,21 @@ Cu două mutări eligibile care pierd 231‰ și 50‰, precizia este **86%** du
 
 ```mermaid
 flowchart LR
-    A["Reperul profilului AI din game-review.yaml"] --> E["Estimare Elo pentru partidă"]
-    B["Rezultatul din perspectiva jucătorului"] --> E
-    C["Minimum 10 mutări cu alegere"] --> E
-    E --> D["Valoare centrală și interval"]
-    H["Jucătorul a mutat pentru AI"] --> F["Afișează doar precizia și categoriile"]
+    A["Reper AI"] -->|ancorează| E["Estimare Elo"]
+    B["Rezultatul partidei"] -->|informează| E
+    C["Minimum 10 decizii"] -->|permite| E
+    E -->|produce| D["Valoare și interval"]
+    H["Mutări pentru AI"] -->|limitează| F["Precizie și categorii"]
 ```
+
+<details>
+<summary>Legendă — eligibilitatea estimării Elo</summary>
+
+- Reperul și rezultatul produc estimarea dacă există suficiente mutări cu
+  alegere. Intervenția jucătorului pentru AI limitează raportul la datele
+  poziționale.
+
+</details>
 
 Elo estimat folosește rezultatul și reperul profilului AI. Pentru jucător, `s` este 1 la victorie, 0,5 la remiză și 0 la înfrângere. Formula se aplică după minimum zece mutări cu alegere.
 
@@ -116,19 +142,27 @@ Numele deschiderii identificate apare la intrare. Prima navigare sau activarea v
 
 ```mermaid
 flowchart LR
-    L["Listă de mutări"] --> C["GameReviewTimeline · cursor"]
-    G["Punct selectat pe grafic"] --> C
-    N["Săgeți și moment-cheie"] --> C
-    C --> B["Poziție pe tablă"]
-    C --> S["Scor, notație și clasificare"]
-    C --> M["Markerul cursorului pe grafic"]
+    L["Listă de mutări"] -->|selectează| C["Cursor analiză"]
+    G["Punct pe grafic"] -->|selectează| C
+    N["Săgeți și salt"] -->|mută| C
+    C -->|sincronizează| B["Poziție pe tablă"]
+    C -->|sincronizează| S["Scor și categorie"]
+    C -->|poziționează| M["Marcaj pe grafic"]
     C -->|"De ce?"| E["Motiv bazat pe linie sau pe scor"]
-    E --> R["Jucată sau Recomandată"]
+    E -->|deschide| R["Linii comparate"]
     C -->|"Bec"| R
     R -->|"Săgeți"| P["Parcurge linia din poziția comună"]
     P -->|"Aceeași linie selectată din nou"| C
-    P --> A["Marcaj separat pentru redeschidere"]
+    P -->|salvează| A["Marcaj de reluare"]
 ```
+
+<details>
+<summary>Legendă — cursorul și liniile de analiză</summary>
+
+- Lista, graficul și săgețile trimit selecția către același cursor.
+- Liniile păstrează mutarea de origine și pasul ales pentru redeschidere.
+
+</details>
 
 Becul deschide linia recomandată și indică piesa și destinația următoarei mutări. **De ce?** arată motivul și oferă acces la **Jucată** și **Recomandată**. Ambele pornesc din aceeași poziție, înaintea mutării selectate. În **Jucată**, prima mutare este cea înregistrată în partidă. Continuarea arată replicile calculate de motor. Istoricul păstrează replicile efectiv jucate. Săgețile parcurg pașii liniei, iar eticheta accesibilă anunță linia și pasul. Apăsarea din nou a liniei active, selecția din listă sau grafic și saltul la un moment-cheie readuc tabla în istoricul partidei.
 

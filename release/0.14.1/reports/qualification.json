@@ -1,0 +1,43 @@
+{
+  "version": "0.14.1",
+  "versionCode": 28,
+  "sourceCommit": "8f7c7c687a552c4bda4ad7fe29a900bcb87a4b89",
+  "apkSha256": "8ad3058bb4e7dba44487b327c0149b6a76b58e79d1142a525514158194d2a422",
+  "apkBytes": 1186310,
+  "qualificationGate": "PASS",
+  "signingCertificateSha256": "4bc8b9639475dbf550b066f74a8493d20c713aed77388d52f7526b227051d247",
+  "componentExtentSha256": "b11b61650b7e917b4c30a458838da9b8c3d70c9c7864fcc3a08784b1169bbf93",
+  "componentTests": 214,
+  "jvmTestsPassed": 282,
+  "jvmTestsSkipped": 10,
+  "jvmInputsCommit": "8f7c7c687a552c4bda4ad7fe29a900bcb87a4b89",
+  "qualificationRunId": "e10e9edddbfa443db1ca64dadbbb8ee4",
+  "android": {
+    "game-review": {
+      "sourceCommit": "8f7c7c687a552c4bda4ad7fe29a900bcb87a4b89",
+      "nativeAssertions": 30,
+      "extentSha256": "6bc7d14f94e2e9a2c99b31c13a40eba570ac63c8fd8fc510ee577d394b2cd95d",
+      "report": "android-game-review.html",
+      "execution": "game-review-execution.json"
+    },
+    "puzzle-danger": {
+      "sourceCommit": "8f7c7c687a552c4bda4ad7fe29a900bcb87a4b89",
+      "nativeAssertions": 7,
+      "extentSha256": "d3a21c2bfd09f3bb21bca0b48387896cf4ea9ef70096a5a3fd6dceca415f32dd",
+      "report": "android-puzzle-danger.html",
+      "execution": "puzzle-danger-execution.json"
+    },
+    "puzzle-mate-replay": {
+      "sourceCommit": "8f7c7c687a552c4bda4ad7fe29a900bcb87a4b89",
+      "nativeAssertions": 5,
+      "extentSha256": "c60b015185f4064d5a78d699641e696b75570523596b88bf8563b59f05142d2d",
+      "report": "android-puzzle-mate-replay.html",
+      "execution": "puzzle-mate-replay-execution.json"
+    }
+  },
+  "lint": "PASS",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "alignment": "PASS",
+  "observedUtc": "2026-11-14T14:51:22.3269682Z"
+}

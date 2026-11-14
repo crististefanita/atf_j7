@@ -69,6 +69,30 @@ class DocumentationGovernanceTest {
         check.same("Local links resolve in the guides, both retained editions and feedback", List.of(), failures);
     }
 
+    @Test void authoredGuidesKeepPortableMarkdownAndExplainedDiagrams(Checks check) throws IOException {
+        Path root = ProjectRoot.locate();
+        var documents = new ArrayList<>(List.of(root.resolve("README.md")));
+        for (String directory : List.of("docs", "lib")) {
+            try (var paths = Files.walk(root.resolve(directory))) {
+                paths.filter(path -> path.toString().endsWith(".md")).sorted().forEach(documents::add);
+            }
+        }
+        var failures = new ArrayList<String>();
+        for (Path document : documents) {
+            for (String violation : MarkdownVisualContract.inspect(Files.readAllLines(document))) {
+                failures.add(root.relativize(document) + ":" + violation);
+            }
+        }
+        check.same("Authored guides use portable Markdown and label and explain their diagrams", List.of(), failures);
+    }
+
+    @Test void rejectsUnlabelledDiagramAndUntypedExample(Checks check) {
+        check.same("A diagram without a relationship label or adjacent legend fails and an untyped block fails",
+                List.of("2 diagram edge needs a label", "5 diagram needs an adjacent collapsed legend", "7 fence needs a language"),
+                MarkdownVisualContract.inspect(List.of("# Guide", "```mermaid", "flowchart LR", "    A --> B", "```", "",
+                        "```", "ignored --> example", "```")));
+    }
+
     @Test void mainReadmeLinksOnlyToAReleaseWithCompletePublicationEvidence(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         List<String> links = ReleaseEvidence.gameLinks(Files.readString(root.resolve("README.md")));

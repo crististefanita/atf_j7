@@ -75,7 +75,11 @@ java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate qualification
 `why` și `why-restore`. Arhivați în dosarul ediției HTML-urile și amprentele
 recepțiilor; păstrați XML-urile brute și capturile deja încorporate în TMP.
 
-Pentru modificările la marcajul de pericol din Probleme, rulați `-Distribution -PuzzleDangerOnly -SourceCommit <sha>` pe același APK semnat. Publicați Extent din `puzzle-danger.txt` și păstrați recepția împreună cu raportul. [Proba Probleme](../testing/README.md#progresul-problemelor)
+Pentru modificările la tabla sau marcajul de pericol din Probleme, rulați
+`-Distribution -PuzzleDangerOnly -SourceCommit <sha>` pe APK-ul semnat.
+La schimbări de layout, rulați și `-Distribution -PuzzleMateReplayOnly -SourceCommit <sha>`
+pentru profilul compact și font mărit. Publicați Extent din cele două recepții
+și confruntați commitul și hash-ul APK-ului. [Probele Probleme](../testing/README.md#progresul-problemelor)
 
 Pentru schimbările din Deschideri, adăugați `-IncludeOpenings` la sanity-ul semnat. Runnerul execută proba pe același APK după verificarea reluării partidei. Publicați Extent din recepția `openings/openings.txt` și folosiți același commit și hash APK la calificarea ambelor rapoarte. [Proba Deschideri](../testing/README.md#deschideri)
 

@@ -6,8 +6,8 @@ bibliotecile ATF pentru verificare și rapoarte Extent.
 
 ## Jocul
 
-- [Chess Lab 0.14.0 · ultima ediție publicată](https://github.com/crististefanita/atf_j7/releases/tag/v0.14.0)
-- [Descarcă APK Chess Lab 0.14.0](https://github.com/crististefanita/atf_j7/releases/download/v0.14.0/ChessLab-0.14.0.apk)
+- [Chess Lab 0.14.1 · ultima ediție publicată](https://github.com/crististefanita/atf_j7/releases/tag/v0.14.1)
+- [Descarcă APK Chess Lab 0.14.1](https://github.com/crististefanita/atf_j7/releases/download/v0.14.1/ChessLab-0.14.1.apk)
 
 ## Arhitectura J7
 

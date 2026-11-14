@@ -37,7 +37,7 @@ mvn test '-Dtest=DocumentationGovernanceTest,ReleaseGovernanceTest' '-Dchess.ext
 ```
 
 `DocumentationGovernanceTest` verifică harta README-ului, navigarea locală,
-destinațiile ediției curente și structura feedback-ului.
+destinațiile ediției curente, structura feedback-ului și regulile Markdown pentru ghiduri și diagrame.
 `ReleaseGovernanceTest` verifică regulile de publicare și traseele RAG.
 
 La revizie, comparați afirmațiile cu sursele și declarațiile de build.

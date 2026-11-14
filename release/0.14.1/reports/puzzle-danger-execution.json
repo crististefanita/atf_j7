@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "scope": "puzzle-danger",
+  "device": "emulator-5560",
+  "api": "28",
+  "apkSha256": "8ad3058bb4e7dba44487b327c0149b6a76b58e79d1142a525514158194d2a422",
+  "sourceCommit": "8f7c7c687a552c4bda4ad7fe29a900bcb87a4b89",
+  "variant": "release",
+  "assertions": 7,
+  "receiptSha256": "1f4a8471819eb8740d0802924b71c08bb31e8892ecb4ac41480ea4f012247c84",
+  "captureSha256": {
+    "puzzle-danger-mate.png": "8697703e9a0eb14703c90ec4c0429d91c6a87e547f43c08d0c053477b4556dee",
+    "puzzle-danger-capture.png": "f2c36bff714cae109d7af21c4becc4d3dba04d2ece2d817be1fff3db48d7c960"
+  },
+  "runId": "8feb42836c1e4f60a85926c0512a07da",
+  "extentSha256": "d3a21c2bfd09f3bb21bca0b48387896cf4ea9ef70096a5a3fd6dceca415f32dd"
+}

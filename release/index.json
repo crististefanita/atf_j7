@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "repository": "crististefanita/atf_j7",
-  "currentVersion": "0.14.0",
-  "previousVersion": "0.13.7",
+  "currentVersion": "0.14.1",
+  "previousVersion": "0.14.0",
   "version": "0.14.1",
   "versionCode": 28,
   "versions": [
-    "0.14.0",
-    "0.13.7"
+    "0.14.1",
+    "0.14.0"
   ]
 }
