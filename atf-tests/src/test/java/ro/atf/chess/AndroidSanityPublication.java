@@ -360,8 +360,9 @@ class AndroidSanityPublication {
         Path receipt = Path.of(System.getProperty("chess.android.receipt"));
         var mate = "Requesting danger marks the mated king and announces its square";
         var capture = "The retained capture marks h1 with five pawn units after any reply";
-        var run = boundRun("puzzle-danger", "THEN the mark follows only the requested evidence", receipt, 6,
-                List.of(mate, "Rewinding clears the marker, reason and control",
+        var run = boundRun("puzzle-danger", "THEN the board uses the available width and the mark follows only the requested evidence", receipt, 7,
+                List.of("Puzzle and replay use the full content width on the same screen as a normal game",
+                        mate, "Rewinding clears the marker, reason and control",
                         "Returning to mate keeps the marker off until requested again",
                         "Requesting and navigating danger preserves the solved ID and award", capture,
                         "Tapping the control again hides the capture reason"), "puzzle danger",

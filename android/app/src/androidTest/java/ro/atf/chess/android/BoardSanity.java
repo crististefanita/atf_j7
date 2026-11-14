@@ -1318,12 +1318,27 @@ public final class BoardSanity extends Instrumentation {
         var mate = QuestCatalog.load().get(0);
         var mateOrder = List.of(mate.id());
         var activity = launch();
+        openGameSetup(activity);
+        click(activity, R.id.match_start);
+        var matchBoard = findBoard(viewsOf(activity));
+        int matchWidth = matchBoard.getWidth();
+        var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
+        int contentWidth = root.getWidth() - root.getPaddingLeft() - root.getPaddingRight();
+        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+        waitForIdleSync();
         openPuzzles(activity);
         openChapter(activity, R.string.open_mate_one);
-        playMove(findBoard(viewsOf(activity)), mate.matingMove());
+        var puzzleBoard = findBoard(viewsOf(activity));
+        int puzzleWidth = puzzleBoard.getWidth();
+        playMove(puzzleBoard, mate.matingMove());
         var progress = store.read(mateOrder);
         var rewards = store.readRewards();
         tap(guidance(activity, R.string.why_mate));
+        var bounds = nodeBounds(reviewNode(R.id.quest_payoff_board, 2500));
+        record BoardWidths(int match, int puzzle, int replayWidth, int replayHeight) { }
+        compare("Puzzle and replay use the full content width on the same screen as a normal game",
+                new BoardWidths(matchWidth, Math.max(matchWidth, contentWidth), contentWidth, contentWidth),
+                new BoardWidths(matchWidth, puzzleWidth, bounds.width(), bounds.height()));
         int king = mate.explanation().king();
         var danger = reviewNode(R.id.quest_payoff_danger, 2500);
         boolean startsUnmarked = danger != null && !danger.isSelected() && visibleReviewNode(R.id.quest_payoff_danger_reason) == null;
@@ -2115,7 +2130,7 @@ public final class BoardSanity extends Instrumentation {
                 fits[0] = board.getWidth() > 0 && board.getWidth() < originalBoard && board.getWidth() == board.getHeight()
                         && labelsTouchBoard(board) && fullyVisible(board) && controls.stream().allMatch(BoardSanity::fullyVisible)
                         && caption.getLayout() != null && caption.getLayout().getEllipsisCount(caption.getLineCount() - 1) == 0
-                        && ((View) board.getParent()).getBottom() <= ((View) controls.get(0).getParent()).getTop();
+                        && screenBounds((View) board.getParent()).bottom <= screenBounds((View) controls.get(0).getParent()).top;
             } finally {
                 measureScreen(root, original, original.height());
             }

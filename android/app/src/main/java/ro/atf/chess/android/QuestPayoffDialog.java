@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowInsets;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -56,26 +57,31 @@ final class QuestPayoffDialog {
         this.studyingDefense = payoff.defenseStudy() != null;
         this.mateExplanation = mateExplanation;
         this.blackBelow = blackBelow;
-        var dialog = new Dialog(context);
+        var dialog = new Dialog(context, android.R.style.Theme_Material_NoActionBar);
         var screen = new LinearLayout(context);
         screen.setId(R.id.quest_payoff_replay);
         screen.setOrientation(LinearLayout.VERTICAL);
         screen.setBackgroundColor(BACKGROUND);
-        screen.setPadding(dp(12), dp(8), dp(12), dp(8));
+        if (Build.VERSION.SDK_INT >= 35) {
+            screen.setOnApplyWindowInsetsListener((view, insets) -> {
+                var bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return insets;
+            });
+        }
         var title = text(titleText, 19);
+        BoardCaption.reserve(title, 1);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) title.setAccessibilityHeading(true);
         screen.addView(title);
-        var panel = new LinearLayout(context);
-        panel.setGravity(Gravity.CENTER);
         board = new BoardView(context, ignored -> { });
         board.setId(R.id.quest_payoff_board);
         board.setContentDescription(context.getString(R.string.game_review_board));
-        panel.addView(board, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        screen.addView(panel, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 2));
         var details = new ScrollView(context);
         details.setId(R.id.quest_payoff_details);
+        details.setScrollbarFadingEnabled(false);
         var captions = new LinearLayout(context);
         captions.setOrientation(LinearLayout.VERTICAL);
+        captions.setPadding(dp(12), 0, dp(12), 0);
         move = text("", 16);
         move.setId(R.id.quest_payoff_move);
         move.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -98,8 +104,11 @@ final class QuestPayoffDialog {
             if (payoff.lesson() != null) captions.addView(text(context.getString(lessonLabel(payoff.lesson())), 15));
         }
         details.addView(captions);
-        screen.addView(details, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 1));
+        int movePreview = move.getLineHeight() * 2 + move.getPaddingTop() + move.getPaddingBottom();
+        screen.addView(new BoardDetails(new BoardPanel(context, null, board, null, null), details, movePreview),
+                new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 1));
         var buttons = new LinearLayout(context);
+        buttons.setPadding(dp(8), 0, dp(8), 0);
         previous = button(R.string.game_review_previous);
         previous.setId(R.id.quest_payoff_previous);
         previous.setContentDescription(context.getString(R.string.opening_previous_move));

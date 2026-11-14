@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.PopupMenu;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -108,6 +109,7 @@ public final class ChessActivity extends BackNavigableActivity {
     private TextView streakBadge;
     private boolean announceMilestone;
     private ProgressBar progressTrack;
+    private ScrollView questDetails;
     private ImageButton guidance;
     private TextView guidanceLabel;
     private QuestHint hint = QuestHint.NONE;
@@ -331,7 +333,11 @@ public final class ChessActivity extends BackNavigableActivity {
         LinearLayout header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(14), 0, dp(8), 0);
-        TextView title = text(R.string.app_name, 21, PRIMARY);
+        TextView title = text(R.string.app_name, inMatch ? 21 : 14, PRIMARY);
+        if (!inMatch) {
+            recentMove = title;
+            BoardCaption.reserve(recentMove, 2);
+        }
         header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
         Button flip = new Button(this);
         flip.setText(R.string.flip);
@@ -349,11 +355,11 @@ public final class ChessActivity extends BackNavigableActivity {
         menu.setOnClickListener(view -> leaveBoard());
         header.addView(menu);
         screen.addView(header);
-        recentMove = text(R.string.mate_objective, 14, MUTED);
-        recentMove.setGravity(Gravity.CENTER);
-        BoardCaption.reserve(recentMove, 1);
-        screen.addView(recentMove);
         if (inMatch) {
+            recentMove = text(R.string.mate_objective, 14, MUTED);
+            recentMove.setGravity(Gravity.CENTER);
+            BoardCaption.reserve(recentMove, 1);
+            screen.addView(recentMove);
             manualAiCheck = new CheckBox(this);
             manualAiCheck.setId(R.id.match_manual_ai);
             manualAiCheck.setText(R.string.match_manual_ai);
@@ -362,7 +368,6 @@ public final class ChessActivity extends BackNavigableActivity {
             manualAiCheck.setOnClickListener(view -> setManualAi(manualAiCheck.isChecked()));
             screen.addView(manualAiCheck);
         }
-        if (!inMatch) screen.addView(progressPanel());
         topPlayer = playerLabel();
         bottomPlayer = playerLabel();
         board = new BoardView(this, this::tap);
@@ -379,8 +384,8 @@ public final class ChessActivity extends BackNavigableActivity {
             topSeat = matchSeat(topPlayer, topCaptures);
             bottomSeat = matchSeat(bottomPlayer, bottomCaptures);
         }
-        screen.addView(new BoardPanel(this, topSeat, board, bottomSeat, matchAnalysis == null ? null : matchAnalysis.evaluationBar()),
-                new LinearLayout.LayoutParams(-1, 0, 1));
+        var panel = new BoardPanel(this, topSeat, board, bottomSeat, matchAnalysis == null ? null : matchAnalysis.evaluationBar());
+        if (inMatch) screen.addView(panel, new LinearLayout.LayoutParams(-1, 0, 1));
         status = text(R.string.mate_objective, 16, PRIMARY);
         if (inMatch) status.setId(R.id.match_status);
         status.setGravity(Gravity.CENTER);
@@ -400,7 +405,17 @@ public final class ChessActivity extends BackNavigableActivity {
             matchActions.setOnClickListener(this::showMatchActions);
             statusRow.addView(matchActions, new LinearLayout.LayoutParams(dp(48), dp(48)));
             screen.addView(statusRow);
-        } else screen.addView(status);
+        } else {
+            questDetails = new ScrollView(this);
+            questDetails.setScrollbarFadingEnabled(false);
+            var captions = new LinearLayout(this);
+            captions.setOrientation(LinearLayout.VERTICAL);
+            captions.addView(status);
+            captions.addView(progressPanel());
+            questDetails.addView(captions);
+            int statusPreview = status.getLineHeight() * 2 + status.getPaddingTop() + status.getPaddingBottom();
+            screen.addView(new BoardDetails(panel, questDetails, statusPreview), new LinearLayout.LayoutParams(-1, 0, 1));
+        }
         if (inMatch) {
             if (matchAnalysis != null) screen.addView(matchAnalysis);
             var study = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
@@ -481,6 +496,7 @@ public final class ChessActivity extends BackNavigableActivity {
     }
 
     private void revealGuidance() {
+        questDetails.scrollTo(0, 0);
         var action = hint.nextAction(completedQuest != null, step.defensePending());
         if (action == QuestHint.Action.WAIT) return;
         var quest = quests.get(questIndex);
@@ -628,7 +644,7 @@ public final class ChessActivity extends BackNavigableActivity {
     private TextView playerLabel() {
         TextView label = text(R.string.white, 16, PRIMARY);
         label.setId(View.generateViewId());
-        label.setPadding(dp(14), dp(6), dp(14), dp(6));
+        label.setPadding(dp(14), dp(2), dp(14), dp(2));
         BoardCaption.reserve(label, 1);
         return label;
     }

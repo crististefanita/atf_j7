@@ -67,6 +67,10 @@ node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resour
 
 ## Progresul problemelor
 
+`BoardPanelLayoutTest` verifică lățimea maximă a tablei de joc și de reluare
+la patru lățimi, plus o fereastră scundă și text mărit. Proba Android
+`-PuzzleDangerOnly` compară partida, puzzle-ul și explicația în aceeași fereastră.
+
 `QuestDangerTest` verifică matul pe poziția finală, capturile în ambele culori,
 recaptura care anulează câștigul, patul, piesa legată și en passant.
 `-PuzzleDangerOnly` verifică pe Android activarea la cerere, stingerea la navigare,

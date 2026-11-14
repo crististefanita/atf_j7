@@ -23,20 +23,17 @@ final class BoardPanel extends ViewGroup {
         float density = context.getResources().getDisplayMetrics().density;
         barWidth = Math.round(8 * density);
         gutter = evaluation == null ? 0 : barWidth + Math.round(5 * density);
-        addView(topLabel);
+        if (topLabel != null) addView(topLabel);
         addView(board);
-        addView(bottomLabel);
+        if (bottomLabel != null) addView(bottomLabel);
         if (evaluation != null) addView(evaluation);
     }
 
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
         int width = MeasureSpec.getSize(widthSpec);
         int height = MeasureSpec.getSize(heightSpec);
-        int labelWidth = MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST);
-        int labelHeight = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-        topLabel.measure(labelWidth, labelHeight);
-        bottomLabel.measure(labelWidth, labelHeight);
-        placement = BoardPanelLayout.fit(width, height, topLabel.getMeasuredHeight(), bottomLabel.getMeasuredHeight(),
+        measureLabels(width);
+        placement = BoardPanelLayout.fit(width, height, heightOf(topLabel), heightOf(bottomLabel),
                 evaluationVisible() ? gutter : 0);
         int boardSize = MeasureSpec.makeMeasureSpec(placement.side(), MeasureSpec.EXACTLY);
         board.measure(boardSize, boardSize);
@@ -44,9 +41,19 @@ final class BoardPanel extends ViewGroup {
         setMeasuredDimension(width, height);
     }
 
+    int measureLabels(int width) {
+        int labelWidth = MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST);
+        int labelHeight = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+        if (topLabel != null) topLabel.measure(labelWidth, labelHeight);
+        if (bottomLabel != null) bottomLabel.measure(labelWidth, labelHeight);
+        return heightOf(topLabel) + heightOf(bottomLabel);
+    }
+
+    private static int heightOf(View label) { return label == null ? 0 : label.getMeasuredHeight(); }
+
     @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         int x = placement.left();
-        int boardTop = placement.top() + topLabel.getMeasuredHeight();
+        int boardTop = placement.top() + heightOf(topLabel);
         placeLabel(topLabel, placement.top());
         board.layout(x, boardTop, x + placement.side(), boardTop + placement.side());
         if (evaluationVisible()) {
@@ -59,6 +66,7 @@ final class BoardPanel extends ViewGroup {
     private boolean evaluationVisible() { return evaluation != null && evaluation.getVisibility() != View.GONE; }
 
     private void placeLabel(View label, int top) {
+        if (label == null) return;
         int width = label.getMeasuredWidth();
         int left = Math.min(placement.left(), getWidth() - width);
         label.layout(left, top, left + width, top + label.getMeasuredHeight());

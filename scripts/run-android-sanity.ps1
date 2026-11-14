@@ -272,7 +272,7 @@ try {
         return
     }
     if ($PuzzleDangerOnly) {
-        Invoke-FocusedSanity $run 'puzzle-danger' 6 ([guid]::NewGuid().ToString('N'))
+        Invoke-FocusedSanity $run 'puzzle-danger' 7 ([guid]::NewGuid().ToString('N'))
         return
     }
     if ($GameReviewOnly) {
