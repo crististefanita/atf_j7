@@ -6,10 +6,10 @@ Acest ghid explică tabla, problemele și partidele din Chess Lab. Alege
 
 ## Tactică și puncte
 
-- În **Tactică**, alege mutarea care câștigă cel mai mult material. Verificarea ia în calcul mutarea ta, replica adversarului și continuarea ta. Poți deschide explicația pentru linia completă.
-- În **Probleme → Antrenament tactic** găsești 96 de poziții de apărare, deviere, sacrificiu, mutări liniștite, furculițe și legări. Progresul și punctele se păstrează când revii în capitol. [Catalog și verificare](quest-curation.md#antrenament-tactic-și-lot-de-verificare)
+- În **Tactică**, caută mutarea care câștigă material sau deschide o combinație. Când exercițiul are o continuare jucabilă, adversarul răspunde pe tablă și joci până la ultima mutare. **Explicația** îți arată linia, piesele capturate și schimbarea de material. La exercițiile care se încheie după cheie, **Studiul apărării** poate arăta ce urmează după replica aleasă de Stockfish.
+- În **Probleme → Antrenament tactic** găsești 114 poziții, printre care combinații de turn, mutări intermediare și promovări pregătite prin sacrificiu. Progresul și punctele se păstrează când revii în capitol. [Catalog și verificare](quest-curation.md#antrenament-tactic-și-lot-de-verificare)
 - În **Probleme → Mutarea intermediară**, caută șahul sau captura de forțare înaintea recapturii. Capitolul crește în dificultate pe trei trepte. [Catalog și punctaj](quest-curation.md#mutarea-intermediară)
-- Becul de sub tablă are o zonă de atingere de 48 dp. Prima apăsare marchează piesa, a doua adaugă săgeata, iar următoarea explică soluția. În timpul replicii, comanda este dezactivată.
+- Sub bec apare acțiunea următoare: **Arată piesa**, **Arată mutarea** sau **Explică**. Poți atinge becul sau eticheta. Becul are o zonă de atingere de 48 dp, iar în timpul replicii apare **Așteaptă**.
 - Prima rezolvare a fiecărei probleme acordă 10 puncte. O serie fără greșeli sau indicii adaugă câte 2 puncte la fiecare problemă, începând de la a doua, până la 20 de puncte pe problemă. Flacăra arată lungimea seriei și funcționează între capitole.
 - O greșeală sau folosirea becului întrerupe seria. Rezolvarea acelei probleme rămâne eligibilă pentru cele 10 puncte de bază. Revizitarea și reluarea păstrează punctele deja acordate. Problemele rezolvate înainte de această schimbare primesc creditul de bază.
 
@@ -28,7 +28,8 @@ Sistemul de puncte și bonusul de la a doua rezolvare urmează modelul Puzzle Po
 - În Mat în 2 și Mat în 3, mutarea corectă se vede imediat. Apărarea de referință urmează după 650 ms cât timp tabla e în prim-plan. În pauză se vede culoarea adversarului la mutare, iar tabla și indiciile așteaptă răspunsul. Apoi marcajul revine la jucător și ultima mutare scoate în evidență apărarea.
 - **Indiciu** marchează discret cu turcoaz pătratul piesei și îi anunță numele și coordonata. **Arată mutarea** adaugă o săgeată subțire și textul „Mutare sugerată”, cu piesa necesară la promovare. Celulele anunță textual marcajele, iar săgeata urmează coordonatele la întoarcerea tablei. După apărare, indiciul pornește de la noua poziție.
 - Cititorul de ecran anunță culoarea și piesa la **Indiciu**, apoi include destinația la **Arată mutarea**. La atingerea unui prag, confirmarea matului include și pragul. Bara de progres păstrează pragul vizibil la revenire.
-- **De ce e mat?** deschide explicația detaliată a șahului și a câmpurilor de fugă. Motorul verifică atacurile după plecarea ipotetică a regelui și după o eventuală captură. Contorul crește când mutarea de mat este jucată pe tablă, inclusiv dacă ai cerut un indiciu.
+- În **Mat în 1**, **Explică** deschide poziția de mat pe o tablă separată. În **Mat în 2** și **Mat în 3**, săgețile parcurg linia câte o semimutare. În timpul rezolvării, linia pornește de la poziția curentă. După rezolvare pornește de la început și arată finalul jucat, inclusiv un mat alternativ acceptat. La ultimul pas apar explicația șahului și câmpurile de fugă.
+- În explicație, **Pericol** conturează regele aflat în mat sau câmpul piesei capturate și anunță motivul. Pentru o captură, calculează câștigul minim de material rămas după orice replică legală. Recaptura care șterge câștigul, matul advers și patul opresc marcajul. Săgețile îl sting la fiecare schimbare de poziție. Parcurgerea explicației păstrează progresul și punctele.
 
 Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația rămâne o acțiune separată, la fel ca dezvăluirea explicită a soluției în antrenamentul Lichess. [Chess.com Daily Puzzle](https://support.chess.com/en/articles/8708990-how-does-the-daily-puzzle-work) · [Lichess Puzzle Training](https://lichess.org/training/daily)
 

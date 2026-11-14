@@ -8,6 +8,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class QuestHintTest {
+    @Test void labelsTheNextActionWithoutChangingTheHintStage(Checks check) {
+        var steps = List.of(QuestHint.NONE, QuestHint.PIECE, QuestHint.SOLUTION);
+        check.same("The visible action names what the next press will reveal", List.of("SHOW_PIECE", "SHOW_MOVE", "EXPLAIN"),
+                steps.stream().map(hint -> hint.nextAction(false, false).name()).toList());
+        check.same("A completed puzzle always offers the explanation", true,
+                steps.stream().allMatch(hint -> hint.nextAction(true, false) == QuestHint.Action.EXPLAIN));
+        check.same("The pending defense disables guidance at every level", true,
+                steps.stream().allMatch(hint -> hint.nextAction(false, true) == QuestHint.Action.WAIT));
+    }
+
     @Test void revealsOnlyTheSourceUntilThePlayerRequestsTheMove(Checks check) {
         var quests = QuestCatalog.load();
         var levels = List.of(QuestHint.NONE, QuestHint.NONE.advance(), QuestHint.NONE.advance().advance());

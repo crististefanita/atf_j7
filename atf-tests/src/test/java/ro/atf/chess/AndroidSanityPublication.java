@@ -314,6 +314,61 @@ class AndroidSanityPublication {
     private static final String PREVIEW_REPLY = "Next shows the calculated reply and Previous returns to the first move";
     private static final String PREVIEW_FRAME = "The suggested line and its navigation are visible with a fixed preview board";
 
+    @Test void publishTacticsExplanationSanity() throws Exception {
+        publishTacticsExplanation(Path.of(System.getProperty("chess.android.receipt")));
+    }
+
+    static void publishTacticsExplanation(Path receipt) throws Exception {
+        var normal = "Tactic 002 opens the normal explanation on its final move";
+        var defense = "The defense study replays Kg8 and shows the material on the board";
+        var run = boundRun("tactics-explanation", "THEN both explanations show the recorded moves and keep the awards", receipt, 6,
+                List.of(normal, "The normal explanation rewinds and allows forward replay",
+                        "Closing the normal explanation preserves the solved tactic and points",
+                        "Tactic 043 opens the defense study on the accepted key", defense,
+                        "Closing the defense study preserves the solved tactic and points"), "tactics explanation",
+                List.of(new Frame("tactics-explanation.png", normal), new Frame("tactics-defense.png", defense)));
+        publishNativeRuns("tactics-explanation", "Open both tactic explanations from the puzzle board", receipt, List.of(run), null);
+    }
+
+    @Test void publishTrainingFinishSanity() throws Exception {
+        Path receipt = Path.of(System.getProperty("chess.android.receipt"));
+        var explanation = "The puzzle explains Qxb2 and the delayed capture after Rd8+";
+        var replay = "The replay shows Qxb2 on its third ply and +5 material";
+        var run = boundRun("training-finish", "THEN the replay preserves stage six and only Qxb2 earns points", receipt, 7,
+                List.of("Stage six shows the immediate material objective", "Bxf7+ leaves the exercise open", explanation, replay,
+                        "Studying the alternative preserves stage six and its unawarded score",
+                        "Playing Qxb2 solves the puzzle and earns exactly ten points",
+                        "The explanation remains available after reopening the solved puzzle"), "training finish",
+                List.of(new Frame("training-finish.png", explanation), new Frame("training-finish-line.png", replay)));
+        publishNativeRuns("training-finish", "Explain the last move of training-069", receipt, List.of(run), null);
+    }
+
+    @Test void publishPuzzleMateReplaySanity() throws Exception {
+        Path receipt = Path.of(System.getProperty("chess.android.receipt"));
+        var label = "The Romanian bulb names its next action at each step and fits in a short window";
+        var two = "Mate in two opens after the saved defense and reaches the actual mating square";
+        var three = "Mate in three replays the second defense and can step back without moving the board";
+        var run = boundRun("puzzle-mate-replay", "THEN both replays preserve the puzzle and rewards", receipt, 5,
+                List.of(label, two, "Closing the two-move replay preserves the unsolved puzzle, stage and rewards",
+                        three, "Closing the three-move replay keeps the solved puzzle and its award"), "mate replay",
+                List.of(new Frame("puzzle-mate-replay.png", label), new Frame("puzzle-mate-two.png", two),
+                        new Frame("puzzle-mate-three.png", three)));
+        publishNativeRuns("puzzle-mate-replay", "Follow the puzzle guidance and replay both mating lines", receipt, List.of(run), null);
+    }
+
+    @Test void publishPuzzleDangerSanity() throws Exception {
+        Path receipt = Path.of(System.getProperty("chess.android.receipt"));
+        var mate = "Requesting danger marks the mated king and announces its square";
+        var capture = "The retained capture marks h1 with five pawn units after any reply";
+        var run = boundRun("puzzle-danger", "THEN the mark follows only the requested evidence", receipt, 6,
+                List.of(mate, "Rewinding clears the marker, reason and control",
+                        "Returning to mate keeps the marker off until requested again",
+                        "Requesting and navigating danger preserves the solved ID and award", capture,
+                        "Tapping the control again hides the capture reason"), "puzzle danger",
+                List.of(new Frame("puzzle-danger-mate.png", mate), new Frame("puzzle-danger-capture.png", capture)));
+        publishNativeRuns("puzzle-danger", "Reveal danger in the puzzle replay", receipt, List.of(run), null);
+    }
+
     @Test void publishMatchAnalysisSanity() throws Exception {
         publishMatchAnalysis(Path.of(System.getProperty("chess.android.receipt")));
     }
@@ -323,7 +378,7 @@ class AndroidSanityPublication {
         var restore = boundRun("analysis-restore", "THEN restart at the live position with the hint hidden",
                 receipt.resolveSibling("analysis-restore").resolve("analysis-restore.txt"), 2,
                 List.of("The reopened match analyzes its live position with the hint hidden"), "match analysis", List.of());
-        publishAnalysis("match-analysis", "Explore a recommendation and reopen the saved game", receipt, List.of(prepare, restore), null);
+        publishNativeRuns("match-analysis", "Explore a recommendation and reopen the saved game", receipt, List.of(prepare, restore), null);
     }
 
     private static BoundRun matchPreparation(Path receipt) throws Exception {
@@ -338,10 +393,10 @@ class AndroidSanityPublication {
                 "manual analysis", List.of(new Frame("manual-analysis.png", "Suggested reply on the manual board")));
         Path combined = receipt.toAbsolutePath().getParent().resolveSibling("analysis-prepare.txt");
         var anchor = Files.exists(combined) ? matchPreparation(combined) : null;
-        publishAnalysis("manual-analysis", "Explore a line and play the hint in a manual study", receipt, List.of(manual), anchor);
+        publishNativeRuns("manual-analysis", "Explore a line and play the hint in a manual study", receipt, List.of(manual), anchor);
     }
 
-    private static void publishAnalysis(String scope, String scenarioTitle, Path receipt, List<BoundRun> runs, BoundRun anchor) throws Exception {
+    private static void publishNativeRuns(String scope, String scenarioTitle, Path receipt, List<BoundRun> runs, BoundRun anchor) throws Exception {
         Path report = receipt.resolveSibling("android-" + scope + ".html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
         boolean sameExecution = sameExecution(runs) && (anchor == null || anchor.evidence().passed() && sameExecution(List.of(anchor, runs.getFirst())));
@@ -352,7 +407,7 @@ class AndroidSanityPublication {
              var scenario = session.startScenario("BoardSanity", scenarioTitle, List.of("e2e", "android", scope));
              var phase = scenario.startPhase("TEST BODY")) {
             var checks = new ArrayList<AtfAssertion>();
-            checks.add(new AtfAssertion("Analysis run identity", "Matching native run ID, source, APK, device and receipt hash",
+            checks.add(new AtfAssertion("Native run identity", "Matching native run ID, source, APK, device and receipt hash",
                     sameExecution ? "Matching native run ID, source, APK, device and receipt hash" : "Missing or mismatched phase run identity"
                             + (anchor == null ? "" : " · match run " + anchor.execution().path("runId").asText()),
                     sameExecution));

@@ -14,6 +14,10 @@ param(
     [switch]$MatchSlotsOnly,
     [switch]$MatchArchiveOnly,
     [switch]$MatchMenusOnly,
+    [switch]$TacticsExplanationOnly,
+    [switch]$TrainingFinishOnly,
+    [switch]$PuzzleMateReplayOnly,
+    [switch]$PuzzleDangerOnly,
     [switch]$IncludeOpenings,
     [switch]$IncludeGameReview,
     [switch]$IncludeManualAnalysis,
@@ -32,6 +36,12 @@ $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
 if ($QualificationRunId -and !($Distribution -and ($GameReviewOnly -or $IncludeGameReview))) {
     throw 'A qualification run ID applies to signed Game Review evidence.'
+}
+$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly).Where({ $_ })
+if ($puzzleProbes.Count -gt 1 -or ($puzzleProbes.Count -eq 1 -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or
+        $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or $MatchMenusOnly -or $IncludeOpenings -or
+        $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive))) {
+    throw 'Choose one isolated puzzle explanation phase.'
 }
 if ($MatchMenusOnly -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or
         $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
@@ -157,13 +167,17 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         'match-archive' { $frames += 'finished-games' }
         'game-review' { $frames += 'game-review-navigation', 'game-review-line', 'game-review-comparison', 'game-review-actions' }
         'game-review-why' { $frames += 'game-review-why-recommended', 'game-review-why-score' }
+        'tactics-explanation' { $frames += 'tactics-defense' }
+        'training-finish' { $frames += 'training-finish-line' }
+        'puzzle-mate-replay' { $frames += 'puzzle-mate-two', 'puzzle-mate-three' }
+        'puzzle-danger' { $frames = @('puzzle-danger-mate', 'puzzle-danger-capture') }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
         Receive-Frame $frame $Directory
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
-        if ($Phase -in 'analysis-prepare','manual-analysis') {
+        if ($Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
                 throw "Pulled PNG does not match the native capture: $file."
@@ -245,6 +259,22 @@ try {
     $runner = "$app.test/ro.atf.chess.android.BoardSanity"
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
+    if ($TacticsExplanationOnly) {
+        Invoke-FocusedSanity $run 'tactics-explanation' 6 ([guid]::NewGuid().ToString('N'))
+        return
+    }
+    if ($TrainingFinishOnly) {
+        Invoke-FocusedSanity $run 'training-finish' 7 ([guid]::NewGuid().ToString('N'))
+        return
+    }
+    if ($PuzzleMateReplayOnly) {
+        Invoke-FocusedSanity $run 'puzzle-mate-replay' 5 ([guid]::NewGuid().ToString('N'))
+        return
+    }
+    if ($PuzzleDangerOnly) {
+        Invoke-FocusedSanity $run 'puzzle-danger' 6 ([guid]::NewGuid().ToString('N'))
+        return
+    }
     if ($GameReviewOnly) {
         Invoke-GameReviewSanity $run
         return

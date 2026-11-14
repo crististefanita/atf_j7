@@ -43,8 +43,8 @@ class QuestStoreTest {
         check.same("Restart preserves exactly the solved positions and leaves the current one unsolved", List.of(Set.copyOf(positions), false),
                 List.of(saved.solvedIds(), saved.currentSolved()));
         check.same("Tactics points survive and remain in their chapter", new QuestRewards.Summary(2, 100, 22), awards.summarize(tactics, saved));
-        check.same("Training points survive and remain in their chapter", new QuestRewards.Summary(1, 96, 14), awards.summarize(training, saved));
-        check.same("Overall progress combines the two chapters once", new QuestRewards.Summary(3, 196, 36), awards.summarize(order, saved));
+        check.same("Training points survive and remain in their chapter", new QuestRewards.Summary(1, 114, 14), awards.summarize(training, saved));
+        check.same("Overall progress combines the two chapters once", new QuestRewards.Summary(3, 214, 36), awards.summarize(order, saved));
         check.same("Revisiting a saved completion earns no second award", 0, awards.complete(saved.select(training.getFirst())).amount());
         check.same("Saving a puzzle selects puzzle resume and clears the match resume flag", List.of(true, false),
                 List.of(reopened.resumeChapter(), disk.contains(MatchStore.RESUME_MATCH)));
@@ -54,8 +54,8 @@ class QuestStoreTest {
 
     @Test void trainingExpansionRestoresAnExistingCursorAndAwardById(Checks check) {
         var newOrder = QuestCatalog.loadTraining().stream().map(QuestCatalog.Quest::id).toList();
-        var oldOrder = newOrder.stream().filter(id -> id.compareTo("training-072") <= 0).toList();
-        check.same("All 72 previous exercises remain available", 72, oldOrder.size());
+        var oldOrder = newOrder.stream().filter(id -> id.compareTo("training-108") <= 0).toList();
+        check.same("All 108 previous exercises remain available", 108, oldOrder.size());
         var disk = new MemoryPreferences();
         var oldStore = new QuestStore(disk);
         var completed = oldStore.read(oldOrder).select("training-060");
@@ -69,7 +69,7 @@ class QuestStoreTest {
         check.same("Reordering keeps the cursor and completed ID", List.of("training-063", Set.of("training-060")),
                 List.of(restored.currentId(), restored.solvedIds()));
         check.same("The old award is included once in the new chapter total",
-                new QuestRewards.Summary(1, 96, 10), rewards.summarize(newOrder, restored));
+                new QuestRewards.Summary(1, 114, 10), rewards.summarize(newOrder, restored));
         check.same("The reimported position cannot earn a second award", 0, rewards.complete(restored.select("training-060")).amount());
     }
 
@@ -91,8 +91,23 @@ class QuestStoreTest {
         check.same("The cursor and the solved ID survive a reopened store", List.of(next, Set.of(previousEditionId)),
                 List.of(saved.currentId(), saved.solvedIds()));
         check.same("Intermezzo owns its score", new QuestRewards.Summary(1, 24, 10), rewards.summarize(chapter, saved));
-        check.same("Training points remain separate", new QuestRewards.Summary(0, 96, 0), rewards.summarize(training, saved));
+        check.same("Training points remain separate", new QuestRewards.Summary(0, 114, 0), rewards.summarize(training, saved));
         check.same("The saved completion cannot score twice", 0, rewards.complete(saved.select(previousEditionId)).amount());
+    }
+
+    @Test void intermezzoMigratesTheLegacyBookmarkWithoutTakingTheMateCursor(Checks check) {
+        var disk = new MemoryPreferences();
+        disk.data.put("last-mate-one", "intermezzo-003");
+        disk.data.put("current-id", "training-001");
+        var store = new QuestStore(disk);
+        check.same("The old shared preference restores a genuine Intermezzo ID", "intermezzo-003", store.remembered("intermezzo-001"));
+        var order = List.of("mate-001", "intermezzo-001", "intermezzo-002", "intermezzo-003");
+        var progress = store.read(order).select("intermezzo-002");
+        check.same("The Intermezzo cursor is saved under its own key", true, store.save(progress, store.readRewards()));
+        check.same("Selecting mate keeps the separate Intermezzo cursor", true, store.save(progress.select("mate-001"), store.readRewards()));
+        var restored = new QuestStore(disk);
+        check.same("Neither chapter overrides the other after the first migration", List.of("mate-001", "intermezzo-002"),
+                List.of(restored.remembered("mate-001"), restored.remembered("intermezzo-001")));
     }
 
     @Test void restoresLegacyPliesAndMigratesOnlyTheSelectedQuest(Checks check) {

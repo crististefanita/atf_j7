@@ -51,7 +51,15 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 ## Tactică și punctaj
 
-`QuestRewardsTest` verifică seria între capitole, plafonul bonusului, restaurarea unei încercări asistate, punctajul anterior și totalurile. `TacticsCatalogTest` verifică cheia unică a fiecărei poziții, câștigul de material, lipsa matului imediat și blocarea comenzii **Următoarea** la o mutare greșită. YAML-ul indică proveniența celor 12 poziții introductive din partidele J7 și a celor 88 de importuri Lichess. Amprenta conține cheia și câștigul de material recalculate de chess.js.
+`QuestRewardsTest` verifică seria între capitole, plafonul bonusului, restaurarea unei încercări asistate, punctajul anterior și totalurile. `TacticsCatalogTest` verifică cheia unică, lipsa matului imediat, continuitatea ID-urilor și câștigul care rezistă răspunsurilor legale la capătul liniei. `QuestPayoffTest` verifică reluarea etapelor, capturile, finalul alternativ și restaurarea soluțiilor vechi. YAML-ul indică proveniența pozițiilor. Amprenta conține cheia și câștigul de material recalculate de chess.js.
+
+`QuestDefenseStudyTest` verifică toate studiile din [catalogul explicațiilor](../../chess-core/src/main/resources/quest-defense-studies.yaml). Controlează cheia, replica legală, limba, bilanțul de pe tablă și compatibilitatea cu progresul salvat. Proba `measuresHardOnReviewedDefensesWithoutGivingItTheLesson` măsoară cheile și mutările ulterioare separat. La fiecare poziție fixată, motorul primește numai tabla și profilul Hard. Concordanța cu linia de studiu rămâne o măsurătoare, iar legalitatea și plafonul sunt aserțiuni.
+
+Pentru explicațiile din Tactică, rulați `run-android-sanity.ps1 -TacticsExplanationOnly` cu parametrizarea ADB din [Sanity Android](#sanity-android). Proba deschide din tablă reluarea normală pentru `tactic-002` și studiul cu replica `…Kg8` pentru `tactic-043`. Verifică navigarea, materialul afișat și păstrarea punctelor după închidere.
+
+Publicați `android-tactics-explanation.html` cu `-Dtest=AndroidSanityPublication#publishTacticsExplanationSanity` și `-Dchess.android.receipt=<dosar>/tactics-explanation.txt`. Extent include capturile și verifică ID-ul de rulare, recepția și amprentele PNG raportate de instrumentare.
+
+Pentru ultima mutare din `training-069`, rulați `-TrainingFinishOnly`. `QuestPayoffTest` verifică obiectivul imediat, linia legală după `Rd8+` și punctajul unic. Sanity verifică accesul la explicație după șah, reluarea pe tablă, păstrarea progresului și redeschiderea explicației după rezolvare. Publicați raportul cu `-Dtest=AndroidSanityPublication#publishTrainingFinishSanity` și recepția `training-finish.txt`.
 
 ```powershell
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/tactics.yaml chess-core/src/main/resources/tactics.sha256
@@ -59,11 +67,18 @@ node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resour
 
 ## Progresul problemelor
 
+`QuestDangerTest` verifică matul pe poziția finală, capturile în ambele culori,
+recaptura care anulează câștigul, patul, piesa legată și en passant.
+`-PuzzleDangerOnly` verifică pe Android activarea la cerere, stingerea la navigare,
+motivul accesibil și păstrarea punctelor. Publicați recepția `puzzle-danger.txt`
+prin `AndroidSanityPublication#publishPuzzleDangerSanity`. Extent leagă aserțiunile
+și capturile de aceeași rulare și același APK.
+
 `QuestStoreTest` folosește store-ul de producție cu preferințe în memorie. Verifică reluarea cursorului după ID în **Tactică** și **Antrenament tactic**, rezolvarea fără puncte duplicate, seria comună și totalurile separate. Include preferințele moștenite și retry-ul după o scriere respinsă. `QuestProgressTest` verifică următoarea problemă nerezolvată după extinderea catalogului.
 
-`QuestCatalogTest` verifică 1.220 de poziții publice distincte și 24 de poziții independente. `TacticsCatalogTest` verifică dovada materială a celor 96 de exerciții de Antrenament tactic și a lotului independent. `MainMenuLayoutTest` verifică titlurile și totalurile. `ChessComponentSuite` rulează fără emulator. `DocumentationGovernanceTest` și `ReleaseGovernanceTest` verifică linkurile locale, versiunea și secțiunea de descărcare.
+`QuestCatalogTest` verifică 1.238 de poziții publice distincte și 24 de poziții independente. `TacticsCatalogTest` verifică dovada materială a celor 114 exerciții de Antrenament tactic și a lotului independent. `MainMenuLayoutTest` verifică titlurile și totalurile. `ChessComponentSuite` rulează fără emulator. `DocumentationGovernanceTest` și `ReleaseGovernanceTest` verifică linkurile locale, versiunea și secțiunea de descărcare.
 
-La schimbarea catalogului material, rulați independent verificarea cheii și checksum-ului pentru ambele fișiere:
+La schimbarea catalogului material, rulați verificarea cheii și a amprentei pentru fiecare capitol afectat. Verificatorul reface și liniile publicate în `payoff-line`, inclusiv răspunsurile legale după ultima mutare. Amprenta continuă să urmărească cheia și rezultatul orizontului de trei semimutări.
 
 ```powershell
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/training.yaml chess-core/src/main/resources/training.sha256

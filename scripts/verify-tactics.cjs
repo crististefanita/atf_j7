@@ -7,9 +7,10 @@ if (!modulePath || !catalog) throw Error('Usage: node verify-tactics.cjs <chess.
 const { Chess } = require(resolve(modulePath));
 const values = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
 const mate = 100000;
+const lessons = new Set(['FORK', 'DEFLECTION', 'PIN', 'INTERMEZZO', 'CLEARANCE', 'DISCOVERY', 'PROMOTION',
+  'REMOVE_DEFENDER', 'DEFENSE', 'QUIET_THREAT', 'XRAY', 'SKEWER', 'SACRIFICE', 'TRAPPED_PIECE']);
 
-function material(board) {
-  const side = board.turn();
+function material(board, side = board.turn()) {
   return board._board.reduce((total, piece) =>
     piece ? total + (piece.color === side ? 1 : -1) * values[piece.type] : total, 0);
 }
@@ -49,10 +50,30 @@ function verify(id, fen, solution) {
   return id + ' ' + solution + ' ' + gain + '\n';
 }
 
+function verifyPayoff(id, fen, solution, payoff, lesson) {
+  if (lesson && !lessons.has(lesson)) throw Error(id + ' has an unknown lesson');
+  if (!payoff) return;
+  const board = new Chess(fen);
+  const side = board.turn();
+  const opening = material(board, side);
+  const line = payoff.split(' ');
+  if (line.length < 3 || line.length % 2 === 0 || line[0] !== solution) throw Error(id + ' has an invalid payoff line');
+  for (const move of line) {
+    try { board.move(move); } catch (error) { throw Error(id + ' has an illegal payoff move ' + move, { cause: error }); }
+  }
+  const replies = board._moves();
+  if (!replies.length || material(board, side) - opening < 200
+      || replies.some(reply => after(board, reply, () => !board._moves().length || material(board, side) - opening < 200))) {
+    throw Error(id + ' does not demonstrate a material gain of two pawns after immediate replies');
+  }
+}
+
 const source = fs.readFileSync(catalog, 'utf8').replaceAll('\r\n', '\n');
-const rows = [...source.matchAll(/^  - id: ((?:tactic|training|holdout|root|intermezzo|reply|challenge|newcase|pvcase|attack|pressure|promotion|drillcheck)-[0-9]{3})\n    fen: "([^"\n]+)"\n    solution: ([a-h][1-8][a-h][1-8][qrbn]?)\n    difficulty: [1-9][0-9]*$/gm)];
+const rows = [...source.matchAll(/^  - id: ((?:tactic|training|holdout|root|intermezzo|reply|challenge|newcase|pvcase|attack|pressure|promotion|drillcheck)-[0-9]{3})\n    fen: "([^"\n]+)"\n    solution: ([a-h][1-8][a-h][1-8][qrbn]?)\n    difficulty: [1-9][0-9]*(?:\n    payoff-line: ([^\n]+))?(?:\n    lesson: ([^\n]+))?(?!\n {4}\S)$/gm)];
 if (!rows.length || rows.length !== (source.match(/^  - id:/gm) || []).length) throw Error('Malformed tactics catalog');
 rows.sort(([, a], [, b]) => a.localeCompare(b));
+for (const [, id, fen, solution, payoff, lesson] of rows) verifyPayoff(id, fen, solution, payoff, lesson);
 const hash = createHash('sha256').update(rows.map(([, id, fen, solution]) => verify(id, fen, solution)).join('')).digest('hex');
 if (proof && fs.readFileSync(proof, 'utf8').trim() !== hash) throw Error('Tactics proof fingerprint changed');
+console.log('Verified payoff lines: ' + rows.filter(row => row[4]).length);
 console.log(`Verified ${rows.length} unique material-winning tactics.\n${hash}`);

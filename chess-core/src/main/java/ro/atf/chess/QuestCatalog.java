@@ -15,16 +15,25 @@ import ro.atf.chess.ChessPosition.Move;
 public final class QuestCatalog {
     private static final int MATE_IN_TWO_COUNT = 300;
     private static final int MATE_IN_THREE_COUNT = 200;
+    private static final Set<String> MATERIAL_FIELDS = Set.of("id", "fen", "solution", "difficulty", "payoff-line", "lesson");
     public enum Objective { MATE, MATERIAL }
     public enum MatePattern { DIRECT, DISCOVERED, CASTLING, EN_PASSANT, PROMOTION }
+    public enum Lesson {
+        FORK, DEFLECTION, PIN, INTERMEZZO, CLEARANCE, DISCOVERY, PROMOTION, REMOVE_DEFENDER,
+        DEFENSE, QUIET_THREAT, XRAY, SKEWER, SACRIFICE, TRAPPED_PIECE
+    }
 
     public record Guidance(ChessPosition.Piece piece, Move move, MatePattern pattern) { }
 
     public record Attempt(ChessPosition position, ChessPosition.Outcome outcome, Move defense, boolean continues,
                           boolean solved, TacticalAnalysis.Result replyAnalysis) { }
 
-    public record Quest(String id, String fen, String theme, ChessPosition position, List<Move> line, Objective objective) {
+    public record Quest(String id, String fen, String theme, ChessPosition position, List<Move> line, Objective objective, Lesson lesson) {
         public Quest { line = List.copyOf(line); }
+
+        public Quest(String id, String fen, String theme, ChessPosition position, List<Move> line, Objective objective) {
+            this(id, fen, theme, position, line, objective, null);
+        }
 
         public Quest(String id, String fen, String theme, ChessPosition position, List<Move> line) {
             this(id, fen, theme, position, line, Objective.MATE);
@@ -62,7 +71,8 @@ public final class QuestCatalog {
             }
             var after = positionAt(stage).play(move);
             if (objective == Objective.MATERIAL) {
-                return new Attempt(after, after.outcome(), null, false, solution().equals(move), null);
+                boolean solved = stage == playerMoves() - 1 && (playerMove(stage).equals(move) || preservesPayoff(after));
+                return new Attempt(after, after.outcome(), null, false, solved, null);
             }
             if (!after.isCheck()) return new Attempt(after, after.outcome(), null, false, false, null);
             var replies = after.legalMoves();
@@ -76,7 +86,7 @@ public final class QuestCatalog {
 
         /** Replays an accepted finish, with the reference line as the legacy fallback. */
         public Quest restoreFinish(String checkpoint) {
-            if (objective != Objective.MATE || checkpoint == null) return this;
+            if (checkpoint == null) return this;
             int separator = checkpoint.indexOf(':');
             if (separator < 1) return this;
             try {
@@ -84,7 +94,10 @@ public final class QuestCatalog {
                 if (stage < 0 || stage >= playerMoves()) return this;
                 Move move = Move.fromUci(checkpoint.substring(separator + 1));
                 if (stage == playerMoves() - 1 && move.equals(finishingMove())) return this;
-                if (!positionAt(stage).play(move).isCheckmate()) return this;
+                var after = positionAt(stage).play(move);
+                boolean accepted = objective == Objective.MATE ? after.isCheckmate()
+                        : stage == playerMoves() - 1 && preservesPayoff(after);
+                if (!accepted) return this;
                 var completedLine = new ArrayList<>(line.subList(0, stage * 2));
                 completedLine.add(move);
                 return new Quest(id, fen, theme, position, completedLine, objective);
@@ -93,7 +106,28 @@ public final class QuestCatalog {
             }
         }
 
+        private boolean preservesPayoff(ChessPosition after) {
+            if (line.size() == 1 || terminal(after.outcome())) return false;
+            var side = position.turn();
+            int floor = QuestPayoff.balance(solvedPosition(), side);
+            if (floor <= QuestPayoff.balance(position, side) || QuestPayoff.balance(after, side) < floor) return false;
+            for (var reply : after.legalMoves()) {
+                var next = after.play(reply);
+                if (terminal(next.outcome()) || QuestPayoff.balance(next, side) < floor) return false;
+            }
+            return true;
+        }
+
+        private static boolean terminal(ChessPosition.Outcome outcome) {
+            return outcome == ChessPosition.Outcome.CHECKMATE || outcome == ChessPosition.Outcome.STALEMATE;
+        }
+
         public ChessPosition solvedPosition() { return positionAt(playerMoves() - 1).play(finishingMove()); }
+
+        public int materialChange() {
+            var side = position.turn();
+            return QuestPayoff.balance(solvedPosition(), side) - QuestPayoff.balance(position, side);
+        }
 
         public ChessPosition.MateExplanation explanation() { return solvedPosition().explainMate(); }
 
@@ -157,7 +191,9 @@ public final class QuestCatalog {
         var difficulty = new HashMap<String, Integer>();
         var ranks = new HashSet<Integer>();
         for (Object item : ChessYaml.list(root, "quests")) {
-            if (!(item instanceof Map<?, ?> row) || row.size() != 4) throw new IllegalArgumentException("Invalid tactics quest row");
+            if (!(item instanceof Map<?, ?> row) || !row.keySet().stream().allMatch(MATERIAL_FIELDS::contains)) {
+                throw new IllegalArgumentException("Invalid tactics quest row");
+            }
             String id = ChessYaml.string(row, "id");
             requireAvailableId(id);
             String fen = ChessYaml.string(row, "fen");
@@ -166,8 +202,10 @@ public final class QuestCatalog {
             if (!id.matches(chapter + "-[0-9]{3}") || !ids.add(id) || !positions.add(fen.replaceFirst(" [0-9]+ [0-9]+$", ""))) {
                 throw new IllegalArgumentException("Invalid or duplicate tactics quest " + id);
             }
-            var quest = new Quest(id, fen, "MATERIAL", ChessPosition.fromFen(fen),
-                    List.of(Move.fromUci(ChessYaml.string(row, "solution"))), Objective.MATERIAL);
+            var solution = Move.fromUci(ChessYaml.string(row, "solution"));
+            var line = readPayoffLine(row, solution, id);
+            var lesson = row.containsKey("lesson") ? Lesson.valueOf(ChessYaml.string(row, "lesson")) : null;
+            var quest = new Quest(id, fen, "MATERIAL", ChessPosition.fromFen(fen), line, Objective.MATERIAL, lesson);
             if (quest.solvedPosition().isCheckmate()) throw new IllegalArgumentException("Unexpected mate in " + id);
             quests.add(quest);
             difficulty.put(id, rank);
@@ -175,6 +213,17 @@ public final class QuestCatalog {
         if (quests.isEmpty()) throw new IllegalArgumentException("Empty tactics catalog");
         quests.sort(Comparator.comparingInt(quest -> difficulty.get(quest.id())));
         return Collections.unmodifiableList(quests);
+    }
+
+    private static List<Move> readPayoffLine(Map<?, ?> row, Move solution, String id) {
+        if (!row.containsKey("payoff-line")) return List.of(solution);
+        var moves = ChessYaml.string(row, "payoff-line").trim().split("\\s+");
+        if (moves.length < 3 || moves.length % 2 == 0 || !solution.uci().equals(moves[0])) {
+            throw new IllegalArgumentException("Invalid payoff line in " + id);
+        }
+        var line = new ArrayList<Move>(moves.length);
+        for (String move : moves) line.add(Move.fromUci(move));
+        return line;
     }
 
     private static List<Quest> loadMultiMove(String file, String objective, int length, int expectedCount) {

@@ -1,0 +1,13 @@
+schema: 1
+studies:
+  training-069:
+    stage: 6
+    key: c1b2
+    fen: "6k1/p4p2/2p4p/4p1p1/q1B1PnP1/2P5/Pr3BPP/2QR2K1 w - - 0 24"
+    # Lichess 00veX, Stockfish 19 at depth 19. This is a replay, not a puzzle solution.
+    line: d1d8 g8g7 c1b2 a4c4 d8d2
+    notation: "Rd8+"
+    explanation-ro: "Qxb2 ia imediat turnul de pe b2 (+5 la material) și încheie exercițiul. Bilanțul este cel din momentul capturii. Negrul ar putea răspunde Qxd1+."
+    explanation-en: "Qxb2 takes the rook on b2 immediately (+5 material) and completes the puzzle. The gain is measured at the moment of capture. Black could reply Qxd1+."
+    alternative-ro: "Rd8+ dă șah. După …Kg7, Qxb2 câștigă turnul la următoarea mutare."
+    alternative-en: "Rd8+ gives check. After …Kg7, Qxb2 wins the rook on the next turn."

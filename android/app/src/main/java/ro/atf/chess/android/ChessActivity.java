@@ -37,7 +37,9 @@ import ro.atf.chess.GameReview;
 import ro.atf.chess.MatchSetup;
 import ro.atf.chess.MatchSlots;
 import ro.atf.chess.QuestCatalog;
+import ro.atf.chess.QuestFinishStudy;
 import ro.atf.chess.QuestHint;
+import ro.atf.chess.QuestPayoff;
 import ro.atf.chess.QuestProgress;
 import ro.atf.chess.QuestRewards;
 import ro.atf.chess.QuestStep;
@@ -92,6 +94,7 @@ public final class ChessActivity extends BackNavigableActivity {
     private boolean resumed;
     private int chapterIndex = -1;
     private String attemptMessage;
+    private Move rejectedTacticMove;
     private BoardView board;
     private TextView status;
     private TextView topPlayer;
@@ -106,6 +109,7 @@ public final class ChessActivity extends BackNavigableActivity {
     private boolean announceMilestone;
     private ProgressBar progressTrack;
     private ImageButton guidance;
+    private TextView guidanceLabel;
     private QuestHint hint = QuestHint.NONE;
     private Button previous;
     private Button next;
@@ -423,8 +427,20 @@ public final class ChessActivity extends BackNavigableActivity {
         next = questButton(R.string.next_quest, 1);
         guidance = (ImageButton) getLayoutInflater().inflate(R.layout.quest_guidance, navigation, false);
         guidance.setOnClickListener(view -> revealGuidance());
+        var help = new LinearLayout(this);
+        help.setOrientation(LinearLayout.VERTICAL);
+        help.setGravity(Gravity.CENTER);
+        help.addView(guidance);
+        guidanceLabel = text(R.string.quest_hint_next_piece, 12, MUTED);
+        guidanceLabel.setId(R.id.quest_guidance_label);
+        guidanceLabel.setGravity(Gravity.CENTER);
+        BoardCaption.reserve(guidanceLabel, 2);
+        guidanceLabel.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        guidanceLabel.setOnClickListener(view -> guidance.performClick());
+        guidanceLabel.setFocusable(false);
+        help.addView(guidanceLabel, new LinearLayout.LayoutParams(-1, -2));
         addControl(navigation, previous, 1);
-        navigation.addView(guidance);
+        navigation.addView(help, new LinearLayout.LayoutParams(0, -2, 1.15f));
         addControl(navigation, next, 1);
         screen.addView(navigation);
         return screen;
@@ -465,15 +481,17 @@ public final class ChessActivity extends BackNavigableActivity {
     }
 
     private void revealGuidance() {
-        if (step.defensePending()) return;
+        var action = hint.nextAction(completedQuest != null, step.defensePending());
+        if (action == QuestHint.Action.WAIT) return;
         var quest = quests.get(questIndex);
-        if (completedQuest != null || hint == QuestHint.SOLUTION) {
+        if (action == QuestHint.Action.EXPLAIN) {
             showSolution(completedQuest == null ? quest : completedQuest);
             return;
         }
         if (!save(progress, rewards.interrupt(quest.id()))) return;
         hint = hint.advance();
         attemptMessage = null;
+        rejectedTacticMove = null;
         selected = -1;
         options = Collections.emptyList();
         render();
@@ -481,13 +499,10 @@ public final class ChessActivity extends BackNavigableActivity {
 
     private void showSolution(QuestCatalog.Quest quest) {
         if (quest.objective() == QuestCatalog.Objective.MATERIAL) {
-            var best = TacticalAnalysis.analyze(quest.position(), 3).best().get(0);
-            var line = new StringJoiner(" · ");
-            for (var move : best.line()) line.add(notation(move));
-            String gain = NumberFormat.getNumberInstance().format(best.materialChange() / 100.0);
-            new AlertDialog.Builder(this).setTitle(R.string.why_tactic)
-                    .setMessage(getString(R.string.tactics_explanation, line.toString(), gain))
-                    .setPositiveButton(android.R.string.ok, null).show();
+            var study = QuestFinishStudy.forStage(quest, quest.playerMoves() - 1);
+            if (study == null || completedQuest == null && step.stage() != study.stage()) {
+                QuestPayoffDialog.open(this, QuestPayoff.forExplanation(quest), blackBelow);
+            } else showFinishStudy(quest, study, false);
             return;
         }
         int explanation = switch (quest.matingPattern()) {
@@ -498,11 +513,7 @@ public final class ChessActivity extends BackNavigableActivity {
             case PROMOTION -> R.string.mate_promotion;
         };
         var mate = quest.explanation();
-        var line = new StringJoiner(" · ");
-        for (var move : quest.line()) line.add(notation(move));
-        var message = new StringBuilder(line.toString());
-        if (quest.mateLength() > 1) message.append('#');
-        message.append("\n\n").append(getString(explanation))
+        var message = new StringBuilder(getString(explanation))
                 .append("\n\n").append(getString(R.string.mate_checkers, BoardSquare.name(mate.king()), threats(mate.checkers())));
         for (var exit : mate.exits()) {
             String square = BoardSquare.name(exit.square());
@@ -510,7 +521,22 @@ public final class ChessActivity extends BackNavigableActivity {
                     : getString(R.string.mate_exit_occupied, square, getString(BoardView.kindLabel(exit.ownBlocker().kind())));
             message.append('\n').append(detail);
         }
-        new AlertDialog.Builder(this).setTitle(R.string.why_mate).setMessage(message).setPositiveButton(android.R.string.ok, null).show();
+        boolean singleMove = quest.mateLength() == 1 && quests.get(questIndex).mateLength() == 1;
+        int initialPly = singleMove ? 1 : completedQuest == null ? step.ply() : 0;
+        QuestPayoffDialog.openMate(this, QuestPayoff.forMateLine(quest), blackBelow, initialPly, message.toString());
+    }
+
+    private void showFinishStudy(QuestCatalog.Quest quest, QuestFinishStudy study, boolean triedAlternative) {
+        boolean romanian = "ro".equals(getResources().getConfiguration().getLocales().get(0).getLanguage());
+        String explanation = romanian ? study.explanationRo() : study.explanationEn();
+        if (triedAlternative) explanation = (romanian ? study.alternativeRo() : study.alternativeEn()) + "\n\n" + explanation;
+        String label = getString(R.string.tactics_alternative_line, study.notation());
+        var dialog = new AlertDialog.Builder(this).setTitle(R.string.why_tactic).setMessage(explanation)
+                .setNeutralButton(label, (ignored, choice) -> QuestPayoffDialog.openAlternative(this, study.replay(quest), blackBelow, label))
+                .setPositiveButton(android.R.string.ok, null);
+        if (!triedAlternative) dialog.setNegativeButton(R.string.tactics_puzzle_replay,
+                (ignored, choice) -> QuestPayoffDialog.open(this, QuestPayoff.forExplanation(quest), blackBelow));
+        dialog.show();
     }
 
     private String notation(Move move) {
@@ -590,6 +616,7 @@ public final class ChessActivity extends BackNavigableActivity {
         earned = 0;
         announceMilestone = false;
         attemptMessage = null;
+        rejectedTacticMove = null;
         hint = QuestHint.NONE;
         selected = -1;
         step = QuestStep.restore(completedQuest == null ? store.quests().ply(quest.id()) : 0, quest);
@@ -661,7 +688,7 @@ public final class ChessActivity extends BackNavigableActivity {
         var result = quest.assess(move, stage);
         if (result.solved()) {
             var award = rewards.complete(progress);
-            String finish = quest.objective() == QuestCatalog.Objective.MATE ? step.finishCheckpoint(move) : null;
+            String finish = step.finishCheckpoint(move);
             if (!save(progress.solveCurrent(), award.rewards(), finish)) return;
             earned = award.amount();
             completedQuest = quest.restoreFinish(finish);
@@ -673,10 +700,12 @@ public final class ChessActivity extends BackNavigableActivity {
         } else if (!save(progress, rewards.interrupt(quest.id()))) {
             return;
         }
+        rejectedTacticMove = null;
         if (result.solved() || result.continues()) {
             hint = QuestHint.NONE;
             attemptMessage = null;
         } else if (quest.objective() == QuestCatalog.Objective.MATERIAL) {
+            rejectedTacticMove = move;
             attemptMessage = getString(R.string.tactics_try_again);
         } else attemptMessage = switch (result.outcome()) {
             case CHECKMATE -> null;
@@ -980,14 +1009,23 @@ public final class ChessActivity extends BackNavigableActivity {
         int nextIndex = progress.nextIndex(questIndex, order);
         next.setText(nextIndex >= 0 && nextIndex < questIndex ? R.string.first_unsolved_quest : R.string.next_quest);
         next.setEnabled(!pending && nextIndex >= 0);
-        guidance.setEnabled(!pending);
         var quest = quests.get(questIndex);
         int explanation = quest.objective() == QuestCatalog.Objective.MATE ? R.string.why_mate : R.string.why_tactic;
-        guidance.setContentDescription(getString(solved ? explanation : switch (hint) {
-            case NONE -> R.string.hint;
-            case PIECE -> R.string.show_solution;
-            case SOLUTION -> explanation;
+        var action = hint.nextAction(solved, pending);
+        guidance.setEnabled(action != QuestHint.Action.WAIT);
+        guidance.setContentDescription(getString(switch (action) {
+            case SHOW_PIECE -> R.string.hint;
+            case SHOW_MOVE -> R.string.show_solution;
+            case EXPLAIN -> explanation;
+            case WAIT -> R.string.quest_hint_next_wait;
         }));
+        guidanceLabel.setText(switch (action) {
+            case SHOW_PIECE -> R.string.quest_hint_next_piece;
+            case SHOW_MOVE -> R.string.quest_hint_next_move;
+            case EXPLAIN -> R.string.quest_hint_next_explanation;
+            case WAIT -> R.string.quest_hint_next_wait;
+        });
+        guidanceLabel.setEnabled(!pending);
         guidance.setImageTintList(ColorStateList.valueOf(!pending && hint != QuestHint.NONE ? PROGRESS : MUTED));
         int stage = step.stage();
         Move suggestion = quest.playerMove(stage);
@@ -999,11 +1037,16 @@ public final class ChessActivity extends BackNavigableActivity {
     private void renderStatus(QuestCatalog.Quest quest, int stage, Move suggestion, boolean pending) {
         String visible;
         String spoken = null;
+        var finishStudy = QuestFinishStudy.forStage(quest, stage);
+        boolean triedAlternative = finishStudy != null && finishStudy.alternative().equals(rejectedTacticMove);
         if (completedQuest != null) {
-            visible = getString(quest.objective() == QuestCatalog.Objective.MATE ? R.string.quest_solved : R.string.tactics_solved);
+            visible = quest.objective() == QuestCatalog.Objective.MATE ? getString(R.string.quest_solved) : solvedTacticStatus(completedQuest);
             if (announceMilestone) spoken = visible + ". " + milestone.getText();
         } else if (pending) visible = getString(R.string.opponent_reply_pending);
-        else if (attemptMessage != null) visible = attemptMessage;
+        else if (triedAlternative) {
+            visible = getString(R.string.tactics_alternative_available, finishStudy.notation());
+            spoken = visible + ". " + getString(R.string.tactics_final_capture);
+        } else if (attemptMessage != null) visible = attemptMessage;
         else if (hint != QuestHint.NONE) {
             var piece = position.pieceAt(suggestion.from());
             String square = BoardSquare.name(suggestion.from());
@@ -1019,16 +1062,32 @@ public final class ChessActivity extends BackNavigableActivity {
                 spoken = getString(R.string.full_hint_announcement, turn, pieceHint, BoardSquare.name(suggestion.to()));
                 if (suggestion.promotion() != null) spoken += " " + notation(suggestion);
             }
-        } else if (stage > 0) {
-            int label = stage == quest.mateLength() - 1 ? R.string.mate_two_reply : R.string.mate_three_reply;
-            visible = getString(label, notation(quest.defenseAfter(stage - 1)));
+        } else if (finishStudy != null) visible = getString(R.string.tactics_final_capture);
+        else if (stage > 0) {
+            if (quest.objective() == QuestCatalog.Objective.MATERIAL) {
+                visible = getString(R.string.tactics_reply, notation(quest.defenseAfter(stage - 1)), stage + 1, quest.playerMoves());
+            } else {
+                int label = stage == quest.mateLength() - 1 ? R.string.mate_two_reply : R.string.mate_three_reply;
+                visible = getString(label, notation(quest.defenseAfter(stage - 1)));
+            }
         } else visible = getString(quest.objective() == QuestCatalog.Objective.MATE ? R.string.find_mate : R.string.find_tactic);
+        if (finishStudy != null && hint != QuestHint.NONE && !triedAlternative && attemptMessage == null) {
+            String goal = getString(R.string.tactics_final_capture);
+            visible += "\n" + goal;
+            spoken = spoken == null ? visible : spoken + ". " + goal;
+        }
         if (!android.text.TextUtils.equals(spoken, status.getContentDescription())) status.setContentDescription(spoken);
         if (!visible.contentEquals(status.getText())) status.setText(visible);
         String details = attemptMessage;
-        status.setOnClickListener(details == null ? null : view -> new AlertDialog.Builder(this)
-                .setMessage(details).setPositiveButton(android.R.string.ok, null).show());
-        status.setClickable(details != null);
+        status.setOnClickListener(triedAlternative ? view -> showFinishStudy(quest, finishStudy, true)
+                : details == null ? null : view -> new AlertDialog.Builder(this)
+                        .setMessage(details).setPositiveButton(android.R.string.ok, null).show());
+        status.setClickable(triedAlternative || details != null);
+    }
+
+    private String solvedTacticStatus(QuestCatalog.Quest quest) {
+        String material = QuestPayoffDialog.material(this, quest.materialChange(), quest.line().size() == 1);
+        return getString(R.string.tactics_solved, material);
     }
 
     private void renderMatch() {

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quest_danger">Danger</string>
+    <string name="quest_danger_mate">Proven checkmate · %1$s</string>
+    <string name="quest_danger_capture">Capture on %1$s · %2$s in pawn units after any legal reply</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quest_danger">Pericol</string>
+    <string name="quest_danger_mate">Șah mat demonstrat · %1$s</string>
+    <string name="quest_danger_capture">Captură pe %1$s · %2$s în unități de pion după orice replică legală</string>
+</resources>

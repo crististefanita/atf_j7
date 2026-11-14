@@ -171,7 +171,7 @@ class MainMenuLayoutTest {
         check.same("Overall and per-chapter totals each have a dedicated text view", List.of("@+id/quest_totals", "@+id/chapter_one_totals",
                 "@+id/chapter_two_totals", "@+id/chapter_three_totals", "@+id/chapter_tactics_totals", "@+id/chapter_training_totals", "@+id/chapter_intermezzo_totals"), totals);
         var bulb = read("layout/quest_guidance.xml");
-        check.same("Guidance is icon-only and retains its accessible label", List.of("ImageButton", "@drawable/quest_bulb", "@string/hint"),
+        check.same("The bulb retains its accessible label beside the visible action caption", List.of("ImageButton", "@drawable/quest_bulb", "@string/hint"),
                 List.of(bulb.getTagName(), bulb.getAttribute("android:src"), bulb.getAttribute("android:contentDescription")));
         check.same("The icon keeps a 48 dp touch target", List.of("48dp", "48dp"),
                 List.of(bulb.getAttribute("android:layout_width"), bulb.getAttribute("android:layout_height")));

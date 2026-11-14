@@ -49,6 +49,10 @@ public final class QuestStore {
         String key = chapterKey(firstId);
         String current = preferences.getString(CURRENT, firstId);
         String fallback = key.equals(chapterKey(current)) ? current : firstId;
+        if (firstId.startsWith("intermezzo-") && fallback.equals(firstId)) {
+            String legacy = preferences.getString("last-mate-one", firstId);
+            if (legacy.startsWith("intermezzo-")) fallback = legacy;
+        }
         return preferences.getString(key, fallback);
     }
 
@@ -100,6 +104,7 @@ public final class QuestStore {
     private static String chapterKey(String id) {
         if (id.startsWith("training-")) return "last-training";
         if (id.startsWith("tactic-")) return "last-tactics";
+        if (id.startsWith("intermezzo-")) return "last-intermezzo";
         if (id.startsWith("mate3-")) return "last-mate-three";
         return id.startsWith("mate2-") ? "last-mate-two" : "last-mate-one";
     }

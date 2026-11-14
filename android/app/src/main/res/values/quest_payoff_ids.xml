@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="quest_payoff_replay" type="id" />
+    <item name="quest_guidance_label" type="id" />
+    <item name="quest_payoff_board" type="id" />
+    <item name="quest_payoff_move" type="id" />
+    <item name="quest_payoff_material" type="id" />
+    <item name="quest_payoff_details" type="id" />
+    <item name="quest_payoff_danger" type="id" />
+    <item name="quest_payoff_danger_reason" type="id" />
+    <item name="quest_payoff_previous" type="id" />
+    <item name="quest_payoff_next" type="id" />
+    <item name="quest_payoff_study_lesson" type="id" />
+    <item name="quest_payoff_study_evidence" type="id" />
+</resources>

@@ -20,10 +20,13 @@ final class BoardView extends ViewGroup {
     private static final int DARK_MARK = 0xffbec953;
     private static final int HINT_MARK = 0xff57e0b4;
     private static final int HINT_OUTLINE = 0xff173b31;
+    private static final int DANGER_MARK = 0xffffa86b;
+    private static final int DANGER_OUTLINE = 0xff562621;
     private final Paint arrowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path arrow = new Path();
     private Cell hintOrigin;
     private Cell hintDestination;
+    private Cell dangerCell;
 
     BoardView(Context context, IntConsumer select) {
         super(context);
@@ -38,6 +41,7 @@ final class BoardView extends ViewGroup {
 
     void show(ChessPosition position, boolean blackBelow, int selected, List<ChessPosition.Move> moves, ChessPosition.Move last,
             QuestHint.Cue hint, boolean playable, int activeLabelId) {
+        clearDanger();
         if (hintOrigin != null) hintOrigin.setAccessibilityTraversalAfter(View.NO_ID);
         if (hintDestination != null) hintDestination.setAccessibilityTraversalAfter(View.NO_ID);
         var displayHint = hint.onBoard(blackBelow);
@@ -70,6 +74,19 @@ final class BoardView extends ViewGroup {
         if (hintOrigin != null) hintOrigin.setAccessibilityTraversalAfter(activeLabelId);
         if (hintDestination != null) hintDestination.setAccessibilityTraversalAfter(hintOrigin.getId());
         invalidate();
+    }
+
+    void markDanger(int square, boolean blackBelow, String reason) {
+        clearDanger();
+        if (reason == null) return;
+        dangerCell = (Cell) getChildAt(BoardSquare.displayIndex(square, blackBelow));
+        dangerCell.setDanger(reason);
+    }
+
+    private void clearDanger() {
+        if (dangerCell == null) return;
+        dangerCell.setDanger(null);
+        dangerCell = null;
     }
 
     @Override protected void dispatchDraw(Canvas canvas) {
@@ -156,10 +173,22 @@ final class BoardView extends ViewGroup {
         private boolean highlight;
         private boolean destination;
         private boolean hinted;
+        private CharSequence unmarkedDescription;
         private boolean rankLabel;
         private boolean fileLabel;
 
         Cell(Context context) { super(context); }
+
+        private void setDanger(String reason) {
+            if (reason == null) {
+                setContentDescription(unmarkedDescription);
+                unmarkedDescription = null;
+            } else {
+                unmarkedDescription = getContentDescription();
+                setContentDescription(reason + ". " + unmarkedDescription);
+            }
+            invalidate();
+        }
 
         @Override protected void onDraw(Canvas canvas) {
             int width = getWidth();
@@ -178,6 +207,7 @@ final class BoardView extends ViewGroup {
                 }
             }
             if (hinted) drawHintRing(canvas, width, height);
+            if (unmarkedDescription != null) drawRing(canvas, width, height, DANGER_OUTLINE, DANGER_MARK);
             paint.setColor(light ? 0xff506638 : LIGHT);
             paint.setTypeface(Typeface.DEFAULT_BOLD);
             paint.setTextSize(width * .19f);
@@ -187,14 +217,18 @@ final class BoardView extends ViewGroup {
         }
 
         private void drawHintRing(Canvas canvas, int width, int height) {
+            drawRing(canvas, width, height, HINT_OUTLINE, HINT_MARK);
+        }
+
+        private void drawRing(Canvas canvas, int width, int height, int outline, int accent) {
             float inset = width * .075f;
             float radius = width * .13f;
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(width * .063f);
-            paint.setColor(HINT_OUTLINE);
+            paint.setColor(outline);
             canvas.drawRoundRect(inset, inset, width - inset, height - inset, radius, radius, paint);
             paint.setStrokeWidth(width * .035f);
-            paint.setColor(HINT_MARK);
+            paint.setColor(accent);
             canvas.drawRoundRect(inset, inset, width - inset, height - inset, radius, radius, paint);
             paint.setStyle(Paint.Style.FILL);
         }

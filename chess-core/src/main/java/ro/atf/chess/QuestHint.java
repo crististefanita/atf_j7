@@ -4,6 +4,14 @@ package ro.atf.chess;
 public enum QuestHint {
     NONE, PIECE, SOLUTION;
 
+    public enum Action { SHOW_PIECE, SHOW_MOVE, EXPLAIN, WAIT }
+
+    public Action nextAction(boolean solved, boolean defensePending) {
+        if (defensePending) return Action.WAIT;
+        if (solved || this == SOLUTION) return Action.EXPLAIN;
+        return this == NONE ? Action.SHOW_PIECE : Action.SHOW_MOVE;
+    }
+
     public QuestHint advance() {
         return this == NONE ? PIECE : SOLUTION;
     }

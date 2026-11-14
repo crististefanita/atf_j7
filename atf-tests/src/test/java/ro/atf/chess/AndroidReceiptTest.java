@@ -139,6 +139,36 @@ class AndroidReceiptTest {
         return Jsoup.parse(receipt.resolveSibling("android-game-review.html"), "UTF-8").text();
     }
 
+    @Test void tacticsExplanationRequiresBothNativeCaptures(Checks check) throws Exception {
+        var identity = new ReviewIdentity("", "sanity", "a".repeat(64), "1".repeat(32));
+        var required = List.of("Tactic 002 opens the normal explanation on its final move",
+                "The normal explanation rewinds and allows forward replay",
+                "Closing the normal explanation preserves the solved tactic and points",
+                "Tactic 043 opens the defense study on the accepted key",
+                "The defense study replays Kg8 and shows the material on the board",
+                "Closing the defense study preserves the solved tactic and points");
+        for (boolean substituted : List.of(false, true)) {
+            Path directory = Files.createDirectory(folder.resolve("tactics-" + substituted));
+            var scope = "tactics-explanation";
+            writeReviewRun(directory, scope, 111, required.size(), identity, required, List.of(scope, "tactics-defense"), 4);
+            Path receipt = directory.resolve(scope + ".txt");
+            if (substituted) {
+                Path defense = directory.resolve("tactics-defense.png");
+                Files.copy(directory.resolve(scope + ".png"), defense, StandardCopyOption.REPLACE_EXISTING);
+                check.rejects("A passing receipt cannot qualify with the normal replay capture substituted for the defense",
+                        AssertionError.class, () -> AndroidSanityPublication.publishTacticsExplanation(receipt));
+            } else {
+                AndroidSanityPublication.publishTacticsExplanation(receipt);
+            }
+            var report = analysisReport(receipt, scope);
+            check.same("Extent renders the matching captures and actual status", List.of(1, substituted ? 1 : 2),
+                    List.of(report.select(substituted ? "li.test-item[status=fail]" : "li.test-item[status=pass]").size(),
+                            report.select("a[href^=data:image/png;base64]").size()));
+            if (substituted) check.same("Extent identifies the substituted PNG", true,
+                    report.text().contains("Capture SHA-256 mismatch: tactics-defense.png"));
+        }
+    }
+
     @Test void publishesBothAnalysisSurfacesWithBoundCapturesAndVisibleResults(Checks check) throws Exception {
         Path receipt = analysisFixture("analysis-valid", "1".repeat(32), "1".repeat(32));
         AndroidSanityPublication.publishMatchAnalysis(receipt);

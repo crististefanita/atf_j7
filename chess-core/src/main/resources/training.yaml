@@ -1,483 +1,696 @@
 schema: 2
 objective: WIN_MATERIAL
 quests:
+  # Lichess 023eI · rating 1190 · fork · https://lichess.org/game/VimbADnr/black#60
+  - id: training-105
+    fen: "7k/p6p/1p1b4/8/1P1pBPq1/3Q4/P6P/7K w - - 3 31"
+    solution: d3d4
+    difficulty: 1
+    payoff-line: d3d4 g4g7 d4d6
+    lesson: FORK
+  # Lichess 017AB · rating 1198 · promotion · https://lichess.org/game/2zYITnbk#101
+  - id: training-101
+    fen: "8/5k2/7p/1R3Kp1/4P3/5P1P/1pr5/8 b - - 3 51"
+    solution: c2c5
+    difficulty: 2
+    payoff-line: c2c5 b5c5 b2b1q
+    lesson: PROMOTION
   # Lichess 00tB9 · rating 1219 · pin · https://lichess.org/game/I1QFfgyS#47
   - id: training-049
     fen: "1k1r3r/1Bq1b1p1/p2p4/2n1p1P1/4P3/4BP2/1PPQN3/2KR3R b - - 0 24"
     solution: c5b3
-    difficulty: 1
+    difficulty: 3
+    payoff-line: c5b3 c1b1 b3d2
   # Lichess 00cy1 · rating 1222 · pin · https://lichess.org/game/TsSnBR0S/black#54
   - id: training-050
     fen: "2rknb2/3q1pp1/p1pP3r/1pQ1P3/5P1p/1P4P1/PB4K1/3R4 w - - 0 28"
     solution: c5b6
-    difficulty: 2
+    difficulty: 4
+    payoff-line: c5b6 e8c7 d6c7
   # Lichess 00G81 · rating 1268 · defensiveMove · https://lichess.org/game/Q8HZlLcF#101
   - id: training-051
     fen: "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51"
     solution: d8c8
-    difficulty: 3
+    difficulty: 5
+    payoff-line: d8c8 c5b6 c8c4
   # Lichess 01FB6 · rating 1268 · deflection · https://lichess.org/game/StB6avH2#61
   - id: training-052
     fen: "4Qn1k/6p1/7p/8/1b1P2N1/2q1B2P/6P1/6K1 b - - 1 31"
     solution: c3e1
-    difficulty: 4
+    difficulty: 6
+    payoff-line: c3e1 g1h2 b4d6 g4e5 e1e3 e8d8 d6e5
   # Lichess 00i6P · rating 1332 · quietMove · https://lichess.org/game/HxIkxV0Q/black#68
   - id: training-053
     fen: "1r2Rq1k/3P2p1/p6p/8/2P5/5P2/P4P1P/6K1 w - - 2 35"
     solution: e8f8
-    difficulty: 5
+    difficulty: 7
+  # Lichess 01Jpm · rating 1348 · promotion · https://lichess.org/game/ScInufn8#91
+  - id: training-109
+    fen: "5R2/8/p5pp/2B5/5b1P/P3p3/8/3K1k2 b - - 3 46"
+    solution: e3e2
+    difficulty: 8
+    payoff-line: e3e2 d1c2 e2e1q
+    lesson: PROMOTION
+  # Lichess 00PHg · rating 1350 · clearance · https://lichess.org/game/u5o6sm6r/black#92
+  - id: training-110
+    fen: "R7/P4p2/7p/q3k1n1/5R2/7P/5PK1/8 w - - 3 47"
+    solution: a8e8
+    difficulty: 9
+    payoff-line: a8e8 e5f4 a7a8q a5a8 e8a8
+    lesson: CLEARANCE
   # Lichess 00g5H · rating 1367 · deflection · https://lichess.org/game/pzEZtfM3/black#60
   - id: training-054
     fen: "2r3k1/p4pp1/1p5p/1Q6/2q5/5P2/1P4PP/3R2K1 w - - 4 31"
     solution: d1d8
-    difficulty: 6
+    difficulty: 10
+    payoff-line: d1d8 c8d8 b5c4
+    lesson: DEFLECTION
+  # Lichess 0Luif · rating 1393 · rook attack · https://lichess.org/game/sIDa0P6Y/black#44
+  - id: training-097
+    fen: "1k1r4/p2qr1pp/1pQ1p3/4P3/8/8/P4PPP/1RR3K1 w - - 5 23"
+    solution: b1b6
+    difficulty: 11
+    payoff-line: b1b6 a7b6 c6b6 d7b7 b6d8
+    lesson: SACRIFICE
+  # Lichess 0BTVa · rating 1399 · rook attack · https://lichess.org/game/nAKW8sEV#61
+  - id: training-098
+    fen: "8/bpp1n2k/p2p3p/3Pp1p1/1P2P1N1/P2P1rP1/3R1P2/5RK1 b - - 1 31"
+    solution: f3g3
+    difficulty: 12
+    payoff-line: f3g3 g1h2 g3g4
+    lesson: REMOVE_DEFENDER
   # Lichess 00Erm · rating 1402 · defensiveMove · https://lichess.org/game/kE9mu3xO/black#58
   - id: training-055
     fen: "3r4/6k1/1p1pr1p1/p1p2p2/P1P1p1P1/1P1n4/3R1PBP/4R1K1 w - - 1 30"
     solution: d2d3
-    difficulty: 7
+    difficulty: 13
+    payoff-line: d2d3 e4d3 e1e6
   # Lichess 00QCe · rating 1423 · fork · https://lichess.org/game/fovXj5D1/black#56
   - id: training-056
     fen: "1k5r/n1r3pp/5p2/ppN5/5P2/8/2R3PP/1R4K1 w - - 4 29"
     solution: c5a6
-    difficulty: 8
+    difficulty: 14
+    payoff-line: c5a6 b8b7 a6c7
+    lesson: FORK
   # Lichess 0199s · rating 1450 · sacrifice · https://lichess.org/game/alW9L2kD/black#40
   - id: training-001
     fen: "r3qr1k/1p2b1p1/4p1Qp/2ppP3/p4P2/2P1P1P1/PP4P1/1K1R3R w - - 1 21"
     solution: h1h6
-    difficulty: 9
+    difficulty: 15
   # Lichess 03ZQd · rating 1460 · sacrifice · https://lichess.org/game/v9rjDUi1/black#42
   - id: training-057
     fen: "1n4k1/5ppp/1p1qp3/rQ6/Pp1P1P2/4PP2/2rNK2P/R5R1 w - - 7 22"
     solution: b5e8
-    difficulty: 10
+    difficulty: 16
+    payoff-line: b5e8 d6f8 g1g7 g8g7 a1g1 g7f6 e8f8 b8c6 g1g7 c6d8 g7h7
   # Lichess 01MRs · rating 1472 · sacrifice · https://lichess.org/game/jIGXIyov#27
   - id: training-058
     fen: "r5k1/p2qppbp/1p1p1np1/2p5/2Pn4/P1NPP1PP/1P3P2/1RBQ1RK1 b - - 0 14"
     solution: d7h3
-    difficulty: 11
+    difficulty: 17
+    payoff-line: d7h3 e3d4 f6g4 d1g4 h3g4
   # Lichess 00TLz · rating 1477 · deflection · https://lichess.org/game/iQZPp2A2/black#72
   - id: training-002
     fen: "8/p3Q2p/5qp1/4p1k1/8/8/Pr4PP/6K1 w - - 2 37"
     solution: h2h4
-    difficulty: 12
+    difficulty: 18
+    payoff-line: h2h4 g5f5 g2g4 f5g4 e7f6
+  # Lichess 02WXt · rating 1477 · clearance · https://lichess.org/game/ooXzqgbl#67
+  - id: training-106
+    fen: "2k5/1pp2pp1/3r2p1/8/P3K1P1/1P1RPP2/8/8 b - - 7 34"
+    solution: f7f5
+    difficulty: 19
+    payoff-line: f7f5 g4f5 g6f5 e4f5 d6d3
+    lesson: CLEARANCE
   # Lichess 00Ngg · rating 1490 · fork · https://lichess.org/game/5oeDyMdB#29
   - id: training-059
     fen: "3qk2r/1p1bbppp/4pn2/1BPp1n2/3P4/4PN2/4QPPP/BN2K2R b Kk - 2 15"
     solution: d8a5
-    difficulty: 13
+    difficulty: 20
+    payoff-line: d8a5 e2d2 a5d2 b1d2 d7b5
+    lesson: FORK
   # Lichess 0470w · rating 1521 · quietMove · https://lichess.org/game/KK2ek1pA#71
   - id: training-060
     fen: "8/6p1/4p3/2K1p3/1P5p/7P/4kPP1/8 b - - 2 36"
     solution: e2f2
-    difficulty: 14
+    difficulty: 21
+    payoff-line: e2f2 b4b5 f2g2
+  # Lichess 00xxi · rating 1539 · deflection · https://lichess.org/game/XrLtoaW5/black#136
+  - id: training-107
+    fen: "5r2/7P/5K2/8/2P2k2/P7/8/8 w - - 1 69"
+    solution: f6g7
+    difficulty: 22
+    payoff-line: f6g7 f8d8 h7h8q d8h8 g7h8
+    lesson: DEFLECTION
   # Lichess 00Nf5 · rating 1563 · fork · https://lichess.org/game/JkE5qS7u#21
   - id: training-003
     fen: "r1bq1rk1/pp2bppp/2pp1n2/8/5P2/2N2N2/PBPPB1PP/R2Q1RK1 b - - 6 11"
     solution: d8b6
-    difficulty: 15
+    difficulty: 23
+    payoff-line: d8b6 g1h1 b6b2
+    lesson: FORK
   # Lichess 00m5H · rating 1567 · quietMove · https://lichess.org/game/P8apABHK/black#86
   - id: training-004
     fen: "8/1p5p/6p1/2P5/1P2k3/P3qp1Q/8/5K2 w - - 6 44"
     solution: h3e6
-    difficulty: 16
+    difficulty: 24
   # Lichess 08DMb · rating 1602 · sacrifice · https://lichess.org/game/ucAOl2ba#49
   - id: training-061
     fen: "3r4/p1p2pp1/1pk4p/2p1PP2/4KB1b/3P3P/PP1R1P2/8 b - - 3 25"
     solution: d8d4
-    difficulty: 17
+    difficulty: 25
+    payoff-line: d8d4 e4f3 d4f4 f3f4 h4g5 f4e4 g5d2
+  # Lichess 0AZju · rating 1612 · rook attack · https://lichess.org/game/1xChFKLk#67
+  - id: training-099
+    fen: "8/p1r5/1ppbknQ1/8/1P1Pr2P/P2NP3/5P2/1B5K b - - 1 34"
+    solution: e4h4
+    difficulty: 26
+    payoff-line: e4h4 h1g2 h4g4 g6g4 f6g4
+    lesson: DEFLECTION
+  # Lichess 00JYV · rating 1612 · intermezzo · https://lichess.org/game/rJrzfvfs/black#22
+  - id: training-102
+    fen: "r2q1rk1/p1p1bppp/2pp2b1/4p3/4n1PN/2NP3P/PPP2PK1/R1BQ1R2 w - - 0 12"
+    solution: h4g6
+    difficulty: 27
+    payoff-line: h4g6 e4c3 g6e7 d8e7 b2c3
+    lesson: INTERMEZZO
   # Lichess 01kWV · rating 1620 · deflection · https://lichess.org/game/Pr2x1odA/black#66
   - id: training-062
     fen: "6r1/Rb4r1/pPp1p3/2Pp1pk1/3P4/4P1p1/5K1P/6R1 w - - 0 34"
     solution: g1g3
-    difficulty: 18
+    difficulty: 28
+    payoff-line: g1g3 g5f6 a7b7 g7b7 g3g8
   # Lichess 01x76 · rating 1626 · fork · https://lichess.org/game/gHnDYMnI#57
   - id: training-063
     fen: "5rk1/6pp/2pQ4/3pN3/5q2/2P2P1P/8/4R1K1 b - - 0 29"
     solution: f4g3
-    difficulty: 19
+    difficulty: 29
+    payoff-line: f4g3 g1f1 f8f3 e5f3 g3d6
+  # Lichess 00gS7 · rating 1656 · defense · https://lichess.org/game/kCNSStnU#65
+  - id: training-111
+    fen: "8/1r3pkp/1b4p1/2RpQ3/7P/1qP3P1/1P3P2/2B3K1 b - - 6 33"
+    solution: f7f6
+    difficulty: 30
+    payoff-line: f7f6 c1h6 g7h6
+    lesson: DEFENSE
   # Lichess 02xIH · rating 1657 · deflection · https://lichess.org/game/wTURrRXw#49
   - id: training-064
     fen: "8/Q4pkp/1p2B1p1/8/4n3/2P2NP1/Pq3PKP/8 b - - 0 25"
     solution: b2f2
-    difficulty: 20
+    difficulty: 31
+    payoff-line: b2f2 g2h3 f2f3
   # Lichess 01l3i · rating 1662 · fork · https://lichess.org/game/l0VrjJfX/black#64
   - id: training-065
     fen: "4R3/r1pk1p2/1pbp4/6qp/3N4/7P/PPP5/1K2R3 w - - 0 33"
     solution: e1e7
-    difficulty: 21
+    difficulty: 32
+    payoff-line: e1e7 g5e7 e8e7 d7e7 d4c6
   # Lichess 05pk8 · rating 1663 · quietMove · https://lichess.org/game/ZCZLwnFc#61
   - id: training-066
     fen: "6k1/5rp1/4NnQp/1q1p1p2/pp1P4/3b1P2/PP1B2PP/K3R3 b - - 1 31"
     solution: f5f4
-    difficulty: 22
+    difficulty: 33
+    payoff-line: f5f4 g6f7 g8f7
+    lesson: QUIET_THREAT
   # Lichess 01ZHr · rating 1668 · defensiveMove · https://lichess.org/game/UawqiXtM#67
   - id: training-067
     fen: "4k2R/2p1p3/4p2Q/3p4/3P2P1/1p2P3/1Pn5/3KNq2 b - - 5 34"
     solution: e8d7
-    difficulty: 23
+    difficulty: 34
+    payoff-line: e8d7 h6h4 c2e3 d1d2 e3c4 d2d1 c4b2
   # Lichess 01d2J · rating 1672 · sacrifice · https://lichess.org/game/CklaH1ip/black#38
   - id: training-068
     fen: "r3r1k1/pp5p/2pq2p1/3nNQ1b/3P4/4pP1P/PP2P1B1/1K1R3R w - - 0 20"
     solution: f5f7
-    difficulty: 24
+    difficulty: 35
+    payoff-line: f5f7 g8h8 f7e8 a8e8 e5f7 h8g7 f7d6
   # Lichess 00veX · rating 1681 · defensiveMove · https://lichess.org/game/pUj3STn8/black#36
   - id: training-069
     fen: "1r3rk1/p4p2/2p4p/2q1p1p1/4Pnb1/2PB1PB1/P1Q3PP/3R1RK1 w - - 1 19"
     solution: g3f2
-    difficulty: 25
+    difficulty: 36
+    payoff-line: g3f2 c5a3 f3g4 b8b2 c2c1 f8d8 d3c4 d8d1 f1d1 a3a4 c1b2
   # Lichess 011RD · rating 1684 · fork · https://lichess.org/game/rBgndHmx/black#76
   - id: training-025
     fen: "7r/2p2k2/1p6/p3R2r/P2Q1pb1/2P5/q1PK1PP1/6R1 w - - 1 39"
     solution: d4f4
-    difficulty: 26
+    difficulty: 37
+    payoff-line: d4f4 g4f5 e5f5 h5f5 f4f5
   # Lichess 02IqA · rating 1691 · pin · https://lichess.org/game/Mmiinbsg/black#68
   - id: training-070
     fen: "2r5/3qp1kp/7r/p4Pp1/5R2/1Pp4Q/P2n1R2/2B3K1 w - - 0 35"
     solution: f5f6
-    difficulty: 27
+    difficulty: 38
+    payoff-line: f5f6 h6f6 h3d7
   # Lichess 00734 · rating 1692 · pin · https://lichess.org/game/jM0Jnw0u/black#52
   - id: training-026
     fen: "r4bk1/2rqp2p/n1p3p1/3p1p2/3P1P1B/pP1BP3/P1Q2PRP/1KR5 w - - 1 27"
     solution: d3f5
-    difficulty: 28
+    difficulty: 39
+  # Lichess 00IMS · rating 1706 · clearance · https://lichess.org/game/4sOYAEfF/black#70
+  - id: training-103
+    fen: "1r4k1/r5q1/p2p1pP1/4pn2/2p1P2Q/2Pb1BK1/P6R/2R5 w - - 0 36"
+    solution: e4f5
+    difficulty: 40
+    payoff-line: e4f5 d3f5 f3d5
+    lesson: CLEARANCE
   # Lichess 04TQD · rating 1714 · quietMove · https://lichess.org/game/lmDAzyCc/black#58
   - id: training-027
     fen: "3r1rk1/pp2qp2/2p1p1pQ/8/8/1P4R1/6PP/5R1K w - - 0 30"
     solution: g3h3
-    difficulty: 29
+    difficulty: 41
+    payoff-line: g3h3 f7f6 h6h8 g8f7 h3h7 f7e8 h7e7
+    lesson: QUIET_THREAT
   # Lichess 035Fa · rating 1741 · defensiveMove · https://lichess.org/game/tHLkgNN2#75
   - id: training-028
     fen: "8/2P5/5k2/p7/P3K3/8/2r2Rp1/8 b - - 0 38"
     solution: c2f2
-    difficulty: 30
+    difficulty: 42
+    payoff-line: c2f2 c7c8q g2g1q
+    lesson: PROMOTION
   # Lichess 02MA3 · rating 1758 · pin · https://lichess.org/game/9VkfvsKi#57
   - id: training-071
     fen: "1r4k1/p1p3p1/2p5/2Pp4/3P3q/3B1Prb/PP1R2NQ/1R5K b - - 4 29"
     solution: h3g2
-    difficulty: 31
+    difficulty: 43
+    payoff-line: h3g2 d2g2 g3h3 d3f5 h3h2
   # Lichess 06XlC · rating 1763 · quietMove · https://lichess.org/game/n81uSlNo/black#112
   - id: training-072
     fen: "6k1/1p4P1/5K2/2P1n3/8/p3N3/8/8 w - - 0 57"
     solution: f6e5
-    difficulty: 32
+    difficulty: 44
+  # Lichess 0047P · rating 1766 · fork · https://lichess.org/game/Gb33KZKC#111
+  - id: training-104
+    fen: "8/1N3k2/6p1/8/2P3P1/pr6/R7/5K2 b - - 2 56"
+    solution: b3b1
+    difficulty: 45
+    payoff-line: b3b1 f1e2 b1b2 e2d1 b2a2
+    lesson: FORK
   # Lichess 01X5n · rating 1769 · deflection · https://lichess.org/game/WJVPHTRz/black#80
   - id: training-029
     fen: "8/8/7p/p3r1p1/2PKpkP1/7P/4R3/8 w - - 3 41"
     solution: e2f2
-    difficulty: 33
+    difficulty: 46
+  # Lichess 02Nl2 · rating 1794 · rook attack · https://lichess.org/game/ePsgpnv7/black#50
+  - id: training-100
+    fen: "r1b3rk/1p6/p1p1p2p/4P3/8/2P2q2/PPQ5/1K5R w - - 0 26"
+    solution: h1h6
+    difficulty: 47
+    payoff-line: h1h6 h8g7 c2h7 g7f8 h6f6 f3f6 e5f6
+    lesson: SACRIFICE
   # Lichess 04Vom · rating 1816 · quietMove · https://lichess.org/game/TguJkcMT#53
   - id: training-030
     fen: "r1bQ1B2/3p2pk/5p1p/pNP2P2/P3q3/3n4/1P4PP/R4RK1 b - - 1 27"
     solution: c8b7
-    difficulty: 34
+    difficulty: 48
+    payoff-line: c8b7 f1f3 a8d8
+    lesson: QUIET_THREAT
   # Lichess 00Knu · rating 1821 · defensiveMove · https://lichess.org/game/ICZqsNVs/black#36
   - id: training-031
     fen: "r2q1rk1/p3bpp1/2pp2b1/4p1Q1/4n3/1B3N1P/PPP3P1/R1B2RK1 w - - 1 19"
     solution: g5g6
-    difficulty: 35
+    difficulty: 49
   # Lichess 02Hhq · rating 1821 · pin · https://lichess.org/game/jDpqJItu#79
   - id: training-032
     fen: "1b6/p6k/1p5p/3p1p2/PP1QnP2/2P3Pq/7P/4R2K b - - 2 40"
     solution: e4g3
-    difficulty: 36
+    difficulty: 50
+    payoff-line: e4g3 h1g1 g3e4 e1f1 h3g4 g1h1 g4e2 d4g1 e4c3 f1e1 e2f3
   # Lichess 03Xp2 · rating 1822 · quietMove · https://lichess.org/game/j5oc8Ecd#59
   - id: training-073
     fen: "2q2Bk1/Q4p1p/2p3p1/3np3/P6P/5N2/2P2P2/7K b - - 0 30"
     solution: c8h3
-    difficulty: 37
+    difficulty: 51
+    payoff-line: c8h3 h1g1 d5f4 a7f7 g8f7
   # Lichess 02JQH · rating 1824 · sacrifice · https://lichess.org/game/aeZrFnCi/black#46
   - id: training-074
     fen: "rn1b1rk1/6p1/3p4/2pPpp1Q/Np5q/1P1B4/P4P2/1K1R2R1 w - - 0 24"
     solution: g1g7
-    difficulty: 38
+    difficulty: 52
+    payoff-line: g1g7 g8g7 d1g1 h4g5 g1g5 d8g5 h5g5
+    lesson: SACRIFICE
   # Lichess 04BvX · rating 1833 · sacrifice · https://lichess.org/game/E1acHhKI/black#100
   - id: training-033
     fen: "8/3P2kp/2K2b2/3B4/1P6/3r4/5p2/7R w - - 0 51"
     solution: h1h7
-    difficulty: 39
+    difficulty: 53
   # Lichess 00dwJ · rating 1852 · defensiveMove · https://lichess.org/game/jAiL6A2t/black#64
   - id: training-005
     fen: "2r5/2r3k1/p3b1pp/3pn3/3R4/4P1N1/PQ4PP/R1q3K1 w - - 8 33"
     solution: a1c1
-    difficulty: 40
+    difficulty: 54
   # Lichess 01phf · rating 1853 · sacrifice · https://lichess.org/game/xhkwjXqa#27
   - id: training-034
     fen: "5k1r/p1p1qppp/8/1r6/1b1p2b1/1P4P1/PBPPPPBP/R2QK2R b KQ - 2 14"
     solution: g4e2
-    difficulty: 41
+    difficulty: 55
+  # Lichess 02oHj · rating 1857 · promotion · https://lichess.org/game/yCoAf0hc#87
+  - id: training-108
+    fen: "1N4R1/pk6/8/8/P5P1/2pr4/4K3/8 b - - 1 44"
+    solution: c3c2
+    difficulty: 56
+    payoff-line: c3c2 e2d3 c2c1q
+    lesson: PROMOTION
   # Lichess 00IDw · rating 1862 · quietMove · https://lichess.org/game/KmTVU8Fo#59
   - id: training-006
     fen: "4r3/pN3kpp/2N1b3/2R5/5b2/P5P1/1P3P1P/7K b - - 0 30"
     solution: e6h3
-    difficulty: 42
+    difficulty: 57
+    payoff-line: e6h3 c5c1 f4c1
+    lesson: QUIET_THREAT
   # Lichess 00f2T · rating 1875 · fork · https://lichess.org/game/XytFAWBD#65
   - id: training-075
     fen: "4r2k/p7/3p4/2pPbR1p/2P1R3/2B3qP/P3Q3/7K b - - 0 33"
     solution: g3h3
-    difficulty: 43
+    difficulty: 58
+    payoff-line: g3h3 h1g1 e8g8 e4g4 g8g4 e2g4 h3g4
   # Lichess 00umX · rating 1878 · pin · https://lichess.org/game/k9gpWj7k#37
   - id: training-076
     fen: "2k3rr/ppp2p2/3B1p2/2pP1q1p/2P5/2N2B1b/PP1Q1PP1/R3R1K1 b - - 0 19"
     solution: f5f3
-    difficulty: 44
+    difficulty: 59
   # Lichess 01G5k · rating 1879 · defensiveMove · https://lichess.org/game/1wwwMKcH/black#98
   - id: training-077
     fen: "8/b6p/P1K5/2p1k1p1/6P1/8/1P3P2/8 w - - 2 50"
     solution: c6b7
-    difficulty: 45
+    difficulty: 60
+    payoff-line: c6b7 e5d6 b7a7
+    lesson: QUIET_THREAT
   # Lichess 00p5I · rating 1923 · fork · https://lichess.org/game/GErJ3bwZ/black#60
   - id: training-078
     fen: "2r5/1b4k1/2q1p1pr/2p5/1p1pR1QP/pP1P1PP1/P1P5/4R1K1 w - - 1 31"
     solution: e4e6
-    difficulty: 46
+    difficulty: 61
+    payoff-line: e4e6 c6f3 e6e7 g7f8 e1f1 f3f1 g1f1 f8e7 g4g5 e7d7 g5h6
   # Lichess 01h1x · rating 1941 · deflection · https://lichess.org/game/yvyXkZ5v/black#52
   - id: training-079
     fen: "7r/p5pp/4b3/N1pk4/3p4/8/Pr3PPP/2R1R1K1 w - - 0 27"
     solution: a5c4
-    difficulty: 47
+    difficulty: 62
+    payoff-line: a5c4 b2a2 e1e5 d5c6 e5e6
   # Lichess 02Mow · rating 1952 · quietMove · https://lichess.org/game/Wu477GgT/black#24
   - id: training-080
     fen: "r4rk1/p1p2ppp/2pp4/2b3B1/3Nq3/2P4b/PP3PP1/R2Q1RK1 w - - 0 13"
     solution: g2h3
-    difficulty: 48
+    difficulty: 63
+    payoff-line: g2h3 e4g6 d1g4 c5d4 c3d4 f7f5 g4g2 f5f4 g5e7 g6g2 g1g2
   # Lichess 02MgP · rating 1974 · sacrifice · https://lichess.org/game/jRGb0WQd#55
   - id: training-081
     fen: "3r1rk1/p1q3pb/1p1b4/8/3B2PQ/2P2pNP/PP3P2/R3R1K1 b - - 2 28"
     solution: d6g3
-    difficulty: 49
+    difficulty: 64
+    payoff-line: d6g3 h4g3 c7g3 f2g3 d8d4 c3d4 f3f2 g1g2 f2e1r
+    lesson: PROMOTION
   # Lichess 00eSU · rating 1996 · deflection · https://lichess.org/game/RCXs5UcQ#67
   - id: training-035
     fen: "5r2/p2R4/1P3pk1/1Q4p1/4p1q1/4P1P1/6PK/8 b - - 0 34"
     solution: f8h8
-    difficulty: 50
+    difficulty: 65
+    payoff-line: f8h8 h2g1 g4g3 b5e2 a7b6
+  # Lichess 01e8j · rating 2027 · quiet_threat · https://lichess.org/game/oIBGbrtd/black#78
+  - id: training-112
+    fen: "8/6k1/6p1/7p/4rP1P/5KP1/8/8 w - - 0 40"
+    solution: f3e4
+    difficulty: 66
+    payoff-line: f3e4 g7f6 f4f5
+    lesson: QUIET_THREAT
   # Lichess 01aM3 · rating 2036 · deflection · https://lichess.org/game/EGpArMRn#45
   - id: training-082
     fen: "2k4r/B1p2p2/1P1b1pb1/7p/1PB1P1P1/2P2Q1P/1q1r1PK1/R6R b - - 0 23"
     solution: d2f2
-    difficulty: 51
+    difficulty: 67
+    payoff-line: d2f2 f3f2 g6e4 g2g1 b2a1
+    lesson: SACRIFICE
   # Lichess 016vg · rating 2063 · fork · https://lichess.org/game/h2gQMWMU#61
   - id: training-036
     fen: "4r1k1/2R3p1/p3r2p/1p2P3/1q6/1P4P1/P3Q2P/4R1K1 b - - 0 31"
     solution: e6e5
-    difficulty: 52
+    difficulty: 68
+    payoff-line: e6e5 e2e5 e8e5 e1e5 b4d4 g1f1 d4e5
   # Lichess 024AF · rating 2087 · defensiveMove · https://lichess.org/game/O4qAL8Oj#39
   - id: training-083
     fen: "2r2r1k/3qbpp1/p6P/1p1ppP1n/3p3N/PB1P3P/1PPQ1P2/2KR3R b - - 0 20"
     solution: e7h4
-    difficulty: 53
+    difficulty: 69
   # Lichess 00xOm · rating 2099 · pin · https://lichess.org/game/TM04eo9o/black#80
   - id: training-084
     fen: "5rk1/7p/p2R2p1/1p2n1P1/2q1Q1P1/PBP5/Kr6/8 w - - 0 41"
     solution: a2b2
-    difficulty: 54
+    difficulty: 70
+    payoff-line: a2b2 f8f2 e4c2 f2c2 b2c2 a6a5 d6d8 g8f7 b3c4
   # Lichess 00DKr · rating 2152 · defensiveMove · https://lichess.org/game/mYdqj7UD#83
   - id: training-007
     fen: "3r1k2/2p1R3/p2p2n1/1p6/1P1P2Q1/7P/5qPK/4R3 b - - 3 42"
     solution: g6e7
-    difficulty: 55
+    difficulty: 71
+    payoff-line: g6e7 e1e6 f2f7 h3h4 f8e8 d4d5 d8d7 g4g5 e8d8 e6f6 f7e8
   # Lichess 00x47 · rating 2206 · deflection · https://lichess.org/game/oExVQQ0V/black#50
   - id: training-085
     fen: "3r1k2/p6p/1p1q4/4p3/P1P1p1Qb/1PB1P3/5rPP/R5K1 w - - 2 26"
     solution: g4h4
-    difficulty: 56
+    difficulty: 72
   # Lichess 03Qjb · rating 2214 · defensiveMove · https://lichess.org/game/ym2TuONa#69
   - id: training-086
     fen: "4r2k/5pp1/1R1p1n1p/1P1P1Pn1/P4Q2/1B5r/2P3P1/6K1 b - - 0 35"
     solution: e8e1
-    difficulty: 57
+    difficulty: 73
   # Lichess 0220F · rating 2229 · fork · https://lichess.org/game/cffy1N6q#49
   - id: training-087
     fen: "1rb3k1/pp4p1/3Qp2p/1N1pP1q1/3P2n1/P7/1P4PP/4RBK1 b - - 5 25"
     solution: g5h4
-    difficulty: 58
+    difficulty: 74
+    payoff-line: g5h4 h2h3 h4f2 g1h1 f2e1 h3g4 e1f1
   # Lichess 00bQA · rating 2230 · pin · https://lichess.org/game/1NlzMdB5/black#80
   - id: training-088
     fen: "r7/4n1k1/2b1R1n1/1p4R1/1P1p3p/3P1PpP/2N3P1/6K1 w - - 1 41"
     solution: e6e7
-    difficulty: 59
+    difficulty: 75
   # Lichess 00mca · rating 2252 · pin · https://lichess.org/game/EIg6vKLO#39
   - id: training-008
     fen: "7Q/p3nkpp/3p2q1/3P4/4P3/B1r2B1b/P4PPP/R4RK1 b - - 0 20"
     solution: c3f3
-    difficulty: 60
+    difficulty: 76
   # Lichess 00Gz6 · rating 2253 · fork · https://lichess.org/game/F80hPRFE/black#50
   - id: training-009
     fen: "r7/p4kp1/1p4p1/2qNn3/Q7/4PP2/PP3K2/6R1 w - - 1 26"
     solution: a4f4
-    difficulty: 61
+    difficulty: 77
+    payoff-line: a4f4 f7e6 f4e4 a8f8 g1g6 e6d7 g6g7
   # Lichess 01fTa · rating 2265 · pin · https://lichess.org/game/eNDWgYGn#49
   - id: training-089
     fen: "3r2k1/6pp/p7/4Bb2/5N2/3R1P2/PPr3PP/3K3R b - - 3 25"
     solution: f5d3
-    difficulty: 62
+    difficulty: 78
+    payoff-line: f5d3 f4d3 c2g2 d1c1 d8d3
   # Lichess 01JEA · rating 2281 · sacrifice · https://lichess.org/game/rcwW2M7E#87
   - id: training-010
     fen: "5rkr/1QN5/4R3/p1P5/P2p4/1B1q3P/1P4P1/6K1 b - - 0 44"
     solution: f8f1
-    difficulty: 63
+    difficulty: 79
+    payoff-line: f8f1 g1h2 h8h3 g2h3 f1f2 b7g2 f2g2 h2g2 d3b3
   # Lichess 08018 · rating 2286 · sacrifice · https://lichess.org/game/ADEi1yaX#79
   - id: training-090
     fen: "8/5pk1/4p1pp/7r/3P1b2/5PqP/4R1P1/3R2QK b - - 1 40"
     solution: h5h3
-    difficulty: 64
+    difficulty: 80
+    payoff-line: h5h3 g2h3 g3h3 e2h2 h3f3 h2g2 f3h5 g2h2 f4h2 g1h2 h5d1
+    lesson: SACRIFICE
   # Lichess 04ACF · rating 2289 · deflection · https://lichess.org/game/rwaHUr9v#31
   - id: training-091
     fen: "r4rk1/ppbb2pp/2p1p3/2Pp4/3Pp3/2N1P3/PPQ1B1PP/R1B1qRK1 b - - 5 16"
     solution: f8f1
-    difficulty: 65
+    difficulty: 81
+    payoff-line: f8f1 e2f1 a8f8 c2e2 f8f1 e2f1 c7h2 g1h2 e1f1
   # Lichess 0275h · rating 2324 · defensiveMove · https://lichess.org/game/eeSHotnC/black#74
   - id: training-092
     fen: "5r2/8/3r4/p1pNk1p1/1pPn2P1/1P3pK1/P2R3P/3R4 w - - 2 38"
     solution: d2d4
-    difficulty: 66
+    difficulty: 82
   # Lichess 03Wfh · rating 2341 · quietMove · https://lichess.org/game/F5fmO1FH#93
   - id: training-093
     fen: "8/8/5n1p/1P2k3/4B1p1/4K2P/8/8 b - - 0 47"
     solution: f6e4
-    difficulty: 67
+    difficulty: 83
+  # Lichess 00fN7 · rating 2361 · fork · https://lichess.org/game/hpYXRUS4/black#48
+  - id: training-113
+    fen: "N1bk4/pp1p1R2/5bB1/4p3/4n3/8/PB3r2/2K5 w - - 6 25"
+    solution: f7f8
+    difficulty: 84
+    payoff-line: f7f8 d8e7 f8e8 e7d6 g6e4 f2b2 c1b2
+    lesson: FORK
   # Lichess 006XF · rating 2372 · pin · https://lichess.org/game/Ynra1LLE/black#34
   - id: training-011
     fen: "r5kr/pp1qb1p1/2p4p/3pP2Q/3Pb3/2P1B3/PP4PP/R4RK1 w - - 2 18"
     solution: h5f7
-    difficulty: 68
+    difficulty: 85
+    payoff-line: h5f7 g8h7 f1f6 e7f6 f7d7
   # Lichess 00sKJ · rating 2372 · quietMove · https://lichess.org/game/fldTxHoO/black#80
   - id: training-094
     fen: "8/1P2pk2/R2b4/N4pp1/8/3K2P1/1r4P1/8 w - - 3 41"
     solution: a6d6
-    difficulty: 69
+    difficulty: 86
+    payoff-line: a6d6 e7d6 a5c6 b2b7 c6d8 f7f6 d8b7
+    lesson: SACRIFICE
   # Lichess 07FUV · rating 2411 · sacrifice · https://lichess.org/game/N5Qw85vW/black#52
   - id: training-095
     fen: "2k1r3/p1qp4/1p1B4/2pb4/1PP2Q2/P3P3/4Br1P/5R1K w - - 0 27"
     solution: c4d5
-    difficulty: 70
+    difficulty: 87
+    payoff-line: c4d5 f2f4 e2a6 c7b7 a6b7 c8b7 e3f4
   # Lichess 00lhJ · rating 2446 · fork · https://lichess.org/game/kllp2DcO/black#64
   - id: training-096
     fen: "3q3k/8/3PQ2p/p3n1r1/P1P4b/2N1p2P/1r6/R5RK w - - 0 33"
     solution: e6h6
-    difficulty: 71
+    difficulty: 88
+    payoff-line: e6h6 h8g8 h6h4 b2h2 h1h2
   # Lichess 00rnW · rating 2533 · deflection · https://lichess.org/game/UpjEipzv#47
   - id: training-012
     fen: "4r1k1/1rp2ppp/5q2/2R5/8/P2P4/R2Q1PPP/6K1 b - - 0 24"
     solution: b7b1
-    difficulty: 72
+    difficulty: 89
+    payoff-line: b7b1 c5c1 e8e2 d2e2 b1c1 e2f1 c1f1
   # Lichess 04WpL · rating 2540 · fork · https://lichess.org/game/lIKYwACn#25
   - id: training-037
     fen: "N1bk1bnr/pp3pp1/3N3p/4p3/4q3/4B3/PPn1KPPP/R2Q1B1R b - - 1 13"
     solution: c8g4
-    difficulty: 73
+    difficulty: 90
+    payoff-line: c8g4 e2d2 e4b4 d2c2 g4d1
   # Lichess 01p6X · rating 2545 · pin · https://lichess.org/game/WvyBfJYA/black#54
   - id: training-013
     fen: "r7/1p1qNp1k/p2p2rn/2p5/4P2Q/7P/PPP3P1/5RK1 w - - 3 28"
     solution: f1f7
-    difficulty: 74
+    difficulty: 91
+    payoff-line: f1f7 g6g7 f7f6 g7e7 f6h6 h7g8 h6h8 g8f7 h4h5 f7g7 h8a8
   # Lichess 0DYqt · rating 2555 · pin · https://lichess.org/game/7IVNwaUn#35
   - id: training-038
     fen: "r3q1r1/pppb1p1k/3p1B1p/7Q/3PP3/3P1R2/PP4PP/4R1K1 b - - 4 18"
     solution: d7g4
-    difficulty: 75
+    difficulty: 92
+    payoff-line: d7g4 h5d5 c7c6 d5d6 g4f3
   # Lichess 0Y28B · rating 2556 · deflection · https://lichess.org/game/5YYQtDkr/black#58
   - id: training-039
     fen: "R3Q3/8/1p1p1r1k/4p2p/4Ppq1/1P1P4/1PP3pP/6K1 w - - 2 30"
     solution: e8h8
-    difficulty: 76
+    difficulty: 93
+    payoff-line: e8h8 h6g5 h8g7 g5h4 g7f6
   # Lichess 01icD · rating 2558 · fork · https://lichess.org/game/S74huRTI/black#48
   - id: training-040
     fen: "3r1rk1/2p1q1p1/p7/Q2Rp2b/7P/2N1P1B1/PP3P2/2K5 w - - 2 25"
     solution: d5e5
-    difficulty: 77
+    difficulty: 94
+    payoff-line: d5e5 e7d7 e5d5 d7h3 d5h5 h3f1 c1c2
   # Lichess 04QI4 · rating 2567 · sacrifice · https://lichess.org/game/Crduc3Ns/black#58
   - id: training-041
     fen: "4r2k/2R3b1/6p1/p2qn1P1/1p1pN3/1P1Q4/P4PP1/6K1 w - - 1 30"
     solution: d3h3
-    difficulty: 78
+    difficulty: 95
+    payoff-line: d3h3 h8g8 e4f6 g7f6 h3h7 g8f8 h7h6 f8g8 g5f6 d5f7 c7f7
   # Lichess 0AByd · rating 2576 · quietMove · https://lichess.org/game/7dizJ2Gf#113
   - id: training-042
     fen: "8/8/8/p7/1b3B2/3Q4/2k2PK1/8 b - - 0 57"
     solution: c2d3
-    difficulty: 79
+    difficulty: 96
   # Lichess 05SOm · rating 2587 · deflection · https://lichess.org/game/mya3BFq3#51
   - id: training-014
     fen: "6rk/3b1prp/p2Q4/2pPp3/3qP1P1/5B1P/5PK1/R6R b - - 0 26"
     solution: d7g4
-    difficulty: 80
+    difficulty: 97
   # Lichess 0C6d3 · rating 2588 · deflection · https://lichess.org/game/3MTrj1wH#69
   - id: training-043
     fen: "8/8/pkb1Q2p/1p1RP3/5rP1/1NK5/q3B2P/4R3 b - - 0 35"
     solution: b5b4
-    difficulty: 81
+    difficulty: 98
+    payoff-line: b5b4 c3d3 a2b3
   # Lichess 0Ajqd · rating 2590 · defensiveMove · https://lichess.org/game/p04jgftI/black#88
   - id: training-044
     fen: "8/1p5p/6p1/pP6/b2pkP2/3N2PP/4K3/8 w - - 0 45"
     solution: d3c5
-    difficulty: 82
+    difficulty: 99
+    payoff-line: d3c5 e4d5 c5a4
+    lesson: FORK
   # Lichess 0E5S0 · rating 2591 · pin · https://lichess.org/game/Txx6VTfm/black#34
   - id: training-045
     fen: "r4rk1/pp1b1ppp/4pb1q/2p1n3/4N3/4PNRB/PP2Q2P/2K3R1 w - - 9 18"
     solution: e4f6
-    difficulty: 83
+    difficulty: 100
+    payoff-line: e4f6 h6f6 g3g7 g8h8 f3e5 f6e5 e2d3 e5g7 g1g7 h8g7 d3d7
   # Lichess 0Tkd3 · rating 2592 · sacrifice · https://lichess.org/game/VYDv2hr3#81
   - id: training-046
     fen: "1r4R1/5p1p/4p2b/3pP1kN/3P3N/4P3/6P1/1q1Q2K1 b - - 10 41"
     solution: g5h4
-    difficulty: 84
+    difficulty: 101
+    payoff-line: g5h4 g2g3 h4h3 d1b1 h6e3 g1f1 b8b1
   # Lichess 07WtO · rating 2652 · quietMove · https://lichess.org/game/eBwPZ7Qx/black#32
   - id: training-047
     fen: "rn1q1rk1/3nb1pp/b1p1p3/6PP/3P1B2/1Qp2N2/PP3PB1/R3K2R w KQ - 0 17"
     solution: b3e6
-    difficulty: 85
+    difficulty: 102
+    payoff-line: b3e6 f8f7 g5g6 d8a5 e6f7
   # Lichess 06z4K · rating 2658 · defensiveMove · https://lichess.org/game/wmovUCj7#57
   - id: training-048
     fen: "5rrk/3q2p1/1pp1p1PB/8/1PbPp3/P4Q1R/6P1/R5K1 b - - 0 29"
     solution: f8f3
-    difficulty: 86
+    difficulty: 103
   # Lichess 03NIM · rating 2659 · fork · https://lichess.org/game/88MQXu8t#41
   - id: training-015
     fen: "r1b1r2k/pp2q3/2pp1NQP/6P1/1bP5/7N/P2P2P1/R2K1R2 b - - 0 21"
     solution: e7e2
-    difficulty: 87
+    difficulty: 104
   # Lichess 00Aul · rating 2666 · quietMove · https://lichess.org/game/WWumMDnF/black#66
   - id: training-016
     fen: "4r3/1p3R1p/1pb2R1B/8/6k1/8/r6P/6K1 w - - 0 34"
     solution: f7g7
-    difficulty: 88
+    difficulty: 105
+    payoff-line: f7g7 g4h4 h6d2 e8e1 d2e1
   # Lichess 00qFT · rating 2669 · quietMove · https://lichess.org/game/TQpdTR2b#81
   - id: training-017
     fen: "8/8/7p/3Bk1p1/P3p3/7P/8/6K1 b - - 0 41"
     solution: e5d5
-    difficulty: 89
+    difficulty: 106
   # Lichess 00jdm · rating 2690 · fork · https://lichess.org/game/6snrVDus/black#44
   - id: training-018
     fen: "r3r1k1/ppp2p1N/3p2p1/2bq1b1Q/3p4/3B1P2/PPP4P/R1B3K1 w - - 0 23"
     solution: h7f6
-    difficulty: 90
+    difficulty: 107
+    payoff-line: h7f6 g8g7 h5h4 e8h8 h4h8 a8h8 f6d5 f5d3 c2d3
   # Lichess 00sJ9 · rating 2700 · sacrifice · https://lichess.org/game/gyFeQsOE#35
   - id: training-019
     fen: "r3r1k1/p4ppp/2p2n2/1p6/3P1qb1/2NQ2R1/PPB2PP1/R1B3K1 b - - 6 18"
     solution: e8e1
-    difficulty: 91
+    difficulty: 108
+    payoff-line: e8e1 g1h2 e1c1 a1c1 f4h6 h2g1 h6c1
   # Lichess 054Xh · rating 2707 · defensiveMove · https://lichess.org/game/2RsJfxQT#91
   - id: training-020
     fen: "8/4k3/6R1/1p5R/8/1P2p3/KP4r1/8 b - - 0 46"
     solution: g2g6
-    difficulty: 92
+    difficulty: 109
   # Lichess 07pPl · rating 2716 · deflection · https://lichess.org/game/Ow91PQjS/black#86
   - id: training-021
     fen: "3r4/6k1/3q4/5ppQ/8/6R1/6PK/8 w - - 0 44"
     solution: h5g5
-    difficulty: 93
+    difficulty: 110
+    payoff-line: h5g5 g7f7 g5g7 f7e6 h2h3 d6d4 g3g6 e6d5 g7f7 d5e4 g6e6 e4d3 f7f5
+  # Lichess 01qGf · rating 2723 · quietMove · https://lichess.org/game/hq3AsMAw#43
+  - id: training-114
+    fen: "5Bk1/pppq1r2/2n5/4p1p1/P5Bb/2P1PN2/3P2K1/R2Q1R2 b - - 0 22"
+    solution: d7g4
+    difficulty: 111
+    payoff-line: d7g4 g2h1 h4g3 f3h2 g4e4
+    lesson: QUIET_THREAT
   # Lichess 04KAc · rating 2834 · sacrifice · https://lichess.org/game/93oUfehr/black#62
   - id: training-022
     fen: "3qr2k/p4Q1p/3BPnp1/7n/p1BP4/7R/5KPP/3r4 w - - 1 32"
     solution: h3h5
-    difficulty: 94
+    difficulty: 112
+    payoff-line: h3h5 e8e6 c4e6
   # Lichess 03MPe · rating 2877 · pin · https://lichess.org/game/rA7KF7Yp#59
   - id: training-023
     fen: "1R6/1P2qpkp/3p2p1/2pP4/1pPb1Q2/1P1B2PP/5P1K/r7 b - - 0 30"
     solution: e7e1
-    difficulty: 95
+    difficulty: 113
+    payoff-line: e7e1 b8g8 g7g8 b7b8q g8g7 d3f1 a1a2 f4f7 g7f7
   # Lichess 03dIU · rating 2984 · defensiveMove · https://lichess.org/game/bICPltU1/black#80
   - id: training-024
     fen: "8/4k3/2p1rp2/pp3P2/3PK2p/PPP4P/8/8 w - - 0 41"
     solution: f5e6
-    difficulty: 96
+    difficulty: 114

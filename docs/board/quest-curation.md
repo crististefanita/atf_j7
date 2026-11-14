@@ -57,12 +57,86 @@ Ambele motoare verifică o singură primă mutare care forțează matul în trei
 
 ## Antrenament tactic și lot de verificare
 
-Capitolul **Antrenament tactic** conține 96 de poziții fără obiectiv de mat, ordonate după ratingul sursă. Pozițiile acoperă apărarea, devierea, mutarea liniștită, sacrificiul, furculița și legarea. ID-urile `training-049`–`training-072` acoperă benzile 1200–1599 și 1600–1849. ID-urile `training-073`–`training-096` adaugă câte o poziție pentru fiecare temă și culoare în benzile 1800–2199 și 2200–2699. ID-urile, pozițiile, soluțiile și ordinea relativă a exercițiilor existente păstrează progresul salvat. [Catalog](../../chess-core/src/main/resources/training.yaml) · [Exportul Lichess CC0](https://database.lichess.org/#puzzles)
+La etapa 6 din `training-069`, `Qxb2` încheie exercițiul prin captura imediată a turnului. Cele +5 unități descriu poziția chiar după captură. Negrul mai are replica `…Qxd1+`. În linia de studiu `Rd8+ Kg7 Qxb2 Qxc4 Rd2`, șahul amână câștigul până la mutarea următoare. Atingeți mesajul după `Rd8+` pentru explicație și parcurgeți linia de pe tablă. Din bec puteți deschide și reluarea exercițiului. Poziția și punctele se păstrează în timpul studiului.
+
+[Studiile ultimei mutări](../../chess-core/src/main/resources/quest-finish-studies.yaml) fixează poziția, cheia și continuarea în UCI. Consumatorul verifică etapa, cheia și poziția înainte să afișeze explicația. Linia de studiu rămâne distinctă de linia creditată din catalog.
+
+Capitolul **Antrenament tactic** conține 114 poziții fără obiectiv de mat, ordonate după ratingul sursă. Pozițiile acoperă apărarea, devierea, mutarea liniștită, sacrificiul, furculița și legarea. ID-urile `training-049`–`training-072` acoperă benzile 1200–1599 și 1600–1849. ID-urile `training-073`–`training-096` adaugă câte o poziție pentru fiecare temă și culoare în benzile 1800–2199 și 2200–2699. Patru exerciții de turn, două pe fiecare culoare, intră între ratingurile sursă 1393 și 1794. Următorul lot adaugă patru lecții între ratingurile sursă 1198 și 1766, cu două poziții pe fiecare culoare. ID-urile și ordinea relativă a exercițiilor existente păstrează progresul salvat. [Catalog](../../chess-core/src/main/resources/training.yaml) · [Exportul Lichess CC0](https://database.lichess.org/#puzzles)
 
 Stockfish 19 la adâncimea 15 a ales cheia în toate cele 24 de poziții noi și în 24 de poziții separate, din aceleași benzi și teme. J7 și chess.js 1.4.0 verifică unicitatea cheii pentru câștigul material forțat în trei semimutări. `QuestCatalogTest` verifică unicitatea între capitole și față de lotul separat. `TacticsCatalogTest` compară dovezile cu amprentele chess.js, iar `QuestStoreTest` verifică reluarea după intercalarea exercițiilor. Lotul separat rămâne în resursele de test și poate fi folosit pentru transferul motorului. [Lot independent](../../atf-tests/src/test/resources/tactical-transfer-holdout.yaml) · [Verificări locale](../testing/README.md#progresul-problemelor)
+
+| Exercițiu | Lecție | Câștig minim după replica imediată la final |
+|---|---|---:|
+| training-101 · [017AB](https://lichess.org/training/017AB) | Sacrifică turnul cu șah pe c5 ca să promovezi pionul de pe b2. | 300 cp |
+| training-102 · [00JYV](https://lichess.org/training/00JYV) | Înainte de a recaptura pe c3, ia nebunul din e7 cu șah. | 340 cp |
+| training-103 · [00IMS](https://lichess.org/training/00IMS) | Deschide d5 pentru șahul nebunului după schimbul de pe f5. | 220 cp |
+| training-104 · [0047P](https://lichess.org/training/0047P) | Folosește șahurile turnului ca să ataci regele și turnul din a2. | 500 cp |
+
+Stockfish 19 confirmă cheile la adâncimile 16 și 19. Bilanțul din tabel este materialul rămas după linia jucabilă și cea mai costisitoare replică imediată. La adâncimea 19, Stockfish alege liniile publicate până la câștig. În 00IMS, la adâncimea 16, preferă altă apărare cu aceeași cheie.
+
+Patru finaluri noi folosesc răspunsul din linia Stockfish 19 la adâncimea 19. Cheile coincid la adâncimile 16 și 19. Am păstrat pozițiile existente și ordinea lor relativă.
+
+| Exercițiu | Lecție | Câștig minim la capătul liniei |
+|---|---|---:|
+| training-105 · [023eI](https://lichess.org/training/023eI) | Dama capturează cu șah și atacă și piesa din d6. | 430 cp |
+| training-106 · [02WXt](https://lichess.org/training/02WXt) | Schimburile de pioni deschid linia turnului către d3. | 400 cp |
+| training-107 · [00xxi](https://lichess.org/training/00xxi) | Intrarea regelui permite promovarea și câștigul turnului după schimb. | 400 cp |
+| training-108 · [02oHj](https://lichess.org/training/02oHj) | Avansul pionului pe c2 permite promovarea după ce regele capturează pe d3. | 300 cp |
+
+Cele patru finaluri de mai jos păstrează răspunsurile din linia Stockfish 19 la adâncimea 19 până la câștig. Cheile coincid la adâncimile 16 și 19.
+
+| Exercițiu | Lecție | Câștig minim la capătul liniei |
+|---|---|---:|
+| training-109 · [01Jpm](https://lichess.org/training/01Jpm) | Avansează cu șah și promovează înaintea pionului advers. | 470 cp |
+| training-110 · [00PHg](https://lichess.org/training/00PHg) | Intrarea turnului cu șah pregătește promovarea și recaptura. | 200 cp |
+| training-111 · [00gS7](https://lichess.org/training/00gS7) | Împinge pionul pentru a limita răspunsurile și a câștiga nebunul. | 230 cp |
+| training-112 · [01e8j](https://lichess.org/training/01e8j) | Regele capturează pe e4, apoi f5 păstrează opoziția și progresul pionilor. | 400 cp |
 
 ## Mutarea intermediară
 
 Capitolul **Mutarea intermediară** are 24 de poziții în trei trepte de rating: introducere (1150–1549), consolidare (1550–1849) și avansat (1850–2400), cu patru poziții pentru fiecare culoare în fiecare treaptă. Cheia dă șah sau capturează înaintea recapturii și trebuie să păstreze câștigul material cerut de catalog. [Catalog](../../chess-core/src/main/resources/intermezzo.yaml)
 
 Progresul și totalul acestui capitol sunt independente de **Tactică** și **Antrenament tactic**. Verificați în componentă ID-ul curent, rezolvarea idempotentă și totalul separat înainte de extinderea YAML-ului.
+
+## Câștigul și lecția în problemele fără mat
+
+Un exercițiu bun leagă mutarea de o alegere pe care jucătorul o poate recunoaște într-o altă partidă. Începeți de la relația dintre piese, identificați replica care pune ideea la încercare și opriți linia la primul câștig vizibil și apărat. În Mutarea intermediară, păstrați ultima captură din partida sursă, mutarea care amână recaptura și câștigul obținut prin ordinea nouă.
+
+| Dovadă | Ce verificăm |
+|---|---|
+| Proveniență | ID-ul din exportul Lichess, partida și mutarea care produce poziția. Poziția și prima mutare trebuie să coincidă cu sursa. |
+| Linie | `payoff-line` listează semimutările UCI, de la cheia `solution` până la ultima mutare a jucătorului. Repetați linia pe tablă și verificați fiecare replică legală la final. |
+| Lecție | `lesson` numește motivul demonstrat de linie. Pentru o deviere, indicați ce apărător se mută și ce devine capturabil. Pentru o furculiță, urmăriți ambele ținte. |
+| Rezultat | Măsurați materialul de la începutul liniei, cu piesele pierdute și câștigate. Verificați separat dacă adversarul poate recupera imediat câștigul. |
+
+Pentru un câștig imediat, o singură mutare poate încheia exercițiul. Pentru o combinație, păstrați succesiunea cheie, apărare, câștig. Explicația pornește de la tabla finală și permite revenirea la fiecare mutare. Dificultatea crește când replica schimbă ordinea firească a mutărilor, când câștigul cere o mutare fără captură sau când aceeași idee trebuie recunoscută cu cealaltă culoare.
+
+Cheia unică verificată la trei semimutări rămâne un control local de material. Pentru pozițiile mai lungi, comparați și replica preferată de Stockfish. Un scor pozitiv poate indica atac sau inițiativă chiar dacă materialul scade. De exemplu, în `training-001`, după `Rxh6+ gxh6 Qxh6+ Kg8 Rh1`, albul are atac, iar bilanțul material al liniei rămâne negativ. Verificați o continuare care arată un câștig concret înainte de a eticheta linia ca exercițiu de câștig material.
+
+În `intermezzo-020`, după `…Nxe4`, albul poate recaptura imediat calul. Lecția este să joace mai întâi `Bxe7`, cu atac asupra damei, apoi `Nxe4` după `…Qxe7`. În `intermezzo-024`, negrul amenință mai întâi promovarea cu `…cxb2`. După `Rb8` recapturează turnul cu `…Nxa4`. În ambele exemple, schimbarea ordinii produce un câștig observabil.
+
+În [0Nyzz](https://lichess.org/training/0Nyzz), `…f5` eliberează diagonala e7–h4 și nebunul atacă dama. Dacă albul joacă `Qxe7`, dama neagră recapturează pe e7. Jucătorul vede astfel de ce o mutare fără captură poate câștiga mai mult decât o captură imediată.
+
+La revizuire păstrați ID-ul dacă poziția și cheia rămân aceleași. Pentru o poziție înlocuită, folosiți un ID nou și păstrați ID-ul anterior în registrul de retrageri. Comparați dificultatea, culoarea și lecția în ordinea capitolului. [Verificarea catalogului](../testing/README.md#tactică-și-punctaj) · [Exportul Lichess CC0](https://database.lichess.org/#puzzles)
+
+| Capitol | Continuare jucabilă verificată | Câștig imediat verificat | Studiul apărării în explicație |
+|---|---:|---:|---:|
+| Tactică | 76 | 17 | 7 |
+| Antrenament tactic | 87 | 15 | 10 |
+| Mutarea intermediară | 20 | 4 | 0 |
+
+Șase exerciții introductive locale au fost înlocuite cu poziții atestate. Cele noi ocupă aceleași locuri și păstrează distribuția culorilor. În cele 17 poziții a căror rezolvare se salvează după mutarea-cheie, **Explicația** deschide studiul apărării. Reia cheia, replica adversă și continuarea din [catalogul studiilor](../../chess-core/src/main/resources/quest-defense-studies.yaml).
+
+Din cele 183 de continuări, 130 provin din linia publicată, 43 din comparația cu Stockfish și verificarea pe tablă, patru din partidele J7 păstrate și șase din exercițiile de înlocuire. Pentru o linie obținută cu Stockfish, prezentați replica ca variantă verificată. Dovada că un câștig persistă la o replică imediată se aplică poziției de la capătul liniei.
+
+| Exercițiu | Lecție | Câștig la capătul liniei |
+|---|---|---:|
+| [training-097](https://lichess.org/training/0Luif) | `Rxb6+` atrage pionul a. Dama recapturează cu șah și câștigă turnul de la d8. | +2 |
+| [training-098](https://lichess.org/training/0BTVa) | `…Rxg3+` forțează regele să se retragă. Turnul continuă cu `…Rxg4` și ia calul. | +4,2 |
+| [training-099](https://lichess.org/training/0AZju) | După `…Rxh4+`, turnul atrage dama la g4, unde calul o capturează. | +5 |
+| [training-100](https://lichess.org/training/02Nl2) | `Rxh6+` deschide calea damei la h7. Turnul continuă pe f6, atrage dama adversă și pionul o capturează. | +5 |
+
+Pentru fiecare dintre cele 17 studii, catalogul păstrează proveniența Lichess, linia UCI și lecția specifică în română și engleză. Replica afișată este prima alegere Stockfish 19 la adâncimea 19 din poziția obținută după cheie. Rularea la adâncimea 17 arată unde alegerea se schimbă. Scorul afișat este estimarea motorului după cheie, din perspectiva celui care rezolvă. Bilanțul afișat se calculează direct din fiecare poziție, cu valorile pieselor din profilul tactic. La final, o valoare mai mică după o replică legală apare separat.
+
+În `training-001`, `Rxh6+ gxh6 Qxh6+ Kg8 Rh1` deschide coloana h pentru damă și turn. Linia arată −3 unități de pion și un minim de −4 după o replică, iar Stockfish estimează poziția de după cheie la +7,23. În `tactic-052`, șahurile împing regele până la c4 și turnul capturează dama pe g4. Câștigul material de la captură este +9, cu minimum +4 după o replică. În ambele cazuri, folosiți pasul la care ideea devine vizibilă când scrieți lecția.
+

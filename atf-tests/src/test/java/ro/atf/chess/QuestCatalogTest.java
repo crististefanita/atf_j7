@@ -73,7 +73,7 @@ class QuestCatalogTest {
         all.addAll(QuestCatalog.loadTactics());
         all.addAll(QuestCatalog.loadTraining());
         all.addAll(QuestCatalog.loadIntermezzo());
-        check.same("All chapters contribute 1,220 distinct IDs and positions", 1220L, all.stream().map(QuestCatalog.Quest::id).distinct().count());
+        check.same("All chapters contribute 1,238 distinct IDs and positions", 1238L, all.stream().map(QuestCatalog.Quest::id).distinct().count());
         var holdout = QuestCatalog.readMaterial(ChessYaml.resource("tactical-transfer-holdout.yaml"), "holdout");
         all.addAll(holdout);
         QuestDiversity.requireDistinct(all);

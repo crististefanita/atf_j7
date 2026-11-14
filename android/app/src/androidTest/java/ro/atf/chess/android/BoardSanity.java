@@ -43,10 +43,12 @@ import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.GameReview;
+import ro.atf.chess.GameReviewTimeline;
 import ro.atf.chess.MatchSetup;
 import ro.atf.chess.MatchSlots;
 import ro.atf.chess.MatchStore;
 import ro.atf.chess.QuestCatalog;
+import ro.atf.chess.QuestPayoff;
 
 public final class BoardSanity extends Instrumentation {
     private static final int CATALOG_SIZE = 500;
@@ -98,6 +100,10 @@ public final class BoardSanity extends Instrumentation {
             else if ("game-review".equals(phase)) checkGameReview();
             else if ("game-review-why".equals(phase)) checkReviewExplanation();
             else if ("game-review-why-restore".equals(phase)) checkReviewExplanationRestore();
+            else if ("tactics-explanation".equals(phase)) checkTacticsExplanation();
+            else if ("training-finish".equals(phase)) checkTrainingFinish();
+            else if ("puzzle-mate-replay".equals(phase)) checkPuzzleMateReplay();
+            else if ("puzzle-danger".equals(phase)) checkPuzzleDanger();
             else if ("manual-analysis".equals(phase)) checkManualAnalysis();
             else if ("match-slots".equals(phase)) checkMatchSlots();
             else if ("match-archive".equals(phase)) checkMatchArchive();
@@ -1037,7 +1043,7 @@ public final class BoardSanity extends Instrumentation {
             checkTactics(activity);
             openChapter(activity, R.string.open_training);
             var training = viewsOf(activity);
-            playMove(findBoard(training), QuestCatalog.loadTraining().get(0).solution());
+            playTactic(activity, findBoard(training), QuestCatalog.loadTraining().get(0));
             tap(button(activity, training, R.string.next_quest));
             switchChapter(activity, R.string.open_mate_one);
             var views = viewsOf(activity);
@@ -1046,9 +1052,10 @@ public final class BoardSanity extends Instrumentation {
             finishMateInThree(activity);
             switchChapter(activity, R.string.open_tactics);
             var views = viewsOf(activity);
+            var lastTactic = QuestCatalog.loadTactics().get(1);
             compare("A real process restart keeps the tactics chapter position and its two awards", true,
                     hasText(views, activity.getString(R.string.tactics_progress, 2, TACTICS_SIZE))
-                            && hasText(views, activity.getString(R.string.tactics_solved))
+                            && hasText(views, solvedTactic(activity, lastTactic))
                             && hasText(views, activity.getString(R.string.chapter_points, 22)));
             switchChapter(activity, R.string.open_training);
             var training = viewsOf(activity);
@@ -1062,7 +1069,25 @@ public final class BoardSanity extends Instrumentation {
         } else throw new IllegalArgumentException("Unknown sanity phase: " + phase);
     }
 
-    private void checkTactics(Activity activity) throws IOException {
+    private void playTactic(Activity activity, BoardView board, QuestCatalog.Quest quest) {
+        var store = new ChessProgressStore(getTargetContext()).quests();
+        for (int stage = 0; stage < quest.playerMoves(); stage++) {
+            playMove(board, quest.playerMove(stage));
+            if (stage == quest.playerMoves() - 1) break;
+            int ready = (stage + 1) * 2;
+            long deadline = SystemClock.uptimeMillis() + 2500;
+            while (store.ply(quest.id()) != ready && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+            waitForIdleSync();
+            compare("The authored tactical defense advances once without solving", true,
+                    store.ply(quest.id()) == ready && !button(activity, viewsOf(activity), R.string.next_quest).isEnabled());
+        }
+    }
+
+    private String solvedTactic(Activity activity, QuestCatalog.Quest quest) {
+        return activity.getString(R.string.tactics_solved, QuestPayoffDialog.material(activity, quest.materialChange(), quest.line().size() == 1));
+    }
+
+    private void checkTactics(Activity activity) throws Exception {
         openChapter(activity, R.string.open_tactics);
         var views = viewsOf(activity);
         var board = findBoard(views);
@@ -1072,18 +1097,31 @@ public final class BoardSanity extends Instrumentation {
                 !next.isEnabled() && bulb instanceof android.widget.ImageButton && compactLayoutFits(activity, views, board, R.string.hint));
         var tactics = QuestCatalog.loadTactics();
         for (int index = 0; index < 2; index++) {
-            var move = tactics.get(index).solution();
-            tap(cell(board, BoardSquare.name(move.from())));
-            tap(cell(board, BoardSquare.name(move.to())));
+            playTactic(activity, board, tactics.get(index));
             if (index == 0) tap(next);
         }
         String streak = activity.getString(R.string.reward_streak, 2);
         compare("A tactics solve renders its result and unlocks Next", true,
-                hasText(views, activity.getString(R.string.tactics_solved)) && next.isEnabled());
+                hasText(views, solvedTactic(activity, tactics.get(1))) && next.isEnabled());
         TextView badge = views.stream().filter(TextView.class::isInstance).map(TextView.class::cast)
                 .filter(view -> streak.contentEquals(view.getText())).findFirst().orElseThrow();
         captureFrame("tactics-streak", "Tactics shows the amber flame below the chapter progress",
                 image -> fullyVisible(badge) && badge.getCompoundDrawables()[0] != null && hasColor(image, badge, 0xffffbc78, 16));
+        var completed = QuestPayoff.forQuest(tactics.get(1));
+        tap(guidance(activity, R.string.why_tactic));
+        var finish = reviewNode(R.id.quest_payoff_move, 2500);
+        var replay = reviewNode(R.id.quest_payoff_board, 2500);
+        compare("The tactic explanation opens on the final board and announces the actual net gain", true,
+                finish != null && replay != null && finish.getContentDescription() != null
+                        && finish.getContentDescription().toString().contains(QuestPayoffDialog.material(activity, completed.last().materialChange(), completed.plies() == 1)));
+        var back = reviewNode(R.id.quest_payoff_previous, 2500);
+        compare("The explanation lets the player rewind to the previous position", true,
+                back != null && back.performAction(AccessibilityNodeInfo.ACTION_CLICK));
+        waitForIdleSync();
+        compare("The previous position enables forward replay", true,
+                reviewNode(R.id.quest_payoff_next, 2500) != null && visibleReviewNode(R.id.quest_payoff_next).isEnabled());
+        clickDialog(activity.getString(android.R.string.ok));
+        checkDefenseStudy(activity);
         tap(button(activity, views, R.string.main_menu));
         var menu = viewsOf(activity);
         var quests = new ChessProgressStore(getTargetContext()).quests();
@@ -1095,6 +1133,293 @@ public final class BoardSanity extends Instrumentation {
         compare("The puzzle menu displays the saved chapter and overall totals", true,
                 hasText(menu, activity.getString(R.string.chapter_totals, totals.solved(), totals.total(), totals.points()))
                         && hasText(menu, activity.getString(R.string.all_quest_totals, totals.solved(), totalQuests, totals.points())));
+    }
+
+    private void checkTacticsExplanation() throws Exception {
+        enableReviewNodeIds();
+        var progressStore = new ChessProgressStore(getTargetContext());
+        var tactics = QuestCatalog.loadTactics();
+        var order = new ArrayList<String>();
+        for (var quest : tactics) order.add(quest.id());
+
+        var simple = launchSavedQuest(progressStore, order, "tactic-002");
+        var views = viewsOf(simple);
+        var quest = tactics.stream().filter(row -> row.id().equals("tactic-002")).findFirst().orElseThrow();
+        playMove(findBoard(views), quest.solution());
+        var savedProgress = progressStore.quests().read(order);
+        var savedRewards = progressStore.quests().readRewards();
+        tap(guidance(simple, R.string.why_tactic));
+        var finish = reviewNode(R.id.quest_payoff_move, 2500);
+        var forward = reviewNode(R.id.quest_payoff_next, 2500);
+        captureFrame("tactics-explanation", "Tactic 002 opens the normal explanation on its final move", image ->
+                payoffBoardRendered(image) && payoffMoveHighlighted(image, quest.solution(), true)
+                        && payoffShows(finish, simple, quest.solution())
+                        && finish.getContentDescription().toString().contains(QuestPayoffDialog.material(simple, 500, true))
+                        && forward != null && !forward.isEnabled());
+        clickReviewIcon(R.id.quest_payoff_previous);
+        var start = reviewNode(R.id.quest_payoff_move, 2500);
+        compare("The normal explanation rewinds and allows forward replay", true, start != null
+                && simple.getString(R.string.tactics_replay_start).contentEquals(start.getText())
+                        && payoffCanAdvance());
+        clickDialog(simple.getString(android.R.string.ok));
+        compare("Closing the normal explanation preserves the solved tactic and points", true, savedProgress.currentSolved()
+                && savedProgress.equals(progressStore.quests().read(order)) && savedRewards.equals(progressStore.quests().readRewards()));
+        runOnMainSync(simple::finish);
+
+        var studied = launchSavedQuest(progressStore, order, "tactic-043");
+        var studiedQuest = tactics.stream().filter(row -> row.id().equals("tactic-043")).findFirst().orElseThrow();
+        playMove(findBoard(viewsOf(studied)), studiedQuest.solution());
+        var studiedProgress = progressStore.quests().read(order);
+        var studiedRewards = progressStore.quests().readRewards();
+        tap(guidance(studied, R.string.why_tactic));
+        var key = reviewNode(R.id.quest_payoff_move, 2500);
+        compare("Tactic 043 opens the defense study on the accepted key", true,
+                payoffShows(key, studied, Move.fromUci("e2h5")) && payoffCanAdvance());
+        clickReviewIcon(R.id.quest_payoff_next);
+        var defense = Move.fromUci("h7g8");
+        captureFrame("tactics-defense", "The defense study replays Kg8 and shows the material on the board",
+                image -> {
+                    var reply = visibleReviewNode(R.id.quest_payoff_move);
+                    return payoffShows(reply, studied, defense)
+                            && reply.getContentDescription().toString().contains(QuestPayoffDialog.materialAtStep(studied, 100))
+                            && payoffBoardRendered(image) && payoffMoveHighlighted(image, defense, false);
+                });
+        clickDialog(studied.getString(android.R.string.ok));
+        compare("Closing the defense study preserves the solved tactic and points", true, studiedProgress.currentSolved()
+                && studiedProgress.equals(progressStore.quests().read(order)) && studiedRewards.equals(progressStore.quests().readRewards()));
+    }
+
+    private static boolean payoffShows(AccessibilityNodeInfo node, Activity activity, Move move) {
+        return node != null && node.getText() != null && node.getContentDescription() != null
+                && node.getText().toString().contains(ChessActivity.notation(activity, move));
+    }
+
+    private void checkTrainingFinish() throws Exception {
+        enableReviewNodeIds();
+        var store = new ChessProgressStore(getTargetContext()).quests();
+        var order = List.of("training-069");
+        if (!store.save(store.read(order), store.readRewards(), 10)) throw new AssertionError("Could not prepare stage six");
+        var activity = launch();
+        var views = viewsOf(activity);
+        var board = findBoard(views);
+        var before = store.read(order);
+        var goal = activity.getString(R.string.tactics_final_capture);
+        compare("Stage six shows the immediate material objective", true, hasText(views, goal));
+
+        playMove(board, Move.fromUci("c4f7"));
+        compare("Bxf7+ leaves the exercise open", true, hasText(views, activity.getString(R.string.tactics_try_again))
+                && store.read(order).equals(before) && store.ply(before.currentId()) == 10);
+        playMove(board, Move.fromUci("d1d8"));
+        var message = activity.getString(R.string.tactics_alternative_available, "Rd8+");
+        var status = views.stream().filter(TextView.class::isInstance).map(TextView.class::cast)
+                .filter(view -> message.contentEquals(view.getText())).findFirst().orElseThrow();
+        var rewards = store.readRewards();
+        tap(status);
+        captureFrame("training-finish", "The puzzle explains Qxb2 and the delayed capture after Rd8+", image ->
+                dialogContains("Qxb2") && dialogContains("Qxd1+") && dialogContains("Kg7"));
+        clickDialog(activity.getString(R.string.tactics_alternative_line, "Rd8+"));
+        clickReviewIcon(R.id.quest_payoff_next);
+        clickReviewIcon(R.id.quest_payoff_next);
+        var capture = Move.fromUci("c1b2");
+        captureFrame("training-finish-line", "The replay shows Qxb2 on its third ply and +5 material", image ->
+                payoffShows(visibleReviewNode(R.id.quest_payoff_move), activity, capture) && payoffMoveHighlighted(image, capture, false)
+                        && dialogContains("+5"));
+        clickDialog(activity.getString(android.R.string.ok));
+        compare("Studying the alternative preserves stage six and its unawarded score", true,
+                before.equals(store.read(order)) && rewards.equals(store.readRewards()) && store.ply(before.currentId()) == 10);
+        playMove(board, capture);
+        compare("Playing Qxb2 solves the puzzle and earns exactly ten points", true,
+                store.read(order).currentSolved() && "5:c1b2".equals(store.finish(before.currentId()))
+                        && Integer.valueOf(10).equals(store.readRewards().points().get(before.currentId())));
+        runOnMainSync(activity::finish);
+        var reopened = launch();
+        tap(guidance(reopened, R.string.why_tactic));
+        boolean explanationRestored = dialogContains("Qxb2") && dialogContains("Qxd1+");
+        clickDialog(reopened.getString(R.string.tactics_puzzle_replay));
+        compare("The explanation remains available after reopening the solved puzzle", true,
+                explanationRestored && payoffShows(reviewNode(R.id.quest_payoff_move, 2500), reopened, capture)
+                        && dialogContains("11/11") && store.read(order).currentSolved()
+                        && Integer.valueOf(10).equals(store.readRewards().points().get(before.currentId())));
+        clickDialog(reopened.getString(android.R.string.ok));
+    }
+
+    private boolean dialogContains(String text) {
+        var root = getUiAutomation().getRootInActiveWindow();
+        return root != null && !root.findAccessibilityNodeInfosByText(text).isEmpty();
+    }
+
+    private void checkPuzzleMateReplay() throws Exception {
+        enableReviewNodeIds();
+        var store = new ChessProgressStore(getTargetContext()).quests();
+        var two = QuestCatalog.loadMateInTwo().get(0);
+        var twoOrder = List.of(two.id());
+        if (!store.save(store.read(twoOrder), store.readRewards(), 2)) throw new AssertionError("Could not prepare the second move");
+        var activity = launch(true);
+        var views = viewsOf(activity);
+        var board = findBoard(views);
+        var caption = (TextView) activity.findViewById(R.id.quest_guidance_label);
+        boolean piece = activity.getString(R.string.quest_hint_next_piece).contentEquals(caption.getText());
+        tap(caption);
+        boolean move = activity.getString(R.string.quest_hint_next_move).contentEquals(caption.getText());
+        tap(guidance(activity, R.string.show_solution));
+        boolean compact = compactLayoutFits(activity, views, board, R.string.why_mate);
+        captureFrame("puzzle-mate-replay", "The Romanian bulb names its next action at each step and fits in a short window", image ->
+                piece && move && activity.getString(R.string.quest_hint_next_explanation).contentEquals(caption.getText())
+                        && compact && fullyVisible(caption)
+                        && hasColor(image, caption, caption.getCurrentTextColor(), 4));
+        var progress = store.read(twoOrder);
+        var rewards = store.readRewards();
+        tap(guidance(activity, R.string.why_mate));
+        boolean opensAfterDefense = payoffShows(reviewNode(R.id.quest_payoff_move, 2500), activity, two.defenseAfter(0));
+        clickReviewIcon(R.id.quest_payoff_next);
+        captureFrame("puzzle-mate-two", "Mate in two opens after the saved defense and reaches the actual mating square", image ->
+                opensAfterDefense && dialogContains(activity.getString(R.string.mate_replay_done))
+                        && payoffShows(visibleReviewNode(R.id.quest_payoff_move), activity, two.matingMove())
+                        && payoffMoveHighlighted(image, two.matingMove(), two.position().turn() == Side.BLACK) && !payoffCanAdvance());
+        clickDialog(activity.getString(android.R.string.ok));
+        compare("Closing the two-move replay preserves the unsolved puzzle, stage and rewards", true,
+                !progress.currentSolved() && progress.equals(store.read(twoOrder)) && store.ply(two.id()) == 2 && rewards.equals(store.readRewards()));
+        runOnMainSync(activity::finish);
+
+        var three = QuestCatalog.loadMateInThree().get(0);
+        var threeOrder = List.of(three.id());
+        if (!store.save(store.read(threeOrder).select(three.id()), store.readRewards(), 4)) {
+            throw new AssertionError("Could not prepare the third move");
+        }
+        var lastStage = launch();
+        tap(button(lastStage, viewsOf(lastStage), R.string.flip));
+        playMove(findBoard(viewsOf(lastStage)), three.matingMove());
+        var solved = store.read(threeOrder);
+        var scored = store.readRewards();
+        tap(guidance(lastStage, R.string.why_mate));
+        boolean beginsAtStart = dialogContains(lastStage.getString(R.string.tactics_replay_start));
+        var replayBoard = nodeBounds(reviewNode(R.id.quest_payoff_board, 2500));
+        for (int ply = 0; ply < 4; ply++) clickReviewIcon(R.id.quest_payoff_next);
+        clickReviewIcon(R.id.quest_payoff_previous);
+        clickReviewIcon(R.id.quest_payoff_next);
+        captureFrame("puzzle-mate-three", "Mate in three replays the second defense and can step back without moving the board",
+                image -> beginsAtStart && replayBoard.equals(nodeBounds(visibleReviewNode(R.id.quest_payoff_board)))
+                        && payoffShows(visibleReviewNode(R.id.quest_payoff_move), lastStage, three.defenseAfter(1))
+                        && payoffMoveHighlighted(image, three.defenseAfter(1), three.position().turn() == Side.WHITE));
+        clickDialog(lastStage.getString(android.R.string.ok));
+        compare("Closing the three-move replay keeps the solved puzzle and its award", true,
+                solved.currentSolved() && solved.equals(store.read(threeOrder)) && scored.equals(store.readRewards())
+                        && Integer.valueOf(10).equals(scored.points().get(three.id())));
+    }
+
+    private boolean payoffCanAdvance() {
+        var next = visibleReviewNode(R.id.quest_payoff_next);
+        return next != null && next.isEnabled();
+    }
+
+    private void checkPuzzleDanger() throws Exception {
+        enableReviewNodeIds();
+        var store = new ChessProgressStore(getTargetContext()).quests();
+        var mate = QuestCatalog.load().get(0);
+        var mateOrder = List.of(mate.id());
+        var activity = launch();
+        openPuzzles(activity);
+        openChapter(activity, R.string.open_mate_one);
+        playMove(findBoard(viewsOf(activity)), mate.matingMove());
+        var progress = store.read(mateOrder);
+        var rewards = store.readRewards();
+        tap(guidance(activity, R.string.why_mate));
+        int king = mate.explanation().king();
+        var danger = reviewNode(R.id.quest_payoff_danger, 2500);
+        boolean startsUnmarked = danger != null && !danger.isSelected() && visibleReviewNode(R.id.quest_payoff_danger_reason) == null;
+        clickReviewIcon(R.id.quest_payoff_danger);
+        String reason = activity.getString(R.string.quest_danger_mate, BoardSquare.name(king));
+        captureFrame("puzzle-danger-mate", "Requesting danger marks the mated king and announces its square", image ->
+                startsUnmarked && dialogContains(reason)
+                        && hasColor(image, payoffCell(king, mate.position().turn() == Side.BLACK), 0xffffa86b, 12));
+        clickReviewIcon(R.id.quest_payoff_previous);
+        compare("Rewinding clears the marker, reason and control", true,
+                visibleReviewNode(R.id.quest_payoff_danger) == null && visibleReviewNode(R.id.quest_payoff_danger_reason) == null);
+        clickReviewIcon(R.id.quest_payoff_next);
+        compare("Returning to mate keeps the marker off until requested again", true,
+                !reviewNode(R.id.quest_payoff_danger, 2500).isSelected() && visibleReviewNode(R.id.quest_payoff_danger_reason) == null);
+        clickDialog(activity.getString(android.R.string.ok));
+        compare("Requesting and navigating danger preserves the solved ID and award", true,
+                progress.currentSolved() && progress.equals(store.read(mateOrder)) && rewards.equals(store.readRewards()));
+
+        var capture = QuestCatalog.loadTactics().stream().filter(row -> row.id().equals("tactic-002")).findFirst().orElseThrow();
+        var payoff = QuestPayoff.forQuest(capture);
+        runOnMainSync(() -> QuestPayoffDialog.open(activity, payoff, true));
+        clickReviewIcon(R.id.quest_payoff_danger);
+        String captureReason = activity.getString(R.string.quest_danger_capture, "h1", "+5");
+        captureFrame("puzzle-danger-capture", "The retained capture marks h1 with five pawn units after any reply", image ->
+                dialogContains(captureReason) && hasColor(image, payoffCell(BoardSquare.parse("h1"), true), 0xffffa86b, 12));
+        clickReviewIcon(R.id.quest_payoff_danger);
+        compare("Tapping the control again hides the capture reason", true,
+                visibleReviewNode(R.id.quest_payoff_danger_reason) == null);
+    }
+
+    private boolean payoffBoardRendered(Bitmap image) {
+        var board = nodeBounds(visibleReviewNode(R.id.quest_payoff_board));
+        return !board.isEmpty() && hasColor(image, board, 0xffedf0d5, 24) && hasColor(image, board, 0xff769556, 24);
+    }
+
+    private boolean payoffMoveHighlighted(Bitmap image, Move move, boolean blackBelow) {
+        return hasColor(image, payoffCell(move.to(), blackBelow), BoardSquare.isLight(move.to()) ? 0xfff4ef86 : 0xffbec953, 24);
+    }
+
+    private Rect payoffCell(int square, boolean blackBelow) {
+        var board = nodeBounds(visibleReviewNode(R.id.quest_payoff_board));
+        int index = BoardSquare.displayIndex(square, blackBelow);
+        int column = index % 8;
+        int row = index / 8;
+        return new Rect(board.left + column * board.width() / 8, board.top + row * board.height() / 8,
+                board.left + (column + 1) * board.width() / 8, board.top + (row + 1) * board.height() / 8);
+    }
+
+    private void checkDefenseStudy(Activity activity) throws Exception {
+        var quest = QuestCatalog.loadTraining().stream().filter(row -> row.id().equals("training-001")).findFirst().orElseThrow();
+        var study = QuestPayoff.forExplanation(quest);
+        runOnMainSync(() -> QuestPayoffDialog.open(activity, study, false));
+        var key = reviewNode(R.id.quest_payoff_move, 2500);
+        var playable = QuestPayoff.forQuest(quest);
+        compare("The defense study starts just after the key and leaves the playable result separate", true,
+                key != null && key.getText() != null && key.getText().toString().contains(ChessActivity.notation(activity, quest.solution()))
+                        && study.plies() > playable.plies() && playable.plies() == 1);
+        var forward = reviewNode(R.id.quest_payoff_next, 2500);
+        compare("The read-only defense reply is available", true, forward != null && forward.performAction(AccessibilityNodeInfo.ACTION_CLICK));
+        waitForIdleSync();
+        var reply = reviewNode(R.id.quest_payoff_move, 2500);
+        compare("The replay advances to the actual defensive move and announces the board material", true,
+                reply != null && reply.getText() != null && reply.getContentDescription() != null
+                        && reply.getText().toString().contains(ChessActivity.notation(activity, study.at(2).move()))
+                        && reply.getContentDescription().toString().contains(QuestPayoffDialog.materialAtStep(activity, study.at(2).materialChange())));
+        var language = activity.getResources().getConfiguration().getLocales().get(0).getLanguage();
+        var lesson = study.defenseStudy();
+        String expectedLesson = "ro".equals(language) ? lesson.lessonRo() : lesson.lessonEn();
+        var lessonNode = payoffDetail(R.id.quest_payoff_study_lesson);
+        compare("The individual lesson is displayed in the app language", true,
+                lessonNode != null && lessonNode.getText() != null && expectedLesson.contentEquals(lessonNode.getText()));
+        var evidence = payoffDetail(R.id.quest_payoff_study_evidence);
+        compare("A separate Stockfish estimate is identified as analysis after the key", true,
+                evidence != null && evidence.getText() != null && QuestPayoffDialog.studyEvidence(activity, study).contentEquals(evidence.getText()));
+        for (int ply = 2; ply < study.plies(); ply++) clickReviewIcon(R.id.quest_payoff_next);
+        var finish = payoffDetail(R.id.quest_payoff_move, false);
+        compare("The end of the study announces both the current loss and the worse immediate reply", true,
+                finish != null && finish.getContentDescription() != null
+                        && finish.getContentDescription().toString().contains(QuestPayoffDialog.materialAtStep(activity, -300))
+                        && finish.getContentDescription().toString().contains(QuestPayoffDialog.materialFloor(activity, -400)));
+        clickDialog(activity.getString(android.R.string.ok));
+    }
+
+    private AccessibilityNodeInfo payoffDetail(int id) {
+        return payoffDetail(id, true);
+    }
+
+    private AccessibilityNodeInfo payoffDetail(int id, boolean forward) {
+        var node = visibleReviewNode(id);
+        for (int attempt = 0; node == null && attempt < 3; attempt++) {
+            var details = reviewNode(R.id.quest_payoff_details, 2500);
+            if (details == null || !details.performAction(forward ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) break;
+            waitForIdleSync();
+            node = visibleReviewNode(id);
+        }
+        return node;
     }
 
     private void checkAnalysis() throws Exception {
@@ -1677,7 +2002,7 @@ public final class BoardSanity extends Instrumentation {
                     && turnLabel(activity, board, R.string.black, R.string.white, false)
                     && originName.contentEquals(origin.getContentDescription())
                     && !BoardSquare.name(move.to()).contentEquals(target.getContentDescription())
-                    && !target.isEnabled() && !guidance(activity, R.string.hint).isEnabled()
+                    && !target.isEnabled() && !guidance(activity, R.string.quest_hint_next_wait).isEnabled()
                     && !button(activity, views, R.string.next_quest).isEnabled();
             if (closeBeforeReply) activity.finish();
         });
@@ -1776,8 +2101,9 @@ public final class BoardSanity extends Instrumentation {
 
     private boolean compactLayoutFits(Activity activity, List<View> views, BoardView board, int hintLabel) {
         var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
+        var caption = (TextView) activity.findViewById(R.id.quest_guidance_label);
         var controls = List.of(button(activity, views, R.string.previous_quest), guidance(activity, hintLabel),
-                button(activity, views, R.string.next_quest));
+                button(activity, views, R.string.next_quest), caption);
         boolean[] fits = {false};
         runOnMainSync(() -> {
             Rect original = new Rect(root.getLeft(), root.getTop(), root.getRight(), root.getBottom());
@@ -1788,6 +2114,7 @@ public final class BoardSanity extends Instrumentation {
                 measureScreen(root, original, compact);
                 fits[0] = board.getWidth() > 0 && board.getWidth() < originalBoard && board.getWidth() == board.getHeight()
                         && labelsTouchBoard(board) && fullyVisible(board) && controls.stream().allMatch(BoardSanity::fullyVisible)
+                        && caption.getLayout() != null && caption.getLayout().getEllipsisCount(caption.getLineCount() - 1) == 0
                         && ((View) board.getParent()).getBottom() <= ((View) controls.get(0).getParent()).getTop();
             } finally {
                 measureScreen(root, original, original.height());
@@ -1946,7 +2273,8 @@ public final class BoardSanity extends Instrumentation {
         try (var output = new FileOutputStream(file)) {
             if (!image.compress(Bitmap.CompressFormat.PNG, 100, output)) throw new IOException("PNG write failed");
         }
-        if ("analysis-prepare".equals(phase) || "manual-analysis".equals(phase)) {
+        if ("analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
+                || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }

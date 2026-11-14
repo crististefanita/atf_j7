@@ -1,0 +1,122 @@
+schema: 1
+# Evaluations are from the solver side after the accepted key. Stockfish 19, one thread.
+studies:
+  tactic-043:
+    source-id: "00l7Y"
+    depth: 19
+    evaluation-cp: 684
+    line: e2h5 h7g8 d3g6 e5g6 h5g6
+    lesson-ro: "Qxh5+ împinge regele la g8. Bxg6 atrage calul de la e5 la g6, unde dama îl capturează pe coloana g."
+    lesson-en: "Qxh5+ drives the king to g8. Bxg6 draws the knight from e5 to g6, where the queen captures it on the g-file."
+  training-034:
+    source-id: "01phf"
+    depth: 19
+    evaluation-cp: 205
+    line: g4e2 d1e2 b5e5 e2e5 e7e5
+    lesson-ro: "Nebunul ia pe e2. Turnul se oferă pe e5 și atrage dama albă acolo, unde dama neagră o recapturează cu șah. Bilanțul este de 1,7 unități de pion."
+    lesson-en: "The bishop captures on e2. The rook offers itself on e5 and draws the white queen there, so the black queen can take it with check. The net gain is 1.7 pawn units."
+  training-033:
+    source-id: "04BvX"
+    depth: 19
+    evaluation-cp: 768
+    line: h1h7 g7h7 d5e4 h7h6 e4d3 h6g5 b4b5 f6d8 b5b6 d8b6 c6b6 g5g4 d7d8q f2f1q d3f1
+    lesson-ro: "Turnul se sacrifică pe h7. Nebunul ia turnul de pe d3, iar pionul d promovează. Când promovează și pionul f, nebunul ia dama pe f1."
+    lesson-en: "The rook is sacrificed on h7. The bishop takes the rook on d3 and the d-pawn promotes. When the f-pawn also promotes, the bishop takes the queen on f1."
+  training-029:
+    source-id: "01X5n"
+    depth: 19
+    evaluation-cp: 594
+    line: e2f2 f4g3 d4e5 g3f2 e5e4
+    lesson-ro: "Șahul cu turnul alungă regele de pe f4. Albul schimbă turnurile, ia pionul e4 și își folosește regele activ pentru a susține pionul c."
+    lesson-en: "The rook check drives the king off f4. White trades rooks, takes the e4-pawn, and uses the active king to support the c-pawn."
+  training-026:
+    source-id: "00734"
+    depth: 19
+    evaluation-cp: 634
+    line: d3f5 e7e6 f5g6 h7g6 g2g6
+    lesson-ro: "Nebunul ia pionul f5 și atacă dama de pe d7. După Bxg6 și recaptura pionului h7, turnul intră cu șah pe g6 pe coloana deschisă."
+    lesson-en: "The bishop takes the f5-pawn and attacks the queen on d7. After Bxg6 and the h7-pawn recaptures, the rook enters with check on g6 along the opened file."
+  training-015:
+    source-id: "03NIM"
+    depth: 19
+    evaluation-cp: 667
+    line: e7e2 d1c2 e2c4 c2b2 b4c3 d2c3 e8e2
+    lesson-ro: "Șahurile damei împing regele alb la b2. Sacrificiul nebunului pe c3 atrage pionul d2 și deschide linia a doua pentru șahul turnului de pe e2."
+    lesson-en: "The queen checks drive the white king to b2. The bishop sacrifice on c3 draws the d2-pawn away and opens the second rank for the rook check from e2."
+  training-014:
+    source-id: "05SOm"
+    depth: 19
+    evaluation-cp: 543
+    line: d7g4 h3g4 g7g4 f3g4 d4e4 g2f1 e4h1 f1e2 h1e4 e2d2 e4d4 d2e2 d4g4
+    lesson-ro: "Sacrificiile de pe g4 atrag pionul h3 și nebunul f3. Dama intră cu șah pe e4, capturează turnul de pe h1 și revine pentru nebunul de pe g4."
+    lesson-en: "The sacrifices on g4 draw the h3-pawn and the f3-bishop away. The queen enters with check on e4, takes the rook on h1, then returns to capture the bishop on g4."
+  training-086:
+    source-id: "03Qjb"
+    depth: 19
+    evaluation-cp: 787
+    line: e8e1 g1f2 h3h1 b3c4 f6e4 f4e4 g5e4
+    lesson-ro: "Șahul pe e1 scoate regele pe f2. Turnul de pe h1 îi taie retragerea. Calul dă șah pe e4 și celălalt cal recapturează dama după Qxe4."
+    lesson-en: "The check on e1 drives the king to f2. The rook on h1 cuts off its retreat. One knight checks on e4, and the other takes the queen after Qxe4."
+  training-004:
+    source-id: "00m5H"
+    depth: 19
+    evaluation-cp: 896
+    line: h3e6 e4f4 e6e3 f4e3 b4b5 e3d4 c5c6 b7b6 c6c7 d4c5 a3a4 c5b4 c7c8q
+    lesson-ro: "Șahul de pe e6 permite schimbul damelor. După b5 și c6, pionul c înaintează și promovează înainte ca regele negru să-l poată opri."
+    lesson-en: "The check from e6 allows White to trade queens. After b5 and c6, the c-pawn advances and promotes before the black king can stop it."
+  tactic-098:
+    source-id: "00OPc"
+    depth: 19
+    evaluation-cp: 389
+    line: e5d3 f5d3 d8d3 e1e7 e8e7
+    lesson-ro: "Nd3+ atacă regele de la c1 și turnul de la e1. Albul răspunde Qxd3, iar turnul de la d8 ia dama. După schimbul de la e7, negrul păstrează două turnuri contra unui turn și unui cal."
+    lesson-en: "Nd3+ forks the king on c1 and the rook on e1. White answers Qxd3, so the d8 rook takes the queen. After the exchange on e7, Black keeps two rooks against a rook and a knight."
+  tactic-094:
+    source-id: "00798"
+    depth: 19
+    evaluation-cp: 579
+    line: g5h4 g7h6 h4g3
+    lesson-ro: "Pionul de la g5 ia la h4 și deschide coloana g pentru șahul turnului. După Kh6, pionul ia la g3 și devine pion liber."
+    lesson-en: "The g5 pawn takes h4 and opens the g-file for the rook’s check. After Kh6 it takes g3, leaving a passed pawn on g3."
+  tactic-085:
+    source-id: "00e7H"
+    depth: 19
+    evaluation-cp: 440
+    line: c6c5 d4c5 f4d2
+    lesson-ro: "Pionul de la c6 avansează la c5. După Qxc5, dama albă nu mai apără d2, iar dama neagră capturează calul cu șah."
+    lesson-en: "The c6 pawn advances to c5. After Qxc5, the white queen no longer protects d2, so Black’s queen takes the knight there with check."
+  tactic-076:
+    source-id: "002Tf"
+    depth: 19
+    evaluation-cp: 161
+    line: e7b4 b1c3 b4b2 c3d5 e8c8 b5c6 b2a1 e1e2 a1b2 c6a4 b2a2 a4b3 a2a6
+    lesson-ro: "Qb4+ atacă regele de la e1 și nebunul de la b5. Nc3 blochează șahul, iar dama ia pionul de la b2. În această apărare, negrul face rocada mare înainte ca dama să ia turnul de la a1."
+    lesson-en: "Qb4+ attacks the king on e1 and the bishop on b5. Nc3 blocks, so the queen takes b2 instead. In this defense, Black castles queenside before the queen takes the a1 rook."
+  tactic-057:
+    source-id: "001wr"
+    depth: 19
+    evaluation-cp: 570
+    line: d6c5 e1e3 c5c4 e3e5 f8e8 h2h3 c4c5
+    lesson-ro: "Qc5+ atacă simultan regele de la g1 și nebunul de la c4. După interpunerea Re3, negrul ia nebunul și păstrează câștigul material prin încă un Qc5+."
+    lesson-en: "Qc5+ forks the king on g1 and the bishop on c4. After Re3 blocks the check, Black takes the bishop and keeps the material gain with another Qc5+."
+  tactic-052:
+    source-id: "003Ec"
+    depth: 19
+    evaluation-cp: 936
+    line: e5e3 f5f4 h2h4 g5f5 e3h3 f4g4 g1f1 f5e5 f7e7 e5d6 h3h2 d6d5 h2e5 d5c4 f1f4 d8d4 f4g4
+    lesson-ro: "Qe3+, h4+ și Qh3+ expun regele. În această apărare, șahurile îl împing la c4, iar turnul de la f4 ia dama de la g4 chiar dacă negrul recapturează."
+    lesson-en: "Qe3+, h4+ and Qh3+ expose the king. In this defense, checks drive it to c4, then the f4 rook takes the g4 queen even if Black recaptures."
+  training-001:
+    source-id: "0199s"
+    depth: 19
+    evaluation-cp: 723
+    line: h1h6 g7h6 g6h6 h8g8 d1h1
+    lesson-ro: "Turnul capturează pe h6 ca să atragă pionul g7. Dama intră cu șah, iar celălalt turn vine pe h1 și presează regele pe coloana deschisă."
+    lesson-en: "The rook captures on h6 to draw the g7-pawn away. The queen enters with check, and the other rook comes to h1 to press the king on the open file."
+  training-092:
+    source-id: "0275h"
+    depth: 19
+    evaluation-cp: 637
+    line: d2d4 f3f2 d4d3 f2f1n g3g2 e5e4 d1f1 f8f1 d3e3 e4d4 g2f1 a5a4 e3f3 d6a6 d5c7 a6c6 c7b5
+    lesson-ro: "După Rxd4, negrul promovează la cal cu șah. Albul schimbă turnurile și ia turnul de pe f1 cu regele. Calul rămas intră pe b5 cu șah."
+    lesson-en: "After Rxd4, Black underpromotes to a knight with check. White trades rooks and takes the rook on f1 with the king. The remaining knight reaches b5 with check."
