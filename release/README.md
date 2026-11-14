@@ -8,8 +8,8 @@ Catalogul indică ediția disponibilă și locul unde pot fi verificate dovezile
 
 | Rol | Versiune | Dovezi |
 |---|---|---|
-| Curentă | 0.13.7 | [Note și recepțiile APK-ului](0.13.7/README.md) |
-| Precedentă | 0.13.6 | [Ediția de comparație](0.13.6/README.md) |
+| Curentă | 0.14.0 | [Note și recepțiile APK-ului](0.14.0/README.md) |
+| Precedentă | 0.13.7 | [Ediția de comparație](0.13.7/README.md) |
 
 ## Dovezi și arhivare
 
@@ -25,4 +25,4 @@ Calificați candidatul și publicați asset-ul înainte de a actualiza
 `currentVersion` și linkurile din README. Proba din README-ul publicat
 închide procesul. [Ordinea operațiilor](../docs/release/README.md#calificare-și-publicare)
 
-[Procesul de release](../docs/release/README.md) · [Dovezile ediției publicate](0.13.7/reports/README.md) · [Comparația anterioară](0.13.6/reports/README.md)
+[Procesul de release](../docs/release/README.md) · [Dovezile ediției publicate](0.14.0/reports/README.md) · [Comparația anterioară](0.13.7/reports/README.md)

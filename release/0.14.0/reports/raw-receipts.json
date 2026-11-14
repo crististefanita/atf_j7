@@ -1,0 +1,87 @@
+{
+  "status": "PASS",
+  "sourceCommit": "939a5767742bfd6125af1ca2bb32549eb64c153c",
+  "apkSha256": "a81fe7e89eecff11180a4351d3c6228d20c533e6fa2c205736937bab36743cd9",
+  "qualificationRunId": "164f33ac09bd4754a0c870cd476cbc87",
+  "surefireSha256": {
+    "TEST-ro.atf.chess.AiLeagueComponentTest.xml": "bfde61e7b82da22694a83ae847cd234e9c9b8b0ec6c0058ba073132ba30e3830",
+    "TEST-ro.atf.chess.AiOpeningRegressionTest.xml": "00aa6c3a2786e009ee5493e5cb4fee9293a1cd741a8a0e5c1ecfe5b135eccea5",
+    "TEST-ro.atf.chess.AnalysisLineTest.xml": "7eca3baadfda4928a4d8118e2be460cca86f7c1bcc774575a0f4bb13eaf50d1f",
+    "TEST-ro.atf.chess.AndroidReceiptTest.xml": "6771307499a1e1f609175a53f382ea63665ce7bfba23589abad4e148b6991902",
+    "TEST-ro.atf.chess.BoardPanelLayoutTest.xml": "ef61a28fdd374403ed7d08cfd7fb0b34f0f872ab4ebe98e07e986f5619a29190",
+    "TEST-ro.atf.chess.ChessComponentTest.xml": "892985b2eecc3e87f1d7fb29135c2136e87447e805f61131aea69dec0ec28b10",
+    "TEST-ro.atf.chess.ChessMatchTest.xml": "b32f61ba0da7605406efd3e9677fc64571c670c8adb80a3ef0fd12d32d5f8782",
+    "TEST-ro.atf.chess.GameReviewGraphLayoutTest.xml": "be6218e7aa54a95320a15dbdc5c21fef7c97b2237cd2620685cd6e41074599c1",
+    "TEST-ro.atf.chess.GameReviewLayoutTest.xml": "2aebfbcf434eba846bceb51aba00684b4b600bd32cf309bcd646f0ad8a60a852",
+    "TEST-ro.atf.chess.GameReviewTest.xml": "7c8a9a8e90558adc5ff75b8fe70d261d17b9db62a170aa8b46758b2f49e05353",
+    "TEST-ro.atf.chess.GameReviewTimelineTest.xml": "7fe7f4875f67aaa5f622f8c8433f9c7bf95819eb064df30530afb6fb6cdfa4d5",
+    "TEST-ro.atf.chess.HintComparisonTest.xml": "03c37a3c5731b0c5ab82b52133bfd3dd50573099c7d20137db3c54edeb775a11",
+    "TEST-ro.atf.chess.HintPreviewTest.xml": "957fca3835f406d72d340cb593051267ed08b24c314b63587f612daffdb3f64b",
+    "TEST-ro.atf.chess.MainMenuLayoutTest.xml": "5aa8616209f2fec862c5c6ebcbf8a3d46bcdcf2fc0f8c1d1a2417eb464b42431",
+    "TEST-ro.atf.chess.MatchActionsTest.xml": "72970eaf828670db9ad59a062e86f284b54d9e774b76a553a1095f41639d1266",
+    "TEST-ro.atf.chess.MatchArchiveTest.xml": "e91bc808a0d02cef9698b75a808a60b4ca454cf131e0b591d41eda82efbc494c",
+    "TEST-ro.atf.chess.MatchEvaluationTest.xml": "be2b72391ecb2bd7e09baa23ce291476e78e7ac07023ee6398caeb5f56142476",
+    "TEST-ro.atf.chess.MatchHintTest.xml": "a50f99cb1b58a1e8bdfbd2eafe806f0e72fefd9530ad409689a39889e67dc2ad",
+    "TEST-ro.atf.chess.MatchListEntryTest.xml": "ad5ec4c7cdb8df10edd85c9638f1429af4360958b21b2d9c7523573fbb5fb2aa",
+    "TEST-ro.atf.chess.MatchMaterialTest.xml": "29b3ce1d1a5abace1c8d816749d41d3968eded379d0f95837bb396edf903ed6f",
+    "TEST-ro.atf.chess.MatchSetupTest.xml": "5af359852f35f08524ea358383d6a1ea51f9076f4ae87ab21b6be310c0396ef2",
+    "TEST-ro.atf.chess.MatchSlotsTest.xml": "009db2e3763ea3cbd6625931511e5bbd979b190270d3515e130ae50e0696d18b",
+    "TEST-ro.atf.chess.MatchStoreTest.xml": "0a854047f0d5f175349a2553ca5818a7a233ff73f5dec29c6774167943297ee2",
+    "TEST-ro.atf.chess.MateExplanationTest.xml": "a94884781630bb02e5e42b8982b9bd41e850d4d20078eca097355d5b65b130d8",
+    "TEST-ro.atf.chess.MateInThreeCatalogTest.xml": "f52941de580b723cf4c39f7f1881cdfea5383828386d4617cd0365b35ded0fde",
+    "TEST-ro.atf.chess.MateInTwoCatalogTest.xml": "effe6a60a06ac8241626988e812b1d0190d7d14375c7bf9814a698c3f7dc6b8d",
+    "TEST-ro.atf.chess.OpeningCatalogTest.xml": "39b267a5eae9b81acbf1a890404f94eb6239aba1d0fd6d6c61edb057c603c905",
+    "TEST-ro.atf.chess.OpeningLessonTest.xml": "f8a7a719c9488e2a9574d8c21a7e054526f8200b3ff90f72059ad07985076d96",
+    "TEST-ro.atf.chess.PlayerProfileTest.xml": "f82b02f5c78c75edce1a084c2858523dd4894298ef37776d0572f78344cfd9bb",
+    "TEST-ro.atf.chess.QuestCatalogTest.xml": "9de08b4e80771a659218c8b6c7f2b7f675dac53f9241dfcf37ad65ef893d10f8",
+    "TEST-ro.atf.chess.QuestDangerTest.xml": "f73c4ae46ce5da88d7f2b09cb30472fcfd272042135541c7ec2d0f7d6884aabb",
+    "TEST-ro.atf.chess.QuestDefenseStudyTest.xml": "4bfb840c7d18921a97e138c6cecd930f262107b3232078dd297af0bdb1294b86",
+    "TEST-ro.atf.chess.QuestHintTest.xml": "dabb35a4bfc97840815c9b6732852e4ebf66490df0773838d00baa08b5c8bf0a",
+    "TEST-ro.atf.chess.QuestPayoffTest.xml": "19bd4e11cb41d7c3b9730b63ad0499be52c055d284f9d84361712abd9e6c4b28",
+    "TEST-ro.atf.chess.QuestProgressTest.xml": "b122545b05c32f2c8105406be1f2621017d9a7c26ac82a170b235be3b63d78e5",
+    "TEST-ro.atf.chess.QuestRewardsTest.xml": "dbe2164af99db083f98fdee5d0c6e9c04a5f88a4ce4382483afa91d1eb1d1aba",
+    "TEST-ro.atf.chess.QuestStepTest.xml": "a3d2fb0b5506c0407a4f83add7e3b7d9381355f91bb4612b69e73c3320d3cb56",
+    "TEST-ro.atf.chess.QuestStoreTest.xml": "9f3c236bd537e6bd8b1e0c5eb4bcd60f292dfdf7ebecf4fcfa3dd35790409df2",
+    "TEST-ro.atf.chess.RookEndgameHistoryTest.xml": "37d847ba9724982149fcdbeb4c298634b0daf513921a1703055ff42082ee4f4e",
+    "TEST-ro.atf.chess.suites.ChessComponentSuite.xml": "349b26328a129ecd785f2792769b4d07d305edd5d3efe10b0e7158f2f6ff58ce",
+    "TEST-ro.atf.chess.TacticalAnalysisTest.xml": "57c28a1d06e3f3490742856b09857f2993de61a6661dd830ff93626bae11330e",
+    "TEST-ro.atf.chess.TacticsCatalogTest.xml": "816e8ee632c57f3cd9ce2e0e7387c1cd30c350ccba00896af0487fef5044eab7"
+  },
+  "android": {
+    "game-review": {
+      "receiptSha256": "3daf40306ff979a89bba3c744483565ea2c81d49b2b8fcf43ebf6683981dac54",
+      "executionSha256": "fa2b5309916cb664b502a8334224d52b6d7b202f6f670c9a07d9ef659e3d6894",
+      "captureSha256": {
+        "game-review.png": "3a10d09c8bafcdb1610deac76c7b49623e10691cc4b55eaeb83c9478fc6d7c92",
+        "game-review-navigation.png": "7fc066435dd8039f7afed69acd533247c13b0b8d86f17452a1ff29d8e1c20170",
+        "game-review-line.png": "a58cb37cd347ac327927319d1be134df7d7a1c53bc40eff1fa25937eafa94509",
+        "game-review-comparison.png": "e25905381b662dd9626a656fad6d1a28c3e49b41e1a1d5c89b88de157bb98fa1",
+        "game-review-actions.png": "c37d29b192c27086a2a1747d76b368e73353cc4fb22b3d81679939d5028271f7"
+      }
+    },
+    "game-review-why": {
+      "receiptSha256": "82bb29f1738427e432b21c47c6187d1c1af9856f66dfdfd0c71ab4f3087dbe5b",
+      "executionSha256": "fb551fe3f37be7e170581516954ac7b64bb21c7974b9547126332884cc4e9bcd",
+      "captureSha256": {
+        "game-review-why.png": "903da5f756e7f0069c37c620f695fdbe70b95af6d989005e1d1459e57aa81825",
+        "game-review-why-recommended.png": "5aefd261f7694efdee89da0f6de9dda02b0101f8ef8ab92b2b97ede13dc7ffdf",
+        "game-review-why-score.png": "1563723515aa28b9ea20a877af45527025f0ff36348d928936df93c38d8c3c08"
+      }
+    },
+    "game-review-why-restore": {
+      "receiptSha256": "88d45e4251f78fdf79bdaf9b8a569aae2e0adfd5ce1d547bbe6df5f2b2074433",
+      "executionSha256": "6348ecf9f2dc986f4ecbd663282ef0e7eaeb88acec455a0f05944e7a562bdddb",
+      "captureSha256": {
+        "game-review-why-restore.png": "207ff5f137261f66999528df80f3e7891312a735f467ba6b047c1611c1dc49a7"
+      }
+    },
+    "puzzle-danger": {
+      "receiptSha256": "2d22cdf73191216f75276667cba5e728e3a9ba37124d5de58fb459feea22bf15",
+      "executionSha256": "46e5cd18fb9569cccd0be0f7d4d2b8fc8882b470caf05e7584b543bab3a034e4",
+      "captureSha256": {
+        "puzzle-danger-mate.png": "a68beca3ae5738623266f242e65b67d86a49276b4be67d314a189099caa9c562",
+        "puzzle-danger-capture.png": "e05c7b89c5dbb942ddd0fd0d57e6d9afa9c8a0ef04f9f5a6e4ad804047a3004c"
+      }
+    }
+  }
+}
