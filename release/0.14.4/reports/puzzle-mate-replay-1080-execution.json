@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "scope": "puzzle-mate-replay",
+  "device": "emulator-5560",
+  "api": "28",
+  "apkSha256": "7842d3a4c88298e019d72c0a5656e5a92679ce5999b1a8e54afaf12a5c501e57",
+  "sourceCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+  "variant": "release",
+  "assertions": 5,
+  "receiptSha256": "7f996bf4c4b1eb4198fb6edf555f8b268466f6d09410a1b50b1a11e7a39b41e1",
+  "captureSha256": {
+    "puzzle-mate-replay.png": "f4ab43db96ddb8988daaf8523b2c95e41a2387371c02ef4c0a5d48326c40f7a2",
+    "puzzle-mate-two.png": "88a78fef3b49d9a579ede545ba5778101674a44314b843768e71b35251f16a84",
+    "puzzle-mate-three.png": "a4e55c209a553d5d803246847935810effcade218a6a55de6f7beb31200c33af"
+  },
+  "runId": "2d405a9c4e5a4dfbb44e18983b70bac5",
+  "extentSha256": "e07ba50ff67bc3781e399b37f65279998b872797a2efc1060763a99d17de08e1",
+  "replayDisplay": "1080x1920 at 440 dpi, font 1.3, capture UI Automation"
+}

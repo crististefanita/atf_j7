@@ -1,61 +1,74 @@
 ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
 COVERED | android/app/build.gradle
 COVERED | android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/BackNavigableActivity.java
 COVERED | android/app/src/main/java/ro/atf/chess/android/ChessActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/LocalizedActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/MatchListActivity.java
 COVERED | android/app/src/main/java/ro/atf/chess/android/QuestPayoffDialog.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/SettingsDialog.java
+COVERED | android/app/src/main/res/color/match_toolbar_check.xml
+COVERED | android/app/src/main/res/color/match_toolbar_label.xml
+COVERED | android/app/src/main/res/color/puzzle_explain_arrow_tint.xml
+COVERED | android/app/src/main/res/color/puzzle_explain_danger_tint.xml
+COVERED | android/app/src/main/res/drawable/match_study.xml
+COVERED | android/app/src/main/res/drawable/match_toolbar_surface.xml
+COVERED | android/app/src/main/res/drawable/quest_explain.xml
+COVERED | android/app/src/main/res/drawable/quest_hint_move.xml
+COVERED | android/app/src/main/res/layout/main_menu.xml
+COVERED | android/app/src/main/res/layout/match_toolbar.xml
+COVERED | android/app/src/main/res/layout/puzzle_explain.xml
+COVERED | android/app/src/main/res/values-ro/settings.xml
+COVERED | android/app/src/main/res/values-ro/strings.xml
+COVERED | android/app/src/main/res/values/match_ids.xml
+COVERED | android/app/src/main/res/values/settings.xml
+COVERED | android/app/src/main/res/values/strings.xml
 COVERED | atf-tests/pom.xml
-COVERED | atf-tests/src/test/java/ro/atf/chess/GitTestChangesTest.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/QuestReplayTest.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/ScreenCaptureGeometryTest.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/TestChangePolicy.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/TestChangePolicyTest.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/TestChangeProof.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/TestChangeProofTest.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/TestChangeReview.java
-COVERED | atf-tests/src/test/java/ro/atf/chess/capture/ScreenCaptureGeometry.java
-COVERED | chess-core/src/main/java/ro/atf/chess/QuestReplay.java
-COVERED | docs/feedback/README.md
-COVERED | docs/release/README.md
+COVERED | atf-tests/src/test/java/ro/atf/chess/AppLanguagePreferenceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchControlsTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchToolbarResourcesTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java
+COVERED | chess-core/src/main/java/ro/atf/chess/AppLanguage.java
+COVERED | chess-core/src/main/java/ro/atf/chess/AppLanguagePreference.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchControls.java
+COVERED | docs/board/README.md
 COVERED | docs/testing/README.md
 COVERED | docs/testing/test-changes.yaml
 COVERED | pom.xml
-COVERED | release-tools/src/main/java/ro/atf/chess/release/GitTestChanges.java
-COVERED | release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java
-COVERED | release-tools/src/main/java/ro/atf/chess/release/ReleaseRag.java
-COVERED | release-tools/src/main/java/ro/atf/chess/release/TestChangeReceipt.java
-COVERED | release/0.14.2/README.md
-COVERED | release/0.14.2/reports/README.md
+COVERED | release/0.14.4/README.md
+COVERED | release/0.14.4/reports/README.md
 COVERED | release/index.json
 docs/testing/README.md:18 ## Motor și proiecție
-  SHA-256 d9cbdc0425a69bda7ea6d37ce1384ab982cb677b81322a64a834a3c1ffda0bc4
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
   Verify ChessComponentTest și QuestCatalogTest
-docs/testing/README.md:188 ## Sanity Android
-  SHA-256 d9cbdc0425a69bda7ea6d37ce1384ab982cb677b81322a64a834a3c1ffda0bc4
+docs/testing/README.md:222 ## Sanity Android
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
   Verify BoardSanity
-docs/testing/README.md:260 ## Partidă și istoric
-  SHA-256 d9cbdc0425a69bda7ea6d37ce1384ab982cb677b81322a64a834a3c1ffda0bc4
+docs/testing/README.md:294 ## Partidă și istoric
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
   Verify GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest, MatchStoreTest și BoardSanity -Distribution -GameReviewOnly
-docs/testing/README.md:304 ## Tablă de analiză
-  SHA-256 d9cbdc0425a69bda7ea6d37ce1384ab982cb677b81322a64a834a3c1ffda0bc4
+docs/testing/README.md:294 ## Partidă și istoric
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
+  Verify MatchListEntryTest, MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -MatchMenusOnly
+docs/testing/README.md:345 ## Tablă de analiză
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
   Verify AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly
-docs/testing/README.md:138 ## Schimbarea testelor față de o bază Git
-  SHA-256 d9cbdc0425a69bda7ea6d37ce1384ab982cb677b81322a64a834a3c1ffda0bc4
+docs/testing/README.md:172 ## Schimbarea testelor față de o bază Git
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
   Verify TestChangeReview cu baza Git explicită și ReleaseGate preflight
-docs/testing/README.md:111 ## Suite JVM
-  SHA-256 d9cbdc0425a69bda7ea6d37ce1384ab982cb677b81322a64a834a3c1ffda0bc4
+docs/testing/README.md:145 ## Suite JVM
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
   Verify ChessJvmSuite și ChessGovernanceSuite
-docs/release/README.md:25 ## Excepție strictă pentru instalarea APK-ului exact
-  SHA-256 7b1275c4aef4d7cc3c01de44f355ebd0103656f42f2232f3057641422746cfca
-  Verify DocumentationGovernanceTest și ReleaseGovernanceTest
-docs/testing/README.md:172 ## Raportare Extent
-  SHA-256 d9cbdc0425a69bda7ea6d37ce1384ab982cb677b81322a64a834a3c1ffda0bc4
+docs/testing/README.md:206 ## Raportare Extent
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
   Verify ExtentGovernanceTest
-docs/feedback/README.md:1 # Feedback · Chess Lab
-  SHA-256 f61782c22cd4b175ae81b878ce5956df65249435bcaa95f1a5d94d025d53b040
-  Verify DocumentationGovernanceTest și revizia criteriilor deschise
+docs/testing/README.md:18 ## Motor și proiecție
+  SHA-256 a4c676b783f11ead2f8712bb3bd8dbecb0750d795bb4bd64f07352339c4746da
+  Verify BoardPanelLayoutTest și QuestHintTest
 docs/release/README.md:6 ## Calificare și publicare
-  SHA-256 7b1275c4aef4d7cc3c01de44f355ebd0103656f42f2232f3057641422746cfca
+  SHA-256 901b28b2dad9d12d7bdca88f8ef15978a839ed69100f506e06a3f11b414e404a
   Verify DocumentationGovernanceTest, ReleaseGovernanceTest și ExtentGovernanceTest
 1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
 2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului. În `release/index.json`, `currentVersion` este ediția curentă, iar `versions` conține curentul urmat de o singură ediție anterioară pentru comparație. Candidatul rămâne separat până la publicare. [Catalogul edițiilor](../../release/README.md)

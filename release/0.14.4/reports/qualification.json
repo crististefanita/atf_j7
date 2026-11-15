@@ -1,0 +1,65 @@
+{
+  "version": "0.14.4",
+  "versionCode": 31,
+  "sourceCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+  "apkSha256": "7842d3a4c88298e019d72c0a5656e5a92679ce5999b1a8e54afaf12a5c501e57",
+  "apkBytes": 1201267,
+  "qualificationGate": "PASS",
+  "signingCertificateSha256": "4bc8b9639475dbf550b066f74a8493d20c713aed77388d52f7526b227051d247",
+  "componentExtentSha256": "580f11859fcf9fd428096b7007c0ef935fd3dd12bf6ca4a56913f2e486e242ff",
+  "componentTests": 235,
+  "jvmInputsCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+  "qualificationRunId": "996dafc9fd584577b17f56f0d3002100",
+  "android": {
+    "game-review": {
+      "sourceCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+      "nativeAssertions": 30,
+      "extentSha256": "d23fd8e7d1767917cf2670eb26a5fc7df390dede0b9c2dda0266e411beee8ef0",
+      "report": "android-game-review.html",
+      "execution": "game-review-execution.json"
+    },
+    "puzzle-danger": {
+      "sourceCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+      "nativeAssertions": 7,
+      "extentSha256": "f64b165a4aab231d334198ce9c92604ea481a153103c4802b6360dceedbebf27",
+      "report": "android-puzzle-danger.html",
+      "execution": "puzzle-danger-execution.json"
+    },
+    "puzzle-mate-replay": {
+      "sourceCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+      "nativeAssertions": 5,
+      "extentSha256": "7a4c4459239419c0f152646234abad789e3086fb7d8da548a434bf4408478dc1",
+      "report": "android-puzzle-mate-replay-720.html",
+      "execution": "puzzle-mate-replay-720-execution.json"
+    },
+    "puzzle-ux": {
+      "sourceCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+      "nativeAssertions": 6,
+      "extentSha256": "faf28f7e4ff17811dd0d257da277204197b55ca27204e32d323c3c14c4c646a1",
+      "report": "android-puzzle-ux-720.html",
+      "execution": "puzzle-ux-720-execution.json"
+    }
+  },
+  "additionalAndroidChecks": {
+    "puzzle-ux-1080": {
+      "sourceCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+      "nativeAssertions": 6,
+      "extentSha256": "68ab83094755ba85fabcdec39ef527ac8416f7b35c50edf60ad2cc648c6779a8",
+      "report": "android-puzzle-ux-1080.html",
+      "execution": "puzzle-ux-1080-execution.json"
+    },
+    "puzzle-mate-replay-1080": {
+      "sourceCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+      "nativeAssertions": 5,
+      "extentSha256": "e07ba50ff67bc3781e399b37f65279998b872797a2efc1060763a99d17de08e1",
+      "report": "android-puzzle-mate-replay-1080.html",
+      "execution": "puzzle-mate-replay-1080-execution.json"
+    }
+  },
+  "testChangeReviewSha256": "4b3bd15dd1dfa3b88d8f0c88183785631c18c6b01664afe94ee578933030b2a5",
+  "lint": "PASS",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "alignment": "PASS",
+  "observedUtc": "2026-11-15T19:17:06.2881769Z"
+}

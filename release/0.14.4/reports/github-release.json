@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "tag": "v0.14.4",
+  "targetCommit": "ab244ad74142fd0e62780a29fdeae358b59793f3",
+  "releaseUrl": "https://github.com/crististefanita/atf_j7/releases/tag/v0.14.4",
+  "assetUrl": "https://github.com/crististefanita/atf_j7/releases/download/v0.14.4/ChessLab-0.14.4.apk",
+  "assetId": 752070314,
+  "assetName": "ChessLab-0.14.4.apk",
+  "assetBytes": 1201267,
+  "assetSha256": "7842d3a4c88298e019d72c0a5656e5a92679ce5999b1a8e54afaf12a5c501e57",
+  "draft": false,
+  "observedUtc": "2026-11-15T19:17:32.4869699Z"
+}
