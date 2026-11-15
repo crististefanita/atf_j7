@@ -21,8 +21,11 @@
             <Button android:id="@+id/open_analysis" style="@style/HomeAction" android:text="@string/manual_analysis" />
         </LinearLayout>
         <TextView style="@style/HomeSection" android:text="@string/profile_title" />
-        <LinearLayout android:id="@+id/home_profile" style="@style/HomeGroup">
-            <Button android:id="@+id/edit_player_name" style="@style/HomeAction" />
+        <LinearLayout android:id="@+id/home_profile" style="@style/HomeGroup" android:orientation="horizontal">
+            <Button android:id="@+id/edit_player_name" style="@style/HomeAction"
+                android:layout_width="0dp" android:layout_weight="1" />
+            <Button android:id="@+id/open_settings" style="@style/HomeAction"
+                android:layout_width="wrap_content" android:text="@string/settings_title" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

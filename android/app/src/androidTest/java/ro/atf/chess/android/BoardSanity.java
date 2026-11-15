@@ -1297,6 +1297,7 @@ public final class BoardSanity extends Instrumentation {
 
     private void checkPuzzleUx() throws Exception {
         if (!List.of("ro", "en").contains(puzzleLanguage)) throw new IllegalArgumentException("Invalid puzzle locale " + puzzleLanguage);
+        enableReviewNodeIds();
         replayCapture = displayCaptureGeometry();
         var checkpoints = List.of(
                 new PuzzleUxCheckpoint(R.string.open_mate_one, QuestCatalog.load(), "puzzle-ux-mate-one", "Mate in 1"),
@@ -1313,8 +1314,10 @@ public final class BoardSanity extends Instrumentation {
             rewards = rewards.complete(progress).rewards();
             progress = progress.solveCurrent();
         }
-        var store = new ChessProgressStore(getTargetContext()).quests();
+        var saved = new ChessProgressStore(getTargetContext());
+        var store = saved.quests();
         if (!store.save(progress.select(baseline.first()), rewards) || !store.leaveChapter()) throw new AssertionError("Could not seed puzzle rewards");
+        checkLanguageSettings(saved);
         var activity = launchCompact(puzzleLanguage);
         var config = activity.getResources().getConfiguration();
         if (config.fontScale != 1.3f || !puzzleLanguage.equals(config.getLocales().get(0).getLanguage())) {
@@ -1333,6 +1336,51 @@ public final class BoardSanity extends Instrumentation {
         waitForIdleSync();
         if (activity.findViewById(R.id.chapter_one) == null) throw new AssertionError("Puzzle Back did not return to the chapter picker");
         runOnMainSync(activity::finish);
+    }
+
+    private void checkLanguageSettings(ChessProgressStore saved) throws Exception {
+        var match = ChessMatch.restore("1|e2e4 e7e5");
+        if (!saved.savePlayerName("Mira") || !saved.matches().startMatch(1, match, false, false, false)
+                || !saved.matches().leaveMatch()) throw new AssertionError("Could not seed the saved profile and game");
+        var activity = launch();
+        var opposite = puzzleLanguage.equals("ro") ? "en" : "ro";
+        activity = chooseLanguage(activity, opposite);
+        activity = chooseLanguage(activity, puzzleLanguage);
+        var monitor = addMonitor(OpeningActivity.class.getName(), null, false);
+        try {
+            tap(activity.findViewById(R.id.open_openings));
+            var opening = waitForMonitorWithTimeout(monitor, 6000);
+            if (opening == null || !puzzleLanguage.equals(opening.getResources().getConfiguration().getLocales().get(0).getLanguage())
+                    || !"Mira".equals(saved.playerName()) || !match.checkpoint().equals(saved.matches().readMatch(1).checkpoint())) {
+                throw new AssertionError("Language did not reach the openings screen or changed the saved profile or match");
+            }
+            closeActivity(opening);
+        } finally {
+            removeMonitor(monitor);
+        }
+        closeActivity(activity);
+        receipt.putString("settingsLanguages", opposite + " → " + puzzleLanguage);
+    }
+
+    private Activity chooseLanguage(Activity activity, String language) throws Exception {
+        var scroll = viewsOf(activity).stream().filter(ScrollView.class::isInstance).map(ScrollView.class::cast).findFirst().orElseThrow();
+        runOnMainSync(() -> scroll.scrollTo(0, scroll.getChildAt(0).getHeight()));
+        waitForIdleSync();
+        clickReviewIcon(R.id.open_settings);
+        clickReviewIcon(R.id.settings_language);
+        clickMenuItem(language.equals("ro") ? "Română" : "English");
+        clickDialog(activity.getString(R.string.settings_save));
+        String expected = language.equals("ro") ? "Probleme" : "Puzzles";
+        if (dialogNode(expected, node -> expected.contentEquals(node.getText()) && node.isVisibleToUser()) == null) {
+            throw new AssertionError("Home did not apply the selected language " + language);
+        }
+        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+        waitForIdleSync();
+        var reopened = launch();
+        if (!language.equals(reopened.getResources().getConfiguration().getLocales().get(0).getLanguage())) {
+            throw new AssertionError("Reopening Home did not keep language " + language);
+        }
+        return reopened;
     }
 
     private void checkPuzzleUxChapter(Activity activity, PuzzleUxCheckpoint checkpoint, QuestRewards rewards) throws IOException {

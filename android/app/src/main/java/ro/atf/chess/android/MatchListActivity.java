@@ -15,7 +15,7 @@ import java.util.Date;
 import ro.atf.chess.MatchListEntry;
 import ro.atf.chess.MatchStore;
 
-public final class MatchListActivity extends Activity {
+public final class MatchListActivity extends LocalizedActivity {
     static final int SAVED_REQUEST = 18;
     static final int FINISHED_REQUEST = 19;
     static final String SAVED_SLOT = "saved-slot";

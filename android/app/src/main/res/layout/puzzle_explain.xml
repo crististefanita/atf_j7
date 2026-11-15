@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@id/quest_payoff_replay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1C211D"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/quest_payoff_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp">
+
+        <TextView
+            android:id="@+id/quest_payoff_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="2"
+            android:textColor="#EFF2EC"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/quest_payoff_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:text="@android:string/ok"
+            android:textColor="#D4EAA7" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/quest_payoff_body"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:id="@+id/quest_payoff_actions"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:baselineAligned="false"
+        android:gravity="center">
+
+        <ImageButton
+            android:id="@id/quest_payoff_previous"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/match_toolbar_surface"
+            android:contentDescription="@string/opening_previous_move"
+            android:padding="12dp"
+            android:rotation="180"
+            android:scaleType="centerInside"
+            android:src="@drawable/match_chevron"
+            android:tint="@color/puzzle_explain_arrow_tint" />
+
+        <Button
+            android:id="@id/quest_payoff_danger"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="8dp"
+            android:background="@drawable/match_toolbar_surface"
+            android:minWidth="48dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:text="@string/quest_danger"
+            android:textAllCaps="false"
+            android:textColor="@color/puzzle_explain_danger_tint"
+            android:visibility="invisible" />
+
+        <ImageButton
+            android:id="@id/quest_payoff_next"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/match_toolbar_surface"
+            android:contentDescription="@string/opening_next_move"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/match_chevron"
+            android:tint="@color/puzzle_explain_arrow_tint" />
+    </LinearLayout>
+</LinearLayout>

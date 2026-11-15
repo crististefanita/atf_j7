@@ -85,6 +85,18 @@ capturii. [Testul de geometrie](../../atf-tests/src/test/java/ro/atf/chess/Scree
 
 ## Progresul problemelor
 
+`AppLanguagePreferenceTest` verifică selecția implicită, persistența limbii
+și scrierea respinsă. `MainMenuLayoutTest` fixează **Setări** în grupul Profil.
+Proba `-PuzzleUxOnly` alege ambele limbi din selector, redeschide meniul și
+verifică **Deschideri** după schimbare, cu partida, profilul și progresul păstrate.
+
+`QuestHintTest` acoperă pașii piesă → mutare → explicație, iar
+`PuzzleExplainLayoutTest` verifică structura explicației, comenzile de 48 dp
+și spațiul rezervat pentru **Pericol**. Becul, săgeata și cartea disting cele
+trei acțiuni pe ecran. Explicația pune titlul și ieșirea în antet. Mutarea și
+dovada se derulează sub tabla fixă. Probele `-PuzzleMateReplayOnly` și
+`-PuzzleDangerOnly` păstrează verificările native ale liniei și marcajului.
+
 Antetul celor șase capitole afișează punctele capitolului și seria globală de
 la două rezolvări consecutive. Săgețile și becul stau sub tablă. Meniul din
 antet afișează opțiunile în aceeași zonă, păstrând poziția și latura tablei. **Întoarce

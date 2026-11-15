@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Setări</string>
+    <string name="settings_language_label">Limbă</string>
+    <string name="settings_save">Salvează</string>
+    <string name="settings_save_failed">Limba nu a putut fi salvată. Încearcă din nou.</string>
+</resources>

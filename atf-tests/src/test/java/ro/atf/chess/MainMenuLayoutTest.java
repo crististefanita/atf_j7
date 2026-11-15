@@ -20,9 +20,9 @@ class MainMenuLayoutTest {
         var main = home.getElementsByTagName("Button");
         var ids = new ArrayList<String>();
         for (int index = 0; index < main.getLength(); index++) ids.add(((Element) main.item(index)).getAttribute("android:id"));
-        check.same("The home screen exposes active games, the archive, puzzles, openings, manual analysis and the editable profile",
+        check.same("The home screen exposes games, study, profile and settings",
                 List.of("@+id/new_match", "@+id/resume_match", "@+id/match_archive", "@+id/open_puzzles", "@+id/open_openings",
-                        "@+id/open_analysis", "@+id/edit_player_name"), ids);
+                        "@+id/open_analysis", "@+id/edit_player_name", "@+id/open_settings"), ids);
         var groups = new java.util.LinkedHashMap<String, List<String>>();
         for (int index = 0; index < main.getLength(); index++) {
             var button = (Element) main.item(index);
@@ -32,7 +32,18 @@ class MainMenuLayoutTest {
         check.same("Games, study and profile have separate visual and structural groups", java.util.Map.of(
                 "@+id/home_games", List.of("@+id/new_match", "@+id/resume_match", "@+id/match_archive"),
                 "@+id/home_study", List.of("@+id/open_puzzles", "@+id/open_openings", "@+id/open_analysis"),
-                "@+id/home_profile", List.of("@+id/edit_player_name")), groups);
+                "@+id/home_profile", List.of("@+id/edit_player_name", "@+id/open_settings")), groups);
+        var settings = (Element) main.item(main.getLength() - 1);
+        check.same("Settings beside Profile is a standard and explicitly localized menu action",
+                List.of("@style/HomeAction", "@string/settings_title", "horizontal", "wrap_content"),
+                List.of(settings.getAttribute("style"), settings.getAttribute("android:text"),
+                        ((Element) settings.getParentNode()).getAttribute("android:orientation"), settings.getAttribute("android:layout_width")));
+        check.same("Settings and its controls have clear labels in each language",
+                List.of(List.of("Settings", "Language", "Save"), List.of("Setări", "Limbă", "Salvează")),
+                List.of(labels("values/settings.xml", List.of("settings_title", "settings_language_label", "settings_save")),
+                        labels("values-ro/settings.xml", List.of("settings_title", "settings_language_label", "settings_save"))));
+        check.same("Both dropdown entries use their own language names", List.of("Română", "English"),
+                labels("values/settings.xml", List.of("settings_language_romanian", "settings_language_english")));
         check.same("Only creating a game uses the primary action style", List.of("@+id/new_match"),
                 java.util.stream.IntStream.range(0, main.getLength()).mapToObj(index -> (Element) main.item(index))
                         .filter(button -> button.getAttribute("style").equals("@style/HomePrimaryAction"))

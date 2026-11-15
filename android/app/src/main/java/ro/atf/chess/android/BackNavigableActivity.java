@@ -8,7 +8,7 @@ import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
 /** Delivers system Back to an activity with its own internal navigation. */
-abstract class BackNavigableActivity extends Activity {
+abstract class BackNavigableActivity extends LocalizedActivity {
     private Api33Back systemBack;
 
     @Override protected void onStart() {

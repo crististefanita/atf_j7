@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="settings_language" type="id" />
+    <string name="settings_title">Settings</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_romanian" translatable="false">Română</string>
+    <string name="settings_language_english" translatable="false">English</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_save_failed">Could not save the language. Try again.</string>
+</resources>

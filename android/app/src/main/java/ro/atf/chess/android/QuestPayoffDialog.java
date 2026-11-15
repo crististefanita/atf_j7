@@ -2,12 +2,17 @@ package ro.atf.chess.android;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -21,8 +26,9 @@ import ro.atf.chess.QuestPayoff;
 import ro.atf.chess.QuestReplay;
 
 final class QuestPayoffDialog {
-    private static final int BACKGROUND = 0xff262522;
-    private static final int TEXT = 0xfff5f3ec;
+    private static final int TEXT = 0xffeff2ec;
+    private static final int MUTED = 0xffb7c5b4;
+    private static final int CAUTION = 0xffffbe89;
     private final Context context;
     private final QuestPayoff payoff;
     private final boolean studyingDefense;
@@ -34,8 +40,8 @@ final class QuestPayoffDialog {
     private final TextView floor;
     private final TextView dangerReason;
     private final Button dangerToggle;
-    private final Button previous;
-    private final Button next;
+    private final ImageButton previous;
+    private final ImageButton next;
     private QuestReplay replay;
 
     static void open(Context context, QuestPayoff payoff, boolean blackBelow) {
@@ -60,10 +66,7 @@ final class QuestPayoffDialog {
         this.mateExplanation = mateExplanation;
         this.blackBelow = blackBelow;
         var dialog = new Dialog(context, android.R.style.Theme_Material_NoActionBar);
-        var screen = new LinearLayout(context);
-        screen.setId(R.id.quest_payoff_replay);
-        screen.setOrientation(LinearLayout.VERTICAL);
-        screen.setBackgroundColor(BACKGROUND);
+        var screen = LayoutInflater.from(context).inflate(R.layout.puzzle_explain, null);
         if (Build.VERSION.SDK_INT >= 35) {
             screen.setOnApplyWindowInsetsListener((view, insets) -> {
                 var bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
@@ -71,10 +74,10 @@ final class QuestPayoffDialog {
                 return insets;
             });
         }
-        var title = text(titleText, 19);
-        BoardCaption.reserve(title, 1);
+        TextView title = screen.findViewById(R.id.quest_payoff_title);
+        title.setText(titleText);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) title.setAccessibilityHeading(true);
-        screen.addView(title);
+        screen.findViewById(R.id.quest_payoff_close).setOnClickListener(view -> dialog.dismiss());
         board = new BoardView(context, ignored -> { });
         board.setId(R.id.quest_payoff_board);
         board.setContentDescription(context.getString(R.string.game_review_board));
@@ -83,16 +86,22 @@ final class QuestPayoffDialog {
         details.setScrollbarFadingEnabled(false);
         var captions = new LinearLayout(context);
         captions.setOrientation(LinearLayout.VERTICAL);
-        captions.setPadding(dp(12), 0, dp(12), 0);
-        move = text("", 16);
+        captions.setPadding(dp(12), dp(4), dp(12), dp(4));
+        move = text("", 16, TEXT);
+        move.setTypeface(move.getTypeface(), Typeface.BOLD);
         move.setId(R.id.quest_payoff_move);
         move.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        material = text("", 15);
+        material = text("", 14, MUTED);
         material.setId(R.id.quest_payoff_material);
         material.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        floor = text("", 15);
+        floor = text("", 14, MUTED);
         floor.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        dangerReason = text("", 15);
+        dangerReason = text("", 14, CAUTION);
+        var caution = new GradientDrawable();
+        caution.setColor(0xff322a21);
+        caution.setCornerRadius(dp(8));
+        dangerReason.setBackground(caution);
+        dangerReason.setPadding(dp(8), dp(4), dp(8), dp(4));
         dangerReason.setId(R.id.quest_payoff_danger_reason);
         dangerReason.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         captions.addView(dangerReason);
@@ -102,45 +111,32 @@ final class QuestPayoffDialog {
         if (studyingDefense) {
             addStudyNotes(captions);
         } else if (mateExplanation == null) {
-            if (payoff.plies() == 1) captions.addView(text(context.getString(R.string.tactics_key_only), 15));
-            if (payoff.lesson() != null) captions.addView(text(context.getString(lessonLabel(payoff.lesson())), 15));
+            if (payoff.plies() == 1) captions.addView(text(context.getString(R.string.tactics_key_only), 14, MUTED));
+            if (payoff.lesson() != null) captions.addView(text(context.getString(lessonLabel(payoff.lesson())), 15, TEXT));
         }
         details.addView(captions);
-        int movePreview = move.getLineHeight() * 2 + move.getPaddingTop() + move.getPaddingBottom();
-        screen.addView(new BoardDetails(new BoardPanel(context, null, board, null, null), details, movePreview),
-                new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 1));
-        var buttons = new LinearLayout(context);
-        buttons.setPadding(dp(8), 0, dp(8), 0);
-        previous = button(R.string.game_review_previous);
-        previous.setId(R.id.quest_payoff_previous);
-        previous.setContentDescription(context.getString(R.string.opening_previous_move));
+        int movePreview = move.getLineHeight() * 2 + move.getPaddingTop() + move.getPaddingBottom() + captions.getPaddingTop();
+        FrameLayout body = screen.findViewById(R.id.quest_payoff_body);
+        body.addView(new BoardDetails(new BoardPanel(context, null, board, null, null), details, movePreview),
+                new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        previous = screen.findViewById(R.id.quest_payoff_previous);
         previous.setOnClickListener(view -> {
             replay = replay.previous();
             renderReplay();
             details.scrollTo(0, 0);
         });
-        next = button(R.string.game_review_next);
-        next.setId(R.id.quest_payoff_next);
-        next.setContentDescription(context.getString(R.string.opening_next_move));
+        next = screen.findViewById(R.id.quest_payoff_next);
         next.setOnClickListener(view -> {
             replay = replay.next();
             renderReplay();
             details.scrollTo(0, 0);
         });
-        dangerToggle = button(R.string.quest_danger);
-        dangerToggle.setId(R.id.quest_payoff_danger);
-        dangerToggle.setPadding(0, 0, 0, 0);
+        dangerToggle = screen.findViewById(R.id.quest_payoff_danger);
         dangerToggle.setOnClickListener(view -> {
             replay = replay.toggleDanger();
             renderDanger();
             details.scrollTo(0, 0);
         });
-        var close = button(android.R.string.ok);
-        close.setOnClickListener(view -> dialog.dismiss());
-        for (var button : List.of(previous, next, dangerToggle, close)) {
-            buttons.addView(button, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1));
-        }
-        screen.addView(buttons);
         dialog.setContentView(screen);
         renderReplay();
         dialog.show();
@@ -221,10 +217,10 @@ final class QuestPayoffDialog {
     private void addStudyNotes(LinearLayout captions) {
         var study = payoff.defenseStudy();
         var language = context.getResources().getConfiguration().getLocales().get(0).getLanguage();
-        var lesson = text("ro".equals(language) ? study.lessonRo() : study.lessonEn(), 15);
+        var lesson = text("ro".equals(language) ? study.lessonRo() : study.lessonEn(), 15, TEXT);
         lesson.setId(R.id.quest_payoff_study_lesson);
         captions.addView(lesson);
-        var evidence = text(studyEvidence(context, payoff), 14);
+        var evidence = text(studyEvidence(context, payoff), 14, MUTED);
         evidence.setId(R.id.quest_payoff_study_evidence);
         captions.addView(evidence);
     }
@@ -275,23 +271,15 @@ final class QuestPayoffDialog {
         };
     }
 
-    private TextView text(String content, int size) {
+    private TextView text(String content, int size, int color) {
         var label = new TextView(context);
-        label.setGravity(Gravity.CENTER);
-        label.setTextColor(TEXT);
+        label.setGravity(Gravity.START);
+        label.setTextColor(color);
         label.setTextSize(size);
+        label.setIncludeFontPadding(false);
         label.setPadding(dp(4), dp(4), dp(4), dp(4));
         label.setText(content);
         return label;
-    }
-
-    private Button button(int label) {
-        var control = new Button(context);
-        control.setAllCaps(false);
-        control.setMinWidth(0);
-        control.setMinHeight(dp(48));
-        control.setText(label);
-        return control;
     }
 
     private int dp(int value) { return Math.round(value * context.getResources().getDisplayMetrics().density); }

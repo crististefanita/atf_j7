@@ -188,6 +188,7 @@ public final class ChessActivity extends BackNavigableActivity {
         profile.setText(getString(R.string.profile_name, humanName()));
         profile.setOnClickListener(view -> PlayerNameEditor.show(this, store.playerName(), store::savePlayerName,
                 () -> profile.setText(getString(R.string.profile_name, humanName()))));
+        menu.findViewById(R.id.open_settings).setOnClickListener(view -> SettingsDialog.show(this));
         menu.findViewById(R.id.open_puzzles).setOnClickListener(view -> showPuzzles());
         menu.findViewById(R.id.open_openings).setOnClickListener(view -> startActivity(new android.content.Intent(this, OpeningActivity.class)));
         menu.findViewById(R.id.open_analysis).setOnClickListener(view -> AnalysisActivity.open(this, ChessMatch.start(), 0, false));
@@ -985,6 +986,11 @@ public final class ChessActivity extends BackNavigableActivity {
         int explanation = quest.objective() == QuestCatalog.Objective.MATE ? R.string.why_mate : R.string.why_tactic;
         var action = hint.nextAction(solved, pending);
         guidance.setEnabled(action != QuestHint.Action.WAIT);
+        guidance.setImageResource(switch (action) {
+            case SHOW_PIECE, WAIT -> R.drawable.quest_bulb;
+            case SHOW_MOVE -> R.drawable.quest_hint_move;
+            case EXPLAIN -> R.drawable.quest_explain;
+        });
         guidance.setContentDescription(getString(switch (action) {
             case SHOW_PIECE -> R.string.hint;
             case SHOW_MOVE -> R.string.show_solution;
@@ -998,7 +1004,8 @@ public final class ChessActivity extends BackNavigableActivity {
             case WAIT -> R.string.quest_hint_next_wait;
         });
         guidanceLabel.setEnabled(!pending);
-        guidance.setImageTintList(ColorStateList.valueOf(!pending && hint != QuestHint.NONE ? PROGRESS : MUTED));
+        guidance.setImageTintList(ColorStateList.valueOf(action == QuestHint.Action.SHOW_MOVE || action == QuestHint.Action.EXPLAIN
+                ? PROGRESS : MUTED));
         int stage = step.stage();
         Move suggestion = quest.playerMove(stage);
         renderStatus(quest, stage, suggestion, pending);

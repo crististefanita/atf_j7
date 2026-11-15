@@ -27,7 +27,7 @@ import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 
 /** A local study board whose line belongs to the activity, independently of the saved match. */
-public final class AnalysisActivity extends Activity {
+public final class AnalysisActivity extends LocalizedActivity {
     static final int CONTINUATION_REQUEST = 17;
     static final String CONTINUATION = "analysisContinuation";
     static final String AI_AUTOMATIC = "analysisAutomaticAi";
