@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "previousVersion": "0.14.0",
+  "previousVersion": "0.14.2",
   "previousCertificateSha256": "4bc8b9639475dbf550b066f74a8493d20c713aed77388d52f7526b227051d247",
-  "candidateVersion": "0.14.1",
+  "candidateVersion": "0.14.3",
   "candidateCertificateSha256": "4bc8b9639475dbf550b066f74a8493d20c713aed77388d52f7526b227051d247",
   "installMode": "UPGRADE",
   "result": "UPGRADE_COMPATIBLE",
-  "apkSha256": "8ad3058bb4e7dba44487b327c0149b6a76b58e79d1142a525514158194d2a422",
-  "observedUtc": "2026-11-14T12:33:23.3400080Z"
+  "apkSha256": "52bffc5754b31eae2446fa66485296f45766672c8f72336dd5a9220b69b0c474",
+  "observedUtc": "2026-11-15T17:14:43.0126682Z"
 }

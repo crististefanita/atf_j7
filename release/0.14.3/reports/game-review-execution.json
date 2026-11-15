@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "scope": "game-review",
+  "device": "emulator-5560",
+  "api": "28",
+  "apkSha256": "52bffc5754b31eae2446fa66485296f45766672c8f72336dd5a9220b69b0c474",
+  "sourceCommit": "17ab3b492a73ef4fce0a996a80609c4d494a699c",
+  "variant": "release",
+  "assertions": 30,
+  "extentSha256": "2274717e647b90c875e4777e7a2c7034e3610d5aaf40d4ca87eb41614075b09d",
+  "runId": "2c710b36972d457c938c9c5840aca420",
+  "phases": {
+    "game-review": {
+      "status": "PASS",
+      "scope": "game-review",
+      "device": "emulator-5560",
+      "api": "28",
+      "apkSha256": "52bffc5754b31eae2446fa66485296f45766672c8f72336dd5a9220b69b0c474",
+      "sourceCommit": "17ab3b492a73ef4fce0a996a80609c4d494a699c",
+      "variant": "release",
+      "assertions": 23,
+      "receiptSha256": "b2c54d3e15fe81033952a8bf702417d6896d2d66b33c0058f1b16429aeca3ac4",
+      "captureSha256": {
+        "game-review.png": "46a0043dc4238a274f409328a9026828d110f6d33f81c2296bf617c39d82d235",
+        "game-review-navigation.png": "7ac6b54a1cce58823db9354a086535e6d73c2359a6bf4d2cf2af912e49c6b22c",
+        "game-review-line.png": "699b51ab1d40553ef85416cc2f8389e05069951177b3ab75871d19510ae78358",
+        "game-review-comparison.png": "9bf44ad4b2cf2548a7f3e94a03d376c6e92353405a3960d5551b334515cca93c",
+        "game-review-actions.png": "3d9fc22dbf075d2bfef4adfed47ad2d8703a95ffab6246aed80bf17531325c02"
+      },
+      "runId": "2c710b36972d457c938c9c5840aca420"
+    },
+    "game-review-why": {
+      "status": "PASS",
+      "scope": "game-review-why",
+      "device": "emulator-5560",
+      "api": "28",
+      "apkSha256": "52bffc5754b31eae2446fa66485296f45766672c8f72336dd5a9220b69b0c474",
+      "sourceCommit": "17ab3b492a73ef4fce0a996a80609c4d494a699c",
+      "variant": "release",
+      "assertions": 5,
+      "receiptSha256": "872a4c0b42b9f61c1fe53fa8d86f9f113ec46ce530267b4e9670aad4272788ce",
+      "captureSha256": {
+        "game-review-why.png": "f34ef9afddbc2747f038130eb10d36312b9e8969b82ecfac87f9cb1dee48cce3",
+        "game-review-why-recommended.png": "0a3c7e647a12d7a0f3774d52b880ebed716e9665670622b3b9db56f8c7aeb7f7",
+        "game-review-why-score.png": "15c9269e140d77cbbadbdd876e26102687b30fff4f777b41fd9cc69c7428eb59"
+      },
+      "runId": "2c710b36972d457c938c9c5840aca420"
+    },
+    "game-review-why-restore": {
+      "status": "PASS",
+      "scope": "game-review-why-restore",
+      "device": "emulator-5560",
+      "api": "28",
+      "apkSha256": "52bffc5754b31eae2446fa66485296f45766672c8f72336dd5a9220b69b0c474",
+      "sourceCommit": "17ab3b492a73ef4fce0a996a80609c4d494a699c",
+      "variant": "release",
+      "assertions": 2,
+      "receiptSha256": "b7221d48bcb1277a7fd306a1c3e8f405e90cd7c27588178cb61d2aa026b07011",
+      "captureSha256": {
+        "game-review-why-restore.png": "08dfc295cdd73362c2cf4bca6157ddfe184e0ad521bde46c0b1a0f057fabb280"
+      },
+      "runId": "2c710b36972d457c938c9c5840aca420"
+    }
+  }
+}
