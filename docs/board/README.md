@@ -77,13 +77,26 @@ Rândul începe cu numărul partidei și numele adversarului în **Partide salva
 
 Eticheta discretă de la baza rândului arată ziua și ora locală. În **Partide salvate** apare momentul începerii, iar în **Partide încheiate** momentul terminării. Pentru partidele vechi a căror dată lipsește, rândul afișează titlul și mutările.
 
-**Joacă și mutările AI-ului**, deasupra tablei, îți permite să joci mutările legale ale ambelor culori. Opțiunea se salvează separat pe fiecare partidă. Dacă o debifezi în tura AI-ului, motorul reia tura curentă. Când schimbi partida, o replică aflată în calcul se anulează și poate fi recalculată când revii la acea partidă. Dacă ai jucat pentru AI, analiza afișează precizia și categoriile mutărilor pe culori, iar estimările Elo sunt indisponibile pentru acea partidă.
+Bifa **Lasă AI-ul să mute** stă în antet, pe același rând cu meniul. Debifeaz-o
+pentru a juca mutările legale ale ambelor culori. Opțiunea se salvează separat
+pe fiecare partidă, iar bifarea în tura AI-ului pornește replica. În istoricul
+unei partide active, bifa rămâne vizibilă și dezactivată. După rezultat, antetul
+afișează doar meniul. Când schimbi partida, o
+replică aflată în calcul se anulează și poate fi recalculată la revenire. Dacă
+ai jucat pentru AI, analiza afișează precizia și categoriile pe culori, iar
+estimările Elo sunt indisponibile pentru acea partidă.
 
 **Analiza partidei** ocupă fereastra aplicației din timpul calculului, cu butonul **Închide** în antet. Derulează graficul, precizia, estimările Elo, tabelul și lista mutărilor în același ecran. În tabel, coloana **Jucător** este mereu prima dintre cele numerice, inclusiv când joci cu negrul. Fiecare categorie are un rând, cu zero când lipsește. [Reperul Game Review](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
 
 [Schemele și formulele analizei](game-review.md)
 
-După rezultat, pictograma 📊 marchează intrarea în **Analiza partidei**. În timpul jocului, butonul **Opțiunile partidei** oferă remiză la mutarea ta. AI-ul refuză când are avantaj material și acceptă în celelalte poziții. **Renunță la partidă** cere confirmare și salvează victoria AI-ului. Meniul principal păstrează partida în curs pentru reluare.
+Butonul cu trei linii deschide **Opțiunile partidei**. De aici întorci tabla,
+revii în **Meniu principal**, deschizi **Partide salvate** și trimiți poziția
+curentă în **Tablă de analiză**. În timpul jocului, poți oferi remiză la mutarea
+ta. AI-ul refuză când are avantaj material și acceptă în celelalte poziții.
+**Renunță la partidă** cere confirmare și salvează victoria AI-ului. Revenirea
+în meniul principal păstrează partida pentru reluare. În istoric sunt disponibile
+comenzile de navigare, orientare și studiu.
 
 Din meniul principal, **Probleme** grupează capitolele și progresul. În **Profil**, atinge numele pentru a-l edita sau reseta. Numele are cel mult 10 caractere și apare la locul jucătorului, inclusiv în partida reluată.
 
@@ -91,7 +104,7 @@ Din meniul principal, **Probleme** grupează capitolele și progresul. În **Pro
 
 Jocul salvează istoricul înainte de a afișa fiecare mutare. Alegerea unei partide din **Partide salvate** și redeschiderea directă refac poziția, culoarea, nivelul, analiza și orientarea. Dacă motorul are mutarea, pauza reîncepe și urmează o singură replică. Salvările anterioare revin cu Alb și Basic.
 
-Sub tablă, săgețile parcurg fiecare mutare, iar săgeata cu opritor revine la ultima. Lista se derulează orizontal și permite alegerea directă a oricărei poziții, inclusiv **Start**. Mutarea selectată este evidențiată discret. Controalele au zone de atingere de 48 dp. Pozițiile anterioare se afișează cu tabla blocată. Dacă botul răspunde în timp ce te uiți în urmă, mutarea nouă apare în listă și poziția consultată rămâne vizibilă. [Navigarea între mutări pe Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
+Sub tablă, săgețile parcurg fiecare mutare, iar săgeata cu opritor revine la ultima. Lista se derulează orizontal și permite alegerea directă a oricărei poziții, inclusiv **Start**. Mutarea selectată indică poziția afișată. Controalele au zone de atingere de 48 dp. Pozițiile anterioare se afișează cu tabla blocată. Dacă botul răspunde în timp ce te uiți în urmă, mutarea nouă apare în listă și poziția consultată rămâne vizibilă. [Navigarea între mutări pe Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
 
 Alege o poziție din istoric și apasă **Continuă de aici** sub tablă. Confirmarea păstrează poziția și mutările care duc la ea. Mutările de după poziția aleasă sunt eliminate din partida salvată. Bifa **Lasă AI-ul să mute** pornește replica atunci când e rândul calculatorului. Poți continua și dintr-o partidă terminată. Din arhivă, continuarea folosește un loc liber.
 
@@ -112,7 +125,7 @@ mutare a unei partide în curs; replica automată așteaptă până îl închizi
 
 Bifează **Analiză AI** înainte de pornire. Bara verticală reflectă evaluarea poziției afișate, inclusiv în istoric. Segmentul mai lung indică partea în avantaj, iar la întoarcerea tablei segmentele își schimbă capetele. Textul arată scorul pozițional în unități de pion. `+1,25 · Alb` favorizează albul, iar `−1,25 · Negru` favorizează negrul. Bara se umple la opt unități sau la mat și se împarte egal la remiză. [Convenția de evaluare Chess.com](https://support.chess.com/en/articles/8379354-computer-evaluation-numbers-on-chess-com)
 
-Apasă becul din bara de sub tablă pentru cea mai bine evaluată linie și săgeata primei mutări. Când controlezi culoarea la mutare, atinge destinația indicată ca să joci prima mutare. În istoric poți consulta varianta și alege **Continuă de aici** pentru a juca din poziția afișată. În tura automată a AI-ului, așteaptă replica sau activează **Joacă și mutările AI-ului**.
+Apasă becul din bara de sub tablă pentru cea mai bine evaluată linie și săgeata primei mutări. Când controlezi culoarea la mutare, atinge destinația indicată ca să joci prima mutare. În istoric poți consulta varianta și alege **Continuă de aici** pentru a juca din poziția afișată. În tura AI-ului poți aștepta replica sau debifa **Lasă AI-ul să mute** pentru a juca acea mutare.
 
 Indiciul pornește de la căutarea Hard, independent de nivelul adversarului. Comparația la adâncime comună folosește cel mult 32.000 de noduri din plafonul de 220.000 de noduri suplimentare al indiciului. Apăsările următoare parcurg până la cinci variante, în ordinea scorului. Lista se oprește când o mutare pierde mai mult de un sfert de pion față de prima. În poziții cu mat demonstrat, apar doar maturile cu același rezultat și aceeași distanță. Schimbarea poziției și încheierea partidei ascund indiciul. Opțiunea **Analiză AI** se păstrează la reluare. [Evaluarea AI](ai-quality.md)
 

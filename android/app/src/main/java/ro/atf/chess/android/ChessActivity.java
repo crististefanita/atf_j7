@@ -35,6 +35,7 @@ import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.GameReview;
+import ro.atf.chess.MatchControls;
 import ro.atf.chess.MatchSetup;
 import ro.atf.chess.MatchSlots;
 import ro.atf.chess.PuzzleChromeLayout;
@@ -76,12 +77,11 @@ public final class ChessActivity extends BackNavigableActivity {
     private int matchSlot = 1;
     private ro.atf.chess.MatchStore.ArchivedMatch archivedMatch;
     private boolean manualAi;
-    private CheckBox manualAiCheck;
+    private CheckBox automaticAi;
     private boolean inMatch;
     private MenuPage menuPage = MenuPage.HOME;
     private boolean botSaveFailed;
     private MatchHistoryView history;
-    private ImageButton matchActions;
     private MatchAnalysisView matchAnalysis;
     private android.app.Dialog reviewDialog;
     private boolean choosingContinuation;
@@ -104,7 +104,6 @@ public final class ChessActivity extends BackNavigableActivity {
     private TextView bottomPlayer;
     private MatchCapturesView topCaptures;
     private MatchCapturesView bottomCaptures;
-    private TextView recentMove;
     private TextView solvedCount;
     private TextView milestone;
     private PuzzleChrome puzzleChrome;
@@ -337,38 +336,11 @@ public final class ChessActivity extends BackNavigableActivity {
 
     private LinearLayout buildMatchBoardScreen() {
         var screen = screen();
-        var header = new LinearLayout(this);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(dp(14), 0, dp(8), 0);
-        header.addView(text(R.string.app_name, 21, PRIMARY), new LinearLayout.LayoutParams(0, -2, 1));
-        var flip = new Button(this);
-        flip.setText(R.string.flip);
-        flip.setAllCaps(false);
-        flip.setOnClickListener(view -> {
-            if (archivedMatch == null && !store.matches().saveMatch(matchSlot, match, !blackBelow, manualAi)) {
-                showSaveError();
-                return;
-            }
-            blackBelow = !blackBelow;
-            renderMatch();
-        });
-        header.addView(flip);
-        var menu = menuButton(R.string.main_menu);
-        menu.setOnClickListener(view -> leaveBoard());
-        header.addView(menu);
-        screen.addView(header);
-
-        recentMove = text(R.string.mate_objective, 14, MUTED);
-        recentMove.setGravity(Gravity.CENTER);
-        BoardCaption.reserve(recentMove, 1);
-        screen.addView(recentMove);
-        manualAiCheck = new CheckBox(this);
-        manualAiCheck.setId(R.id.match_manual_ai);
-        manualAiCheck.setText(R.string.match_manual_ai);
-        manualAiCheck.setTextColor(PRIMARY);
-        manualAiCheck.setMinHeight(dp(48));
-        manualAiCheck.setOnClickListener(view -> setManualAi(manualAiCheck.isChecked()));
-        screen.addView(manualAiCheck);
+        var toolbar = getLayoutInflater().inflate(R.layout.match_toolbar, screen, false);
+        toolbar.findViewById(R.id.match_actions).setOnClickListener(this::showMatchActions);
+        automaticAi = toolbar.findViewById(R.id.match_automatic_ai);
+        automaticAi.setOnClickListener(view -> setManualAi(!automaticAi.isChecked()));
+        screen.addView(toolbar);
 
         topPlayer = playerLabel();
         bottomPlayer = playerLabel();
@@ -385,34 +357,9 @@ public final class ChessActivity extends BackNavigableActivity {
         screen.addView(panel, new LinearLayout.LayoutParams(-1, 0, 1));
         status = boardStatus(2);
         status.setId(R.id.match_status);
-        var statusRow = new LinearLayout(this);
-        statusRow.setGravity(Gravity.CENTER_VERTICAL);
-        statusRow.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
-        matchActions = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
-        matchActions.setId(R.id.match_actions);
-        matchActions.setImageResource(R.drawable.match_more);
-        matchActions.setImageTintList(ColorStateList.valueOf(MUTED));
-        matchActions.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
-        matchActions.setContentDescription(getString(R.string.match_actions));
-        matchActions.setOnClickListener(this::showMatchActions);
-        statusRow.addView(matchActions, new LinearLayout.LayoutParams(dp(48), dp(48)));
-        screen.addView(statusRow);
+        screen.addView(status, new LinearLayout.LayoutParams(-1, -2));
         if (matchAnalysis != null) screen.addView(matchAnalysis);
-
-        var study = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
-        study.setImageResource(R.drawable.match_study);
-        study.setImageTintList(ColorStateList.valueOf(MUTED));
-        study.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
-        study.setId(R.id.match_open_analysis);
-        study.setContentDescription(getString(R.string.manual_analysis));
-        study.setOnClickListener(view -> {
-            cancelBot();
-            String id = archivedMatch == null ? store.matches().archivedId(matchSlot) : archivedMatch.id();
-            AnalysisActivity.open(this, match, reviewedPly < 0 ? match.ply() : reviewedPly, blackBelow,
-                    id, archivedMatch == null ? store.matches().matchManualUsed(matchSlot) : archivedMatch.manualUsed(),
-                    humanName(), botName(match.setup().level()));
-        });
-        history = new MatchHistoryView(this, this::notation, this::reviewMatch, matchAnalysis == null ? null : matchAnalysis.bulb(), study);
+        history = new MatchHistoryView(this, this::notation, this::reviewMatch, matchAnalysis == null ? null : matchAnalysis.bulb());
         screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
         return screen;
     }
@@ -755,7 +702,7 @@ public final class ChessActivity extends BackNavigableActivity {
 
     private void setManualAi(boolean enabled) {
         if (!store.matches().saveMatch(matchSlot, match, blackBelow, enabled)) {
-            manualAiCheck.setChecked(manualAi);
+            automaticAi.setChecked(!manualAi);
             showSaveError();
             return;
         }
@@ -860,40 +807,62 @@ public final class ChessActivity extends BackNavigableActivity {
 
     private void showMatchActions(View anchor) {
         var menu = new PopupMenu(this, anchor);
-        menu.getMenu().add(R.string.match_saved_games).setOnMenuItemClickListener(item -> {
-            MatchListActivity.openSaved(this);
-            return true;
-        });
-        boolean finished = match.result() != ChessMatch.Result.IN_PROGRESS;
-        if (finished || match.analysisEnabled()) {
-            menu.getMenu().add(R.string.match_game_review).setEnabled(finished || match.ply() > 0).setOnMenuItemClickListener(item -> {
-                showGameReview();
+        for (var item : MatchControls.menu(match, reviewedPly >= 0, manualAi)) {
+            int label = switch (item.action()) {
+                case FLIP -> R.string.flip;
+                case HOME -> R.string.main_menu;
+                case SAVED_GAMES -> R.string.match_saved_games;
+                case ANALYSIS_BOARD -> R.string.manual_analysis;
+                case GAME_REVIEW -> R.string.match_game_review;
+                case OFFER_DRAW -> R.string.match_offer_draw;
+                case RESIGN -> R.string.match_resign;
+            };
+            menu.getMenu().add(label).setEnabled(item.enabled()).setOnMenuItemClickListener(selectedItem -> {
+                switch (item.action()) {
+                    case FLIP -> flipMatchBoard();
+                    case HOME -> leaveBoard();
+                    case SAVED_GAMES -> MatchListActivity.openSaved(this);
+                    case ANALYSIS_BOARD -> openMatchAnalysisBoard();
+                    case GAME_REVIEW -> showGameReview();
+                    case OFFER_DRAW -> offerMatchDraw();
+                    case RESIGN -> confirmMatchResignation();
+                }
                 return true;
             });
         }
-        if (finished) {
-            menu.show();
+        menu.show();
+    }
+
+    private void flipMatchBoard() {
+        if (archivedMatch == null && !store.matches().saveMatch(matchSlot, match, !blackBelow, manualAi)) {
+            showSaveError();
             return;
         }
-        var draw = menu.getMenu().add(R.string.match_offer_draw);
-        draw.setEnabled(playerCanMove() && !match.awaitingBot());
-        draw.setOnMenuItemClickListener(item -> {
-            if (playerCanMove() && !match.awaitingBot()) {
-                var outcome = match.offerDraw();
-                if (outcome == match) Toast.makeText(this, R.string.match_draw_declined, Toast.LENGTH_SHORT).show();
-                else saveMatchEnding(outcome);
-            }
-            return true;
-        });
-        menu.getMenu().add(R.string.match_resign).setOnMenuItemClickListener(item -> {
-            new AlertDialog.Builder(this).setTitle(R.string.match_resign).setMessage(R.string.match_resign_confirm)
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(R.string.match_confirm_resign, (dialog, which) -> {
-                        if (inMatch && reviewedPly < 0 && match.result() == ChessMatch.Result.IN_PROGRESS) saveMatchEnding(match.resign());
-                    }).show();
-            return true;
-        });
-        menu.show();
+        blackBelow = !blackBelow;
+        renderMatch();
+    }
+
+    private void openMatchAnalysisBoard() {
+        cancelBot();
+        String id = archivedMatch == null ? store.matches().archivedId(matchSlot) : archivedMatch.id();
+        AnalysisActivity.open(this, match, reviewedPly < 0 ? match.ply() : reviewedPly, blackBelow,
+                id, archivedMatch == null ? store.matches().matchManualUsed(matchSlot) : archivedMatch.manualUsed(),
+                humanName(), botName(match.setup().level()));
+    }
+
+    private void offerMatchDraw() {
+        if (!playerCanMove() || match.awaitingBot()) return;
+        var outcome = match.offerDraw();
+        if (outcome == match) Toast.makeText(this, R.string.match_draw_declined, Toast.LENGTH_SHORT).show();
+        else saveMatchEnding(outcome);
+    }
+
+    private void confirmMatchResignation() {
+        new AlertDialog.Builder(this).setTitle(R.string.match_resign).setMessage(R.string.match_resign_confirm)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.match_confirm_resign, (dialog, which) -> {
+                    if (inMatch && reviewedPly < 0 && match.result() == ChessMatch.Result.IN_PROGRESS) saveMatchEnding(match.resign());
+                }).show();
     }
 
     private void saveMatchEnding(ChessMatch ending) {
@@ -1098,17 +1067,16 @@ public final class ChessActivity extends BackNavigableActivity {
         var shownPosition = match.positionAt(ply);
         var shownMove = match.moveAt(ply);
         boolean markTurn = reviewing || match.result() == ChessMatch.Result.IN_PROGRESS;
-        manualAiCheck.setChecked(manualAi);
-        manualAiCheck.setEnabled(!reviewing && match.result() == ChessMatch.Result.IN_PROGRESS);
+        var automation = MatchControls.automation(match, reviewing, manualAi);
+        automaticAi.setChecked(automation.checked());
+        automaticAi.setEnabled(automation.enabled());
+        automaticAi.setVisibility(automation.visible() ? View.VISIBLE : View.INVISIBLE);
         var bottom = blackBelow ? ChessPosition.Side.BLACK : ChessPosition.Side.WHITE;
         renderMatchPlayer(topPlayer, bottom.other(), markTurn && shownPosition.turn() == bottom.other());
         renderMatchPlayer(bottomPlayer, bottom, markTurn && shownPosition.turn() == bottom);
         var material = match.materialAt(ply);
         topCaptures.show(bottom.other(), material.forSide(bottom.other()));
         bottomCaptures.show(bottom, material.forSide(bottom));
-        recentMove.setText(shownMove == null
-                ? getString(R.string.match_history_initial_position)
-                : getString(reviewing ? R.string.match_history_showing_move : R.string.match_last_move, notation(shownMove)));
         renderMatchStatus(reviewing, ply);
         int activeLabelId = (shownPosition.turn() == bottom ? bottomPlayer : topPlayer).getId();
         if (matchAnalysis != null) {
@@ -1136,7 +1104,7 @@ public final class ChessActivity extends BackNavigableActivity {
         View.OnClickListener action = null;
         String spokenLabel = null;
         if (reviewing) {
-            label = getString(R.string.match_history_position, ply, match.ply()) + "\n" + getString(R.string.match_continue_from_here);
+            label = getString(R.string.match_continue_from_here);
             action = view -> confirmContinuation(ply);
         } else if (botSaveFailed) {
             label = getString(R.string.match_retry_bot);
@@ -1150,7 +1118,6 @@ public final class ChessActivity extends BackNavigableActivity {
             label += "\n📊  " + getString(R.string.match_game_review);
             action = view -> showGameReview();
         }
-        matchActions.setVisibility(reviewing ? View.INVISIBLE : View.VISIBLE);
         status.setText(label);
         status.setContentDescription(spokenLabel);
         status.setTextColor(action == null ? PRIMARY : PROGRESS);

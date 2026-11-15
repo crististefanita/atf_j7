@@ -1,4 +1,14 @@
 testChanges:
+  - id: J7-MATCH-TOOLBAR-NATIVE
+    base: "d08d487dc463d5321da6a4691123c808dfd73406"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchControlsTest.java
+    test: ro.atf.chess.MatchControlsTest#offersOnlySafeCommandsWhileBrowsingHistory
+    contract: "Keep action availability in JVM and retain the real menu, orientation and persisted game outcome in Android"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "Cancelling resignation preserves the saved game"
+
   - id: J7-REVIEW-ENTRYPOINT
     base: "2ab8ef4ff2bedc7835736c4bb0b3e359a44664fb"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java

@@ -1,0 +1,42 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/match_toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="10dp">
+
+    <ImageButton
+        android:id="@id/match_actions"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/match_toolbar_surface"
+        android:contentDescription="@string/match_actions"
+        android:padding="12dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/puzzle_menu"
+        android:tint="#F5F3EC" />
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1">
+
+        <CheckBox
+            android:id="@+id/match_automatic_ai"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:background="@drawable/match_toolbar_surface"
+            android:buttonTint="@color/match_toolbar_check"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:paddingStart="7dp"
+            android:paddingEnd="13dp"
+            android:text="@string/match_automatic_ai"
+            android:textColor="@color/match_toolbar_label"
+            android:textSize="14sp" />
+    </FrameLayout>
+</LinearLayout>

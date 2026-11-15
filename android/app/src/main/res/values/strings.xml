@@ -11,7 +11,6 @@
     <string name="game_review_live_rating">Elo is available after the game ends.</string>
     <string name="game_review_study_rating">The report shows the accuracy of each color for this study line.</string>
     <string name="game_review_accuracy_only">Accuracy %1$s</string>
-    <string name="match_manual_ai">Play AI moves manually</string>
     <string name="match_manual_ai_turn">Your move for the AI side</string>
     <string name="match_saved_games">Saved games</string>
     <string name="match_saved_empty">Saved games will appear here.</string>
@@ -179,10 +178,9 @@
     <string name="mate_three_progress">Mate in three · %1$d/%2$d</string>
     <string name="mate_three_reply">Defense %1$s · two moves to mate</string>
     <string name="mate_three_try_again">That move does not force mate in three. Try again.</string>
-    <string name="main_menu">Menu</string>
+    <string name="main_menu">Main menu</string>
     <string name="new_match">New game vs computer</string>
     <string name="match_load_failed">The saved game could not be loaded.</string>
-    <string name="match_last_move">Last move · %1$s</string>
     <string name="match_history_previous">Previous move</string>
     <string name="match_history_next">Next move</string>
     <string name="match_history_latest">Jump to latest move</string>
@@ -190,9 +188,6 @@
     <string name="match_history_white_move" translatable="false">%1$d. %2$s</string>
     <string name="match_history_black_move" translatable="false">%1$d… %2$s</string>
     <string name="match_history_move_description">Move %1$d, %2$s, %3$s</string>
-    <string name="match_history_position">History · %1$d / %2$d</string>
-    <string name="match_history_showing_move">Showing · %1$s</string>
-    <string name="match_history_initial_position">Starting position</string>
     <string name="match_bot_thinking">Computer is thinking…</string>
     <string name="match_retry_bot">Tap to retry the computer’s move</string>
     <string name="match_player_turn">Your move</string>

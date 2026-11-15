@@ -287,6 +287,7 @@ public final class BoardSanity extends Instrumentation {
         compare("A finished match offers a visible chart action for review with live analysis disabled", true,
                 status.getText().toString().contains(activity.getString(R.string.match_game_review))
                         && status.getText().toString().contains("📊") && status.isClickable()
+                        && activity.findViewById(R.id.match_automatic_ai).getVisibility() == View.INVISIBLE
                         && activity.findViewById(R.id.match_analysis) == null);
         tap(status);
         var close = dialogNode(activity.getString(R.string.game_review_close), AccessibilityNodeInfo::isClickable);
@@ -785,11 +786,39 @@ public final class BoardSanity extends Instrumentation {
     private void checkMatchActions(ChessProgressStore store) throws Exception {
         var equal = ChessMatch.restore("1|e2e4 e7e5");
         if (!store.matches().saveMatch(equal, false)) throw new AssertionError("Could not seed the balanced game");
-        var game = launch();
-        tap(game.findViewById(R.id.match_actions));
+        var game = launch(true);
+        var menu = game.findViewById(R.id.match_actions);
+        var automatic = (android.widget.CheckBox) game.findViewById(R.id.match_automatic_ai);
+        var board = findBoard(viewsOf(game));
+        var boardBounds = screenBounds(board);
+        if (!fullyVisible(menu) || !fullyVisible(automatic) || !automatic.isChecked() || !automatic.isEnabled()
+                || Rect.intersects(screenBounds(menu), screenBounds(automatic)) || screenBounds(menu).bottom > boardBounds.top
+                || screenBounds(automatic).bottom > boardBounds.top) {
+            throw new AssertionError("The game menu and automatic play fit together above the board");
+        }
+        int slot = store.matches().activeMatchSlot();
+        tap(automatic);
+        if (automatic.isChecked() || !store.matches().matchManualAi(slot) || !boardBounds.equals(screenBounds(board))) {
+            throw new AssertionError("Turning off automatic play saves manual control without moving the board");
+        }
+        tap(automatic);
+        if (!automatic.isChecked() || store.matches().matchManualAi(slot) || !boardBounds.equals(screenBounds(board))) {
+            throw new AssertionError("Turning on automatic play saves the restored setting without moving the board");
+        }
+        tap(menu);
+        clickMenuItem(game.getString(R.string.flip));
+        waitForIdleSync();
+        if (!boardBounds.equals(screenBounds(board)) || !"h1".equals(coordinate(board.getChildAt(0)))
+                || !equal.checkpoint().equals(store.matches().readMatch().checkpoint())) {
+            throw new AssertionError("Flipping from the top menu only changes the board orientation");
+        }
+        tap(menu);
         String resign = game.getString(R.string.match_resign);
         String offer = game.getString(R.string.match_offer_draw);
-        if (menuItem(offer) == null || menuItem(resign) == null) throw new AssertionError("Both match actions must be visible");
+        if (menuItem(offer) == null || menuItem(resign) == null || menuItem(game.getString(R.string.main_menu)) == null
+                || menuItem(game.getString(R.string.manual_analysis)) == null) {
+            throw new AssertionError("The match menu provides home, the analysis board, draw and resignation");
+        }
         Bitmap menuFrame = getUiAutomation().takeScreenshot();
         if (menuFrame == null) throw new AssertionError("Missing match actions screenshot");
         try { saveFrame("game-review-actions", menuFrame); } finally { menuFrame.recycle(); }
@@ -804,14 +833,14 @@ public final class BoardSanity extends Instrumentation {
         if (!store.matches().saveMatch(equal, false)) throw new AssertionError("Could not restore the balanced game");
         game = launch();
         tap(game.findViewById(R.id.match_actions));
-        clickMenuItem(offer);
+        clickMenuItem(game.getString(R.string.match_offer_draw));
         compare("The AI accepts the draw in a balanced position", ChessMatch.Result.AGREED_DRAW, store.matches().readMatch().result());
         closeActivity(game);
         var ahead = ChessMatch.restore("1|e2e4 d7d5 f1b5 c7c6 b5c6 b7c6");
         if (!store.matches().saveMatch(ahead, false)) throw new AssertionError("Could not seed the material imbalance");
         game = launch();
         tap(game.findViewById(R.id.match_actions));
-        clickMenuItem(offer);
+        clickMenuItem(game.getString(R.string.match_offer_draw));
         compare("The AI declines a draw when ahead and preserves the checkpoint", ahead.checkpoint(), store.matches().readMatch().checkpoint());
     }
 
@@ -1706,7 +1735,8 @@ public final class BoardSanity extends Instrumentation {
                 captureFrame("match-resumed", "The restarted match shows the last move and the human turn",
                         image -> fullyVisible(board) && hasColor(image, cell(board, BoardSquare.name(destination)), highlight, 16));
                 verifyMatchHistory(activity, store, afterReply);
-                tap(button(activity, viewsOf(activity), R.string.main_menu));
+                tap(activity.findViewById(R.id.match_actions));
+                clickMenuItem(activity.getString(R.string.main_menu));
                 compare("Returning to the menu exposes the saved game", View.VISIBLE, activity.findViewById(R.id.resume_match).getVisibility());
                 var list = openMatchList(activity, R.id.resume_match);
                 tap(((ViewGroup) list.findViewById(R.id.match_list_rows)).getChildAt(0));
@@ -1726,6 +1756,8 @@ public final class BoardSanity extends Instrumentation {
 
     private void verifyMatchHistory(Activity activity, ChessProgressStore store, ChessMatch live) throws IOException {
         var board = findBoard(viewsOf(activity));
+        var boardBounds = screenBounds(board);
+        View automatic = activity.findViewById(R.id.match_automatic_ai);
         View previousMove = activity.findViewById(R.id.match_history_previous);
         View nextMove = activity.findViewById(R.id.match_history_next);
         View latest = activity.findViewById(R.id.match_history_latest);
@@ -1734,6 +1766,7 @@ public final class BoardSanity extends Instrumentation {
         tap(previousMove);
         compare("The previous arrow shows the position after e4 with play disabled", true,
                 moves.getChildAt(1).isSelected() && !cell(board, "e4").isEnabled()
+                        && !automatic.isEnabled() && boardBounds.equals(screenBounds(board))
                         && cell(board, "e4").getContentDescription().toString().contains(activity.getString(R.string.pawn)));
         tap(previousMove);
         compare("The start shows the white pawn on e2 and disables Previous", true,
@@ -1747,7 +1780,8 @@ public final class BoardSanity extends Instrumentation {
                         && hasColor(image, cell(board, "e4"), 0xfff4ef86, 16));
         tap(latest);
         compare("Jump to latest returns to the live turn and disables Next", true,
-                moves.getChildAt(live.ply()).isSelected() && !nextMove.isEnabled() && cell(board, "e4").isEnabled());
+                moves.getChildAt(live.ply()).isSelected() && !nextMove.isEnabled() && cell(board, "e4").isEnabled()
+                        && automatic.isEnabled() && boardBounds.equals(screenBounds(board)));
         runOnMainSync(() -> ((android.widget.HorizontalScrollView) moves.getParent()).scrollTo(0, 0));
         tap(moves.getChildAt(1));
         compare("Tapping a listed move selects it without changing the saved game", true,
@@ -1758,10 +1792,11 @@ public final class BoardSanity extends Instrumentation {
     private void assertMatchBoard(Activity activity, ChessMatch match) {
         var views = viewsOf(activity);
         var board = findBoard(views);
-        var move = match.lastMove();
-        String displayMove = activity.getString(R.string.solution_move, BoardSquare.name(move.from()), BoardSquare.name(move.to()));
-        compare("The displayed last move matches the saved bot move", true,
-                hasText(views, activity.getString(R.string.match_last_move, displayMove)));
+        var moves = (ViewGroup) activity.findViewById(R.id.match_history_moves);
+        var displayed = moves.getChildAt(match.ply());
+        String notation = ChessActivity.notation(activity, match.lastMove());
+        compare("The displayed last move matches the saved bot move", true, displayed.isSelected()
+                && displayed.getContentDescription().toString().contains(notation));
         compare("The restored board shows the human pawn and accepts the next move", true,
                 cell(board, "e4").getContentDescription().toString().contains(activity.getString(R.string.pawn))
                         && cell(board, "e4").isEnabled());

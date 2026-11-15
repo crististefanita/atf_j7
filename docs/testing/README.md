@@ -281,6 +281,13 @@ Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <s
 
 ## Partidă și istoric
 
+`MatchControlsTest` verifică comenzile din meniu în partida activă, în
+istoric și după rezultat, inclusiv remiza doar la tura jucătorului și sensul
+bifei **Lasă AI-ul să mute**. `MatchToolbarResourcesTest` verifică antetul
+comun, țintele tactile, încadrarea textului și etichetele RO/EN.
+Proba nativă deschide meniul la font 1,3×, întoarce tabla păstrând aceleași
+coordonate și verifică poziția selectată în banda de mutări.
+
 `MatchStoreTest` rulează persistența de producție cu preferințe în memorie și ceas fix. Verifică listele disjuncte după migrare și restart, salvarea atomică la încheiere, reutilizarea locului arhivat și plafonul celor zece partide active. `MatchListEntryTest` respinge construirea unui rând pentru meniul greșit. `MatchArchiveTest` verifică și codec-ul analizei, plafonul și identitatea checkpoint-ului.
 
 `MatchListEntryTest` verifică datele afișate pentru partide în curs, partide încheiate, remize, renunțări și salvări vechi. `MainMenuLayoutTest` verifică textele în română și engleză, ierarhia dintre titlu, mutări și dată, contrastul etichetei și poziția butonului **Înapoi**. `MatchSlotsTest` verifică ordinea de înlocuire, controlul manual și respingerea replicilor AI vechi. Android păstrează un parcurs pe meniu, cu o captură a listei și o verificare a deschiderii partidei.
