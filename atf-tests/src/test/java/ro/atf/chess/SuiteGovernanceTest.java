@@ -38,9 +38,15 @@ class SuiteGovernanceTest {
         var unaudited = new TreeSet<String>();
         var wronglyTagged = new TreeSet<String>();
         var nativePublishers = new TreeSet<String>();
+        var explicitReview = new TreeSet<String>();
         for (var method : methods(all)) {
             var source = (MethodSource) method.getSource().orElseThrow();
             var tags = method.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toSet());
+            if (tags.contains("test-change-review")) {
+                explicitReview.add(source.getClassName());
+                check.same("Explicit Git reviews carry the Extent audit", true, source.getJavaClass().isAnnotationPresent(ExtendWith.class));
+                continue;
+            }
             if (tags.contains("native-evidence")) {
                 nativePublishers.add(source.getClassName());
                 if (tags.contains("component")) wronglyTagged.add(name(source));
@@ -55,6 +61,7 @@ class SuiteGovernanceTest {
         }
         check.same("Native publishers keep a separate entry point", Set.of(AndroidSanityPublication.class.getName(), TalkBackPublication.class.getName()),
                 nativePublishers);
+        check.same("The Git review is selected only with an explicit base", Set.of(TestChangeReview.class.getName()), explicitReview);
         check.same("The discovered component inventory is nonempty", true, !expected.isEmpty());
         check.same("All JVM methods have a valid test layer", Set.of(), wronglyTagged);
         check.same("All JVM methods attach the Extent audit", Set.of(), unaudited);

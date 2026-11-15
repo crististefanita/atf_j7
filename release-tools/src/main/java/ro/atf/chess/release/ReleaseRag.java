@@ -125,6 +125,14 @@ public final class ReleaseRag {
             openings("chess-core/src/main/java/ro/atf/chess/OpeningLesson.java"),
             openings("android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java"),
             openings("docs/board/openings.md"),
+            testChanges("docs/testing/test-changes.yaml"),
+            testChanges("atf-tests/src/test/java/ro/atf/chess/TestChangeReview.java"),
+            testChanges("atf-tests/src/test/java/ro/atf/chess/TestChangePolicy.java"),
+            testChanges("atf-tests/src/test/java/ro/atf/chess/TestChangeProof.java"),
+            testChanges("atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java"),
+            testChanges("release-tools/src/main/java/ro/atf/chess/release/GitTestChanges.java"),
+            testChanges("release-tools/src/main/java/ro/atf/chess/release/TestChangeReceipt.java"),
+            testChanges("release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java"),
             new Route("atf-tests/", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
             new Route("atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java", "docs/release/README.md",
                     "## Excepție strictă pentru instalarea APK-ului exact", "DocumentationGovernanceTest și ReleaseGovernanceTest"),
@@ -163,6 +171,11 @@ public final class ReleaseRag {
             new Route("README.md", RELEASE.document(), RELEASE.heading(), RELEASE.check()), RELEASE);
 
     private ReleaseRag() { }
+
+    private static Route testChanges(String path) {
+        return new Route(path, "docs/testing/README.md", "## Schimbarea testelor față de o bază Git",
+                "TestChangeReview cu baza Git explicită și ReleaseGate preflight");
+    }
 
     private static Route questProgress(String path) {
         return new Route(path, "docs/testing/README.md", "## Progresul problemelor",

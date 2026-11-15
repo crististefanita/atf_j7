@@ -1,0 +1,42 @@
+testChanges:
+  - id: J7-REVIEW-ENTRYPOINT
+    base: "2ab8ef4ff2bedc7835736c4bb0b3e359a44664fb"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Keep the JVM suite inventory exhaustive and run the explicit Git review only with its declared base"
+    allowDelete: false
+
+  - id: J7-PUZZLE-REPLAY-NATIVE-SCOPE
+    base: "2ab8ef4ff2bedc7835736c4bb0b3e359a44664fb"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/QuestReplayTest.java
+    test: ro.atf.chess.QuestReplayTest#preservesCatalogReplayCheckpointsAndTheAward
+    contract: "Prove the exact stored cursor, bidirectional replay and award in the JVM and keep native controls, pixels and persistence"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "Mate in two opens after the saved defense and reaches the actual mating square"
+
+  - id: J7-PUZZLE-REPLAY-CAPTURE-SOURCE
+    base: "2ab8ef4ff2bedc7835736c4bb0b3e359a44664fb"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/ScreenCaptureGeometryTest.java
+    test: ro.atf.chess.ScreenCaptureGeometryTest#rejectsTheApi28CropAndAcceptsTheCompleteFramebuffer
+    contract: "Use the same framebuffer geometry in Android instrumentation and the JVM for the patch release"
+    allowDelete: false
+
+  - id: J7-RELEASE-ROOT-POM
+    base: "2ab8ef4ff2bedc7835736c4bb0b3e359a44664fb"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the reactor patch version while retaining the documented Maven tasks and modules"
+    allowDelete: false
+
+  - id: J7-RELEASE-TESTS-POM
+    base: "2ab8ef4ff2bedc7835736c4bb0b3e359a44664fb"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Use the matching Maven parent version and retain the documented test source boundaries"
+    allowDelete: false

@@ -65,6 +65,24 @@ Pentru ultima mutare din `training-069`, rulați `-TrainingFinishOnly`. `QuestPa
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/tactics.yaml chess-core/src/main/resources/tactics.sha256
 ```
 
+## Reluarea explicațiilor din puzzle
+
+[QuestReplayTest](../../atf-tests/src/test/java/ro/atf/chess/QuestReplayTest.java)
+verifică pe pozițiile din catalog semimutarea salvată în Mat în 2, fiecare
+cadru în ambele direcții la Mat în 3 și premiul exact de 10 puncte.
+
+Proba nativă păstrează verificarea comenzilor la font mărit, deschiderea după
+apărarea salvată, rotația tablei, pixelii pieselor și progresul după închiderea
+explicației. Inclusiv când două mutări se termină pe același pătrat, poziția
+pieselor separă apărarea de cadrul final.
+
+Pe Android 9, la 720 × 1280 logic și 320 dpi, screenshotul UI Automation poate
+decupa cadrul fizic de 1080 × 1920. Proba verifică în fereastră tabla și
+comenzile, apoi folosește cadrul complet și verifică pe PNG toate cele patru
+colțuri ale tablei. La 1080 × 1920 nativ folosește UI Automation. Ambele runde
+folosesc font 1,3×. Recepția replayDisplay înregistrează profilul și sursa
+capturii. [Testul de geometrie](../../atf-tests/src/test/java/ro/atf/chess/ScreenCaptureGeometryTest.java)
+
 ## Progresul problemelor
 
 `BoardPanelLayoutTest` verifică lățimea maximă a tablei de joc și de reluare
@@ -116,6 +134,40 @@ JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Co
 `HardQuestTransferBenchmarkTest` rulează în `ChessBenchmarkSuite`. O probă cere soluția corectă pentru fiecare quest public și independent, folosind poziția și obiectivul. Cealaltă măsoară decizia adversarului Hard folosind numai poziția. Extent arată totalurile pe capitol, ratările și respectarea plafonului. Pragul de 39 la Antrenament tactic se aplică celor 48 de ID-uri din lotul înghețat. [Pragurile de regresie](../../atf-tests/src/test/resources/hard-quest-transfer.yaml)
 
 `SuiteGovernanceTest` compară planurile descoperite de JUnit. Fiecare metodă JVM cu audit aparține unei singure suite primare. Publicarea recepțiilor Android și TalkBack are intrări explicite. `DocumentationGovernanceTest` verifică fișierele și ancorele Markdown locale, inclusiv cele din feedback.
+
+## Schimbarea testelor față de o bază Git
+
+Comparați schimbarea cu SHA-ul complet al commitului revizuit. Folosiți un
+worktree Git din TMP, cu istoricul necesar. Verificarea citește separat
+HEAD, indexul și fișierele de lucru. O mutare apare ca ștergerea căii vechi
+și adăugarea căii noi. Se verifică și editările în interiorul unui test.
+
+| Schimbare | Condiție |
+|---|---|
+| Adăugare independentă | Intră în inventarul și suita care îi corespund. |
+| Editare a testului, resursei sau selectorului | Control cu baza, calea exactă, contractul și metoda ce îl verifică. |
+| Ștergere sau mutare | Acord explicit de ștergere și test înlocuitor într-un fișier distinct. |
+| Mutare din Android în JVM | Metoda trece în suita de componente și controlul identifică proba nativă păstrată. |
+
+În [registrul testChanges](test-changes.yaml), completați un control pentru
+fiecare cale existentă afectată. Indicați ID-ul, baza, calea sursă, calea
+înlocuitoare, clasa și metoda exactă, contractul păstrat și dreptul de
+ștergere. Când mutați o verificare nativă, adăugați calea și eticheta
+stabilă a verificării Android păstrate. Revizorul confirmă echivalența
+aserțiunilor și păstrează dovada Android pentru gesturi, randare, date Android
+sau restart real. Verificarea Git controlează selecția, execută metoda JVM
+și confirmă referința la controlul nativ.
+
+```powershell
+mvn test "-Dtest=TestChangeReview" "-Dchess.testChanges.base=$reviewBase" "-Dchess.extent=$testChangeExtent"
+```
+
+Setați valoarea reviewBase la SHA-ul complet al strămoșului comun ales pentru
+revizuire și testChangeExtent la o cale HTML nouă în TMP. Testul arhivează
+decizia și scrie separat Extent pentru metodele executate. O bază nouă cere
+reconcilierea registrului. Scoateți intrarea când revizia de bază include
+deja schimbarea. Preflight-ul de distribuție acceptă recepția pentru un
+candidat Git curat și o bază distinctă. [Preflight](../release/README.md#calificare-și-publicare)
 
 ## Raportare Extent
 

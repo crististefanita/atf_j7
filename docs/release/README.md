@@ -10,7 +10,7 @@ Versiunea disponibilă se verifică în README-ul din `origin/main`. Dacă ramur
 1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
 2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului. În `release/index.json`, `currentVersion` este ediția curentă, iar `versions` conține curentul urmat de o singură ediție anterioară pentru comparație. Candidatul rămâne separat până la publicare. [Catalogul edițiilor](../../release/README.md)
 3. Actualizați notele ediției și ghidurile afectate. Mutați regulile confirmate din feedback în ghidul care le deține și păstrați criteriile încă deschise. Puneți **Jocul** ca prima secțiune a README-ului principal, imediat după orientare. Folosiți două rânduri de listă formate fiecare dintr-un link, întâi către release, apoi către APK. În restul README-ului puneți ghidurile proiectului.
-4. Creați commitul candidat local și exportați exact acel commit într-un TMP nou. Rulați `mvn test`, care pornește `ChessJvmSuite`. Rulați `ReleaseGate preflight` pe recepțiile acelui checkout pentru `DocumentationGovernanceTest`, `ReleaseGovernanceTest` și `ExtentGovernanceTest` înaintea build-ului de distribuție. Păstrați Extent pentru componente și guvernanță. Activați probele AI relevante când diff-ul afectează motorul sau corpusul. [Suitele JVM](../testing/README.md#suite-jvm)
+4. Creați commitul candidat în worktree-ul Git curat din TMP. Declarați SHA-ul bazei de revizuire, strămoș distinct al candidatului. Rulați DocumentationGovernanceTest, ReleaseGovernanceTest, ExtentGovernanceTest, TestChangeReview și ReleaseGate preflight înainte de semnare. Păstrați rapoartele și recepția reviziei Git. Activați probele AI când diff-ul afectează motorul sau corpusul. [Suitele JVM](../testing/README.md#suite-jvm) · [Schimbarea testelor](../testing/README.md#schimbarea-testelor-față-de-o-bază-git)
 5. Inițializați identitatea externă prin dot-sourcing `scripts/Initialize-J7Signing.ps1`. Pentru o cheie nouă după o ediție publicată, folosiți explicit `-StartNewIdentity`; scriptul refuză rotația implicită și protejează cheia cu ACL și DPAPI. Construiți APK-ul și testele Android cu Gradle, verificați semnătura, `versionCode` și compatibilitatea prin `scripts/verify-signing-continuity.ps1`. Rulați pe emulator parcursul potrivit schimbării și păstrați hash-ul APK-ului instalat și Extent-ul. Dacă semnarea s-a rotit și emulatorul păstrează ediția veche, nu dezinstalați instalarea cu date valoroase pentru a forța testul. Un APK sanity cu alt `applicationId` este suplimentar și nu califică binarul distribuibil.
 6. Rulați `ChessComponentSuite` și sanity Game Review sub același ID de calificare. Treceți APK-ul, commitul, directoarele recepțiilor brute și rapoartele Extent prin `ReleaseGate qualification`. Verificați în Extent comparațiile extensibile și capturile din pașii lor. [Criterii de audit Extent](../testing/README.md#raportare-extent)
 7. După semnare și calificare, împingeți tagul candidat fără a rescrie istoricul și publicați asset-ul GitHub. Păstrați `currentVersion`, lista de comparație și README-ul principal pe ultima ediție verificată până când asset-ul nou există. Apoi promovați candidatul în catalog și README. Păstrați în GitHub Release și local doar ediția nouă și ediția imediat anterioară; retrageți celelalte release-uri și dosare după ce noul asset și ruta din README au trecut verificarea. Nu ștergeți tagurile Git.
@@ -50,10 +50,18 @@ Fără un baseline explicit, `verify-signing-continuity.ps1` caută dovada
 certificatului în dosarul ediției curente. La recuperarea unei chei absente,
 inițializarea citește și ea catalogul și oprește rotația dacă dovada ediției curente lipsește.
 
-În copia TMP, după execuția Maven și înainte de semnare:
+În copia TMP, înainte de semnare:
+
+Porniți testele din copia Git a candidatului. Alegeți căi noi în TMP pentru
+rapoartele de guvernanță și de revizuire. Preflight-ul confruntă baza și
+commitul curent cu recepția TestChangeReview și cere verdict favorabil
+pentru controalele de documentație, release și Extent.
+
 
 ```powershell
-java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate preflight atf-tests/target/surefire-reports
+mvn test "-Dtest=ChessGovernanceSuite" "-Dchess.extent=$governanceExtent"
+mvn test "-Dtest=TestChangeReview" "-Dchess.testChanges.base=$reviewBase" "-Dchess.extent=$testChangeExtent"
+java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate preflight atf-tests/target/surefire-reports . $reviewBase
 ```
 
 Porniți suitele din același checkout TMP. Folosiți un director Surefire proaspăt
@@ -78,7 +86,7 @@ recepțiilor; păstrați XML-urile brute și capturile deja încorporate în TMP
 Pentru modificările la tabla sau marcajul de pericol din Probleme, rulați
 `-Distribution -PuzzleDangerOnly -SourceCommit <sha>` pe APK-ul semnat.
 La schimbări de layout, rulați și `-Distribution -PuzzleMateReplayOnly -SourceCommit <sha>`
-pentru profilul compact și font mărit. Publicați Extent din cele două recepții
+pentru profilurile 720 × 1280 la 320 dpi și 1080 × 1920 nativ, ambele la font 1,3×. Publicați Extent din cele două recepții
 și confruntați commitul și hash-ul APK-ului. [Probele Probleme](../testing/README.md#progresul-problemelor)
 
 Pentru schimbările din Deschideri, adăugați `-IncludeOpenings` la sanity-ul semnat. Runnerul execută proba pe același APK după verificarea reluării partidei. Publicați Extent din recepția `openings/openings.txt` și folosiți același commit și hash APK la calificarea ambelor rapoarte. [Proba Deschideri](../testing/README.md#deschideri)

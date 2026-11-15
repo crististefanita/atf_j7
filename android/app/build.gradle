@@ -12,13 +12,14 @@ android {
         applicationId 'ro.atf.chess.android'
         minSdk 26
         targetSdk 36
-        versionCode 28
-        versionName '0.14.1'
+        versionCode 29
+        versionName '0.14.2'
         testInstrumentationRunner 'ro.atf.chess.android.BoardSanity'
     }
 
     sourceSets.main.java.srcDir '../../chess-core/src/main/java'
     sourceSets.main.resources.srcDir '../../chess-core/src/main/resources'
+    sourceSets.androidTest.java.srcDir rootProject.file('../atf-tests/src/test/java/ro/atf/chess/capture')
     signingConfigs {
         if (distribution) {
             release {

@@ -3,6 +3,8 @@
 Registrul păstrează lacunele și criteriile deschise. [Ghidul tablei](../board/README.md)
 descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indică dovezile publicate.
 
+[Revizuirea mutărilor între suite](../testing/README.md#schimbarea-testelor-față-de-o-bază-git) descrie baza Git și dovezile de acoperire.
+
 | Prioritate | Zonă | Observație | Criteriu de închidere |
 |---|---|---|---|
 | P2 | Game Review · ocazia ratată și etichetele vizuale | Pentru poziții precum 5.c4 din 1500-21, explicația arată ambele evaluări și adâncimea. Unele linii pot demonstra un câștig ratat. Eticheta scurtă „Jucată” încă poate sugera istoricul real, deși eticheta accesibilă precizează că este o variantă calculată. | Numiți câștigul ratat numai dacă ambele ramuri îl susțin la același orizont. Testați o etichetă vizuală scurtă pentru continuarea calculată, inclusiv la font mărit. [Game Review](../board/game-review.md#navigarea-în-review-și-variantele-recomandate) |

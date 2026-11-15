@@ -18,6 +18,7 @@ import ro.atf.chess.QuestCatalog;
 import ro.atf.chess.QuestDanger;
 import ro.atf.chess.QuestHint;
 import ro.atf.chess.QuestPayoff;
+import ro.atf.chess.QuestReplay;
 
 final class QuestPayoffDialog {
     private static final int BACKGROUND = 0xff262522;
@@ -33,27 +34,28 @@ final class QuestPayoffDialog {
     private final TextView floor;
     private final TextView dangerReason;
     private final Button dangerToggle;
-    private QuestDanger danger;
     private final Button previous;
     private final Button next;
-    private int ply;
+    private QuestReplay replay;
 
     static void open(Context context, QuestPayoff payoff, boolean blackBelow) {
         int title = payoff.defenseStudy() != null ? R.string.tactics_defense_study : R.string.why_tactic;
-        new QuestPayoffDialog(context, payoff, blackBelow, context.getString(title), payoff.defenseStudy() != null ? 1 : payoff.plies(), null);
+        var initial = QuestReplay.at(payoff, payoff.defenseStudy() != null ? 1 : payoff.plies());
+        new QuestPayoffDialog(context, initial, blackBelow, context.getString(title), null);
     }
 
     static void openAlternative(Context context, QuestPayoff payoff, boolean blackBelow, String label) {
-        new QuestPayoffDialog(context, payoff, blackBelow, label, 1, null);
+        new QuestPayoffDialog(context, QuestReplay.at(payoff, 1), blackBelow, label, null);
     }
 
-    static void openMate(Context context, QuestPayoff payoff, boolean blackBelow, int initialPly, String explanation) {
-        new QuestPayoffDialog(context, payoff, blackBelow, context.getString(R.string.mate_replay_title), initialPly, explanation);
+    static void openMate(Context context, QuestReplay replay, boolean blackBelow, String explanation) {
+        new QuestPayoffDialog(context, replay, blackBelow, context.getString(R.string.mate_replay_title), explanation);
     }
 
-    private QuestPayoffDialog(Context context, QuestPayoff payoff, boolean blackBelow, String titleText, int initialPly, String mateExplanation) {
+    private QuestPayoffDialog(Context context, QuestReplay initial, boolean blackBelow, String titleText, String mateExplanation) {
         this.context = context;
-        this.payoff = payoff;
+        this.replay = initial;
+        this.payoff = initial.payoff();
         this.studyingDefense = payoff.defenseStudy() != null;
         this.mateExplanation = mateExplanation;
         this.blackBelow = blackBelow;
@@ -113,21 +115,24 @@ final class QuestPayoffDialog {
         previous.setId(R.id.quest_payoff_previous);
         previous.setContentDescription(context.getString(R.string.opening_previous_move));
         previous.setOnClickListener(view -> {
-            show(ply - 1);
+            replay = replay.previous();
+            renderReplay();
             details.scrollTo(0, 0);
         });
         next = button(R.string.game_review_next);
         next.setId(R.id.quest_payoff_next);
         next.setContentDescription(context.getString(R.string.opening_next_move));
         next.setOnClickListener(view -> {
-            show(ply + 1);
+            replay = replay.next();
+            renderReplay();
             details.scrollTo(0, 0);
         });
         dangerToggle = button(R.string.quest_danger);
         dangerToggle.setId(R.id.quest_payoff_danger);
         dangerToggle.setPadding(0, 0, 0, 0);
         dangerToggle.setOnClickListener(view -> {
-            showDanger(!view.isSelected());
+            replay = replay.toggleDanger();
+            renderDanger();
             details.scrollTo(0, 0);
         });
         var close = button(android.R.string.ok);
@@ -137,20 +142,19 @@ final class QuestPayoffDialog {
         }
         screen.addView(buttons);
         dialog.setContentView(screen);
-        show(initialPly);
+        renderReplay();
         dialog.show();
         dialog.getWindow().setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
     }
 
-    private void show(int target) {
-        ply = target;
-        var frame = payoff.at(ply);
+    private void renderReplay() {
+        int ply = replay.ply();
+        var frame = replay.frame();
         board.show(frame.position(), blackBelow, -1, List.of(), frame.move(), QuestHint.NONE.cue(frame.move()), false, View.NO_ID);
-        danger = payoff.dangerAt(ply);
-        showDanger(false);
-        dangerToggle.setVisibility(danger == null ? View.INVISIBLE : View.VISIBLE);
-        previous.setEnabled(ply > 0);
-        next.setEnabled(ply < payoff.plies());
+        renderDanger();
+        dangerToggle.setVisibility(replay.hasDanger() ? View.VISIBLE : View.INVISIBLE);
+        previous.setEnabled(replay.hasPrevious());
+        next.setEnabled(replay.hasNext());
         String label = context.getString(R.string.tactics_replay_start);
         if (frame.move() != null) {
             String side = context.getString(BoardView.sideLabel(frame.position().turn().other()));
@@ -176,9 +180,10 @@ final class QuestPayoffDialog {
         floor.setVisibility(minimumMaterial == null ? View.GONE : View.VISIBLE);
     }
 
-    private void showDanger(boolean visible) {
-        dangerToggle.setSelected(visible);
-        if (!visible) {
+    private void renderDanger() {
+        var danger = replay.shownDanger();
+        dangerToggle.setSelected(danger != null);
+        if (danger == null) {
             board.markDanger(-1, blackBelow, null);
             dangerReason.setVisibility(View.GONE);
             dangerReason.setText(null);
@@ -195,7 +200,7 @@ final class QuestPayoffDialog {
 
     private void showMatePosition(String label, QuestPayoff.Frame frame) {
         var position = frame.position();
-        boolean finalFrame = ply == payoff.plies();
+        boolean finalFrame = !replay.hasNext();
         String side = context.getString(BoardView.sideLabel(position.turn()));
         int status = finalFrame ? R.string.mate_replay_done : position.isCheck() ? R.string.mate_replay_check : R.string.to_move;
         String caption = finalFrame ? context.getString(status) : context.getString(status, side);

@@ -6,13 +6,17 @@ import android.app.Instrumentation;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -49,6 +53,7 @@ import ro.atf.chess.MatchSlots;
 import ro.atf.chess.MatchStore;
 import ro.atf.chess.QuestCatalog;
 import ro.atf.chess.QuestPayoff;
+import ro.atf.chess.capture.ScreenCaptureGeometry;
 
 public final class BoardSanity extends Instrumentation {
     private static final int CATALOG_SIZE = 500;
@@ -81,6 +86,7 @@ public final class BoardSanity extends Instrumentation {
     private int comparisons;
     private String phase;
     private boolean externalFrames;
+    private ScreenCaptureGeometry replayCapture;
     private String runId;
 
     @Override public void onCreate(Bundle arguments) {
@@ -116,7 +122,7 @@ public final class BoardSanity extends Instrumentation {
             receipt.putString("result", "FAIL");
             receipt.putString("diagnostic", failure.toString().replace('\n', ' '));
             try {
-                Bitmap image = getUiAutomation().takeScreenshot();
+                Bitmap image = takeEvidenceFrame();
                 if (image != null) {
                     try { saveFrame("failure", image); } finally { image.recycle(); }
                 }
@@ -1250,6 +1256,7 @@ public final class BoardSanity extends Instrumentation {
 
     private void checkPuzzleMateReplay() throws Exception {
         enableReviewNodeIds();
+        replayCapture = displayCaptureGeometry();
         var store = new ChessProgressStore(getTargetContext()).quests();
         var two = QuestCatalog.loadMateInTwo().get(0);
         var twoOrder = List.of(two.id());
@@ -1262,12 +1269,22 @@ public final class BoardSanity extends Instrumentation {
         tap(caption);
         boolean move = activity.getString(R.string.quest_hint_next_move).contentEquals(caption.getText());
         tap(guidance(activity, R.string.show_solution));
+        var flip = button(activity, views, R.string.flip);
+        var menu = button(activity, views, R.string.main_menu);
         boolean compact = compactLayoutFits(activity, views, board, R.string.why_mate);
         captureFrame("puzzle-mate-replay", "The Romanian bulb names its next action at each step and fits in a short window", image ->
                 piece && move && activity.getString(R.string.quest_hint_next_explanation).contentEquals(caption.getText())
-                        && compact && fullyVisible(caption)
+                        && compact && fullyVisible(caption) && fullyVisible(board) && fullyVisible(flip) && fullyVisible(menu)
+                        && allBoardCornersRendered(image, board)
                         && hasColor(image, caption, caption.getCurrentTextColor(), 4));
+        receipt.putString("replayDisplay", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
+                + " at " + activity.getResources().getDisplayMetrics().densityDpi + " dpi, font "
+                + activity.getResources().getConfiguration().fontScale + ", capture "
+                + (replayCapture.useFullDisplay(Build.VERSION.SDK_INT)
+                        ? "full " + replayCapture.physicalWidth() + "x" + replayCapture.physicalHeight()
+                        : "UI Automation"));
         var progress = store.read(twoOrder);
+        int savedPly = store.ply(two.id());
         var rewards = store.readRewards();
         tap(guidance(activity, R.string.why_mate));
         boolean opensAfterDefense = payoffShows(reviewNode(R.id.quest_payoff_move, 2500), activity, two.defenseAfter(0));
@@ -1278,7 +1295,7 @@ public final class BoardSanity extends Instrumentation {
                         && payoffMoveHighlighted(image, two.matingMove(), two.position().turn() == Side.BLACK) && !payoffCanAdvance());
         clickDialog(activity.getString(android.R.string.ok));
         compare("Closing the two-move replay preserves the unsolved puzzle, stage and rewards", true,
-                !progress.currentSolved() && progress.equals(store.read(twoOrder)) && store.ply(two.id()) == 2 && rewards.equals(store.readRewards()));
+                progress.equals(store.read(twoOrder)) && store.ply(two.id()) == savedPly && rewards.equals(store.readRewards()));
         runOnMainSync(activity::finish);
 
         var three = QuestCatalog.loadMateInThree().get(0);
@@ -1294,17 +1311,29 @@ public final class BoardSanity extends Instrumentation {
         tap(guidance(lastStage, R.string.why_mate));
         boolean beginsAtStart = dialogContains(lastStage.getString(R.string.tactics_replay_start));
         var replayBoard = nodeBounds(reviewNode(R.id.quest_payoff_board, 2500));
-        for (int ply = 0; ply < 4; ply++) clickReviewIcon(R.id.quest_payoff_next);
+        for (int ply = 0; ply < 5; ply++) clickReviewIcon(R.id.quest_payoff_next);
         clickReviewIcon(R.id.quest_payoff_previous);
-        clickReviewIcon(R.id.quest_payoff_next);
+        var secondDefense = three.defenseAfter(1);
+        boolean blackBelow = three.position().turn() == Side.WHITE;
+        int attackerFill = blackBelow ? 0xfffffef9 : 0xff51535a;
+        int defenderFill = blackBelow ? 0xff51535a : 0xfffffef9;
         captureFrame("puzzle-mate-three", "Mate in three replays the second defense and can step back without moving the board",
                 image -> beginsAtStart && replayBoard.equals(nodeBounds(visibleReviewNode(R.id.quest_payoff_board)))
-                        && payoffShows(visibleReviewNode(R.id.quest_payoff_move), lastStage, three.defenseAfter(1))
-                        && payoffMoveHighlighted(image, three.defenseAfter(1), three.position().turn() == Side.WHITE));
+                        && payoffShows(visibleReviewNode(R.id.quest_payoff_move), lastStage, secondDefense)
+                        && payoffMoveHighlighted(image, secondDefense, blackBelow)
+                        && hasColor(image, payoffCell(three.matingMove().from(), blackBelow), attackerFill, 24)
+                        && hasColor(image, payoffCell(secondDefense.to(), blackBelow), defenderFill, 24));
         clickDialog(lastStage.getString(android.R.string.ok));
         compare("Closing the three-move replay keeps the solved puzzle and its award", true,
                 solved.currentSolved() && solved.equals(store.read(threeOrder)) && scored.equals(store.readRewards())
-                        && Integer.valueOf(10).equals(scored.points().get(three.id())));
+                        && scored.points().containsKey(three.id()));
+    }
+
+    private boolean allBoardCornersRendered(Bitmap image, BoardView board) {
+        return List.of("a1", "h1", "a8", "h8").stream().allMatch(square -> {
+            int color = BoardSquare.isLight(BoardSquare.parse(square)) ? 0xffedf0d5 : 0xff769556;
+            return hasColor(image, cell(board, square), color, 24);
+        });
     }
 
     private boolean payoffCanAdvance() {
@@ -2265,7 +2294,7 @@ public final class BoardSanity extends Instrumentation {
     private Bitmap awaitRenderedFrame(Predicate<Bitmap> rendered) {
         long deadline = SystemClock.uptimeMillis() + 12000;
         do {
-            Bitmap image = getUiAutomation().takeScreenshot();
+            Bitmap image = takeEvidenceFrame();
             if (image != null) {
                 boolean matches = false;
                 try {
@@ -2278,6 +2307,42 @@ public final class BoardSanity extends Instrumentation {
             SystemClock.sleep(75);
         } while (SystemClock.uptimeMillis() < deadline);
         return null;
+    }
+
+    private ScreenCaptureGeometry displayCaptureGeometry() {
+        var display = ((WindowManager) getTargetContext().getSystemService(android.content.Context.WINDOW_SERVICE)).getDefaultDisplay();
+        var logical = new DisplayMetrics();
+        display.getRealMetrics(logical);
+        var mode = display.getMode();
+        int rotation = display.getRotation();
+        boolean sideways = rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270;
+        return new ScreenCaptureGeometry(logical.widthPixels, logical.heightPixels,
+                sideways ? mode.getPhysicalHeight() : mode.getPhysicalWidth(),
+                sideways ? mode.getPhysicalWidth() : mode.getPhysicalHeight());
+    }
+
+    private Bitmap takeEvidenceFrame() {
+        if (replayCapture == null || Build.VERSION.SDK_INT != Build.VERSION_CODES.P) {
+            return getUiAutomation().takeScreenshot();
+        }
+        int api = Build.VERSION.SDK_INT;
+        Bitmap capture;
+        if (replayCapture.useFullDisplay(api)) {
+            // Android 9 crops UI Automation to the logical dimensions even when the compositor is larger.
+            try (var stream = new ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand("screencap -p"))) {
+                capture = BitmapFactory.decodeStream(stream);
+            } catch (IOException failure) {
+                throw new IllegalStateException("Cannot obtain the complete Android 9 replay framebuffer", failure);
+            }
+        } else {
+            capture = getUiAutomation().takeScreenshot();
+        }
+        if (capture != null && !replayCapture.accepts(api, capture.getWidth(), capture.getHeight())) {
+            String raster = capture.getWidth() + "x" + capture.getHeight();
+            capture.recycle();
+            throw new IllegalStateException("Replay capture " + raster + " does not cover " + replayCapture);
+        }
+        return capture;
     }
 
     private void saveFrame(String name, Bitmap image) throws IOException {

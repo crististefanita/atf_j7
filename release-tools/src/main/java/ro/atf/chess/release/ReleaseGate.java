@@ -20,9 +20,10 @@ public final class ReleaseGate {
             ReleaseEvidence.gameLinks(Files.readString(Path.of(args[1]))).forEach(System.out::println);
             return;
         }
-        if (args.length == 2 && "preflight".equals(args[0])) {
-            preflight(Path.of(args[1]));
-            System.out.println("PASS preflight " + String.join(", ", GOVERNANCE));
+        if (args.length > 0 && "preflight".equals(args[0])) {
+            if (args.length != 4) throw new IllegalArgumentException("Expected preflight <Surefire directory> <Git root> <base SHA>");
+            preflight(Path.of(args[1]), Path.of(args[2]), args[3]);
+            System.out.println("PASS preflight " + String.join(", ", GOVERNANCE) + ", TestChangeReview");
             return;
         }
         if (args.length == 4 && "signing-continuity".equals(args[0])) {
@@ -51,6 +52,16 @@ public final class ReleaseGate {
         System.out.println("PASS " + args[0]);
     }
 
+    public static void preflight(Path reports, Path checkout, String base) throws IOException {
+        var snapshot = GitTestChanges.read(checkout, base);
+        if (!snapshot.clean() || snapshot.base().equals(snapshot.head())) {
+            throw new IOException("Release preflight needs a clean candidate and a distinct ancestor as Git review base");
+        }
+        preflight(reports);
+        TestChangeReceipt.verify(reports, snapshot);
+    }
+
+    /** Reads ordinary governance evidence. The release CLI also requires the Git review receipt. */
     public static void preflight(Path reports) throws IOException {
         var factory = DocumentBuilderFactory.newDefaultInstance();
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");

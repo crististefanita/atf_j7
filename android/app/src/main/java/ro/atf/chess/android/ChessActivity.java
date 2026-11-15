@@ -41,6 +41,7 @@ import ro.atf.chess.QuestCatalog;
 import ro.atf.chess.QuestFinishStudy;
 import ro.atf.chess.QuestHint;
 import ro.atf.chess.QuestPayoff;
+import ro.atf.chess.QuestReplay;
 import ro.atf.chess.QuestProgress;
 import ro.atf.chess.QuestRewards;
 import ro.atf.chess.QuestStep;
@@ -501,7 +502,7 @@ public final class ChessActivity extends BackNavigableActivity {
         if (action == QuestHint.Action.WAIT) return;
         var quest = quests.get(questIndex);
         if (action == QuestHint.Action.EXPLAIN) {
-            showSolution(completedQuest == null ? quest : completedQuest);
+            showSolution(quest);
             return;
         }
         if (!save(progress, rewards.interrupt(quest.id()))) return;
@@ -513,7 +514,8 @@ public final class ChessActivity extends BackNavigableActivity {
         render();
     }
 
-    private void showSolution(QuestCatalog.Quest quest) {
+    private void showSolution(QuestCatalog.Quest authored) {
+        var quest = completedQuest == null ? authored : completedQuest;
         if (quest.objective() == QuestCatalog.Objective.MATERIAL) {
             var study = QuestFinishStudy.forStage(quest, quest.playerMoves() - 1);
             if (study == null || completedQuest == null && step.stage() != study.stage()) {
@@ -537,9 +539,7 @@ public final class ChessActivity extends BackNavigableActivity {
                     : getString(R.string.mate_exit_occupied, square, getString(BoardView.kindLabel(exit.ownBlocker().kind())));
             message.append('\n').append(detail);
         }
-        boolean singleMove = quest.mateLength() == 1 && quests.get(questIndex).mateLength() == 1;
-        int initialPly = singleMove ? 1 : completedQuest == null ? step.ply() : 0;
-        QuestPayoffDialog.openMate(this, QuestPayoff.forMateLine(quest), blackBelow, initialPly, message.toString());
+        QuestPayoffDialog.openMate(this, QuestReplay.mate(authored, step, completedQuest), blackBelow, message.toString());
     }
 
     private void showFinishStudy(QuestCatalog.Quest quest, QuestFinishStudy study, boolean triedAlternative) {
