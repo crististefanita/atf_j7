@@ -1,0 +1,51 @@
+{
+  "version": "0.14.2",
+  "versionCode": 29,
+  "sourceCommit": "5b5f05a9554eaee24adc045be81e08097d4577b3",
+  "apkSha256": "dfb1e0a700bbdf061086f8b0f58e406ec58735cef46ffd711ed1e9be3ae059a1",
+  "apkBytes": 1186958,
+  "qualificationGate": "PASS",
+  "signingCertificateSha256": "4bc8b9639475dbf550b066f74a8493d20c713aed77388d52f7526b227051d247",
+  "componentExtentSha256": "14b2f3240ad1246a23af56b2d1cdc31e5d7500a09bb169ab9fcf860f2afbb1a3",
+  "componentTests": 219,
+  "jvmInputsCommit": "5b5f05a9554eaee24adc045be81e08097d4577b3",
+  "qualificationRunId": "e2e87aaeaf4140e29d685c2a94097f53",
+  "android": {
+    "game-review": {
+      "sourceCommit": "5b5f05a9554eaee24adc045be81e08097d4577b3",
+      "nativeAssertions": 30,
+      "extentSha256": "93f873141025acfd03d52e2bc446a8cc050b02d2ad847c5e342d5f10f800c3ac",
+      "report": "android-game-review.html",
+      "execution": "game-review-execution.json"
+    },
+    "puzzle-danger": {
+      "sourceCommit": "5b5f05a9554eaee24adc045be81e08097d4577b3",
+      "nativeAssertions": 7,
+      "extentSha256": "4adfd7158beca19b5d254e2e832b2536c3357a4f631b8cefa4a45edfd99dd059",
+      "report": "android-puzzle-danger.html",
+      "execution": "puzzle-danger-execution.json"
+    },
+    "puzzle-mate-replay": {
+      "sourceCommit": "5b5f05a9554eaee24adc045be81e08097d4577b3",
+      "nativeAssertions": 5,
+      "extentSha256": "3eea65221eae92a175a2dc719eb8f0ee371e2721074ce9096e6d277c53bfed50",
+      "report": "android-puzzle-mate-replay-720.html",
+      "execution": "puzzle-mate-replay-720-execution.json"
+    }
+  },
+  "additionalAndroidChecks": {
+    "puzzle-mate-replay-1080": {
+      "sourceCommit": "5b5f05a9554eaee24adc045be81e08097d4577b3",
+      "nativeAssertions": 5,
+      "extentSha256": "eaaab6d5d67df26cf6eaac4db9d928ca47c61a193d014297aa630dbea8929e3b",
+      "report": "android-puzzle-mate-replay-1080.html",
+      "execution": "puzzle-mate-replay-1080-execution.json"
+    }
+  },
+  "testChangeReviewSha256": "e8eade4cdf5c18c7457e6aa40c11e3f9b6d7a6b08796cac6f80387e3f945edda",
+  "lint": "PASS",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "alignment": "PASS",
+  "observedUtc": "2026-11-15T13:09:04.9521425Z"
+}
