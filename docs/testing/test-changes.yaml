@@ -1,16 +1,6 @@
 testChanges:
-  - id: J7-PUZZLE-EXPLAIN-SETTINGS-NATIVE
-    base: "097818ba6035772bbda943657b77c46072978348"
-    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java
-    test: ro.atf.chess.PuzzleExplainLayoutTest#keepsTheFullWidthReplayBodyBetweenTheHeaderAndTheFixedControls
-    contract: "Preserve the replay geometry and native evidence while exercising the app language through Settings"
-    allowDelete: false
-    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
-    nativeProbe: "Mate in two opens after the saved defense and reaches the actual mating square"
-
   - id: J7-HOME-SETTINGS-LAYOUT
-    base: "097818ba6035772bbda943657b77c46072978348"
+    base: "d08d487dc463d5321da6a4691123c808dfd73406"
     from: atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
     test: ro.atf.chess.MainMenuLayoutTest#offersChaptersAndLocalPlayInBothLanguages
@@ -22,7 +12,7 @@ testChanges:
     from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
     replacement: atf-tests/src/test/java/ro/atf/chess/MatchControlsTest.java
     test: ro.atf.chess.MatchControlsTest#offersOnlySafeCommandsWhileBrowsingHistory
-    contract: "Keep action availability in JVM and retain the real menu, orientation and persisted game outcome in Android"
+    contract: "Keep menu availability in JVM and preserve the native game actions, app language switch and fixed puzzle replay"
     allowDelete: false
     nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
     nativeProbe: "Cancelling resignation preserves the saved game"
@@ -121,6 +111,30 @@ testChanges:
 
   - id: J7-0143-TESTS-VERSION
     base: "6f86ffe92ecaf0b4934d5b90b18889fefec78984"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the patch version and retain the documented Gradle and Maven boundaries"
+    allowDelete: false
+
+  - id: J7-0144-ANDROID-VERSION
+    base: "d08d487dc463d5321da6a4691123c808dfd73406"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the patch version and retain the documented Gradle and Maven boundaries"
+    allowDelete: false
+
+  - id: J7-0144-MAVEN-VERSION
+    base: "d08d487dc463d5321da6a4691123c808dfd73406"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the patch version and retain the documented Gradle and Maven boundaries"
+    allowDelete: false
+
+  - id: J7-0144-TESTS-VERSION
+    base: "d08d487dc463d5321da6a4691123c808dfd73406"
     from: atf-tests/pom.xml
     replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
     test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
