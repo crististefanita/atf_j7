@@ -89,6 +89,13 @@ La schimbări de layout, rulați și `-Distribution -PuzzleMateReplayOnly -Sourc
 pentru profilurile 720 × 1280 la 320 dpi și 1080 × 1920 nativ, ambele la font 1,3×. Publicați Extent din cele două recepții
 și confruntați commitul și hash-ul APK-ului. [Probele Probleme](../testing/README.md#progresul-problemelor)
 
+Pentru schimbări la antetul, punctajul sau comenzile comune din Probleme, rulați
+`-Distribution -PuzzleUxOnly -SourceCommit <sha>` cu `-PuzzleLanguage ro` pe
+profilul compact și cu `-PuzzleLanguage en` pe profilul fizic, ambele la font
+1,3×. Publicați `puzzle-ux.txt` cu `AndroidSanityPublication#publishPuzzleUxSanity`
+și păstrați rezultatul și amprentele celor șase capturi ale fiecărui profil.
+[Contractul celor șase capitole](../testing/README.md#progresul-problemelor)
+
 Pentru schimbările din Deschideri, adăugați `-IncludeOpenings` la sanity-ul semnat. Runnerul execută proba pe același APK după verificarea reluării partidei. Publicați Extent din recepția `openings/openings.txt` și folosiți același commit și hash APK la calificarea ambelor rapoarte. [Proba Deschideri](../testing/README.md#deschideri)
 
 Pentru o schimbare limitată la Analiza partidei, folosiți `-Distribution -GameReviewOnly -SourceCommit <sha> -QualificationRunId <id>`. Publicați Extent din `game-review.txt`. Dacă diff-ul afectează și parcursurile de bază, rulați-le cu `-IncludeGameReview`; recepția analizei se află atunci în subdirectorul `game-review`. [Proba de reluare și analiză](../testing/README.md#partidă-și-istoric)

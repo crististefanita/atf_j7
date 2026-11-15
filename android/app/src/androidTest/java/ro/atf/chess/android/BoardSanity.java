@@ -37,6 +37,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -53,6 +54,8 @@ import ro.atf.chess.MatchSlots;
 import ro.atf.chess.MatchStore;
 import ro.atf.chess.QuestCatalog;
 import ro.atf.chess.QuestPayoff;
+import ro.atf.chess.QuestProgress;
+import ro.atf.chess.QuestRewards;
 import ro.atf.chess.capture.ScreenCaptureGeometry;
 
 public final class BoardSanity extends Instrumentation {
@@ -88,12 +91,14 @@ public final class BoardSanity extends Instrumentation {
     private boolean externalFrames;
     private ScreenCaptureGeometry replayCapture;
     private String runId;
+    private String puzzleLanguage;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         phase = arguments.getString("phase", "");
         runId = arguments.getString("runId", "");
         externalFrames = "true".equals(arguments.getString("externalFrames"));
+        puzzleLanguage = arguments.getString("puzzleLanguage", "ro");
         start();
     }
 
@@ -110,6 +115,7 @@ public final class BoardSanity extends Instrumentation {
             else if ("training-finish".equals(phase)) checkTrainingFinish();
             else if ("puzzle-mate-replay".equals(phase)) checkPuzzleMateReplay();
             else if ("puzzle-danger".equals(phase)) checkPuzzleDanger();
+            else if ("puzzle-ux".equals(phase)) checkPuzzleUx();
             else if ("manual-analysis".equals(phase)) checkManualAnalysis();
             else if ("match-slots".equals(phase)) checkMatchSlots();
             else if ("match-archive".equals(phase)) checkMatchArchive();
@@ -1050,7 +1056,7 @@ public final class BoardSanity extends Instrumentation {
             openChapter(activity, R.string.open_training);
             var training = viewsOf(activity);
             playTactic(activity, findBoard(training), QuestCatalog.loadTraining().get(0));
-            tap(button(activity, training, R.string.next_quest));
+            tap(puzzleControl(activity, R.id.quest_next));
             switchChapter(activity, R.string.open_mate_one);
             var views = viewsOf(activity);
             prepare(activity, views, findBoard(views));
@@ -1060,16 +1066,16 @@ public final class BoardSanity extends Instrumentation {
             var views = viewsOf(activity);
             var lastTactic = QuestCatalog.loadTactics().get(1);
             compare("A real process restart keeps the tactics chapter position and its two awards", true,
-                    hasText(views, activity.getString(R.string.tactics_progress, 2, TACTICS_SIZE))
+                    puzzleHeading(activity, R.string.open_tactics, 2, TACTICS_SIZE)
                             && hasText(views, solvedTactic(activity, lastTactic))
                             && hasText(views, activity.getString(R.string.chapter_points, 22)));
             switchChapter(activity, R.string.open_training);
             var training = viewsOf(activity);
             int trainingSize = QuestCatalog.loadTraining().size();
             compare("Training reopens its second unsolved puzzle after process restart", true,
-                    hasText(training, activity.getString(R.string.training_progress, 2, trainingSize))
+                    puzzleHeading(activity, R.string.open_training, 2, trainingSize)
                             && chapterCount(activity, training, 1, trainingSize)
-                            && !button(activity, training, R.string.next_quest).isEnabled());
+                            && !puzzleControl(activity, R.id.quest_next).isEnabled());
             switchChapter(activity, R.string.open_mate_two);
             restore(activity);
         } else throw new IllegalArgumentException("Unknown sanity phase: " + phase);
@@ -1085,7 +1091,7 @@ public final class BoardSanity extends Instrumentation {
             while (store.ply(quest.id()) != ready && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
             waitForIdleSync();
             compare("The authored tactical defense advances once without solving", true,
-                    store.ply(quest.id()) == ready && !button(activity, viewsOf(activity), R.string.next_quest).isEnabled());
+                    store.ply(quest.id()) == ready && !puzzleControl(activity, R.id.quest_next).isEnabled());
         }
     }
 
@@ -1097,22 +1103,23 @@ public final class BoardSanity extends Instrumentation {
         openChapter(activity, R.string.open_tactics);
         var views = viewsOf(activity);
         var board = findBoard(views);
-        var next = button(activity, views, R.string.next_quest);
+        var next = puzzleControl(activity, R.id.quest_next);
         var bulb = guidance(activity, R.string.hint);
         compare("The accessible bulb fits below the board and Next starts locked", true,
-                !next.isEnabled() && bulb instanceof android.widget.ImageButton && compactLayoutFits(activity, views, board, R.string.hint));
+                !next.isEnabled() && bulb instanceof android.widget.ImageButton && compactLayoutFits(activity, board, R.string.hint));
         var tactics = QuestCatalog.loadTactics();
         for (int index = 0; index < 2; index++) {
             playTactic(activity, board, tactics.get(index));
             if (index == 0) tap(next);
         }
-        String streak = activity.getString(R.string.reward_streak, 2);
         compare("A tactics solve renders its result and unlocks Next", true,
                 hasText(views, solvedTactic(activity, tactics.get(1))) && next.isEnabled());
-        TextView badge = views.stream().filter(TextView.class::isInstance).map(TextView.class::cast)
-                .filter(view -> streak.contentEquals(view.getText())).findFirst().orElseThrow();
-        captureFrame("tactics-streak", "Tactics shows the amber flame below the chapter progress",
-                image -> fullyVisible(badge) && badge.getCompoundDrawables()[0] != null && hasColor(image, badge, 0xffffbc78, 16));
+        var badge = (TextView) puzzleControl(activity, R.id.puzzle_streak);
+        captureFrame("tactics-streak", "Tactics renders the streak badge with the localized accessible name",
+                image -> fullyVisible(badge) && activity.getString(R.string.puzzle_series, 2).contentEquals(badge.getText())
+                        && activity.getString(R.string.reward_streak, 2).equals(badge.getContentDescription())
+                        && badge.getCompoundDrawablesRelative()[0] != null && hasColor(image, badge, 0xffffbc78, 16)
+                        && hasColor(image, badge, badge.getCurrentTextColor(), 16));
         var completed = QuestPayoff.forQuest(tactics.get(1));
         tap(guidance(activity, R.string.why_tactic));
         var finish = reviewNode(R.id.quest_payoff_move, 2500);
@@ -1128,7 +1135,7 @@ public final class BoardSanity extends Instrumentation {
                 reviewNode(R.id.quest_payoff_next, 2500) != null && visibleReviewNode(R.id.quest_payoff_next).isEnabled());
         clickDialog(activity.getString(android.R.string.ok));
         checkDefenseStudy(activity);
-        tap(button(activity, views, R.string.main_menu));
+        leavePuzzle(activity);
         var menu = viewsOf(activity);
         var quests = new ChessProgressStore(getTargetContext()).quests();
         var tacticIds = new ArrayList<String>();
@@ -1254,6 +1261,104 @@ public final class BoardSanity extends Instrumentation {
         return root != null && !root.findAccessibilityNodeInfosByText(text).isEmpty();
     }
 
+    private record PuzzleUxCheckpoint(int chapter, List<QuestCatalog.Quest> quests, String frame, String name) {
+        String first() { return quests.get(0).id(); }
+        String awarded() { return quests.get(1).id(); }
+    }
+
+    private void checkPuzzleUx() throws Exception {
+        if (!List.of("ro", "en").contains(puzzleLanguage)) throw new IllegalArgumentException("Invalid puzzle locale " + puzzleLanguage);
+        replayCapture = displayCaptureGeometry();
+        var checkpoints = List.of(
+                new PuzzleUxCheckpoint(R.string.open_mate_one, QuestCatalog.load(), "puzzle-ux-mate-one", "Mate in 1"),
+                new PuzzleUxCheckpoint(R.string.open_mate_two, QuestCatalog.loadMateInTwo(), "puzzle-ux-mate-two", "Mate in 2"),
+                new PuzzleUxCheckpoint(R.string.open_mate_three, QuestCatalog.loadMateInThree(), "puzzle-ux-mate-three", "Mate in 3"),
+                new PuzzleUxCheckpoint(R.string.open_tactics, QuestCatalog.loadTactics(), "puzzle-ux-tactics", "Tactics"),
+                new PuzzleUxCheckpoint(R.string.open_training, QuestCatalog.loadTraining(), "puzzle-ux-training", "Tactical training"),
+                new PuzzleUxCheckpoint(R.string.open_intermezzo, QuestCatalog.loadIntermezzo(), "puzzle-ux-intermezzo", "Intermezzo"));
+        var baseline = checkpoints.get(0);
+        var progress = new QuestProgress(baseline.first(), Set.of());
+        var rewards = QuestRewards.restore(Set.of(), Set.of(), 0);
+        for (var checkpoint : checkpoints) {
+            progress = progress.select(checkpoint.awarded());
+            rewards = rewards.complete(progress).rewards();
+            progress = progress.solveCurrent();
+        }
+        var store = new ChessProgressStore(getTargetContext()).quests();
+        if (!store.save(progress.select(baseline.first()), rewards) || !store.leaveChapter()) throw new AssertionError("Could not seed puzzle rewards");
+        var activity = launchCompact(puzzleLanguage);
+        var config = activity.getResources().getConfiguration();
+        if (config.fontScale != 1.3f || !puzzleLanguage.equals(config.getLocales().get(0).getLanguage())) {
+            throw new AssertionError("Puzzle configuration did not apply: " + config);
+        }
+        receipt.putString("puzzleDisplay", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight() + ", "
+                + activity.getResources().getDisplayMetrics().densityDpi + " dpi, font " + config.fontScale + ", language " + puzzleLanguage);
+        for (var checkpoint : checkpoints) checkPuzzleUxChapter(activity, checkpoint, rewards);
+        openChapter(activity, baseline.chapter());
+        if (!puzzleHeading(activity, baseline.chapter(), 1, baseline.quests().size())
+                || !progress.select(baseline.first()).equals(store.read(List.of(baseline.first())))
+                || store.ply(baseline.first()) != 0 || !rewards.equals(store.readRewards())) {
+            throw new AssertionError("Reopening Mate in 1 changed the saved puzzle checkpoint");
+        }
+        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+        waitForIdleSync();
+        if (activity.findViewById(R.id.chapter_one) == null) throw new AssertionError("Puzzle Back did not return to the chapter picker");
+        runOnMainSync(activity::finish);
+    }
+
+    private void checkPuzzleUxChapter(Activity activity, PuzzleUxCheckpoint checkpoint, QuestRewards rewards) throws IOException {
+        openChapter(activity, checkpoint.chapter());
+        var board = findBoard(viewsOf(activity));
+        var bounds = screenBounds(board);
+        var a1 = screenBounds(cell(board, "a1"));
+        var turn = (TextView) puzzleControl(activity, R.id.puzzle_turn);
+        var activeColor = turn.getText().toString();
+        var points = (TextView) puzzleControl(activity, R.id.puzzle_points);
+        var series = (TextView) puzzleControl(activity, R.id.puzzle_streak);
+        var pointBounds = screenBounds(points);
+        var seriesBounds = screenBounds(series);
+        String expectedPoints = activity.getString(R.string.chapter_points, rewards.points().get(checkpoint.awarded()));
+        String expectedSeries = activity.getString(R.string.puzzle_series, rewards.streak());
+        var previous = puzzleControl(activity, R.id.quest_previous);
+        var next = puzzleControl(activity, R.id.quest_next);
+        boolean closed = !puzzleOptionsVisible(activity) && !previous.isEnabled() && !next.isEnabled()
+                && puzzleHeading(activity, checkpoint.chapter(), 1, checkpoint.quests().size())
+                && fullyVisible(points) && fullyVisible(series) && fullyVisible(guidance(activity, R.string.hint))
+                && pointBounds.bottom <= bounds.top && seriesBounds.bottom <= bounds.top && !Rect.intersects(pointBounds, seriesBounds)
+                && fullyVisible(previous) && fullyVisible(next) && puzzleTurnVisible(activity, board);
+        flipPuzzle(activity);
+        boolean flipsInPlace = !puzzleOptionsVisible(activity) && bounds.equals(screenBounds(board))
+                && !a1.equals(screenBounds(cell(board, "a1"))) && activeColor.contentEquals(turn.getText());
+        tap(puzzleControl(activity, R.id.puzzle_options));
+        boolean opens = puzzleOptionsVisible(activity);
+        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+        waitForIdleSync();
+        boolean backCloses = !puzzleOptionsVisible(activity) && bounds.equals(screenBounds(board));
+        tap(puzzleControl(activity, R.id.puzzle_options));
+        var panel = puzzleControl(activity, R.id.puzzle_options_panel);
+        var flip = puzzleControl(activity, R.id.puzzle_flip_board);
+        var menu = puzzleControl(activity, R.id.puzzle_main_menu);
+        boolean optionsFit = fullyVisible(panel) && fullyVisible(flip) && fullyVisible(menu) && flip.isEnabled() && menu.isEnabled()
+                && bounds.bottom <= screenBounds(panel).top && !previous.isShown() && !next.isShown();
+        if (!closed || !flipsInPlace || !opens || !backCloses || !optionsFit) {
+            throw new AssertionError(checkpoint.name() + ": closed controls=" + closed + ", flip=" + flipsInPlace
+                    + ", options opens=" + opens + ", Back closes=" + backCloses + ", menu fits=" + optionsFit);
+        }
+        captureFrame(checkpoint.frame(), checkpoint.name() + " keeps the board fixed with puzzle options open", image ->
+                bounds.equals(screenBounds(board)) && allBoardCornersRendered(image, board)
+                        && pointBounds.equals(screenBounds(points)) && expectedPoints.contentEquals(points.getText())
+                        && seriesBounds.equals(screenBounds(series)) && expectedSeries.contentEquals(series.getText())
+                        && activity.getString(R.string.reward_streak, rewards.streak()).equals(series.getContentDescription())
+                        && renderedPuzzleText(image, flip) && renderedPuzzleText(image, menu)
+                        && renderedPuzzleText(image, points) && renderedPuzzleText(image, series));
+        tap(menu);
+        if (activity.findViewById(R.id.open_puzzles) == null) throw new AssertionError("Puzzle menu choice did not return home");
+    }
+
+    private boolean renderedPuzzleText(Bitmap image, View view) {
+        return view instanceof TextView text && text.length() > 0 && hasColor(image, text, text.getCurrentTextColor(), 8);
+    }
+
     private void checkPuzzleMateReplay() throws Exception {
         enableReviewNodeIds();
         replayCapture = displayCaptureGeometry();
@@ -1269,12 +1374,14 @@ public final class BoardSanity extends Instrumentation {
         tap(caption);
         boolean move = activity.getString(R.string.quest_hint_next_move).contentEquals(caption.getText());
         tap(guidance(activity, R.string.show_solution));
-        var flip = button(activity, views, R.string.flip);
-        var menu = button(activity, views, R.string.main_menu);
-        boolean compact = compactLayoutFits(activity, views, board, R.string.why_mate);
+        boolean compact = compactLayoutFits(activity, board, R.string.why_mate);
+        tap(puzzleControl(activity, R.id.puzzle_options));
+        boolean optionsFit = fullyVisible(puzzleControl(activity, R.id.puzzle_flip_board)) && fullyVisible(puzzleControl(activity, R.id.puzzle_main_menu));
+        sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+        waitForIdleSync();
         captureFrame("puzzle-mate-replay", "The Romanian bulb names its next action at each step and fits in a short window", image ->
                 piece && move && activity.getString(R.string.quest_hint_next_explanation).contentEquals(caption.getText())
-                        && compact && fullyVisible(caption) && fullyVisible(board) && fullyVisible(flip) && fullyVisible(menu)
+                        && compact && optionsFit && !puzzleOptionsVisible(activity) && fullyVisible(caption) && fullyVisible(board)
                         && allBoardCornersRendered(image, board)
                         && hasColor(image, caption, caption.getCurrentTextColor(), 4));
         receipt.putString("replayDisplay", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
@@ -1304,7 +1411,7 @@ public final class BoardSanity extends Instrumentation {
             throw new AssertionError("Could not prepare the third move");
         }
         var lastStage = launch();
-        tap(button(lastStage, viewsOf(lastStage), R.string.flip));
+        flipPuzzle(lastStage);
         playMove(findBoard(viewsOf(lastStage)), three.matingMove());
         var solved = store.read(threeOrder);
         var scored = store.readRewards();
@@ -1665,8 +1772,12 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private Activity launch(boolean romanianCompact) {
+        return launchCompact(romanianCompact ? "ro" : null);
+    }
+
+    private Activity launchCompact(String language) {
         Intent intent = new Intent(getTargetContext(), ChessActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        if (romanianCompact) intent.putExtra("j7-romanian-compact", true);
+        if (language != null) intent.putExtra("j7-compact-language", language);
         Activity activity = startActivitySync(intent);
         waitForIdleSync();
         return activity;
@@ -1675,11 +1786,12 @@ public final class BoardSanity extends Instrumentation {
     @Override public Activity newActivity(ClassLoader loader, String name, Intent intent)
             throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         Activity activity = super.newActivity(loader, name, intent);
-        if (intent.getBooleanExtra("j7-romanian-compact", false)
-                || ("match-slots".equals(phase) && MatchListActivity.class.getName().equals(name))) {
+        String language = intent.getStringExtra("j7-compact-language");
+        if (language == null && "match-slots".equals(phase) && MatchListActivity.class.getName().equals(name)) language = "ro";
+        if (language != null) {
             var config = new Configuration();
             config.fontScale = 1.3f;
-            config.setLocale(Locale.forLanguageTag("ro-RO"));
+            config.setLocale(Locale.forLanguageTag(language.equals("ro") ? "ro-RO" : "en-US"));
             activity.applyOverrideConfiguration(config);
         }
         return activity;
@@ -1719,21 +1831,20 @@ public final class BoardSanity extends Instrumentation {
         String pieceHint = activity.getString(R.string.hint_description, "d8", black, activity.getString(R.string.queen));
         String announcement = activity.getString(R.string.full_hint_announcement, activity.getString(R.string.to_move, black), pieceHint, "h4");
         compare("The Romanian board, active color and controls fit with the enlarged move hint", true,
-                compactLayoutFits(activity, views, board, R.string.why_mate)
-                        && turnLabel(activity, board, R.string.black, R.string.white, true) && hasDescription(views, announcement));
+                compactLayoutFits(activity, board, R.string.why_mate)
+                        && puzzleTurn(activity, board, R.string.black, true) && hasDescription(views, announcement));
         View origin = cell(board, "d8");
         View destination = cell(board, "h4");
-        View active = ((ViewGroup) board.getParent()).getChildAt(2);
+        View active = puzzleControl(activity, R.id.puzzle_turn);
         boolean blackBelow = origin.getAccessibilityTraversalAfter() == active.getId() && destination.getAccessibilityTraversalAfter() == origin.getId();
-        tap(button(activity, views, R.string.flip));
+        flipPuzzle(activity);
         View flippedOrigin = cell(board, "d8");
         View flippedDestination = cell(board, "h4");
-        View flippedActive = ((ViewGroup) board.getParent()).getChildAt(0);
         compare("Accessibility traversal follows color, piece and destination after flipping, with old links cleared", true,
-                blackBelow && flippedOrigin.getAccessibilityTraversalAfter() == flippedActive.getId()
+                blackBelow && flippedOrigin.getAccessibilityTraversalAfter() == active.getId()
                         && flippedDestination.getAccessibilityTraversalAfter() == flippedOrigin.getId()
                         && origin.getAccessibilityTraversalAfter() == View.NO_ID && destination.getAccessibilityTraversalAfter() == View.NO_ID);
-        tap(button(activity, views, R.string.main_menu));
+        leavePuzzle(activity);
         runOnMainSync(activity::finish);
     }
 
@@ -1749,20 +1860,20 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void prepare(Activity activity, List<View> views, BoardView board) throws Exception {
-        Button next = button(activity, views, R.string.next_quest);
+        var next = puzzleControl(activity, R.id.quest_next);
         String solved = activity.getString(R.string.quest_solved);
         compare("64 visible cells", 64, board.getChildCount());
         compare("Square board", true, board.getWidth() > 0 && board.getWidth() == board.getHeight());
-        compare("Both player labels are adjacent to the board", true, labelsTouchBoard(board));
-        compare("A compact layout keeps the labels, square board and three controls visible", true, compactLayoutFits(activity, views, board, R.string.hint));
-        compare("The first of 500 quests is shown", true, atQuest(activity, views, 1));
+        compare("The active color stays visible above the board", true, puzzleTurnVisible(activity, board));
+        compare("A compact layout keeps the turn, square board and puzzle controls visible", true, compactLayoutFits(activity, board, R.string.hint));
+        compare("The first of 500 quests is shown", true, atQuest(activity, 1));
         compare("Next is disabled on the first unsolved quest", false, next.isEnabled());
-        compare("Black is to move and is shown next to the bottom rank", true, turnLabel(activity, board, R.string.black, R.string.white, true));
-        var flip = button(activity, views, R.string.flip);
-        tap(flip);
-        compare("Flipping moves the label to the top without changing the active color", true,
-                turnLabel(activity, board, R.string.black, R.string.white, false));
-        tap(flip);
+        compare("Black is to move with Black's side at the bottom", true, puzzleTurn(activity, board, R.string.black, true));
+        var turnBounds = screenBounds(puzzleControl(activity, R.id.puzzle_turn));
+        flipPuzzle(activity);
+        compare("Flipping rotates the board without changing the active color or moving its label", true,
+                puzzleTurn(activity, board, R.string.black, false) && turnBounds.equals(screenBounds(puzzleControl(activity, R.id.puzzle_turn))));
+        flipPuzzle(activity);
         compare("Fresh storage shows zero solved quests", true, solvedCount(activity, views, 0));
         var track = progressTrack(views);
         compare("The collection opens with a zero meter and goal of five", true,
@@ -1801,10 +1912,10 @@ public final class BoardSanity extends Instrumentation {
         tap(cell(board, "d8"));
         tap(cell(board, "h4"));
         compare("The first mating move solves the quest", true, hasText(views, solved));
-        tap(button(activity, views, R.string.flip));
+        flipPuzzle(activity);
         compare("Flipped lower-right cell", "h1", coordinate(board.getChildAt(63)));
         tap(next);
-        compare("The second quest is shown", true, atQuest(activity, views, 2));
+        compare("The second quest is shown", true, atQuest(activity, 2));
         var second = QuestCatalog.load().get(1).solution();
         if (second.promotion() != null) throw new AssertionError("The second curriculum position requires a promotion fixture");
         tap(cell(board, BoardSquare.name(second.from())));
@@ -1812,7 +1923,7 @@ public final class BoardSanity extends Instrumentation {
         compare("A second quest can be solved independently", true, hasText(views, solved));
         compare("The application shows two solves", true, solvedCount(activity, views, 2));
         tap(next);
-        compare("The third quest is the current selection", true, atQuest(activity, views, 3));
+        compare("The third quest is the current selection", true, atQuest(activity, 3));
         compare("The selected third quest is unsolved", false, hasText(views, solved));
         prepareMateInTwo(activity);
         prepareMateInThree(activity);
@@ -1862,15 +1973,15 @@ public final class BoardSanity extends Instrumentation {
         var views = viewsOf(activity);
         var board = findBoard(views);
         String solved = activity.getString(R.string.quest_solved);
-        compare("Switching back resumes the third one-move quest", true, atQuest(activity, views, 3));
+        compare("Switching back resumes the third one-move quest", true, atQuest(activity, 3));
         compare("Both prior solves survive process death", true, solvedCount(activity, views, 2));
         compare("The resumed quest is still unsolved", false, hasText(views, solved));
-        Button previous = button(activity, views, R.string.previous_quest);
+        var previous = puzzleControl(activity, R.id.quest_previous);
         tap(previous);
-        compare("Previous opens the second quest", true, atQuest(activity, views, 2));
+        compare("Previous opens the second quest", true, atQuest(activity, 2));
         compare("Second quest restores its solved position", true, hasText(views, solved));
         tap(previous);
-        compare("Previous opens the first quest", true, atQuest(activity, views, 1));
+        compare("Previous opens the first quest", true, atQuest(activity, 1));
         View destination = cell(board, "h4");
         String queen = activity.getString(R.string.piece_square, "h4", activity.getString(R.string.black), activity.getString(R.string.queen));
         compare("First quest restores its solved position", true, hasText(views, solved) && queen.contentEquals(destination.getContentDescription()));
@@ -1907,7 +2018,9 @@ public final class BoardSanity extends Instrumentation {
                 solvedCount(milestoneActivity, milestoneViews, 5) && track.getProgress() == 5 && hasText(milestoneViews, milestone)
                         && hasDescription(milestoneViews, milestoneActivity.getString(R.string.quest_solved) + ". " + milestone)
                         && fullyVisible(milestoneBoard) && fullyVisible(guidance(milestoneActivity, R.string.why_mate)));
-        captureFrame("milestone", "The progress bar visibly fills at the first milestone", image -> hasColor(image, track, 0xffb8d88a, 8));
+        scrollIntoView(track);
+        captureFrame("milestone", "The progress bar visibly fills at the first milestone",
+                image -> fullyVisible(track) && hasColor(image, track, 0xffb8d88a, 8));
     }
 
     private Activity launchSavedQuest(ChessProgressStore store, List<String> order, String id) {
@@ -1924,12 +2037,12 @@ public final class BoardSanity extends Instrumentation {
         var board = findBoard(views);
         var quest = QuestCatalog.loadMateInTwo().get(0);
         compare("Mate in two opens with its own 300-quest counter", true,
-                hasText(views, activity.getString(R.string.mate_two_progress, 1, MATE_TWO_SIZE)) && chapterCount(activity, views, 0, MATE_TWO_SIZE)
-                        && turnLabel(activity, board, R.string.white, R.string.black, true));
+                puzzleHeading(activity, R.string.open_mate_two, 1, MATE_TWO_SIZE) && chapterCount(activity, views, 0, MATE_TWO_SIZE)
+                        && puzzleTurn(activity, board, R.string.white, true));
         Move wrong = quest.position().legalMoves().stream().filter(move -> !move.equals(quest.solution())).findFirst().orElseThrow();
         playMove(board, wrong);
         compare("A wrong opening keeps White to move and asks for forced mate in two", true,
-                hasText(views, activity.getString(R.string.mate_two_try_again)) && turnLabel(activity, board, R.string.white, R.string.black, true));
+                hasText(views, activity.getString(R.string.mate_two_try_again)) && puzzleTurn(activity, board, R.string.white, true));
         tap(guidance(activity, R.string.hint));
         tap(guidance(activity, R.string.show_solution));
         compare("The opening hint shows the unique first move", true, hasText(views, suggestedMove(activity, quest.solution())));
@@ -1939,7 +2052,7 @@ public final class BoardSanity extends Instrumentation {
         var defense = quest.defenseAfter(0);
         compare("The opponent replies and the first move does not count as a solve", true,
                 hasText(views, activity.getString(R.string.mate_two_reply, moveText(activity, defense))) && chapterCount(activity, views, 0, MATE_TWO_SIZE)
-                        && turnLabel(activity, board, R.string.white, R.string.black, true));
+                        && puzzleTurn(activity, board, R.string.white, true));
         var square = cell(board, BoardSquare.name(defense.to()));
         int color = BoardSquare.isLight(defense.to()) ? 0xfff4ef86 : 0xffbec953;
         captureFrame("mate-two", "The mate-in-two board highlights the opponent's defense", image -> hasColor(image, square, color, 16));
@@ -1948,8 +2061,8 @@ public final class BoardSanity extends Instrumentation {
     private void finishMateInTwo(Activity activity, List<View> views, BoardView board) {
         var quest = QuestCatalog.loadMateInTwo().get(0);
         compare("Cold launch restores the second move after the opponent's defense", true,
-                hasText(views, activity.getString(R.string.mate_two_progress, 1, MATE_TWO_SIZE)) && chapterCount(activity, views, 0, MATE_TWO_SIZE)
-                        && turnLabel(activity, board, R.string.white, R.string.black, true)
+                puzzleHeading(activity, R.string.open_mate_two, 1, MATE_TWO_SIZE) && chapterCount(activity, views, 0, MATE_TWO_SIZE)
+                        && puzzleTurn(activity, board, R.string.white, true)
                         && hasText(views, activity.getString(R.string.mate_two_reply, moveText(activity, quest.defenseAfter(0)))));
         tap(guidance(activity, R.string.hint));
         tap(guidance(activity, R.string.show_solution));
@@ -1963,11 +2076,15 @@ public final class BoardSanity extends Instrumentation {
     private void openChapter(Activity activity, int label) {
         openPuzzles(activity);
         var entry = button(activity, viewsOf(activity), label);
+        scrollIntoView(entry);
+        tap(entry);
+    }
+
+    private void scrollIntoView(View entry) {
         runOnMainSync(() -> {
             if (!fullyVisible(entry)) entry.requestRectangleOnScreen(new Rect(0, 0, entry.getWidth(), entry.getHeight()), true);
         });
         waitForIdleSync();
-        tap(entry);
     }
 
     private void openPuzzles(Activity activity) {
@@ -1990,8 +2107,18 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void switchChapter(Activity activity, int label) {
-        tap(button(activity, viewsOf(activity), R.string.main_menu));
+        leavePuzzle(activity);
         openChapter(activity, label);
+    }
+
+    private void leavePuzzle(Activity activity) {
+        tap(puzzleControl(activity, R.id.puzzle_options));
+        tap(puzzleControl(activity, R.id.puzzle_main_menu));
+    }
+
+    private void flipPuzzle(Activity activity) {
+        tap(puzzleControl(activity, R.id.puzzle_options));
+        tap(puzzleControl(activity, R.id.puzzle_flip_board));
     }
 
     private void prepareMateInThree(Activity activity) throws IOException {
@@ -2000,13 +2127,13 @@ public final class BoardSanity extends Instrumentation {
         var board = findBoard(views);
         var quest = QuestCatalog.loadMateInThree().get(0);
         compare("Mate in three opens with 200 puzzles and White to move", true,
-                hasText(views, activity.getString(R.string.mate_three_progress, 1, MATE_THREE_SIZE)) && chapterCount(activity, views, 0, MATE_THREE_SIZE)
-                        && turnLabel(activity, board, R.string.white, R.string.black, true));
+                puzzleHeading(activity, R.string.open_mate_three, 1, MATE_THREE_SIZE) && chapterCount(activity, views, 0, MATE_THREE_SIZE)
+                        && puzzleTurn(activity, board, R.string.white, true));
         playMove(board, quest.playerMove(0));
         awaitText(views, activity.getString(R.string.mate_three_reply, moveText(activity, quest.defenseAfter(0))));
         compare("The first defense leaves two moves and keeps White to move", true,
                 hasText(views, activity.getString(R.string.mate_three_reply, moveText(activity, quest.defenseAfter(0))))
-                        && turnLabel(activity, board, R.string.white, R.string.black, true));
+                        && puzzleTurn(activity, board, R.string.white, true));
         beginDefense(activity, views, board, quest.playerMove(1), true);
     }
 
@@ -2016,9 +2143,9 @@ public final class BoardSanity extends Instrumentation {
         var quest = QuestCatalog.loadMateInThree().get(0);
         String defenseText = activity.getString(R.string.mate_two_reply, moveText(activity, quest.defenseAfter(1)));
         awaitText(views, defenseText);
-        var next = button(activity, views, R.string.next_quest);
+        var next = puzzleControl(activity, R.id.quest_next);
         compare("Restart reopens Mate in 3 and plays the saved second defense without unlocking Next", true,
-                hasText(views, defenseText) && turnLabel(activity, board, R.string.white, R.string.black, true)
+                hasText(views, defenseText) && puzzleTurn(activity, board, R.string.white, true)
                         && !next.isEnabled() && chapterCount(activity, views, 0, MATE_THREE_SIZE));
         int destination = quest.defenseAfter(1).to();
         var square = cell(board, BoardSquare.name(destination));
@@ -2029,7 +2156,7 @@ public final class BoardSanity extends Instrumentation {
                 chapterCount(activity, views, 1, MATE_THREE_SIZE) && hasText(views, activity.getString(R.string.quest_solved)) && next.isEnabled());
         tap(next);
         compare("Next keeps the player in Mate in 3 and locks again on the next unsolved quest", true,
-                hasText(views, activity.getString(R.string.mate_three_progress, 2, MATE_THREE_SIZE)) && !next.isEnabled());
+                puzzleHeading(activity, R.string.open_mate_three, 2, MATE_THREE_SIZE) && !next.isEnabled());
     }
 
     private long beginDefense(Activity activity, List<View> views, BoardView board, Move move, boolean closeBeforeReply) {
@@ -2043,11 +2170,11 @@ public final class BoardSanity extends Instrumentation {
             started[0] = SystemClock.uptimeMillis();
             target.performClick();
             waiting[0] = hasText(views, activity.getString(R.string.opponent_reply_pending))
-                    && turnLabel(activity, board, R.string.black, R.string.white, false)
+                    && puzzleTurn(activity, board, R.string.black, false)
                     && originName.contentEquals(origin.getContentDescription())
                     && !BoardSquare.name(move.to()).contentEquals(target.getContentDescription())
                     && !target.isEnabled() && !guidance(activity, R.string.quest_hint_next_wait).isEnabled()
-                    && !button(activity, views, R.string.next_quest).isEnabled();
+                    && !puzzleControl(activity, R.id.quest_next).isEnabled();
             if (closeBeforeReply) activity.finish();
         });
         compare(closeBeforeReply ? "The second defense is pending when the board closes"
@@ -2084,12 +2211,34 @@ public final class BoardSanity extends Instrumentation {
         return hasText(views, activity.getString(R.string.solved_count, count, size));
     }
 
-    private static boolean turnLabel(Activity activity, BoardView board, int active, int other, boolean bottom) {
-        var panel = (ViewGroup) board.getParent();
-        var mover = (TextView) panel.getChildAt(bottom ? 2 : 0);
-        var opponent = (TextView) panel.getChildAt(bottom ? 0 : 2);
-        return activity.getString(R.string.to_move, activity.getString(active)).contentEquals(mover.getText())
-                && activity.getString(other).contentEquals(opponent.getText());
+    private static boolean puzzleTurn(Activity activity, BoardView board, int active, boolean moverBelow) {
+        var turn = (TextView) puzzleControl(activity, R.id.puzzle_turn);
+        boolean blackBelow = (active == R.string.black) == moverBelow;
+        return activity.getString(R.string.to_move, activity.getString(active)).contentEquals(turn.getText())
+                && puzzleTurnVisible(activity, board) && (blackBelow ? "h1" : "a8").equals(coordinate(board.getChildAt(0)));
+    }
+
+    private static boolean puzzleTurnVisible(Activity activity, BoardView board) {
+        View turn = puzzleControl(activity, R.id.puzzle_turn);
+        return fullyVisible(turn) && screenBounds(turn).bottom <= screenBounds(board).top;
+    }
+
+    private static boolean puzzleHeading(Activity activity, int chapterLabel, int index, int total) {
+        var chapter = (TextView) puzzleControl(activity, R.id.puzzle_chapter);
+        var rank = (TextView) puzzleControl(activity, R.id.puzzle_rank);
+        return fullyVisible(chapter) && fullyVisible(rank) && activity.getString(chapterLabel).contentEquals(chapter.getText())
+                && activity.getString(R.string.puzzle_rank, index, total).contentEquals(rank.getText());
+    }
+
+    private static boolean puzzleOptionsVisible(Activity activity) {
+        View panel = puzzleControl(activity, R.id.puzzle_options_panel);
+        return panel.isShown() && fullyVisible(panel);
+    }
+
+    private static View puzzleControl(Activity activity, int id) {
+        View control = activity.findViewById(id);
+        if (control == null) throw new AssertionError("Puzzle control missing: " + activity.getResources().getResourceEntryName(id));
+        return control;
     }
 
     private void solveCounterMate(Activity activity, List<View> views, BoardView board, String id, String from, String to, int piece) throws Exception {
@@ -2118,8 +2267,8 @@ public final class BoardSanity extends Instrumentation {
         return view;
     }
 
-    private static boolean atQuest(Activity activity, List<View> views, int index) {
-        return hasText(views, activity.getString(R.string.quest_progress, index, CATALOG_SIZE));
+    private static boolean atQuest(Activity activity, int index) {
+        return puzzleHeading(activity, R.string.open_mate_one, index, CATALOG_SIZE);
     }
 
     private static boolean solvedCount(Activity activity, List<View> views, int count) {
@@ -2143,11 +2292,13 @@ public final class BoardSanity extends Instrumentation {
                 && fullyVisible(top) && fullyVisible(bottom);
     }
 
-    private boolean compactLayoutFits(Activity activity, List<View> views, BoardView board, int hintLabel) {
+    private boolean compactLayoutFits(Activity activity, BoardView board, int hintLabel) {
         var root = ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
         var caption = (TextView) activity.findViewById(R.id.quest_guidance_label);
-        var controls = List.of(button(activity, views, R.string.previous_quest), guidance(activity, hintLabel),
-                button(activity, views, R.string.next_quest), caption);
+        var header = List.of(puzzleControl(activity, R.id.puzzle_options), puzzleControl(activity, R.id.puzzle_points),
+                puzzleControl(activity, R.id.puzzle_streak));
+        var controls = List.of(puzzleControl(activity, R.id.quest_previous), guidance(activity, hintLabel),
+                puzzleControl(activity, R.id.quest_next), caption);
         boolean[] fits = {false};
         runOnMainSync(() -> {
             Rect original = new Rect(root.getLeft(), root.getTop(), root.getRight(), root.getBottom());
@@ -2157,9 +2308,10 @@ public final class BoardSanity extends Instrumentation {
             try {
                 measureScreen(root, original, compact);
                 fits[0] = board.getWidth() > 0 && board.getWidth() < originalBoard && board.getWidth() == board.getHeight()
-                        && labelsTouchBoard(board) && fullyVisible(board) && controls.stream().allMatch(BoardSanity::fullyVisible)
+                        && puzzleTurnVisible(activity, board) && fullyVisible(board) && controls.stream().allMatch(BoardSanity::fullyVisible)
+                        && header.stream().allMatch(view -> fullyVisible(view) && screenBounds(view).bottom <= screenBounds(board).top)
                         && caption.getLayout() != null && caption.getLayout().getEllipsisCount(caption.getLineCount() - 1) == 0
-                        && screenBounds((View) board.getParent()).bottom <= screenBounds((View) controls.get(0).getParent()).top;
+                        && controls.stream().allMatch(view -> screenBounds(board).bottom <= screenBounds(view).top);
             } finally {
                 measureScreen(root, original, original.height());
             }
@@ -2354,7 +2506,7 @@ public final class BoardSanity extends Instrumentation {
             if (!image.compress(Bitmap.CompressFormat.PNG, 100, output)) throw new IOException("PNG write failed");
         }
         if ("analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
-                || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)) {
+                || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase) || "puzzle-ux".equals(phase)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }

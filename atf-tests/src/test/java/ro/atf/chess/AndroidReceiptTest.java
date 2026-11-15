@@ -169,6 +169,51 @@ class AndroidReceiptTest {
         }
     }
 
+    @Test void puzzleUxRequiresAllSixBoundNativeCaptures(Checks check) throws Exception {
+        var identity = new ReviewIdentity("", "sanity", "a".repeat(64), "1".repeat(32));
+        var chapters = List.of("Mate in 1", "Mate in 2", "Mate in 3", "Tactics", "Tactical training", "Intermezzo");
+        var checks = chapters.stream().map(chapter -> chapter + " keeps the board fixed with puzzle options open").toList();
+        var frames = List.of("puzzle-ux-mate-one", "puzzle-ux-mate-two", "puzzle-ux-mate-three",
+                "puzzle-ux-tactics", "puzzle-ux-training", "puzzle-ux-intermezzo");
+        String scope = "puzzle-ux";
+        String profile = "400x640, 160 dpi, font 1.3, language ro";
+        String target = "puzzle-ux-intermezzo.png";
+        var json = new ObjectMapper();
+        for (String state : List.of("complete", "missing", "substituted", "duplicate profile")) {
+            Path directory = Files.createDirectory(folder.resolve("puzzle-ux-" + state.replace(' ', '-')));
+            writeReviewRun(directory, scope, 111, checks.size(), identity, checks, frames, 4);
+            Path receipt = directory.resolve(scope + ".txt");
+            String marker = "INSTRUMENTATION_RESULT: puzzleDisplay=" + profile + "\n";
+            Files.writeString(receipt, state.equals("duplicate profile") ? marker + marker : marker, java.nio.file.StandardOpenOption.APPEND);
+            Path execution = directory.resolve("execution.json");
+            var manifest = (com.fasterxml.jackson.databind.node.ObjectNode) json.readTree(execution.toFile());
+            manifest.put("receiptSha256", sha256(receipt));
+            if (state.equals("missing")) Files.delete(directory.resolve(target));
+            if (state.equals("substituted")) {
+                Path replacement = directory.resolve(target);
+                Files.copy(directory.resolve("puzzle-ux-tactics.png"), replacement, StandardCopyOption.REPLACE_EXISTING);
+                manifest.withObject("/captureSha256").put(target, sha256(replacement));
+            }
+            json.writeValue(execution.toFile(), manifest);
+            if (state.equals("complete")) AndroidSanityPublication.publishPuzzleUx(receipt);
+            else check.rejects("Native puzzle evidence rejects " + state, AssertionError.class,
+                    () -> AndroidSanityPublication.publishPuzzleUx(receipt));
+            var report = analysisReport(receipt, scope);
+            boolean complete = state.equals("complete");
+            int boundCaptures = complete ? 6 : state.equals("duplicate profile") ? 0 : 5;
+            check.same("Extent status and embedded bound PNGs for " + state, List.of(1, boundCaptures),
+                    List.of(report.select(complete ? "li.test-item[status=pass]" : "li.test-item[status=fail]").size(),
+                            report.select("a[href^=data:image/png;base64]").size()));
+            String diagnostic = switch (state) {
+                case "missing" -> "Missing or invalid PNG: " + target;
+                case "substituted" -> "Capture SHA-256 mismatch: " + target;
+                case "duplicate profile" -> "Missing or mismatched phase run identity";
+                default -> profile;
+            };
+            check.same("Extent records the diagnosis for " + state, true, report.text().contains(diagnostic));
+        }
+    }
+
     @Test void publishesBothAnalysisSurfacesWithBoundCapturesAndVisibleResults(Checks check) throws Exception {
         Path receipt = analysisFixture("analysis-valid", "1".repeat(32), "1".repeat(32));
         AndroidSanityPublication.publishMatchAnalysis(receipt);

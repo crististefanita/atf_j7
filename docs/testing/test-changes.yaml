@@ -40,3 +40,61 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
     contract: "Use the matching Maven parent version and retain the documented test source boundaries"
     allowDelete: false
+
+  - id: J7-PUZZLE-CHROME-NATIVE
+    base: "6f86ffe92ecaf0b4934d5b90b18889fefec78984"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/PuzzleChromeLayoutTest.java
+    test: ro.atf.chess.PuzzleChromeLayoutTest#maximizesTheSquareOnBothPortraitProfilesWithRomanianText
+    contract: "Preserve fixed board geometry offline and exercise the new native controls across all six chapters"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "The Romanian bulb names its next action at each step and fits in a short window"
+
+  - id: J7-PUZZLE-CHROME-RUNNER
+    base: "6f86ffe92ecaf0b4934d5b90b18889fefec78984"
+    from: scripts/run-android-sanity.ps1
+    replacement: atf-tests/src/test/java/ro/atf/chess/PuzzleChromeLayoutTest.java
+    test: ro.atf.chess.PuzzleChromeLayoutTest#maximizesTheSquareOnBothPortraitProfilesWithRomanianText
+    contract: "Retain both display profiles and publish a separate receipt with six capture hashes"
+    allowDelete: false
+
+  - id: J7-PUZZLE-CHROME-REPORT
+    base: "6f86ffe92ecaf0b4934d5b90b18889fefec78984"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#puzzleUxRequiresAllSixBoundNativeCaptures
+    contract: "Prove all six distinct native captures and reject substitution"
+    allowDelete: false
+
+  - id: J7-PUZZLE-CHROME-RECEIPT
+    base: "6f86ffe92ecaf0b4934d5b90b18889fefec78984"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#puzzleUxRequiresAllSixBoundNativeCaptures
+    contract: "Retain the native provenance oracle and exercise the new puzzle capture scope"
+    allowDelete: false
+
+  - id: J7-0143-ANDROID-VERSION
+    base: "6f86ffe92ecaf0b4934d5b90b18889fefec78984"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the patch version and retain the documented Gradle and Maven boundaries"
+    allowDelete: false
+
+  - id: J7-0143-MAVEN-VERSION
+    base: "6f86ffe92ecaf0b4934d5b90b18889fefec78984"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the patch version and retain the documented Gradle and Maven boundaries"
+    allowDelete: false
+
+  - id: J7-0143-TESTS-VERSION
+    base: "6f86ffe92ecaf0b4934d5b90b18889fefec78984"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the patch version and retain the documented Gradle and Maven boundaries"
+    allowDelete: false

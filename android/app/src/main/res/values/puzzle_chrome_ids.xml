@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="puzzle_options" type="id" />
+    <item name="puzzle_options_panel" type="id" />
+    <item name="puzzle_flip_board" type="id" />
+    <item name="puzzle_main_menu" type="id" />
+    <item name="puzzle_points" type="id" />
+    <item name="puzzle_streak" type="id" />
+    <item name="quest_previous" type="id" />
+    <item name="quest_next" type="id" />
+    <item name="puzzle_chapter" type="id" />
+    <item name="puzzle_rank" type="id" />
+    <item name="puzzle_turn" type="id" />
+</resources>

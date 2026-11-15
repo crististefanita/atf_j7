@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="puzzle_options">Puzzle options</string>
+    <string name="puzzle_main_menu">Main menu</string>
+    <string name="puzzle_rank">%1$d / %2$d</string>
+    <string name="puzzle_rank_spoken">Puzzle %1$d of %2$d</string>
+    <string name="puzzle_series">%1$d in a row</string>
+</resources>

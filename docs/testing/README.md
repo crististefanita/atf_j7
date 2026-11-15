@@ -85,6 +85,28 @@ capturii. [Testul de geometrie](../../atf-tests/src/test/java/ro/atf/chess/Scree
 
 ## Progresul problemelor
 
+Antetul celor șase capitole afișează punctele capitolului și seria globală de
+la două rezolvări consecutive. Săgețile și becul stau sub tablă. Meniul din
+antet afișează opțiunile în aceeași zonă, păstrând poziția și latura tablei. **Întoarce
+tabla** schimbă orientarea, iar **Meniu principal** păstrează problema, semimutarea
+și recompensele înainte de întoarcerea la ecranul principal. Comanda de sistem
+**Înapoi** închide întâi opțiunile. Din ecranul de joc revine la **Probleme**.
+Detaliile se pot derula. Zona rezervată păstrează un rând de stare și locul
+pentru opțiuni, astfel încât tabla să folosească toată lățimea când încape.
+
+| Probă | Contract urmărit |
+|---|---|
+| `PuzzleChromeLayoutTest` | Antet pe două rânduri, scor și controale la spațiu restrâns. Săgețile și becul sunt centrate sub tabla pătrată, cu ținte de 48 dp. |
+| Sanity Android cu `-PuzzleUxOnly` | Verifică toate cele șase capitole în română și engleză. Deschide opțiunile, întoarce tabla și revine cu progresul păstrat. Controlează geometria tablei și blocarea comenzilor la limite, în timpul unei replici sau înainte de rezolvare. |
+
+Rulați `-PuzzleUxOnly -PuzzleLanguage ro` pe 720 × 1280 la 320 dpi și
+`-PuzzleUxOnly -PuzzleLanguage en` pe 1080 × 1920 la 440 dpi, ambele la
+font 1,3×. Publicați cele șase puncte de control ale fiecărei rulări cu
+`AndroidSanityPublication#publishPuzzleUxSanity`. Extent leagă fiecare comparație
+și captură încorporată de recepția nativă. Identificatorii `puzzle_options`,
+`puzzle_flip_board`, `puzzle_main_menu`, `puzzle_points`, `puzzle_streak`, `quest_previous`
+și `quest_next` permit verificarea comenzilor prin arborele de accesibilitate.
+
 `BoardPanelLayoutTest` verifică lățimea maximă a tablei de joc și de reluare
 la patru lățimi, plus o fereastră scundă și text mărit. Proba Android
 `-PuzzleDangerOnly` compară partida, puzzle-ul și explicația în aceeași fereastră.

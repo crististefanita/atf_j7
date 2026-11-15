@@ -37,6 +37,7 @@ import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.GameReview;
 import ro.atf.chess.MatchSetup;
 import ro.atf.chess.MatchSlots;
+import ro.atf.chess.PuzzleChromeLayout;
 import ro.atf.chess.QuestCatalog;
 import ro.atf.chess.QuestFinishStudy;
 import ro.atf.chess.QuestHint;
@@ -106,16 +107,15 @@ public final class ChessActivity extends BackNavigableActivity {
     private TextView recentMove;
     private TextView solvedCount;
     private TextView milestone;
-    private TextView chapterPoints;
-    private TextView streakBadge;
+    private PuzzleChrome puzzleChrome;
     private boolean announceMilestone;
     private ProgressBar progressTrack;
     private ScrollView questDetails;
     private ImageButton guidance;
     private TextView guidanceLabel;
     private QuestHint hint = QuestHint.NONE;
-    private Button previous;
-    private Button next;
+    private ImageButton previous;
+    private ImageButton next;
     private boolean blackBelow;
     private int selected = -1;
     private Move last;
@@ -124,12 +124,12 @@ public final class ChessActivity extends BackNavigableActivity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         chapters = List.of(
-                new Chapter(R.id.chapter_one, R.string.quest_progress, R.id.chapter_one_totals, QuestCatalog.load()),
-                new Chapter(R.id.chapter_two, R.string.mate_two_progress, R.id.chapter_two_totals, QuestCatalog.loadMateInTwo()),
-                new Chapter(R.id.chapter_three, R.string.mate_three_progress, R.id.chapter_three_totals, QuestCatalog.loadMateInThree()),
-                new Chapter(R.id.chapter_tactics, R.string.tactics_progress, R.id.chapter_tactics_totals, QuestCatalog.loadTactics()),
-                new Chapter(R.id.chapter_training, R.string.training_progress, R.id.chapter_training_totals, QuestCatalog.loadTraining()),
-                new Chapter(R.id.chapter_intermezzo, R.string.intermezzo_progress, R.id.chapter_intermezzo_totals, QuestCatalog.loadIntermezzo()));
+                new Chapter(R.id.chapter_one, R.string.open_mate_one, R.id.chapter_one_totals, QuestCatalog.load()),
+                new Chapter(R.id.chapter_two, R.string.open_mate_two, R.id.chapter_two_totals, QuestCatalog.loadMateInTwo()),
+                new Chapter(R.id.chapter_three, R.string.open_mate_three, R.id.chapter_three_totals, QuestCatalog.loadMateInThree()),
+                new Chapter(R.id.chapter_tactics, R.string.open_tactics, R.id.chapter_tactics_totals, QuestCatalog.loadTactics()),
+                new Chapter(R.id.chapter_training, R.string.open_training, R.id.chapter_training_totals, QuestCatalog.loadTraining()),
+                new Chapter(R.id.chapter_intermezzo, R.string.open_intermezzo, R.id.chapter_intermezzo_totals, QuestCatalog.loadIntermezzo()));
         allIds = chapters.stream().flatMap(chapter -> chapter.ids().stream()).collect(Collectors.toList());
         store = new ChessProgressStore(this);
         store.matches().migrateCompletedMatches();
@@ -168,6 +168,11 @@ public final class ChessActivity extends BackNavigableActivity {
         screen.setOrientation(LinearLayout.VERTICAL);
         screen.setBackgroundColor(BACKGROUND);
         screen.setLayoutDirection(android.view.View.LAYOUT_DIRECTION_LTR);
+        applyScreenInsets(screen);
+        return screen;
+    }
+
+    private void applyScreenInsets(View screen) {
         if (Build.VERSION.SDK_INT >= 35) {
             screen.setOnApplyWindowInsetsListener((view, insets) -> {
                 var bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
@@ -175,7 +180,6 @@ public final class ChessActivity extends BackNavigableActivity {
                 return insets;
             });
         }
-        return screen;
     }
 
     private void showMenu() {
@@ -299,7 +303,7 @@ public final class ChessActivity extends BackNavigableActivity {
         options = Collections.emptyList();
         position = match.position();
         last = match.lastMove();
-        setContentView(buildBoardScreen());
+        setContentView(buildMatchBoardScreen());
         renderMatch();
     }
 
@@ -307,12 +311,13 @@ public final class ChessActivity extends BackNavigableActivity {
         if (inMatch) {
             if (archivedMatch != null || store.matches().leaveMatch()) showMenu();
             else showSaveError();
-        } else leaveChapter();
+        } else leaveChapter(false);
     }
 
-    private void leaveChapter() {
-        if (store.quests().leaveChapter()) showPuzzles();
-        else showSaveError();
+    private void leaveChapter(boolean home) {
+        if (!store.quests().leaveChapter()) showSaveError();
+        else if (home) showMenu();
+        else showPuzzles();
     }
 
     private Button menuButton(int label) {
@@ -324,142 +329,145 @@ public final class ChessActivity extends BackNavigableActivity {
     }
 
     @Override protected void back() {
+        if (!inMatch && chapterIndex >= 0 && puzzleChrome.dismissOptions()) return;
         if (inMatch || chapterIndex >= 0) leaveBoard();
         else if (menuPage != MenuPage.HOME) showMenu();
         else finish();
     }
 
-    private LinearLayout buildBoardScreen() {
+    private LinearLayout buildMatchBoardScreen() {
         var screen = screen();
-        LinearLayout header = new LinearLayout(this);
+        var header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(14), 0, dp(8), 0);
-        TextView title = text(R.string.app_name, inMatch ? 21 : 14, PRIMARY);
-        if (!inMatch) {
-            recentMove = title;
-            BoardCaption.reserve(recentMove, 2);
-        }
-        header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        Button flip = new Button(this);
+        header.addView(text(R.string.app_name, 21, PRIMARY), new LinearLayout.LayoutParams(0, -2, 1));
+        var flip = new Button(this);
         flip.setText(R.string.flip);
         flip.setAllCaps(false);
         flip.setOnClickListener(view -> {
-            if (inMatch && archivedMatch == null && !store.matches().saveMatch(matchSlot, match, !blackBelow, manualAi)) {
+            if (archivedMatch == null && !store.matches().saveMatch(matchSlot, match, !blackBelow, manualAi)) {
                 showSaveError();
                 return;
             }
             blackBelow = !blackBelow;
-            render();
+            renderMatch();
         });
         header.addView(flip);
         var menu = menuButton(R.string.main_menu);
         menu.setOnClickListener(view -> leaveBoard());
         header.addView(menu);
         screen.addView(header);
-        if (inMatch) {
-            recentMove = text(R.string.mate_objective, 14, MUTED);
-            recentMove.setGravity(Gravity.CENTER);
-            BoardCaption.reserve(recentMove, 1);
-            screen.addView(recentMove);
-            manualAiCheck = new CheckBox(this);
-            manualAiCheck.setId(R.id.match_manual_ai);
-            manualAiCheck.setText(R.string.match_manual_ai);
-            manualAiCheck.setTextColor(PRIMARY);
-            manualAiCheck.setMinHeight(dp(48));
-            manualAiCheck.setOnClickListener(view -> setManualAi(manualAiCheck.isChecked()));
-            screen.addView(manualAiCheck);
-        }
+
+        recentMove = text(R.string.mate_objective, 14, MUTED);
+        recentMove.setGravity(Gravity.CENTER);
+        BoardCaption.reserve(recentMove, 1);
+        screen.addView(recentMove);
+        manualAiCheck = new CheckBox(this);
+        manualAiCheck.setId(R.id.match_manual_ai);
+        manualAiCheck.setText(R.string.match_manual_ai);
+        manualAiCheck.setTextColor(PRIMARY);
+        manualAiCheck.setMinHeight(dp(48));
+        manualAiCheck.setOnClickListener(view -> setManualAi(manualAiCheck.isChecked()));
+        screen.addView(manualAiCheck);
+
         topPlayer = playerLabel();
         bottomPlayer = playerLabel();
         board = new BoardView(this, this::tap);
-        matchAnalysis = inMatch && match.analysisEnabled() ? new MatchAnalysisView(this, this::notation, () -> {
+        matchAnalysis = match.analysisEnabled() ? new MatchAnalysisView(this, this::notation, () -> {
             selected = -1;
             options = List.of();
             renderMatch();
         }) : null;
-        View topSeat = topPlayer;
-        View bottomSeat = bottomPlayer;
-        if (inMatch) {
-            topCaptures = new MatchCapturesView(this, R.id.match_top_captures);
-            bottomCaptures = new MatchCapturesView(this, R.id.match_bottom_captures);
-            topSeat = matchSeat(topPlayer, topCaptures);
-            bottomSeat = matchSeat(bottomPlayer, bottomCaptures);
-        }
-        var panel = new BoardPanel(this, topSeat, board, bottomSeat, matchAnalysis == null ? null : matchAnalysis.evaluationBar());
-        if (inMatch) screen.addView(panel, new LinearLayout.LayoutParams(-1, 0, 1));
-        status = text(R.string.mate_objective, 16, PRIMARY);
-        if (inMatch) status.setId(R.id.match_status);
-        status.setGravity(Gravity.CENTER);
-        status.setPadding(dp(8), dp(4), dp(8), dp(10));
-        BoardCaption.reserve(status, inMatch ? 2 : 3);
-        status.setAccessibilityLiveRegion(android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        if (inMatch) {
-            var statusRow = new LinearLayout(this);
-            statusRow.setGravity(Gravity.CENTER_VERTICAL);
-            statusRow.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
-            matchActions = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
-            matchActions.setId(R.id.match_actions);
-            matchActions.setImageResource(R.drawable.match_more);
-            matchActions.setImageTintList(ColorStateList.valueOf(MUTED));
-            matchActions.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
-            matchActions.setContentDescription(getString(R.string.match_actions));
-            matchActions.setOnClickListener(this::showMatchActions);
-            statusRow.addView(matchActions, new LinearLayout.LayoutParams(dp(48), dp(48)));
-            screen.addView(statusRow);
-        } else {
-            questDetails = new ScrollView(this);
-            questDetails.setScrollbarFadingEnabled(false);
-            var captions = new LinearLayout(this);
-            captions.setOrientation(LinearLayout.VERTICAL);
-            captions.addView(status);
-            captions.addView(progressPanel());
-            questDetails.addView(captions);
-            int statusPreview = status.getLineHeight() * 2 + status.getPaddingTop() + status.getPaddingBottom();
-            screen.addView(new BoardDetails(panel, questDetails, statusPreview), new LinearLayout.LayoutParams(-1, 0, 1));
-        }
-        if (inMatch) {
-            if (matchAnalysis != null) screen.addView(matchAnalysis);
-            var study = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
-            study.setImageResource(R.drawable.match_study);
-            study.setImageTintList(ColorStateList.valueOf(MUTED));
-            study.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
-            study.setId(R.id.match_open_analysis);
-            study.setContentDescription(getString(R.string.manual_analysis));
-            study.setOnClickListener(view -> {
-                cancelBot();
-                String id = archivedMatch == null ? store.matches().archivedId(matchSlot) : archivedMatch.id();
-                boolean manualUsed = archivedMatch == null ? store.matches().matchManualUsed(matchSlot) : archivedMatch.manualUsed();
-                AnalysisActivity.open(this, match, reviewedPly < 0 ? match.ply() : reviewedPly, blackBelow,
-                        id, manualUsed, humanName(), botName(match.setup().level()));
-            });
-            history = new MatchHistoryView(this, this::notation, this::reviewMatch, matchAnalysis == null ? null : matchAnalysis.bulb(), study);
-            screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
-            return screen;
-        }
-        LinearLayout navigation = new LinearLayout(this);
-        navigation.setGravity(Gravity.CENTER);
-        navigation.setBaselineAligned(false);
-        previous = questButton(R.string.previous_quest, -1);
-        next = questButton(R.string.next_quest, 1);
-        guidance = (ImageButton) getLayoutInflater().inflate(R.layout.quest_guidance, navigation, false);
+        topCaptures = new MatchCapturesView(this, R.id.match_top_captures);
+        bottomCaptures = new MatchCapturesView(this, R.id.match_bottom_captures);
+        var panel = new BoardPanel(this, matchSeat(topPlayer, topCaptures), board, matchSeat(bottomPlayer, bottomCaptures),
+                matchAnalysis == null ? null : matchAnalysis.evaluationBar());
+        screen.addView(panel, new LinearLayout.LayoutParams(-1, 0, 1));
+        status = boardStatus(2);
+        status.setId(R.id.match_status);
+        var statusRow = new LinearLayout(this);
+        statusRow.setGravity(Gravity.CENTER_VERTICAL);
+        statusRow.addView(status, new LinearLayout.LayoutParams(0, -2, 1));
+        matchActions = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
+        matchActions.setId(R.id.match_actions);
+        matchActions.setImageResource(R.drawable.match_more);
+        matchActions.setImageTintList(ColorStateList.valueOf(MUTED));
+        matchActions.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
+        matchActions.setContentDescription(getString(R.string.match_actions));
+        matchActions.setOnClickListener(this::showMatchActions);
+        statusRow.addView(matchActions, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        screen.addView(statusRow);
+        if (matchAnalysis != null) screen.addView(matchAnalysis);
+
+        var study = new ImageButton(this, null, android.R.attr.borderlessButtonStyle);
+        study.setImageResource(R.drawable.match_study);
+        study.setImageTintList(ColorStateList.valueOf(MUTED));
+        study.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
+        study.setId(R.id.match_open_analysis);
+        study.setContentDescription(getString(R.string.manual_analysis));
+        study.setOnClickListener(view -> {
+            cancelBot();
+            String id = archivedMatch == null ? store.matches().archivedId(matchSlot) : archivedMatch.id();
+            AnalysisActivity.open(this, match, reviewedPly < 0 ? match.ply() : reviewedPly, blackBelow,
+                    id, archivedMatch == null ? store.matches().matchManualUsed(matchSlot) : archivedMatch.manualUsed(),
+                    humanName(), botName(match.setup().level()));
+        });
+        history = new MatchHistoryView(this, this::notation, this::reviewMatch, matchAnalysis == null ? null : matchAnalysis.bulb(), study);
+        screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
+        return screen;
+    }
+
+    private View buildPuzzleScreen() {
+        var page = screen();
+        page.setOnApplyWindowInsetsListener(null);
+        puzzleChrome = new PuzzleChrome(page, chapters.get(chapterIndex).label(), () -> {
+            blackBelow = !blackBelow;
+            render();
+        }, () -> leaveChapter(true));
+        applyScreenInsets(puzzleChrome);
+
+        topPlayer = playerLabel();
+        topPlayer.setId(R.id.puzzle_turn);
+        board = new BoardView(this, this::tap);
+        var panel = new BoardPanel(this, topPlayer, board, null, null);
+        status = boardStatus(3);
+        questDetails = new ScrollView(this);
+        questDetails.setScrollbarFadingEnabled(false);
+        var captions = new LinearLayout(this);
+        captions.setOrientation(LinearLayout.VERTICAL);
+        captions.addView(status);
+        captions.addView(progressPanel());
+        questDetails.addView(captions);
+
+        previous = questButton(R.id.quest_previous, R.string.previous_quest, -1);
+        next = questButton(R.id.quest_next, R.string.next_quest, 1);
+        guidance = (ImageButton) getLayoutInflater().inflate(R.layout.quest_guidance, page, false);
         guidance.setOnClickListener(view -> revealGuidance());
-        var help = new LinearLayout(this);
-        help.setOrientation(LinearLayout.VERTICAL);
-        help.setGravity(Gravity.CENTER);
-        help.addView(guidance);
+        puzzleChrome.styleLamp(guidance);
         guidanceLabel = text(R.string.quest_hint_next_piece, 12, MUTED);
         guidanceLabel.setId(R.id.quest_guidance_label);
         guidanceLabel.setGravity(Gravity.CENTER);
+        guidanceLabel.setIncludeFontPadding(false);
         BoardCaption.reserve(guidanceLabel, 2);
         guidanceLabel.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         guidanceLabel.setOnClickListener(view -> guidance.performClick());
         guidanceLabel.setFocusable(false);
-        help.addView(guidanceLabel, new LinearLayout.LayoutParams(-1, -2));
-        addControl(navigation, previous, 1);
-        navigation.addView(help, new LinearLayout.LayoutParams(0, -2, 1.15f));
-        addControl(navigation, next, 1);
-        screen.addView(navigation);
-        return screen;
+
+        int footerHeight = dp(48) + 2 * guidanceLabel.getLineHeight();
+        int detailsMinimum = PuzzleChromeLayout.detailsMinimum(status.getLineHeight(),
+                status.getPaddingTop() + status.getPaddingBottom(), puzzleChrome.menuHeight(), footerHeight);
+        page.addView(new BoardDetails(panel, questDetails, detailsMinimum), new LinearLayout.LayoutParams(-1, 0, 1));
+        puzzleChrome.addActions(previous, guidance, next, guidanceLabel, questDetails);
+        return puzzleChrome;
+    }
+
+    private TextView boardStatus(int lines) {
+        var caption = text(R.string.mate_objective, 16, PRIMARY);
+        caption.setGravity(Gravity.CENTER);
+        caption.setPadding(dp(8), dp(4), dp(8), dp(10));
+        BoardCaption.reserve(caption, lines);
+        caption.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        return caption;
     }
 
     private LinearLayout progressPanel() {
@@ -477,15 +485,6 @@ public final class ChessActivity extends BackNavigableActivity {
         row.addView(solvedCount, new LinearLayout.LayoutParams(0, -2, 1));
         row.addView(milestone, new LinearLayout.LayoutParams(0, -2, 1));
         panel.addView(row);
-        var rewardRow = new LinearLayout(this);
-        rewardRow.setGravity(Gravity.CENTER_VERTICAL);
-        chapterPoints = text(R.string.mate_objective, 13, PROGRESS);
-        streakBadge = text(R.string.mate_objective, 13, FLAME);
-        BoardCaption.reserve(chapterPoints, 1);
-        BoardCaption.reserve(streakBadge, 1);
-        rewardRow.addView(chapterPoints, new LinearLayout.LayoutParams(0, -2, 1));
-        rewardRow.addView(streakBadge);
-        panel.addView(rewardRow);
         progressTrack = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         progressTrack.setProgressTintList(ColorStateList.valueOf(PROGRESS));
         progressTrack.setProgressBackgroundTintList(ColorStateList.valueOf(0xff51534b));
@@ -580,10 +579,8 @@ public final class ChessActivity extends BackNavigableActivity {
         return String.join(", ", labels);
     }
 
-    private Button questButton(int label, int offset) {
-        Button button = new Button(this);
-        button.setAllCaps(false);
-        button.setText(label);
+    private ImageButton questButton(int id, int label, int offset) {
+        var button = puzzleChrome.arrow(id, label, offset < 0);
         button.setOnClickListener(view -> {
             if (step.defensePending()) return;
             int nextIndex = offset > 0 ? progress.nextIndex(questIndex, order) : questIndex + offset;
@@ -614,15 +611,7 @@ public final class ChessActivity extends BackNavigableActivity {
         order = chapter.ids();
         loadQuest(order.indexOf(progress.currentId()));
         blackBelow = quests.get(questIndex).position().turn() == ChessPosition.Side.BLACK;
-        setContentView(buildBoardScreen());
-    }
-
-    private void addControl(LinearLayout row, Button button, float weight) {
-        button.setMinimumWidth(0);
-        button.setMinWidth(0);
-        button.setMinHeight(dp(48));
-        button.setPadding(dp(6), button.getPaddingTop(), dp(6), button.getPaddingBottom());
-        row.addView(button, new LinearLayout.LayoutParams(0, -2, weight));
+        setContentView(buildPuzzleScreen());
     }
 
     private void loadQuest(int index) {
@@ -1014,16 +1003,14 @@ public final class ChessActivity extends BackNavigableActivity {
             renderMatch();
             return;
         }
-        var bottom = blackBelow ? ChessPosition.Side.BLACK : ChessPosition.Side.WHITE;
         boolean solved = completedQuest != null;
-        renderPlayer(topPlayer, bottom.other(), !solved && position.turn() == bottom.other());
-        renderPlayer(bottomPlayer, bottom, !solved && position.turn() == bottom);
-        recentMove.setText(getString(chapters.get(chapterIndex).label(), questIndex + 1, quests.size()));
+        renderPlayer(topPlayer, position.turn(), !solved);
+        puzzleChrome.renderRank(questIndex + 1, quests.size());
         renderProgress();
         boolean pending = step.defensePending();
         previous.setEnabled(!pending && questIndex > 0);
         int nextIndex = progress.nextIndex(questIndex, order);
-        next.setText(nextIndex >= 0 && nextIndex < questIndex ? R.string.first_unsolved_quest : R.string.next_quest);
+        next.setContentDescription(getString(nextIndex >= 0 && nextIndex < questIndex ? R.string.first_unsolved_quest : R.string.next_quest));
         next.setEnabled(!pending && nextIndex >= 0);
         var quest = quests.get(questIndex);
         int explanation = quest.objective() == QuestCatalog.Objective.MATE ? R.string.why_mate : R.string.why_tactic;
@@ -1046,8 +1033,7 @@ public final class ChessActivity extends BackNavigableActivity {
         int stage = step.stage();
         Move suggestion = quest.playerMove(stage);
         renderStatus(quest, stage, suggestion, pending);
-        int activeLabelId = (position.turn() == bottom ? bottomPlayer : topPlayer).getId();
-        board.show(position, blackBelow, selected, options, last, hint.cue(suggestion), !pending, activeLabelId);
+        board.show(position, blackBelow, selected, options, last, hint.cue(suggestion), !pending, topPlayer.getId());
     }
 
     private void renderStatus(QuestCatalog.Quest quest, int stage, Move suggestion, boolean pending) {
@@ -1202,8 +1188,7 @@ public final class ChessActivity extends BackNavigableActivity {
         progressTrack.setMax(goal.total());
         if (progressTrack.getProgress() != goal.solved()) progressTrack.setProgress(goal.solved(), true);
         int points = rewards.summarize(order, progress).points();
-        chapterPoints.setText(earned == 0 ? getString(R.string.chapter_points, points) : getString(R.string.earned_points, earned, points));
-        renderStreak(streakBadge, View.INVISIBLE);
+        puzzleChrome.renderRewards(points, earned, rewards.streak(), rewards.showsStreak());
     }
 
     private String totals(int label, List<String> ids) {

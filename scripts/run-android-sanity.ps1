@@ -18,6 +18,8 @@ param(
     [switch]$TrainingFinishOnly,
     [switch]$PuzzleMateReplayOnly,
     [switch]$PuzzleDangerOnly,
+    [switch]$PuzzleUxOnly,
+    [ValidateSet('ro','en')][string]$PuzzleLanguage = 'ro',
     [switch]$IncludeOpenings,
     [switch]$IncludeGameReview,
     [switch]$IncludeManualAnalysis,
@@ -37,11 +39,11 @@ if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distr
 if ($QualificationRunId -and !($Distribution -and ($GameReviewOnly -or $IncludeGameReview))) {
     throw 'A qualification run ID applies to signed Game Review evidence.'
 }
-$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly).Where({ $_ })
+$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly, $PuzzleUxOnly).Where({ $_ })
 if ($puzzleProbes.Count -gt 1 -or ($puzzleProbes.Count -eq 1 -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or
         $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or $MatchMenusOnly -or $IncludeOpenings -or
         $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive))) {
-    throw 'Choose one isolated puzzle explanation phase.'
+    throw 'Choose one isolated puzzle phase.'
 }
 if ($MatchMenusOnly -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or
         $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
@@ -152,6 +154,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
     $reviewReceipt = Join-Path $Directory "$Phase.txt"
     $arguments = @('-e','phase',$Phase)
     if ($RunId) { $arguments += @('-e','runId',$RunId) }
+    if ($Phase -ceq 'puzzle-ux') { $arguments += @('-e','puzzleLanguage',$PuzzleLanguage) }
     $lines = @(Invoke-Device ($instrument + $arguments + @($runner)))
     $lines | Set-Content -LiteralPath $reviewReceipt -Encoding utf8NoBOM
     $passed = @($lines | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: check_\d+=.*\ttrue$' })
@@ -171,13 +174,17 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         'training-finish' { $frames += 'training-finish-line' }
         'puzzle-mate-replay' { $frames += 'puzzle-mate-two', 'puzzle-mate-three' }
         'puzzle-danger' { $frames = @('puzzle-danger-mate', 'puzzle-danger-capture') }
+        'puzzle-ux' {
+            $frames = @('mate-one', 'mate-two', 'mate-three', 'tactics', 'training', 'intermezzo') |
+                ForEach-Object { "puzzle-ux-$_" }
+        }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
         Receive-Frame $frame $Directory
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
-        if ($Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger') {
+        if ($Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
                 throw "Pulled PNG does not match the native capture: $file."
@@ -269,6 +276,10 @@ try {
     }
     if ($PuzzleMateReplayOnly) {
         Invoke-FocusedSanity $run 'puzzle-mate-replay' 5 ([guid]::NewGuid().ToString('N'))
+        return
+    }
+    if ($PuzzleUxOnly) {
+        Invoke-FocusedSanity $run 'puzzle-ux' 6 ([guid]::NewGuid().ToString('N'))
         return
     }
     if ($PuzzleDangerOnly) {

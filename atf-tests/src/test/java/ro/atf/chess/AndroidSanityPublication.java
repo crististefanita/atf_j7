@@ -161,6 +161,15 @@ class AndroidSanityPublication {
         boolean bound = runId.matches("[a-f0-9]{32}")
                 && markerValues(markers, "INSTRUMENTATION_RESULT: runId=").equals(List.of(runId));
         var identity = bound ? menuIdentity(execution, scope, receiptHash, checks) : List.<ReportField>of();
+        if ("puzzle-ux".equals(scope) && !identity.isEmpty()) {
+            var display = markerValues(markers, "INSTRUMENTATION_RESULT: puzzleDisplay=");
+            if (display.size() != 1 || !display.getFirst().matches("[1-9][0-9]*x[1-9][0-9]*, [1-9][0-9]* dpi, font 1\\.3, language (ro|en)")) {
+                identity = List.of();
+            } else {
+                identity = new ArrayList<>(identity);
+                identity.add(new ReportField("Puzzle display profile", display.getFirst()));
+            }
+        }
         return new BoundRun(scope, title, receipt, evidence, execution, identity, frames, markers);
     }
 
@@ -368,6 +377,23 @@ class AndroidSanityPublication {
                         "Tapping the control again hides the capture reason"), "puzzle danger",
                 List.of(new Frame("puzzle-danger-mate.png", mate), new Frame("puzzle-danger-capture.png", capture)));
         publishNativeRuns("puzzle-danger", "Reveal danger in the puzzle replay", receipt, List.of(run), null);
+    }
+
+    @Test void publishPuzzleUxSanity() throws Exception {
+        publishPuzzleUx(Path.of(System.getProperty("chess.android.receipt")));
+    }
+
+    static void publishPuzzleUx(Path receipt) throws Exception {
+        var frames = List.of(
+                new Frame("puzzle-ux-mate-one.png", "Mate in 1 keeps the board fixed with puzzle options open"),
+                new Frame("puzzle-ux-mate-two.png", "Mate in 2 keeps the board fixed with puzzle options open"),
+                new Frame("puzzle-ux-mate-three.png", "Mate in 3 keeps the board fixed with puzzle options open"),
+                new Frame("puzzle-ux-tactics.png", "Tactics keeps the board fixed with puzzle options open"),
+                new Frame("puzzle-ux-training.png", "Tactical training keeps the board fixed with puzzle options open"),
+                new Frame("puzzle-ux-intermezzo.png", "Intermezzo keeps the board fixed with puzzle options open"));
+        var run = boundRun("puzzle-ux", "THEN each chapter keeps the same board with puzzle options open", receipt, frames.size(),
+                frames.stream().map(Frame::title).toList(), "puzzle navigation", frames);
+        publishNativeRuns("puzzle-ux", "Open and close the shared puzzle controls in six chapters", receipt, List.of(run), null);
     }
 
     @Test void publishMatchAnalysisSanity() throws Exception {
