@@ -31,6 +31,8 @@ Pe aceeași fereastră, tabla păstrează poziția și dimensiunea când parcurg
 
 ## Configurarea lecțiilor
 
+Pe [Tabla de analiză](README.md#tablă-de-analiză), indiciile caută continuările după poziția exactă, inclusiv drepturile de rocadă și posibilitatea unei capturi en passant. Mutările din lecții au prioritate, în ordinea catalogului. Urmează continuările susținute de cele mai multe linii din indexul ECO. Pentru fiecare mutare indexată se afișează denumirea cea mai apropiată de poziția rezultată. Eticheta descrie sursa, iar bara continuă să evalueze poziția afișată.
+
 Ordinea elementelor din `openings.yaml` stabilește ordinea din meniu. Fiecare lecție are un ID stabil, cod ECO, sursă HTTPS, titlu, variantă și plan în română și engleză. În `line`, fiecare pas conține mutarea UCI și ideea în ambele limbi. Pentru rocadă se declară mutarea regelui, de exemplu `e1g1`. Motorul reia toate mutările de la poziția inițială și indică lecția și pasul dacă găsește o mutare ilegală. [Catalogul YAML](../../chess-core/src/main/resources/openings.yaml)
 
 La adăugarea unei linii, verificați codul ECO și mutările din sursă. Explicați ce schimbă mutarea pe tablă și ce plan pregătește. Păstrați ID-ul la editarea textului, iar pentru o variantă nouă adăugați o intrare distinctă. Rulați suita de componente pentru ambele culori și proba Android pentru navigare, rejucare și indicii. [Setul ECO Lichess](https://github.com/lichess-org/chess-openings) · [Strategia de testare](../testing/README.md#deschideri)

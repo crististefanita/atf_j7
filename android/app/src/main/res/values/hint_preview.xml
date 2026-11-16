@@ -7,6 +7,10 @@
     <string name="hint_preview_start">Starting position</string>
     <string name="hint_preview_played">%1$s played %2$s</string>
     <string name="hint_preview_checked_reply">Defence · %1$s</string>
+    <string name="hint_theory_caption">%1$s · Theory · %2$s</string>
+    <string name="hint_theory_source">%1$s (%2$s)</string>
+    <string name="hint_theory_index_detail">This continuation is recorded in the opening index.</string>
+    <string name="hint_theory_accessible">Theory move %1$s. %2$s. %3$s</string>
     <string name="hint_preview_step">%1$d/%2$d · %3$s</string>
     <string name="hint_preview_mate">In this line, %1$s gives mate with %2$s.</string>
     <string name="hint_preview_mate_against">The reply delivers mate with %1$s on %2$s.</string>

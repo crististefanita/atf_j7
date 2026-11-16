@@ -350,11 +350,17 @@ mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication
 `AnalysisLineTest` verifică navigarea, ramificarea, mutările speciale și exportul prefixului. Un cursor în istoric poate deschide analiza partidei sursă încheiate dacă linia întreagă îi păstrează mutările. O ramură diferită, o partidă în curs și un mat jucat manual folosesc analiza de studiu. `GameReviewTest` verifică analiza tuturor mutărilor și criteriile Elo. `MatchSlotsTest` verifică locul zece, refuzul la capacitate și respingerea răspunsurilor AI vechi. `MainMenuLayoutTest` acoperă intrarea localizată din meniu.
 
 Pentru Android folosiți `-ManualAnalysisOnly` sau `-IncludeManualAnalysis`.
-Proba deschide tabla din meniu, navighează în varianta sugerată, revine și joacă
-mutarea indicată fără a crea o partidă salvată. Publicați `manual-analysis.txt`
+Proba deschide tabla din meniu și verifică eticheta de teorie, explicația
+deschiderii, revenirea la motor după ieșire și refacerea etichetei la întoarcerea
+în istoric. Captura arată eticheta sub tabla fixă. Ultima verificare joacă
+mutarea indicată fără a crea o partidă salvată. `OpeningTheoryTest` acoperă
+transpozițiile, drepturile de rocadă, continuările dincolo de lecțiile scrise
+și proveniența fiecărei mutări. Publicați `manual-analysis.txt`
 cu `-Dtest=AndroidSanityPublication#publishManualAnalysisSanity` și
 `-Dchess.android.receipt=<cale>`. Raportul are cinci aserțiuni și o captură
-legată de recepție. În rularea combinată, publicatorul Extent confruntă și ID-ul
+legată de recepție. Proba confirmă în PNG toate cele patru colțuri ale tablei.
+Pe API 28, când dimensiunile logice și fizice diferă, captează cadrul fizic
+complet. În rularea combinată, publicatorul Extent confruntă și ID-ul
 fazei de joc din directorul părinte. [Utilizare](../board/README.md#tablă-de-analiză)
 
 `-MatchMenusOnly` rulează cele două meniuri pe aceeași instalare. Pentru probe separate de dezvoltare, folosiți `-MatchSlotsOnly` sau `-MatchArchiveOnly`. Publicați cu `AndroidSanityPublication#publishMatchSlotsSanity` sau `#publishMatchArchiveSanity` și recepția fazei. Extent leagă aserțiunea, captura încorporată și amprenta ei de același pas Android. Identitatea execuției include procesul, commitul și amprenta APK-ului pentru distribuție. [Partide salvate și încheiate](../board/README.md#partidă-cu-calculatorul)

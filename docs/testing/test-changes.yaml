@@ -230,3 +230,53 @@ testChanges:
     test: ro.atf.chess.MatchAiGovernanceTest#frozenOpeningCorpusCoversTheLiveCatalogWithBothColors
     contract: "Keep the frozen positions for existing lessons and add one distinct checkpoint for each new lesson"
     allowDelete: false
+
+  - id: J7-0150-THEORY-NATIVE
+    base: "34f8d68dd6c4edfdcac7c1a313a951ba4e896e30"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/OpeningTheoryTest.java
+    test: ro.atf.chess.OpeningTheoryTest#switchesToTheEngineAtARealExitAndRestoresTheoryFromHistory
+    contract: "Prove theory exit and return in the JVM, then audit native caption colors and read saved puzzle totals on their own screens"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "Returning to theory shows the opening label below the same board"
+
+  - id: J7-0150-THEORY-PUBLISHER
+    base: "34f8d68dd6c4edfdcac7c1a313a951ba4e896e30"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#rejectsManualReceiptWithNoOpeningLabelAssertion
+    contract: "Require the audited theory caption alongside matching APK, run and screenshot"
+    allowDelete: false
+
+  - id: J7-0150-THEORY-RECEIPTS
+    base: "34f8d68dd6c4edfdcac7c1a313a951ba4e896e30"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#rejectsManualReceiptWithNoOpeningLabelAssertion
+    contract: "Reproduce missing theory evidence with a correctly hashed raw receipt"
+    allowDelete: false
+
+  - id: J7-0150-ANDROID-VERSION
+    base: "34f8d68dd6c4edfdcac7c1a313a951ba4e896e30"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the release identity and preserve the documented Android build boundaries"
+    allowDelete: false
+
+  - id: J7-0150-MAVEN-VERSION
+    base: "34f8d68dd6c4edfdcac7c1a313a951ba4e896e30"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the reactor minor version and preserve the documented module structure"
+    allowDelete: false
+
+  - id: J7-0150-TESTS-VERSION
+    base: "34f8d68dd6c4edfdcac7c1a313a951ba4e896e30"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Keep the matching Maven parent and the documented test sources"
+    allowDelete: false

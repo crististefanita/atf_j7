@@ -415,12 +415,15 @@ class AndroidSanityPublication {
     }
 
     static void publishManualAnalysis(Path receipt) throws Exception {
-        var manual = boundRun("manual-analysis", "WHEN exploring the recommended line on the manual board", receipt, 5,
-                List.of(PREVIEW_REPLY, PREVIEW_FRAME, "Returning to the study lets the player apply the hint without saving a match"),
-                "manual analysis", List.of(new Frame("manual-analysis.png", "Suggested reply on the manual board")));
+        var manual = boundRun("manual-analysis", "WHEN entering, leaving and returning to opening theory", receipt, 5,
+                List.of("The manual hint marks a book move and explains its named opening",
+                        "An off-book position shows the engine hint after theory ends",
+                        "Returning to theory shows the opening label below the same board",
+                        "Returning to the study lets the player apply the hint without saving a match"),
+                "opening theory on the manual board", List.of(new Frame("manual-analysis.png", "Opening source below the manual board")));
         Path combined = receipt.toAbsolutePath().getParent().resolveSibling("analysis-prepare.txt");
         var anchor = Files.exists(combined) ? matchPreparation(combined) : null;
-        publishNativeRuns("manual-analysis", "Explore a line and play the hint in a manual study", receipt, List.of(manual), anchor);
+        publishNativeRuns("manual-analysis", "Study an opening and resume engine hints outside theory", receipt, List.of(manual), anchor);
     }
 
     private static void publishNativeRuns(String scope, String scenarioTitle, Path receipt, List<BoundRun> runs, BoundRun anchor) throws Exception {

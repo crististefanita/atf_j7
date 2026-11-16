@@ -7,6 +7,10 @@
     <string name="hint_preview_start">Poziția de plecare</string>
     <string name="hint_preview_played">%1$s a jucat %2$s</string>
     <string name="hint_preview_checked_reply">Apărare · %1$s</string>
+    <string name="hint_theory_caption">%1$s · Teorie · %2$s</string>
+    <string name="hint_theory_source">%1$s (%2$s)</string>
+    <string name="hint_theory_index_detail">Continuarea apare în indexul deschiderilor.</string>
+    <string name="hint_theory_accessible">Mutare de teorie %1$s. %2$s. %3$s</string>
     <string name="hint_preview_step">%1$d/%2$d · %3$s</string>
     <string name="hint_preview_mate">În această variantă, %1$s dă mat cu %2$s.</string>
     <string name="hint_preview_mate_against">Replica dă mat cu piesa %1$s la mutarea %2$s.</string>

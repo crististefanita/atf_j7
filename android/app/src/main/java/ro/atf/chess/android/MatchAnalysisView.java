@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import java.util.StringJoiner;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -65,8 +64,7 @@ final class MatchAnalysisView extends TextView {
     EvaluationBar evaluationBar() { return evaluationBar; }
 
     Move revealedMove() {
-        var revealed = hint == null ? null : hint.revealed();
-        return revealed == null ? null : revealed.move();
+        return hint == null ? null : hint.revealedMove();
     }
 
     Move moveForTap(ChessPosition position, int selected, int square) {
@@ -89,9 +87,9 @@ final class MatchAnalysisView extends TextView {
     }
 
     void show(AnalysisLine line) {
-        var position = line.position();
-        if (line.result() == ChessMatch.Result.IN_PROGRESS) show(position);
-        else show(position, () -> new MatchHint(List.of()), MatchEvaluation.terminalWhiteShare(line.result()));
+        double terminal = line.result() == ChessMatch.Result.IN_PROGRESS
+                ? Double.NaN : MatchEvaluation.terminalWhiteShare(line.result());
+        show(line.position(), line::hint, terminal);
     }
 
     private void show(ChessPosition position, Supplier<MatchHint> search, double terminal) {
@@ -104,7 +102,7 @@ final class MatchAnalysisView extends TextView {
         int currentRequest = request;
         pending = worker.submit(() -> {
             var analyzed = search.get();
-            var evaluation = analyzed.count() == 0 ? null : MatchEvaluation.forPosition(position, analyzed.first());
+            var evaluation = analyzed.evaluation(position);
             post(() -> {
                 if (request != currentRequest) return;
                 pending = null;
@@ -121,7 +119,7 @@ final class MatchAnalysisView extends TextView {
     }
 
     void hideSuggestion() {
-        if (hint == null || hint.revealed() == null) return;
+        if (revealedMove() == null) return;
         hint.hide();
         display();
     }
@@ -143,7 +141,7 @@ final class MatchAnalysisView extends TextView {
     }
 
     private void updateBulb() {
-        boolean revealed = hint != null && hint.revealed() != null;
+        boolean revealed = revealedMove() != null;
         bulb.setEnabled(hint != null);
         bulb.setSelected(revealed);
         bulb.setImageTintList(ColorStateList.valueOf(revealed ? 0xff57e0b4 : hint != null ? 0xffc0bfb4 : 0xff77766d));
@@ -154,6 +152,7 @@ final class MatchAnalysisView extends TextView {
     private void display() {
         var context = getContext();
         var revealed = hint.revealed();
+        var theory = hint.revealedTheory();
         var evaluation = shownEvaluation;
         evaluationBar.setWhiteShare(evaluation.whiteShare());
         String score = switch (evaluation.ending()) {
@@ -168,7 +167,9 @@ final class MatchAnalysisView extends TextView {
         };
         String spokenScore = evaluation.ending() == TacticalAnalysis.Ending.HORIZON
                 ? context.getString(R.string.match_analysis_pawn_units, score) : score;
-        if (revealed == null) {
+        if (theory != null) {
+            displayTheory(score, spokenScore, theory);
+        } else if (revealed == null) {
             setText(score);
             setContentDescription(spokenScore);
             setOnClickListener(null);
@@ -180,14 +181,44 @@ final class MatchAnalysisView extends TextView {
             String choice = hint.count() > 1
                     ? context.getString(R.string.match_analysis_variant, hint.number(), hint.count(), firstMove) : firstMove;
             String action = context.getString(R.string.hint_preview_action, choice);
-            var caption = new SpannableString(score + "\n" + action);
-            caption.setSpan(new ForegroundColorSpan(0xff57e0b4), score.length() + 1, caption.length(), 0);
-            setText(caption);
             String full = context.getString(R.string.match_analysis_variant_spoken, hint.number(), hint.count(), spoken.toString());
-            setContentDescription(spokenScore + ". " + full + ". " + context.getString(R.string.hint_preview_open));
-            setOnClickListener(view -> openPreview());
+            suggestion(score, action, spokenScore + ". " + full + ". " + context.getString(R.string.hint_preview_open), this::openPreview);
         }
         updateBulb();
+    }
+
+    private void displayTheory(String score, String spokenScore, MatchHint.Theory theory) {
+        var context = getContext();
+        var locale = getResources().getConfiguration().getLocales().get(0);
+        String firstMove = ChessActivity.compactNotation(theory.move());
+        String family = theory.family().in(locale);
+        String name = theory.name().in(locale);
+        String source = theory.idea() == null ? name : family + " · " + name;
+        String title = context.getString(R.string.hint_theory_source, source, theory.eco());
+        String action = context.getString(R.string.hint_theory_caption, firstMove, family);
+        String detail = theory.idea() == null ? context.getString(R.string.hint_theory_index_detail)
+                : theory.idea().in(locale);
+        String move = notation.apply(theory.move());
+        String spoken = context.getString(R.string.hint_theory_accessible, move, title, detail);
+        suggestion(score, action, spokenScore + ". " + spoken, () -> openTheory(title, move, detail));
+    }
+
+    private void suggestion(String score, String action, String description, Runnable open) {
+        var caption = new SpannableString(score + "\n" + action);
+        caption.setSpan(new ForegroundColorSpan(0xff57e0b4), score.length() + 1, caption.length(), 0);
+        setText(caption);
+        setContentDescription(description);
+        setOnClickListener(view -> open.run());
+    }
+
+    private void openTheory(String title, String move, String detail) {
+        if (preview != null) return;
+        var screen = new AlertDialog.Builder(getContext()).setTitle(title)
+                .setMessage(move + "\n\n" + detail).setPositiveButton(R.string.hint_preview_return, null).create();
+        preview = screen;
+        screen.setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
+        screen.show();
+        screen.getButton(AlertDialog.BUTTON_POSITIVE).setId(R.id.hint_preview_return);
     }
 
     private void openPreview() {

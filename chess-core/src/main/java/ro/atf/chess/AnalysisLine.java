@@ -1,5 +1,6 @@
 package ro.atf.chess;
 
+import java.util.List;
 import ro.atf.chess.ChessMatch.Result;
 import ro.atf.chess.ChessPosition.Move;
 
@@ -13,6 +14,10 @@ public record AnalysisLine(ChessMatch line, int ply) {
     public ChessPosition position() { return line.positionAt(ply); }
     public Move lastMove() { return line.moveAt(ply); }
     public Result result() { return ply == line.ply() ? line.result() : Result.IN_PROGRESS; }
+
+    public MatchHint hint() {
+        return result() == Result.IN_PROGRESS ? MatchHint.study(position()) : new MatchHint(List.of());
+    }
 
     public boolean preservesCompletedGame(ChessMatch source) {
         return source.result() != Result.IN_PROGRESS && line.checkpoint().equals(source.forAnalysis().checkpoint());

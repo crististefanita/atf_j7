@@ -219,13 +219,34 @@ class AndroidReceiptTest {
         AndroidSanityPublication.publishMatchAnalysis(receipt);
         Path manual = receipt.resolveSibling("manual-analysis").resolve("manual-analysis.txt");
         AndroidSanityPublication.publishManualAnalysis(manual);
-        for (var result : List.of(analysisReport(receipt, "match-analysis"), analysisReport(manual, "manual-analysis"))) {
+        var scenarios = List.of(analysisReport(receipt, "match-analysis"), analysisReport(manual, "manual-analysis"));
+        var required = List.of("Next shows the calculated reply", "Returning to theory shows the opening label");
+        for (int index = 0; index < scenarios.size(); index++) {
+            var result = scenarios.get(index);
             check.same("Extent renders a PASS scenario with the native comparison and one bound PNG", true,
                     result.select("li.test-item[status=pass]").size() == 1
                             && result.select("a[href^=data:image/png;base64]").size() == 1
-                            && result.select(".atf-ui-assertions").text().contains("Next shows the calculated reply")
+                            && result.select(".atf-ui-assertions").text().contains(required.get(index))
                             && result.text().contains("1".repeat(32)));
         }
+    }
+
+    @Test void rejectsManualReceiptWithNoOpeningLabelAssertion(Checks check) throws Exception {
+        Path receipt = analysisFixture("manual-missing-theory", "1".repeat(32), "1".repeat(32));
+        Path manual = receipt.resolveSibling("manual-analysis").resolve("manual-analysis.txt");
+        Files.writeString(manual, Files.readString(manual).replace(
+                "Returning to theory shows the opening label below the same board", "An unrelated comparison is visible"));
+        Path metadata = manual.resolveSibling("execution.json");
+        var json = new ObjectMapper();
+        var execution = (com.fasterxml.jackson.databind.node.ObjectNode) json.readTree(metadata.toFile());
+        execution.put("receiptSha256", ReleaseEvidence.digest(manual));
+        json.writeValue(metadata.toFile(), execution);
+        check.rejects("Missing native theory evidence fails publication", AssertionError.class,
+                () -> AndroidSanityPublication.publishManualAnalysis(manual));
+        var report = analysisReport(manual, "manual-analysis");
+        check.same("A correctly hashed unrelated assertion cannot qualify the native theory report", true,
+                report.select("li.test-item[status=fail]").size() == 1
+                        && report.text().contains("Missing or duplicate opening theory on the manual board checks"));
     }
 
     @Test void archivedHintsRejectChangedReportsCapturesAndForeignPhases(Checks check) throws Exception {
@@ -410,8 +431,10 @@ class AndroidReceiptTest {
                 "The suggested line and its navigation are visible with a fixed preview board");
         var prepare = new java.util.ArrayList<>(preview);
         prepare.add("Returning to history preserves the selected move and the saved game");
-        var manual = new java.util.ArrayList<>(preview);
-        manual.add("Returning to the study lets the player apply the hint without saving a match");
+        var manual = List.of("The manual hint marks a book move and explains its named opening",
+                "An off-book position shows the engine hint after theory ends",
+                "Returning to theory shows the opening label below the same board",
+                "Returning to the study lets the player apply the hint without saving a match");
         writeReviewRun(directory, "analysis-prepare", 111, 5, identity, prepare, List.of("match-analysis"), 4);
         writeReviewRun(Files.createDirectory(directory.resolve("analysis-restore")), "analysis-restore", 222, 2, identity.withRunId(restoreRun),
                 List.of("The reopened match analyzes its live position with the hint hidden"), List.of(), 5);

@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Predicate;
+import ro.atf.chess.AnalysisLine;
 import ro.atf.chess.BoardSquare;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition;
@@ -254,22 +255,59 @@ public final class BoardSanity extends Instrumentation {
         var board = findBoard(viewsOf(study));
         compare("Home opens the manual board without creating a saved game", true,
                 cell(board, "e2").isEnabled() && store.matches().readMatch() == null && awaitHiddenAnalysis(study, 0));
-        var firstMove = ChessPosition.Move.fromUci("e2e4");
-        playMove(board, firstMove);
-        var root = ChessPosition.initial().play(firstMove);
-        var hint = ro.atf.chess.MatchHint.analyze(root);
-        hint.revealNext();
-        var preview = hint.playback(root).orElseThrow();
-        boolean analyzedBlackReply = awaitHiddenAnalysis(study, 1);
+        var match = ChessMatch.restore("2|analysis|e2e4 e7e5 g1f3 b8c6 f1c4 a7a5");
+        playMove(board, match.moveAt(1));
+        boolean ready = awaitHiddenAnalysis(study, 1);
         tap(study.findViewById(R.id.match_hint));
-        compare("The manual hint marks the recommended first move", true,
-                analyzedBlackReply && preview.lines().size() == 1 && hintShown(study, board, hint));
-        checkHintPreview(study, "manual-analysis", root, preview);
-        var destination = hint.revealed().move().to();
-        tap(cell(board, BoardSquare.name(destination)));
+        var theory = revealedTheory(match, 1);
+        boolean labelled = ready && theoryShown(study, board, theory);
+        tap(study.findViewById(R.id.match_analysis));
+        var locale = study.getResources().getConfiguration().getLocales().get(0);
+        var title = study.getString(R.string.hint_theory_source, theory.family().in(locale) + " · " + theory.name().in(locale), theory.eco());
+        boolean explained = dialogNode(title, AccessibilityNodeInfo::isVisibleToUser, 3500) != null
+                && dialogNode(theory.idea().in(locale), AccessibilityNodeInfo::isVisibleToUser, 3500) != null;
+        clickReviewIcon(R.id.hint_preview_return);
+        compare("The manual hint marks a book move and explains its named opening", true, labelled && explained);
+
+        for (int ply = 2; ply <= match.ply(); ply++) playMove(board, match.moveAt(ply));
+        var offBook = match.position();
+        var engine = ro.atf.chess.MatchHint.analyze(offBook);
+        engine.revealNext();
+        boolean readyOutside = awaitHiddenAnalysis(study, 6);
+        tap(study.findViewById(R.id.match_hint));
+        compare("An off-book position shows the engine hint after theory ends", true, readyOutside && hintShown(study, board, engine));
+
         var history = (ViewGroup) study.findViewById(R.id.match_history_moves);
+        var bounds = screenBounds(board);
+        runOnMainSync(() -> history.getChildAt(5).performClick());
+        boolean readyInHistory = awaitHiddenAnalysis(study, 5);
+        tap(study.findViewById(R.id.match_hint));
+        var restored = revealedTheory(match, 5);
+        boolean restoredSource = readyInHistory && theoryShown(study, board, restored);
+        replayCapture = displayCaptureGeometry();
+        captureFrame("manual-analysis", "Returning to theory shows the opening label below the same board",
+                image -> restoredSource && bounds.equals(screenBounds(board)) && hintBoardCornersAreRendered(image, bounds)
+                        && hasColor(image, study.findViewById(R.id.match_analysis), 0xff57e0b4, 20));
+        tap(cell(board, BoardSquare.name(restored.move().to())));
         compare("Returning to the study lets the player apply the hint without saving a match", true,
-                history.getChildCount() == 3 && history.getChildAt(2).isSelected() && store.matches().readMatch() == null);
+                history.getChildCount() == 7 && history.getChildAt(6).isSelected() && store.matches().readMatch() == null
+                        && cell(board, "c5").getContentDescription().toString().contains(study.getString(R.string.bishop)));
+    }
+
+    private static ro.atf.chess.MatchHint.Theory revealedTheory(ChessMatch match, int ply) {
+        var hint = new AnalysisLine(match, ply).hint();
+        hint.revealNext();
+        return hint.revealedTheory();
+    }
+
+    private static boolean theoryShown(Activity activity, BoardView board, ro.atf.chess.MatchHint.Theory theory) {
+        var locale = activity.getResources().getConfiguration().getLocales().get(0);
+        String expected = activity.getString(R.string.hint_theory_caption, ChessActivity.compactNotation(theory.move()), theory.family().in(locale));
+        TextView caption = activity.findViewById(R.id.match_analysis);
+        var destination = cell(board, BoardSquare.name(theory.move().to()));
+        return caption.isClickable() && caption.getText().toString().endsWith("\n" + expected)
+                && String.valueOf(caption.getContentDescription()).contains(theory.eco())
+                && destination.getContentDescription().toString().endsWith(activity.getString(R.string.hint_destination, ""));
     }
     private static boolean hasPawn(Activity activity, BoardView board, String square) {
         return cell(board, square).getContentDescription().toString().contains(activity.getString(R.string.pawn));
@@ -952,7 +990,9 @@ public final class BoardSanity extends Instrumentation {
         String positionScore = analysisText.getText().toString();
         tap(bulb);
         captureFrame("opening-ai", "The AI recommendation keeps the calibrated position score and the previous-move explanation visible",
-                image -> bulb.isSelected() && hasTwoRenderedLines(image, analysisText) && positionScore.startsWith("+0")
+                image -> bulb.isSelected() && positionScore.startsWith("+0")
+                        && hasColor(image, analysisText, analysisText.getCurrentTextColor(), 12)
+                        && hasColor(image, analysisText, HINT_TINT, 12)
                         && analysisText.getText().toString().startsWith(positionScore + "\n")
                         && explanation.getText().toString().startsWith("1… " + lesson.getString(R.string.solution_move, "e7", "e5")));
         tap(cell(board, "f3"));
@@ -1172,16 +1212,19 @@ public final class BoardSanity extends Instrumentation {
         clickDialog(activity.getString(android.R.string.ok));
         checkDefenseStudy(activity);
         leavePuzzle(activity);
-        var menu = viewsOf(activity);
+        var home = viewsOf(activity);
         var quests = new ChessProgressStore(getTargetContext()).quests();
         var tacticIds = new ArrayList<String>();
         for (var tactic : tactics) tacticIds.add(tactic.id());
         var totals = quests.readRewards().summarize(tacticIds, quests.read(tacticIds));
         int totalQuests = CATALOG_SIZE + MATE_TWO_SIZE + MATE_THREE_SIZE + TACTICS_SIZE
                 + QuestCatalog.loadTraining().size() + QuestCatalog.loadIntermezzo().size();
-        compare("The puzzle menu displays the saved chapter and overall totals", true,
-                hasText(menu, activity.getString(R.string.chapter_totals, totals.solved(), totals.total(), totals.points()))
-                        && hasText(menu, activity.getString(R.string.all_quest_totals, totals.solved(), totalQuests, totals.points())));
+        String overall = activity.getString(R.string.all_quest_totals, totals.solved(), totalQuests, totals.points());
+        boolean overallAtHome = hasText(home, overall);
+        openPuzzles(activity);
+        var menu = viewsOf(activity);
+        compare("The puzzle menu displays the saved chapter and overall totals", true, overallAtHome && hasText(menu, overall)
+                && hasText(menu, activity.getString(R.string.chapter_totals, totals.solved(), totals.total(), totals.points())));
     }
 
     private void checkTacticsExplanation() throws Exception {
@@ -2568,21 +2611,6 @@ public final class BoardSanity extends Instrumentation {
         int[] xy = new int[2];
         view.getLocationOnScreen(xy);
         return new Rect(xy[0], xy[1], xy[0] + view.getWidth(), xy[1] + view.getHeight());
-    }
-
-    private static boolean hasTwoRenderedLines(Bitmap image, TextView text) {
-        var bounds = screenBounds(text);
-        int color = text.getCurrentTextColor();
-        int firstTextRow = -1;
-        for (int y = Math.max(0, bounds.top); y < Math.min(image.getHeight(), bounds.bottom); y++) {
-            for (int x = Math.max(0, bounds.left); x < Math.min(image.getWidth(), bounds.right); x++) {
-                if (image.getPixel(x, y) != color) continue;
-                if (firstTextRow < 0) firstTextRow = y;
-                if (y - firstTextRow >= text.getLineHeight()) return true;
-                break;
-            }
-        }
-        return false;
     }
 
     private void captureFrame(String name, String assertion, Predicate<Bitmap> rendered) throws IOException {

@@ -4,9 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import ro.atf.chess.ChessPosition.Move;
+import ro.atf.chess.OpeningCatalog.Text;
 
 /** A reveal cursor for the best continuations of one analyzed position. */
 public final class MatchHint {
+    public record Theory(Move move, String eco, Text family, Text name, Text idea) { }
+
     /** A stable preview of the current recommendation. Scores are comparable only at the supplied depth. */
     public record Playback(List<TacticalAnalysis.Variation> lines, int depth, ChessPosition.Move selected,
                            List<TacticalAnalysis.Variation> scoredLines) {
@@ -26,6 +30,7 @@ public final class MatchHint {
     private final List<TacticalAnalysis.Variation> lines;
     private final ChessPosition position;
     private final TacticalAnalysis.SearchReport comparison;
+    private final List<Theory> theory;
     private int index = -1;
 
     public MatchHint(List<TacticalAnalysis.Variation> lines) {
@@ -33,14 +38,24 @@ public final class MatchHint {
     }
 
     MatchHint(ChessPosition position, List<TacticalAnalysis.Variation> lines, TacticalAnalysis.SearchReport comparison) {
+        this(position, lines, comparison, List.of());
+    }
+
+    private MatchHint(ChessPosition position, List<TacticalAnalysis.Variation> lines, TacticalAnalysis.SearchReport comparison, List<Theory> theory) {
         this.position = position;
         this.lines = Collections.unmodifiableList(new ArrayList<>(lines));
         this.comparison = comparison;
+        this.theory = theory;
     }
 
     public static MatchHint analyze(ChessPosition position) {
         var search = TacticalAnalysis.verifiedHints(position);
         return new MatchHint(position, defendedChoices(position, search.lines()), search.comparison());
+    }
+
+    static MatchHint study(ChessPosition position) {
+        var choices = OpeningTheory.CURRENT.choices(position);
+        return choices.isEmpty() ? analyze(position) : new MatchHint(position, List.of(), null, choices);
     }
 
     static List<TacticalAnalysis.Variation> defendedChoices(ChessPosition position, List<TacticalAnalysis.Variation> ranked) {
@@ -65,10 +80,24 @@ public final class MatchHint {
     }
 
     List<TacticalAnalysis.Variation> lines() { return lines; }
-    public int count() { return lines.size(); }
+    public int count() { return theory.isEmpty() ? lines.size() : theory.size(); }
     public int number() { return index + 1; }
     public TacticalAnalysis.Variation first() { return lines.get(0); }
-    public TacticalAnalysis.Variation revealed() { return index < 0 ? null : lines.get(index); }
+    public TacticalAnalysis.Variation revealed() { return index < 0 || lines.isEmpty() ? null : lines.get(index); }
+
+    public Theory revealedTheory() { return index < 0 || theory.isEmpty() ? null : theory.get(index); }
+
+    public Move revealedMove() {
+        var opening = revealedTheory();
+        if (opening != null) return opening.move();
+        var line = revealed();
+        return line == null ? null : line.move();
+    }
+
+    public MatchEvaluation evaluation(ChessPosition position) {
+        if (count() == 0) return null;
+        return theory.isEmpty() ? MatchEvaluation.forPosition(position, first()) : MatchEvaluation.forTheory(position);
+    }
 
     public Optional<HintPreview> preview(ChessPosition position) {
         var line = revealed();
@@ -116,16 +145,16 @@ public final class MatchHint {
     }
 
     public ChessPosition.Move moveForTap(ChessPosition position, int selected, int square) {
-        var line = revealed();
-        if (selected >= 0 || line == null || line.move().to() != square || !matches(position)) return null;
-        var move = line.move();
+        var move = revealedMove();
+        if (selected >= 0 || move == null || move.to() != square || !matches(position)) return null;
         return position.legalMovesFrom(move.from()).contains(move) ? move : null;
     }
 
     public void hide() { index = -1; }
 
     public void revealNext() {
-        if (!lines.isEmpty()) index = (index + 1) % lines.size();
+        int size = count();
+        if (size > 0) index = (index + 1) % size;
     }
 
     private boolean matches(ChessPosition board) { return position == null || position == board; }

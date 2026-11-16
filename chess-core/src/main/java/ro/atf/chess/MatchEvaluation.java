@@ -8,8 +8,16 @@ import ro.atf.chess.ChessPosition.Side;
 public record MatchEvaluation(TacticalAnalysis.Ending ending, int whiteCentipawns, int whiteMateMoves) {
     public static MatchEvaluation forPosition(ChessPosition position, TacticalAnalysis.Variation best) {
         if (best.ending() != TacticalAnalysis.Ending.HORIZON) return from(position.turn(), best);
+        return estimate(position, best.score());
+    }
+
+    static MatchEvaluation forTheory(ChessPosition position) {
+        return estimate(position, TacticalAnalysis.positionValue(position, position.turn()));
+    }
+
+    private static MatchEvaluation estimate(ChessPosition position, int fallback) {
         int perspective = position.turn() == Side.WHITE ? 1 : -1;
-        return new MatchEvaluation(best.ending(), perspective * TacticalAnalysis.positionEstimate(position, best.score()), 0);
+        return new MatchEvaluation(TacticalAnalysis.Ending.HORIZON, perspective * TacticalAnalysis.positionEstimate(position, fallback), 0);
     }
 
     public static MatchEvaluation from(Side turn, TacticalAnalysis.Variation variation) {

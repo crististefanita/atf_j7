@@ -16,10 +16,12 @@ final class OpeningIndex {
     static final OpeningIndex CURRENT = load();
 
     record Match(GameReview.Opening opening, int bookPlies) { }
+    record BookLine(GameReview.Opening opening, List<String> moves) { }
     private record Entry(ChessPosition position, GameReview.Opening name) { }
 
     private final Set<String> prefixes = new HashSet<>();
     private final Map<Integer, List<Entry>> named = new HashMap<>();
+    private final List<BookLine> lines = new ArrayList<>();
     private int longest;
 
     private static OpeningIndex load() {
@@ -46,8 +48,10 @@ final class OpeningIndex {
         }
         var position = ChessPosition.fromFen(fields[2] + " 0 1");
         var entries = named.computeIfAbsent(boardHash(position), ignored -> new ArrayList<>());
-        entries.add(new Entry(position, new GameReview.Opening(fields[0], fields[1])));
+        var opening = new GameReview.Opening(fields[0], fields[1]);
+        entries.add(new Entry(position, opening));
         var moves = fields[3].split(" ");
+        lines.add(new BookLine(opening, List.of(moves)));
         longest = Math.max(longest, moves.length);
         var prefix = new StringBuilder();
         for (String move : moves) {
@@ -55,6 +59,8 @@ final class OpeningIndex {
             prefixes.add(prefix.append(move).toString());
         }
     }
+
+    List<BookLine> lines() { return List.copyOf(lines); }
 
     Match recognize(ChessMatch match) {
         int limit = Math.min(match.ply(), longest);
