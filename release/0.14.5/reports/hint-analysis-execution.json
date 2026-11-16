@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "runId": "bd4670e177374d4cac0e8fdbd47a1b50",
+  "sourceCommit": "2eed6faa1d2e790e319ad1188b98c58076e59dc5",
+  "apkSha256": "e6ed3faadc1556705380d88210aa080f77a770f406c38b5407db9ae7a8344fa3",
+  "assertions": 12,
+  "phases": {
+    "analysis-prepare": {
+      "execution": {
+        "status": "PASS",
+        "scope": "analysis-prepare",
+        "device": "emulator-5560",
+        "api": "28",
+        "apkSha256": "e6ed3faadc1556705380d88210aa080f77a770f406c38b5407db9ae7a8344fa3",
+        "sourceCommit": "2eed6faa1d2e790e319ad1188b98c58076e59dc5",
+        "variant": "release",
+        "assertions": 5,
+        "receiptSha256": "007931c9b71acbfd84cdbd26b66e51e0510f6eb926b39a40e3661f10d9b3ace4",
+        "captureSha256": {
+          "match-analysis.png": "b4444a1c193cd46c97bb58227f1e58afcc56f88cb05c840491dee359141d60a8"
+        },
+        "runId": "bd4670e177374d4cac0e8fdbd47a1b50"
+      },
+      "report": "android-match-analysis.html",
+      "extentSha256": "565b24f7dd6d236171e8af3e121a03a5aa41c25914b5a7134926b4bf2b9b52ee"
+    },
+    "analysis-restore": {
+      "execution": {
+        "status": "PASS",
+        "scope": "analysis-restore",
+        "device": "emulator-5560",
+        "api": "28",
+        "apkSha256": "e6ed3faadc1556705380d88210aa080f77a770f406c38b5407db9ae7a8344fa3",
+        "sourceCommit": "2eed6faa1d2e790e319ad1188b98c58076e59dc5",
+        "variant": "release",
+        "assertions": 2,
+        "receiptSha256": "97e620d76d6e11d1ded75426169a09874270f3bdbe09b7b658beab379c667dbb",
+        "captureSha256": {},
+        "runId": "bd4670e177374d4cac0e8fdbd47a1b50"
+      }
+    },
+    "manual-analysis": {
+      "execution": {
+        "status": "PASS",
+        "scope": "manual-analysis",
+        "device": "emulator-5560",
+        "api": "28",
+        "apkSha256": "e6ed3faadc1556705380d88210aa080f77a770f406c38b5407db9ae7a8344fa3",
+        "sourceCommit": "2eed6faa1d2e790e319ad1188b98c58076e59dc5",
+        "variant": "release",
+        "assertions": 5,
+        "receiptSha256": "24dacb928661a1fd5729e3cf23168e7e1ec5c04bba3a3d3af31faa0c236e5e5d",
+        "captureSha256": {
+          "manual-analysis.png": "a0ac07e291a49a1fcfdfac31ea956dab16cd77e9f3208c87053725d44ed46795"
+        },
+        "runId": "bd4670e177374d4cac0e8fdbd47a1b50"
+      },
+      "report": "android-manual-analysis.html",
+      "extentSha256": "99ac22ec05612c326da3aa91b9c1466f781dd9e35625e03955c1a536418db891"
+    }
+  }
+}
