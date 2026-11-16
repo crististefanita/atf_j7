@@ -14,7 +14,63 @@ export function boardKeyIndex(key, index) {
 }
 
 export function studyMarkers(marks = []) {
-    return new Map(marks.map(marker => typeof marker === 'string' ? [marker, 'hint'] : [marker.square, marker.kind]));
+    const [origin, destination] = marks.filter(marker => typeof marker === 'string');
+    const danger = marks.find(marker => marker.kind === 'danger')?.square;
+    return { origin, destination, danger };
+}
+
+export function studyArrow(origin, destination, blackBelow) {
+    const square = /^[a-h][1-8]$/;
+    if (!square.test(origin) || !square.test(destination) || origin === destination) return null;
+    const center = name => {
+        const column = 'abcdefgh'.indexOf(name[0]);
+        const row = 8 - Number(name[1]);
+        return blackBelow ? [7.5 - column, 7.5 - row] : [column + .5, row + .5];
+    };
+    const [x, y] = center(origin);
+    const [endX, endY] = center(destination);
+    const dx = endX - x;
+    const dy = endY - y;
+    // Match the proportions in Android BoardView. Each square is one SVG unit.
+    const tip = Math.hypot(dx, dy) - .28;
+    const head = tip - .17;
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    return {
+        transform: `translate(${x} ${y}) rotate(${angle})`,
+        path: `M .31 -.029 H ${head} V -.106 L ${tip} 0 L ${head} .106 V .029 H .31 Z`,
+    };
+}
+
+export function mountStudyArrow(host) {
+    const namespace = 'http://www.w3.org/2000/svg';
+    const overlay = host.ownerDocument.createElementNS(namespace, 'svg');
+    overlay.setAttribute('class', 'study-arrow');
+    overlay.setAttribute('viewBox', '0 0 8 8');
+    overlay.setAttribute('aria-hidden', 'true');
+    const path = host.ownerDocument.createElementNS(namespace, 'path');
+    overlay.append(path);
+    return (origin, destination, blackBelow) => {
+        const arrow = studyArrow(origin, destination, blackBelow);
+        if (!arrow) {
+            overlay.remove();
+            return;
+        }
+        path.setAttribute('d', arrow.path);
+        path.setAttribute('transform', arrow.transform);
+        if (overlay.parentNode !== host) host.append(overlay);
+    };
+}
+
+const markerLabels = {
+    en: ['legal destination', 'hinted piece', 'solution destination', 'danger'],
+    ro: ['destinație legală', 'piesa indicată', 'destinația soluției', 'pericol'],
+};
+
+export function studySquareDescription(description, locale, { target, origin, destination, danger }) {
+    const labels = markerLabels[locale] ?? markerLabels.en;
+    const flags = [target, origin, destination, danger];
+    const details = labels.filter((_, index) => flags[index]);
+    return [description, ...details].join(', ');
 }
 
 export function bindBoardSelection(host, select) {

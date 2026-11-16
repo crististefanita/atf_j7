@@ -7,7 +7,7 @@
   margin-inline: auto;
 }
 
-.opening-study button { min-block-size: 2.75rem; }
+.opening-study button:not(.square) { min-block-size: 2.75rem; }
 .opening-header, .opening-navigation, .opening-actions {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -41,24 +41,27 @@
 .opening-navigation > :nth-child(2) { overflow-wrap: anywhere; }
 .opening-navigation > button:nth-child(2) { min-block-size: 2.8rem; }
 .opening-columns { display: grid; gap: .35rem; min-inline-size: 0; }
-.opening-panel { min-inline-size: 0; }
-.opening-panel .board { max-inline-size: 30rem; }
+.opening-panel {
+  --opening-meter-width: 8px;
+  --opening-meter-gap: 5px;
+  min-inline-size: 0;
+  inline-size: min(100%, calc(30rem + var(--opening-meter-width) + var(--opening-meter-gap)));
+  margin-inline: auto;
+}
 .opening-seat {
   margin: .25rem 0;
+  margin-inline-start: calc(var(--opening-meter-width) + var(--opening-meter-gap));
   color: var(--opening-muted);
   font-size: .83rem;
 }
 .opening-seat.moving { color: var(--opening-accent); }
 .opening-board-row {
-  display: flex;
-  align-items: center;
-  gap: .28rem;
+  display: grid;
+  grid-template-columns: var(--opening-meter-width) minmax(0, 1fr);
+  column-gap: var(--opening-meter-gap);
 }
-.opening-board-row .board { flex: 1 1 auto; }
 .opening-evaluation-bar {
-  flex: 0 0 .7rem;
-  inline-size: .7rem;
-  block-size: clamp(5rem, 35vmin, 12rem);
+  align-self: stretch;
   border: 1px solid #77756c;
   background: #48463f;
 }
@@ -68,10 +71,29 @@
 }
 .opening-evaluation-bar[data-black-below] { --opening-white-direction: to bottom; }
 .opening-message {
-  min-block-size: 3lh;
-  margin: .3rem 0;
+  min-inline-size: 0;
+  background: transparent;
+  border-color: transparent;
+  text-align: center;
+}
+.opening-message-text, .opening-message-full {
   white-space: pre-line;
   overflow-wrap: anywhere;
+}
+.opening-message-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  block-size: 3lh;
+  overflow: hidden;
+}
+.opening-message-announcement {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  margin: 0;
 }
 .opening-message.off-line, .opening-error { color: #ffbc78; }
 .opening-controls { display: grid; align-content: start; gap: .45rem; min-inline-size: 0; text-align: center; }

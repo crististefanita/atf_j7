@@ -1,6 +1,6 @@
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
 import { createHomeMenu, homeLabels, homeLocale } from './home-menu.mjs';
-import { bindBoardSelection, boardPlacement, studyMarkers } from './study-board.mjs';
+import { bindBoardSelection, boardPlacement, mountStudyArrow, studyMarkers, studySquareDescription } from './study-board.mjs';
 import { createQuestStudy } from './study-quests.mjs';
 import { createOpeningStudy } from './study-openings.mjs';
 import { createAnalysisStudy } from './study-analysis.mjs';
@@ -307,21 +307,26 @@ function createStudyBoard(host, onSquare) {
     host.classList.add('board', 'study-board');
     host.setAttribute('role', 'group');
     const cells = buildBoard(host, true);
+    const drawArrow = mountStudyArrow(host);
     bindBoardSelection(host, onSquare);
     return { render(state) {
         const targets = new Set(state.targets ?? []);
-        const marks = studyMarkers(state.marks ?? []);
-        orientBoard(host, cells, state.blackBelow === true);
+        const { origin, destination, danger } = studyMarkers(state.marks);
+        const blackBelow = state.blackBelow === true;
+        orientBoard(host, cells, blackBelow);
         drawBoard(host, cells, { ...state, fen: state.board ?? state.fen });
         for (const [square, { cell }] of cells) {
             const selected = square === state.selected;
+            const markers = { target: targets.has(square), origin: square === origin, destination: square === destination, danger: square === danger };
             cell.toggleAttribute('data-selected', selected);
-            cell.toggleAttribute('data-target', targets.has(square));
-            cell.toggleAttribute('data-study-hint', marks.get(square) === 'hint');
-            cell.toggleAttribute('data-study-danger', marks.get(square) === 'danger');
+            cell.toggleAttribute('data-target', markers.target);
+            cell.toggleAttribute('data-study-hint', markers.origin);
+            cell.toggleAttribute('data-study-danger', markers.danger);
+            cell.setAttribute('aria-label', studySquareDescription(cell.getAttribute('aria-label'), locale, markers));
             cell.setAttribute('aria-pressed', String(selected));
             cell.setAttribute('aria-disabled', String(state.locked === true));
         }
+        drawArrow(origin, destination, blackBelow);
     } };
 }
 
