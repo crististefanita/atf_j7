@@ -134,7 +134,11 @@ final class WebChessGame {
         return state("APPLIED");
     }
 
-    private String state(String outcome) {
+    String importLegacyReview(String id, ChessMatch match, String review, String bookmark, String digest) {
+        return state(ledger.importLegacyReview(id, match, review, bookmark, digest) ? "MIGRATED" : "SKIPPED");
+    }
+
+    String state(String outcome) {
         var matches = matches();
         var saved = new StringBuilder("[");
         for (int number : matches.savedMatchSlots()) {
@@ -157,6 +161,7 @@ final class WebChessGame {
                 .append(",\"humanSide\":").append(quote(match.setup().humanSide().name()))
                 .append(",\"level\":").append(quote(entry.opponent().name())).append(",\"ply\":").append(entry.moves())
                 .append(",\"status\":").append(quote(entry.status().name())).append(",\"result\":").append(quote(match.result().name()))
+                .append(",\"reviewed\":").append(entry.reviewed())
                 .append(",\"timestamp\":").append(entry.timestamp()).append('}');
     }
 
@@ -189,7 +194,7 @@ final class WebChessGame {
         moves.append(move(value));
     }
 
-    private MatchStore matches() {
+    MatchStore matches() {
         if (ledger == null) throw new IllegalStateException("Open the match library first");
         return ledger.matches();
     }

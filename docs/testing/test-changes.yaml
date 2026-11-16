@@ -500,3 +500,10 @@ testChanges:
     test: ro.atf.chess.MatchStoreTest#migratesMixedLegacySlotsOnceWhileKeepingDamagedEntriesOutOfBothMenus
     contract: "Keep mixed legacy migration and list separation covered in both adapters"
     allowDelete: false
+  - id: J7-ARCHIVE-REVIEW-BROWSER-SUITE
+    base: "25a8114d7345b7c845066cc603449859675d213a"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Run browser archive receipts separately while covering ownership and restoration in the component suite"
+    allowDelete: false

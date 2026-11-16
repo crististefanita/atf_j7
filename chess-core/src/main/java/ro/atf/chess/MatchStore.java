@@ -10,6 +10,8 @@ import ro.atf.chess.GameReviewTimeline.Snapshot;
 
 /** Persists match slots and finished games through one atomic preferences transaction per change. */
 public final class MatchStore {
+    private static final String LEGACY_REVIEW_CHECKED = "legacy-web-review-checked";
+
     public interface Preferences {
         String getString(String key, String fallback);
         boolean getBoolean(String key, boolean fallback);
@@ -250,6 +252,72 @@ public final class MatchStore {
         if (!matchesArchivedCheckpoint(id, match)) return false;
         String encoded = GameReviewBookmark.encode(id, match, snapshot);
         return encoded != null && preferences.edit().putString(archiveKey(id, REVIEW_BOOKMARK), encoded).commit();
+    }
+
+    record ReviewRecord(String review, String bookmark) { }
+
+    ReviewRecord readReviewRecord(String id) {
+        if (!hasArchived(id)) return null;
+        return new ReviewRecord(readArchiveText(id, "review"), readArchiveText(id, REVIEW_BOOKMARK));
+    }
+
+    boolean saveReviewRecord(String id, ChessMatch match, String review, String digest) {
+        if (!matchesArchivedCheckpoint(id, match) || !validReview(match, review, digest)) return false;
+        if (validReview(match, readArchiveText(id, "review"), digest)) return false;
+        return preferences.edit().putString(archiveKey(id, "review"), review).remove(archiveKey(id, REVIEW_BOOKMARK)).commit();
+    }
+
+    boolean saveReviewBookmark(String id, ChessMatch match, Snapshot snapshot, String digest) {
+        if (!matchesArchivedCheckpoint(id, match) || !validReview(match, readArchiveText(id, "review"), digest)) return false;
+        String encoded = GameReviewBookmark.encode(id, match, snapshot, digest);
+        return encoded != null && preferences.edit().putString(archiveKey(id, REVIEW_BOOKMARK), encoded).commit();
+    }
+
+    boolean importLegacyReview(String oldId, ChessMatch match, String review, String bookmark, String digest) {
+        if (preferences.getBoolean(LEGACY_REVIEW_CHECKED, false)) return false;
+        var edit = preferences.edit().putBoolean(LEGACY_REVIEW_CHECKED, true);
+        String id = null;
+        if (match != null && match.result() != ChessMatch.Result.IN_PROGRESS && validReview(match, review, digest)) {
+            id = uniqueArchiveId(match);
+        }
+        if (id != null && readArchiveText(id, "review") == null) {
+            edit.putString(archiveKey(id, "review"), review);
+            var snapshot = GameReviewBookmark.decode(oldId, match, bookmark, digest);
+            if (snapshot != null) edit.putString(archiveKey(id, REVIEW_BOOKMARK), GameReviewBookmark.encode(id, match, snapshot, digest));
+        } else {
+            id = null;
+        }
+        if (!edit.commit()) throw new IllegalStateException("The legacy review check could not be saved");
+        return id != null;
+    }
+
+    private String uniqueArchiveId(ChessMatch match) {
+        String found = null;
+        String checkpoint = match.checkpoint();
+        for (String id : archiveOrder()) {
+            if (!checkpoint.equals(readArchiveText(id, "checkpoint"))) continue;
+            if (found != null) return null;
+            found = id;
+        }
+        return found;
+    }
+
+    private String readArchiveText(String id, String field) {
+        try {
+            return preferences.getString(archiveKey(id, field), null);
+        } catch (ClassCastException invalid) {
+            return null;
+        }
+    }
+
+    private static boolean validReview(ChessMatch match, String review, String digest) {
+        if (review == null || digest == null) return false;
+        try {
+            GameReviewCodec.decodeLine(match, review, digest);
+            return true;
+        } catch (IllegalArgumentException invalid) {
+            return false;
+        }
     }
 
     private boolean matchesArchivedCheckpoint(String id, ChessMatch match) {

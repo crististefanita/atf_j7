@@ -48,6 +48,20 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebLedgerPublication' "-Dchess.web.b
 
 Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.ledger.public=true` la publicarea Extent.
 
+### Reluarea analizei unei partide arhivate
+
+Din **Partide încheiate**, deschideți partida și alegeți **Analizează partida**. Prima deschidere salvează analiza sub ID-ul partidei și checkpointul ei. **Deschide analiza** păstrează mutarea, ramura, pasul și starea **De ce?**, inclusiv după reîncărcarea paginii. Ștergerea intrării la limita de zece partide elimină și analiza asociată. O analiză din formatul anterior se atașează automat o singură dată, când checkpointul identifică exact o intrare. Analizele independente rămân disponibile din Game Review. [Probe de componentă](../docs/testing/README.md#reluarea-game-review-pe-android-și-web)
+
+Proba Edge calculează două analize distincte cu workerul real și verifică ambele poziții după reîncărcare. Folosiți un director nou pentru dovezi, inclusiv când validați destinația publică.
+
+```powershell
+node ./web/tests/browser-game-review.mjs $site --archives $evidence $edge
+$receipt = Join-Path $evidence 'web-receipt.json'
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveReviewsPublication' "-Dchess.web.bundle=$site" "-Dchess.web.archive.reviews.receipt=$receipt"
+```
+
+Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.archive.reviews.public=true` la publicarea Extent.
+
 ## Partida locală și o analiză nouă
 
 **Partidă locală** permite mutările ambelor culori și oferă alegerea piesei la promovare. Workerul validează fiecare mutare. Pagina salvează checkpointul canonic înainte de a afișa poziția rezultată. Reîncărcarea pornește un worker nou și reface istoricul, culoarea la mutare și mutările legale din checkpoint. [Matricea funcțiilor](parity.md#contracte-și-probe)
@@ -66,7 +80,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebGamePublication' "-Dchess.web.bun
 
 Serviți directorul `site` prin HTTPS sau pe `localhost`, unde Web Crypto poate calcula SHA-256. Deschideți Game Review și încărcați o arhivă JSON cu `id`, `checkpoint`, `review` și, opțional, `bookmark`. `review` este cache-ul produs de `GameReviewCodec` pentru aceeași partidă încheiată. Testele generează o arhivă reproductibilă cu `GameReviewArchiveFixture`.
 
-`GameReviewSession` folosește `GameReviewTimeline` pe Android și în worker. Comenzile selectează semimutarea, deschid **De ce?**, schimbă ramura și derulează linia. O comandă cu revizie expirată păstrează starea curentă. Închiderea explicației revine la mutarea selectată. Android salvează bookmarkul prin preferințele arhivei. Browserul salvează arhiva și bookmarkul împreună în `localStorage` și le reîncarcă la deschiderea paginii. Fiecare platformă păstrează progresul local. [Contractul de navigare](../docs/board/game-review.md#navigarea-în-review-și-variantele-recomandate)
+`GameReviewSession` folosește `GameReviewTimeline` pe Android și în worker. Comenzile selectează semimutarea, deschid **De ce?**, schimbă ramura și derulează linia. O comandă cu revizie expirată păstrează starea curentă. Închiderea explicației revine la mutarea selectată. Fiecare platformă păstrează progresul local. Browserul păstrează analizele importate și analizele partidelor active în spațiul Game Review, iar analizele partidelor încheiate în intrările bibliotecii. [Contractul de navigare](../docs/board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 
 Rulați întâi testele de componentă, apoi proba din Edge pe buildul real și publicatorul Extent. Pe Android, `-GameReviewOnly` păstrează gesturile și restartul de proces. [Strategia și dovezile Game Review](../docs/testing/README.md#reluarea-game-review-pe-android-și-web)
 

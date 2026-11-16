@@ -10,6 +10,7 @@ const words = {
         'open-match': 'Local game', 'open-review': 'Game Review', 'new-match': 'New game',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
         'open-saved': 'Saved games', 'open-finished': 'Finished games', 'return-menu': 'Back',
+        'archive-review-back': 'Back to game', openCached: 'Open analysis', reviewed: 'Analysis saved',
         'new-local': 'New local game', 'new-ai': 'New AI game', 'match-history': 'Game history',
         'continue-match': 'Continue from here', 'continue-title': 'Continue from here', 'confirm-continue': 'Continue',
         'cancel-continue': 'Cancel', 'automatic-label': 'Keep AI replies enabled',
@@ -48,6 +49,7 @@ const words = {
         'open-match': 'Partidă locală', 'open-review': 'Analiza partidei', 'new-match': 'Partidă nouă',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
         'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate', 'return-menu': 'Înapoi',
+        'archive-review-back': 'Înapoi la partidă', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
         'new-local': 'Partidă locală nouă', 'new-ai': 'Partidă nouă cu AI', 'match-history': 'Istoricul partidei',
         'continue-match': 'Continuă de aici', 'continue-title': 'Continuă de aici', 'confirm-continue': 'Continuă',
         'cancel-continue': 'Anulează', 'automatic-label': 'Păstrează replicile AI',
@@ -108,6 +110,7 @@ let savedMatches = [];
 let finishedMatches = [];
 let archive;
 let view;
+let archiveReviewId;
 let match;
 let matchRoute;
 let mode = 'review';
@@ -125,7 +128,7 @@ for (const id of ['title', 'archive-label', 'empty', 'why', 'why-title', 'played
     'open-match', 'open-ai', 'open-review', 'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'start-ai', 'cancel-setup', 'retry-bot', 'open-saved',
     'open-finished', 'return-menu', 'new-local', 'new-ai', 'continue-match', 'continue-title', 'confirm-continue',
-    'cancel-continue', 'automatic-label']) {
+    'cancel-continue', 'automatic-label', 'archive-review-back']) {
     find(id).textContent = words[id];
 }
 for (const id of ['movement', 'previous', 'next', 'close-why']) find(id).setAttribute('aria-label', words[id]);
@@ -287,13 +290,16 @@ function drawHistory(state) {
 
 function render() {
     const container = find('review');
-    container.hidden = mode !== 'review' || !view;
-    find('empty').hidden = mode !== 'review' || Boolean(view);
-    if (!view) return;
+    const visibleReview = view && (archiveReviewId ? mode === 'archive-review' : mode === 'review');
+    container.hidden = !visibleReview;
+    find('empty').hidden = mode !== 'review' || Boolean(visibleReview);
+    if (!visibleReview) return;
+    container.dataset.archiveId = archiveReviewId ?? '';
     container.dataset.ply = view.ply;
     container.dataset.branch = view.branch;
     container.dataset.step = view.step;
     const onLine = view.branch !== 'HISTORY';
+    orientBoard(board, squares, view.blackBelow === true);
     drawBoard(board, squares, view);
     find('previous').disabled = !(onLine ? view.linePrevious : view.previous);
     find('next').disabled = !(onLine ? view.lineNext : view.next);
@@ -361,6 +367,7 @@ async function commit(state, source) {
         return false;
     }
     archive = nextArchive;
+    archiveReviewId = undefined;
     view = state;
     render();
     return true;
@@ -369,14 +376,20 @@ async function commit(state, source) {
 function action(action, ply) {
     if (!view) return;
     void exclusive(async () => {
-        const response = await call('review-action', { action, expectedRevision: view.revision, ply });
+        const archiveId = archiveReviewId;
+        const response = await call('review-action', { action, expectedRevision: view.revision, ply, archiveId });
         if (response.outcome === 'STALE') {
-            await restoreDurable(words.failedAction);
-        } else if (response.outcome === 'APPLIED' && await commit(response.view, archive)) {
+            if (archiveId) await restoreMatchDurable(words.failedAction);
+            else await restoreDurable(words.failedAction);
+        } else if (response.outcome === 'APPLIED' && await commitReviewAction(response, archiveId)) {
             if (action === 'OPEN_EXPLANATION') find('why-title').focus({ preventScroll: true });
             if (action === 'CLOSE_EXPLANATION') find('why').focus({ preventScroll: true });
         } else if (response.outcome === 'UNAVAILABLE') render();
     }, words.failedAction);
+}
+
+function commitReviewAction(response, archiveId) {
+    return archiveId ? commitArchiveReview(response, archiveId) : commit(response.view, archive);
 }
 
 function renderMatch() {
@@ -424,6 +437,8 @@ function renderAnalysis() {
     find('analysis-progress').hidden = !running;
     find('cancel-analysis').hidden = !running;
     find('analyze').disabled = running || !match || match.awaitingBot || match.ply === 0;
+    const reviewed = match?.archiveId && finishedMatches.some(entry => entry.id === match.archiveId && entry.reviewed);
+    find('analyze').textContent = reviewed ? words.openCached : words.analyze;
     find('new-match').disabled = running || Boolean(match?.awaitingBot);
 }
 
@@ -453,7 +468,8 @@ function renderMatchList() {
         details.className = 'match-subtitle';
         const outcome = entry.mode === 'AI' ? entry.status ?? entry.result : entry.result;
         const result = archived ? words[outcome] ?? words.DRAW : words.active;
-        details.textContent = `${words.moves(entry.ply)} · ${result}`;
+        details.textContent = [words.moves(entry.ply), result, archived && entry.reviewed ? words.reviewed : ''].filter(Boolean).join(' · ');
+        button.dataset.reviewed = Boolean(entry.reviewed);
         button.append(title, details);
         if (entry.timestamp > 0) {
             const date = new Date(entry.timestamp);
@@ -471,7 +487,8 @@ function renderMatchList() {
 function showMode(nextMode) {
     if (nextMode !== mode) cancelAnalysis();
     mode = nextMode;
-    const hash = mode === 'archive' ? `#archive/${encodeURIComponent(match.archiveId)}` : routeHashes[mode];
+    const hash = mode === 'archive-review' ? `#review/${encodeURIComponent(archiveReviewId)}`
+        : mode === 'archive' ? `#archive/${encodeURIComponent(match.archiveId)}` : routeHashes[mode];
     window.history.replaceState(null, '', hash ?? (location.pathname + location.search));
     const main = mode === 'review';
     const listing = listRoutes.has(mode);
@@ -479,8 +496,9 @@ function showMode(nextMode) {
     find('title').textContent = words[title[mode] ?? 'title'];
     document.title = `Chess Lab · ${find('title').textContent}`;
     for (const id of ['open-match', 'open-ai', 'open-saved', 'open-finished', 'review-import']) find(id).hidden = !main;
-    find('open-review').hidden = main || listing || mode === 'archive';
+    find('open-review').hidden = main || listing || mode === 'archive' || mode === 'archive-review';
     find('return-menu').hidden = !listing && mode !== 'archive';
+    find('archive-review-back').hidden = mode !== 'archive-review';
     find('ai-setup').hidden = mode !== 'ai' || !setupVisible;
     find('cancel-setup').hidden = !setupBackMode;
     renderMatch();
@@ -503,6 +521,15 @@ async function restoreMatchDurable(message) {
             }
         }
         adoptMatchState(response);
+        if (mode === 'archive-review' && archiveReviewId) {
+            const restored = await call('archive-review-open', { archiveId: archiveReviewId });
+            if (restored.outcome !== 'OPENED' || !restored.view) throw new Error('Saved archive review unavailable');
+            view = restored.view;
+            render();
+        } else if (mode === 'review' && archive && !archiveReviewId) {
+            view = (await call('review-open', { archive })).view;
+            render();
+        }
         setStatus(message);
     } catch {
         stopWorker();
@@ -512,16 +539,18 @@ async function restoreMatchDurable(message) {
 function adoptMatchState(response) {
     savedMatches = response.saved;
     finishedMatches = response.finished;
-    match = response.match;
-    matchRoute = match ? match.readOnly && match.slot === 0 ? 'archive' : match.mode === 'AI' ? 'ai' : 'match' : undefined;
-    failedBotRevision = undefined;
-    selectedSquare = undefined;
-    promotionMoves = [];
+    if (Object.hasOwn(response, 'match')) {
+        match = response.match;
+        matchRoute = match ? match.readOnly && match.slot === 0 ? 'archive' : match.mode === 'AI' ? 'ai' : 'match' : undefined;
+        failedBotRevision = undefined;
+        selectedSquare = undefined;
+        promotionMoves = [];
+    }
     renderMatch();
     renderMatchList();
 }
 
-async function commitMatch(response) {
+async function commitMatch(response, failure = words.matchSaveFailed) {
     if (typeof response.ledger !== 'string' || !Array.isArray(response.saved) || !Array.isArray(response.finished)) {
         throw new Error('Invalid game ledger response');
     }
@@ -539,7 +568,7 @@ async function commitMatch(response) {
         const committed = navigator.locks ? await navigator.locks.request(ledgerKey, writeLedger) : writeLedger();
         if (!committed) return false;
     } catch {
-        await restoreMatchDurable(words.matchSaveFailed);
+        await restoreMatchDurable(failure);
         return false;
     }
     adoptMatchState(response);
@@ -645,7 +674,54 @@ function cancelAnalysis() {
 
 function analyzeMatch() {
     if (!match?.ply || match.awaitingBot || busy || analysis || otherTabChanged || engineFailed) return;
-    const snapshot = match;
+    if (match.readOnly && match.archiveId) {
+        void openArchiveReview(match.archiveId, match);
+    } else {
+        runReviewAnalysis(match, async source => {
+            const response = await call('review-open', { archive: source });
+            if (await commit(response.view, source)) showMode('review');
+        });
+    }
+}
+
+async function commitArchiveReview(response, archiveId) {
+    if (!response.view) throw new Error('Archive review has no view');
+    if (!await commitMatch(response, words.saveFailed)) return false;
+    archiveReviewId = archiveId;
+    view = response.view;
+    render();
+    return true;
+}
+
+async function openArchiveReview(archiveId, snapshot) {
+    let needsAnalysis = false;
+    let opened = false;
+    await exclusive(async () => {
+        const response = await call('archive-review-open', { archiveId });
+        if (response.outcome === 'OPENED') {
+            opened = await commitArchiveReview(response, archiveId);
+            if (opened) showMode('archive-review');
+        } else if (response.outcome === 'NEEDS_ANALYSIS') {
+            if (snapshot && response.checkpoint !== snapshot.reviewCheckpoint) throw new Error('Archive checkpoint changed');
+            needsAnalysis = true;
+        } else throw new Error('Archived game not available');
+    }, words.badArchive);
+    if (!needsAnalysis) {
+        if (!snapshot && !opened && !otherTabChanged) showMode('finished');
+        return;
+    }
+    if (!snapshot) {
+        await enterMatch({ archiveId });
+    } else if (mode === 'archive' && match === snapshot) {
+        runReviewAnalysis(snapshot, async source => {
+            const response = await call('archive-review-save', { archiveId, checkpoint: source.checkpoint, review: source.review });
+            if (response.outcome !== 'OPENED') throw new Error('Archive no longer accepts analysis');
+            if (await commitArchiveReview(response, archiveId)) showMode('archive-review');
+        });
+    }
+}
+
+function runReviewAnalysis(snapshot, openComputedReview) {
     const route = matchRoute;
     const job = new Worker(new URL('./engine-worker.mjs', import.meta.url), { type: 'module' });
     analysis = job;
@@ -674,11 +750,25 @@ function analyzeMatch() {
         void exclusive(async () => {
             const source = normalizeArchive(data.archive);
             if (source.checkpoint !== snapshot.reviewCheckpoint) throw new Error('Analysis checkpoint differs from the active game');
-            const response = await call('review-open', { archive: source });
-            if (match === snapshot && mode === route && await commit(response.view, source)) showMode('review');
+            await openComputedReview(source);
         }, words.analysisFailure);
     });
     job.postMessage({ id, type: 'review-analyze', checkpoint: snapshot.reviewCheckpoint });
+}
+
+function openMainReview() {
+    if (busy) return;
+    setupVisible = false;
+    if (!archiveReviewId) {
+        showMode('review');
+        return;
+    }
+    void exclusive(async () => {
+        const response = archive ? await call('review-open', { archive }) : null;
+        archiveReviewId = undefined;
+        view = response?.view;
+        showMode('review');
+    }, words.badArchive);
 }
 
 function openAiSetup() {
@@ -697,13 +787,17 @@ find('open-match').addEventListener('click', () => {
 find('open-ai').addEventListener('click', () => {
     void enterMatch({ route: 'AI' });
 });
-find('open-review').addEventListener('click', () => {
-    setupVisible = false;
-    showMode('review');
-});
+find('open-review').addEventListener('click', openMainReview);
 find('open-saved').addEventListener('click', () => showMode('saved'));
 find('open-finished').addEventListener('click', () => showMode('finished'));
-find('return-menu').addEventListener('click', () => showMode(mode === 'archive' ? 'finished' : 'review'));
+find('return-menu').addEventListener('click', () => {
+    if (busy) return;
+    if (mode === 'archive') showMode('finished');
+    else openMainReview();
+});
+find('archive-review-back').addEventListener('click', () => {
+    if (archiveReviewId) void enterMatch({ archiveId: archiveReviewId });
+});
 find('match-rows').addEventListener('click', event => {
     const row = event.target.closest('button.match-row');
     if (!row) return;
@@ -842,6 +936,10 @@ await exclusive(async () => {
     }
     if (stored === null) return;
     const restored = normalizeArchive(JSON.parse(stored));
+    if (ledgerReady) {
+        const migrated = await call('archive-review-migrate', { archive: restored });
+        await commitMatch(migrated, words.saveFailed);
+    }
     const response = await call('review-open', { archive: restored });
     archive = restored;
     view = response.view;
@@ -851,6 +949,7 @@ if (location.hash === routeHashes.match) await enterMatch({ route: 'LOCAL' });
 else if (location.hash === routeHashes.ai) await enterMatch({ route: 'AI' });
 else if (location.hash === routeHashes.saved) showMode('saved');
 else if (location.hash === routeHashes.finished) showMode('finished');
+else if (location.hash.startsWith('#review/')) await openArchiveReview(location.hash.slice('#review/'.length));
 else if (location.hash.startsWith('#archive/')) {
     const id = location.hash.slice('#archive/'.length);
     await enterMatch({ archiveId: id });

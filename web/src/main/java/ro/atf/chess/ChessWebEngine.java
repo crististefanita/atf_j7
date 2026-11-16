@@ -23,16 +23,56 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String openReview(String id, String checkpoint, String review, String bookmark, String digest) {
-        return REVIEW.open(id, checkpoint, review, bookmark, digest);
+        return REVIEW.open(id, ChessMatch.restore(checkpoint), review, bookmark, digest, false, false);
     }
 
     @JSExport
-    public static String reviewAction(int revision, String action, int ply) {
-        return REVIEW.action(revision, action, ply);
+    public static String archiveReviewCheckpoint(String id) {
+        return archivedMatch(id).match().checkpoint();
+    }
+
+    @JSExport
+    public static String openArchiveReview(String id, String digest) {
+        var entry = archivedMatch(id);
+        var record = GAME.matches().readReviewRecord(id);
+        if (record.review() == null) return null;
+        try {
+            return REVIEW.open(id, entry.match(), record.review(), record.bookmark(), digest, true, entry.blackBelow());
+        } catch (IllegalArgumentException invalidCache) {
+            return null;
+        }
+    }
+
+    @JSExport
+    public static String saveArchiveReview(String id, String checkpoint, String review, String digest) {
+        if (!GAME.matches().saveReviewRecord(id, ChessMatch.restore(checkpoint), review, digest)) {
+            throw new IllegalArgumentException("The analysis cannot be saved for this archived match");
+        }
+        return openArchiveReview(id, digest);
+    }
+
+    @JSExport
+    public static String importLegacyReview(String id, String checkpoint, String review, String bookmark, String digest) {
+        return GAME.importLegacyReview(id, checkpoint == null ? null : ChessMatch.restore(checkpoint), review, bookmark, digest);
+    }
+
+    @JSExport
+    public static String reviewAction(String archiveId, int revision, String action, int ply) {
+        return REVIEW.action(archiveId, revision, action, ply, archiveId == null ? null : GAME.matches());
+    }
+
+    @JSExport
+    public static String ledgerState() { return GAME.state(null); }
+
+    private static MatchStore.ArchivedMatch archivedMatch(String id) {
+        var entry = GAME.matches().readArchivedMatch(id);
+        if (entry == null) throw new IllegalArgumentException("The archived match is unavailable");
+        return entry;
     }
 
     @JSExport
     public static String openLedger(String ledger, String legacyLocal, String legacyAi) {
+        REVIEW.clear();
         return GAME.openLedger(ledger, legacyLocal, legacyAi);
     }
 

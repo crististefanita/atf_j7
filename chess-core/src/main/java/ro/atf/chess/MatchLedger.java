@@ -28,6 +28,10 @@ final class MatchLedger {
     MatchStore matches() { return matches; }
     String snapshot() { return preferences.snapshot(); }
 
+    boolean importLegacyReview(String id, ChessMatch match, String review, String bookmark, String digest) {
+        return matches.importLegacyReview(id, match, review, bookmark, digest);
+    }
+
     int continueGame(int slot, String archiveId, int ply, boolean automatic) {
         var entry = archiveId == null ? null : matches.readArchivedMatch(archiveId);
         if (archiveId != null && entry == null) return 0;

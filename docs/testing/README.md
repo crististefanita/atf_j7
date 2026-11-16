@@ -57,6 +57,8 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 `MatchStoreTest`, `MatchLedgerTest` și `MatchLedgerPreferencesTest` verifică migrarea, ordinea, retenția și selecția slotului. Cazurile acoperă rescrierea slotului activ, o continuare separată din arhivă și refuzul când toate sloturile sunt ocupate. `ChessWebLedgerPublication` verifică biblioteca după reîncărcare, checkpointurile și capturile din Edge. [Probe Web](../../web/README.md#partide-salvate-și-încheiate)
 
+`MatchLedgerReviewTest` verifică persistența analizei și a poziției de reluare per arhivă, respingerea unui checkpoint sau cache din altă partidă, migrarea unui rezultat unic și evacuarea completă. `ChessWebArchiveReviewsPublication` validează două analize calculate de worker, pozițiile redeschise după reîncărcare și capturile din aceeași rulare. [Reluarea analizei arhivate](../../web/README.md#reluarea-analizei-unei-partide-arhivate)
+
 Pe Android, `-MatchMenusOnly` verifică listele și deschiderea rândurilor salvate și încheiate. `-GameReviewOnly` verifică o mutare alternativă în continuare și păstrarea intrării arhivate. [Partidă și istoric](#partidă-și-istoric)
 
 ### Reluarea Game Review pe Android și Web

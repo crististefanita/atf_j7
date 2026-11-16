@@ -8,17 +8,18 @@ import { basename, dirname, extname, join, relative, resolve, sep } from 'node:p
 import { setTimeout as pause } from 'node:timers/promises';
 
 const args = process.argv.slice(2);
-assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs <site> <archive.json|--active|--ai|--ledger> <new-evidence-directory> <edge-exe> [public-ai-url]');
+assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs <site> <archive.json|--active|--ai|--ledger|--archives> <new-evidence-directory> <edge-exe> [public-ai-url]');
 const [site, , evidence, browserPath] = args.map(path => resolve(path));
 const activeScenario = args[1] === '--active';
 const aiScenario = args[1] === '--ai';
 const ledgerScenario = args[1] === '--ledger';
-const fixturePath = activeScenario || aiScenario || ledgerScenario ? null : resolve(args[1]);
+const archivesScenario = args[1] === '--archives';
+const fixturePath = activeScenario || aiScenario || ledgerScenario || archivesScenario ? null : resolve(args[1]);
 const hostPath = '/atf_j7/';
 const publicUrl = args[4];
 const readmeUrl = `https://crististefanita.github.io${hostPath}#ai`;
-if (publicUrl) assert.ok((aiScenario || ledgerScenario) && publicUrl === readmeUrl,
-    `Public smoke requires --ai or --ledger and the README URL ${readmeUrl}`);
+if (publicUrl) assert.ok((aiScenario || ledgerScenario || archivesScenario) && publicUrl === readmeUrl,
+    `Public smoke requires --ai, --ledger or --archives and the README URL ${readmeUrl}`);
 const relativeEvidence = relative(site, evidence);
 assert.ok(relativeEvidence === '..' || relativeEvidence.startsWith('..' + sep), 'Keep evidence outside the built site');
 const viewport = { width: 390, height: 844, deviceScaleFactor: 1, locale: publicUrl ? 'en-US' : 'ro-RO' };
@@ -42,6 +43,8 @@ const recommendedFen = 'rnbqkbnr/pppp1ppp/8/4p3/3P4/5P2/PPP1P1PP/RNBQKBNR';
 const mateFen = 'rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR';
 const legacyLocalCheckpoint = '1|f2f3 e7e5 g2g4';
 const legacyAiCheckpoint = 'ai|3|WHITE|ADVANCED|0|d2d4 e7e5';
+const archiveACheckpoint = `${legacyLocalCheckpoint} d8h4`;
+const archiveBCheckpoint = '3|BLACK|ADVANCED|0|f2f4 e7e6 g2g4 d8h4';
 
 function check(id, expected, actual) {
     const passed = Object.is(expected, actual);
@@ -170,8 +173,8 @@ try {
         if (review.hidden || review.getAttribute('aria-busy') !== 'false') return null;
         const board = document.querySelector('#board');
         const rect = board.getBoundingClientRect();
-        return { ply: Number(review.dataset.ply), step: Number(review.dataset.step), branch: review.dataset.branch,
-            fen: board.dataset.fen, last: board.dataset.lastMove, turn: board.dataset.turn,
+        return { ply: Number(review.dataset.ply), step: Number(review.dataset.step), branch: review.dataset.branch, archiveId: review.dataset.archiveId,
+            fen: board.dataset.fen, last: board.dataset.lastMove, turn: board.dataset.turn, orientation: board.dataset.orientation,
             board: [rect.x + scrollX, rect.y + scrollY, rect.width, rect.height], panelWidth: board.parentElement.clientWidth,
             cells: board.children.length, selected: Number(document.querySelector('[aria-current="step"]').dataset.ply),
             why: ${visible('#explanation')}, mateSquare: document.querySelector('#reason').dataset.square,
@@ -358,9 +361,9 @@ try {
 
         await touch('#analyze');
         const fresh = await wait('fresh review of checkmate', value => value.ply === 4 && value.branch === 'HISTORY');
-        const generated = await evaluate(savedReview);
-        check('analysis-archive', true, generated.checkpoint === complete.checkpoint && generated.review.length > 0 && generated.review !== partialArchive.review &&
-            typeof generated.bookmark === 'string' && generated.bookmark.length > 0);
+        const generated = await evaluate(`window.chessWebAudit.reviews.find(record => record.checkpoint === ${JSON.stringify(complete.checkpoint)})`);
+        check('analysis-archive', true, generated.checkpoint === complete.checkpoint && generated.review.length > 0 &&
+            generated.review !== partialArchive.review && Boolean(fresh.archiveId) && Boolean(await evaluate(`localStorage.getItem('${ledgerKey}')`)));
         check('analysis-opened', true, fresh.fen === mateFen && fresh.last === complete.last && fresh.selected === 4 && fresh.cells === 64);
         await capture('fresh-review.png');
         await touch('button[data-ply="3"]');
@@ -472,16 +475,123 @@ try {
             forkCheckpoint: restored.checkpoint, separateAiCheckpoint: separateAi.checkpoint, savedAfterIds, finishedAfterIds };
     }
 
+    async function exerciseArchives() {
+        const requests = () => evaluate('window.chessWebAudit.requests');
+        const entries = () => evaluate(`(() => {
+            if (document.querySelector('#match-list').hidden) return null;
+            return [...document.querySelectorAll('.match-row')].map(row => ({ ...row.dataset }));
+        })()`);
+        const finishList = () => until(async () => {
+            const rows = await entries();
+            return rows?.length === 2 ? rows : null;
+        }, 'two finished archive entries');
+
+        async function openArchived(id, checkpoint) {
+            await touch(`.match-row[data-id="${id}"]`);
+            const stored = await waitActive('exact archived game', game => game.id === id && game.readOnly);
+            assert.equal(stored.checkpoint, checkpoint);
+            await touch('#analyze');
+            return wait('archive review with stable ID', review => review.archiveId === id);
+        }
+
+        async function backToResults(id) {
+            await touch('#archive-review-back');
+            await waitActive('returned to exact archive', game => game.id === id && game.readOnly);
+            await touch('#return-menu');
+            return finishList();
+        }
+
+        if (publicUrl) {
+            await until(() => evaluate(`${visible('#ai-setup')} && location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
+                'public preview starts in AI setup');
+            await touch('#open-review');
+        }
+        await touch('#open-finished');
+        const initial = await finishList();
+        const archiveAId = initial.find(row => row.mode === 'LOCAL')?.id;
+        const archiveBId = initial.find(row => row.mode === 'AI')?.id;
+        check('two-archives', true, Boolean(archiveAId) && Boolean(archiveBId) && archiveAId !== archiveBId &&
+            initial.every(row => row.result === 'BLACK_WINS' && row.reviewed === 'false'));
+
+        const firstA = await openArchived(archiveAId, archiveACheckpoint);
+        check('analysis-a', true, firstA.ply === 4 && firstA.fen === mateFen && firstA.orientation === 'WHITE' &&
+            JSON.stringify(await requests()) === JSON.stringify([archiveACheckpoint]));
+        await touch('button[data-ply="3"]');
+        await wait('selected archived error', review => review.ply === 3);
+        await touch('#why');
+        const why = await wait('archived proof of mate', review => review.why);
+        assert.equal(why.mateSquare, 'h4');
+        await touch('#played');
+        await wait('archived played branch', review => review.branch === 'PLAYED' && review.step === 0);
+        await touch('#next');
+        await wait('first played continuation', review => review.step === 1);
+        await touch('#next');
+        const bookmarkA = await wait('archive A bookmark', review => review.step === 2);
+        check('archive-a-bookmark', true, bookmarkA.archiveId === archiveAId && bookmarkA.ply === 3 && bookmarkA.branch === 'PLAYED' &&
+            bookmarkA.why && bookmarkA.fen === mateFen && bookmarkA.last === 'd8h4');
+        await capture('archive-a-why.png');
+
+        const withA = await backToResults(archiveAId);
+        assert.equal(withA.find(row => row.id === archiveAId).reviewed, 'true');
+        assert.equal(withA.find(row => row.id === archiveBId).reviewed, 'false');
+        const firstB = await openArchived(archiveBId, 'ai|' + archiveBCheckpoint);
+        check('analysis-b', true, firstB.ply === 4 && firstB.last === 'd8h4' && firstB.fen !== firstA.fen && firstB.orientation === 'BLACK' &&
+            JSON.stringify(await requests()) === JSON.stringify([archiveACheckpoint, archiveBCheckpoint]));
+        await touch('button[data-ply="1"]');
+        const bookmarkB = await wait('archive B bookmark', review => review.ply === 1);
+        check('archive-b-bookmark', true, bookmarkB.archiveId === archiveBId && bookmarkB.branch === 'HISTORY' && bookmarkB.step === 0 &&
+            !bookmarkB.why && bookmarkB.last === 'f2f4');
+        await capture('archive-b-history.png');
+
+        await reload();
+        const restoredB = await wait('archive B restored after full page reload', review => review.archiveId === archiveBId && review.ply === 1);
+        check('archive-b-reloaded', true, restoredB.branch === 'HISTORY' && !restoredB.why && restoredB.fen === bookmarkB.fen && restoredB.orientation === 'BLACK' &&
+            (await requests()).length === 0);
+        await capture('archive-b-reloaded.png');
+
+        const bothReviewed = await backToResults(archiveBId);
+        assert.ok(bothReviewed.every(row => row.reviewed === 'true'));
+        const reopenedA = await openArchived(archiveAId, archiveACheckpoint);
+        check('archive-a-reopened', true, reopenedA.ply === bookmarkA.ply && reopenedA.branch === bookmarkA.branch && reopenedA.step === bookmarkA.step &&
+            reopenedA.fen === bookmarkA.fen && reopenedA.why && (await requests()).length === 0);
+        await capture('archive-a-reopened.png');
+        await backToResults(archiveAId);
+        const reopenedB = await openArchived(archiveBId, 'ai|' + archiveBCheckpoint);
+        const ledgerSnapshot = await evaluate(`localStorage.getItem('${ledgerKey}')`);
+        check('independent-bookmarks', true, reopenedB.ply === bookmarkB.ply && reopenedB.branch === bookmarkB.branch && reopenedB.step === bookmarkB.step &&
+            reopenedB.fen === bookmarkB.fen && !reopenedB.why && (await requests()).length === 0 && Boolean(ledgerSnapshot));
+        await evaluate("history.replaceState(null, '', '#review/00000000-0000-0000-0000-000000000000')");
+        await reload();
+        assert.ok((await finishList()).every(row => row.reviewed === 'true'));
+        assert.equal(await evaluate('location.hash'), '#finished');
+        assert.notEqual(await evaluate("document.querySelector('#status').textContent"), '');
+        assert.equal(await evaluate(`localStorage.getItem('${ledgerKey}')`), ledgerSnapshot);
+        return { scope: 'archive-reviews', publicUrl, archiveAId, archiveBId, archiveACheckpoint, archiveBCheckpoint, ledgerSnapshot };
+    }
+
     await send('Page.enable');
     await send('Emulation.setDeviceMetricsOverride', { width: viewport.width, height: viewport.height,
         deviceScaleFactor: viewport.deviceScaleFactor, mobile: true });
     await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
     await send('Emulation.setLocaleOverride', { locale: viewport.locale.replace('-', '_') });
-    if (ledgerScenario) {
+    if (ledgerScenario || archivesScenario || activeScenario) {
         await send('Page.addScriptToEvaluateOnNewDocument', { source: `
-            if (location.pathname === ${JSON.stringify(hostPath)} && localStorage.getItem('${ledgerKey}') === null) {
-                localStorage.setItem('${manualKey}', ${JSON.stringify(legacyLocalCheckpoint)});
-                localStorage.setItem('${aiKey}', ${JSON.stringify(legacyAiCheckpoint)});
+            if (location.pathname === ${JSON.stringify(hostPath)}) {
+                if (${ledgerScenario || archivesScenario} && localStorage.getItem('${ledgerKey}') === null) {
+                    localStorage.setItem('${manualKey}', ${JSON.stringify(archivesScenario ? archiveACheckpoint : legacyLocalCheckpoint)});
+                    localStorage.setItem('${aiKey}', ${JSON.stringify(archivesScenario ? 'ai|' + archiveBCheckpoint : legacyAiCheckpoint)});
+                }
+                window.chessWebAudit = { requests: [], reviews: [] };
+                const postMessage = Worker.prototype.postMessage;
+                Worker.prototype.postMessage = function(message, ...options) {
+                    if (message?.type === 'review-analyze') {
+                        window.chessWebAudit.requests.push(message.checkpoint);
+                        this.addEventListener('message', ({data}) => {
+                            if (data.id === message.id && data.archive) window.chessWebAudit.reviews.push(data.archive);
+                        });
+                    }
+                    return Reflect.apply(postMessage, this, [message, ...options]);
+                };
             }` });
     }
     await send('Page.navigate', { url: page });
@@ -493,6 +603,8 @@ try {
         sourceProof = await exerciseAi();
     } else if (ledgerScenario) {
         sourceProof = await exerciseLedger();
+    } else if (archivesScenario) {
+        sourceProof = await exerciseArchives();
     } else {
         sourceProof = await exerciseArchive();
     }
