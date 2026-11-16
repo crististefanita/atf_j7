@@ -2,6 +2,8 @@ package ro.atf.chess;
 
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
+import ro.atf.chess.GameReviewTimeline.Branch;
+import ro.atf.chess.GameReviewTimeline.Snapshot;
 
 /** Reuses the native match store for a portable library and its one-time migration. */
 final class MatchLedger {
@@ -32,17 +34,45 @@ final class MatchLedger {
         return matches.importLegacyReview(id, match, review, bookmark, digest);
     }
 
+    enum ContinuationOutcome { APPLIED, UNAVAILABLE, NO_FREE_SLOT, SAVE_FAILED, STALE }
+
+    record Continuation(ContinuationOutcome outcome, int slot) {
+        Continuation(ContinuationOutcome outcome) { this(outcome, 0); }
+    }
+
+    static boolean canContinueArchiveReview(ChessMatch match, Snapshot cursor) {
+        return match.result() != ChessMatch.Result.IN_PROGRESS && cursor.branch() == Branch.HISTORY
+                && !cursor.explanationOpen() && cursor.ply() >= 0 && cursor.ply() < match.ply();
+    }
+
+    Continuation continueArchiveReview(String archiveId, ChessMatch source, Snapshot cursor, boolean automatic) {
+        var entry = matches.readArchivedMatch(archiveId);
+        if (entry == null || !entry.reviewed() || !source.checkpoint().equals(entry.match().checkpoint())
+                || !canContinueArchiveReview(source, cursor)) {
+            return new Continuation(ContinuationOutcome.UNAVAILABLE);
+        }
+        return continueArchived(entry, cursor.ply(), automatic && !entry.manualUsed(), entry.manualUsed());
+    }
+
     int continueGame(int slot, String archiveId, int ply, boolean automatic) {
         var entry = archiveId == null ? null : matches.readArchivedMatch(archiveId);
         if (archiveId != null && entry == null) return 0;
         var source = entry == null ? matches.readSavedMatch(slot) : entry.match();
         if (source == null || ply < 0 || ply >= source.ply()) return 0;
-        var prefix = source.continueFrom(ply);
         if (entry != null) {
-            int free = matches.freeMatchSlot();
-            return free > 0 && matches.startMatch(free, prefix, entry.blackBelow(), !automatic, !automatic) ? free : 0;
+            return continueArchived(entry, ply, automatic, !automatic).slot();
         }
-        return matches.saveMatch(slot, prefix, matches.matchBlackBelow(slot), !automatic, !automatic) ? slot : 0;
+        return matches.saveMatch(slot, source.continueFrom(ply), matches.matchBlackBelow(slot), !automatic, !automatic) ? slot : 0;
+    }
+
+    private Continuation continueArchived(MatchStore.ArchivedMatch entry, int ply, boolean automatic, boolean manualUsed) {
+        int slot = matches.freeMatchSlot();
+        if (slot == 0) return new Continuation(ContinuationOutcome.NO_FREE_SLOT);
+        var prefix = entry.match().continueFrom(ply);
+        if (!matches.startMatch(slot, prefix, entry.blackBelow(), !automatic, manualUsed)) {
+            return new Continuation(ContinuationOutcome.SAVE_FAILED);
+        }
+        return new Continuation(ContinuationOutcome.APPLIED, slot);
     }
 
     private void importLegacy(String checkpoint, boolean automatic) {

@@ -62,6 +62,20 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveReviewsPublication' "-Dche
 
 Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.archive.reviews.public=true` la publicarea Extent.
 
+### Continuarea din Game Review
+
+În analiza unei partide încheiate, selectați o poziție din istoricul jucat și confirmați **Continuă de aici**. Partida pornește exact după semimutarea selectată, într-un slot liber sau reutilizabil, cu analiza și poziția de reluare originale păstrate. Când **De ce?** sau o variantă este deschisă, reveniți în istoric. Poziția finală nu oferă continuarea. Pentru partidele cu AI, confirmarea permite păstrarea răspunsurilor automate. Dacă toate cele zece sloturi sunt active, analiza rămâne deschisă.
+
+Proba verifică în Edge fluxul, salvarea partidei noi și arhiva originală după reîncărcare. Folosiți un director nou pentru dovezi.
+
+```powershell
+node ./web/tests/browser-game-review.mjs $site --review-continue $evidence $edge
+$receipt = Join-Path $evidence 'result.json'
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveContinuationPublication' "-Dchess.web.bundle=$site" "-Dchess.web.archive.continuation.receipt=$receipt"
+```
+
+Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.archive.continuation.public=true` la publicarea Extent. [Probe de componentă și sanity](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
+
 ## Partida locală și o analiză nouă
 
 **Partidă locală** permite mutările ambelor culori și oferă alegerea piesei la promovare. Workerul validează fiecare mutare. Pagina salvează checkpointul canonic înainte de a afișa poziția rezultată. Reîncărcarea pornește un worker nou și reface istoricul, culoarea la mutare și mutările legale din checkpoint. [Matricea funcțiilor](parity.md#contracte-și-probe)

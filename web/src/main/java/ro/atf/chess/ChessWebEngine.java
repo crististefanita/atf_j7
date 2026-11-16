@@ -23,7 +23,7 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String openReview(String id, String checkpoint, String review, String bookmark, String digest) {
-        return REVIEW.open(id, ChessMatch.restore(checkpoint), review, bookmark, digest, false, false);
+        return REVIEW.open(id, ChessMatch.restore(checkpoint), review, bookmark, digest, false, false, false);
     }
 
     @JSExport
@@ -37,7 +37,7 @@ public final class ChessWebEngine {
         var record = GAME.matches().readReviewRecord(id);
         if (record.review() == null) return null;
         try {
-            return REVIEW.open(id, entry.match(), record.review(), record.bookmark(), digest, true, entry.blackBelow());
+            return REVIEW.open(id, entry.match(), record.review(), record.bookmark(), digest, true, entry.blackBelow(), !entry.manualUsed());
         } catch (IllegalArgumentException invalidCache) {
             return null;
         }
@@ -59,6 +59,13 @@ public final class ChessWebEngine {
     @JSExport
     public static String reviewAction(String archiveId, int revision, String action, int ply) {
         return REVIEW.action(archiveId, revision, action, ply, archiveId == null ? null : GAME.matches());
+    }
+
+    @JSExport
+    public static String continueArchiveReview(String archiveId, int revision, boolean automatic) {
+        var result = REVIEW.continueArchive(archiveId, revision, automatic, GAME.ledger());
+        if (result.outcome() == MatchLedger.ContinuationOutcome.APPLIED) REVIEW.clear();
+        return GAME.openContinuation(result);
     }
 
     @JSExport

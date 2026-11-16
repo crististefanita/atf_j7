@@ -17,14 +17,15 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 ## WEB-01 · Motor și contract de aplicație
 
-**P1 · Responsabil J7.** Web și Android folosesc același `MatchStore`. Analiza și poziția de reluare aparțin fiecărui rezultat arhivat. Pe Web, continuarea dintr-o poziție istorică rămâne disponibilă pe tabla partidei. [Build și probe Web](../../web/README.md)
+**P1 · Responsabil J7.** Web și Android folosesc același `MatchStore`. Din istoricul analizei arhivate, Web pornește o partidă separată la semimutarea selectată și păstrează analiza și poziția de reluare ale arhivei. [Build și probe Web](../../web/README.md)
 
 1. Declarați un modul Java `chess-core` cu publicare reproductibilă, resursele catalogului, dependențele tranzitive și proveniența lor. Nucleul compilează ca Java 17. Calificați și API-urile folosite la execuție pe Android cu `minSdk 26`. Verificați consumul din Gradle și din testele JVM, inventarul de resurse și SHA-ul intrării compilatorului Web.
 2. Extrageți gradual deciziile încă orchestrate de `ChessActivity` și `AnalysisActivity`. Același contract trebuie să accepte intenții tipizate precum mutare, promovare, pas prin istoric, alegere de linie și reluare. Returnați poziția, cursorul, acțiunile disponibile, starea marcajelor, rezultatul comenzii și versiunea stării. Proiecția conține doar datele necesare afișării, cu chei de localizare stabile și parametri tipizați.
-3. Expuneți **Continuă de aici** în Game Review, la semimutarea selectată în istoricul real. Dintr-o ramură de analiză cereți revenirea la poziția jucată înainte de confirmare. Verificați slotul nou, arhiva și bookmarkul păstrate, refuzul când lista este plină și replica unică atunci când AI este activ.
-4. Extindeți refuzul răspunsurilor expirate la continuarea din istoric, schimbarea jocului și eroarea de scriere. Măsurați separat încărcarea workerului și timpul până la prima semimutare. O probă Edge a expirat înaintea afișării primei analize neterminate, iar reluarea pe același pachet a trecut. [Restricțiile TeaVM](https://teavm.org/docs/intro/overview.html)
+3. Măsurați separat încărcarea workerului și timpul până la prima semimutare a analizei. Includeți o pornire la rece pe profil mobil, anularea calculelor și schimbarea jocului în timpul căutării. [Restricțiile TeaVM](https://teavm.org/docs/intro/overview.html)
 
 **Criteriu de închidere.** Același caz J7 pornește din JAR-ul JVM, trece prin intrarea Android și prin motorul compilat pentru browser, apoi produce aceeași succesiune de stări și aceeași restaurare. Măsurați mărimea pachetului, pornirea la rece, timpul căutării la buget identic și întreruperea pe profil mobil înainte de alegerea pragurilor de livrare. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
+
+**Game Review.** Legați graficul de același cursor folosit de tablă și de lista mutărilor. Verificați selecția la atingere pe o partidă lungă, primul și ultimul punct, apoi reîncărcarea exact la semimutarea selectată. [Contractul analizei](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 
 ## WEB-02 · Adaptoare și afișaj comun
 

@@ -6,20 +6,22 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { setTimeout as pause } from 'node:timers/promises';
+import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
-assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs <site> <archive.json|--active|--ai|--ledger|--archives> <new-evidence-directory> <edge-exe> [public-ai-url]');
+assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs <site> <archive.json|--active|--ai|--ledger|--archives|--review-continue> <new-evidence-directory> <edge-exe> [public-ai-url]');
 const [site, , evidence, browserPath] = args.map(path => resolve(path));
 const activeScenario = args[1] === '--active';
 const aiScenario = args[1] === '--ai';
 const ledgerScenario = args[1] === '--ledger';
 const archivesScenario = args[1] === '--archives';
-const fixturePath = activeScenario || aiScenario || ledgerScenario || archivesScenario ? null : resolve(args[1]);
+const reviewContinueScenario = args[1] === '--review-continue';
+const fixturePath = activeScenario || aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario ? null : resolve(args[1]);
 const hostPath = '/atf_j7/';
 const publicUrl = args[4];
 const readmeUrl = `https://crististefanita.github.io${hostPath}#ai`;
-if (publicUrl) assert.ok((aiScenario || ledgerScenario || archivesScenario) && publicUrl === readmeUrl,
-    `Public smoke requires --ai, --ledger or --archives and the README URL ${readmeUrl}`);
+if (publicUrl) assert.ok((aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario) && publicUrl === readmeUrl,
+    `Public smoke requires --ai, --ledger, --archives or --review-continue and the README URL ${readmeUrl}`);
 const relativeEvidence = relative(site, evidence);
 assert.ok(relativeEvidence === '..' || relativeEvidence.startsWith('..' + sep), 'Keep evidence outside the built site');
 const viewport = { width: 390, height: 844, deviceScaleFactor: 1, locale: publicUrl ? 'en-US' : 'ro-RO' };
@@ -62,6 +64,13 @@ for (const entry of await readdir(site, { recursive: true, withFileTypes: true }
 }
 const manifest = [...files.keys()].sort().map(path => `${sha256(files.get(path))}  ${path}\n`).join('');
 const bundleSha256 = sha256(manifest);
+let preparedReview;
+if (reviewContinueScenario) {
+    const { analyzeReview } = await import(pathToFileURL(join(site, 'chess-engine.mjs')).href);
+    const digest = createHash('sha256').update(archiveBCheckpoint).digest('base64');
+    const review = analyzeReview(archiveBCheckpoint, digest, () => {});
+    preparedReview = JSON.stringify({ id: 'edge-archived-continue', checkpoint: archiveBCheckpoint, review });
+}
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
     '.js': 'text/javascript; charset=utf-8', '.wasm': 'application/wasm', '.json': 'application/json' };
 const server = createServer((request, response) => {
@@ -178,6 +187,7 @@ try {
             board: [rect.x + scrollX, rect.y + scrollY, rect.width, rect.height], panelWidth: board.parentElement.clientWidth,
             cells: board.children.length, selected: Number(document.querySelector('[aria-current="step"]').dataset.ply),
             why: ${visible('#explanation')}, mateSquare: document.querySelector('#reason').dataset.square,
+            canContinue: ${visible('#continue-review')},
             reason: document.querySelector('#reason').textContent, nextDisabled: document.querySelector('#next').disabled,
             queen: board.querySelector('[data-square="h4"]').dataset.piece,
             checked: document.querySelector('[aria-pressed="true"]')?.id,
@@ -187,7 +197,12 @@ try {
     const wait = (label, condition) => until(async () => {
         const result = await state();
         return result && condition(result) ? result : null;
-    }, label);
+    }, label).catch(async failure => {
+        const diagnostic = await evaluate(`({ hash: location.hash, status: document.querySelector('#status').textContent,
+            reviewHidden: document.querySelector('#review').hidden, analyzing: !document.querySelector('#analysis-progress').hidden,
+            requests: window.chessWebAudit?.requests, replies: window.chessWebAudit?.reviews.length })`).catch(() => null);
+        throw new Error(`${failure.message}. Browser state: ${JSON.stringify(diagnostic)}`, { cause: failure });
+    });
 
     async function touch(selector) {
         const point = await evaluate(`(() => {
@@ -569,17 +584,107 @@ try {
         return { scope: 'archive-reviews', publicUrl, archiveAId, archiveBId, archiveACheckpoint, archiveBCheckpoint, ledgerSnapshot };
     }
 
+    async function exerciseReviewContinue() {
+        const selectedPly = 1;
+        const archiveCheckpoint = archiveBCheckpoint;
+        const forkStartCheckpoint = '3|BLACK|ADVANCED|0|f2f4';
+        const forkCheckpoint = `${forkStartCheckpoint} d7d5`;
+        const savedLedger = () => evaluate(`localStorage.getItem('${ledgerKey}')`);
+        const modalOpen = () => evaluate("document.querySelector('#continue-dialog').open");
+
+        if (publicUrl) {
+            await until(() => evaluate(`${visible('#ai-setup')} && location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
+                'public preview starts in AI setup');
+            await touch('#open-review');
+        }
+        await touch('#open-finished');
+        const originArchiveId = await until(() => evaluate("document.querySelector('.match-row[data-mode=AI]')?.dataset.id"), 'archived AI game');
+        await touch(`.match-row[data-id="${originArchiveId}"]`);
+        const archived = await waitActive('exact read-only origin', game => game.id === originArchiveId && game.readOnly);
+        assert.equal(archived.checkpoint, 'ai|' + archiveCheckpoint);
+        assert.equal(await evaluate("document.querySelector('#analyze').textContent"), publicUrl ? 'Open analysis' : 'Deschide analiza');
+        await touch('#analyze');
+        const terminal = await wait('completed archive Game Review', review => review.archiveId === originArchiveId && review.ply === 4);
+        assert.ok(!terminal.canContinue);
+        assert.deepEqual(await evaluate('window.chessWebAudit.requests'), []);
+        await touch('button[data-ply="3"]');
+        const candidate = await wait('real history before the mistake', review => review.ply === 3);
+        assert.ok(candidate.canContinue);
+        await touch('#why');
+        const explaining = await wait('opened Why explanation', review => review.why);
+        await touch('#played');
+        const variation = await wait('played comparison branch', review => review.branch === 'PLAYED');
+        check('variant-unavailable', true, !explaining.canContinue && !variation.canContinue);
+        await touch('#close-why');
+        await wait('returned from comparison to recorded history', review => review.branch === 'HISTORY' && !review.why);
+        await touch('button[data-ply="1"]');
+        const origin = await wait('exact recorded position selected', review => review.ply === selectedPly && review.canContinue);
+        check('actual-history', true, origin.archiveId === originArchiveId && origin.branch === 'HISTORY' && origin.step === 0 &&
+            origin.last === 'f2f4' && origin.turn === 'BLACK' && origin.orientation === 'BLACK');
+        await capture('review-selected-history.png');
+        const ledgerBefore = await savedLedger();
+        assert.ok(ledgerBefore);
+
+        await touch('#continue-review');
+        await until(modalOpen, 'shared continuation confirmation');
+        const confirming = await evaluate(`({ visible: !document.querySelector('#automatic-option').hidden,
+            checked: document.querySelector('#continue-automatic').checked,
+            description: document.querySelector('#continue-description').textContent })`);
+        check('confirmation', true, confirming.visible && confirming.checked &&
+            confirming.description.includes(publicUrl ? 'from move 1' : 'de la mutarea 1'));
+        await touch('#cancel-continue');
+        await until(async () => !await modalOpen(), 'closed canceled confirmation');
+        const afterCancel = await state();
+        check('cancel-preserves-ledger', true, await savedLedger() === ledgerBefore && afterCancel.archiveId === originArchiveId &&
+            afterCancel.ply === selectedPly && afterCancel.canContinue);
+
+        await touch('#continue-review');
+        await until(modalOpen, 'reopened shared confirmation');
+        await touch('#continue-automatic');
+        assert.equal(await evaluate("document.querySelector('#continue-automatic').checked"), false);
+        await capture('review-continue-confirmation.png');
+        await touch('#confirm-continue');
+        const fork = await waitActive('separate active game from the exact review cursor', game => !game.readOnly && game.ply === selectedPly);
+        const forkId = fork.id;
+        check('forked-exact-position', true, Boolean(forkId) && forkId !== originArchiveId && fork.slot > 0 &&
+            fork.mode === 'LOCAL' && fork.checkpoint === forkStartCheckpoint && fork.fen === origin.fen && fork.orientation === origin.orientation && !fork.awaitingBot);
+        const diverged = await move('d7', 'd5', 2);
+        await pause(725);
+        const held = await activeState();
+        check('manual-branch', true, diverged.checkpoint === forkCheckpoint && diverged.turn === 'WHITE' &&
+            held?.checkpoint === diverged.checkpoint && !held.awaitingBot && held.id === forkId);
+        await reload();
+        const restored = await waitActive('same branched game after real reload', game => game.id === forkId && game.ply === 2);
+        check('fork-reloaded', true, restored.checkpoint === diverged.checkpoint && restored.fen === diverged.fen && restored.slot === fork.slot && !restored.awaitingBot);
+        await capture('review-continued-game.png');
+
+        await touch('#open-review');
+        await touch('#open-finished');
+        await touch(`.match-row[data-id="${originArchiveId}"]`);
+        const source = await waitActive('preserved source game', game => game.id === originArchiveId && game.readOnly);
+        await touch('#analyze');
+        const original = await wait('cached original review', review => review.archiveId === originArchiveId && review.ply === selectedPly);
+        const ledgerAfter = await savedLedger();
+        check('origin-review-preserved', true, source.checkpoint === archived.checkpoint && source.fen === archived.fen &&
+            original.branch === origin.branch && original.step === origin.step && original.why === origin.why && original.fen === origin.fen &&
+            (await evaluate('window.chessWebAudit.requests')).length === 0 && Boolean(ledgerAfter) && ledgerAfter !== ledgerBefore);
+        await capture('review-origin-restored.png');
+        return { scope: 'review-continue', publicUrl, originArchiveId, forkId, archiveCheckpoint, forkStartCheckpoint,
+            forkCheckpoint, selectedPly, ledgerBefore, ledgerAfter };
+    }
+
     await send('Page.enable');
     await send('Emulation.setDeviceMetricsOverride', { width: viewport.width, height: viewport.height,
         deviceScaleFactor: viewport.deviceScaleFactor, mobile: true });
     await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
     await send('Emulation.setLocaleOverride', { locale: viewport.locale.replace('-', '_') });
-    if (ledgerScenario || archivesScenario || activeScenario) {
+    if (ledgerScenario || archivesScenario || reviewContinueScenario || activeScenario) {
         await send('Page.addScriptToEvaluateOnNewDocument', { source: `
             if (location.pathname === ${JSON.stringify(hostPath)}) {
-                if (${ledgerScenario || archivesScenario} && localStorage.getItem('${ledgerKey}') === null) {
-                    localStorage.setItem('${manualKey}', ${JSON.stringify(archivesScenario ? archiveACheckpoint : legacyLocalCheckpoint)});
-                    localStorage.setItem('${aiKey}', ${JSON.stringify(archivesScenario ? 'ai|' + archiveBCheckpoint : legacyAiCheckpoint)});
+                if (${ledgerScenario || archivesScenario || reviewContinueScenario} && localStorage.getItem('${ledgerKey}') === null) {
+                    localStorage.setItem('${manualKey}', ${JSON.stringify(archivesScenario || reviewContinueScenario ? archiveACheckpoint : legacyLocalCheckpoint)});
+                    localStorage.setItem('${aiKey}', ${JSON.stringify(archivesScenario || reviewContinueScenario ? 'ai|' + archiveBCheckpoint : legacyAiCheckpoint)});
+                    if (${reviewContinueScenario}) localStorage.setItem('chesslab.game-review.v1', ${JSON.stringify(preparedReview)});
                 }
                 window.chessWebAudit = { requests: [], reviews: [] };
                 const postMessage = Worker.prototype.postMessage;
@@ -605,6 +710,8 @@ try {
         sourceProof = await exerciseLedger();
     } else if (archivesScenario) {
         sourceProof = await exerciseArchives();
+    } else if (reviewContinueScenario) {
+        sourceProof = await exerciseReviewContinue();
     } else {
         sourceProof = await exerciseArchive();
     }

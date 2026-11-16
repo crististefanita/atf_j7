@@ -507,3 +507,10 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Run browser archive receipts separately while covering ownership and restoration in the component suite"
     allowDelete: false
+  - id: J7-ARCHIVE-REVIEW-CONTINUATION-SUITE
+    base: "5b60e75ae5c34fba61083ba6ba2b5bc561aaaaa7"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Run Edge continuation evidence separately from deterministic continuation component tests"
+    allowDelete: false

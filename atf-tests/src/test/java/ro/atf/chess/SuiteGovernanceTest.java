@@ -79,7 +79,7 @@ class SuiteGovernanceTest {
         check.same("Browser publishers require explicit driver receipts",
                 Set.of(ChessWebReviewPublication.class.getName(), ChessWebGamePublication.class.getName(),
                         ChessWebBotPublication.class.getName(), ChessWebLedgerPublication.class.getName(),
-                        ChessWebArchiveReviewsPublication.class.getName()), browserPublishers);
+                        ChessWebArchiveReviewsPublication.class.getName(), ChessWebArchiveContinuationPublication.class.getName()), browserPublishers);
         check.same("The discovered component inventory is nonempty", true, !expected.isEmpty());
         check.same("All JVM methods have a valid test layer", Set.of(), wronglyTagged);
         check.same("All JVM methods attach the Extent audit", Set.of(), unaudited);

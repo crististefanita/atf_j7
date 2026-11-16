@@ -3,6 +3,8 @@ package ro.atf.chess;
 import ro.atf.chess.GameReviewSession.Action;
 import ro.atf.chess.GameReviewSession.Outcome;
 import ro.atf.chess.GameReviewTimeline.Branch;
+import ro.atf.chess.MatchLedger.Continuation;
+import ro.atf.chess.MatchLedger.ContinuationOutcome;
 import static ro.atf.chess.WebBoardState.move;
 import static ro.atf.chess.WebBoardState.placement;
 import static ro.atf.chess.WebBoardState.quote;
@@ -12,11 +14,12 @@ final class WebGameReview {
     private Archive archive;
     private int revision;
 
-    String open(String id, ChessMatch match, String review, String bookmark, String digest, boolean stored, boolean blackBelow) {
+    String open(String id, ChessMatch match, String review, String bookmark, String digest, boolean stored, boolean blackBelow,
+                boolean automaticContinuation) {
         if (!id.matches("[a-zA-Z0-9_.-]{1,100}")) throw new IllegalArgumentException("Invalid review archive ID");
         var cached = GameReviewCodec.decodeLine(match, review, digest);
         var snapshot = GameReviewBookmark.decode(id, match, bookmark, digest);
-        var candidate = new Archive(id, match, digest, new GameReviewSession(match, cached, snapshot), stored, blackBelow);
+        var candidate = new Archive(id, match, digest, new GameReviewSession(match, cached, snapshot), stored, blackBelow, automaticContinuation);
         String view = view(candidate, revision + 1);
         archive = candidate;
         revision++;
@@ -40,6 +43,14 @@ final class WebGameReview {
         return "{\"outcome\":" + quote(outcome.name()) + ",\"view\":" + view(archive, revision) + "}";
     }
 
+    Continuation continueArchive(String id, int expectedRevision, boolean automatic, MatchLedger ledger) {
+        if (archive == null || expectedRevision != revision || !archive.id().equals(id)) {
+            return new Continuation(ContinuationOutcome.STALE);
+        }
+        if (!archive.stored()) return new Continuation(ContinuationOutcome.UNAVAILABLE);
+        return ledger.continueArchiveReview(id, archive.match(), archive.session().snapshot(), automatic);
+    }
+
     void clear() { archive = null; }
 
     private static String view(Archive archive, int revision) {
@@ -56,6 +67,8 @@ final class WebGameReview {
                 + ",\"ply\":" + snapshot.ply() + ",\"totalPlies\":" + timeline.totalPlies()
                 + ",\"branch\":" + quote(snapshot.branch().name()) + ",\"step\":" + snapshot.step()
                 + ",\"lineLength\":" + timeline.lineLength() + ",\"explanationOpen\":" + snapshot.explanationOpen()
+                + ",\"canContinue\":" + (archive.stored() && MatchLedger.canContinueArchiveReview(archive.match(), snapshot))
+                + ",\"automaticContinuation\":" + archive.automaticContinuation()
                 + ",\"previous\":" + (history ? timeline.hasPrevious() : timeline.canStepBackward())
                 + ",\"next\":" + (history ? timeline.hasNext() : timeline.canStepForward())
                 + ",\"linePrevious\":" + timeline.canStepBackward() + ",\"lineNext\":" + timeline.canStepForward()
@@ -85,5 +98,6 @@ final class WebGameReview {
 
     private static String square(int square) { return square < 0 ? "null" : quote(BoardSquare.name(square)); }
 
-    private record Archive(String id, ChessMatch match, String digest, GameReviewSession session, boolean stored, boolean blackBelow) { }
+    private record Archive(String id, ChessMatch match, String digest, GameReviewSession session,
+                           boolean stored, boolean blackBelow, boolean automaticContinuation) { }
 }

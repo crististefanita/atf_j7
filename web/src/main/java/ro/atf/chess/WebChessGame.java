@@ -124,9 +124,18 @@ final class WebChessGame {
         if (session == null || viewPly >= session.match().ply()) return state("UNAVAILABLE");
         int next = ledger.continueGame(slot, archiveId, viewPly, automatic);
         if (next == 0) return state(archiveId == null ? "UNAVAILABLE" : "NO_FREE_SLOT");
+        return openContinuation(next);
+    }
+
+    String openContinuation(MatchLedger.Continuation result) {
+        return result.outcome() == MatchLedger.ContinuationOutcome.APPLIED ? openContinuation(result.slot()) : state(result.outcome().name());
+    }
+
+    private String openContinuation(int next) {
         var continuation = matches().readSavedMatch(next);
-        session = new ChessGameSession(continuation, automatic);
-        mode = automatic ? Mode.AI : Mode.LOCAL;
+        mode = mode(matches().matchManualAi(next));
+        session = new ChessGameSession(continuation, mode == Mode.AI);
+        blackBelow = matches().matchBlackBelow(next);
         slot = next;
         archiveId = null;
         viewPly = continuation.ply();
@@ -195,8 +204,12 @@ final class WebChessGame {
     }
 
     MatchStore matches() {
+        return ledger().matches();
+    }
+
+    MatchLedger ledger() {
         if (ledger == null) throw new IllegalStateException("Open the match library first");
-        return ledger.matches();
+        return ledger;
     }
 
     private static Mode mode(boolean manual) { return manual ? Mode.LOCAL : Mode.AI; }
