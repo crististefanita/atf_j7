@@ -1,0 +1,86 @@
+{
+  "status": "PASS",
+  "scope": "board-sanity",
+  "device": "emulator-5560",
+  "api": "28",
+  "sourceCommit": "8292aeb3a1eafa49aafa0240ae75bec509ce25d6",
+  "apkSha256": "18aaf6051d95607c4c9b9dcaee3506ed750f8a8d33f5697349103eb5204618fc",
+  "variant": "release",
+  "runId": "abc32eb7448e46609df9520e9d0e40a5",
+  "assertions": 106,
+  "phases": {
+    "prepare": {
+      "status": "PASS",
+      "scope": "prepare",
+      "device": "emulator-5560",
+      "api": "28",
+      "apkSha256": "18aaf6051d95607c4c9b9dcaee3506ed750f8a8d33f5697349103eb5204618fc",
+      "sourceCommit": "8292aeb3a1eafa49aafa0240ae75bec509ce25d6",
+      "variant": "release",
+      "runId": "abc32eb7448e46609df9520e9d0e40a5",
+      "assertions": 58,
+      "receiptSha256": "d6474bd0ad700820f02bf44df5813658e86227a866266875dcd604c50984ce47"
+    },
+    "restore": {
+      "status": "PASS",
+      "scope": "restore",
+      "device": "emulator-5560",
+      "api": "28",
+      "apkSha256": "18aaf6051d95607c4c9b9dcaee3506ed750f8a8d33f5697349103eb5204618fc",
+      "sourceCommit": "8292aeb3a1eafa49aafa0240ae75bec509ce25d6",
+      "variant": "release",
+      "runId": "abc32eb7448e46609df9520e9d0e40a5",
+      "assertions": 26,
+      "receiptSha256": "93fd43ed6461e21fc3ca4a8863d2bbef4e7df5633c809af1c34882e82e7b0936"
+    },
+    "match-prepare": {
+      "status": "PASS",
+      "scope": "match-prepare",
+      "device": "emulator-5560",
+      "api": "28",
+      "apkSha256": "18aaf6051d95607c4c9b9dcaee3506ed750f8a8d33f5697349103eb5204618fc",
+      "sourceCommit": "8292aeb3a1eafa49aafa0240ae75bec509ce25d6",
+      "variant": "release",
+      "runId": "abc32eb7448e46609df9520e9d0e40a5",
+      "assertions": 3,
+      "receiptSha256": "f19b2e45166f2813b30708d88baa9c13e5037c9c24d0095574fdcc24d9839f08"
+    },
+    "match-restore": {
+      "status": "PASS",
+      "scope": "match-restore",
+      "device": "emulator-5560",
+      "api": "28",
+      "apkSha256": "18aaf6051d95607c4c9b9dcaee3506ed750f8a8d33f5697349103eb5204618fc",
+      "sourceCommit": "8292aeb3a1eafa49aafa0240ae75bec509ce25d6",
+      "variant": "release",
+      "runId": "abc32eb7448e46609df9520e9d0e40a5",
+      "assertions": 15,
+      "receiptSha256": "62b8869e0d38e5516b57e2def9dc9e2dfb17d11b341a8a52d1499afad13b9f2a"
+    },
+    "match-settled": {
+      "status": "PASS",
+      "scope": "match-settled",
+      "device": "emulator-5560",
+      "api": "28",
+      "apkSha256": "18aaf6051d95607c4c9b9dcaee3506ed750f8a8d33f5697349103eb5204618fc",
+      "sourceCommit": "8292aeb3a1eafa49aafa0240ae75bec509ce25d6",
+      "variant": "release",
+      "runId": "abc32eb7448e46609df9520e9d0e40a5",
+      "assertions": 4,
+      "receiptSha256": "a7fc147c98aaa7ac21a4fca3fe3868c9ed89a22fc0c7f4e25a6cb3cd7b24089c"
+    }
+  },
+  "extentSha256": "0910888251d746a5b8202d262b3a075f0e1ffd0bba2b5c2b98ed7ccd8fbc5d4e",
+  "captureSha256": {
+    "hint-piece.png": "6133f2e88a4a9286c0f0daec290355c73e0a1ae95a3dae8fe9eb899b01d7c028",
+    "hint-solution.png": "d3c63b5e8e680230f0c64005e4cf3ef278533e0e9a5b75756ec14423a4266ddc",
+    "board.png": "90e826c7a78e1c197f6803abb4ff4939de57b55c2212477e969a7b84e90bb046",
+    "milestone.png": "9d4addd19acb7604cbbd96f14a78b8841dc616746a7aebe4396fbb4bc0aba9c8",
+    "mate-two.png": "4fff172c4910e526687770dc4c75c22f7a9113f7b829f9104074f99c657b524d",
+    "menu.png": "8b380df6c13210a6c5666d8fe0c5040cd43e55d2e11bee0f3e4071497b9fc832",
+    "mate-three.png": "26667459a20ccad6af3d2aaf35eee613f097cf2e86375e4b94f5f52b3240be94",
+    "tactics-streak.png": "654c605a814ef99d7229e0eebb286c2548d3329ac786442498492f1491606477",
+    "match-resumed.png": "116a8ae0b5b3b4eabafbf1515475f9718141a1ef10e4bb44b79fba9856a9a829",
+    "match-history.png": "e0bd952809d2e48310f3899dfa7e8def7eadeb43565427304a56ba826cf5f7b0"
+  }
+}
