@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "execution": {
+    "status": "PASS",
+    "scope": "openings-only",
+    "device": "emulator-5560",
+    "api": "28",
+    "apkSha256": "d06a01a4b29533df9d849f71c0cd0f157dc4474fbdb0bb745f890f3c426a4ef7",
+    "sourceCommit": "fdc12496679be702eefd64dde0c43cabd1a737a1",
+    "variant": "release",
+    "assertions": 26,
+    "receiptSha256": "0cde78a8bef5e5929498b92676c799872304e7d9c9cf96ca87201f068c0b02d0"
+  },
+  "extentSha256": "7f3b5043bfb2b0465cd71a40bd9c7d4557505351c4b1b2b79e06e7dc98a07f8a",
+  "captureSha256": {
+    "opening-catalog.png": "8cbf5f4fea9bfd526bca6742ded03965fbf9dd39f1a41a80b2df6750b4222e6b",
+    "opening-catalog-end.png": "bf127132e859dcf529d58d5140b5dd94b9c323ab423fbd2e4bdca1e3ef93a01b",
+    "opening-hint.png": "43dec836fc6a0663da16319cd1fa8e8b1aa561542418846895aa7548a92d3aab",
+    "opening-ai.png": "64602886cd6473e127df24c617d4bf8ad81b2cf10f88fefbadb22512ad8aec6d",
+    "opening-replay.png": "6b33a222f0eb4a28abab9053f429ee5268aa42f99a9bf9db91e657ef146a694e"
+  }
+}
