@@ -260,14 +260,10 @@ public final class BoardSanity extends Instrumentation {
         boolean ready = awaitHiddenAnalysis(study, 1);
         tap(study.findViewById(R.id.match_hint));
         var theory = revealedTheory(match, 1);
-        boolean labelled = ready && theoryShown(study, board, theory);
+        boolean labelled = ready && theoryShown(study, board, theory, 1);
         tap(study.findViewById(R.id.match_analysis));
-        var locale = study.getResources().getConfiguration().getLocales().get(0);
-        var title = study.getString(R.string.hint_theory_source, theory.family().in(locale) + " · " + theory.name().in(locale), theory.eco());
-        boolean explained = dialogNode(title, AccessibilityNodeInfo::isVisibleToUser, 3500) != null
-                && dialogNode(theory.idea().in(locale), AccessibilityNodeInfo::isVisibleToUser, 3500) != null;
-        clickReviewIcon(R.id.hint_preview_return);
-        compare("The manual hint marks a book move and explains its named opening", true, labelled && explained);
+        compare("The manual hint marks a book move and explains its named opening", true,
+                labelled && verifyTheoryPaths(study, match, theory));
 
         for (int ply = 2; ply <= match.ply(); ply++) playMove(board, match.moveAt(ply));
         var offBook = match.position();
@@ -283,7 +279,7 @@ public final class BoardSanity extends Instrumentation {
         boolean readyInHistory = awaitHiddenAnalysis(study, 5);
         tap(study.findViewById(R.id.match_hint));
         var restored = revealedTheory(match, 5);
-        boolean restoredSource = readyInHistory && theoryShown(study, board, restored);
+        boolean restoredSource = readyInHistory && theoryShown(study, board, restored, 5);
         replayCapture = displayCaptureGeometry();
         captureFrame("manual-analysis", "Returning to theory shows the opening label below the same board",
                 image -> restoredSource && bounds.equals(screenBounds(board)) && hintBoardCornersAreRendered(image, bounds)
@@ -300,9 +296,40 @@ public final class BoardSanity extends Instrumentation {
         return hint.revealedTheory();
     }
 
-    private static boolean theoryShown(Activity activity, BoardView board, ro.atf.chess.MatchHint.Theory theory) {
+    private boolean verifyTheoryPaths(Activity study, ChessMatch match, ro.atf.chess.MatchHint.Theory theory) throws Exception {
+        var line = new AnalysisLine(match, 1);
+        var hint = line.hint();
+        hint.revealNext();
+        var paths = hint.theoryPlayback(line.position()).orElseThrow().paths();
+        var locale = study.getResources().getConfiguration().getLocales().get(0);
+        boolean explained = paths.size() == 3 && theory.move().equals(paths.get(1).move())
+                && dialogNode(HintPreviewDialog.theoryTitle(study, theory), AccessibilityNodeInfo::isVisibleToUser, 3500) != null
+                && dialogNode(theory.idea().in(locale), AccessibilityNodeInfo::isVisibleToUser, 3500) != null;
+        clickReviewIcon(R.id.hint_compare_other);
+        boolean second = dialogNode(HintPreviewDialog.theoryTitle(study, paths.get(1)), AccessibilityNodeInfo::isVisibleToUser, 3500) != null;
+        clickReviewIcon(R.id.hint_compare_best);
+        int length = theory.steps().size();
+        for (int ply = 0; ply < length; ply++) clickReviewIcon(R.id.hint_preview_next);
+        var step = reviewNode(R.id.hint_preview_step, 4500);
+        var next = reviewNode(R.id.hint_preview_next, 4500);
+        boolean finished = length > 3 && next != null && !next.isEnabled() && step != null
+                && step.getText().toString().startsWith(length + "/" + length)
+                && dialogNode(theory.steps().get(length - 1).idea().in(locale), AccessibilityNodeInfo::isVisibleToUser, 3500) != null;
+        clickReviewIcon(R.id.hint_preview_previous);
+        var previous = reviewNode(R.id.hint_preview_step, 4500);
+        boolean rewound = previous != null && previous.getText().toString().startsWith((length - 1) + "/" + length);
+        clickReviewIcon(R.id.hint_preview_return);
+        var history = (ViewGroup) study.findViewById(R.id.match_history_moves);
+        return explained && second && finished && rewound && history.getChildCount() == 2 && history.getChildAt(1).isSelected();
+    }
+
+    private static boolean theoryShown(Activity activity, BoardView board, ro.atf.chess.MatchHint.Theory theory, int ply) {
         var locale = activity.getResources().getConfiguration().getLocales().get(0);
-        String expected = activity.getString(R.string.hint_theory_caption, ChessActivity.compactNotation(theory.move()), theory.family().in(locale));
+        String family = theory.family().in(locale);
+        String move = ChessActivity.compactNotation(theory.move());
+        // The fixture has three candidate paths after e4 and a single authored Italian path after Bc4.
+        String expected = ply == 1 ? activity.getString(R.string.hint_theory_numbered, 1, 3, move, family)
+                : activity.getString(R.string.hint_theory_caption, move, family);
         TextView caption = activity.findViewById(R.id.match_analysis);
         var destination = cell(board, BoardSquare.name(theory.move().to()));
         return caption.isClickable() && caption.getText().toString().endsWith("\n" + expected)

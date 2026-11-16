@@ -249,11 +249,11 @@ cu alt ID de aplicație rămâne o probă de dezvoltare și nu califică APK-ul.
 
 1. Prima instrumentare verifică meniul, culoarea, cele două trepte ale becului și încadrarea în română la font 1,3×. Rezolvă două poziții în Tactică și trece la a doua poziție nerezolvată din Antrenament tactic. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
 2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, pragul de cinci rezolvări, poziția și punctele restaurate în Tactică și reluarea celei de-a doua probleme nerezolvate din Antrenament tactic.
-3. Extent cere PID-uri distincte, 46 de comparații la pregătire, 26 la reluare și recepțiile celorlalte faze. Raportul include meniul, indiciile, flacăra, progresul, partida și istoricul. Diagnosticul unei faze eșuate apare lângă comparația nativă.
+3. Extent cere un ID comun de rulare și PID-uri distincte pentru cele cinci faze. Verifică cele 58 de perechi ID–etichetă din `prepare`, cele 26 de comparații din `restore` și recepțiile de partidă. Diagnosticul apare lângă comparația nativă.
 
-La modificarea instrumentării, sincronizați numărul de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt`.
+La modificarea instrumentării, sincronizați inventarul `prepare` și numărul de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt` și `-Dchess.android.runId=<runId din execution.json>`.
 
-`AndroidReceiptTest` verifică offline importul și randarea HTML a recepției native. Testul negativ înlocuiește comparația obligatorie pentru Antrenament tactic cu una fără legătură, păstrând numărul total corect; Extent trebuie să marcheze faza FAIL și să numească verificarea lipsă.
+`AndroidReceiptTest` verifică offline randarea celor 58 de aserțiuni și respingerea unei aserțiuni lipsă, a unui ID duplicat, a unei etichete substituite și a unei faze din altă rulare. Proba de reluare verifică și respingerea unei etichete străine pentru Antrenament tactic, cu numărul total păstrat.
 
 ## Upgrade al progresului
 
@@ -350,12 +350,14 @@ mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication
 `AnalysisLineTest` verifică navigarea, ramificarea, mutările speciale și exportul prefixului. Un cursor în istoric poate deschide analiza partidei sursă încheiate dacă linia întreagă îi păstrează mutările. O ramură diferită, o partidă în curs și un mat jucat manual folosesc analiza de studiu. `GameReviewTest` verifică analiza tuturor mutărilor și criteriile Elo. `MatchSlotsTest` verifică locul zece, refuzul la capacitate și respingerea răspunsurilor AI vechi. `MainMenuLayoutTest` acoperă intrarea localizată din meniu.
 
 Pentru Android folosiți `-ManualAnalysisOnly` sau `-IncludeManualAnalysis`.
-Proba deschide tabla din meniu și verifică eticheta de teorie, explicația
-deschiderii, revenirea la motor după ieșire și refacerea etichetei la întoarcerea
-în istoric. Captura arată eticheta sub tabla fixă. Ultima verificare joacă
-mutarea indicată fără a crea o partidă salvată. `OpeningTheoryTest` acoperă
-transpozițiile, drepturile de rocadă, continuările dincolo de lecțiile scrise
-și proveniența fiecărei mutări. Publicați `manual-analysis.txt`
+Proba deschide tabla din meniu, schimbă două trasee cu aceeași primă mutare
+și parcurge Italiana până la ultima semimutare. Verifică explicația ultimei
+mutări, revenirea cu săgeata și închiderea previzualizării la cursorul inițial.
+După ieșirea din repertoriu verifică indiciul motorului. La revenirea în istoric,
+captura arată eticheta de teorie sub tabla fixă, iar ultima aserțiune confirmă
+că mutarea indicată nu creează o partidă salvată. `OpeningTheoryTest` acoperă
+cele trei trasee, toate mutările din YAML, transpozițiile, rocada și trecerea
+de la lecții la indexul ECO și la motor. Publicați `manual-analysis.txt`
 cu `-Dtest=AndroidSanityPublication#publishManualAnalysisSanity` și
 `-Dchess.android.receipt=<cale>`. Raportul are cinci aserțiuni și o captură
 legată de recepție. Proba confirmă în PNG toate cele patru colțuri ale tablei.

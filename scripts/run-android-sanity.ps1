@@ -74,6 +74,7 @@ $tests = Join-Path $root "$native/androidTest/$variant/app-$variant-androidTest.
 foreach ($file in @($apk, $tests)) { if (!(Test-Path -LiteralPath $file -PathType Leaf)) { throw "Missing $file" } }
 $run = Join-Path $root ('target/android-sanity-' + [guid]::NewGuid().ToString('N'))
 $token = [guid]::NewGuid().ToString('N')
+$boardRunId = [guid]::NewGuid().ToString('N')
 $lease = [ordered]@{ active=$true; leaseId=$token; serial=$Serial; owner='J7 board sanity'; run=$run; acquiredUtc=[datetime]::UtcNow.ToString('o') }
 $adbArgs = @('-H', $AdbHost, '-P', "$AdbPort", '-s', $Serial)
 
@@ -321,7 +322,8 @@ try {
         Invoke-SelectedMatchSanity $run $analysisRunId
         return
     }
-    Invoke-Device ($instrument + @('-e','phase','prepare',$runner)) |
+    $boardInstrument = $instrument + @('-e','runId',$boardRunId)
+    Invoke-Device ($boardInstrument + @('-e','phase','prepare',$runner)) |
         Set-Content -LiteralPath $receipt -Encoding utf8NoBOM
     if (Select-String -Quiet -LiteralPath $receipt -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS') {
         Receive-Frame 'hint-piece'
@@ -330,7 +332,7 @@ try {
         Receive-Frame 'menu'
         Receive-Frame 'tactics-streak'
         Invoke-Device @('shell','am','force-stop',$app)
-        Invoke-Device ($instrument + @('-e','phase','restore',$runner)) |
+        Invoke-Device ($boardInstrument + @('-e','phase','restore',$runner)) |
             Set-Content -LiteralPath $restore -Encoding utf8NoBOM
     }
     if ((Test-Path -LiteralPath $restore) -and (Select-String -Quiet -LiteralPath $restore -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {
@@ -342,7 +344,7 @@ try {
         if ($clear -notcontains 'Success') { throw 'Could not reset for computer-match sanity.' }
         foreach ($phase in 'match-prepare','match-restore','match-settled') {
             $matchReceipt = Join-Path $run "$phase.txt"
-            Invoke-Device ($instrument + @('-e','phase',$phase,$runner)) |
+            Invoke-Device ($boardInstrument + @('-e','phase',$phase,$runner)) |
                 Set-Content -LiteralPath $matchReceipt -Encoding utf8NoBOM
             if (!(Select-String -Quiet -LiteralPath $matchReceipt -SimpleMatch 'INSTRUMENTATION_RESULT: result=PASS')) {
                 Receive-Frame 'failure'
@@ -387,7 +389,8 @@ try {
 
 Push-Location $root
 try {
-    mvn -B -ntp test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishBoardSanity' "-Dchess.android.receipt=$receipt"
+    mvn -B -ntp test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishBoardSanity' `
+        "-Dchess.android.receipt=$receipt" "-Dchess.android.runId=$boardRunId"
     $publication = $LASTEXITCODE
     $report = Join-Path $run 'android-board-sanity.html'
     $receiptHashes = [ordered]@{}
@@ -396,7 +399,7 @@ try {
         $nativeChecks += @(Select-String -LiteralPath $file.FullName -Pattern '^INSTRUMENTATION_RESULT: check_').Count
         $receiptHashes[$file.BaseName] = (Get-FileHash -LiteralPath $file.FullName).Hash.ToLowerInvariant()
     }
-    [ordered]@{device=$Serial; api=$api; apkSha256=$hash; sourceCommit=$SourceCommit; assertions=$nativeChecks;
+    [ordered]@{device=$Serial; api=$api; apkSha256=$hash; sourceCommit=$SourceCommit; runId=$boardRunId; assertions=$nativeChecks;
         receipts=$receiptHashes; variant=$variant;
         status=$(if ($publication) {'FAIL'} else {'PASS'});
         extentSha256=$(if (Test-Path -LiteralPath $report) {(Get-FileHash -LiteralPath $report).Hash.ToLowerInvariant()})} |

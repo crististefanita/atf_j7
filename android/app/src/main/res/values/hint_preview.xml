@@ -8,6 +8,9 @@
     <string name="hint_preview_played">%1$s played %2$s</string>
     <string name="hint_preview_checked_reply">Defence · %1$s</string>
     <string name="hint_theory_caption">%1$s · Theory · %2$s</string>
+    <string name="hint_theory_title">Opening theory</string>
+    <string name="hint_theory_path">Line %1$d</string>
+    <string name="hint_theory_numbered">Theory %1$d/%2$d · %3$s · %4$s</string>
     <string name="hint_theory_source">%1$s (%2$s)</string>
     <string name="hint_theory_index_detail">This continuation is recorded in the opening index.</string>
     <string name="hint_theory_accessible">Theory move %1$s. %2$s. %3$s</string>

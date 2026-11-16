@@ -31,7 +31,7 @@ Pe aceeași fereastră, tabla păstrează poziția și dimensiunea când parcurg
 
 ## Configurarea lecțiilor
 
-Pe [Tabla de analiză](README.md#tablă-de-analiză), indiciile caută continuările după poziția exactă, inclusiv drepturile de rocadă și posibilitatea unei capturi en passant. Mutările din lecții au prioritate, în ordinea catalogului. Urmează continuările susținute de cele mai multe linii din indexul ECO. Pentru fiecare mutare indexată se afișează denumirea cea mai apropiată de poziția rezultată. Eticheta descrie sursa, iar bara continuă să evalueze poziția afișată.
+Pe [Tabla de analiză](README.md#tablă-de-analiză), indiciile caută traseele din poziția exactă, inclusiv rocada și en passant. Din lecțiile YAML apar până la trei trasee în ordinea catalogului. Două trasee cu aceeași primă mutare rămân distincte când continuă diferit. Fiecare traseu păstrează toate semimutările rămase și explicațiile lor. Când lecțiile nu oferă un traseu, se aleg continuări complete din indexul ECO. Un traseu ECO nu are explicațiile adnotate ale lecțiilor. Dacă poziția nu are nicio continuare documentată, becul revine la motor.
 
 Ordinea elementelor din `openings.yaml` stabilește ordinea din meniu. Fiecare lecție are un ID stabil, cod ECO, sursă HTTPS, titlu, variantă și plan în română și engleză. În `line`, fiecare pas conține mutarea UCI și ideea în ambele limbi. Pentru rocadă se declară mutarea regelui, de exemplu `e1g1`. Motorul reia toate mutările de la poziția inițială și indică lecția și pasul dacă găsește o mutare ilegală. [Catalogul YAML](../../chess-core/src/main/resources/openings.yaml)
 

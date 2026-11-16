@@ -192,15 +192,14 @@ final class MatchAnalysisView extends TextView {
         var locale = getResources().getConfiguration().getLocales().get(0);
         String firstMove = ChessActivity.compactNotation(theory.move());
         String family = theory.family().in(locale);
-        String name = theory.name().in(locale);
-        String source = theory.idea() == null ? name : family + " · " + name;
-        String title = context.getString(R.string.hint_theory_source, source, theory.eco());
-        String action = context.getString(R.string.hint_theory_caption, firstMove, family);
+        String title = HintPreviewDialog.theoryTitle(context, theory);
+        String action = hint.count() == 1 ? context.getString(R.string.hint_theory_caption, firstMove, family)
+                : context.getString(R.string.hint_theory_numbered, hint.number(), hint.count(), firstMove, family);
         String detail = theory.idea() == null ? context.getString(R.string.hint_theory_index_detail)
                 : theory.idea().in(locale);
         String move = notation.apply(theory.move());
         String spoken = context.getString(R.string.hint_theory_accessible, move, title, detail);
-        suggestion(score, action, spokenScore + ". " + spoken, () -> openTheory(title, move, detail));
+        suggestion(score, action, spokenScore + ". " + action + ". " + spoken, this::openTheory);
     }
 
     private void suggestion(String score, String action, String description, Runnable open) {
@@ -211,25 +210,23 @@ final class MatchAnalysisView extends TextView {
         setOnClickListener(view -> open.run());
     }
 
-    private void openTheory(String title, String move, String detail) {
-        if (preview != null) return;
-        var screen = new AlertDialog.Builder(getContext()).setTitle(title)
-                .setMessage(move + "\n\n" + detail).setPositiveButton(R.string.hint_preview_return, null).create();
-        preview = screen;
-        screen.setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
-        screen.show();
-        screen.getButton(AlertDialog.BUTTON_POSITIVE).setId(R.id.hint_preview_return);
+    private void openTheory() {
+        if (hint == null || preview != null) return;
+        hint.theoryPlayback(shownPosition).ifPresent(study ->
+                rememberPreview(HintPreviewDialog.showTheory(getContext(), shownPosition, study, evaluationBar.blackBelow(), notation)));
     }
 
     private void openPreview() {
         var position = shownPosition;
         var current = hint;
         if (current == null || preview != null) return;
-        current.playback(position).ifPresent(playback -> {
-            var screen = HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation);
-            preview = screen;
-            screen.setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
-        });
+        current.playback(position).ifPresent(playback ->
+                rememberPreview(HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation)));
+    }
+
+    private void rememberPreview(AlertDialog screen) {
+        preview = screen;
+        screen.setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
     }
 
     private String leadingColor(int advantage) { return getContext().getString(advantage > 0 ? R.string.white : R.string.black); }

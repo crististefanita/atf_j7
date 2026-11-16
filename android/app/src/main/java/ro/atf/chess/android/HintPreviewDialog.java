@@ -18,11 +18,14 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.HintComparison;
 import ro.atf.chess.HintPreview;
 import ro.atf.chess.MatchHint;
+import ro.atf.chess.OpeningReplay;
+import ro.atf.chess.OpeningCatalog.Text;
 import ro.atf.chess.QuestHint;
 
 /** Plays the suggested branch on its own board and returns to the original cursor. */
@@ -33,21 +36,93 @@ final class HintPreviewDialog {
 
     static AlertDialog show(Context context, ChessPosition root, MatchHint.Playback study,
                             boolean blackBelow, Function<Move, String> notation) {
+        String summary = study.depth() > 0 ? context.getString(R.string.hint_compare_depth, study.depth()) : null;
+        var workspace = workspace(context, R.string.hint_preview_title, summary, study.lines().size() > 1);
+        var choices = workspace.choices();
+        var details = workspace.details();
+        var branches = branches(context, root, study, choices, details, notation);
+        var playback = new Playback(workspace, blackBelow, notation, branches);
+        int selected = 0;
+        for (int index = 0; index < branches.size(); index++) {
+            var branch = branches.get(index);
+            if (study.lines().get(index).move().equals(study.selected())) selected = index;
+            int branchIndex = index;
+            branch.button().setOnClickListener(view -> playback.select(branchIndex));
+            study.comparison(root, index).flatMap(HintComparison::decisive).filter(proof -> {
+                int target = proof.inStronger() ? 0 : branchIndex == 0 ? 1 : branchIndex;
+                return !branches.get(target).replay().addedDefense();
+            }).ifPresentOrElse(proof -> {
+                int target = proof.inStronger() ? 0 : branchIndex == 0 ? 1 : branchIndex;
+                branch.reason().setText(decisive(context, proof, target + 1, notation));
+                branch.reason().setContentDescription(branch.reason().getText() + " " + context.getString(R.string.hint_compare_jump));
+                branch.reason().setOnClickListener(view -> playback.seek(target, proof.ply()));
+            }, () -> branch.reason().setText(reason(context, root, branch.replay().evidence(), notation)));
+        }
+        playback.select(selected);
+        return open(workspace.dialog());
+    }
+
+    static AlertDialog showTheory(Context context, ChessPosition root, MatchHint.TheoryPlayback study,
+                                  boolean blackBelow, Function<Move, String> notation) {
+        var workspace = workspace(context, R.string.hint_theory_title, null, study.paths().size() > 1);
+        var paths = study.paths().stream().map(path -> new OpeningReplay(root, path)).collect(Collectors.toList());
+        var title = new TextView(context);
+        title.setId(R.id.hint_preview_delta);
+        var idea = new TextView(context);
+        idea.setId(R.id.hint_preview_reason);
+        idea.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        var panel = new LinearLayout(context);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.addView(title);
+        panel.addView(idea);
+        workspace.details().addView(panel);
+        var buttons = new ArrayList<Button>(paths.size());
+        var controls = new TheoryControls(workspace, study, paths, buttons, title, idea, blackBelow, notation);
+        for (int index = 0; index < paths.size(); index++) {
+            var button = branchButton(context);
+            button.setId(BRANCH_IDS[index]);
+            button.setText(context.getString(R.string.hint_theory_path, index + 1));
+            button.setContentDescription(button.getText() + " · " + theoryTitle(context, study.paths().get(index)));
+            int active = index;
+            button.setOnClickListener(view -> controls.select(active));
+            addBranchButton(context, workspace.choices(), button, index + 1 < paths.size());
+            buttons.add(button);
+        }
+        controls.select(study.selected());
+        return open(workspace.dialog());
+    }
+
+    static String theoryTitle(Context context, MatchHint.Theory theory) {
+        var locale = context.getResources().getConfiguration().getLocales().get(0);
+        String name = theory.name().in(locale);
+        String source = theory.idea() == null ? name : theory.family().in(locale) + " · " + name;
+        return context.getString(R.string.hint_theory_source, source, theory.eco());
+    }
+
+    private static AlertDialog open(AlertDialog dialog) {
+        dialog.show();
+        Button close = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        close.setId(R.id.hint_preview_return);
+        close.setAllCaps(false);
+        return dialog;
+    }
+
+    private static Workspace workspace(Context context, int dialogTitle, String summaryText, boolean showChoices) {
         var body = new LinearLayout(context);
         body.setOrientation(LinearLayout.VERTICAL);
         int padding = dp(context, 16);
         body.setPadding(padding, 0, padding, 0);
-        if (study.depth() > 0) {
+        if (summaryText != null) {
             var summary = new TextView(context);
             summary.setId(R.id.hint_compare_summary);
-            summary.setText(context.getString(R.string.hint_compare_depth, study.depth()));
+            summary.setText(summaryText);
             body.addView(summary);
         }
         var choices = new LinearLayout(context);
         choices.setBaselineAligned(false);
         var choicesLayout = new LinearLayout.LayoutParams(-1, -2);
         choicesLayout.setMargins(0, dp(context, 6), 0, dp(context, 6));
-        if (study.lines().size() > 1) body.addView(choices, choicesLayout);
+        if (showChoices) body.addView(choices, choicesLayout);
         var board = new BoardView(context, ignored -> { });
         board.setId(R.id.hint_preview_board);
         board.setContentDescription(context.getString(R.string.game_review_board));
@@ -73,32 +148,9 @@ final class HintPreviewDialog {
         body.addView(details);
         var scroll = new ScrollView(context);
         scroll.addView(body);
-        var dialog = new AlertDialog.Builder(context).setTitle(R.string.hint_preview_title)
+        var dialog = new AlertDialog.Builder(context).setTitle(dialogTitle)
                 .setView(scroll).setPositiveButton(R.string.hint_preview_return, null).create();
-        var branches = branches(context, root, study, choices, details, notation);
-        var playback = new Playback(board, step, back, forward, blackBelow, notation, branches);
-        int selected = 0;
-        for (int index = 0; index < branches.size(); index++) {
-            var branch = branches.get(index);
-            if (study.lines().get(index).move().equals(study.selected())) selected = index;
-            int branchIndex = index;
-            branch.button().setOnClickListener(view -> playback.select(branchIndex));
-            study.comparison(root, index).flatMap(HintComparison::decisive).filter(proof -> {
-                int target = proof.inStronger() ? 0 : branchIndex == 0 ? 1 : branchIndex;
-                return !branches.get(target).replay().addedDefense();
-            }).ifPresentOrElse(proof -> {
-                int target = proof.inStronger() ? 0 : branchIndex == 0 ? 1 : branchIndex;
-                branch.reason().setText(decisive(context, proof, target + 1, notation));
-                branch.reason().setContentDescription(branch.reason().getText() + " " + context.getString(R.string.hint_compare_jump));
-                branch.reason().setOnClickListener(view -> playback.seek(target, proof.ply()));
-            }, () -> branch.reason().setText(reason(context, root, branch.replay().evidence(), notation)));
-        }
-        playback.select(selected);
-        dialog.show();
-        Button close = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        close.setId(R.id.hint_preview_return);
-        close.setAllCaps(false);
-        return dialog;
+        return new Workspace(dialog, choices, board, step, back, forward, details);
     }
 
     private static List<Branch> branches(Context context, ChessPosition root, MatchHint.Playback study,
@@ -114,9 +166,7 @@ final class HintPreviewDialog {
             button.setText(context.getString(R.string.hint_compare_choice, index + 1, ChessActivity.compactNotation(line.move())));
             int spoken = index == 0 ? R.string.hint_compare_recommended_spoken : R.string.hint_compare_choice_spoken;
             button.setContentDescription(context.getString(spoken, index + 1, notation.apply(line.move()), evaluation));
-            var layout = new LinearLayout.LayoutParams(0, -1, 1);
-            if (index + 1 < study.lines().size()) layout.setMarginEnd(dp(context, 6));
-            choices.addView(button, layout);
+            addBranchButton(context, choices, button, index + 1 < study.lines().size());
 
             var label = new TextView(context);
             label.setText(preview.estimate().map(estimate -> context.getString(R.string.hint_preview_change,
@@ -133,6 +183,12 @@ final class HintPreviewDialog {
             branches.add(new Branch(preview, button, panel, label, reason));
         }
         return branches;
+    }
+
+    private static void addBranchButton(Context context, LinearLayout choices, Button button, boolean more) {
+        var layout = new LinearLayout.LayoutParams(0, -1, 1);
+        if (more) layout.setMarginEnd(dp(context, 6));
+        choices.addView(button, layout);
     }
 
     private static Button branchButton(Context context) {
@@ -165,27 +221,32 @@ final class HintPreviewDialog {
 
     private record Branch(HintPreview replay, Button button, LinearLayout details, TextView score, TextView reason) { }
 
+    private record Workspace(AlertDialog dialog, LinearLayout choices, BoardView board, TextView step, ImageButton back,
+                             ImageButton forward, FrameLayout details) {
+        void render(ChessPosition position, boolean blackBelow, Move first, Move last, int ply, int length,
+                    String moveDescription) {
+            var cue = ply == 0 ? QuestHint.SOLUTION.cue(first) : new QuestHint.Cue(-1, -1);
+            board.show(position, blackBelow, -1, List.of(), last, cue, false, step.getId());
+            step.setText(board.getContext().getString(R.string.hint_preview_step, ply, length, moveDescription));
+            back.setEnabled(ply > 0);
+            forward.setEnabled(ply < length);
+        }
+    }
+
     private static final class Playback {
-        private final BoardView board;
-        private final TextView step;
-        private final ImageButton back;
-        private final ImageButton forward;
+        private final Workspace workspace;
         private final boolean blackBelow;
         private final Function<Move, String> notation;
         private final List<Branch> branches;
         private HintPreview preview;
 
-        Playback(BoardView board, TextView step, ImageButton back, ImageButton forward, boolean blackBelow,
-                 Function<Move, String> notation, List<Branch> branches) {
-            this.board = board;
-            this.step = step;
-            this.back = back;
-            this.forward = forward;
+        Playback(Workspace workspace, boolean blackBelow, Function<Move, String> notation, List<Branch> branches) {
+            this.workspace = workspace;
             this.blackBelow = blackBelow;
             this.notation = notation;
             this.branches = List.copyOf(branches);
-            back.setOnClickListener(view -> { this.preview.previous(); render(); });
-            forward.setOnClickListener(view -> { this.preview.next(); render(); });
+            workspace.back().setOnClickListener(view -> { preview.previous(); render(); });
+            workspace.forward().setOnClickListener(view -> { preview.next(); render(); });
         }
 
         void select(int active) {
@@ -208,19 +269,65 @@ final class HintPreviewDialog {
         }
 
         void render() {
-            var context = board.getContext();
+            var context = workspace.board().getContext();
             var position = preview.position();
             Move last = preview.lastMove();
-            var cue = preview.step() == 0 ? QuestHint.SOLUTION.cue(preview.firstMove()) : new QuestHint.Cue(-1, -1);
-            board.show(position, blackBelow, -1, List.of(), last, cue, false, step.getId());
             String move = last == null ? context.getString(R.string.hint_preview_start)
                     : preview.addedDefense() && !preview.hasNext() ? context.getString(R.string.hint_preview_checked_reply, notation.apply(last))
-                    : context.getString(R.string.hint_preview_played,
-                            context.getString(BoardView.sideLabel(position.turn().other())), notation.apply(last));
-            step.setText(context.getString(R.string.hint_preview_step, preview.step(), preview.length(), move));
-            back.setEnabled(preview.hasPrevious());
-            forward.setEnabled(preview.hasNext());
+                    : played(context, position, last, notation);
+            workspace.render(position, blackBelow, preview.firstMove(), last, preview.step(), preview.length(), move);
         }
+    }
+
+    private static final class TheoryControls {
+        private final Workspace workspace;
+        private final MatchHint.TheoryPlayback study;
+        private final List<OpeningReplay> paths;
+        private final List<Button> buttons;
+        private final TextView title;
+        private final TextView idea;
+        private final boolean blackBelow;
+        private final Function<Move, String> notation;
+        private int active;
+
+        TheoryControls(Workspace workspace, MatchHint.TheoryPlayback study, List<OpeningReplay> paths, List<Button> buttons,
+                       TextView title, TextView idea, boolean blackBelow, Function<Move, String> notation) {
+            this.workspace = workspace;
+            this.study = study;
+            this.paths = paths;
+            this.buttons = buttons;
+            this.title = title;
+            this.idea = idea;
+            this.blackBelow = blackBelow;
+            this.notation = notation;
+            workspace.back().setOnClickListener(view -> { paths.get(active).previous(); render(); });
+            workspace.forward().setOnClickListener(view -> { paths.get(active).next(); render(); });
+        }
+
+        void select(int index) {
+            active = index;
+            for (int button = 0; button < buttons.size(); button++) buttons.get(button).setSelected(button == index);
+            title.setText(theoryTitle(workspace.board().getContext(), study.paths().get(index)));
+            render();
+        }
+
+        private void render() {
+            var context = workspace.board().getContext();
+            var path = study.paths().get(active);
+            var replay = paths.get(active);
+            var position = replay.position();
+            Move last = replay.lastMove();
+            String step = last == null ? notation.apply(path.move()) : played(context, position, last, notation);
+            workspace.render(position, blackBelow, path.move(), last, replay.ply(), replay.length(), step);
+            Text explanation = replay.explainedStep().idea();
+            idea.setText(explanation == null ? context.getString(R.string.hint_theory_index_detail)
+                    : explanation.in(context.getResources().getConfiguration().getLocales().get(0)));
+        }
+    }
+
+    private static String played(Context context, ChessPosition position, Move move, Function<Move, String> notation) {
+        return context.getString(R.string.hint_preview_played,
+                context.getString(BoardView.sideLabel(position.turn().other())), notation.apply(move));
     }
 
     private static String decisive(Context context, HintComparison.DecisiveMove proof, int rank, Function<Move, String> notation) {

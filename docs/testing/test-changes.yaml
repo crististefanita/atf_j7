@@ -280,3 +280,45 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
     contract: "Keep the matching Maven parent and the documented test sources"
     allowDelete: false
+
+  - id: J7-BOARD-SANITY-RECEIPT
+    base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#rendersAllPrepareChecksAndRejectsIncompleteDuplicateOrSubstitutedReceipts
+    contract: "Render all 58 prepare assertions and reject missing rows, duplicated IDs, substituted titles and foreign phase receipts"
+    allowDelete: false
+
+  - id: J7-BOARD-SANITY-PUBLISHER
+    base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#rendersAllPrepareChecksAndRejectsIncompleteDuplicateOrSubstitutedReceipts
+    contract: "Bind each prepare assertion ID to its native title and require one shared run ID across all five restart phases"
+    allowDelete: false
+
+  - id: J7-BOARD-SANITY-RUNNER
+    base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
+    from: scripts/run-android-sanity.ps1
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#rendersAllPrepareChecksAndRejectsIncompleteDuplicateOrSubstitutedReceipts
+    contract: "Pass the same runner-created identity to each general instrumentation phase and to the Extent publisher"
+    allowDelete: false
+
+  - id: J7-THEORY-PATHS-NATIVE
+    base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/OpeningTheoryTest.java
+    test: ro.atf.chess.OpeningTheoryTest#keepsThreeFullYamlPathsEvenWhenTheyStartWithTheSameMove
+    contract: "Prove complete YAML replay and same-first-move paths in JVM and navigate the rendered theory preview on Android"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "The manual hint marks a book move and explains its named opening"
+
+  - id: J7-THEORY-PATHS-COMPONENT
+    base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
+    from: atf-tests/src/test/java/ro/atf/chess/OpeningTheoryTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/OpeningTheoryTest.java
+    test: ro.atf.chess.OpeningTheoryTest#keepsThreeFullYamlPathsEvenWhenTheyStartWithTheSameMove
+    contract: "Keep distinct full continuations even when paths start with the same move"
+    allowDelete: false

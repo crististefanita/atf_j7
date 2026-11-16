@@ -5,11 +5,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import ro.atf.chess.ChessPosition.Move;
+import ro.atf.chess.OpeningCatalog.Step;
 import ro.atf.chess.OpeningCatalog.Text;
 
 /** A reveal cursor for the best continuations of one analyzed position. */
 public final class MatchHint {
-    public record Theory(Move move, String eco, Text family, Text name, Text idea) { }
+    public record Theory(String eco, Text family, Text name, List<Step> steps) {
+        public Theory {
+            steps = List.copyOf(steps);
+            if (steps.isEmpty()) throw new IllegalArgumentException("Opening path has no moves");
+        }
+
+        public Move move() { return steps.get(0).move(); }
+        public Text idea() { return steps.get(0).idea(); }
+    }
+
+    public record TheoryPlayback(List<Theory> paths, int selected) {
+        public TheoryPlayback { paths = List.copyOf(paths); }
+    }
 
     /** A stable preview of the current recommendation. Scores are comparable only at the supplied depth. */
     public record Playback(List<TacticalAnalysis.Variation> lines, int depth, ChessPosition.Move selected,
@@ -86,6 +99,10 @@ public final class MatchHint {
     public TacticalAnalysis.Variation revealed() { return index < 0 || lines.isEmpty() ? null : lines.get(index); }
 
     public Theory revealedTheory() { return index < 0 || theory.isEmpty() ? null : theory.get(index); }
+
+    public Optional<TheoryPlayback> theoryPlayback(ChessPosition position) {
+        return revealedTheory() == null || !matches(position) ? Optional.empty() : Optional.of(new TheoryPlayback(theory, index));
+    }
 
     public Move revealedMove() {
         var opening = revealedTheory();

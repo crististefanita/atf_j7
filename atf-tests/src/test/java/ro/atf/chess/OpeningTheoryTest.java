@@ -15,7 +15,7 @@ class OpeningTheoryTest {
         var position = study.position();
         var hint = study.hint();
         check.same("Theory starts hidden and preserves the configured variant ceiling", true,
-                hint.revealedMove() == null && hint.count() <= MatchAiPolicy.CURRENT.hint.maxVariants());
+                hint.revealedMove() == null && hint.count() <= 3);
         var seen = new HashSet<Move>();
         for (int index = 0; index < hint.count(); index++) {
             hint.revealNext();
@@ -32,6 +32,37 @@ class OpeningTheoryTest {
                 seen.containsAll(List.of(Move.fromUci("c2c3"), Move.fromUci("g1f3"))));
         check.same("Opening playback carries source information instead of a calculated gain", true,
                 hint.playback(position).isEmpty() && hint.evaluation(position) != null);
+    }
+
+    @Test void keepsThreeFullYamlPathsEvenWhenTheyStartWithTheSameMove(Checks check) {
+        var study = line("e2e4");
+        var hint = study.hint();
+        check.same("Exactly three complete paths are offered", 3, hint.count());
+        check.same("Playback stays hidden until the first path is revealed", true, hint.theoryPlayback(study.position()).isEmpty());
+        hint.revealNext();
+        var italian = hint.revealedTheory();
+        hint.revealNext();
+        var span = hint.theoryPlayback(study.position()).orElseThrow();
+        var spanish = span.paths().get(span.selected());
+        check.same("Italian and Spanish paths share the first move but diverge later", true,
+                italian.move().equals(spanish.move()) && !italian.steps().equals(spanish.steps()) && span.selected() == 1);
+        var lesson = OpeningCatalog.load().get(0);
+        check.same("The Italian path retains every authored move and explanation from this board",
+                lesson.steps().subList(1, lesson.steps().size()), italian.steps());
+        var replay = new OpeningReplay(study.position(), italian);
+        while (replay.hasNext()) replay.next();
+        check.same("Replay ends at the YAML board and does not invent another reply",
+                List.of(lesson.positionAt(lesson.steps().size()).searchKey(), Move.fromUci("e8g8"), 11),
+                List.of(replay.position().searchKey(), replay.lastMove(), replay.length()));
+        replay.previous();
+        check.same("Stepping back restores the previous authored frame and its explanation",
+                List.of(lesson.positionAt(11).searchKey(), lesson.steps().get(10)),
+                List.of(replay.position().searchKey(), replay.explainedStep()));
+        check.same("Previewing never advances the study and stale hints cannot open paths", true,
+                study.ply() == 1 && hint.theoryPlayback(replay.position()).isEmpty());
+        hint.revealNext();
+        hint.revealNext();
+        check.same("Cycling all three branches returns to the first path", italian, hint.revealedTheory());
     }
 
     @Test void searchesTheRestOfTheIndexAfterAnAuthoredLessonEnds(Checks check) {

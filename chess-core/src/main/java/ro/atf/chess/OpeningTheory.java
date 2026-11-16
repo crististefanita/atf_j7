@@ -6,42 +6,49 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.SearchKey;
 import ro.atf.chess.MatchHint.Theory;
+import ro.atf.chess.OpeningCatalog.Step;
 import ro.atf.chess.OpeningCatalog.Text;
 
-/** Continuations from any indexed position, including positions reached through another move order. */
+/** Opening paths available from an exact position, irrespective of the move order used to reach it. */
 final class OpeningTheory {
+    private static final int MAX_PATHS = 3;
     static final OpeningTheory CURRENT = new OpeningTheory(OpeningCatalog.load(), OpeningIndex.CURRENT.lines());
 
     private record Frame(ChessPosition position, Map<Move, Frame> children) {
         Frame(ChessPosition position) { this(position, new HashMap<>()); }
     }
 
-    private record Reference(GameReview.Opening opening, int distance, int coverage) {
+    private record Reference(GameReview.Opening opening, List<Step> steps, int ply, int coverage) {
+        int length() { return steps.size() - ply; }
         Reference merge(Reference next) {
-            var nearest = next.distance < distance ? next : this;
-            return new Reference(nearest.opening, nearest.distance, coverage + next.coverage);
+            var nearest = next.length() < length() ? next : this;
+            return new Reference(nearest.opening, nearest.steps, nearest.ply, coverage + next.coverage);
         }
     }
 
     private final Map<SearchKey, List<Theory>> byPosition;
 
     private OpeningTheory(List<OpeningCatalog.Opening> lessons, List<OpeningIndex.BookLine> book) {
-        var curated = new HashMap<SearchKey, Map<Move, Theory>>();
+        var authored = new HashMap<SearchKey, Map<List<Move>, Theory>>();
         for (var lesson : lessons) {
             for (int ply = 0; ply < lesson.steps().size(); ply++) {
-                var step = lesson.steps().get(ply);
+                var steps = lesson.steps().subList(ply, lesson.steps().size());
+                var moves = steps.stream().map(Step::move).collect(Collectors.toList());
                 var key = lesson.positionAt(ply).searchKey();
-                curated.computeIfAbsent(key, ignored -> new LinkedHashMap<>())
-                        .putIfAbsent(step.move(), new Theory(step.move(), lesson.eco(), lesson.title(), lesson.variation(), step.idea()));
+                authored.computeIfAbsent(key, ignored -> new LinkedHashMap<>())
+                        .putIfAbsent(moves, new Theory(lesson.eco(), lesson.title(), lesson.variation(), steps));
             }
         }
-        var references = references(book);
-        references.keySet().forEach(key -> curated.computeIfAbsent(key, ignored -> new LinkedHashMap<>()));
         var choices = new HashMap<SearchKey, List<Theory>>();
-        curated.forEach((key, authored) -> choices.put(key, order(authored, references.getOrDefault(key, Map.of()))));
+        authored.forEach((key, paths) -> choices.put(key, paths.values().stream().limit(MAX_PATHS).collect(Collectors.toList())));
+        references(book).forEach((key, indexed) -> choices.computeIfAbsent(key, ignored -> indexed.entrySet().stream()
+                .sorted(Comparator.<Map.Entry<Move, Reference>>comparingInt(entry -> entry.getValue().coverage()).reversed()
+                        .thenComparing(entry -> entry.getKey().uci()))
+                .limit(MAX_PATHS).map(entry -> fromIndex(entry.getValue())).collect(Collectors.toList())));
         byPosition = Map.copyOf(choices);
     }
 
@@ -53,10 +60,11 @@ final class OpeningTheory {
         var references = new HashMap<SearchKey, Map<Move, Reference>>();
         var root = new Frame(ChessPosition.initial());
         for (var line : book) {
+            var steps = line.moves().stream().map(move -> new Step(Move.fromUci(move), null)).collect(Collectors.toList());
             var frame = root;
-            for (int ply = 0; ply < line.moves().size(); ply++) {
-                var move = Move.fromUci(line.moves().get(ply));
-                var reference = new Reference(line.opening(), line.moves().size() - ply - 1, 1);
+            for (int ply = 0; ply < steps.size(); ply++) {
+                var move = steps.get(ply).move();
+                var reference = new Reference(line.opening(), steps, ply, 1);
                 var children = references.computeIfAbsent(frame.position().searchKey(), ignored -> new HashMap<>());
                 children.merge(move, reference, Reference::merge);
                 ChessPosition before = frame.position();
@@ -66,21 +74,10 @@ final class OpeningTheory {
         return references;
     }
 
-    private static List<Theory> order(Map<Move, Theory> authored, Map<Move, Reference> indexed) {
-        var choices = new ArrayList<>(authored.values());
-        indexed.entrySet().stream()
-                .filter(entry -> !authored.containsKey(entry.getKey()))
-                .sorted(Comparator.<Map.Entry<Move, Reference>>comparingInt(entry -> entry.getValue().coverage()).reversed()
-                        .thenComparing(entry -> entry.getKey().uci()))
-                .forEach(entry -> choices.add(fromIndex(entry.getKey(), entry.getValue().opening())));
-        int limit = MatchAiPolicy.CURRENT.hint.maxVariants();
-        return List.copyOf(choices.subList(0, Math.min(limit, choices.size())));
-    }
-
-    private static Theory fromIndex(Move move, GameReview.Opening opening) {
-        String name = opening.name();
-        // Keep the family on the board and the complete pinned name in the explanation.
+    private static Theory fromIndex(Reference reference) {
+        String name = reference.opening().name();
         String family = name.split(":", 2)[0];
-        return new Theory(move, opening.eco(), new Text(family, family), new Text(name, name), null);
+        return new Theory(reference.opening().eco(), new Text(family, family), new Text(name, name),
+                reference.steps().subList(reference.ply(), reference.steps().size()));
     }
 }

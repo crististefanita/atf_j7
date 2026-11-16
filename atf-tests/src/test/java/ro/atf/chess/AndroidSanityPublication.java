@@ -42,6 +42,65 @@ class AndroidSanityPublication {
     private static final List<String> OPENING_GEOMETRY_CHECKS = List.of(
             "Next preserves the board and its corner squares when Resume lesson appears",
             "Next preserves the board and its corner squares when Lesson hint returns");
+    private static final List<String> BOARD_PREPARE_CHECKS = List.of(
+            "Home exposes play and profile, and Puzzles groups six playable chapters",
+            "The opening viewport renders the puzzle chapters",
+            "The compact probe runs with Romanian resources and font scale 1.3",
+            "The last Romanian menu entry is reachable in a short window",
+            "The Romanian board, active color and controls fit with the enlarged move hint",
+            "Accessibility traversal follows color, piece and destination after flipping, with old links cleared",
+            "The accessible bulb fits below the board and Next starts locked",
+            "The authored tactical defense advances once without solving",
+            "The authored tactical defense advances once without solving",
+            "A tactics solve renders its result and unlocks Next",
+            "Tactics renders the streak badge with the localized accessible name",
+            "The tactic explanation opens on the final board and announces the actual net gain",
+            "The explanation lets the player rewind to the previous position",
+            "The previous position enables forward replay",
+            "The defense study starts just after the key and leaves the playable result separate",
+            "The read-only defense reply is available",
+            "The replay advances to the actual defensive move and announces the board material",
+            "The individual lesson is displayed in the app language",
+            "A separate Stockfish estimate is identified as analysis after the key",
+            "The end of the study announces both the current loss and the worse immediate reply",
+            "The puzzle menu displays the saved chapter and overall totals",
+            "The authored tactical defense advances once without solving",
+            "64 visible cells",
+            "Square board",
+            "The active color stays visible above the board",
+            "A compact layout keeps the turn, square board and puzzle controls visible",
+            "The first of 500 quests is shown",
+            "Next is disabled on the first unsolved quest",
+            "Black is to move with Black's side at the bottom",
+            "Flipping rotates the board without changing the active color or moving its label",
+            "Fresh storage shows zero solved quests",
+            "The collection opens with a zero meter and goal of five",
+            "The simple hint exposes only the black queen on d8 and keeps the board and controls visible",
+            "The simple hint renders a mint outline and no arrow",
+            "The full hint reveals d8 to h4 and leaves the position playable",
+            "The full hint renders an arrow across the board",
+            "The solution names the checking queen and king square",
+            "The solution explains why the king cannot escape to f2",
+            "Revealing the solution does not mark a solve",
+            "Wrong legal move keeps the puzzle open",
+            "Rejected attempt leaves the pawn on e5",
+            "The first mating move solves the quest",
+            "Flipped lower-right cell",
+            "The second quest is shown",
+            "A second quest can be solved independently",
+            "The application shows two solves",
+            "The third quest is the current selection",
+            "The selected third quest is unsolved",
+            "Mate in two opens with its own 300-quest counter",
+            "A wrong opening keeps White to move and asks for forced mate in two",
+            "The opening hint shows the unique first move",
+            "The player's move leaves the opponent to move and locks input during the pause",
+            "The rendered defense follows the player's move by at least 650 ms",
+            "The opponent replies and the first move does not count as a solve",
+            "The mate-in-two board highlights the opponent's defense",
+            "Mate in three opens with 200 puzzles and White to move",
+            "The first defense leaves two moves and keeps White to move",
+            "The second defense is pending when the board closes");
     private static final List<String> QUEST_RESTART_CHECKS = List.of(
             "A real process restart keeps the tactics chapter position and its two awards",
             "Training reopens its second unsolved puzzle after process restart");
@@ -455,17 +514,18 @@ class AndroidSanityPublication {
         org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android " + scope + " evidence: " + receipt);
     }
     @Test void publishBoardSanity() throws Exception {
-        publishBoardSanity(Path.of(System.getProperty("chess.android.receipt")));
+        publishBoardSanity(Path.of(System.getProperty("chess.android.receipt")), System.getProperty("chess.android.runId", ""));
     }
 
-    static void publishBoardSanity(Path receipt) throws Exception {
+    static void publishBoardSanity(Path receipt, String runId) throws Exception {
         Path report = receipt.resolveSibling("android-board-sanity.html");
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
-        var prepare = readPhase(receipt, "prepare", 46);
-        var restore = readQuestRestore(receipt.resolveSibling("restore.txt"));
-        var matchPrepare = readPhase(receipt.resolveSibling("match-prepare.txt"), "match-prepare", 3);
-        var matchRestore = readPhase(receipt.resolveSibling("match-restore.txt"), "match-restore", 15);
-        var matchSettled = readPhase(receipt.resolveSibling("match-settled.txt"), "match-settled", 4);
+        var prepare = readPhase(receipt, "prepare", BOARD_PREPARE_CHECKS.size(), BOARD_PREPARE_CHECKS, runId);
+        var restore = requireChecks(readPhase(receipt.resolveSibling("restore.txt"), "restore", 26, List.of(), runId),
+                "restore", QUEST_RESTART_CHECKS, "chapter restart");
+        var matchPrepare = readPhase(receipt.resolveSibling("match-prepare.txt"), "match-prepare", 3, List.of(), runId);
+        var matchRestore = readPhase(receipt.resolveSibling("match-restore.txt"), "match-restore", 15, List.of(), runId);
+        var matchSettled = readPhase(receipt.resolveSibling("match-settled.txt"), "match-settled", 4, List.of(), runId);
         var phases = List.of(prepare, restore, matchPrepare, matchRestore, matchSettled);
         var pids = phases.stream().map(PhaseEvidence::pid).toList();
         boolean newProcess = !pids.contains("") && pids.stream().distinct().count() == phases.size();
@@ -477,6 +537,7 @@ class AndroidSanityPublication {
              var scenario = session.startScenario("BoardSanity", "Play the puzzle chapters and review the computer match across restarts", List.of("e2e", "android"));
              var phase = scenario.startPhase("TEST BODY")) {
             publish(phase, "Open the menu, earn a tactics bonus and play up to the pending second defense", prepare.rows(), prepare.passed());
+            phase.observation(new ReportObservation("Android run identity", List.of(new ReportField("Expected run ID", runId)), List.of(), List.of()));
             publish(phase, "Android process restart", List.of(new AtfAssertion("Instrumentation process IDs", "Five distinct Android PIDs",
                     String.join(" → ", pids), newProcess)), newProcess);
             publish(phase, "Resume pending quests and restore tactics, training and mate progress", restore.rows(), restore.passed());
@@ -527,10 +588,6 @@ class AndroidSanityPublication {
         return requireChecks(readPhase(receipt, "openings", 26), "openings", OPENING_GEOMETRY_CHECKS, "board geometry");
     }
 
-    static PhaseEvidence readQuestRestore(Path receipt) throws IOException {
-        return requireChecks(readPhase(receipt, "restore", 26), "restore", QUEST_RESTART_CHECKS, "chapter restart");
-    }
-
     private static PhaseEvidence requireChecks(PhaseEvidence evidence, String phase, List<String> names, String subject) {
         if (!evidence.passed()) return evidence;
         var missing = missingChecks(evidence.rows(), names);
@@ -545,9 +602,14 @@ class AndroidSanityPublication {
     }
 
     static PhaseEvidence readPhase(Path receipt, String phase, int expectedChecks) throws IOException {
+        return readPhase(receipt, phase, expectedChecks, List.of(), null);
+    }
+
+    private static PhaseEvidence readPhase(Path receipt, String phase, int expectedChecks, List<String> expectedTitles, String runId) throws IOException {
         if (!Files.isRegularFile(receipt)) return new PhaseEvidence("", List.of(receiptFailure(phase, "Missing native receipt")), false);
         var input = Files.readAllLines(receipt);
         var rows = new ArrayList<AtfAssertion>();
+        var substitutions = new ArrayList<String>();
         Set<Integer> ids = new HashSet<>();
         for (String line : input) {
             var match = CHECK.matcher(line);
@@ -556,6 +618,9 @@ class AndroidSanityPublication {
             int id = Integer.parseInt(match.group(1));
             if (fields.length == 4 && !fields[0].isBlank() && (fields[3].equals("true") || fields[3].equals("false")) && ids.add(id)) {
                 rows.add(new AtfAssertion(fields[0], fields[1], fields[2], Boolean.parseBoolean(fields[3]) && fields[1].equals(fields[2])));
+                if (!expectedTitles.isEmpty() && id >= 1 && id <= expectedTitles.size() && !expectedTitles.get(id - 1).equals(fields[0])) {
+                    substitutions.add("check_" + match.group(1) + " expected " + expectedTitles.get(id - 1) + " but found " + fields[0]);
+                }
             }
         }
         long rawChecks = input.stream().filter(line -> line.startsWith("INSTRUMENTATION_RESULT: check_")).count();
@@ -575,7 +640,15 @@ class AndroidSanityPublication {
                     : String.join(" · ", diagnostics);
             rows.add(receiptFailure(phase, diagnostic));
         }
-        return new PhaseEvidence(pid, rows, passed);
+        if (!substitutions.isEmpty()) {
+            rows.add(receiptFailure(phase, "Unexpected assertion titles: " + String.join(" · ", substitutions)));
+        }
+        var observedRunIds = markerValues(input, "INSTRUMENTATION_RESULT: runId=");
+        boolean sameRun = runId == null || (runId.matches("[a-f0-9]{32}") && observedRunIds.equals(List.of(runId)));
+        if (!sameRun) {
+            rows.add(receiptFailure(phase, "Expected native run ID " + runId + ", observed " + observedRunIds));
+        }
+        return new PhaseEvidence(pid, rows, passed && substitutions.isEmpty() && sameRun);
     }
 
     private static List<String> markerValues(List<String> lines, String prefix) {
