@@ -82,7 +82,7 @@ class ChessWebReviewFocusPublication {
                 same("Enlargement changes computed fonts for the page, Why and history rows by 30%", true, enlarged(receipt)),
                 same("The browser consumes the cached review without new engine requests", IntNode.valueOf(0), receipt.path("analysisRequests"))));
         verifyOrder(receipt, source, review, checks);
-        verifyVisits(receipt.path("focusEvidence"), checks);
+        verifyVisits(receipt.path("focusEvidence"), publicRun, checks);
         verifyLedger(receipt, archiveId, source, encoded, checks);
         var fields = List.of(new ReportField("Review fixture SHA-256", fixtureHash), new ReportField("Archived game ID", archiveId),
                 new ReportField("Browser origin", publicUrl.isEmpty() ? "Loopback" : publicUrl),
@@ -110,7 +110,7 @@ class ChessWebReviewFocusPublication {
                 List.of("close-why", "why-actions", "board", "played", "recommended"), strings(receipt.path("whyOrder"))));
     }
 
-    private static void verifyVisits(JsonNode entries, List<AtfAssertion> checks) {
+    private static void verifyVisits(JsonNode entries, boolean publicRun, List<AtfAssertion> checks) {
         var reports = new LinkedHashMap<String, JsonNode>();
         entries.forEach(entry -> reports.put(entry.path("id").asText(), entry));
         checks.add(same("Each keyboard transition occurs exactly once and in order",
@@ -142,8 +142,10 @@ class ChessWebReviewFocusPublication {
                 if (visit.focus().startsWith("row-")) {
                     checks.add(same(label + "the focused move is visible inside the history pane", true, isTrue(entry, "rowVisible")));
                 } else if ("seek".equals(visit.focus())) {
+                    String announcement = publicRun ? "Selected position " + visit.ply() + " of 4, White score "
+                            : "Poziția selectată " + visit.ply() + " din 4, scorul albului ";
                     checks.add(same(label + "the graph slider announces the current move", true,
-                            entry.path("seekLabel").asText().matches(".*\\b" + visit.ply() + "\\b.*")));
+                            entry.path("seekLabel").asText().startsWith(announcement)));
                 }
             }
         }
