@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "candidateCommit": "8292aeb3a1eafa49aafa0240ae75bec509ce25d6",
+  "verifiedMainCommit": "334c940b1cbf3b707896f03fbd1556f0b69df499",
+  "extentSha256": "e8c7f5eef44d199220331055994e9cf8ffd2e4e9084029437223cc8588f70fac",
+  "checks": [
+    "DocumentationGovernanceTest",
+    "ReleaseGovernanceTest",
+    "ExtentGovernanceTest"
+  ]
+}
