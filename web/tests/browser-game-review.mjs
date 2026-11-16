@@ -688,7 +688,11 @@ try {
     }
 
     async function exerciseReviewGraph() {
-        if (publicUrl && await evaluate(visible('#cancel-setup'))) await touch('#cancel-setup');
+        if (publicUrl) {
+            await until(() => evaluate(`${visible('#ai-setup')} && location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
+                'public preview starts in AI setup');
+            await touch('#open-review');
+        }
         if (await displayed('#review-close')) await touch('#review-close');
         await touch('#open-finished');
         const archiveId = await until(() => evaluate("document.querySelector('.match-row[data-mode=AI]')?.dataset.id"),
