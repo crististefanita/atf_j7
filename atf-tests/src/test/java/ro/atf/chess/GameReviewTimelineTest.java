@@ -93,6 +93,7 @@ class GameReviewTimelineTest {
                 List.of(true, played.get(0)), List.of(source.positionAt(2).sameForRepetition(timeline.position()),
                         timeline.nextLineMove().orElseThrow()));
         timeline.stepForward();
+        timeline.setExplanationOpen(true);
         check.same("At the first step, the next cue shows the opponent's queen reply", played.get(1),
                 timeline.nextLineMove().orElseThrow());
 
@@ -114,6 +115,43 @@ class GameReviewTimelineTest {
         check.same("Comparison leaves the archived move sequence, result and encoded report intact",
                 List.of(archived, ChessMatch.Result.BLACK_WINS, cache),
                 List.of(source.checkpoint(), source.result(), GameReviewCodec.encode(source, report)));
+    }
+
+    @Test void explainsMissedMaterialOnlyWhenComparableLinesShowALastingGain(Checks check) {
+        var source = ChessMatch.restore("1|e2e4 h7h6 g1f3 e7e5 a2a3");
+        var played = moves("a2a3", "b8c6", "h2h3");
+        var recommended = moves("f3e5", "b8c6", "e5f3");
+        var report = review(source, 5, Grade.MISS, 780, 500, recommended, played);
+        var timeline = new GameReviewTimeline(source, report);
+        check.same("The recommended line shows the knight winning the pawn while the played line gains nothing",
+                new GameReviewExplanation(Reason.MISSES_MATERIAL, Side.WHITE, 280, 4, 100,
+                        Optional.of(new MoveEvidence(Move.fromUci("f3e5"), Kind.KNIGHT, Kind.PAWN))),
+                timeline.explanation().orElseThrow());
+        check.same("The recommendation starts at the compared root with the decisive capture as the first cue", true,
+                timeline.showBranch(Branch.RECOMMENDED) && timeline.nextLineMove().orElseThrow().equals(Move.fromUci("f3e5")));
+        var recapture = review(source, 5, Grade.MISS, 780, 500, moves("f3e5", "b8c6", "h2h3"), played);
+        check.same("An immediate legal recapture at the boundary leaves the numerical explanation", Reason.EVALUATION,
+                new GameReviewTimeline(source, recapture).explanation().orElseThrow().reason());
+        var shortLine = review(source, 5, Grade.MISS, 780, 500, recommended.subList(0, 2), played);
+        check.same("Unequal lines leave the numerical explanation", Reason.EVALUATION,
+                new GameReviewTimeline(source, shortLine).explanation().orElseThrow().reason());
+    }
+
+    @Test void restoresAnOpenOrClosedExplanationWithoutMovingTheHistoryCursor(Checks check) {
+        var source = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
+        var report = review(source, 3, Grade.BLUNDER, 544, 0, moves("d2d4", "e5d4"), moves("g2g4", "d8h4"));
+        var original = new GameReviewTimeline(source, report);
+        original.seek(3);
+        original.setExplanationOpen(true);
+        var resumed = new GameReviewTimeline(source, report);
+        check.same("An open panel restores while the board still shows the recorded move", List.of(true, true, Branch.HISTORY, source.positionAt(3)),
+                List.of(resumed.restore(original.snapshot()), resumed.explanationOpen(), resumed.branch(), resumed.position()));
+        resumed.setExplanationOpen(false);
+        check.same("Closing the panel survives another restore", List.of(true, false),
+                List.of(original.restore(resumed.snapshot()), original.explanationOpen()));
+        original.setExplanationOpen(true);
+        original.next();
+        check.same("Navigating in history clears the panel", new Snapshot(4, Branch.HISTORY, 0, false), original.snapshot());
     }
 
     @Test void explainsBlackLosingMaterialAndUsesTheScoreForAPositionalDifference(Checks check) {

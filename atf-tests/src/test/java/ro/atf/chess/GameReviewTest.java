@@ -54,6 +54,51 @@ class GameReviewTest {
         check.same("Playing Black swaps the counts while preserving grade order", white.stream()
                 .map(row -> new GameReview.GradeCount(row.grade(), row.ai(), row.human())).toList(), black);
     }
+
+    @Test void comparesBothChecksAtACompletedDepthWithinTheReviewBudget(Checks check) {
+        var training = QuestCatalog.loadTraining().stream().filter(quest -> quest.id().equals("training-069")).findFirst().orElseThrow();
+        var white = ChessMatch.fromPosition(training.position());
+        for (var move : training.line().subList(0, 10)) white = white.play(move);
+        var black = ChessMatch.fromPosition(ChessPosition.fromFen("2qr2k1/pR3bpp/2p5/Q1b1pNp1/4P1P1/2P4P/P4P2/6K1 b - - 0 24"));
+        var policy = GameReviewPolicy.CURRENT.search;
+        for (Side side : Side.values()) {
+            var root = side == Side.WHITE ? white : black;
+            var played = Move.fromUci(side == Side.WHITE ? "c4f7" : "c5f2");
+            var recommended = Move.fromUci(side == Side.WHITE ? "d1d8" : "d8d1");
+            var reply = Move.fromUci(side == Side.WHITE ? "g8f7" : "g1f2");
+            var search = TacticalAnalysis.review(root.position(), played, root.automaticDrawMoves(), policy);
+            check.same(side + " · both root checks were compared at depth five", List.of(recommended, played, 5),
+                    List.of(search.best().move(), search.played().move(), search.depth()));
+            check.same(side + " · Bxf7+ allows Kxf7, and the rook check retains its advantage", List.of(reply, 472, 91),
+                    List.of(search.played().line().get(1), search.best().score(), search.played().score()));
+            check.same(side + " · both lines replay to the common horizon including the tactical extension", true,
+                    List.of(search.best(), search.played()).stream().allMatch(variation -> variation.line().size() == 6
+                            && GameReviewExplanation.Line.replay(root, variation.line()).available()));
+            check.same(side + " · the next iteration was capped by the existing budget", 85_000, search.extraNodes());
+        }
+
+        var played = Move.fromUci("c4f7");
+        var match = white.play(played);
+        var report = GameReview.analyzeLine(match, ignored -> { });
+        var turn = report.turns().get(match.ply() - 1);
+        check.same("Game Review carries the paired evaluation through to the displayed loss",
+                List.of(Grade.BLUNDER, 895, 602, 293, 5),
+                List.of(turn.grade(), turn.bestPoints(), turn.playedPoints(), turn.loss(), turn.depth()));
+        var timeline = new GameReviewTimeline(match, report);
+        check.same("The user can open either of the two calculated lines from the same position", true,
+                timeline.showBranch(GameReviewTimeline.Branch.PLAYED) && timeline.position().equals(white.position())
+                        && timeline.showBranch(GameReviewTimeline.Branch.RECOMMENDED) && timeline.position().equals(white.position()));
+    }
+
+    @Test void anExhaustedReviewIterationDoesNotPublishPartiallyComparedScores(Checks check) {
+        var root = ChessMatch.start();
+        var played = Move.fromUci("e2e4");
+        var baseline = TacticalAnalysis.review(root.position(), played, root.automaticDrawMoves(), new MatchAiPolicy.Search(3, 0));
+        var interrupted = TacticalAnalysis.review(root.position(), played, root.automaticDrawMoves(), new MatchAiPolicy.Search(6, 1));
+        check.same("Only the last complete horizon survives exhaustion", List.of(baseline.best(), baseline.played(), baseline.depth()),
+                List.of(interrupted.best(), interrupted.played(), interrupted.depth()));
+        check.same("The abandoned iteration is charged to the budget", 1, interrupted.extraNodes());
+    }
     @Test void explainsAnActualMissedDefenseAndTheMateEvenWithLiveHintsOff(Checks check) {
         var match = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
         var progress = new ArrayList<Integer>();

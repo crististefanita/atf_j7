@@ -12,7 +12,11 @@ import ro.atf.chess.GameReview.Turn;
 /** Navigates an analysis and its alternatives without modifying the recorded game. */
 public final class GameReviewTimeline {
     public enum Branch { HISTORY, PLAYED, RECOMMENDED }
-    public record Snapshot(int ply, Branch branch, int step) { }
+    public record Snapshot(int ply, Branch branch, int step, boolean explanationOpen) {
+        public Snapshot(int ply, Branch branch, int step) {
+            this(ply, branch, step, branch == Branch.PLAYED || branch == Branch.RECOMMENDED);
+        }
+    }
 
     private static final Set<Grade> KEY_MOMENTS = Set.of(Grade.BRILLIANT, Grade.GREAT, Grade.INACCURACY,
             Grade.MISTAKE, Grade.MISS, Grade.BLUNDER);
@@ -23,7 +27,9 @@ public final class GameReviewTimeline {
     private int lineStep;
     private Branch branch = Branch.HISTORY;
     private ComparedLines comparedLines;
+    private GameReviewExplanation explanation;
     private boolean atEntry = true;
+    private boolean explanationOpen;
 
     public GameReviewTimeline(ChessMatch source, GameReview review) {
         if (source == null || review == null || source.ply() != review.turns().size()) {
@@ -50,7 +56,12 @@ public final class GameReviewTimeline {
     public Branch branch() { return branch; }
     public int lineStep() { return lineStep; }
     public int lineLength() { return line(branch).length(); }
-    public Snapshot snapshot() { return new Snapshot(ply, branch, lineStep); }
+    public Snapshot snapshot() { return new Snapshot(ply, branch, lineStep, explanationOpen); }
+    public boolean explanationOpen() { return explanationOpen; }
+
+    public void setExplanationOpen(boolean open) {
+        explanationOpen = open && turn().filter(value -> value.loss() > 0).isPresent();
+    }
 
     /** An unavailable variation falls back to the selected position in the recorded game. */
     public boolean restore(Snapshot snapshot) {
@@ -60,6 +71,7 @@ public final class GameReviewTimeline {
         if (restoredBranch == null || snapshot.step() < 0 || snapshot.step() > line(restoredBranch).length()
                 || !showBranch(restoredBranch)) return false;
         lineStep = snapshot.step();
+        setExplanationOpen(snapshot.explanationOpen());
         return true;
     }
 
@@ -68,6 +80,8 @@ public final class GameReviewTimeline {
         ply = selectedPly;
         atEntry = false;
         comparedLines = null;
+        explanation = null;
+        explanationOpen = false;
         hideBestLine();
     }
 
@@ -143,8 +157,13 @@ public final class GameReviewTimeline {
     }
 
     public Optional<GameReviewExplanation> explanation() {
-        if (ply == 0) return Optional.empty();
-        return Optional.of(comparedLines().explanation());
+        return turn().map(selected -> {
+            if (explanation == null) {
+                var lines = comparedLines();
+                explanation = GameReviewExplanation.compare(selected, lines.played(), lines.recommended());
+            }
+            return explanation;
+        });
     }
 
     public boolean showingBestLine() { return branch == Branch.RECOMMENDED; }
@@ -175,10 +194,10 @@ public final class GameReviewTimeline {
             var played = playedMoves.isEmpty() || !turn.played().equals(playedMoves.get(0))
                     ? Line.UNAVAILABLE : Line.replay(root, playedMoves);
             var recommended = Line.replay(root, turn.bestLine());
-            comparedLines = new ComparedLines(played, recommended, GameReviewExplanation.compare(turn, played, recommended));
+            comparedLines = new ComparedLines(played, recommended);
         }
         return comparedLines;
     }
 
-    private record ComparedLines(Line played, Line recommended, GameReviewExplanation explanation) { }
+    private record ComparedLines(Line played, Line recommended) { }
 }

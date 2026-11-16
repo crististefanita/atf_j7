@@ -140,14 +140,41 @@ class MatchStoreTest {
                 store.saveReviewBookmark(first, game, bookmark));
 
         disk.data.put("match-archive-" + first + "-checkpoint", game.checkpoint());
-        disk.data.put(key, encoded.substring(0, encoded.lastIndexOf('|') + 1) + "65");
+        disk.data.put(key, encoded.replace("|RECOMMENDED|0|", "|RECOMMENDED|65|"));
         check.same("A step beyond the cache line limit is rejected", null, store.readReviewBookmark(first, game));
         disk.data.put(key, encoded.replace("|RECOMMENDED|", "|UNKNOWN|"));
         check.same("An unknown branch leaves the review at its default position", null, store.readReviewBookmark(first, game));
+        disk.data.put(key, encoded.replace("|true", "|yes"));
+        check.same("A malformed panel flag cannot reopen the bookmark", null, store.readReviewBookmark(first, game));
         disk.data.put(key, 17);
         check.same("A preference of the wrong type is treated as absent", null, store.readReviewBookmark(first, game));
         check.same("An out of range ply cannot be written", false, store.saveReviewBookmark(first, game, new Snapshot(5, Branch.HISTORY, 0)));
         check.same("An absent archive cannot acquire a bookmark", false, store.saveReviewBookmark("missing", game, bookmark));
+    }
+
+    @Test void savesTheExplanationPanelInHistoryAndReadsLegacyBookmarks(Checks check) {
+        var disk = new MemoryPreferences();
+        var store = store(disk, START);
+        var game = ChessMatch.restore(MATE);
+        store.startMatch(1, game, false, false, false);
+        String id = store.archivedId(1);
+        var open = new Snapshot(3, Branch.HISTORY, 0, true);
+        var closed = new Snapshot(3, Branch.HISTORY, 0, false);
+        check.same("Opening Why can be saved without changing the history cursor", true, store.saveReviewBookmark(id, game, open));
+        var restarted = store(disk, FINISH);
+        check.same("Restart restores Why on the recorded move", open, restarted.readReviewBookmark(id, game));
+        check.same("Closing Why updates the same bookmark", true, restarted.saveReviewBookmark(id, game, closed));
+        check.same("Another restart keeps Why closed", closed, store(disk, FINISH).readReviewBookmark(id, game));
+
+        String key = bookmarkKey(id);
+        String encoded = (String) disk.data.get(key);
+        String legacy = "1" + encoded.substring(1, encoded.lastIndexOf('|'));
+        disk.data.put(key, legacy);
+        check.same("A legacy history bookmark opens with the panel closed", closed, restarted.readReviewBookmark(id, game));
+        disk.data.put(key, legacy.replace("|HISTORY|0", "|PLAYED|1"));
+        check.same("A legacy line bookmark retains the former open-panel behavior", new Snapshot(3, Branch.PLAYED, 1, true),
+                restarted.readReviewBookmark(id, game));
+        check.same("Panel changes preserve the original game", game.checkpoint(), restarted.readArchivedMatch(id).match().checkpoint());
     }
 
     @Test void aReplacementSubmitsOneTransactionAndPropagatesTheStorageResult(Checks check) {

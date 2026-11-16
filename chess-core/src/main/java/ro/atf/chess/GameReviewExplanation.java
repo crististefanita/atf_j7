@@ -12,7 +12,7 @@ import ro.atf.chess.GameReview.Turn;
 /** Evidence for the selected move, derived by replaying the cached alternatives. */
 public record GameReviewExplanation(Reason reason, Side side, int loss, int depth,
                                     int materialCp, Optional<MoveEvidence> evidence) {
-    public enum Reason { ALLOWS_MATE, MISSES_MATE, LOSES_MATERIAL, EVALUATION }
+    public enum Reason { ALLOWS_MATE, MISSES_MATE, LOSES_MATERIAL, MISSES_MATERIAL, EVALUATION }
 
     /** The highlighted move, its resulting piece, and the piece it captured. */
     public record MoveEvidence(Move move, Kind piece, Kind captured) { }
@@ -26,8 +26,8 @@ public record GameReviewExplanation(Reason reason, Side side, int loss, int dept
             if (recommended.mates(side) && !played.mates(side)) {
                 return explained(turn, Reason.MISSES_MATE, 0, recommended.evidenceAt(recommended.length() - 1));
             }
-            var materialLoss = materialLoss(turn, played, recommended);
-            if (materialLoss.isPresent()) return materialLoss.orElseThrow();
+            var material = materialDifference(turn, played, recommended);
+            if (material.isPresent()) return material.orElseThrow();
         }
         return new GameReviewExplanation(Reason.EVALUATION, turn.side(), turn.loss(), turn.depth(), 0, Optional.empty());
     }
@@ -36,37 +36,46 @@ public record GameReviewExplanation(Reason reason, Side side, int loss, int dept
         return new GameReviewExplanation(reason, turn.side(), turn.loss(), turn.depth(), materialCp, Optional.of(move));
     }
 
-    private static Optional<GameReviewExplanation> materialLoss(Turn turn, Line played, Line recommended) {
-        if (played.length() != recommended.length() || played.ending() != Result.IN_PROGRESS
+    private static Optional<GameReviewExplanation> materialDifference(Turn turn, Line played, Line recommended) {
+        if (played.length() < 2 || played.length() != recommended.length() || played.ending() != Result.IN_PROGRESS
                 || recommended.ending() != Result.IN_PROGRESS) return Optional.empty();
         Side side = turn.side();
-        int reference = Math.min(played.materialAt(0, side), recommended.materialAt(recommended.length(), side));
-        int loss = reference - played.materialAt(played.length(), side);
-        if (loss <= 0) return Optional.empty();
-        return decisiveCapture(played, side, reference, loss)
-                .map(capture -> explained(turn, Reason.LOSES_MATERIAL, loss * 100, capture));
+        int initial = played.materialAt(0, side);
+        int playedBalance = played.materialAt(played.length(), side);
+        int recommendedBalance = recommended.materialAt(recommended.length(), side);
+        int lossReference = Math.min(initial, recommendedBalance);
+        int loss = lossReference - playedBalance;
+        if (loss > 0) {
+            return decisiveCapture(played, side.other(), -lossReference, loss)
+                    .map(capture -> explained(turn, Reason.LOSES_MATERIAL, loss * 100, capture));
+        }
+
+        int gainReference = Math.max(initial, playedBalance);
+        int gain = recommendedBalance - gainReference;
+        if (gain <= 0 || !recommended.sustainsMaterialAgainstNextReply(side, recommendedBalance)) return Optional.empty();
+        return decisiveCapture(recommended, side, gainReference, gain)
+                .map(capture -> explained(turn, Reason.MISSES_MATERIAL, gain * 100, capture));
     }
 
-    private static Optional<MoveEvidence> decisiveCapture(Line played, Side side, int reference, int loss) {
-        int sustainedDeficit = loss;
-        int largestLoss = 0;
+    private static Optional<MoveEvidence> decisiveCapture(Line line, Side beneficiary, int reference, int gain) {
+        int sustainedGain = gain;
+        int largestGain = 0;
         MoveEvidence decisive = null;
-        for (int index = played.length() - 1; index > 0; index--) {
-            int deficitBefore = Math.max(0, reference - played.materialAt(index, side));
-            int retainedLoss = sustainedDeficit - deficitBefore;
-            sustainedDeficit = Math.min(sustainedDeficit, deficitBefore);
-            if (retainedLoss <= 0 || retainedLoss < largestLoss || played.position(index).turn() == side) continue;
-            var evidence = played.evidenceAt(index);
-            // Do not attribute a shared or promotion-driven loss to a single capture.
-            decisive = retainedLoss > largestLoss && evidence.captured() != null && evidence.move().promotion() == null
+        for (int index = line.length() - 1; index >= 0; index--) {
+            int gainBefore = Math.max(0, line.materialAt(index, beneficiary) - reference);
+            int retainedGain = sustainedGain - gainBefore;
+            sustainedGain = Math.min(sustainedGain, gainBefore);
+            if (retainedGain <= 0 || retainedGain < largestGain || line.position(index).turn() != beneficiary) continue;
+            var evidence = line.evidenceAt(index);
+            decisive = retainedGain > largestGain && evidence.captured() != null && evidence.move().promotion() == null
                     ? evidence : null;
-            largestLoss = retainedLoss;
+            largestGain = retainedGain;
         }
         return Optional.ofNullable(decisive);
     }
 
-    record Line(List<Move> moves, List<ChessPosition> positions, Result ending) {
-        static final Line UNAVAILABLE = new Line(List.of(), List.of(), Result.IN_PROGRESS);
+    record Line(List<Move> moves, List<ChessPosition> positions, ChessMatch finalMatch) {
+        static final Line UNAVAILABLE = new Line(List.of(), List.of(), null);
 
         static Line replay(ChessMatch root, List<Move> moves) {
             if (moves.isEmpty()) return UNAVAILABLE;
@@ -81,17 +90,31 @@ public record GameReviewExplanation(Reason reason, Side side, int loss, int dept
             } catch (IllegalArgumentException | IllegalStateException invalid) {
                 return UNAVAILABLE;
             }
-            return new Line(moves, List.copyOf(positions), branch.result());
+            return new Line(moves, List.copyOf(positions), branch);
         }
 
         boolean available() { return !moves.isEmpty(); }
         int length() { return moves.size(); }
         ChessPosition position(int step) { return positions.get(step); }
         int materialAt(int step, Side side) { return MatchMaterial.balance(position(step), side); }
+        Result ending() { return finalMatch.result(); }
+
+        boolean sustainsMaterialAgainstNextReply(Side side, int balance) {
+            var end = position(length());
+            if (end.turn() == side) return true;
+            for (var reply : end.legalMoves()) {
+                var after = finalMatch.play(reply);
+                if (MatchMaterial.balance(after.position(), side) < balance
+                        || after.result() != Result.IN_PROGRESS && after.result() != win(side)) return false;
+            }
+            return true;
+        }
 
         boolean mates(Side winner) {
-            return ending == (winner == Side.WHITE ? Result.WHITE_WINS : Result.BLACK_WINS);
+            return ending() == win(winner);
         }
+
+        private static Result win(Side side) { return side == Side.WHITE ? Result.WHITE_WINS : Result.BLACK_WINS; }
 
         MoveEvidence evidenceAt(int index) {
             var before = position(index);

@@ -87,7 +87,6 @@ final class GameReviewDialog {
     private LinearLayout explanationPanel;
     private TextView reason;
     private ListView report;
-    private boolean explanationOpen;
     private Snapshot lastSnapshot;
     private MoveRows moveRows;
     private EvaluationGraph graph;
@@ -211,7 +210,6 @@ final class GameReviewDialog {
         content.setPadding(0, 0, 0, 0);
         timeline = new GameReviewTimeline(match, result);
         if (initialSnapshot != null) timeline.restore(initialSnapshot);
-        explanationOpen = timeline.branch() != Branch.HISTORY;
         lastSnapshot = timeline.snapshot();
         reviewBoard = new BoardView(context, ignored -> { });
         reviewBoard.setId(R.id.game_review_board);
@@ -360,9 +358,9 @@ final class GameReviewDialog {
     }
 
     private void toggleExplanation() {
-        explanationOpen = !explanationOpen;
+        timeline.setExplanationOpen(!timeline.explanationOpen());
         refreshTimeline();
-        if (explanationOpen) report.setSelection(0);
+        if (timeline.explanationOpen()) report.setSelection(0);
     }
 
     private void showActions(View anchor, GameReview result) {
@@ -410,7 +408,6 @@ final class GameReviewDialog {
     }
 
     private void selectPly(int ply) {
-        explanationOpen = false;
         timeline.seek(ply);
         refreshTimeline();
     }
@@ -470,14 +467,13 @@ final class GameReviewDialog {
     }
 
     private void refreshExplanation(GameReview.Turn turn) {
-        var explanation = timeline.explanation().filter(value -> value.loss() > 0).orElse(null);
-        why.setVisibility(explanation == null ? View.GONE : View.VISIBLE);
-        if (explanation == null) explanationOpen = false;
+        why.setVisibility(turn != null && turn.loss() > 0 ? View.VISIBLE : View.GONE);
+        boolean explanationOpen = timeline.explanationOpen();
         why.setSelected(explanationOpen);
         why.setContentDescription(context.getString(explanationOpen ? R.string.game_review_hide_why : R.string.game_review_why));
         explanationPanel.setVisibility(explanationOpen ? View.VISIBLE : View.GONE);
         if (!explanationOpen) return;
-        reason.setText(explain(explanation, turn));
+        reason.setText(explain(timeline.explanation().orElseThrow(), turn));
         playedBranch.setEnabled(timeline.canShowBranch(Branch.PLAYED));
         recommendedBranch.setEnabled(timeline.canShowBranch(Branch.RECOMMENDED));
         playedBranch.setSelected(timeline.branch() == Branch.PLAYED);
@@ -497,6 +493,8 @@ final class GameReviewDialog {
             case ALLOWS_MATE -> context.getString(R.string.game_review_why_allows_mate, piece, square);
             case MISSES_MATE -> context.getString(R.string.game_review_why_misses_mate, piece, square);
             case LOSES_MATERIAL -> context.getString(R.string.game_review_why_material, piece, square,
+                    pieceName(evidence.captured()), explanation.materialCp() / 100.0);
+            case MISSES_MATERIAL -> context.getString(R.string.game_review_why_missed_material, piece, square,
                     pieceName(evidence.captured()), explanation.materialCp() / 100.0);
             case EVALUATION -> throw new IllegalArgumentException("A score-only explanation has no move evidence");
         };

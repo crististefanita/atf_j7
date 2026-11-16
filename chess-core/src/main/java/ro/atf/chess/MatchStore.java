@@ -41,7 +41,7 @@ public final class MatchStore {
     private static final String MATCH_ARCHIVED = "match-archived";
     private static final String ARCHIVE_ORDER = "match-archive-order";
     private static final String REVIEW_BOOKMARK = "review-bookmark";
-    private static final String BOOKMARK_VERSION = "1";
+    private static final String BOOKMARK_VERSION = "2";
 
     private final Preferences preferences;
     private final Clock clock;
@@ -232,9 +232,14 @@ public final class MatchStore {
             String encoded = preferences.getString(archiveKey(id, REVIEW_BOOKMARK), null);
             if (encoded == null) return null;
             String[] fields = encoded.split("\\|", -1);
-            if (fields.length != 6 || !BOOKMARK_VERSION.equals(fields[0]) || !id.equals(fields[1])
-                    || !GameReviewCodec.checkpointDigest(match).equals(fields[2])) return null;
-            var snapshot = new Snapshot(Integer.parseInt(fields[3]), Branch.valueOf(fields[4]), Integer.parseInt(fields[5]));
+            boolean legacy = fields.length == 6 && "1".equals(fields[0]);
+            boolean current = fields.length == 7 && BOOKMARK_VERSION.equals(fields[0])
+                    && ("true".equals(fields[6]) || "false".equals(fields[6]));
+            if ((!legacy && !current) || !id.equals(fields[1]) || !GameReviewCodec.checkpointDigest(match).equals(fields[2])) return null;
+            int ply = Integer.parseInt(fields[3]);
+            var branch = Branch.valueOf(fields[4]);
+            int step = Integer.parseInt(fields[5]);
+            var snapshot = legacy ? new Snapshot(ply, branch, step) : new Snapshot(ply, branch, step, "true".equals(fields[6]));
             return validBookmark(match, snapshot) ? snapshot : null;
         } catch (IllegalArgumentException | ClassCastException invalid) {
             return null;
@@ -244,7 +249,8 @@ public final class MatchStore {
     public boolean saveReviewBookmark(String id, ChessMatch match, Snapshot snapshot) {
         if (!matchesArchivedCheckpoint(id, match) || !validBookmark(match, snapshot)) return false;
         String encoded = String.join("|", BOOKMARK_VERSION, id, GameReviewCodec.checkpointDigest(match),
-                Integer.toString(snapshot.ply()), snapshot.branch().name(), Integer.toString(snapshot.step()));
+                Integer.toString(snapshot.ply()), snapshot.branch().name(), Integer.toString(snapshot.step()),
+                Boolean.toString(snapshot.explanationOpen()));
         return preferences.edit().putString(archiveKey(id, REVIEW_BOOKMARK), encoded).commit();
     }
 
@@ -260,6 +266,7 @@ public final class MatchStore {
     private static boolean validBookmark(ChessMatch match, Snapshot snapshot) {
         if (snapshot == null || snapshot.branch() == null || snapshot.ply() < 0 || snapshot.ply() > match.ply()
                 || snapshot.step() < 0 || snapshot.step() > GameReviewCodec.MAX_LINE_LENGTH) return false;
+        if (snapshot.ply() == 0 && snapshot.explanationOpen()) return false;
         return snapshot.branch() == Branch.HISTORY ? snapshot.step() == 0 : snapshot.ply() > 0;
     }
 }
