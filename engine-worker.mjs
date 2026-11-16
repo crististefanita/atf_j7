@@ -1,4 +1,4 @@
-import { analyzeReview, canonicalCheckpoint, continueMatch, matchHistory, openLedger, openMatch, openReview,
+import { analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, matchHistory, openLedger, openMatch, openReview,
   archiveReviewCheckpoint, importLegacyReview, ledgerState, openArchiveReview, playBot, playMatch, reviewAction,
   saveArchiveReview, snapshot } from "./chess-engine.mjs";
 
@@ -28,6 +28,8 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       if (checkpoint !== canonical) throw new TypeError("The analysis checkpoint does not match the archived game");
       const view = JSON.parse(saveArchiveReview(archiveId, canonical, review, await sha256(canonical)));
       self.postMessage({ id, ...JSON.parse(ledgerState()), outcome: "OPENED", view });
+    } else if (type === "archive-review-continue" && validArchiveId(archiveId) && validRevision(expectedRevision) && typeof automatic === "boolean") {
+      self.postMessage({ id, ...JSON.parse(continueArchiveReview(archiveId, expectedRevision, automatic)) });
     } else if (type === "archive-review-migrate" && validArchive(archive)) {
       const canonical = canonicalLegacyCheckpoint(archive.checkpoint);
       const digest = canonical === null ? null : await sha256(canonical);

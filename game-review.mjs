@@ -13,6 +13,7 @@ const words = {
         'archive-review-back': 'Back to game', openCached: 'Open analysis', reviewed: 'Analysis saved',
         'new-local': 'New local game', 'new-ai': 'New AI game', 'match-history': 'Game history',
         'continue-match': 'Continue from here', 'continue-title': 'Continue from here', 'confirm-continue': 'Continue',
+        'continue-review': 'Continue from here',
         'cancel-continue': 'Cancel', 'automatic-label': 'Keep AI replies enabled',
         emptySaved: 'No saved games.', emptyFinished: 'No finished games.',
         noFreeSlot: 'All saved game slots are in use. Finish a saved game before continuing this result.',
@@ -52,6 +53,7 @@ const words = {
         'archive-review-back': 'Înapoi la partidă', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
         'new-local': 'Partidă locală nouă', 'new-ai': 'Partidă nouă cu AI', 'match-history': 'Istoricul partidei',
         'continue-match': 'Continuă de aici', 'continue-title': 'Continuă de aici', 'confirm-continue': 'Continuă',
+        'continue-review': 'Continuă de aici',
         'cancel-continue': 'Anulează', 'automatic-label': 'Păstrează replicile AI',
         emptySaved: 'Nu ai partide salvate.', emptyFinished: 'Nu ai partide încheiate.',
         noFreeSlot: 'Toate locurile sunt ocupate. Încheie o partidă salvată pentru a continua acest rezultat.',
@@ -128,7 +130,7 @@ for (const id of ['title', 'archive-label', 'empty', 'why', 'why-title', 'played
     'open-match', 'open-ai', 'open-review', 'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'start-ai', 'cancel-setup', 'retry-bot', 'open-saved',
     'open-finished', 'return-menu', 'new-local', 'new-ai', 'continue-match', 'continue-title', 'confirm-continue',
-    'cancel-continue', 'automatic-label', 'archive-review-back']) {
+    'cancel-continue', 'automatic-label', 'archive-review-back', 'continue-review']) {
     find(id).textContent = words[id];
 }
 for (const id of ['movement', 'previous', 'next', 'close-why']) find(id).setAttribute('aria-label', words[id]);
@@ -303,6 +305,7 @@ function render() {
     drawBoard(board, squares, view);
     find('previous').disabled = !(onLine ? view.linePrevious : view.previous);
     find('next').disabled = !(onLine ? view.lineNext : view.next);
+    find('continue-review').hidden = !archiveReviewId || !view.canContinue;
     find('position').textContent = onLine ? `${words.step} ${view.step}/${view.lineLength}` : `${view.ply}/${view.totalPlies}`;
     drawExplanation(view);
     drawHistory(view);
@@ -847,22 +850,51 @@ function browseMatch(delta) {
 find('match-previous').addEventListener('click', () => browseMatch(-1));
 find('match-next').addEventListener('click', () => browseMatch(1));
 const continueDialog = find('continue-dialog');
-find('continue-match').addEventListener('click', () => {
-    if (!match?.canContinue || busy || analysis) return;
-    find('continue-description').textContent = (match.readOnly ? words.continueArchive : words.continueActive)(match.viewPly);
-    find('automatic-option').hidden = match.mode !== 'AI';
-    find('continue-automatic').checked = match.automatic !== false;
+let continuation;
+
+function confirmContinuation(context) {
+    continuation = context;
+    find('continue-description').textContent = (context.readOnly ? words.continueArchive : words.continueActive)(context.ply);
+    find('automatic-option').hidden = !context.usesAi;
+    find('continue-automatic').checked = context.automatic;
     continueDialog.returnValue = '';
     continueDialog.showModal();
+}
+
+find('continue-match').addEventListener('click', () => {
+    if (!match?.canContinue || busy || analysis) return;
+    confirmContinuation({ revision: match.revision, ply: match.viewPly, readOnly: match.readOnly,
+        usesAi: match.mode === 'AI', automatic: match.automatic !== false });
+});
+find('continue-review').addEventListener('click', () => {
+    if (mode !== 'archive-review' || !archiveReviewId || !view?.canContinue || busy) return;
+    const usesAi = view.automaticContinuation === true;
+    confirmContinuation({ archiveId: archiveReviewId, revision: view.revision, ply: view.ply, readOnly: true,
+        usesAi, automatic: usesAi });
 });
 continueDialog.addEventListener('close', () => {
-    if (continueDialog.returnValue !== 'continue' || !match?.canContinue) return;
+    const context = continuation;
+    continuation = undefined;
+    if (continueDialog.returnValue !== 'continue' || !context) return;
+    const current = context.archiveId ? mode === 'archive-review' && archiveReviewId === context.archiveId && view?.canContinue &&
+        view.revision === context.revision : mode === matchRoute && match?.canContinue && match.revision === context.revision;
+    if (!current) return;
     void exclusive(async () => {
-        const response = await call('match-continue', { expectedRevision: match.revision,
-            automatic: match.mode === 'AI' && find('continue-automatic').checked });
+        const type = context.archiveId ? 'archive-review-continue' : 'match-continue';
+        let response;
+        try {
+            response = await call(type, { archiveId: context.archiveId, expectedRevision: context.revision,
+                automatic: context.usesAi && find('continue-automatic').checked });
+        } catch (failure) {
+            if (!context.archiveId) throw failure;
+            await restoreMatchDurable(words.matchFailure);
+            return;
+        }
         if (response.outcome === 'NO_FREE_SLOT') setStatus(words.noFreeSlot);
         else if (response.outcome === 'APPLIED' && await commitMatch(response)) showMode(matchRoute);
         else if (response.outcome === 'STALE') await restoreMatchDurable(words.matchFailure);
+        else if (response.outcome === 'SAVE_FAILED') setStatus(words.matchSaveFailed);
+        else if (response.outcome === 'UNAVAILABLE') setStatus(words.matchFailure);
     }, words.matchFailure);
 });
 
