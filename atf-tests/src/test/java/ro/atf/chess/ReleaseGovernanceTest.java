@@ -325,11 +325,11 @@ class ReleaseGovernanceTest {
                 decision(() -> publish(SOURCE, README.replace("\n", "\r\n"), 200, apk)));
         check.same("An introductory section cannot precede the download", "Jocul must be the first section",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("Șah și studiu.", "## Introducere\n\nȘah și studiu."))));
-        check.same("Prose appended to a link is rejected", "Jocul must contain exactly two link bullets",
+        check.same("Prose appended to a link is rejected", "Jocul must contain the release and APK links, with optional online play",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace(URL + ")", URL + ") — APK Android semnat."))));
         check.same("A label cannot carry integrity metadata", "Integrity metadata belongs in the release evidence",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("[APK]", "[APK SHA-256]"))));
-        check.same("A paragraph between download bullets is rejected", "Jocul must contain exactly two link bullets",
+        check.same("A paragraph between download bullets is rejected", "Jocul must contain the release and APK links, with optional online play",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("- [APK]", "Descarcă aici.\n\n- [APK]"))));
         check.same("A duplicate download section is rejected", "Duplicate Jocul section",
                 decision(() -> ReleaseEvidence.gameLinks(README + "\n## Jocul\n")));
@@ -340,6 +340,20 @@ class ReleaseGovernanceTest {
             check.same("An APK route outside Jocul is rejected · " + route, "APK route outside Jocul",
                     decision(() -> ReleaseEvidence.gameLinks(README + "\n" + route + "\n")));
         }
+    }
+
+    @Test void onlinePlayFollowsTheApkAndKeepsTheCanonicalDownloadPair(Checks check) throws IOException {
+        String page = "https://example.github.io/atf_j7/#ai";
+        String play = "- [Joacă online · previzualizare](" + page + ")";
+        String withPlay = README.replace("\n\n## În joc", "\n" + play + "\n\n## În joc");
+        check.same("Adding online play does not change the qualified download links",
+                ReleaseEvidence.gameLinks(README), ReleaseEvidence.gameLinks(withPlay));
+        check.same("A Pages link for a different repository is rejected",
+                "The online game must open the repository's AI game on GitHub Pages",
+                decision(() -> ReleaseEvidence.gameLinks(withPlay.replace("/atf_j7/#ai", "/another/#ai"))));
+        String wrongOrder = README.replace("- [APK]", play + "\n- [APK]");
+        check.same("The online game follows the APK",
+                "The online game must follow the release and APK", decision(() -> ReleaseEvidence.gameLinks(wrongOrder)));
     }
 
     @Test void rootReadmePublishesTheCandidateOnlyAfterDistributionEvidenceExists(Checks check) throws IOException {

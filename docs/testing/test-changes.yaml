@@ -444,3 +444,45 @@ testChanges:
     test: ro.atf.chess.AndroidReceiptTest#compactReplayRequiresBothLocalesAndNativeCaptures
     contract: "Retain the distribution identity and exercise both locales at the exact compact profile"
     allowDelete: false
+  - id: J7-WEB-PARITY-SUITE-ENTRY
+    base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Keep browser publications explicit and component suites independent"
+    allowDelete: false
+  - id: J7-WEB-README-LINK
+    base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
+    from: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+    test: ro.atf.chess.ReleaseGovernanceTest#onlinePlayFollowsTheApkAndKeepsTheCanonicalDownloadPair
+    contract: "Verify online play follows the qualified APK and belongs to the same repository"
+    allowDelete: false
+  - id: J7-BOT-ANDROID-PROBE
+    base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
+    contract: "Retain a native restart proof for a pending bot turn"
+    allowDelete: false
+  - id: J7-BOT-ANDROID-RUNNER
+    base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
+    from: scripts/run-android-sanity.ps1
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
+    contract: "Bind the pending-bot phases to the same APK and separate processes"
+    allowDelete: false
+  - id: J7-BOT-ANDROID-PUBLICATION
+    base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
+    contract: "Require the exact history and one-reply assertions in Extent"
+    allowDelete: false
+  - id: J7-BOT-ANDROID-RECEIPT
+    base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
+    contract: "Reject substituted or incomplete pending-bot evidence"
+    allowDelete: false

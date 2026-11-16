@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
@@ -156,8 +155,11 @@ public final class ChessMatch {
         String prefix = setup.humanSide() == Side.WHITE && setup.level() == MatchSetup.Level.BASIC
                 ? analysisEnabled() ? ANALYSIS_FORMAT : FORMAT
                 : SETUP_FORMAT + setup.humanSide().name() + "|" + setup.level().name() + "|" + (analysisEnabled() ? "1|" : "0|");
-        var encoded = new StringJoiner(" ", prefix, "");
-        for (Move move : moves) encoded.add(move.uci());
+        var encoded = new StringBuilder(prefix);
+        for (int index = 0; index < moves.size(); index++) {
+            if (index > 0) encoded.append(' ');
+            encoded.append(moves.get(index).uci());
+        }
         return decision == null ? encoded.toString() : DECISION_FORMAT + decision.name() + "|" + encoded;
     }
 

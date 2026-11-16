@@ -38,7 +38,9 @@ class SuiteGovernanceTest {
         var unaudited = new TreeSet<String>();
         var wronglyTagged = new TreeSet<String>();
         var nativePublishers = new TreeSet<String>();
+        var browserPublishers = new TreeSet<String>();
         var explicitReview = new TreeSet<String>();
+        var webPublishers = new TreeSet<String>();
         for (var method : methods(all)) {
             var source = (MethodSource) method.getSource().orElseThrow();
             var tags = method.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toSet());
@@ -49,19 +51,34 @@ class SuiteGovernanceTest {
             }
             if (tags.contains("native-evidence")) {
                 nativePublishers.add(source.getClassName());
+                if (tags.stream().anyMatch(Set.of("component", "web-parity", "web-evidence")::contains)) wronglyTagged.add(name(source));
+                continue;
+            }
+            if (tags.contains("web-evidence")) {
+                browserPublishers.add(source.getClassName());
+                if (tags.contains("component") || tags.contains("web-parity")) wronglyTagged.add(name(source));
+                continue;
+            }
+
+            var extensions = source.getJavaClass().getAnnotationsByType(ExtendWith.class);
+            if (Arrays.stream(extensions).flatMap(annotation -> Arrays.stream(annotation.value())).noneMatch(ExtentAudit.class::equals)) {
+                unaudited.add(name(source));
+            }
+            if (tags.contains("web-parity")) {
+                webPublishers.add(source.getClassName());
                 if (tags.contains("component")) wronglyTagged.add(name(source));
                 continue;
             }
             expected.add(name(source));
             if (!tags.contains("component") || tags.containsAll(Set.of("governance", "benchmark"))) wronglyTagged.add(name(source));
-            var extensions = source.getJavaClass().getAnnotationsByType(ExtendWith.class);
-            if (Arrays.stream(extensions).flatMap(annotation -> Arrays.stream(annotation.value())).noneMatch(ExtentAudit.class::equals)) {
-                unaudited.add(name(source));
-            }
         }
         check.same("Native publishers keep a separate entry point", Set.of(AndroidSanityPublication.class.getName(), TalkBackPublication.class.getName()),
                 nativePublishers);
         check.same("The Git review is selected only with an explicit base", Set.of(TestChangeReview.class.getName()), explicitReview);
+        check.same("Web parity requires an explicit worker build", Set.of(ChessWebParityPublication.class.getName()), webPublishers);
+        check.same("Browser publishers require explicit driver receipts",
+                Set.of(ChessWebReviewPublication.class.getName(), ChessWebGamePublication.class.getName(),
+                        ChessWebBotPublication.class.getName()), browserPublishers);
         check.same("The discovered component inventory is nonempty", true, !expected.isEmpty());
         check.same("All JVM methods have a valid test layer", Set.of(), wronglyTagged);
         check.same("All JVM methods attach the Extent audit", Set.of(), unaudited);

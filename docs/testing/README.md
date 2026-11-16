@@ -49,6 +49,14 @@ node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> chess-core/src/main/re
 node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/resources/mate-in-three.yaml chess-core/src/main/resources/mate-in-three.sha256
 ```
 
+## Paritatea Web a motorului
+
+`ChessWebRulesComponentTest` verifică motorul și cataloagele pe JVM. `ChessWebParityPublication` execută aceleași cazuri în workerul TeaVM pentru toate resursele folosite. Rulați proba explicit cu pachetul din TMP. [Build și probe Web](../../web/README.md)
+
+### Reluarea Game Review pe Android și Web
+
+`GameReviewSessionTest` verifică selecția semimutării, cele două ramuri, bookmarkul și refuzul comenzilor expirate. `ChessGameSessionTest` verifică poziția restaurată și analiza unei linii neterminate. Probele Edge folosesc pachetul compilat pentru import, analiză nouă și reîncărcare reală. Publicatorul Extent verifică mutările, cache-ul de analiză, identitatea pachetului și capturile. [Comenzile de rulare](../../web/README.md#game-review)
+
 ## Tactică și punctaj
 
 `QuestRewardsTest` verifică seria între capitole, plafonul bonusului, restaurarea unei încercări asistate, punctajul anterior și totalurile. `TacticsCatalogTest` verifică cheia unică, lipsa matului imediat, continuitatea ID-urilor și câștigul care rezistă răspunsurilor legale la capătul liniei. `QuestPayoffTest` verifică reluarea etapelor, capturile, finalul alternativ și restaurarea soluțiilor vechi. YAML-ul indică proveniența pozițiilor. Amprenta conține cheia și câștigul de material recalculate de chess.js.
@@ -292,6 +300,12 @@ Setați `$receipt` la `openings.txt` din dosarul TMP tipărit de runner. Raportu
 Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <sha>`. Proba folosește același APK instalat ca sanity-ul de bază și salvează recepția și capturile în subdirectorul `openings`.
 
 ## Partidă și istoric
+
+`ChessGameBotSessionTest` verifică profilul și culoarea după restaurare, proprietatea turei și respingerea unei replici duplicate. `ChessWebBotPublication` publică proba Edge la `/atf_j7/` și compară mutarea livrată de worker cu JVM. [Sanity Web cu AI](../../web/README.md#partida-cu-ai)
+
+`-ActiveMatchOnly` verifică poziția exactă după restart pe tura jucătorului. Publicați recepția `active-match-prepare.txt` cu `AndroidSanityPublication#publishActiveMatchSanity`.
+
+`-PendingBotOnly` oprește procesul în tura botului într-o partidă Advanced cu jucătorul la Negru. La relansare, proba verifică o singură replică legală după istoric, profilul și poziția. Publicați `pending-bot-prepare.txt` cu `AndroidSanityPublication#publishPendingBotSanity` și `-Dchess.android.receipt=<cale>`. Extent leagă capturile de APK, de rulare și de PID-urile distincte.
 
 `MatchControlsTest` verifică comenzile din meniu în partida activă, în
 istoric și după rezultat, inclusiv remiza doar la tura jucătorului și sensul

@@ -125,6 +125,10 @@ public final class BoardSanity extends Instrumentation {
             else if ("manual-analysis".equals(phase)) checkManualAnalysis();
             else if ("match-slots".equals(phase)) checkMatchSlots();
             else if ("match-archive".equals(phase)) checkMatchArchive();
+            else if ("active-match-prepare".equals(phase)) checkActiveMatch(false);
+            else if ("active-match-restore".equals(phase)) checkActiveMatch(true);
+            else if ("pending-bot-prepare".equals(phase)) checkPendingBot(false);
+            else if ("pending-bot-restore".equals(phase)) checkPendingBot(true);
             else if (phase.startsWith("analysis-")) checkAnalysis();
             else if (phase.startsWith("match-")) checkMatch();
             else checkQuests();
@@ -180,6 +184,116 @@ public final class BoardSanity extends Instrumentation {
         captureFrame("match-slots", "Selecting a saved row restores the recorded position",
                 image -> fullyVisible(board) && hasPawn(activity, board, "e4") && hasPawn(activity, board, "e5")
                         && (hasColor(image, cell(board, "e5"), 0xffbec953, 24) || hasColor(image, cell(board, "e5"), 0xfff4ef86, 24)));
+    }
+
+    private void checkActiveMatch(boolean restored) throws Exception {
+        final int activeSlot = 3;
+        final int otherSlot = 1;
+        var store = new ChessProgressStore(getTargetContext()).matches();
+        var other = ChessMatch.restore("3|WHITE|BASIC|0|d2d4 d7d5");
+        var active = ChessMatch.restore("3|WHITE|BASIC|0|e2e4 e7e5");
+        if (!restored && (!store.startMatch(otherSlot, other, false, true, false)
+                || !store.startMatch(activeSlot, active, false, true, false))) {
+            throw new AssertionError("Could not save the two active match fixtures");
+        }
+        replayCapture = displayCaptureGeometry();
+        var activity = launch();
+        var board = findBoard(viewsOf(activity));
+        var initialState = List.of(activeSlot, active.checkpoint(), other.checkpoint());
+        compare("The active slot and both checkpoints match the saved fixtures", initialState,
+                activeMatchState(store, otherSlot));
+        var initialFen = "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2";
+        var position = ChessPosition.fromFen(initialFen);
+        var initialAssertion = "The native board renders the saved position · " + initialFen;
+        if (!restored) {
+            compare(initialAssertion, true, activeMatchBoardShows(activity, board, position));
+            return;
+        }
+        captureActiveMatch(activity, board, phase, initialAssertion, position, "e5");
+
+        var move = Move.fromUci("g1f3");
+        tap(cell(board, "g1"));
+        tap(cell(board, "f3"));
+        var continued = active.play(move);
+        compare("Playing Nf3 saves one move to the active slot and leaves the other slot intact",
+                List.of(activeSlot, continued.checkpoint(), other.checkpoint()), activeMatchState(store, otherSlot));
+        var continuedFen = "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2";
+        captureActiveMatch(activity, board, "active-match-next", "The native board renders the new position · " + continuedFen,
+                ChessPosition.fromFen(continuedFen), "f3");
+    }
+
+    private void checkPendingBot(boolean restored) throws Exception {
+        final int slot = 3;
+        final int otherSlot = 1;
+        var store = new ChessProgressStore(getTargetContext()).matches();
+        var other = ChessMatch.restore("1|d2d4 d7d5");
+        var humanTurn = ChessMatch.restore("3|BLACK|ADVANCED|0|e2e4 e7e5 g1f3");
+        var pending = humanTurn.play(Move.fromUci("b8c6"));
+        var expected = List.of(slot, pending.checkpoint(), other.checkpoint());
+        if (!restored) {
+            if (!store.startMatch(otherSlot, other, false, false, false)
+                    || !store.startMatch(slot, humanTurn, true, false, false)) {
+                throw new AssertionError("Could not save the pending bot fixtures");
+            }
+            var activity = launch();
+            var board = findBoard(viewsOf(activity));
+            runOnMainSync(() -> {
+                cell(board, "b8").performClick();
+                cell(board, "c6").performClick();
+                activity.finish();
+            });
+            compare("The human move leaves one automatic bot reply due", true,
+                    store.readMatch().awaitingBot() && !store.matchManualAi(slot));
+            compare("The pending checkpoint and both slots match before launch", expected, activeMatchState(store, otherSlot));
+            return;
+        }
+
+        compare("The pending checkpoint and both slots match before launch", expected, activeMatchState(store, otherSlot));
+        replayCapture = displayCaptureGeometry();
+        var activity = launch();
+        long deadline = SystemClock.uptimeMillis() + 12_000;
+        while (store.readMatch().ply() == pending.ply() && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(40);
+        waitForIdleSync();
+        var continued = store.readMatch();
+        var reply = continued.lastMove();
+        if (continued.ply() != pending.ply() + 1 || !pending.position().legalMoves().contains(reply)) {
+            compare("Exactly one legal bot response extends the original history", "one legal reply", continued.checkpoint());
+        }
+        var settled = List.of(slot, pending.play(reply).checkpoint(), other.checkpoint());
+        compare("Exactly one legal bot response extends the original history", settled, activeMatchState(store, otherSlot));
+        compare("The original level, human side, orientation and automatic play are restored",
+                List.of(pending.setup(), Side.BLACK, true, false),
+                List.of(continued.setup(), continued.position().turn(), store.matchBlackBelow(), store.matchManualAi(slot)));
+        SystemClock.sleep(1_200);
+        compare("The settled checkpoint remains unchanged after the bot delay", settled, activeMatchState(store, otherSlot));
+        var board = findBoard(viewsOf(activity));
+        captureActiveMatch(activity, board, phase, "The native board renders the bot reply and the restored human turn",
+                continued.position(), BoardSquare.name(reply.to()));
+    }
+
+    private static List<Object> activeMatchState(MatchStore store, int otherSlot) {
+        var other = store.readMatch(otherSlot);
+        var active = store.readMatch();
+        return List.of(store.activeMatchSlot(), active == null ? "missing" : active.checkpoint(),
+                other == null ? "missing" : other.checkpoint());
+    }
+
+    private void captureActiveMatch(Activity activity, BoardView board, String frame, String assertion, ChessPosition position,
+                                    String destination) throws IOException {
+        var square = BoardSquare.parse(destination);
+        int highlight = BoardSquare.isLight(square) ? 0xfff4ef86 : 0xffbec953;
+        captureFrame(frame, assertion, image -> activeMatchBoardShows(activity, board, position)
+                && hasColor(image, cell(board, destination), highlight, 16));
+    }
+
+    private boolean activeMatchBoardShows(Activity activity, BoardView board, ChessPosition position) {
+        return fullyVisible(board)
+                && java.util.stream.IntStream.range(0, 64).allMatch(index -> {
+                    String coordinate = BoardSquare.name(index);
+                    var piece = position.pieceAt(index);
+                    var label = piece == null ? coordinate : pieceDescription(activity, piece, index);
+                    return label.contentEquals(cell(board, coordinate).getContentDescription());
+                });
     }
 
     private void seedGame(int slot, ChessMatch match) {
@@ -3035,7 +3149,8 @@ public final class BoardSanity extends Instrumentation {
         }
         if ("analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
                 || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
-                || "puzzle-ux".equals(phase) || phase.startsWith(COMPACT_REPLAY)) {
+                || "puzzle-ux".equals(phase) || "active-match-restore".equals(phase) || "pending-bot-restore".equals(phase)
+                || phase.startsWith(COMPACT_REPLAY)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }

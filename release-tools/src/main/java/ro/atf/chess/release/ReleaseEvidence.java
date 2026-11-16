@@ -15,6 +15,7 @@ import java.util.zip.ZipFile;
 /** Deterministic checks over the bytes supplied by independent build, test and download runs. */
 public final class ReleaseEvidence {
     private static final Pattern LINK_BULLET = Pattern.compile("- \\[([^\\[\\]\\r\\n]+)]\\(([^\\s()<>]+)\\)");
+    private static final Pattern RELEASE_TAG = Pattern.compile("https://github\\.com/([a-zA-Z0-9-]+)/([a-zA-Z0-9_.-]+)/releases/tag/[^/]+");
     private static final Pattern GAME = Pattern.compile("(?ms)^## Jocul[ \\t]*\\R(.*?)(?=^#{1,2}[ \\t]+|\\z)");
     private static final Pattern SECTION = Pattern.compile("(?m)^##[ \\t]+");
     private static final Pattern INTEGRITY_LABEL = Pattern.compile("(?i)sha[- ]?256|checksum|\\bbytes?\\b|[a-f0-9]{64}");
@@ -100,16 +101,26 @@ public final class ReleaseEvidence {
         var rows = game.group(1).lines().filter(line -> !line.isBlank()).toList();
         require(!game.find(), "Duplicate Jocul section");
         require(!SECTION.matcher(before).find(), "Jocul must be the first section");
-        require(rows.size() == 2, "Jocul must contain exactly two link bullets");
+        require(rows.size() == 2 || rows.size() == 3, "Jocul must contain the release and APK links, with optional online play");
         var links = new ArrayList<String>(rows.size());
         for (String row : rows) {
             var link = LINK_BULLET.matcher(row);
-            require(link.matches(), "Jocul must contain exactly two link bullets");
+            require(link.matches(), "Jocul must contain the release and APK links, with optional online play");
             require(!INTEGRITY_LABEL.matcher(link.group(1)).find(), "Integrity metadata belongs in the release evidence");
             links.add(link.group(2));
         }
         require(!APK_ROUTE.matcher(before).find() && !APK_ROUTE.matcher(after).find(), "APK route outside Jocul");
-        return List.copyOf(links);
+        if (links.size() == 3) {
+            var release = RELEASE_TAG.matcher(links.get(0));
+            require(release.matches(), "The online game must follow the release and APK");
+            String owner = release.group(1);
+            String repository = release.group(2);
+            String download = "https://github.com/" + owner + "/" + repository + "/releases/download/";
+            require(links.get(1).startsWith(download), "The online game must follow the release and APK");
+            String online = "https://" + owner.toLowerCase(java.util.Locale.ROOT) + ".github.io/" + repository + "/#ai";
+            require(online.equals(links.get(2)), "The online game must open the repository's AI game on GitHub Pages");
+        }
+        return List.copyOf(links.subList(0, 2));
     }
 
     static void apk(Candidate candidate, Path apk) throws IOException {

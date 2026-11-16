@@ -28,10 +28,14 @@ public final class GameReviewCodec {
     private GameReviewCodec() { }
 
     public static String encode(ChessMatch match, GameReview review) {
+        return encode(review, checkpointDigest(match));
+    }
+
+    static String encode(GameReview review, String digest) {
         var bytes = new ByteArrayOutputStream();
         try (var out = new DataOutputStream(bytes)) {
             out.writeInt(VERSION);
-            out.writeUTF(checkpointDigest(match));
+            out.writeUTF(digest);
             out.writeBoolean(review.opening() != null);
             if (review.opening() != null) {
                 out.writeUTF(review.opening().eco());
@@ -57,8 +61,16 @@ public final class GameReviewCodec {
     }
 
     public static GameReview decode(ChessMatch match, String encoded) {
+        if (match.result() == ChessMatch.Result.IN_PROGRESS) {
+            throw new IllegalArgumentException("Review belongs to another checkpoint or version");
+        }
+        return decodeLine(match, encoded, checkpointDigest(match));
+    }
+
+    /** Includes unrated snapshots. The platform supplies the canonical checkpoint digest. */
+    static GameReview decodeLine(ChessMatch match, String encoded, String digest) {
         try (var in = new DataInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(encoded)))) {
-            if (in.readInt() != VERSION || match.result() == ChessMatch.Result.IN_PROGRESS || !checkpointDigest(match).equals(in.readUTF())) {
+            if (in.readInt() != VERSION || !digest.equals(in.readUTF())) {
                 throw new IllegalArgumentException("Review belongs to another checkpoint or version");
             }
             var opening = in.readBoolean() ? new GameReview.Opening(in.readUTF(), in.readUTF()) : null;
@@ -66,6 +78,9 @@ public final class GameReviewCodec {
             int initial = in.readInt();
             var white = readPlayer(in);
             var black = readPlayer(in);
+            if (match.result() == ChessMatch.Result.IN_PROGRESS && (white.rating().isPresent() || black.rating().isPresent())) {
+                throw new IllegalArgumentException("An active line cannot have a rating");
+            }
             if (in.readInt() != match.ply()) throw new IllegalArgumentException("Incomplete review");
             var turns = new ArrayList<GameReview.Turn>();
             for (int ply = 1; ply <= match.ply(); ply++) {

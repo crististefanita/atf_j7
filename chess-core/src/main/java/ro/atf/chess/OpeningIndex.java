@@ -25,7 +25,7 @@ final class OpeningIndex {
     private int longest;
 
     private static OpeningIndex load() {
-        var stream = OpeningIndex.class.getResourceAsStream("/" + RESOURCE);
+        var stream = ChessResourceLoader.open(RESOURCE);
         if (stream == null) throw new IllegalStateException("Missing opening index");
         var result = new OpeningIndex();
         try (var reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {

@@ -40,6 +40,8 @@ import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.GameReview;
 import ro.atf.chess.GameReviewExplanation;
 import ro.atf.chess.GameReviewGraphLayout;
+import ro.atf.chess.GameReviewSession;
+import ro.atf.chess.GameReviewSession.Action;
 import ro.atf.chess.GameReviewTimeline;
 import ro.atf.chess.GameReviewTimeline.Branch;
 import ro.atf.chess.GameReviewTimeline.Snapshot;
@@ -70,6 +72,7 @@ final class GameReviewDialog {
     private final Consumer<Snapshot> rememberSnapshot;
     private final LinearLayout content;
     private final Dialog dialog;
+    private GameReviewSession session;
     private GameReviewTimeline timeline;
     private BoardView reviewBoard;
     private TextView selectedMove;
@@ -197,8 +200,8 @@ final class GameReviewDialog {
     private void display(ChessMatch match, GameReview result, String human, String bot) {
         content.removeAllViews();
         content.setPadding(0, 0, 0, 0);
-        timeline = new GameReviewTimeline(match, result);
-        if (initialSnapshot != null) timeline.restore(initialSnapshot);
+        session = new GameReviewSession(match, result, initialSnapshot);
+        timeline = session.timeline();
         lastSnapshot = timeline.snapshot();
         reviewBoard = new BoardView(context, ignored -> { });
         reviewBoard.setId(R.id.game_review_board);
@@ -328,17 +331,17 @@ final class GameReviewDialog {
         actions.setOnClickListener(view -> showActions(view, result));
         var screen = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.REVIEW, blackBelow, true, actions, () -> {
             replay = null;
-            timeline.returnFromExplanation();
+            dispatch(Action.CLOSE_EXPLANATION);
             refreshTimeline();
         });
         playedBranch = screen.addBranch(R.id.game_review_played_branch, context.getString(R.string.game_review_played_branch),
                 context.getString(R.string.game_review_played_branch_description), () -> selectExplanationBranch(Branch.PLAYED));
         recommendedBranch = screen.addBranch(R.id.game_review_recommended_branch, context.getString(R.string.game_review_recommended_branch),
                 null, () -> selectExplanationBranch(Branch.RECOMMENDED));
-        screen.setNavigation(() -> { timeline.stepBackward(); refreshReplay(); },
-                () -> { timeline.stepForward(); refreshReplay(); });
+        screen.setNavigation(() -> { dispatch(Action.LINE_PREVIOUS); refreshReplay(); },
+                () -> { dispatch(Action.LINE_NEXT); refreshReplay(); });
         replay = screen;
-        timeline.setExplanationOpen(true);
+        dispatch(Action.OPEN_EXPLANATION);
         refreshReplay();
         var window = screen.show();
         replayWindow = window;
@@ -351,7 +354,7 @@ final class GameReviewDialog {
     }
 
     private void selectExplanationBranch(Branch branch) {
-        if (timeline.branch() != branch && timeline.showBranch(branch)) refreshReplay();
+        if (dispatch(branch == Branch.PLAYED ? Action.SELECT_PLAYED : Action.SELECT_RECOMMENDED)) refreshReplay();
     }
 
     private void showActions(View anchor, GameReview result) {
@@ -381,26 +384,26 @@ final class GameReviewDialog {
     private static String openingName(GameReview result) { return result.opening().name() + " · " + result.opening().eco(); }
 
     private void moveCursor(boolean forward) {
-        if (timeline.branch() != Branch.HISTORY) {
-            if (forward) timeline.stepForward();
-            else timeline.stepBackward();
-        } else if (forward) timeline.next();
-        else timeline.previous();
+        dispatch(forward ? Action.NEXT : Action.PREVIOUS);
         refreshTimeline();
     }
 
     private void nextKeyMoment() {
-        timeline.nextKeyMomentPly().ifPresent(this::selectPly);
+        if (dispatch(Action.NEXT_KEY)) refreshTimeline();
     }
 
     private void toggleBestLine() {
-        timeline.showBranch(timeline.branch() == Branch.RECOMMENDED ? Branch.HISTORY : Branch.RECOMMENDED);
+        dispatch(Action.TOGGLE_BEST);
         refreshTimeline();
     }
 
     private void selectPly(int ply) {
-        timeline.seek(ply);
+        session.dispatch(session.revision(), Action.SEEK, ply);
         refreshTimeline();
+    }
+
+    private boolean dispatch(Action action) {
+        return session.dispatch(session.revision(), action, -1) == GameReviewSession.Outcome.APPLIED;
     }
 
     private void refreshTimeline() {

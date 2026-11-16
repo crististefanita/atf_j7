@@ -293,6 +293,42 @@ class AndroidSanityPublication {
         publishMatchSlots(Path.of(System.getProperty("chess.android.receipt")));
     }
 
+    @Test void publishActiveMatchSanity() throws Exception {
+        publishActiveMatch(Path.of(System.getProperty("chess.android.receipt")));
+    }
+
+    static void publishActiveMatch(Path receipt) throws Exception {
+        var checkpoint = "The active slot and both checkpoints match the saved fixtures";
+        var initialPosition = "The native board renders the saved position · rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2";
+        var prepare = boundRun("active-match-prepare", "GIVEN two saved matches and the active match visible", receipt, 2,
+                List.of(checkpoint, initialPosition), "active match", List.of());
+        var restored = boundRun("active-match-restore", "WHEN the player relaunches and plays the next legal move",
+                receipt.resolveSibling("active-match-restore").resolve("active-match-restore.txt"), 4,
+                List.of(checkpoint, initialPosition, "Playing Nf3 saves one move to the active slot and leaves the other slot intact",
+                        "The native board renders the new position · rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"),
+                "active match", List.of(new Frame("active-match-restore.png", "Slot 3 restored after process death"),
+                        new Frame("active-match-next.png", "Slot 3 after the player moves Nf3")));
+        publishNativeRuns("active-match", "Restore the same active match and continue it", receipt, List.of(prepare, restored), null);
+    }
+
+    @Test void publishPendingBotSanity() throws Exception {
+        publishPendingBot(Path.of(System.getProperty("chess.android.receipt")));
+    }
+
+    static void publishPendingBot(Path receipt) throws Exception {
+        var pending = "The pending checkpoint and both slots match before launch";
+        var prepare = boundRun("pending-bot-prepare", "GIVEN the active match has one bot reply due", receipt, 2,
+                List.of("The human move leaves one automatic bot reply due", pending), "pending bot", List.of());
+        var restored = boundRun("pending-bot-restore", "WHEN the app restarts and handles the pending reply",
+                receipt.resolveSibling("pending-bot-restore").resolve("pending-bot-restore.txt"), 5,
+                List.of(pending, "Exactly one legal bot response extends the original history",
+                        "The original level, human side, orientation and automatic play are restored",
+                        "The settled checkpoint remains unchanged after the bot delay",
+                        "The native board renders the bot reply and the restored human turn"),
+                "pending bot", List.of(new Frame("pending-bot-restore.png", "The original match after one bot reply")));
+        publishNativeRuns("pending-bot", "Resume a pending computer turn after process death", receipt, List.of(prepare, restored), null);
+    }
+
     static void publishMatchSlots(Path receipt) throws Exception {
         publishMatchMenu(receipt, "match-slots", "Find and resume a saved game", List.of(
                 new MenuCheckpoint("WHEN the player scrolls to the last saved game", DATED_LAST_ROW, "saved-games.png"),

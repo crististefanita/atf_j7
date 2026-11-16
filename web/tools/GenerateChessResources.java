@@ -1,0 +1,138 @@
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+
+/** Converts JVM YAML values to the portable format read by the Web resource loader. */
+public final class GenerateChessResources {
+    private static final String OPENING_BOOK = "opening-book.tsv";
+    private static final int CHUNK_LENGTH = 12_000;
+
+    public static void main(String[] args) throws IOException {
+        if (args.length != 2) {
+            throw new IllegalArgumentException(
+                    "Usage: GenerateChessResources <core-resource-dir> <generated-package-directory>");
+        }
+        Path resourceDirectory = Path.of(args[0]);
+        Path packageDirectory = Path.of(args[1]);
+        Map<String, byte[]> resources = new LinkedHashMap<>();
+        try (var entries = Files.list(resourceDirectory)) {
+            for (Path path : entries.filter(Files::isRegularFile)
+                    .filter(entry -> entry.getFileName().toString().endsWith(".yaml")).sorted().toList()) {
+                String name = path.getFileName().toString();
+                if (!name.matches("[a-z0-9-]+\\.yaml")) {
+                    throw new IllegalArgumentException("Non-portable chess resource filename " + name);
+                }
+                resources.put(name, encodeYaml(path));
+            }
+        }
+        if (resources.isEmpty()) throw new IllegalArgumentException("No YAML resources in " + resourceDirectory);
+        resources.put(OPENING_BOOK, Files.readAllBytes(resourceDirectory.resolve(OPENING_BOOK)));
+        Files.createDirectories(packageDirectory);
+        Files.writeString(packageDirectory.resolve("GeneratedChessData.java"), javaSource(resources), StandardCharsets.UTF_8);
+    }
+
+    private static byte[] encodeYaml(Path path) throws IOException {
+        LoaderOptions options = new LoaderOptions();
+        options.setAllowDuplicateKeys(false);
+        options.setMaxAliasesForCollections(0);
+        Object value;
+        try (var stream = Files.newInputStream(path)) {
+            value = new Yaml(new SafeConstructor(options)).load(stream);
+        } catch (RuntimeException error) {
+            throw new IllegalArgumentException("Cannot parse chess resource " + path.getFileName(), error);
+        }
+        if (!(value instanceof Map<?, ?>)) {
+            throw new IllegalArgumentException("Expected YAML mapping in " + path.getFileName());
+        }
+        var bytes = new ByteArrayOutputStream();
+        try (var output = new DataOutputStream(bytes)) {
+            writeValue(output, value, path.getFileName().toString());
+        }
+        return bytes.toByteArray();
+    }
+
+    private static void writeValue(DataOutputStream output, Object value, String at) throws IOException {
+        if (value instanceof Map<?, ?> map) {
+            output.writeByte('m');
+            output.writeInt(map.size());
+            int index = 0;
+            for (var entry : map.entrySet()) {
+                Object key = entry.getKey();
+                writeValue(output, key, at + " (key " + index + ")");
+                writeValue(output, entry.getValue(), at + "/" + key);
+                index++;
+            }
+        } else if (value instanceof List<?> list) {
+            output.writeByte('l');
+            output.writeInt(list.size());
+            for (int index = 0; index < list.size(); index++) {
+                writeValue(output, list.get(index), at + "[" + index + "]");
+            }
+        } else if (value instanceof String text) {
+            output.writeByte('s');
+            byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+            output.writeInt(bytes.length);
+            output.write(bytes);
+        } else if (value instanceof Integer integer) {
+            output.writeByte('i');
+            output.writeInt(integer);
+        } else if (value instanceof Long integer) {
+            output.writeByte('j');
+            output.writeLong(integer);
+        } else if (value instanceof Double decimal) {
+            output.writeByte('d');
+            output.writeDouble(decimal);
+        } else if (value instanceof Boolean bool) {
+            output.writeByte(bool ? 't' : 'f');
+        } else if (value == null) {
+            output.writeByte('n');
+        } else {
+            throw new IllegalArgumentException("Unsupported YAML value at " + at + " (" + value.getClass().getName() + ")");
+        }
+    }
+
+    private static String javaSource(Map<String, byte[]> resources) {
+        var source = new StringBuilder("""
+                package ro.atf.chess;
+
+                // Generated by GenerateChessResources from the chess-core resources.
+                final class GeneratedChessData {
+                    private GeneratedChessData() { }
+
+                    static String[] chunks(String name) {
+                        return switch (name) {
+                """);
+        int resource = 0;
+        for (String name : resources.keySet()) {
+            source.append("            case \"").append(name).append("\" -> resource").append(resource++).append("();\n");
+        }
+        source.append("""
+                            default -> null;
+                        };
+                    }
+                """);
+
+        resource = 0;
+        for (byte[] bytes : resources.values()) {
+            String encoded = Base64.getEncoder().encodeToString(bytes);
+            source.append("\n    private static String[] resource").append(resource++).append("() {\n");
+            source.append("        return new String[] {\n");
+            for (int start = 0; start < encoded.length(); start += CHUNK_LENGTH) {
+                int end = Math.min(encoded.length(), start + CHUNK_LENGTH);
+                source.append("            \"").append(encoded, start, end).append("\",\n");
+            }
+            source.append("        };\n    }\n");
+        }
+        return source.append("}\n").toString();
+    }
+}

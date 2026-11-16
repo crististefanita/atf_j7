@@ -15,6 +15,8 @@ param(
     [switch]$MatchSlotsOnly,
     [switch]$MatchArchiveOnly,
     [switch]$MatchMenusOnly,
+    [switch]$ActiveMatchOnly,
+    [switch]$PendingBotOnly,
     [switch]$TacticsExplanationOnly,
     [switch]$TrainingFinishOnly,
     [switch]$PuzzleMateReplayOnly,
@@ -55,6 +57,12 @@ if ($puzzleProbes.Count -gt 1 -or ($puzzleProbes.Count -eq 1 -and ($AnalysisOnly
 if ($MatchMenusOnly -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or
         $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
     throw 'MatchMenusOnly selects both menu phases on its own.'
+}
+if (($ActiveMatchOnly -or $PendingBotOnly) -and (($ActiveMatchOnly -and $PendingBotOnly) -or
+        $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or $ReplayCompactOnly -or $ManualAnalysisOnly -or
+        $MatchSlotsOnly -or $MatchArchiveOnly -or $MatchMenusOnly -or $puzzleProbes.Count -or
+        $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
+    throw 'ActiveMatchOnly and PendingBotOnly each select a separate saved match restart.'
 }
 if ($OpeningsOnly -and ($Distribution -or $AnalysisOnly)) { throw 'OpeningsOnly uses its own isolated sanity phase.' }
 if ($IncludeOpenings -and ($OpeningsOnly -or $AnalysisOnly)) { throw 'IncludeOpenings extends the board sanity phases.' }
@@ -208,6 +216,8 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         { $_ -in 'replay-compact-ro', 'replay-compact-en' } { $frames = @('opening-theory', 'review-why') }
         'match-slots' { $frames += 'saved-games' }
         'match-archive' { $frames += 'finished-games' }
+        { $_ -in 'active-match-prepare', 'pending-bot-prepare' } { $frames = @() }
+        'active-match-restore' { $frames += 'active-match-next' }
         'game-review' { $frames += 'game-review-navigation', 'game-review-line', 'game-review-comparison', 'game-review-actions' }
         'game-review-why' { $frames += 'game-review-why-recommended', 'game-review-why-score' }
         'tactics-explanation' { $frames += 'tactics-defense' }
@@ -225,7 +235,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
         if ($Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux',
-                'replay-compact-ro','replay-compact-en') {
+                'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
                 throw "Pulled PNG does not match the native capture: $file."
@@ -364,6 +374,17 @@ try {
     }
     if ($ManualAnalysisOnly) {
         Invoke-FocusedSanity $run 'manual-analysis' 5 ([guid]::NewGuid().ToString('N'))
+        return
+    }
+    if ($ActiveMatchOnly -or $PendingBotOnly) {
+        $runId = [guid]::NewGuid().ToString('N')
+        $scope = if ($PendingBotOnly) { 'pending-bot' } else { 'active-match' }
+        $checks = if ($PendingBotOnly) { 5 } else { 4 }
+        Invoke-FocusedSanity $run "$scope-prepare" 2 $runId
+        Invoke-Device @('shell','am','force-stop',$app)
+        $restored = Join-Path $run "$scope-restore"
+        $null = New-Item -ItemType Directory $restored
+        Invoke-FocusedSanity $restored "$scope-restore" $checks $runId
         return
     }
     if ($MatchSlotsOnly) {

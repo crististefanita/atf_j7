@@ -176,6 +176,60 @@ class AndroidReceiptTest {
         return Jsoup.parse(receipt.resolveSibling("android-game-review.html"), "UTF-8").text();
     }
 
+    @Test void activeMatchReportRequiresRealRestartAndBoundCaptures(Checks check) throws Exception {
+        for (String state : List.of("complete", "same process", "other run", "substituted capture")) {
+            var directory = Files.createDirectory(folder.resolve("active-match-" + state.replace(' ', '-')));
+            var resumed = Files.createDirectory(directory.resolve("active-match-restore"));
+            var identity = new ReviewIdentity("", "sanity", "a".repeat(64), "1".repeat(32));
+            String checkpoint = "The active slot and both checkpoints match the saved fixtures";
+            String fen = "The native board renders the saved position · rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2";
+            writeReviewRun(directory, "active-match-prepare", 101, 2, identity, List.of(checkpoint, fen), List.of(), 1);
+            writeReviewRun(resumed, "active-match-restore", state.equals("same process") ? 101 : 202, 4,
+                    state.equals("other run") ? identity.withRunId("2".repeat(32)) : identity,
+                    List.of(checkpoint, fen, "Playing Nf3 saves one move to the active slot and leaves the other slot intact",
+                            "The native board renders the new position · rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"),
+                    List.of("active-match-restore", "active-match-next"), 1);
+            if (state.equals("substituted capture")) {
+                Files.copy(resumed.resolve("active-match-restore.png"), resumed.resolve("active-match-next.png"), StandardCopyOption.REPLACE_EXISTING);
+            }
+            var receipt = directory.resolve("active-match-prepare.txt");
+            if (state.equals("complete")) AndroidSanityPublication.publishActiveMatch(receipt);
+            else check.rejects("Active match rejects " + state, AssertionError.class, () -> AndroidSanityPublication.publishActiveMatch(receipt));
+            String report = Jsoup.parse(directory.resolve("android-active-match.html"), "UTF-8").text();
+            String witness = switch (state) {
+                case "same process" -> "101 → 101";
+                case "other run" -> "Missing or mismatched phase run identity";
+                case "substituted capture" -> "Capture SHA-256 mismatch: active-match-next.png";
+                default -> "Slot 3 after the player moves Nf3";
+            };
+            check.same("Extent identifies the active match evidence for " + state, true, report.contains(witness));
+        }
+    }
+
+    @Test void pendingBotReportRequiresTheExactHistoryAssertion(Checks check) throws Exception {
+        for (boolean complete : List.of(true, false)) {
+            var directory = Files.createDirectory(folder.resolve("pending-bot-" + complete));
+            var restored = Files.createDirectory(directory.resolve("pending-bot-restore"));
+            var identity = new ReviewIdentity("", "sanity", "a".repeat(64), "1".repeat(32));
+            var pending = "The pending checkpoint and both slots match before launch";
+            var history = "Exactly one legal bot response extends the original history";
+            writeReviewRun(directory, "pending-bot-prepare", 101, 2, identity,
+                    List.of("The human move leaves one automatic bot reply due", pending), List.of(), 1);
+            writeReviewRun(restored, "pending-bot-restore", 202, 5, identity,
+                    List.of(pending, complete ? history : "An unrelated passing check",
+                            "The original level, human side, orientation and automatic play are restored",
+                            "The settled checkpoint remains unchanged after the bot delay",
+                            "The native board renders the bot reply and the restored human turn"),
+                    List.of("pending-bot-restore"), 1);
+            var receipt = directory.resolve("pending-bot-prepare.txt");
+            if (complete) AndroidSanityPublication.publishPendingBot(receipt);
+            else check.rejects("An unrelated passing check cannot replace history verification", AssertionError.class,
+                    () -> AndroidSanityPublication.publishPendingBot(receipt));
+            var report = Jsoup.parse(directory.resolve("android-pending-bot.html"), "UTF-8").text();
+            check.same("Extent identifies the history assertion for " + complete, true, report.contains(history));
+        }
+    }
+
     @Test void tacticsExplanationRequiresBothNativeCaptures(Checks check) throws Exception {
         var identity = new ReviewIdentity("", "sanity", "a".repeat(64), "1".repeat(32));
         var required = List.of("Tactic 002 opens the normal explanation on its final move",
