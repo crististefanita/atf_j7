@@ -13,7 +13,7 @@
   "android": {
     "game-review": {
       "sourceCommit": "2eed6faa1d2e790e319ad1188b98c58076e59dc5",
-      "nativeAssertions": 30.0,
+      "nativeAssertions": 30,
       "extentSha256": "5333f47b2be16d9a7e1eb6f768f4d8b25603aed0b0a82b00b031126fd3852ee9",
       "report": "android-game-review.html",
       "execution": "game-review-execution.json"
