@@ -1,10 +1,10 @@
 {
   "status": "PASS",
-  "observedUtc": "2026-11-16T05:56:51.5730424Z",
+  "observedUtc": "2026-11-16T06:09:05.7904761Z",
   "channel": "Anonymous browser-compatible release asset",
   "repository": "crististefanita/atf_j7",
-  "readmeSource": "staged",
-  "readmeCommit": "eecfff30bb7e29fb539fe750c7fd9911c6226b54",
+  "readmeSource": "main",
+  "readmeCommit": "165d02bfdb74952d7775452c62008c5573c2fa6d",
   "readmeBlob": "e074aef85ba2431143c8af4b849bb1fa53a37fe5",
   "tag": "v0.14.5",
   "targetCommit": "2eed6faa1d2e790e319ad1188b98c58076e59dc5",
