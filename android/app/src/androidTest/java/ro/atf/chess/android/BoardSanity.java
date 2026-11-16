@@ -557,8 +557,8 @@ public final class BoardSanity extends Instrumentation {
         var review = GameReview.analyze(match, ignored -> { });
         if (!store.saveReview(archiveId, match, review)) throw new AssertionError("Could not prepare the archived review");
         var activity = openArchivedReview();
-        var historyBoard = nodeBounds(reviewNode(R.id.game_review_board, 4500));
         for (int ply = match.ply(); ply > 1; ply--) clickReviewIcon(R.id.game_review_previous);
+        var historyBoard = nodeBounds(reviewNode(R.id.game_review_board, 4500));
         var selected = reviewNode(R.id.game_review_selection, 4500);
         String selectedMove = selected == null ? "" : String.valueOf(selected.getText());
         var historyViewport = reviewViewport();
@@ -566,27 +566,43 @@ public final class BoardSanity extends Instrumentation {
         var fallbackBoard = fullscreenReplayBoard(activity, R.id.game_review_board);
         checkReviewFallback(activity, fallbackBoard, review.turns().get(0));
         clickReviewIcon(R.id.hint_preview_return);
-        boolean historyRestored = !selectedMove.isBlank() && !historyViewport.isEmpty() && reviewSelection(selectedMove)
-                && sameReviewBoard(historyBoard) && historyViewport.equals(reviewViewport())
-                && archiveMatches(store, archiveId, match, review);
+        var closedSelection = reviewNode(R.id.game_review_selection, 4500);
+        String closedMove = closedSelection == null ? "" : String.valueOf(closedSelection.getText());
+        var closedHistoryBoard = nodeBounds(visibleReviewNode(R.id.game_review_board));
+        var closedHistoryViewport = reviewViewport();
+        boolean cachedReviewPreserved = archiveMatches(store, archiveId, match, review);
+        boolean historyRestored = !selectedMove.isBlank() && selectedMove.equals(closedMove) && !historyViewport.isEmpty()
+                && historyBoard.equals(closedHistoryBoard) && historyViewport.equals(closedHistoryViewport) && cachedReviewPreserved;
         clickReviewIcon(R.id.game_review_next);
         clickReviewIcon(R.id.game_review_next);
+        var blunderHistoryBoard = nodeBounds(reviewNode(R.id.game_review_board, 4500));
         clickReviewIcon(R.id.game_review_why);
         var firstBoard = fullscreenReplayBoard(activity, R.id.game_review_board);
         var openInHistory = new GameReviewTimeline.Snapshot(3, GameReviewTimeline.Branch.HISTORY, 0, true);
         var closedInHistory = new GameReviewTimeline.Snapshot(3, GameReviewTimeline.Branch.HISTORY, 0, false);
-        boolean openWasSaved = openInHistory.equals(store.readReviewBookmark(archiveId, match));
+        var openBookmark = store.readReviewBookmark(archiveId, match);
         clickReviewIcon(R.id.hint_preview_return);
-        boolean closedWasSaved = closedInHistory.equals(store.readReviewBookmark(archiveId, match)) && sameReviewBoard(historyBoard);
+        var closedBookmark = store.readReviewBookmark(archiveId, match);
+        var closedBlunderBoard = nodeBounds(visibleReviewNode(R.id.game_review_board));
+        boolean openWasSaved = openInHistory.equals(openBookmark);
+        boolean closedWasSaved = closedInHistory.equals(closedBookmark) && blunderHistoryBoard.equals(closedBlunderBoard);
         clickReviewIcon(R.id.game_review_why);
         var board = fullscreenReplayBoard(activity, R.id.game_review_board);
         var reason = reviewNode(R.id.game_review_reason, 4500);
         String reasonText = reason == null || reason.getText() == null ? "" : reason.getText().toString();
         String queen = activity.getString(R.string.queen);
         boolean namesMate = reasonText.contains("h4#") && reasonText.toLowerCase(Locale.ROOT).contains(queen.toLowerCase(Locale.ROOT));
-        captureFrame("game-review-why", "Why names the mating queen on h4 for the archived g4 blunder",
-                image -> historyRestored && openWasSaved && closedWasSaved && namesMate && firstBoard.equals(board)
-                        && sameReviewBoard(board) && visibleReviewNode(R.id.game_review_reason) != null);
+        try {
+            captureFrame("game-review-why", "Why names the mating queen on h4 for the archived g4 blunder",
+                    image -> historyRestored && openWasSaved && closedWasSaved && namesMate && firstBoard.equals(board)
+                            && sameReviewBoard(board) && visibleReviewNode(R.id.game_review_reason) != null);
+        } catch (AssertionError failed) {
+            throw new AssertionError(failed.getMessage() + " | history " + selectedMove + " → " + closedMove
+                    + " | board " + historyBoard + " → " + closedHistoryBoard + " | viewport " + historyViewport
+                    + " → " + closedHistoryViewport + " | cached=" + cachedReviewPreserved + " | bookmarks " + openBookmark
+                    + " → " + closedBookmark + " | closed board " + blunderHistoryBoard + " → " + closedBlunderBoard
+                    + " | opened board " + firstBoard + " → " + board + " | reason " + reasonText, failed);
+        }
 
         var blunder = review.turns().get(2);
         var recommendation = blunder.bestLine().get(0);
@@ -851,6 +867,10 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private boolean reviewLineStep(String text) {
+        if (visibleReviewNode(R.id.hint_preview_return) != null) {
+            var progress = visibleReviewNode(R.id.game_review_line_progress);
+            return progress != null && progress.getText() != null && progress.getText().toString().contains(text);
+        }
         var node = visibleReviewNode(R.id.game_review_selection);
         return node != null && node.getContentDescription() != null && node.getContentDescription().toString().contains(text);
     }
