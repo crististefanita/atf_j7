@@ -14,6 +14,6 @@
 
 ## Instalare
 
-Descarcă APK-ul semnat din fișierele ediției.
+Descarcă APK-ul semnat din **Assets**. [Ediția pe GitHub](https://github.com/crististefanita/atf_j7/releases/tag/v0.15.2)
 
 [Dovezile ediției](reports/README.md)

@@ -355,6 +355,21 @@ try {
         const aiRestored = await waitActive('AI game remains independently saved', value => value.mode === 'AI' && value.ply === 1);
         check('manual-independent', true, manualRestored.checkpoint === manual.checkpoint && manualRestored.fen === manual.fen &&
             aiRestored.checkpoint === replied.checkpoint);
+        const language = publicUrl ? 'ro' : 'en';
+        const ledgerBefore = await evaluate("localStorage.getItem('chesslab.match-ledger.v1')");
+        await touch('#open-profile');
+        await evaluate("document.querySelector('#profile-name').value = 'Ștefan'; void 0");
+        await evaluate(`document.querySelector('#profile-language').value = '${language}'; void 0`);
+        await touch('#save-profile');
+        await until(() => evaluate(`document.documentElement.lang === '${language}' && !location.search`), 'saved profile language');
+        const personalized = await waitActive('game with personalized profile', value => value.profile.startsWith('Ștefan · '));
+        await reload();
+        const restoredProfile = await waitActive('same game after profile reload', value => value.profile === personalized.profile);
+        const profileStored = await evaluate("JSON.parse(localStorage.getItem('chesslab.player-profile.v1'))");
+        check('profile-local', true, profileStored.name === 'Ștefan' && profileStored.language === language &&
+            await evaluate('document.documentElement.lang') === language && restoredProfile.checkpoint === replied.checkpoint &&
+            await evaluate("localStorage.getItem('chesslab.match-ledger.v1')") === ledgerBefore);
+        await capture('ai-profile.png');
         return { scope: 'ai-bot-reload', hostPath, publicUrl, pendingCheckpoint: pending.checkpoint, completedCheckpoint: replied.checkpoint,
             pendingMatchCheckpoint, completedMatchCheckpoint, botMove: replied.last };
     }

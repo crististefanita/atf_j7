@@ -1,19 +1,25 @@
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
+import { profileName, readProfile, writeProfile } from './player-profile.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
 const legacyMatchKeys = { local: 'chesslab.active-match.v1', ai: 'chesslab.ai-match.v1' };
 const routeHashes = { match: '#game', ai: '#ai', saved: '#saved', finished: '#finished' };
 const botDelayMillis = 650;
-const locale = new URLSearchParams(location.search).get('lang') === 'ro' ? 'ro' : 'en';
+let profile = readProfile(() => localStorage);
+const requestedLocale = new URLSearchParams(location.search).get('lang');
+const locale = requestedLocale === 'ro' || requestedLocale === 'en' ? requestedLocale : profile.language;
 const words = {
     en: {
         title: 'Game review', 'archive-label': 'Open a review',
         'open-match': 'Local game', 'open-review': 'Game Review', 'new-match': 'New game',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
         'open-saved': 'Saved games', 'open-finished': 'Finished games', 'return-menu': 'Back',
+        'open-profile': 'Profile', 'profile-title': 'Profile', 'profile-name-label': 'Name', 'profile-language-label': 'Language',
+        'save-profile': 'Save', 'cancel-profile': 'Cancel', profileInvalid: 'Use up to 10 letters, digits, spaces, hyphens or apostrophes.',
+        profileSaveFailed: 'The browser could not save your profile.',
         'archive-review-back': 'Close', 'review-close': 'Close', 'reopen-review': 'Open analysis', openCached: 'Open analysis', reviewed: 'Analysis saved',
         'review-actions': 'Review actions', 'review-on-board': 'Show on board', 'next-key': 'Next key moment',
         bestLine: 'Show recommended line', hideLine: 'Hide recommended line', linePrevious: 'Previous line step', lineNext: 'Next line step',
@@ -56,6 +62,9 @@ const words = {
         'open-match': 'Partidă locală', 'open-review': 'Analiza partidei', 'new-match': 'Partidă nouă',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
         'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate', 'return-menu': 'Înapoi',
+        'open-profile': 'Profil', 'profile-title': 'Profil', 'profile-name-label': 'Nume', 'profile-language-label': 'Limbă',
+        'save-profile': 'Salvează', 'cancel-profile': 'Anulează', profileInvalid: 'Folosește cel mult 10 caractere: litere, cifre, spații, cratime sau apostrofuri.',
+        profileSaveFailed: 'Browserul nu a putut salva profilul.',
         'archive-review-back': 'Închide', 'review-close': 'Închide', 'reopen-review': 'Deschide analiza', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
         'review-actions': 'Acțiuni de analiză', 'review-on-board': 'Arată pe tablă', 'next-key': 'Moment-cheie următor',
         bestLine: 'Arată linia recomandată', hideLine: 'Ascunde linia recomandată',
@@ -143,7 +152,8 @@ for (const id of ['title', 'archive-label', 'empty', 'why', 'why-title', 'played
     'open-match', 'open-ai', 'open-review', 'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'start-ai', 'cancel-setup', 'retry-bot', 'open-saved',
     'open-finished', 'return-menu', 'new-local', 'new-ai', 'continue-match', 'continue-title', 'confirm-continue',
-    'cancel-continue', 'automatic-label', 'archive-review-back', 'continue-review', 'review-close', 'reopen-review', 'review-on-board']) {
+    'cancel-continue', 'automatic-label', 'archive-review-back', 'continue-review', 'review-close', 'reopen-review', 'review-on-board',
+    'open-profile', 'profile-title', 'profile-name-label', 'profile-language-label', 'save-profile', 'cancel-profile']) {
     find(id).textContent = words[id];
 }
 for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions', 'next-key']) find(id).setAttribute('aria-label', words[id]);
@@ -514,7 +524,10 @@ function renderMatch() {
     const result = browsing || match.result === 'IN_PROGRESS' ? words[match.sideToMove] : words[match.result] ?? words.DRAW;
     find('match-turn').textContent = match.awaitingBot && failedBotRevision !== match.revision ? words.botTurn : result;
     find('match-profile').hidden = !isAi;
-    if (isAi) find('match-profile').textContent = words.aiProfile(levels[match.level], words[`${match.humanSide.toLowerCase()}-choice`]);
+    if (isAi) {
+        const summary = words.aiProfile(levels[match.level], words[`${match.humanSide.toLowerCase()}-choice`]);
+        find('match-profile').textContent = profile.name ? `${profile.name} · ${summary}` : summary;
+    }
     find('new-match').hidden = match.readOnly || !isAi && match.result === 'IN_PROGRESS';
     find('match-history').hidden = match.ply === 0;
     find('match-ply').textContent = `${match.viewPly}/${match.ply}`;
@@ -597,6 +610,7 @@ function showMode(nextMode) {
     find('title').textContent = words[title[mode] ?? 'title'];
     document.title = `Chess Lab · ${find('title').textContent}`;
     for (const id of ['open-match', 'open-ai', 'open-saved', 'open-finished', 'review-import']) find(id).hidden = !main;
+    find('open-profile').hidden = !main && mode !== 'ai';
     find('open-review').hidden = main || listing || mode === 'archive' || mode === 'archive-review';
     find('return-menu').hidden = !listing && mode !== 'archive';
     find('archive-review-back').hidden = mode !== 'archive-review';
@@ -901,6 +915,48 @@ find('open-match').addEventListener('click', () => {
 find('open-ai').addEventListener('click', () => {
     void enterMatch({ route: 'AI' });
 });
+
+const profileDialog = find('profile-dialog');
+const nameInput = find('profile-name');
+const languageInput = find('profile-language');
+const profileError = find('profile-error');
+find('open-profile').addEventListener('click', () => {
+    nameInput.value = profile.name;
+    languageInput.value = locale;
+    nameInput.setCustomValidity('');
+    profileError.hidden = true;
+    profileDialog.showModal();
+});
+nameInput.addEventListener('input', () => nameInput.setCustomValidity(''));
+find('cancel-profile').addEventListener('click', () => profileDialog.close());
+find('profile-form').addEventListener('submit', event => {
+    event.preventDefault();
+    const name = profileName(nameInput.value);
+    if (name === null) {
+        nameInput.setCustomValidity(words.profileInvalid);
+        nameInput.reportValidity();
+        return;
+    }
+    const next = { name, language: languageInput.value };
+    try {
+        writeProfile(localStorage, next);
+    } catch {
+        profileError.textContent = words.profileSaveFailed;
+        profileError.hidden = false;
+        return;
+    }
+    profile = next;
+    profileDialog.close();
+    const url = new URL(location.href);
+    if (url.searchParams.has('lang') || locale !== next.language) {
+        url.searchParams.delete('lang');
+        if (url.href !== location.href) location.replace(url.href);
+        else location.reload();
+    } else {
+        renderMatch();
+    }
+});
+
 find('open-review').addEventListener('click', openMainReview);
 find('open-saved').addEventListener('click', () => showMode('saved'));
 find('open-finished').addEventListener('click', () => showMode('finished'));

@@ -34,7 +34,7 @@ $null = New-Item -ItemType Directory $output
 $readmeFile = Join-Path $output 'README.md'
 [IO.File]::WriteAllBytes($readmeFile, [Convert]::FromBase64String($readme.content))
 $links = @(& java -cp $Classes ro.atf.chess.release.ReleaseGate links $readmeFile)
-if ($LASTEXITCODE -or $links.Count -ne 2) { throw 'Expected two canonical links in Jocul.' }
+if ($LASTEXITCODE -or $links.Count -ne 2) { throw 'Expected the canonical release and APK links in the README.' }
 
 $tag = "v$Version"
 $release = Invoke-RestMethod "$api/repos/$Repository/releases/tags/$tag" -Headers $headers

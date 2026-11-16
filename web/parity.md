@@ -1,6 +1,6 @@
 # Paritate APK–Web · Chess Lab
 
-Ținta este **Joacă online** imediat sub **Descarcă APK** în secțiunea **Jocul** din README. Linkul duce la ediția Web care oferă funcțiile ediției Android asociate. Verificarea privește aceleași rezultate, comenzi, stări după reluare și acces la informații. Fiecare dispozitiv își păstrează progresul local. [README principal](../README.md#jocul)
+**Joacă în browser** este imediat sub **Descarcă APK** în secțiunea **Jocul** din README și deschide partida cu AI. Verificarea compară rezultatele, comenzile și starea după reluare pentru funcțiile implementate pe ambele platforme. Fiecare dispozitiv își păstrează progresul local. [README principal](../README.md#jocul)
 
 ## Contracte și probe
 
@@ -15,10 +15,10 @@ Același scenariu de componentă fixează starea inițială, acțiunile și obse
 | Game Review și explicații | Tabla fixă, graficul și lista folosesc aceeași poziție selectată. Edge verifică valoarea graficului, rândul selectat și focusul restaurat după **De ce?**. | Confirmați vorbirea NVDA în RO/EN. [Proba Web](README.md#cititorul-de-ecran-în-game-review) |
 | Probleme și antrenament | Workerul încarcă și compară cataloagele din YAML. | Adaptați fluxul fiecărui capitol cu aceeași progresie. Verificați indiciile, replicile, reluarea explicațiilor, pericolul, seria, punctajul și upgrade-ul fără credit acordat de două ori. |
 | Deschideri și tablă de analiză | Workerul încarcă lecțiile și indexul ECO. | Refolosiți `OpeningLesson`, `OpeningPractice` și `OpeningTheory`. Parcurgeți și rejucați lecția. Selectați până la trei trasee valabile, verificați transpoziția și trecerea la motor. Redați indiciile și analiza completă din tabla manuală. |
-| Profil, limbă și prezentare | Jocul și analiza au text RO/EN. | Refolosiți validarea numelui și preferința de limbă. Verificați orientarea, geometria la font mărit, capturile și avantajul material, tastatura și echivalentul semantic al probelor native de accesibilitate. |
+| Profil, limbă și prezentare | Profilul local păstrează numele afișat în partida cu AI și limba RO/EN. | Verificați orientarea, geometria la font mărit, capturile și avantajul material, tastatura și echivalentul semantic al probelor native de accesibilitate. |
 
 Detaliile produsului, inclusiv regulile de continuare și comportamentele care depind de platformă, rămân în ghidurile jocului. [Partide, probleme și analiză](../docs/board/README.md) · [Game Review](../docs/board/game-review.md)
 
 ## Publicarea linkului
 
-Versiunea Web publică oferă partida cu AI, partida locală și analiza. Publicați pachetul static și `.nojekyll` în rădăcina `gh-pages`. Verificați din **Joacă online** pachetul servit și reluarea în browser. Pentru paritatea ediției, legați commitul și identitățile APK/Web de recepțiile Extent și verificați jocul fără rețea după încărcare și recuperarea progresului la actualizare. [Procesul de release](../docs/release/README.md) · [Reper J4](https://crististefanita.github.io/atf_j4/)
+Versiunea Web publică oferă partida cu AI, partida locală și analiza. Publicați pachetul static și `.nojekyll` în rădăcina `gh-pages`. Verificați din **Joacă în browser** pachetul servit și reluarea în browser. Pentru paritatea ediției, legați commitul și identitățile APK/Web de recepțiile Extent și verificați jocul fără rețea după încărcare și recuperarea progresului la actualizare. [Procesul de release](../docs/release/README.md) · [Reper J4](https://crististefanita.github.io/atf_j4/)

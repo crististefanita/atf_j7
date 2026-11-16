@@ -71,8 +71,10 @@ class ReleaseGovernanceTest {
     private static final String REPOSITORY = "example/atf_j7";
     private static final String BASE = "https://github.com/" + REPOSITORY + "/releases/";
     private static final String URL = BASE + "download/v0.1.0/ChessLab-0.1.0.apk";
-    private static final String README = "# Chess Lab\n\nȘah și studiu.\n\n## Jocul\n\n"
-            + "- [Release](" + BASE + "tag/v0.1.0)\n- [APK](" + URL + ")\n\n## În joc\n\n[Studiu](docs/board/README.md)\n";
+    private static final String PLAY = "- [Joacă în browser](https://example.github.io/atf_j7/#ai)";
+    private static final String EDITION = "- [Release](" + BASE + "tag/v0.1.0)";
+    private static final String README = "# Chess Lab\n\nȘah și studiu.\n\n## Jocul\n\n- [APK](" + URL + ")\n"
+            + PLAY + "\n\n## În joc\n\n[Studiu](docs/board/README.md)\n\n## Ediția publicată\n\n" + EDITION + "\n";
 
     @TempDir Path folder;
     private Candidate candidate;
@@ -255,8 +257,8 @@ class ReleaseGovernanceTest {
     @Test void downloadMustBeginAtTheCanonicalReadmeRouteAndFinishWithAllBytes(Checks check) throws IOException {
         check.same("Consistent publication fixture is accepted", "accepted", decision(() -> publish(SOURCE, README, 200, apk)));
         check.same("Tag on a different commit blocks", "Published tag points to another commit", decision(() -> publish(OTHER, README, 200, apk)));
-        check.same("Stale README tag blocks", "README does not lead to the qualified release and APK",
-                decision(() -> publish(SOURCE, README.replace("v0.1.0", "v0.0.9"), 200, apk)));
+        check.same("A stale README edition and APK block publication", "README does not lead to the qualified release and APK",
+                decision(() -> publish(SOURCE, README.replace("0.1.0", "0.0.9"), 200, apk)));
         check.same("A 404 response blocks before file acceptance", "Wrong download route or HTTP status", decision(() -> publish(SOURCE, README, 404, apk)));
         Path truncated = Files.writeString(folder.resolve("truncated.apk"), "404: Not Found");
         check.same("A text error disguised as APK blocks even with status 200", "APK bytes or SHA-256 differ from qualification",
@@ -321,15 +323,15 @@ class ReleaseGovernanceTest {
     }
 
     @Test void readmeKeepsTheDownloadSectionFirstAndRejectsOtherApkRoutes(Checks check) throws IOException {
-        check.same("A brief introduction, two canonical bullets and a guide qualify", "accepted",
+        check.same("The APK, browser game and separate release notes qualify", "accepted",
                 decision(() -> publish(SOURCE, README.replace("\n", "\r\n"), 200, apk)));
         check.same("An introductory section cannot precede the download", "Jocul must be the first section",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("Șah și studiu.", "## Introducere\n\nȘah și studiu."))));
-        check.same("Prose appended to a link is rejected", "Jocul must contain the release and APK links, with optional online play",
+        check.same("Prose appended to a link is rejected", "Jocul must contain only the APK and browser links",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace(URL + ")", URL + ") — APK Android semnat."))));
         check.same("A label cannot carry integrity metadata", "Integrity metadata belongs in the release evidence",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("[APK]", "[APK SHA-256]"))));
-        check.same("A paragraph between download bullets is rejected", "Jocul must contain the release and APK links, with optional online play",
+        check.same("A paragraph between game links is rejected", "Jocul must contain only the APK and browser links",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("- [APK]", "Descarcă aici.\n\n- [APK]"))));
         check.same("A duplicate download section is rejected", "Duplicate Jocul section",
                 decision(() -> ReleaseEvidence.gameLinks(README + "\n## Jocul\n")));
@@ -342,18 +344,20 @@ class ReleaseGovernanceTest {
         }
     }
 
-    @Test void onlinePlayFollowsTheApkAndKeepsTheCanonicalDownloadPair(Checks check) throws IOException {
-        String page = "https://example.github.io/atf_j7/#ai";
-        String play = "- [Joacă online · previzualizare](" + page + ")";
-        String withPlay = README.replace("\n\n## În joc", "\n" + play + "\n\n## În joc");
-        check.same("Adding online play does not change the qualified download links",
-                ReleaseEvidence.gameLinks(README), ReleaseEvidence.gameLinks(withPlay));
+    @Test void onlinePlayFollowsTheApkAndEditionNotesAreSeparate(Checks check) throws IOException {
+        check.same("Download verification receives the release tag and APK in order",
+                List.of(BASE + "tag/v0.1.0", URL), ReleaseEvidence.gameLinks(README));
         check.same("A Pages link for a different repository is rejected",
                 "The online game must open the repository's AI game on GitHub Pages",
-                decision(() -> ReleaseEvidence.gameLinks(withPlay.replace("/atf_j7/#ai", "/another/#ai"))));
-        String wrongOrder = README.replace("- [APK]", play + "\n- [APK]");
-        check.same("The online game follows the APK",
-                "The online game must follow the release and APK", decision(() -> ReleaseEvidence.gameLinks(wrongOrder)));
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("/atf_j7/#ai", "/another/#ai"))));
+        check.same("The APK link must be first", "Jocul must start with the canonical APK link",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("- [APK](" + URL + ")\n" + PLAY, PLAY + "\n- [APK](" + URL + ")"))));
+        check.same("A third link in Jocul is rejected", "Jocul must contain only the APK and browser links",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace(PLAY, PLAY + "\n" + EDITION))));
+        check.same("The edition notes cannot point at another release", "The published edition must match the APK",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("/tag/v0.1.0", "/tag/v0.0.9"))));
+        check.same("The edition notes require their own section", "Missing published edition section below Jocul",
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("## Ediția publicată", "## Note"))));
     }
 
     @Test void rootReadmePublishesTheCandidateOnlyAfterDistributionEvidenceExists(Checks check) throws IOException {
@@ -368,9 +372,9 @@ class ReleaseGovernanceTest {
         boolean candidatePublished = Files.isRegularFile(publication)
                 && Files.readString(publication).contains("\"status\": \"PASS\"");
         if (candidatePublished) {
-            check.same("Jocul links to the published candidate and exact APK", List.of(base + "tag/v" + name, base + "download/v" + name + "/ChessLab-" + name + ".apk"), links);
+            check.same("The README links to the published candidate and exact APK", List.of(base + "tag/v" + name, base + "download/v" + name + "/ChessLab-" + name + ".apk"), links);
         } else {
-            check.same("Jocul withholds an unqualified candidate from the download links", false,
+            check.same("The README withholds an unqualified candidate from the download links", false,
                     links.contains(base + "tag/v" + name) || links.contains(base + "download/v" + name + "/ChessLab-" + name + ".apk"));
         }
     }

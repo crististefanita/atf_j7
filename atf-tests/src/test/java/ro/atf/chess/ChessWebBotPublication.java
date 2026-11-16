@@ -27,13 +27,14 @@ class ChessWebBotPublication {
     private static final String AI_PREFIX = "ai|";
     private static final String PENDING = "3|BLACK|HARD|0|";
     private static final List<String> OBSERVATIONS = List.of("ai-setup", "ai-black-orientation", "bot-pending",
-            "bot-reloaded", "bot-reply", "bot-applied-once", "manual-independent");
+            "bot-reloaded", "bot-reply", "bot-applied-once", "manual-independent", "profile-local");
     private static final Scenario BOT = new Scenario("ChessWebBotPublication",
             "Resume a pending computer move after browser reload", SCOPE, "web-ai-game.html",
             "Verify the computer turn, cold reload and single reply", List.of(
                     new Frame("ai-pending.png", "Hard game at White's pending opening move"),
                     new Frame("ai-resumed.png", "Reload restores the computer turn before the reply"),
-                    new Frame("ai-replied.png", "The computer replies once and gives control to Black")));
+                    new Frame("ai-replied.png", "The computer replies once and gives control to Black"),
+                    new Frame("ai-profile.png", "Local name and language survive reload in the same game")));
 
     @Test void publishBrowserBotRecovery() throws Exception {
         boolean publicRun = Boolean.getBoolean("chess.web.bot.public");

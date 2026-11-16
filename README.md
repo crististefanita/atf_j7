@@ -1,14 +1,13 @@
 # ATF J7 · Chess Lab
 
-Chess Lab este o aplicație Android de șah: partide cu calculatorul, probleme,
-deschideri și o tablă de analiză. J7 deține jocul și testele lui și folosește
-bibliotecile ATF pentru verificare și rapoarte Extent.
+Chess Lab oferă partide de șah cu calculatorul pe Android și în browser.
+Aplicația Android include și probleme, deschideri și o tablă de analiză. J7
+folosește bibliotecile ATF pentru verificare și rapoarte Extent.
 
 ## Jocul
 
-- [Chess Lab 0.15.2 · ultima ediție publicată](https://github.com/crististefanita/atf_j7/releases/tag/v0.15.2)
 - [Descarcă APK Chess Lab 0.15.2](https://github.com/crististefanita/atf_j7/releases/download/v0.15.2/ChessLab-0.15.2.apk)
-- [Joacă online](https://crististefanita.github.io/atf_j7/#ai)
+- [Joacă în browser](https://crististefanita.github.io/atf_j7/#ai)
 
 ## Arhitectura J7
 
@@ -48,6 +47,10 @@ flowchart LR
   de publicare se reconciliază în [catalogul edițiilor](release/README.md).
 
 </details>
+
+## Ediția publicată
+
+- [Chess Lab 0.15.2 · note de release](https://github.com/crististefanita/atf_j7/releases/tag/v0.15.2)
 
 ## Puncte de intrare
 
