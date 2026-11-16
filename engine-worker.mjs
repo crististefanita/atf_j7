@@ -1,5 +1,5 @@
-import { analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, matchHistory, openLedger, openMatch, openReview,
-  archiveReviewCheckpoint, importLegacyReview, ledgerState, openArchiveReview, playBot, playMatch, reviewAction,
+import { analyzeRatedReview, analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, matchHistory, openLedger, openMatch, openReview,
+  archiveReviewCheckpoint, archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, playBot, playMatch, reviewAction, reviewGraphSelect,
   saveArchiveReview, snapshot } from "./chess-engine.mjs";
 
 let pending = Promise.resolve();
@@ -8,7 +8,7 @@ self.onmessage = ({ data }) => {
 };
 
 async function respond({ id, type, resources, archive, checkpoint, review, ledger, legacy, route, slot, archiveId, setup,
-  expectedRevision, automatic, action, move, ply = -1 }) {
+  expectedRevision, automatic, action, move, x, width, rated = false, ply = -1 }) {
   try {
     if (type === "snapshot" && typeof resources === "string") {
       self.postMessage({ id, snapshot: snapshot(resources) });
@@ -21,7 +21,7 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       const canonical = archiveReviewCheckpoint(archiveId);
       const view = openArchiveReview(archiveId, await sha256(canonical));
       const state = JSON.parse(ledgerState());
-      self.postMessage(view === null ? { id, ...state, outcome: "NEEDS_ANALYSIS", checkpoint: canonical }
+      self.postMessage(view === null ? { id, ...state, outcome: "NEEDS_ANALYSIS", checkpoint: canonical, rated: archiveReviewRated(archiveId) }
         : { id, ...state, outcome: "OPENED", view: JSON.parse(view) });
     } else if (type === "archive-review-save" && validArchiveId(archiveId) && typeof checkpoint === "string" && typeof review === "string") {
       const canonical = archiveReviewCheckpoint(archiveId);
@@ -37,8 +37,11 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
     } else if (type === "review-action" && validRevision(expectedRevision) && typeof action === "string" && Number.isInteger(ply) &&
         ply >= -1 && ply <= 2147483647 && (archiveId == null || validArchiveId(archiveId))) {
       const result = JSON.parse(reviewAction(archiveId ?? null, expectedRevision, action, ply));
-      const state = archiveId == null ? {} : JSON.parse(ledgerState());
-      self.postMessage({ id, ...state, ...result });
+      postReview(id, archiveId, result);
+    } else if (type === "review-graph-select" && validRevision(expectedRevision) && Number.isFinite(x) &&
+        Number.isFinite(width) && width > 4 && (archiveId == null || validArchiveId(archiveId))) {
+      const result = JSON.parse(reviewGraphSelect(archiveId ?? null, expectedRevision, x, width));
+      postReview(id, archiveId, result);
     } else if (type === "ledger-open" && optionalText(ledger) && optionalText(legacy?.local) && optionalText(legacy?.ai)) {
       self.postMessage({ id, ...JSON.parse(openLedger(ledger ?? null, legacy?.local ?? null, legacy?.ai ?? null)) });
     } else if (type === "match-open" && validMatchOpen(route, slot, archiveId, setup)) {
@@ -52,10 +55,11 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       self.postMessage({ id, ...JSON.parse(matchHistory(expectedRevision, ply)) });
     } else if (type === "match-continue" && validRevision(expectedRevision) && typeof automatic === "boolean") {
       self.postMessage({ id, ...JSON.parse(continueMatch(expectedRevision, automatic)) });
-    } else if (type === "review-analyze" && typeof checkpoint === "string") {
+    } else if (type === "review-analyze" && typeof checkpoint === "string" && typeof rated === "boolean") {
       const canonical = canonicalCheckpoint(checkpoint);
       const digest = await sha256(canonical);
-      const review = analyzeReview(canonical, digest, (progress, total) => self.postMessage({ id, progress, total }));
+      const analyze = rated ? analyzeRatedReview : analyzeReview;
+      const review = analyze(canonical, digest, (progress, total) => self.postMessage({ id, progress, total }));
       self.postMessage({ id, archive: { id: crypto.randomUUID(), checkpoint: canonical, review } });
     } else {
       throw new TypeError("Invalid chess worker request");
@@ -63,6 +67,11 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
   } catch (failure) {
     self.postMessage({ id, error: String(failure) });
   }
+}
+
+function postReview(id, archiveId, result) {
+  const state = archiveId == null ? {} : JSON.parse(ledgerState());
+  self.postMessage({ id, ...state, ...result });
 }
 
 function validRevision(value) {

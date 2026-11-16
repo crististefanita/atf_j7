@@ -10,6 +10,7 @@
 <body>
   <main>
     <header>
+      <button id="close-why" class="review-icon" type="button" aria-label="Close explanation" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
       <h1 id="title">Game Review</h1>
       <div class="header-actions">
         <button id="open-match" type="button">Local game</button>
@@ -18,7 +19,10 @@
         <button id="open-saved" type="button">Saved games</button>
         <button id="open-finished" type="button">Finished games</button>
         <button id="return-menu" type="button" hidden>Back</button>
-        <button id="archive-review-back" type="button" hidden>Back to game</button>
+        <button id="archive-review-back" type="button" hidden>Close</button>
+        <button id="review-close" type="button" hidden>Close</button>
+        <button id="reopen-review" type="button" hidden>Open analysis</button>
+        <button id="why-actions" class="review-icon" type="button" aria-label="Review actions" aria-expanded="false" aria-controls="review-menu" hidden><svg class="dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
         <div class="archive" id="review-import">
           <label for="archive" id="archive-label">Open a review</label>
           <input id="archive" class="visually-hidden" type="file" accept=".json,application/json">
@@ -93,34 +97,57 @@
     </dialog>
     <div id="review" class="review" hidden>
       <section class="board-pane" aria-labelledby="position">
-        <div id="board" role="img" class="board" tabindex="0" aria-describedby="board-position"></div>
+        <div class="review-board-frame">
+          <div id="board" role="img" class="board" tabindex="0" aria-describedby="board-position"></div>
+          <canvas id="review-cue" aria-hidden="true" hidden></canvas>
+        </div>
         <p id="board-position" class="visually-hidden"></p>
-        <nav class="movement" aria-label="Review navigation" id="movement">
-          <button id="previous" type="button" aria-label="Previous move">‹</button>
-          <output id="position" aria-live="polite"></output>
-          <button id="next" type="button" aria-label="Next move">›</button>
-          <button id="why" type="button" aria-controls="explanation" aria-expanded="false">Why?</button>
-          <button id="continue-review" type="button" hidden>Continue from here</button>
-        </nav>
-        <p id="turn" class="turn"></p>
-      </section>
-      <div class="review-details">
-        <section id="explanation" class="panel" aria-labelledby="why-title" hidden>
-          <div class="explanation-heading">
-            <h2 id="why-title" tabindex="-1">Why?</h2>
-            <button id="close-why" type="button" aria-label="Close explanation">×</button>
-          </div>
-          <p id="reason" hidden></p>
-          <p id="evaluation"></p>
-          <div class="branches">
+        <div class="review-controls">
+          <div id="review-branches" class="branches" hidden>
             <button id="played" type="button" aria-pressed="false">Played line</button>
             <button id="recommended" type="button" aria-pressed="false">Recommended line</button>
           </div>
+          <output id="position" aria-live="polite"></output>
+          <nav class="review-toolbar" aria-label="Review navigation" id="movement">
+            <button id="previous" class="review-icon" type="button" aria-label="Previous move"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
+            <button id="best-line" class="review-icon" type="button" aria-label="Recommended line" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17c0-2-4-4-4-8a7 7 0 0 1 14 0c0 4-4 6-4 8zm1 4h4"/></svg></button>
+            <button id="next" class="review-icon" type="button" aria-label="Next move"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 5 7 7-7 7"/></svg></button>
+            <button id="next-key" class="review-icon" type="button" aria-label="Next key moment"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 5 7 7-7 7m12-14v14"/></svg></button>
+            <button id="why" type="button" aria-controls="explanation" aria-expanded="false">Why?</button>
+            <button id="review-actions" class="review-icon" type="button" aria-label="Review actions" aria-expanded="false" aria-controls="review-menu" hidden><svg class="dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+          </nav>
+          <div id="review-menu" class="review-menu" hidden>
+            <button id="review-on-board" type="button">Show on board</button>
+            <button id="continue-review" type="button" hidden>Continue from here</button>
+          </div>
+        </div>
+        <p id="turn" class="visually-hidden"></p>
+      </section>
+      <div id="review-details" class="review-details">
+        <section id="review-summary" class="review-summary" aria-labelledby="review-graph-label">
+          <p id="review-opening" hidden></p>
+          <p id="review-graph-label">Evaluation by move · White above the center</p>
+          <div id="review-graph-plot" class="review-graph-plot">
+            <canvas id="review-graph" aria-hidden="true" hidden></canvas>
+            <span id="review-graph-marker" aria-hidden="true" hidden></span>
+            <label for="seek" id="seek-label" class="visually-hidden">Select a move by position</label>
+            <input id="seek" type="range" min="0" step="1">
+          </div>
+          <p id="review-score"></p>
+          <p id="review-line" hidden></p>
         </section>
-        <section class="panel" aria-labelledby="history-label">
-          <h2 id="history-label">Move history</h2>
-          <label for="seek" id="seek-label" class="visually-hidden">Select a move by position</label>
-          <input id="seek" type="range" min="0" step="1">
+        <section id="explanation" class="review-summary" aria-labelledby="why-title" hidden>
+          <h2 id="why-title" tabindex="-1">Why?</h2>
+          <p id="reason" hidden></p>
+          <p id="evaluation" hidden></p>
+        </section>
+        <section id="review-players" class="review-summary" hidden>
+          <div id="review-ratings"></div>
+          <p id="review-rating-note"></p>
+          <table id="review-comparison"></table>
+        </section>
+        <section class="review-history" aria-labelledby="history-label">
+          <h2 id="history-label" class="visually-hidden">Move history</h2>
           <ol class="history" id="history"></ol>
         </section>
       </div>
