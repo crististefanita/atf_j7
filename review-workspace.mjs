@@ -1,4 +1,5 @@
 import { revealDistance } from './review-focus.mjs';
+import { reviewGraphText, reviewPositionText } from './review-announcement.mjs';
 
 const axisInset = 2;
 const colors = { axis: '#56564c', curve: '#b8d88a', arrow: '#57e0b4', arrowOutline: '#173b31' };
@@ -8,9 +9,9 @@ const levels = { BASIC: 'Basic', ADVANCED: 'Advanced', HARD: 'Hard' };
 const labels = {
     en: {
         graph: 'Evaluation by move · White above the center',
-        graphPosition: (ply, total, score) => `Selected position ${ply} of ${total}, White score ${score} percent`,
         start: 'Starting position', initial: 'Choose a move, graph point, or key moment to inspect.',
         played: 'Played', recommended: 'Recommended', next: 'Next', chooseLine: 'Choose a line to replay',
+        linePosition: (branch, step, length) => `${branch} line. Step ${step} of ${length}.`,
         selectedScore: (best, played, depth) => `Expected score · Best ${best}% · Played ${played}% · depth ${depth} plies`,
         sacrifice: pawns => `The strongest reply accepts a sacrifice worth ${pawns} pawns.`,
         white: 'White', black: 'Black', human: 'Player', ai: 'AI', category: 'Move type',
@@ -30,9 +31,9 @@ const labels = {
     },
     ro: {
         graph: 'Evaluare pe mutări · avantajul albului deasupra centrului',
-        graphPosition: (ply, total, score) => `Poziția selectată ${ply} din ${total}, scorul albului ${score} la sută`,
         start: 'Poziția de start', initial: 'Alege o mutare, un punct de pe grafic sau un moment-cheie.',
         played: 'Jucată', recommended: 'Recomandată', next: 'Urmează', chooseLine: 'Alege linia de redat',
+        linePosition: (branch, step, length) => `Linia ${branch.toLowerCase()}. Pasul ${step} din ${length}.`,
         selectedScore: (best, played, depth) => `Scor estimat · Recomandată ${best}% · Jucată ${played}% · adâncime ${depth}`,
         sacrifice: pawns => `Cea mai puternică replică acceptă un sacrificiu de ${pawns} pioni.`,
         white: 'Alb', black: 'Negru', human: 'Jucător', ai: 'AI', category: 'Tipul mutării',
@@ -225,6 +226,16 @@ export function createReviewWorkspace(locale, selectGraph) {
         return [prefix + ' ' + moveName(view.moves[ply - 1]), grade].filter(Boolean).join(' · ');
     }
 
+    function positionText(view, ply = view.ply) {
+        return reviewPositionText(locale, moveLabel(view, ply), ply, view.totalPlies);
+    }
+
+    function announcementText(view) {
+        if (view.branch === 'HISTORY') return positionText(view);
+        const branch = view.branch === 'PLAYED' ? words.played : words.recommended;
+        return `${positionText(view)} ${words.linePosition(branch, view.step, view.lineLength)}`;
+    }
+
     function render(next) {
         const moves = next.moves.join(' ');
         if (moves !== lastMoves) details.scrollTop = 0;
@@ -236,11 +247,19 @@ export function createReviewWorkspace(locale, selectGraph) {
         find('review-graph-plot').toggleAttribute('data-ready', ready);
         graph.dataset.ply = marker.dataset.ply = next.ply;
         graph.dataset.total = next.totalPlies;
-        find('seek').disabled = next.totalPlies === 0;
+        const seek = find('seek');
+        seek.disabled = next.totalPlies === 0;
+        seek.max = next.totalPlies;
+        const position = positionText(next);
+        let graphText = position;
         if (ready) {
             graph.dataset.whitePoints = next.whitePoints[next.ply];
-            find('seek').setAttribute('aria-valuetext', words.graphPosition(next.ply, next.totalPlies, fractional.format(next.whitePoints[next.ply] / 10)));
-        } else find('seek').removeAttribute('aria-valuetext');
+            graphText = reviewGraphText(locale, position, fractional.format(next.whitePoints[next.ply] / 10));
+        }
+        if (seek.getAttribute('aria-valuetext') !== graphText) seek.setAttribute('aria-valuetext', graphText);
+        const graphContext = find('review-graph-context');
+        if (graphContext.textContent !== graphText) graphContext.textContent = graphText;
+        seek.value = next.ply;
         const opening = find('review-opening');
         opening.hidden = !next.atEntry || !next.opening;
         opening.textContent = next.opening ? `${next.opening.name} · ${next.opening.eco}` : '';
@@ -280,7 +299,7 @@ export function createReviewWorkspace(locale, selectGraph) {
         toolbar.scrollLeft += revealDistance(viewport.left, viewport.right, selected.left, selected.right);
     }
 
-    return { render, moveLabel, revealFocus,
+    return { render, moveLabel, positionText, announcementText, revealFocus,
         revealSelected: () => reveal(find('history').querySelector('[aria-current="step"]')),
         revealExplanation: () => reveal(find('why-title')) };
 }

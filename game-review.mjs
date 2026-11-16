@@ -1,5 +1,6 @@
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
+import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
@@ -270,6 +271,8 @@ function drawExplanation(state) {
     find('why').setAttribute('aria-expanded', state.explanationOpen);
     find('explanation').hidden = !state.explanationOpen;
     find('review-branches').hidden = !state.explanationOpen;
+    const position = reviewWorkspace.positionText(state);
+    setReviewText('review-selection-context', position);
     if (!state.explanationOpen) return;
     const reason = find('reason');
     const explain = words[state.reason];
@@ -281,6 +284,8 @@ function drawExplanation(state) {
     find('evaluation').hidden = Boolean(explain);
     find('evaluation').textContent = words.evaluation(score.format(state.playedPoints / 10),
         score.format(state.bestPoints / 10), state.depth);
+    setReviewText('review-why-context', reviewWhyText(locale, position,
+        reason.hidden ? find('evaluation').textContent.replaceAll(' · ', '. ') + '.' : reason.textContent));
     find('why-title').textContent = reviewWorkspace.moveLabel(state, state.ply);
     for (const branch of ['played', 'recommended']) {
         find(branch).disabled = !state[branch];
@@ -308,12 +313,17 @@ function drawHistory(state) {
         const ply = Number(item.dataset.ply);
         const label = reviewWorkspace.moveLabel(state, ply);
         if (item.textContent !== label) item.textContent = label;
+        const position = reviewWorkspace.positionText(state, ply);
+        if (item.getAttribute('aria-label') !== position) item.setAttribute('aria-label', position);
         item.tabIndex = ply === state.ply ? 0 : -1;
-        if (ply === state.ply) item.setAttribute('aria-current', 'step');
-        else item.removeAttribute('aria-current');
+        if (ply === state.ply && !item.hasAttribute('aria-current')) item.setAttribute('aria-current', 'step');
+        else if (ply !== state.ply && item.hasAttribute('aria-current')) item.removeAttribute('aria-current');
     }
-    find('seek').max = state.totalPlies;
-    find('seek').value = state.ply;
+}
+
+function setReviewText(id, text) {
+    const element = find(id);
+    if (element.textContent !== text) element.textContent = text;
 }
 
 function render() {
@@ -438,8 +448,15 @@ function focusReview(intent, initiator) {
         if (!element || element.disabled || !element.getClientRects().length) continue;
         reviewWorkspace.revealFocus(element);
         if (document.activeElement !== element) element.focus({ preventScroll: true });
-        return;
+        if (document.activeElement === element) return candidate;
     }
+    return null;
+}
+
+function announceReview(intent, focus) {
+    if (reviewAnnouncementChannel(intent, focus) !== 'status') return;
+    const context = intent === 'open-why' ? 'review-why-context' : intent === 'graph' ? 'review-graph-context' : null;
+    setReviewText('review-announcement', context ? find(context).textContent : reviewWorkspace.announcementText(view));
 }
 
 function reviewCommand(type, fields, focusIntent) {
@@ -463,7 +480,10 @@ function reviewCommand(type, fields, focusIntent) {
         } else return;
         if (startFocus === focusChange) {
             if (type === 'review-graph-select') reviewWorkspace.revealSelected();
-            if (document.hasFocus()) focusReview(intent, source);
+            if (document.hasFocus()) {
+                const focus = focusReview(intent, source);
+                if (response.outcome === 'APPLIED') announceReview(intent, focus);
+            }
         }
     }, words.failedAction);
 }
@@ -1071,6 +1091,13 @@ find('why').addEventListener('click', () => action(view.explanationOpen ? 'CLOSE
 find('close-why').addEventListener('click', () => action('CLOSE_EXPLANATION'));
 find('played').addEventListener('click', () => action('SELECT_PLAYED'));
 find('recommended').addEventListener('click', () => action('SELECT_RECOMMENDED'));
+find('seek').addEventListener('keydown', event => {
+    if (!view || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const target = sliderPlyForKey(event.key, view.ply, view.totalPlies);
+    if (target === null) return;
+    event.preventDefault();
+    if (target !== view.ply) action('SEEK', target, 'graph');
+});
 find('seek').addEventListener('change', event => {
     if (busy || otherTabChanged || engineFailed) {
         if (view) event.target.value = view.ply;
