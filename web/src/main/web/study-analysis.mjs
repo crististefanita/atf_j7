@@ -24,7 +24,7 @@ const copy = {
     ro: {
         title: 'Tablă de analiză', back: 'Înapoi la ecranul anterior', reset: 'Resetează linia', options: 'Opțiunile tablei de analiză',
         analysis: 'Analiză AI', review: 'Analizează toate mutările', continue: 'Continuă ca partidă salvată', flip: 'Întoarce tabla',
-        save: 'Continuă', cancel: 'Anulează', auto: 'Lasă AI-ul să își joace mutările',
+        save: 'Continuă', cancel: 'Anulează', auto: 'Lasă AI-ul să mute',
         confirm: ply => 'Începi o partidă salvată după semimutarea ' + ply + '?',
         noSlot: 'Pentru a salva linia ai nevoie de un loc liber.', failed: 'Analiza nu a putut fi actualizată. Încearcă din nou.',
         white: 'Alb', black: 'Negru', toMove: side => side + ' la mutare', position: (at, end) => 'Poziția ' + at + ' · ' + end,
@@ -78,6 +78,14 @@ export function analysisHintDescription(hint, locale) {
     const move = hint.move.slice(0, 2) + (locale === 'ro' ? ' la ' : ' to ') + hint.move.slice(2, 4);
     const promotion = hint.move.length === 5 ? ' ' + words.pieces[hint.move[4]] : '';
     return words.hintVariant(hint.number, hint.count) + '. ' + move + promotion + (family ? '. ' + family : '') + '.';
+}
+
+function keepMoveVisible(history, move) {
+    if (!move || !history.clientWidth) return;
+    const viewport = history.getBoundingClientRect();
+    const bounds = move.getBoundingClientRect();
+    if (bounds.left < viewport.left) history.scrollLeft += bounds.left - viewport.left;
+    else if (bounds.right > viewport.right) history.scrollLeft += bounds.right - viewport.right;
 }
 
 function loadBookmark(storage) {
@@ -206,6 +214,8 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         header.append(back, title, reset, menu);
         const top = text('p', '', 'analysis-study-side');
         const bottom = text('p', '', 'analysis-study-side');
+        const stage = text('div', '', 'analysis-study-stage');
+        const stack = text('div', '', 'analysis-study-stack');
         const panel = text('div', '', 'analysis-study-panel');
         const host = text('div', '', 'analysis-study-board');
         const widget = board(host, square => void request('tap', { value: square }));
@@ -216,7 +226,9 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         meter.setAttribute('aria-valuemax', '100');
         const fill = text('div', '', 'analysis-study-meter-fill');
         meter.append(fill);
-        panel.append(host, meter);
+        panel.append(meter, host);
+        stack.append(top, panel, bottom);
+        stage.append(stack);
         const status = text('p', '', 'analysis-study-status');
         status.setAttribute('aria-live', 'polite');
         status.tabIndex = -1;
@@ -229,7 +241,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         error.hidden = true;
         const history = text('nav', '', 'analysis-study-history');
         history.setAttribute('aria-label', words.history);
-        const navigation = text('div', '', 'analysis-study-navigation');
+        const navigation = text('div', '', 'analysis-study-navigation analysis-study-toolbar');
         const previous = button(words.previous, () => void seek((state.preview ?? state).ply - 1), '‹');
         const next = button(words.next, () => void seek((state.preview ?? state).ply + 1), '›');
         const latest = button(words.latest, () => void seek((state.preview ?? state).total), '»');
@@ -237,9 +249,11 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         const replay = button(words.preview, async () => {
             if ((await request('preview'))?.preview) back.focus();
         });
+        const feedback = text('div', '', 'analysis-study-feedback');
+        feedback.append(score, replay);
         const variants = text('div', '', 'analysis-study-variants');
         const evidence = text('p', '', 'analysis-study-evidence');
-        navigation.append(previous, next, latest, hint);
+        navigation.append(previous, history, next, latest, hint);
         const promotion = document.createElement('dialog');
         promotion.setAttribute('aria-label', words.promote);
         const promotionChoices = text('div', '', 'analysis-study-navigation');
@@ -280,9 +294,8 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         saveDialog.append(text('h3', words.continue), saveMessage, autoLabel, saveActions);
         root.classList.add('analysis-study');
         root.setAttribute('aria-label', words.title);
-        root.replaceChildren(header, top, panel, bottom, status, score, announcement, error, replay, variants, evidence,
-            history, navigation, promotion, saveDialog);
-        return { title, back, reset, menu, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score,
+        root.replaceChildren(header, stage, status, feedback, announcement, error, variants, evidence, navigation, promotion, saveDialog);
+        return { title, back, reset, menu, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score, feedback,
             announcement, error, replay, variants, evidence, history, previous, next, latest, hint, promotion, promotionChoices, saveDialog,
             promptContinuation };
     }
@@ -305,8 +318,8 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         controls.review.disabled = !openReview || !next.analysis || next.total === 0;
         controls.saveGame.disabled = !continueGame || next.result !== 'IN_PROGRESS';
         controls.status.textContent = preview ? words.step(frame.ply, frame.total) + (frame.lastMove ? ' · ' + notation(frame.lastMove) : '')
-            : words.position(frame.ply, frame.total) + (words.results[next.result] ? ' · ' + words.results[next.result] : '');
-        controls.score.hidden = !next.analysis || !!preview;
+            : words.position(frame.ply, frame.total) + (words.results[next.result] ? '\n' + words.results[next.result] : '');
+        controls.feedback.hidden = !next.analysis || !!preview;
         controls.score.textContent = analysisScore(next.evaluation, locale);
         controls.meter.hidden = !next.analysis || !!preview;
         const meterReady = !controls.meter.hidden && next.evaluation != null;
@@ -323,6 +336,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         }
         controls.previous.disabled = frame.ply === 0;
         controls.next.disabled = controls.latest.disabled = frame.ply === frame.total;
+        controls.latest.hidden = !!preview;
         controls.hint.hidden = !next.analysis || !!preview;
         controls.hint.disabled = !next.hint?.count;
         controls.hint.setAttribute('aria-pressed', !!next.hint?.move);
@@ -396,6 +410,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
             if (index === next.ply) item.setAttribute('aria-current', 'step');
             else item.removeAttribute('aria-current');
         }
+        keepMoveVisible(controls.history, controls.history.children[next.ply]);
     }
 
     function renderPromotion(promotions) {

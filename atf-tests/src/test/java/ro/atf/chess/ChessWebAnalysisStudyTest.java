@@ -30,11 +30,13 @@ class ChessWebAnalysisStudyTest {
         check.same("The manual study mock-worker scenarios complete", true, finished);
         check.same("All mocked responses and localized scores pass", 0, process.exitValue());
         var passed = Files.readString(log).lines().map(PASS::matcher).filter(Matcher::matches).map(result -> result.group(1)).toList();
-        check.same("The script covers restoration, stale replies, storage failures and score formatting", List.of(
+        check.same("The script covers session recovery, localized feedback and Analysis board controls", List.of(
                 "Mounted analysis restores its bookmark and requests one evaluation for each position",
                 "Late evaluation after a seek or route exit cannot replace the chosen board",
                 "Analysis retains a playable session when storage is blocked",
                 "Reported analysis score uses the same side, mate and decimal policy as Android",
-                "A revealed analysis hint names its moves and opening for screen readers"), passed);
+                "A revealed analysis hint names its moves and opening for screen readers",
+                "Analysis places evaluation to the left and all history controls in APK order",
+                "Selecting an offscreen analysis move scrolls only the strip in either direction"), passed);
     }
 }

@@ -31,12 +31,15 @@ class ChessWebOpeningStudyTest {
         var pattern = Pattern.compile("^ok [0-9]+ - (.+)$");
         var passed = tap.lines().map(pattern::matcher).filter(java.util.regex.Matcher::matches)
                 .map(match -> match.group(1)).toList();
-        check.same("All user and lifecycle paths have evidence", List.of(
+        check.same("Lesson, caption focus and board contracts have evidence", List.of(
                 "A learner move schedules exactly one native book reply with its saved position",
                 "History review and route changes cancel delayed replies without moving the visible board",
                 "An invalid opening checkpoint returns to the catalog without replaying a move",
                 "Only the taught move can be played by clicking a revealed destination directly",
                 "Lesson controls follow native boundaries, pause, review and completion",
-                "A decisive comparison reaches the exact verified branch and ply"), passed);
+                "A decisive comparison reaches the exact verified branch and ply",
+                "EN long caption opens in full and returns focus without duplicate announcements",
+                "RO long caption opens in full and returns focus without duplicate announcements",
+                "The board and leading evaluation meter share one row before and after enabling analysis"), passed);
     }
 }

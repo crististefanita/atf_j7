@@ -13,7 +13,7 @@ const vocabulary = {
     offLine: 'That move is legal. Try the continuation for this lesson.',
     error: 'Could not load the opening. Try again.', pending: 'AI analysis…', ended: 'AI analysis · Game over',
     showAi: 'Show best move', nextAi: 'Show next best move', preview: 'Replay recommendation',
-    noComment: 'Evaluation', close: 'Close', promotion: 'Choose a promotion',
+    noComment: 'Evaluation', close: 'Close', promotion: 'Choose a promotion', explanation: 'Lesson explanation',
     turn: side => side + ' to move', tryPiece: piece => 'Try moving the ' + piece + '.',
     limit: (move, idea) => 'Lesson move ' + move + ' · ' + idea,
     mate: (side, moves) => side + ' · Mate in ' + moves,
@@ -40,7 +40,7 @@ const vocabulary = {
     offLine: 'Mutarea este legală. Încearcă să urmezi continuarea din lecție.',
     error: 'Deschiderea nu s-a putut încărca. Încearcă din nou.', pending: 'Analiză AI…', ended: 'Analiză AI · Partidă încheiată',
     showAi: 'Arată cea mai bună mutare', nextAi: 'Arată următoarea variantă', preview: 'Redă variantă recomandată',
-    noComment: 'Evaluare', close: 'Închide', promotion: 'Alege promovarea',
+    noComment: 'Evaluare', close: 'Închide', promotion: 'Alege promovarea', explanation: 'Explicația lecției',
     turn: side => side + ' la mutare', tryPiece: piece => 'Încearcă să muți piesa ' + piece + '.',
     limit: (move, idea) => 'Mutarea din lecție ' + move + ' · ' + idea,
     mate: (side, moves) => side + ' · Mat în ' + moves,
@@ -242,12 +242,19 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
   const meter = element('div', null, 'opening-evaluation-bar');
   meter.setAttribute('aria-hidden', 'true');
   const boardRow = element('div', null, 'opening-board-row');
-  boardRow.append(boardHost, meter);
+  boardRow.append(meter, boardHost);
   panel.append(top, boardRow, bottom);
 
   const controls = element('div', null, 'opening-controls');
-  const message = element('p', null, 'opening-message');
-  message.setAttribute('aria-live', 'polite');
+  const explanation = button(null, () => openDialog(text.explanation, [element('p', message.textContent, 'opening-message-full')]),
+    'opening-message');
+  explanation.setAttribute('aria-label', text.explanation);
+  explanation.setAttribute('aria-haspopup', 'dialog');
+  const message = element('span', null, 'opening-message-text');
+  message.setAttribute('aria-hidden', 'true');
+  explanation.append(message);
+  const announcement = element('p', null, 'opening-message-announcement');
+  announcement.setAttribute('role', 'status');
   const assessment = button(null, showPreview, 'opening-assessment');
   const actions = element('div', null, 'opening-actions');
   const guidance = button(text.hint, useGuidance);
@@ -255,7 +262,7 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
   const bulb = button('◉', revealAnalysis);
   bulb.setAttribute('aria-label', text.showAi);
   actions.append(guidance, aiToggle, bulb);
-  controls.append(message, assessment, actions);
+  controls.append(explanation, announcement, assessment, actions);
   const columns = element('div', null, 'opening-columns');
   columns.append(panel, controls);
   workspace.append(navigation, columns);
@@ -415,8 +422,12 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
     progress.setAttribute('aria-label', progress.textContent + (progress.disabled ? '' : '. ' + text.history));
     previous.disabled = !availability.previous;
     next.disabled = !availability.next;
-    message.textContent = currentMessage();
-    message.classList.toggle('off-line', lesson.offLine);
+    const caption = currentMessage();
+    if (announcement.textContent !== caption) {
+      message.textContent = caption;
+      announcement.textContent = caption;
+    }
+    explanation.classList.toggle('off-line', lesson.offLine);
     guidance.textContent = {
       REPLAY: text.replay, RESUME: text.resume, RESTART: text.retry,
       THEORY: { NONE: text.hint, PIECE: text.move, SOLUTION: text.hide }[lesson.hint],

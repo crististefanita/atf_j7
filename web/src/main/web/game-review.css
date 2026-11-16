@@ -31,11 +31,25 @@ body.home-active h1 { font-size: 1.875rem; }
 .study-totals { margin: 0 .875rem .35rem; color: #b8d88a; font-size: .82rem; }
 body.study-active { background: #262522; color: #f5f3ec; }
 body.study-active main > header { display: none; }
-.study-surface { max-width: 42rem; margin: .75rem auto 0; }
+.study-surface { --study-top-gap: .75rem; max-width: 42rem; margin: var(--study-top-gap) auto 0; }
 .study-surface .board { width: 100%; margin-inline: auto; }
 .study-surface button.square[aria-disabled="true"] { cursor: default; }
-.study-board .square[data-study-hint] { box-shadow: inset 0 0 0 .2em #57e0b4; }
-.study-board .square[data-study-danger] { box-shadow: inset 0 0 0 .2em #ffa86b; }
+.study-board { position: relative; }
+.study-board .study-arrow {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  z-index: 2;
+  pointer-events: none;
+  fill: #57e0b4;
+  stroke: #173b31;
+  stroke-width: .027;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+.study-board .square[data-study-hint] { box-shadow: inset 0 0 0 .1em #173b31, inset 0 0 0 .23em #57e0b4; }
+.study-board .square[data-study-danger] { box-shadow: inset 0 0 0 .1em #562621, inset 0 0 0 .23em #ffa86b; }
 header, .explanation-heading {
   display: flex;
   flex-wrap: wrap;

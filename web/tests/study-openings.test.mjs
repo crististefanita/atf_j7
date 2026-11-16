@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createOpeningFlow, openingComparisonJump, openingControls, pickOpeningTap } from '../src/main/web/study-openings.mjs';
+import { createOpeningFlow, createOpeningStudy, openingComparisonJump, openingControls, pickOpeningTap } from '../src/main/web/study-openings.mjs';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
@@ -122,4 +123,119 @@ test('A decisive comparison reaches the exact verified branch and ply', () => {
   assert.equal(openingComparisonJump(variants, { ...proof, ply: 3 }), null);
   assert.equal(openingComparisonJump(variants, { ...proof, branch: 'g1f3' }), null);
   assert.equal(openingComparisonJump([variants[0], { ...variants[1], proof: { addedDefense: true } }], proof), null);
+});
+
+const longPlan = 'Develop the knight with tempo and retain control of the centre.\n'.repeat(7).trim();
+
+async function mountLesson(locale) {
+  const document = { addEventListener() {}, removeEventListener() {} };
+  class Element {
+    children = [];
+    attributes = new Map();
+    events = new Map();
+    classList = { add() {}, toggle() {} };
+    style = { setProperty() {} };
+    isConnected = true;
+    open = false;
+    #text = '';
+    textWrites = 0;
+    constructor(tag) { this.tag = tag; }
+    get textContent() { return this.#text; }
+    set textContent(value) { this.#text = value; this.textWrites++; }
+    append(...children) { this.children.push(...children); }
+    replaceChildren(...children) { this.children = children; }
+    setAttribute(name, value) { this.attributes.set(name, value); }
+    toggleAttribute(name, flag) { if (flag) this.attributes.set(name, ''); else this.attributes.delete(name); }
+    addEventListener(name, callback) { this.events.set(name, callback); }
+    click() { this.events.get('click')(); }
+    focus() { document.activeElement = this; }
+    showModal() { this.open = true; this.children.at(-1).focus(); }
+    close() { this.open = false; this.events.get('close')(); }
+  }
+  document.createElement = tag => new Element(tag);
+  document.body = new Element('body');
+  document.body.focus();
+  const root = new Element('section');
+  root.ownerDocument = document;
+  function find(className, parent = root) {
+    if (parent.className === className) return parent;
+    for (const child of parent.children) {
+      const found = find(className, child);
+      if (found) return found;
+    }
+  }
+  const lesson = { id: 'italian', title: 'Italian Game', ply: 0, practicePly: 0, total: 4,
+    phase: 'LEARNER', canPlay: true, learner: 'WHITE', canAutoReply: false, sideToMove: 'WHITE',
+    fen: '8/8/8/8/8/8/4P3/8', plan: longPlan, hint: 'NONE', legal: ['e2e4'] };
+  let tap;
+  const study = createOpeningStudy({
+    root, locale, home() {},
+    board: (_, onTap) => { tap = onTap; return { render() {} }; },
+    async call(action) {
+      if (action === 'CATALOG') return { entries: [{ ...lesson, eco: 'C50', variation: 'Giuoco Piano', source: '#' }] };
+      if (action === 'START') return lesson;
+      if (action === 'THEORY') return { ...lesson, hint: 'PIECE', hintPiece: 'PAWN' };
+      if (action === 'AI_TOGGLE') return { ...lesson, aiEnabled: true };
+      if (action === 'ANALYZE') return { evaluation: { whiteCentipawns: 22, whiteShare: .55 }, variants: [] };
+      assert.fail('Unexpected worker action ' + action);
+    },
+  });
+  await study.open();
+  find('opening-card').click();
+  find('opening-dialog-actions').children[0].click();
+  await tick();
+  return { find, document, tap };
+}
+
+for (const [locale, title, hint] of [
+  ['en', 'Lesson explanation', 'Try moving the pawn.'],
+  ['ro', 'Explicația lecției', 'Încearcă să muți piesa pion.'],
+]) {
+  test(`${locale.toUpperCase()} long caption opens in full and returns focus without duplicate announcements`, async () => {
+    const { find, document, tap } = await mountLesson(locale);
+    const caption = find('opening-message');
+    const live = find('opening-message-announcement');
+    assert.equal(caption.tag, 'button');
+    assert.equal(caption.attributes.get('aria-label'), title);
+    assert.equal(caption.attributes.get('aria-haspopup'), 'dialog');
+    assert.equal(live.attributes.get('role'), 'status');
+    assert.equal(live.textContent, longPlan);
+    assert.equal(live.textWrites, 1);
+
+    caption.focus();
+    caption.click();
+    const dialog = find('opening-dialog');
+    assert.ok(dialog.open);
+    assert.equal(dialog.children[0].textContent, title);
+    assert.equal(find('opening-message-full').textContent, longPlan);
+    dialog.children.at(-1).click();
+    assert.equal(document.activeElement, caption);
+    assert.equal(live.textWrites, 1);
+
+    tap('e2');
+    assert.equal(live.textWrites, 1);
+    find('opening-actions').children[0].click();
+    await tick();
+    assert.equal(live.textContent, hint);
+    assert.equal(live.textWrites, 2);
+  });
+}
+
+test('The board and leading evaluation meter share one row before and after enabling analysis', async () => {
+  const { find } = await mountLesson('en');
+  const row = find('opening-board-row');
+  const [meter, board] = row.children;
+  assert.equal(meter.className, 'opening-evaluation-bar');
+  assert.equal(board.className, 'board');
+  assert.ok(meter.attributes.has('data-withheld'));
+  find('opening-actions').children[1].click();
+  await tick();
+  assert.deepEqual(row.children, [meter, board]);
+  assert.equal(meter.attributes.has('data-withheld'), false);
+  assert.ok(meter.attributes.has('data-measured'));
+  const css = readFileSync(new URL('../src/main/web/study-openings.css', import.meta.url), 'utf8');
+  assert.match(css, /\.opening-study button:not\(\.square\)\s*\{[^}]*min-block-size: 2\.75rem/s);
+  assert.match(css, /\.opening-board-row\s*\{[^}]*grid-template-columns:[^}]*minmax\(0, 1fr\)/s);
+  assert.match(css, /\.opening-evaluation-bar\s*\{[^}]*align-self: stretch/s);
+  assert.match(css, /\.opening-message-text\s*\{[^}]*block-size: 3lh[^}]*overflow: hidden/s);
 });

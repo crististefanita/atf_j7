@@ -621,3 +621,31 @@ testChanges:
     test: ro.atf.chess.ChessWebReviewAccessibilityTest#announcementPolicyRunsWithoutABrowserOrEmulator
     contract: "Verify single-value semantics in components while the browser publisher preserves real focus and range events"
     allowDelete: false
+  - id: J7-STUDY-WEB-ARROW
+    base: "4d186cdf43101d14aefc1902d9eebbc12e5956b3"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    test: ro.atf.chess.ChessWebStudyShellTest#sharedBoardWorksWithMockControls
+    contract: "Keep board and keyboard contracts and verify native cue geometry and labels in both orientations"
+    allowDelete: false
+  - id: J7-STUDY-WEB-PUZZLE-CONTROLS
+    base: "4d186cdf43101d14aefc1902d9eebbc12e5956b3"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebQuestStudyTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebQuestStudyTest.java
+    test: ro.atf.chess.ChessWebQuestStudyTest#puzzleUiUsesNativeChaptersAndPersistsScriptedReplies
+    contract: "Keep progress and reply coverage and verify menu focus, guidance, scoring and replay controls"
+    allowDelete: false
+  - id: J7-STUDY-WEB-OPENING-CAPTION
+    base: "4d186cdf43101d14aefc1902d9eebbc12e5956b3"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebOpeningStudyTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebOpeningStudyTest.java
+    test: ro.atf.chess.ChessWebOpeningStudyTest#openingControllerPreservesLessonAndReplySemanticsWithoutABrowser
+    contract: "Keep lesson and reply coverage and verify full captions, focus restoration and the leading evaluation meter"
+    allowDelete: false
+  - id: J7-STUDY-WEB-ANALYSIS-HISTORY
+    base: "4d186cdf43101d14aefc1902d9eebbc12e5956b3"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+    test: ro.atf.chess.ChessWebAnalysisStudyTest#analysisStudyUsesMockWorkersWithoutABrowser
+    contract: "Keep position and evaluation coverage and verify native toolbar order and scrolling to the chosen move"
+    allowDelete: false

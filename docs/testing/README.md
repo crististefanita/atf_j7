@@ -71,7 +71,7 @@ Pe Android, `-MatchMenusOnly` verifică listele și deschiderea rândurilor salv
 
 ### Studiu Web
 
-Testele de componentă simulează tabla, stocarea și temporizatorul. Ele verifică indiciile, reluarea unei apărări, promoțiile, răspunsurile întârziate după închiderea ecranului și traversarea tablei cu tastatura.
+Testele de componentă simulează tabla, stocarea și temporizatorul. Ele verifică geometria săgeții în ambele orientări, etichetele RO/EN din resursele APK, accesul la explicațiile lungi, focusul, istoricul, reluarea unei apărări și răspunsurile întârziate după închiderea ecranului.
 
 `ChessWebStudyShellTest` rulează și workerul compilat când primește `-Dchess.study.bundle`. Raportul Extent consemnează deschiderea celor șase capitole, catalogul RO/EN de deschideri, poziția de analiză, izolarea Game Review și refuzul continuării când toate cele zece locuri sunt ocupate. [Comenzile Studiu](../../web/README.md#studiu)
 

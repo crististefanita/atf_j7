@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { bindBoardSelection, boardKeyIndex, boardPlacement, studyMarkers } from '../src/main/web/study-board.mjs';
+import { bindBoardSelection, boardKeyIndex, boardPlacement, mountStudyArrow, studyArrow, studyMarkers, studySquareDescription } from '../src/main/web/study-board.mjs';
 
 test('Each study route has an enabled home entry and a distinct panel', async () => {
     const html = await readFile(new URL('../src/main/web/index.html', import.meta.url), 'utf8');
@@ -24,8 +24,66 @@ test('Study accepts native square order and placement without moving any piece',
     assert.equal(placement[60], 'K');
     assert.equal(boardPlacement(placement), placement);
     assert.throws(() => boardPlacement('16/8/8/8/8/8/8/8'), /Invalid board placement/);
-    assert.equal(studyMarkers(['e2', { square: 'e7', kind: 'danger' }]).get('e2'), 'hint');
-    assert.equal(studyMarkers(['e2', { square: 'e7', kind: 'danger' }]).get('e7'), 'danger');
+});
+
+test('Study draws the native origin and destination cue in both board orientations', () => {
+    const { origin, destination, danger } = studyMarkers(['e2', { square: 'e7', kind: 'danger' }, 'e4']);
+    assert.deepEqual({ origin, destination, danger }, { origin: 'e2', destination: 'e4', danger: 'e7' });
+    const white = studyArrow(origin, destination, false);
+    const black = studyArrow(origin, destination, true);
+    assert.equal(white.transform, 'translate(4.5 6.5) rotate(-90)');
+    assert.equal(black.transform, 'translate(3.5 1.5) rotate(90)');
+    assert.equal(white.path, black.path);
+    assert.ok(white.path.includes('L 1.72 0'));
+    const knight = studyArrow('b1', 'c3', false);
+    assert.match(knight.transform, /^translate\(1\.5 7\.5\) rotate\(-63\./);
+    assert.equal(studyArrow('e2', undefined, false), null);
+    assert.equal(studyArrow('e2', 'e2', false), null);
+    assert.equal(studyArrow('e2', 'e9', false), null);
+});
+
+test('Study descriptions distinguish the hint, destination and legal move with native RO and EN labels', async () => {
+    for (const locale of ['en', 'ro']) {
+        const folder = locale === 'ro' ? 'values-ro' : 'values';
+        const resources = new URL(`../../android/app/src/main/res/${folder}/strings.xml`, import.meta.url);
+        const xml = await readFile(resources, 'utf8');
+        for (const [flag, id] of Object.entries({ target: 'legal_destination', origin: 'hint_origin', destination: 'hint_destination' })) {
+            const native = xml.match(new RegExp(`<string name="${id}">([^<]+)</string>`))[1].replace('%1$s', 'e4');
+            assert.equal(studySquareDescription('e4', locale, { [flag]: true }), native);
+        }
+    }
+    assert.equal(studySquareDescription('e4', 'en', {}), 'e4');
+    assert.equal(studySquareDescription('e4', 'ro', { destination: true, danger: true }), 'e4, destinația soluției, pericol');
+});
+
+test('Hint overlay survives board rotation and is removed when the solution is hidden', () => {
+    function element() {
+        return {
+            children: [], attributes: {}, parentNode: null,
+            setAttribute(name, value) { this.attributes[name] = value; },
+            append(child) { child.parentNode = this; this.children.push(child); },
+            remove() {
+                if (!this.parentNode) return;
+                this.parentNode.children = this.parentNode.children.filter(child => child !== this);
+                this.parentNode = null;
+            },
+        };
+    }
+    const host = element();
+    host.ownerDocument = { createElementNS: element };
+    const draw = mountStudyArrow(host);
+    draw('e2', 'e4', false);
+    const [overlay] = host.children;
+    assert.equal(overlay.attributes['aria-hidden'], 'true');
+    assert.equal(overlay.children[0].attributes.transform, 'translate(4.5 6.5) rotate(-90)');
+    draw('e2', 'e4', false);
+    assert.deepEqual(host.children, [overlay]);
+    overlay.remove();
+    draw('e2', 'e4', true);
+    assert.deepEqual(host.children, [overlay]);
+    assert.equal(overlay.children[0].attributes.transform, 'translate(3.5 1.5) rotate(90)');
+    draw('e2', undefined, true);
+    assert.deepEqual(host.children, []);
 });
 
 test('Keyboard follows displayed squares without wrapping rows or activating a locked position', () => {

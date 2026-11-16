@@ -51,10 +51,13 @@ export const questLessons = {
 const labels = {
     en: {
         title: 'Puzzles', home: 'Main menu', menu: 'Puzzle options', flip: 'Flip board', close: 'Close', promote: 'Promote to',
+        hint: 'Hint', rank: (index, count) => 'Puzzle ' + index + ' of ' + count,
+        points: (total, earned) => (earned ? '+' + earned + ' · ' : '') + total + ' points', series: value => value + ' in a row',
+        solvedCount: (solved, count) => 'Solved · ' + solved + '/' + count,
         previous: 'Previous', next: 'Next', first: 'First unsolved', whyMate: 'Why mate?', whyTactic: 'Tactic explained',
         showPiece: 'Show piece', showMove: 'Show move', explain: 'Explain', wait: 'Waiting', pending: 'Opponent to reply…',
         mate: 'Find the mate', tactic: 'Find the tactic that wins material.', solved: 'Checkmate · Solved',
-        tacticSolved: value => 'Solved · ' + value, won: value => '+' + value + ' pts', streak: value => 'Streak ' + value,
+        tacticSolved: value => 'Solved · ' + value, streak: value => 'Streak ' + value,
         reply: (move, stage, count) => 'Defense ' + move + ' · move ' + stage + '/' + count,
         replyMate: (move, remaining) => 'Defense ' + move + (remaining === 1 ? ' · find mate' : ' · two moves to mate'),
         tryMate: ['That move does not give checkmate. Try again.', 'That move does not force mate in two. Try again.',
@@ -99,11 +102,14 @@ const labels = {
         pieces: { PAWN: 'Pawn', KNIGHT: 'Knight', BISHOP: 'Bishop', ROOK: 'Rook', QUEEN: 'Queen', KING: 'King' },
     },
     ro: {
-        title: 'Probleme', home: 'Meniu principal', menu: 'Opțiunile problemei', flip: 'Întoarce tabla', close: 'Închide', promote: 'Promovează în',
+        title: 'Probleme', home: 'Meniu principal', menu: 'Opțiuni puzzle', flip: 'Întoarce tabla', close: 'Închide', promote: 'Promovează în',
+        hint: 'Indiciu', rank: (index, count) => 'Problema ' + index + ' din ' + count,
+        points: (total, earned) => (earned ? '+' + earned + ' · ' : '') + total + ' puncte', series: value => value + ' la rând',
+        solvedCount: (solved, count) => 'Rezolvate · ' + solved + '/' + count,
         previous: 'Precedentă', next: 'Următoarea', first: 'Prima nerezolvată', whyMate: 'De ce e mat?', whyTactic: 'Explicația tacticii',
         showPiece: 'Arată piesa', showMove: 'Arată mutarea', explain: 'Explică', wait: 'Așteaptă', pending: 'Răspunde adversarul…',
         mate: 'Găsește matul', tactic: 'Găsește mutarea care câștigă cel mai mult material.', solved: 'Șah mat · Rezolvat',
-        tacticSolved: value => 'Rezolvat · ' + value, won: value => '+' + value + ' pct.', streak: value => 'Serie ' + value,
+        tacticSolved: value => 'Rezolvat · ' + value, streak: value => 'Serie ' + value,
         reply: (move, stage, count) => 'Apărare ' + move + ' · mutarea ' + stage + '/' + count,
         replyMate: (move, remaining) => 'Apărare ' + move + (remaining === 1 ? ' · găsește matul' : ' · două mutări până la mat'),
         tryMate: ['Mutarea nu dă mat. Încearcă din nou.', 'Mutarea nu forțează matul în două. Încearcă din nou.',
@@ -268,6 +274,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     let replayPly = 0;
     let danger = false;
     let failedAction = null;
+    let milestoneAnnouncement = '';
 
     root.classList.add('quest-study');
     root.innerHTML = `
@@ -279,23 +286,47 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
           <div id="quest-study-chapters"></div><button id="quest-study-home" type="button"></button>
         </section>
         <section id="quest-study-game" hidden>
-          <header class="quest-study-head"><details id="quest-study-options"><summary id="quest-study-option-title"></summary>
-            <div><button id="quest-study-flip" type="button"></button>
-            <button id="quest-study-chapter-menu" type="button"></button><button id="quest-study-game-home" type="button"></button></div>
-          </details><h2 id="quest-study-rank"></h2></header>
-          <div class="quest-study-score"><span id="quest-study-score"></span><span id="quest-study-milestone"></span></div>
-          <progress id="quest-study-meter"></progress>
+          <header class="quest-study-head">
+            <button id="quest-study-option-title" type="button" aria-haspopup="dialog" aria-controls="quest-study-options" aria-expanded="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4,6h16 M4,12h16 M4,18h16"/></svg>
+            </button>
+            <h2 id="quest-study-chapter"></h2><span id="quest-study-rank"></span>
+          </header>
+          <div class="quest-study-score"><strong id="quest-study-score"></strong>
+            <span id="quest-study-series-badge" class="quest-study-series"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" d="M13,2C13.6,6.5 17.5,7.4 17.5,11C18.4,10.4 18.8,9.7 19,9C20.2,11 21,12.5 21,15C21,19.4 17.3,22 12.5,22C7.6,22 4,18.9 4,14.9C4,11.2 6.2,9.3 8.2,7.5C8,10 8.8,11.1 9.7,11.7C9.7,7.3 12.2,5.5 13,2ZM12.7,13C12.2,15.2 9.6,16.1 9.6,18C9.6,19.5 10.7,20.5 12.5,20.5C14.3,20.5 15.4,19.4 15.4,17.8C15.4,16.3 14.3,15.3 12.7,13Z"/></svg>
+            <span id="quest-study-current-series"></span></span>
+          </div>
           <p id="quest-study-turn"></p>
-          <div id="quest-study-board" class="quest-study-board"></div>
-          <p id="quest-study-status"></p>
+          <div class="quest-study-board-and-details">
+            <div id="quest-study-board" class="quest-study-board"></div>
+            <div id="quest-study-description" class="quest-study-details" tabindex="0" role="region">
+              <p id="quest-study-status"></p>
+              <button id="quest-study-details" type="button" hidden></button>
+              <div class="quest-study-progress"><span id="quest-study-solved-count"></span><span id="quest-study-milestone"></span></div>
+              <progress id="quest-study-meter"></progress>
+            </div>
+          </div>
           <p id="quest-study-announcement" class="visually-hidden" role="status" aria-atomic="true"></p>
-          <button id="quest-study-details" type="button" hidden></button>
-          <nav class="quest-study-actions">
-            <button id="quest-study-previous" type="button">‹</button>
-            <button id="quest-study-hint" type="button"></button>
-            <button id="quest-study-next" type="button">›</button>
-          </nav>
+          <div class="quest-study-footer">
+            <nav class="quest-study-actions">
+              <button id="quest-study-previous" type="button">‹</button>
+              <button id="quest-study-hint" type="button">
+                <svg id="quest-study-lamp-piece" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9,18L9,16C9,14.9 8.1,14.2 7.5,13.4C6.6,12.3 6,10.9 6,9.5C6,6.2 8.7,3.5 12,3.5C15.3,3.5 18,6.2 18,9.5C18,10.9 17.4,12.3 16.5,13.4C15.9,14.2 15,14.9 15,16L15,18ZM10,21L14,21"/>
+                </svg>
+                <svg id="quest-study-lamp-move" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M6,18L18,6M11,6L18,6L18,13"/></svg>
+                <svg id="quest-study-lamp-explain" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M3,5C6,4 9,4 12,6C15,4 18,4 21,5L21,18C18,17 15,17 12,19C9,17 6,17 3,18ZM12,6L12,19"/></svg>
+              </button>
+              <button id="quest-study-next" type="button">›</button>
+            </nav>
+            <p id="quest-study-hint-label" aria-hidden="true"></p>
+          </div>
         </section>
+        <dialog id="quest-study-options">
+          <button id="quest-study-flip" type="button"></button>
+          <button id="quest-study-game-home" type="button"></button>
+        </dialog>
         <dialog id="quest-study-promotion" aria-labelledby="quest-study-promote-title"><div class="quest-study-dialog">
           <h3 id="quest-study-promote-title"></h3><div id="quest-study-promote-choices"></div>
           <button id="quest-study-promote-close" type="button"></button>
@@ -303,16 +334,18 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         <dialog id="quest-study-explanation" aria-labelledby="quest-study-explain-title"><div class="quest-study-dialog">
           <div class="quest-study-dialog-head"><h3 id="quest-study-explain-title"></h3>
             <button id="quest-study-explain-close" type="button"></button></div>
-          <div id="quest-study-replay" hidden>
-            <div id="quest-study-replay-board" class="quest-study-board"></div>
-            <p id="quest-study-replay-status" aria-live="polite"></p>
-            <nav class="quest-study-actions">
-              <button id="quest-study-replay-previous" type="button">‹</button>
-              <button id="quest-study-threat" type="button" aria-pressed="false"></button>
-              <button id="quest-study-replay-next" type="button">›</button>
-            </nav>
+          <div class="quest-study-replay-body">
+            <div id="quest-study-replay" hidden><div id="quest-study-replay-board" class="quest-study-board"></div></div>
+            <div id="quest-study-replay-details" class="quest-study-replay-details" tabindex="0" role="region">
+              <p id="quest-study-replay-status" aria-live="polite" hidden></p>
+              <p id="quest-study-explain-text"></p>
+            </div>
           </div>
-          <p id="quest-study-explain-text"></p>
+          <nav id="quest-study-replay-actions" class="quest-study-actions" hidden>
+            <button id="quest-study-replay-previous" type="button">‹</button>
+            <button id="quest-study-threat" type="button" aria-pressed="false"></button>
+            <button id="quest-study-replay-next" type="button">›</button>
+          </nav>
           <div id="quest-study-lesson-actions" hidden>
             <button id="quest-study-explain-replay" type="button"></button>
             <button id="quest-study-explain-alternative" type="button"></button>
@@ -335,13 +368,14 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     const present = dialog => { if (!dialog.open) dialog.showModal(); };
 
     for (const [id, label] of Object.entries({
-        title: words.title, home: words.home, 'game-home': words.home, 'error-home': words.home, 'chapter-menu': words.title,
-        'option-title': words.menu, flip: words.flip, 'promote-title': words.promote, 'promote-close': words.close,
+        title: words.title, home: words.home, 'game-home': words.home, 'error-home': words.home,
+        flip: words.flip, 'promote-title': words.promote, 'promote-close': words.close,
         'explain-close': words.close, 'explain-replay': words.replay, retry: locale === 'ro' ? 'Reîncearcă' : 'Retry',
     })) at(id).textContent = label;
     for (const [id, name] of Object.entries({
         previous: words.previous, next: words.next, 'replay-previous': words.previous,
-        'replay-next': words.next, meter: words.title, threat: words.threat,
+        'replay-next': words.next, meter: words.title, threat: words.threat, 'option-title': words.menu, options: words.menu,
+        description: words.attemptDetails, 'replay-details': words.replay,
     })) at(id).setAttribute('aria-label', name);
     at('threat').textContent = words.threat;
 
@@ -353,12 +387,11 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     }
 
     async function showMenu() {
-        at('options').open = false;
         if (await command('leave')) at('title').focus();
     }
 
     async function goHome() {
-        at('options').open = false;
+        if (at('options').open) at('options').close();
         if (puzzle && !await command('leave')) return;
         close();
         home();
@@ -377,11 +410,14 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         busy = loading;
         if (state?.type === 'menu') {
             puzzle = null;
+            milestoneAnnouncement = '';
             if (data?.type === 'menu') renderMenu(state);
         }
         if (state?.type === 'puzzle') {
             if (state !== puzzle) {
                 if (!puzzle || state.chapter !== puzzle.chapter) blackBelow = state.startSide === 'BLACK';
+                milestoneAnnouncement = state.solved && puzzle?.id === state.id && !puzzle.solved && state.milestone.reached
+                    ? milestoneText(state) : '';
                 selected = null;
                 targets = [];
                 puzzle = state;
@@ -405,7 +441,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
             entry.type = 'button';
             entry.textContent = chapters[chapter.key];
             entry.addEventListener('click', async () => {
-                if (await command('open', { value: chapter.key })) at('rank').focus();
+                if (await command('open', { value: chapter.key })) at('chapter').focus();
             });
             const total = document.createElement('p');
             total.textContent = words.tally(chapter.totals);
@@ -438,8 +474,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
 
     function puzzleStatus(state) {
         if (state.solved) {
-            const solved = state.objective === 'MATE' ? words.solved : words.tacticSolved(displayMaterial(state.material));
-            return state.earned ? solved + ' · ' + words.won(state.earned) : solved;
+            return state.objective === 'MATE' ? words.solved : words.tacticSolved(displayMaterial(state.material));
         }
         if (state.pending) return words.pending;
         if (state.attempt) return attemptStatus(state);
@@ -465,15 +500,36 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         return { visible: words.suggested(move) + goal, spoken: spoken + goal };
     }
 
+    function milestoneText(state) {
+        const { solved } = state.totals;
+        const { next, reached } = state.milestone;
+        if (solved === state.count) return words.complete;
+        return reached ? words.milestoneReached(solved, next) : words.nextMilestone(next);
+    }
+
+    function renderGuidance(state) {
+        const action = state.hintAction;
+        at('lamp-piece').toggleAttribute('hidden', action !== 'SHOW_PIECE' && action !== 'WAIT');
+        at('lamp-move').toggleAttribute('hidden', action !== 'SHOW_MOVE');
+        at('lamp-explain').toggleAttribute('hidden', action !== 'EXPLAIN');
+        at('hint-label').textContent = { SHOW_PIECE: words.showPiece, SHOW_MOVE: words.showMove, EXPLAIN: words.explain, WAIT: words.wait }[action];
+        const explanation = state.objective === 'MATE' ? words.whyMate : words.whyTactic;
+        at('hint').setAttribute('aria-label', { SHOW_PIECE: words.hint, SHOW_MOVE: words.showMove, EXPLAIN: explanation, WAIT: words.wait }[action]);
+        at('hint').disabled = busy || action === 'WAIT';
+    }
+
     function renderPuzzle() {
         at('menu').hidden = true;
         at('game').hidden = false;
-        at('rank').textContent = chapters[puzzle.chapter] + ' · ' + puzzle.rank + '/' + puzzle.count;
-        at('score').textContent = words.tally(puzzle.totals) + (puzzle.streak >= 2 ? ' · ' + words.streak(puzzle.streak) : '');
-        const { solved } = puzzle.totals;
-        const { next, reached } = puzzle.milestone;
-        at('milestone').textContent = solved === puzzle.count ? words.complete
-            : reached ? words.milestoneReached(solved, next) : words.nextMilestone(next);
+        at('chapter').textContent = chapters[puzzle.chapter];
+        at('rank').textContent = puzzle.rank + ' / ' + puzzle.count;
+        at('rank').setAttribute('aria-label', words.rank(puzzle.rank, puzzle.count));
+        at('score').textContent = words.points(puzzle.totals.points, puzzle.earned);
+        at('series-badge').setAttribute('aria-hidden', String(!(puzzle.streak >= 2)));
+        at('series-badge').setAttribute('aria-label', words.streak(puzzle.streak ?? 0));
+        at('current-series').textContent = words.series(puzzle.streak ?? 0);
+        at('solved-count').textContent = words.solvedCount(puzzle.totals.solved, puzzle.count);
+        at('milestone').textContent = milestoneText(puzzle);
         at('meter').max = puzzle.count;
         at('meter').value = puzzle.totals.solved;
         const side = puzzle.sideToMove === 'WHITE' ? words.white : words.black;
@@ -482,15 +538,14 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         const status = hint?.visible ?? puzzleStatus(puzzle);
         setText('turn', turn);
         setText('status', status);
-        setText('announcement', hint?.spoken ?? [turn, status].filter(Boolean).join('. '));
+        setText('announcement', hint?.spoken ?? [turn, status, milestoneAnnouncement].filter(Boolean).join('. '));
         at('details').hidden = !puzzle.attempt;
         at('details').textContent = puzzle.alternative ? words.alternative(puzzle.alternative) : words.attemptDetails;
         at('details').disabled = busy;
         at('previous').disabled = busy || !puzzle.previous;
         at('next').disabled = busy || !puzzle.next;
         at('next').setAttribute('aria-label', puzzle.firstUnsolved ? words.first : words.next);
-        at('hint').textContent = { SHOW_PIECE: words.showPiece, SHOW_MOVE: words.showMove, EXPLAIN: words.explain, WAIT: words.wait }[puzzle.hintAction];
-        at('hint').disabled = busy || puzzle.pending;
+        renderGuidance(puzzle);
         boardView.render({ board: puzzle.board, sideToMove: puzzle.sideToMove, blackBelow, selected, targets,
             marks: guided(), lastMove: puzzle.lastMove, locked: busy || puzzle.solved || puzzle.pending });
     }
@@ -523,7 +578,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         replay = null;
         at('explain-title').textContent = words.whyTactic;
         at('explain-text').textContent = (locale === 'ro' ? data.ro : data.en);
-        at('replay').hidden = true;
+        showReplayFrame(false);
         at('lesson-actions').hidden = false;
         at('explain-replay').hidden = !data.hasReplay;
         at('explain-alternative').textContent = words.alternateReplay(data.alternative);
@@ -534,7 +589,8 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         replay = null;
         at('explain-title').textContent = words.attemptDetails;
         at('explain-text').textContent = attemptStatus(puzzle);
-        at('replay').hidden = at('lesson-actions').hidden = true;
+        showReplayFrame(false);
+        at('lesson-actions').hidden = true;
         present(at('explanation'));
     }
 
@@ -544,9 +600,14 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         danger = false;
         at('explain-title').textContent = data.title ?? (data.mate ? words.matingLine : data.depth !== null ? words.defenseStudy : words.whyTactic);
         at('lesson-actions').hidden = true;
-        at('replay').hidden = false;
+        showReplayFrame(true);
         renderReplay();
         present(at('explanation'));
+    }
+
+    function showReplayFrame(visible) {
+        for (const id of ['replay', 'replay-status', 'replay-actions']) at(id).hidden = !visible;
+        at('explanation').toggleAttribute('data-replay', visible);
     }
 
     function replayExplanation(data, current, final) {
@@ -585,6 +646,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
             : words.provenCapture(current.danger.square, signedMaterial(current.danger.gain)));
         at('explain-text').textContent = replayExplanation(replay, current, final);
         setText('replay-status', replayStatus.filter(Boolean).join(' · '));
+        at('replay-details').scrollTop = 0;
         replayView.render({ board: current.board, sideToMove: current.sideToMove, blackBelow,
             marks: danger && current.danger ? [mark(current.danger.square)] : [], lastMove: current.lastMove, locked: true });
     }
@@ -600,7 +662,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         close();
         at('error').hidden = at('retry').hidden = at('error-home').hidden = true;
         at('title').tabIndex = -1;
-        at('rank').tabIndex = -1;
+        at('chapter').tabIndex = -1;
         await controller.open(options);
     }
 
@@ -610,14 +672,18 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         selected = null;
         targets = [];
         replay = null;
-        at('options').open = false;
+        milestoneAnnouncement = '';
         at('menu').hidden = at('game').hidden = true;
-        for (const id of ['promotion', 'explanation']) if (at(id).open) at(id).close();
+        for (const id of ['options', 'promotion', 'explanation']) if (at(id).open) at(id).close();
     }
 
     handler('previous', () => void command('previous'));
     handler('next', () => void command('next'));
-    handler('hint', () => void command('hint', { value: puzzle?.alternative ? puzzle.attempt.move : '' }));
+    function showGuidance() {
+        if (!at('hint').disabled) void command('hint', { value: puzzle?.alternative ? puzzle.attempt.move : '' });
+    }
+    handler('hint', showGuidance);
+    handler('hint-label', showGuidance);
     handler('details', () => {
         if (puzzle?.alternative) void command('explain', { value: puzzle.attempt.move });
         else if (puzzle?.attempt) openAttempt();
@@ -625,10 +691,26 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     handler('home', () => void goHome());
     handler('game-home', () => void goHome());
     handler('error-home', () => void goHome());
-    handler('chapter-menu', () => void showMenu());
+    handler('option-title', () => {
+        present(at('options'));
+        at('option-title').setAttribute('aria-expanded', 'true');
+        at('flip').focus();
+    });
+    at('options').addEventListener('close', () => {
+        at('option-title').setAttribute('aria-expanded', 'false');
+        if (!at('game').hidden) at('option-title').focus();
+    });
+    handler('options', event => {
+        if (event.target === at('options')) at('options').close();
+    });
+    root.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || !puzzle || ['options', 'promotion', 'explanation'].some(id => at(id).open)) return;
+        event.preventDefault();
+        void showMenu();
+    });
     handler('flip', () => {
         blackBelow = !blackBelow;
-        at('options').open = false;
+        at('options').close();
         renderPuzzle();
     });
     handler('retry', () => {

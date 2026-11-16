@@ -39,6 +39,9 @@ class ChessWebQuestStudyTest {
                 "A failed write keeps the prior board and an externally changed puzzle blocks stale commands",
                 "Home summary reads saved totals without mounting the quest board",
                 "Wrong material check stays in the current puzzle and keeps the Web controls usable",
-                "Puzzle hints announce the APK turn, piece, destination and promotion once in RO and EN"), passed);
+                "Puzzle hints announce the APK turn, piece, destination and promotion once in RO and EN",
+                "Puzzle options match the APK and Escape returns focus to the chapters",
+                "Puzzle points, streak and guidance match the native states and announce a newly reached goal once",
+                "Puzzle replay keeps its actions outside the scrollable text and retains eight square rows on compact screens"), passed);
     }
 }

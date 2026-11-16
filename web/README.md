@@ -138,19 +138,27 @@ Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile 
 
 ## Studiu
 
-Meniul **Studiu** deschide **Probleme**, **Deschideri** și **Tablă de analiză**. Ecranele folosesc tabla comună, aceleași piese ca pe Android și comenzi RO/EN. Săgețile de la tastatură parcurg pătratele în ordinea în care apar pe tablă.
+Meniul **Studiu** deschide **Probleme**, **Deschideri** și **Tablă de analiză**. Ecranele folosesc tabla comună, aceleași piese ca pe Android și comenzi RO/EN. Săgețile tastaturii parcurg pătratele în ordinea afișată. Indiciul marchează piesa la prima treaptă și adaugă săgeata la dezvăluirea destinației, în ambele orientări.
 
-- **Probleme** (`#puzzles`) folosește cele șase capitole, totalurile și punctajul din `QuestStore` și `QuestRewards`. Progresul, problema curentă și etapa de apărare se păstrează în browser. Indiciile, explicația și reluarea folosesc contractele comune de studiu.
-- **Deschideri** (`#openings`) folosește catalogul și `OpeningLesson` pentru poziții, ordinea mutărilor, revenirea în istoric și replica de carte. Puteți exersa cu alb sau cu negru. În analiza AI, comparația deschide direct mutarea decisivă când aceasta există în varianta verificată.
-- **Tablă de analiză** (`#analysis`) folosește `AnalysisLine` pentru mutări, ramificare și cursor. Game Review pornește la semimutarea selectată și revine la tablă. **Continuă de aici** rezervă un loc liber și păstrează orientarea și alegerea replicilor AI.
+- **Probleme** (`#puzzles`) folosește cele șase capitole, totalurile și punctajul din `QuestStore` și `QuestRewards`. Progresul, problema curentă și etapa de apărare se păstrează în browser. Explicația are o zonă proprie de derulare, iar meniul oferă întoarcerea tablei și revenirea la meniul principal.
+- **Deschideri** (`#openings`) folosește catalogul și `OpeningLesson` pentru poziții, mutări, istoric și replica de carte. Selectați explicația lecției pentru textul complet. În analiza AI, comparația deschide mutarea decisivă când aceasta există în varianta verificată.
+- **Tablă de analiză** (`#analysis`) folosește `AnalysisLine` pentru mutări, ramificare și cursor. Bara de evaluare stă în stânga, iar selecția se păstrează la vedere în rândul cu istoricul și comenzile. Game Review revine la poziția selectată. **Continuă de aici** rezervă un loc liber și păstrează orientarea și alegerea replicilor AI.
 
 Testele cu stocare și controale simulate rulează în copia TMP. Pentru proba integrată, transmiteți pachetul TeaVM. Testul parcurge comenzile workerului prin Node.js.
 
 ```powershell
-mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebStudyShellTest,ChessWebQuestStudyTest,ChessWebOpeningStudyTest,ChessWebAnalysisStudyTest' "-Dchess.study.bundle=$site"
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebStudyShellTest,ChessWebQuestStudyTest,ChessWebOpeningStudyTest,ChessWebAnalysisStudyTest' "-Dchess.study.bundle=$site" "-Dchess.extent=$report"
 ```
 
-Proba vizuală Web se face în browser MCP. [Matricea de paritate](parity.md#contracte-și-probe)
+Pentru proba vizuală folosiți browserul MCP la 360 × 640 CSS px cu text la 130%, apoi la 1280 × 900 CSS px cu text la 100%. Reperul nativ compact este APK-ul 0.15.2 la 720 × 1280, 320 dpi și font 1,3×. Consemnați dimensiunea ferestrei utile și păstrați aceeași poziție și limbă în capturile pereche.
+
+| Flux | Verificare în browser MCP |
+|---|---|
+| Probleme | În Mat în 2, verificați becul, săgeata și întoarcerea tablei. Deschideți **Explică**, derulați textul și închideți. Verificați revenirea focusului, punctele, poziția și traseul Înapoi al browserului. |
+| Deschideri | Deschideți o lecție cu plan lung. Verificați bara, textul complet, revenirea focusului și accesul la comenzile de sub tablă la font mărit. |
+| Tablă de analiză | Jucați o linie suficient de lungă pentru derulare. Selectați un pas din istoric, verificați bara, poziția și rândul selectat, apoi deschideți Game Review și reveniți. |
+
+[Matricea de paritate](parity.md#contracte-și-probe) · [Dovezile APK-ului 0.15.2](../release/0.15.2/reports/README.md)
 
 ## Partida locală și o analiză nouă
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { analysisHintDescription, analysisScore, analysisStudySession } from '../src/main/web/study-analysis.mjs';
+import { analysisHintDescription, analysisScore, analysisStudySession, createAnalysisStudy } from '../src/main/web/study-analysis.mjs';
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const frame = (revision, ply, extra = {}) => ({
@@ -85,4 +85,78 @@ test('A revealed analysis hint names its moves and opening for screen readers', 
     assert.equal(analysisHintDescription(hint, 'ro'), 'Varianta 1 din 3. e2 la e4. Jocul deschis.');
     assert.equal(analysisHintDescription({ move: 'a7a8n', number: 1, count: 1 }, 'en'), 'Variation 1 of 1. a7 to a8 Knight.');
     assert.equal(analysisHintDescription({ number: 0 }, 'en'), '');
+});
+
+async function mountAnalysis(openingState) {
+    class Element {
+        constructor(tag) { this.tag = tag; }
+        children = [];
+        attributes = new Map();
+        events = new Map();
+        classList = { add() {}, toggle() {} };
+        dataset = {};
+        style = {};
+        hidden = false;
+        scrollLeft = 0;
+        append(...items) { this.children.push(...items); }
+        replaceChildren(...items) { this.children = items; }
+        setAttribute(name, value) { this.attributes.set(name, value); }
+        removeAttribute(name) { this.attributes.delete(name); }
+        addEventListener(name, action) { this.events.set(name, action); }
+        focus() {}
+    }
+
+    const root = new Element('section');
+    root.ownerDocument = { createElement: tag => new Element(tag) };
+    const view = createAnalysisStudy({ root, locale: 'en', storage: () => undefined,
+        home: () => assert.fail('The study stays open'), board: () => ({ render() {} }),
+        call: async (action, { index }) => {
+            if (action === 'resume') return openingState;
+            assert.equal(action, 'seek');
+            return { ...openingState, ply: index };
+        },
+    });
+    await view.open();
+    return { root, view };
+}
+
+test('Analysis places evaluation to the left and all history controls in APK order', async () => {
+    const evaluation = { ending: 'HORIZON', centipawns: 20, whiteShare: .55 };
+    const { root } = await mountAnalysis(frame(1, 1, { blackBelow: true, sideToMove: 'BLACK', history: ['e2e4'], promotions: [], evaluation }));
+    const stage = root.children.find(item => item.className === 'analysis-study-stage');
+    const [top, panel, bottom] = stage.children[0].children;
+    const [meter, board] = panel.children;
+    assert.equal(meter.attributes.get('role'), 'meter');
+    assert.equal(meter.attributes.get('aria-valuenow'), 55);
+    assert.equal(meter.children[0].style.insetBlockStart, '0');
+    assert.equal(board.className, 'analysis-study-board');
+    assert.equal(top.textContent, 'White');
+    assert.equal(bottom.textContent, 'Black to move');
+
+    const toolbar = root.children.find(item => item.className?.includes('analysis-study-toolbar'));
+    assert.deepEqual(toolbar.children.map(item => item.attributes.get('aria-label')),
+        ['Previous move', 'Move history', 'Next move', 'Jump to latest move', 'Show AI variation']);
+    assert.equal(toolbar.children[1].tag, 'nav');
+    assert.equal(toolbar.children[1].children[1].attributes.get('aria-current'), 'step');
+});
+
+test('Selecting an offscreen analysis move scrolls only the strip in either direction', async () => {
+    const { root, view } = await mountAnalysis(frame(1, 0, { analysis: false, total: 3,
+        history: ['e2e4', 'e7e5', 'g1f3'], promotions: [] }));
+    const toolbar = root.children.find(item => item.className?.includes('analysis-study-toolbar'));
+    const strip = toolbar.children[1];
+    strip.clientWidth = 100;
+    strip.getBoundingClientRect = () => ({ left: 40, right: 140 });
+    strip.children.forEach((item, index) => {
+        item.getBoundingClientRect = () => ({ left: 40 + index * 60 - strip.scrollLeft, right: 100 + index * 60 - strip.scrollLeft });
+    });
+
+    await view.seek(3);
+    assert.equal(strip.scrollLeft, 140);
+    assert.equal(strip.children[3].attributes.get('aria-current'), 'step');
+    assert.equal(strip.children[0].attributes.has('aria-current'), false);
+    await view.seek(0);
+    assert.equal(strip.scrollLeft, 0);
+    assert.equal(strip.children[0].attributes.get('aria-current'), 'step');
+    assert.equal(root.scrollLeft, 0);
 });

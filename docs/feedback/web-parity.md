@@ -29,7 +29,9 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 ## WEB-02 · Adaptoare și afișaj comun
 
-**P1 · Verificarea vizuală Studiu.** Cele trei comenzi sunt active, cu tabla comună și etichetele RO/EN. Verificați în browser MCP un profil compact la font mărit și unul de desktop. Comparați cu APK-ul tabla și comutarea orientării, explicarea unui puzzle, revenirea dintr-o lecție și trecerea din Tabla de analiză în Game Review și înapoi. [Probele Studiu](../../web/README.md#studiu)
+**P1 · Verificarea vizuală Studiu.** Comparația de sursă și componente acoperă acum săgeata indiciului, meniul și explicația din Probleme, explicația și bara din Deschideri, bara și istoricul din Tabla de analiză. Proba interactivă în browser MCP rămâne deschisă. Pe mobil compact la text 130% și pe desktop, comparați capturi cu APK-ul 0.15.2 și consemnați dimensiunea tablei și accesul la comenzi. Verificați focalizarea după **Explică** și poziția reluată după Game Review. [Matricea și pașii Studiu](../../web/README.md#studiu)
+
+**P2 · Intrare contextuală în Tabla de analiză.** Meniul nativ dintr-o partidă deschide tabla la semimutarea vizibilă, inclusiv din arhivă. Web deschide tabla manuală din Studiu. Pentru paritatea meniului de partidă, transmiteți semimutarea, orientarea și originea și verificați revenirea fără modificarea partidei sau a arhivei. [Intrările Web](../../web/README.md#studiu)
 
 **P1 · Responsabili J7 pentru șah și J4 pentru extracțiile comune.** Componentele existente `BoardPanelLayout`, `GameReviewLayout`, `GameReviewTimeline` și `OpeningReplay` oferă punctele de plecare. Android aplică dreptunghiurile și efectele în `View` și dialoguri. Web aplică aceleași decizii în DOM/CSS, citește zona utilă și traduce clickul, atingerea și tastatura în aceleași intenții. [Ghidul tablei](../board/README.md) · [Game Review](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 

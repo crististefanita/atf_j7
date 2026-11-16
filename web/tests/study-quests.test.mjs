@@ -128,6 +128,9 @@ test('Home summary reads saved totals without mounting the quest board', async (
 });
 
 async function mountPuzzle(state, call, locale = 'ro') {
+    let focused = '';
+    let exits = 0;
+    let markup;
     class Element {
         id = '';
         children = [];
@@ -147,16 +150,21 @@ async function mountPuzzle(state, call, locale = 'ro') {
         replaceChildren(...items) { this.children = items; }
         querySelectorAll() { return this.children.flatMap(row => row.children); }
         setAttribute(name, value) { this.attributes.set(name, value); }
+        toggleAttribute(name, enabled) {
+            if (enabled) this.attributes.set(name, '');
+            else this.attributes.delete(name);
+        }
         addEventListener(name, fn) { this.events.set(name, fn); }
         showModal() { this.open = true; }
-        close() { this.open = false; }
-        focus() {}
+        close() { this.open = false; this.events.get('close')?.(); }
+        focus() { focused = this.id; }
     }
     const elements = new Map();
     const root = new Element();
     root.ownerDocument = { createElement: () => new Element() };
     Object.defineProperty(root, 'innerHTML', {
         set: html => {
+            markup = html;
             for (const [tag, id] of html.matchAll(/<[^>]+\bid="([^"]+)"[^>]*>/g)) {
                 const item = new Element();
                 item.id = id;
@@ -169,7 +177,7 @@ async function mountPuzzle(state, call, locale = 'ro') {
     const at = id => root.querySelector('#quest-study-' + id);
     const boards = new Map();
     const storage = new Map();
-    const study = createQuestStudy({ root, locale, home() {},
+    const study = createQuestStudy({ root, locale, home() { exits++; },
         storage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) },
         call: async (action, args) => {
             if (action === 'menu') return { ...menu, chapters: [{ key: state.chapter, totals: state.totals }] };
@@ -186,7 +194,8 @@ async function mountPuzzle(state, call, locale = 'ro') {
     await study.open();
     const chapter = at('chapters').children[0].children[0];
     await chapter.events.get('click')();
-    return { at, ...boards.get('quest-study-board') };
+    return { at, root, markup, chapter, focused: () => focused, exits: () => exits,
+        ...boards.get('quest-study-board'), replayReports: boards.get('quest-study-replay-board').reports };
 }
 
 const tacticsState = { type: 'puzzle', chapter: 'tactics', id: 'tactic-006', rank: 6, count: 100, startSide: 'WHITE',
@@ -261,4 +270,106 @@ test('Puzzle hints announce the APK turn, piece, destination and promotion once 
         tap(from);
         assert.equal(announcement.textWrites, moveWrites);
     }
+});
+
+test('Puzzle options match the APK and Escape returns focus to the chapters', async () => {
+    let leaves = 0;
+    const { at, root, markup, focused, reports, chapter, exits } = await mountPuzzle(tacticsState, action => {
+        assert.equal(action, 'leave');
+        leaves++;
+        return { ...menu, chapters: [{ key: tacticsState.chapter, totals: tacticsState.totals }] };
+    });
+    const options = markup.match(/<dialog id="quest-study-options">([^]*?)<\/dialog>/)[1];
+    assert.deepEqual([...options.matchAll(/<button id="quest-study-([^"]+)"/g)].map(match => match[1]), ['flip', 'game-home']);
+    assert.equal(focused(), 'quest-study-chapter');
+    assert.equal(at('option-title').attributes.get('aria-label'), 'Opțiuni puzzle');
+    at('option-title').events.get('click')();
+    assert.equal(at('options').open, true);
+    assert.equal(focused(), 'quest-study-flip');
+    assert.equal(at('option-title').attributes.get('aria-expanded'), 'true');
+    at('flip').events.get('click')();
+    assert.equal(reports.at(-1).blackBelow, true);
+    assert.equal(at('option-title').attributes.get('aria-expanded'), 'false');
+    assert.equal(focused(), 'quest-study-option-title');
+    let escapeHandled = false;
+    root.events.get('keydown')({ key: 'Escape', preventDefault() { escapeHandled = true; } });
+    await setImmediate();
+    assert.equal(escapeHandled, true);
+    assert.equal(focused(), 'quest-study-title');
+    assert.equal(at('menu').hidden, false);
+    assert.equal(leaves, 1);
+    await chapter.events.get('click')();
+    at('option-title').events.get('click')();
+    at('game-home').events.get('click')();
+    await setImmediate();
+    assert.equal(leaves, 2);
+    assert.equal(exits(), 1);
+    assert.equal(at('options').open, false);
+});
+
+test('Puzzle points, streak and guidance match the native states and announce a newly reached goal once', async () => {
+    const state = { ...tacticsState, objective: 'MATE', rank: 5, streak: 1,
+        totals: { solved: 4, total: 100, points: 40 }, milestone: { next: 5, reached: false } };
+    const { at, tap } = await mountPuzzle(state, action => {
+        assert.equal(action, 'play');
+        return { saved: 'solved', data: { ...state, solved: true, earned: 14, streak: 2, hintAction: 'EXPLAIN',
+            totals: { solved: 5, total: 100, points: 54 }, milestone: { next: 15, reached: true } } };
+    });
+    assert.equal(at('chapter').textContent, 'Tactică');
+    assert.equal(at('rank').textContent, '5 / 100');
+    assert.equal(at('rank').attributes.get('aria-label'), 'Problema 5 din 100');
+    assert.equal(at('score').textContent, '40 puncte');
+    assert.equal(at('series-badge').attributes.get('aria-hidden'), 'true');
+    assert.equal(at('hint-label').textContent, 'Arată piesa');
+    assert.equal(at('hint').attributes.get('aria-label'), 'Indiciu');
+    assert.equal(at('lamp-piece').attributes.has('hidden'), false);
+    tap('d1');
+    tap('e2');
+    await setImmediate();
+    assert.equal(at('score').textContent, '+14 · 54 puncte');
+    assert.equal(at('series-badge').attributes.get('aria-hidden'), 'false');
+    assert.equal(at('current-series').textContent, '2 la rând');
+    assert.equal(at('solved-count').textContent, 'Rezolvate · 5/100');
+    assert.equal(at('hint-label').textContent, 'Explică');
+    assert.equal(at('hint').attributes.get('aria-label'), 'De ce e mat?');
+    assert.equal(at('lamp-piece').attributes.has('hidden'), true);
+    assert.equal(at('lamp-explain').attributes.has('hidden'), false);
+    assert.equal(at('announcement').textContent, 'Șah mat · Rezolvat. 5 atinse · urmează 15');
+    const writes = at('announcement').textWrites;
+    at('option-title').events.get('click')();
+    at('flip').events.get('click')();
+    assert.equal(at('announcement').textWrites, writes);
+});
+
+test('Puzzle replay keeps its actions outside the scrollable text and retains eight square rows on compact screens', async () => {
+    const board = ' '.repeat(64);
+    const { at, markup, replayReports } = await mountPuzzle({ ...tacticsState, hintAction: 'EXPLAIN' }, action => {
+        assert.equal(action, 'hint');
+        return { type: 'replay', initial: 1, depth: null, lesson: 'FORK', frames: [
+            { board, sideToMove: 'WHITE', material: 0 },
+            { board, sideToMove: 'BLACK', material: 100, lastMove: 'd1e2' },
+        ] };
+    });
+    at('hint').events.get('click')();
+    await setImmediate();
+    assert.equal(at('explanation').open, true);
+    assert.equal(at('explanation').attributes.has('data-replay'), true);
+    assert.equal(at('replay-actions').hidden, false);
+    assert.equal(at('replay-previous').disabled, false);
+    assert.equal(at('replay-next').disabled, true);
+    assert.equal(replayReports.at(-1).lastMove, 'd1e2');
+    at('replay-details').scrollTop = 100;
+    at('replay-previous').events.get('click')();
+    assert.equal(at('replay-details').scrollTop, 0);
+    assert.equal(at('replay-previous').disabled, true);
+    assert.equal(at('replay-next').disabled, false);
+    assert.equal(replayReports.at(-1).sideToMove, 'WHITE');
+    assert.match(markup, /id="quest-study-replay-details"[^]*?<\/div>\s*<\/div>\s*<nav id="quest-study-replay-actions"/);
+    const css = await readFile(new URL('../src/main/web/study-quests.css', import.meta.url), 'utf8');
+    const shared = await readFile(new URL('../src/main/web/game-review.css', import.meta.url), 'utf8');
+    assert.match(shared, /grid-template-rows:\s*repeat\(8, minmax\(0, 1fr\)\)/);
+    assert.match(shared, /button\.square\s*\{\s*min-block-size:\s*0/);
+    assert.doesNotMatch(css, /\.quest-study button\s*\{/);
+    assert.match(css, /\.quest-study button:not\(\.square\)\s*\{\s*min-block-size:/);
+    assert.match(css, /\[data-replay\]\[open\]\s*\{[^}]*height:\s*100dvh/);
 });
