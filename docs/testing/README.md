@@ -69,6 +69,12 @@ Pentru cititoare de ecran, `ChessWebReviewAccessibilityTest` verifică textele R
 
 Pe Android, `-MatchMenusOnly` verifică listele și deschiderea rândurilor salvate și încheiate. `-GameReviewOnly` verifică o mutare alternativă în continuare și păstrarea intrării arhivate. [Partidă și istoric](#partidă-și-istoric)
 
+### Studiu Web
+
+Testele de componentă simulează tabla, stocarea și temporizatorul. Ele verifică indiciile, reluarea unei apărări, promoțiile, răspunsurile întârziate după închiderea ecranului și traversarea tablei cu tastatura.
+
+`ChessWebStudyShellTest` rulează și workerul compilat când primește `-Dchess.study.bundle`. Raportul Extent consemnează deschiderea celor șase capitole, catalogul RO/EN de deschideri, poziția de analiză, izolarea Game Review și refuzul continuării când toate cele zece locuri sunt ocupate. [Comenzile Studiu](../../web/README.md#studiu)
+
 ### Reluarea Game Review pe Android și Web
 
 `GameReviewSessionTest` verifică selecția semimutării, cele două ramuri, bookmarkul și refuzul comenzilor expirate. `ChessGameSessionTest` verifică poziția restaurată și analiza unei linii neterminate. Probele Edge folosesc pachetul compilat pentru import, analiză nouă și reîncărcare reală. Publicatorul Extent verifică mutările, cache-ul de analiză, identitatea pachetului și capturile. [Comenzile de rulare](../../web/README.md#game-review)

@@ -127,6 +127,16 @@ final class WebChessGame {
         return openContinuation(next);
     }
 
+    String continueStudy(String checkpoint, boolean automatic, boolean flipped) {
+        var match = ChessMatch.restore(checkpoint);
+        if (match.result() != ChessMatch.Result.IN_PROGRESS) return state("UNAVAILABLE");
+        var matches = matches();
+        int next = matches.freeMatchSlot();
+        if (next == 0) return state("NO_FREE_SLOT");
+        if (!matches.startMatch(next, match, flipped, !automatic, match.ply() > 0)) return state("SAVE_FAILED");
+        return openContinuation(next);
+    }
+
     String openContinuation(MatchLedger.Continuation result) {
         return result.outcome() == MatchLedger.ContinuationOutcome.APPLIED ? openContinuation(result.slot()) : state(result.outcome().name());
     }

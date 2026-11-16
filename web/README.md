@@ -136,6 +136,22 @@ Intrarea Web grupează comenzile în aceeași ordine ca meniul Android. **Partid
 
 Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile comune din `ChessPieceArtwork`. Web primește contururile din worker și le desenează în coordonatele 48 × 48 din APK. `ChessWebShellTest` verifică ordinea și textele RO/EN față de resursele Android, persistența simulată și reutilizarea SVG. Sanity-ul Edge deschide meniul și verifică toate cele șase tipuri de piese înaintea primei mutări. [Strategia de testare](../docs/testing/README.md#partidă-și-istoric)
 
+## Studiu
+
+Meniul **Studiu** deschide **Probleme**, **Deschideri** și **Tablă de analiză**. Ecranele folosesc tabla comună, aceleași piese ca pe Android și comenzi RO/EN. Săgețile de la tastatură parcurg pătratele în ordinea în care apar pe tablă.
+
+- **Probleme** (`#puzzles`) folosește cele șase capitole, totalurile și punctajul din `QuestStore` și `QuestRewards`. Progresul, problema curentă și etapa de apărare se păstrează în browser. Indiciile, explicația și reluarea folosesc contractele comune de studiu.
+- **Deschideri** (`#openings`) folosește catalogul și `OpeningLesson` pentru poziții, ordinea mutărilor, revenirea în istoric și replica de carte. Puteți exersa cu alb sau cu negru. În analiza AI, comparația deschide direct mutarea decisivă când aceasta există în varianta verificată.
+- **Tablă de analiză** (`#analysis`) folosește `AnalysisLine` pentru mutări, ramificare și cursor. Game Review pornește la semimutarea selectată și revine la tablă. **Continuă de aici** rezervă un loc liber și păstrează orientarea și alegerea replicilor AI.
+
+Testele cu stocare și controale simulate rulează în copia TMP. Pentru proba integrată, transmiteți pachetul TeaVM. Testul parcurge comenzile workerului prin Node.js.
+
+```powershell
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebStudyShellTest,ChessWebQuestStudyTest,ChessWebOpeningStudyTest,ChessWebAnalysisStudyTest' "-Dchess.study.bundle=$site"
+```
+
+Proba vizuală Web se face în browser MCP. [Matricea de paritate](parity.md#contracte-și-probe)
+
 ## Partida locală și o analiză nouă
 
 **Partidă locală** permite mutările ambelor culori și oferă alegerea piesei la promovare. Workerul validează fiecare mutare. Pagina salvează checkpointul canonic înainte de a afișa poziția rezultată. Reîncărcarea pornește un worker nou și reface istoricul, culoarea la mutare și mutările legale din checkpoint. [Matricea funcțiilor](parity.md#contracte-și-probe)

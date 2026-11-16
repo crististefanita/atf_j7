@@ -19,7 +19,8 @@ const translations = {
 
 const groups = [
     ['home_games', 'home-games', ['new_match', 'resume_match', 'match_archive'], ['open-ai', 'open-saved', 'open-finished']],
-    ['home_study', 'home-study', ['open_puzzles', 'home_totals', 'open_openings', 'open_analysis'], ['home-puzzles', 'home-openings', 'home-analysis']],
+    ['home_study', 'home-study', ['open_puzzles', 'home_totals', 'open_openings', 'open_analysis'],
+        ['home-puzzles', 'home-study-totals', 'home-openings', 'home-analysis']],
     ['home_profile', 'home-profile', ['edit_player_name', 'open_settings'], ['home-name', 'home-settings']],
 ];
 

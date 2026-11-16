@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chess Lab · Game Review</title>
   <link rel="stylesheet" href="game-review.css">
+  <link rel="stylesheet" href="study-openings.css">
+  <link rel="stylesheet" href="study-analysis.css">
+  <link rel="stylesheet" href="study-quests.css">
   <script type="module" src="game-review.mjs"></script>
 </head>
 <body>
@@ -13,7 +16,7 @@
       <button id="close-why" class="review-icon" type="button" aria-label="Close explanation" aria-describedby="review-why-context" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
       <h1 id="title">Game Review</h1>
       <div class="header-actions">
-        <button id="open-review" type="button" hidden>Game Review</button>
+        <button id="open-review" type="button" hidden>Main menu</button>
         <button id="open-profile" type="button" hidden>Profile</button>
         <button id="return-menu" type="button" hidden>Back</button>
         <button id="archive-review-back" type="button" hidden>Close</button>
@@ -34,9 +37,10 @@
       <section aria-labelledby="home-study-heading">
         <h2 id="home-study-heading">Study</h2>
         <div class="home-group" id="home-study">
-          <button id="home-puzzles" type="button" disabled>Puzzles</button>
-          <button id="home-openings" type="button" disabled>Openings</button>
-          <button id="home-analysis" type="button" disabled>Analysis board</button>
+          <button id="home-puzzles" type="button">Puzzles</button>
+          <p id="home-study-totals" class="study-totals" hidden></p>
+          <button id="home-openings" type="button">Openings</button>
+          <button id="home-analysis" type="button">Analysis board</button>
         </div>
       </section>
       <section aria-labelledby="home-profile-heading">
@@ -53,6 +57,14 @@
           <input id="archive" class="visually-hidden" type="file" accept=".json,application/json">
         </div>
       </div>
+    </div>
+    <section id="study-quests" class="study-surface" hidden></section>
+    <section id="study-openings" class="study-surface" hidden></section>
+    <section id="study-analysis" class="study-surface" hidden></section>
+    <div id="study-review-progress" class="analysis-progress study-surface" hidden>
+      <label for="study-progress" id="study-progress-label"></label>
+      <progress id="study-progress"></progress>
+      <button id="cancel-study-analysis" type="button"></button>
     </div>
     <section id="match-list" class="match-list" hidden>
       <p id="empty-list"></p>

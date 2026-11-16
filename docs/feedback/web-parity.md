@@ -29,7 +29,7 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 ## WEB-02 · Adaptoare și afișaj comun
 
-**P1 · Meniul Studiu Web.** Meniul principal are aceleași grupe și etichete RO/EN ca APK-ul. Comenzile **Probleme**, **Deschideri** și **Tablă de analiză** rămân indisponibile în Web. Activați fiecare comandă după integrarea navigării și progresului ei, apoi afișați totalurile de studiu. Verificați submeniurile față de aceleași resurse Android, revenirea în meniul principal și restaurarea stării după reîncărcare. [Funcțiile Web](../../web/parity.md#contracte-și-probe)
+**P1 · Verificarea vizuală Studiu.** Cele trei comenzi sunt active, cu tabla comună și etichetele RO/EN. Verificați în browser MCP un profil compact la font mărit și unul de desktop. Comparați cu APK-ul tabla și comutarea orientării, explicarea unui puzzle, revenirea dintr-o lecție și trecerea din Tabla de analiză în Game Review și înapoi. [Probele Studiu](../../web/README.md#studiu)
 
 **P1 · Responsabili J7 pentru șah și J4 pentru extracțiile comune.** Componentele existente `BoardPanelLayout`, `GameReviewLayout`, `GameReviewTimeline` și `OpeningReplay` oferă punctele de plecare. Android aplică dreptunghiurile și efectele în `View` și dialoguri. Web aplică aceleași decizii în DOM/CSS, citește zona utilă și traduce clickul, atingerea și tastatura în aceleași intenții. [Ghidul tablei](../board/README.md) · [Game Review](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 

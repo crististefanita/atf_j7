@@ -1,6 +1,6 @@
 import { analyzeRatedReview, analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, matchHistory, normalizePlayerName, openLedger, openMatch, openReview,
   archiveReviewCheckpoint, archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, pieceArtwork, playBot, playMatch, reviewAction, reviewGraphSelect,
-  saveArchiveReview, snapshot } from "./chess-engine.mjs";
+  saveArchiveReview, snapshot, continueStudyMatch, openStudyReview, studyCommand, studyReviewAction, studyReviewGraphSelect } from "./chess-engine.mjs";
 
 let pending = Promise.resolve();
 self.onmessage = ({ data }) => {
@@ -8,10 +8,13 @@ self.onmessage = ({ data }) => {
 };
 
 async function respond({ id, type, resources, archive, checkpoint, review, ledger, legacy, route, slot, archiveId, setup,
-  expectedRevision, automatic, action, move, x, width, name, rated = false, ply = -1 }) {
+  expectedRevision, automatic, action, move, x, width, name, rated = false, ply = -1, studyReview = false, blackBelow = false,
+  feature, value, index, saved, option, locale }) {
   try {
     if (type === "snapshot" && typeof resources === "string") {
       self.postMessage({ id, snapshot: snapshot(resources) });
+    } else if (type === "study" && [feature, action, value, saved, option, locale].every(field => typeof field === "string") && validPly(index)) {
+      self.postMessage({ id, study: JSON.parse(studyCommand(feature, action, value, index, saved, option, locale)) });
     } else if (type === "profile-name" && typeof name === "string") {
       self.postMessage({ id, name: normalizePlayerName(name) });
     } else if (type === "review-open" && validArchive(archive)) {
@@ -19,6 +22,10 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       const digest = await sha256(canonical);
       const view = JSON.parse(openReview(archive.id, canonical, archive.review, archive.bookmark ?? null, digest));
       self.postMessage({ id, view });
+    } else if (type === "study-review-open" && validArchive(archive) && validPly(ply) && typeof blackBelow === "boolean") {
+      const canonical = canonicalCheckpoint(archive.checkpoint);
+      const digest = await sha256(canonical);
+      self.postMessage({ id, view: JSON.parse(openStudyReview(archive.id, canonical, archive.review, digest, blackBelow, ply)) });
     } else if (type === "archive-review-open" && validArchiveId(archiveId)) {
       const canonical = archiveReviewCheckpoint(archiveId);
       const view = openArchiveReview(archiveId, await sha256(canonical));
@@ -38,11 +45,13 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       self.postMessage({ id, ...JSON.parse(importLegacyReview(archive.id, canonical, archive.review, archive.bookmark ?? null, digest)) });
     } else if (type === "review-action" && validRevision(expectedRevision) && typeof action === "string" && Number.isInteger(ply) &&
         ply >= -1 && ply <= 2147483647 && (archiveId == null || validArchiveId(archiveId))) {
-      const result = JSON.parse(reviewAction(archiveId ?? null, expectedRevision, action, ply));
+      const result = JSON.parse(studyReview === true ? studyReviewAction(expectedRevision, action, ply)
+        : reviewAction(archiveId ?? null, expectedRevision, action, ply));
       postReview(id, archiveId, result);
     } else if (type === "review-graph-select" && validRevision(expectedRevision) && Number.isFinite(x) &&
         Number.isFinite(width) && width > 4 && (archiveId == null || validArchiveId(archiveId))) {
-      const result = JSON.parse(reviewGraphSelect(archiveId ?? null, expectedRevision, x, width));
+      const result = JSON.parse(studyReview === true ? studyReviewGraphSelect(expectedRevision, x, width)
+        : reviewGraphSelect(archiveId ?? null, expectedRevision, x, width));
       postReview(id, archiveId, result);
     } else if (type === "ledger-open" && optionalText(ledger) && optionalText(legacy?.local) && optionalText(legacy?.ai)) {
       self.postMessage({ id, ...JSON.parse(openLedger(ledger ?? null, legacy?.local ?? null, legacy?.ai ?? null)), pieceArt: JSON.parse(pieceArtwork()) });
@@ -57,6 +66,8 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       self.postMessage({ id, ...JSON.parse(matchHistory(expectedRevision, ply)) });
     } else if (type === "match-continue" && validRevision(expectedRevision) && typeof automatic === "boolean") {
       self.postMessage({ id, ...JSON.parse(continueMatch(expectedRevision, automatic)) });
+    } else if (type === "study-match-continue" && typeof checkpoint === "string" && typeof automatic === "boolean" && typeof blackBelow === "boolean") {
+      self.postMessage({ id, ...JSON.parse(continueStudyMatch(checkpoint, automatic, blackBelow)) });
     } else if (type === "review-analyze" && typeof checkpoint === "string" && typeof rated === "boolean") {
       const canonical = canonicalCheckpoint(checkpoint);
       const digest = await sha256(canonical);
@@ -79,6 +90,8 @@ function postReview(id, archiveId, result) {
 function validRevision(value) {
   return Number.isInteger(value) && value >= 0 && value <= 2147483647;
 }
+
+function validPly(value) { return value === -1 || validRevision(value); }
 
 function optionalText(value) {
   return value == null || typeof value === "string";

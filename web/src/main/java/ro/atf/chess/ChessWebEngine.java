@@ -8,7 +8,11 @@ import org.teavm.jso.JSObject;
 /** Exposes the portable chess engine to the browser worker. */
 public final class ChessWebEngine {
     private static final WebGameReview REVIEW = new WebGameReview();
+    private static final WebGameReview STUDY_REVIEW = new WebGameReview();
     private static final WebChessGame GAME = new WebChessGame();
+    private static final WebQuestStudy QUESTS = new WebQuestStudy();
+    private static final WebOpeningStudy OPENINGS = new WebOpeningStudy();
+    private static final WebAnalysisStudy ANALYSIS = new WebAnalysisStudy();
 
     private ChessWebEngine() { }
 
@@ -19,6 +23,16 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String pieceArtwork() { return WebGameReview.pieceArtwork(); }
+
+    @JSExport
+    public static String studyCommand(String feature, String action, String value, int index, String saved, String option, String locale) {
+        return switch (feature) {
+            case "quests" -> QUESTS.command(action, value, index, saved, option);
+            case "openings" -> OPENINGS.command(action, value, index, saved, option.isEmpty() ? locale : option);
+            case "analysis" -> ANALYSIS.command(action, value, index, saved, option);
+            default -> throw new IllegalArgumentException("Unknown study feature");
+        };
+    }
 
     @JSExport
     public static String normalizePlayerName(String name) { return PlayerProfile.normalize(name, ChessWebEngine::normalizeNfc); }
@@ -34,6 +48,24 @@ public final class ChessWebEngine {
     @JSExport
     public static String openReview(String id, String checkpoint, String review, String bookmark, String digest) {
         return REVIEW.open(id, ChessMatch.restore(checkpoint), review, bookmark, digest, false, false, false);
+    }
+
+    @JSExport
+    public static String openStudyReview(String id, String checkpoint, String review, String digest, boolean blackBelow, int ply) {
+        var match = ChessMatch.restore(checkpoint);
+        String bookmark = GameReviewBookmark.encode(id, match,
+                new GameReviewTimeline.Snapshot(ply < 0 ? match.ply() : ply, GameReviewTimeline.Branch.HISTORY, 0), digest);
+        return STUDY_REVIEW.open(id, match, review, bookmark, digest, false, blackBelow, false);
+    }
+
+    @JSExport
+    public static String studyReviewAction(int revision, String action, int ply) {
+        return STUDY_REVIEW.action(null, revision, action, ply, null);
+    }
+
+    @JSExport
+    public static String studyReviewGraphSelect(int revision, double x, double width) {
+        return STUDY_REVIEW.selectGraph(null, revision, x, width, null);
     }
 
     @JSExport
@@ -119,6 +151,11 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String continueMatch(int revision, boolean automatic) { return GAME.continueGame(revision, automatic); }
+
+    @JSExport
+    public static String continueStudyMatch(String checkpoint, boolean automatic, boolean blackBelow) {
+        return GAME.continueStudy(checkpoint, automatic, blackBelow);
+    }
 
     @JSExport
     public static String analyzeReview(String checkpoint, String digest, Progress progress) {

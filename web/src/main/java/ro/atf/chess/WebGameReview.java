@@ -81,6 +81,8 @@ final class WebGameReview {
                 + ",\"branch\":" + quote(snapshot.branch().name()) + ",\"step\":" + snapshot.step()
                 + ",\"lineLength\":" + timeline.lineLength() + ",\"explanationOpen\":" + snapshot.explanationOpen()
                 + ",\"canContinue\":" + (archive.stored() && MatchLedger.canContinueArchiveReview(archive.match(), snapshot))
+                + ",\"canContinueStudy\":" + (!archive.stored() && history
+                        && (snapshot.ply() < archive.match().ply() || archive.match().result() == ChessMatch.Result.IN_PROGRESS))
                 + ",\"automaticContinuation\":" + archive.automaticContinuation()
                 + ",\"previous\":" + (history ? timeline.hasPrevious() : timeline.canStepBackward())
                 + ",\"next\":" + (history ? timeline.hasNext() : timeline.canStepForward())

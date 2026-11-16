@@ -1,8 +1,8 @@
 # ATF J7 · Chess Lab
 
-Chess Lab oferă partide de șah cu calculatorul pe Android și în browser.
-Aplicația Android include și probleme, deschideri și o tablă de analiză. J7
-folosește bibliotecile ATF pentru verificare și rapoarte Extent.
+Chess Lab oferă pe Android și în browser partide cu calculatorul, probleme,
+deschideri și o tablă de analiză. J7 folosește bibliotecile ATF pentru verificare
+și rapoarte Extent.
 
 ## Jocul
 
