@@ -15,6 +15,9 @@
         <button id="open-match" type="button">Local game</button>
         <button id="open-ai" type="button">Play against AI</button>
         <button id="open-review" type="button" hidden>Game Review</button>
+        <button id="open-saved" type="button">Saved games</button>
+        <button id="open-finished" type="button">Finished games</button>
+        <button id="return-menu" type="button" hidden>Back</button>
         <div class="archive" id="review-import">
           <label for="archive" id="archive-label">Open a review</label>
           <input id="archive" class="visually-hidden" type="file" accept=".json,application/json">
@@ -22,6 +25,14 @@
       </div>
     </header>
     <p id="empty">Open a Chess Lab review archive to replay its moves and compare alternatives.</p>
+    <section id="match-list" class="match-list" hidden>
+      <p id="empty-list"></p>
+      <ul id="match-rows"></ul>
+      <div id="add-matches" class="setup-actions">
+        <button id="new-local" type="button">New local game</button>
+        <button id="new-ai" type="button">New AI game</button>
+      </div>
+    </section>
     <form id="ai-setup" class="panel ai-setup" hidden>
       <div class="setup-fields">
         <label><span id="side-label">Your color</span>
@@ -47,6 +58,12 @@
       <div id="match-board" class="board match-board" role="group"></div>
       <p id="match-turn" class="turn" aria-live="polite"></p>
       <p id="match-profile" class="turn" hidden></p>
+      <nav id="match-history" class="movement" aria-label="Game history" hidden>
+        <button id="match-previous" type="button" aria-label="Previous move">‹</button>
+        <output id="match-ply" aria-live="polite"></output>
+        <button id="match-next" type="button" aria-label="Next move">›</button>
+        <button id="continue-match" type="button" hidden>Continue from here</button>
+      </nav>
       <div id="promotion" class="movement" hidden>
         <label for="promote" id="promote-label">Promote to</label>
         <select id="promote"></select>
@@ -62,6 +79,17 @@
         <progress id="progress"></progress>
       </div>
     </section>
+    <dialog id="continue-dialog" aria-labelledby="continue-title">
+      <form method="dialog">
+        <h2 id="continue-title">Continue from here</h2>
+        <p id="continue-description"></p>
+        <label id="automatic-option"><input id="continue-automatic" type="checkbox" checked> <span id="automatic-label">Keep AI replies enabled</span></label>
+        <div class="setup-actions">
+          <button id="cancel-continue" type="submit" value="cancel" autofocus>Cancel</button>
+          <button id="confirm-continue" type="submit" value="continue">Continue</button>
+        </div>
+      </form>
+    </dialog>
     <div id="review" class="review" hidden>
       <section class="board-pane" aria-labelledby="position">
         <div id="board" role="img" class="board" tabindex="0" aria-describedby="board-position"></div>
