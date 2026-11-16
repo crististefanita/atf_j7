@@ -1,4 +1,5 @@
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
+import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
@@ -99,7 +100,7 @@ const board = find('board');
 const matchBoard = find('match-board');
 const status = find('status');
 const history = find('history');
-const reviewWorkspace = createReviewWorkspace(locale, (x, width) => reviewCommand('review-graph-select', { x, width }, true));
+const reviewWorkspace = createReviewWorkspace(locale, (x, width) => reviewCommand('review-graph-select', { x, width }, 'history'));
 const glyphs = { p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
 const kinds = { p: 'PAWN', n: 'KNIGHT', b: 'BISHOP', r: 'ROOK', q: 'QUEEN', k: 'KING' };
 const score = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
@@ -123,6 +124,7 @@ let view;
 let archiveReviewId;
 let reviewDismissed = false;
 let reportScrollBeforeExplanation = 0;
+let focusChange = 0;
 let match;
 let matchRoute;
 let mode = 'review';
@@ -147,6 +149,10 @@ for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions',
 find('why-actions').setAttribute('aria-label', words['review-actions']);
 find('match-history').setAttribute('aria-label', words['match-history']);
 for (const id of ['previous', 'next']) find(`match-${id}`).setAttribute('aria-label', words[id]);
+document.addEventListener('focusin', event => {
+    focusChange++;
+    if (find('review').contains(event.target)) reviewWorkspace.revealFocus(event.target);
+});
 
 const squares = buildBoard(board, false);
 const matchSquares = buildBoard(matchBoard, true);
@@ -302,6 +308,7 @@ function drawHistory(state) {
         const ply = Number(item.dataset.ply);
         const label = reviewWorkspace.moveLabel(state, ply);
         if (item.textContent !== label) item.textContent = label;
+        item.tabIndex = ply === state.ply ? 0 : -1;
         if (ply === state.ply) item.setAttribute('aria-current', 'step');
         else item.removeAttribute('aria-current');
     }
@@ -421,28 +428,42 @@ async function commit(state, source) {
     return true;
 }
 
-function action(action, ply) {
-    reviewCommand('review-action', { action, ply });
+function action(action, ply, focusIntent = 'toolbar') {
+    reviewCommand('review-action', { action, ply }, focusIntent);
 }
 
-function reviewCommand(type, fields, reveal = false) {
+function focusReview(intent, initiator) {
+    for (const candidate of reviewFocusCandidates(intent, initiator, view?.explanationOpen)) {
+        const element = candidate === 'selected-history' ? history.querySelector('[aria-current="step"]') : find(candidate);
+        if (!element || element.disabled || !element.getClientRects().length) continue;
+        reviewWorkspace.revealFocus(element);
+        if (document.activeElement !== element) element.focus({ preventScroll: true });
+        return;
+    }
+}
+
+function reviewCommand(type, fields, focusIntent) {
     if (!view) return;
+    const intent = fields.action === 'OPEN_EXPLANATION' ? 'open-why' : fields.action === 'CLOSE_EXPLANATION' ? 'close-why' : focusIntent;
+    const source = document.activeElement?.id;
+    const startFocus = focusChange;
     void exclusive(async () => {
         const archiveId = archiveReviewId;
         const response = await call(type, { ...fields, expectedRevision: view.revision, archiveId });
         if (response.outcome === 'STALE') {
             if (archiveId) await restoreMatchDurable(words.failedAction);
             else await restoreDurable(words.failedAction);
-        } else if (response.outcome === 'APPLIED' && await commitReviewAction(response, archiveId)) {
-            if (fields.action === 'OPEN_EXPLANATION') {
-                reviewWorkspace.revealExplanation();
-                find('why-title').focus({ preventScroll: true });
-            }
-            if (fields.action === 'CLOSE_EXPLANATION') find('why').focus({ preventScroll: true });
-            if (reveal) reviewWorkspace.revealSelected();
+            return;
+        }
+        if (response.outcome === 'APPLIED') {
+            if (!await commitReviewAction(response, archiveId)) return;
+            if (intent === 'open-why') reviewWorkspace.revealExplanation();
         } else if (response.outcome === 'UNAVAILABLE') {
             render();
-            if (reveal) reviewWorkspace.revealSelected();
+        } else return;
+        if (startFocus === focusChange) {
+            if (type === 'review-graph-select') reviewWorkspace.revealSelected();
+            if (document.hasFocus()) focusReview(intent, source);
         }
     }, words.failedAction);
 }
@@ -1032,9 +1053,14 @@ document.addEventListener('pointerdown', event => {
     if (!find('review-menu').hidden && !event.target.closest('#review-actions, #why-actions, #review-menu')) setReviewMenu(false);
 });
 document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && !find('review-menu').hidden) {
+    if (event.key !== 'Escape') return;
+    if (!find('review-menu').hidden) {
+        event.preventDefault();
         setReviewMenu(false);
         find(view?.explanationOpen ? 'why-actions' : 'review-actions').focus();
+    } else if (!find('review').hidden && view?.explanationOpen) {
+        event.preventDefault();
+        action('CLOSE_EXPLANATION');
     }
 });
 find('previous').addEventListener('click', () => action('PREVIOUS'));
@@ -1045,10 +1071,23 @@ find('why').addEventListener('click', () => action(view.explanationOpen ? 'CLOSE
 find('close-why').addEventListener('click', () => action('CLOSE_EXPLANATION'));
 find('played').addEventListener('click', () => action('SELECT_PLAYED'));
 find('recommended').addEventListener('click', () => action('SELECT_RECOMMENDED'));
-find('seek').addEventListener('change', event => action('SEEK', Number(event.target.value)));
+find('seek').addEventListener('change', event => {
+    if (busy || otherTabChanged || engineFailed) {
+        if (view) event.target.value = view.ply;
+    } else action('SEEK', Number(event.target.value), 'graph');
+});
 history.addEventListener('click', event => {
     const row = event.target.closest('button[data-ply]');
-    if (row) action('SEEK', Number(row.dataset.ply));
+    if (row) action('SEEK', Number(row.dataset.ply), 'history');
+});
+history.addEventListener('keydown', event => {
+    const row = event.target.closest('button[data-ply]');
+    if (!row || !view || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const from = Number(row.dataset.ply);
+    const target = historyPlyForKey(event.key, from, view.totalPlies);
+    if (target === null) return;
+    event.preventDefault();
+    if (target !== from) action('SEEK', target, 'history');
 });
 find('archive').addEventListener('change', event => {
     const file = event.target.files[0];
