@@ -253,8 +253,8 @@ public final class BoardSanity extends Instrumentation {
         if (study == null) throw new AssertionError("Home did not open the analysis board");
         waitForIdleSync();
         var board = findBoard(viewsOf(study));
-        compare("Home opens the manual board without creating a saved game", true,
-                cell(board, "e2").isEnabled() && store.matches().readMatch() == null && awaitHiddenAnalysis(study, 0));
+        compare("A move outside the first three theory paths renews the shortlist on the manual board", true,
+                cell(board, "e2").isEnabled() && store.matches().readMatch() == null && verifyTheoryRegeneration(study, board));
         var match = ChessMatch.restore("2|analysis|e2e4 e7e5 g1f3 b8c6 f1c4 a7a5");
         playMove(board, match.moveAt(1));
         boolean ready = awaitHiddenAnalysis(study, 1);
@@ -288,6 +288,26 @@ public final class BoardSanity extends Instrumentation {
         compare("Returning to the study lets the player apply the hint without saving a match", true,
                 history.getChildCount() == 7 && history.getChildAt(6).isSelected() && store.matches().readMatch() == null
                         && cell(board, "c5").getContentDescription().toString().contains(study.getString(R.string.bishop)));
+    }
+
+    private boolean verifyTheoryRegeneration(Activity study, BoardView board) {
+        if (!awaitHiddenAnalysis(study, 0)) return false;
+        var bulb = study.findViewById(R.id.match_hint);
+        tap(bulb);
+        var start = ChessMatch.restore("2|analysis|e2e4");
+        var first = revealedTheory(start, 0);
+        boolean before = first.move().equals(ro.atf.chess.ChessPosition.Move.fromUci("e2e4"))
+                && theoryShown(study, board, first, 0);
+
+        var alternative = ChessMatch.restore("2|analysis|d2d4");
+        playMove(board, alternative.moveAt(1));
+        if (!awaitHiddenAnalysis(study, 1)) return false;
+        tap(bulb);
+        var renewed = revealedTheory(alternative, 1);
+        boolean after = "D63".equals(renewed.eco()) && theoryShown(study, board, renewed, 1);
+        var history = (ViewGroup) study.findViewById(R.id.match_history_moves);
+        runOnMainSync(() -> history.getChildAt(0).performClick());
+        return before && after && awaitHiddenAnalysis(study, 0);
     }
 
     private static ro.atf.chess.MatchHint.Theory revealedTheory(ChessMatch match, int ply) {
@@ -327,8 +347,8 @@ public final class BoardSanity extends Instrumentation {
         var locale = activity.getResources().getConfiguration().getLocales().get(0);
         String family = theory.family().in(locale);
         String move = ChessActivity.compactNotation(theory.move());
-        // The fixture has three candidate paths after e4 and a single authored Italian path after Bc4.
-        String expected = ply == 1 ? activity.getString(R.string.hint_theory_numbered, 1, 3, move, family)
+        // The fixture has three paths at the start, after e4 and after d4, and one authored Italian path after Bc4.
+        String expected = ply <= 1 ? activity.getString(R.string.hint_theory_numbered, 1, 3, move, family)
                 : activity.getString(R.string.hint_theory_caption, move, family);
         TextView caption = activity.findViewById(R.id.match_analysis);
         var destination = cell(board, BoardSquare.name(theory.move().to()));

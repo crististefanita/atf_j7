@@ -43,12 +43,15 @@ final class OpeningTheory {
                         .putIfAbsent(moves, new Theory(lesson.eco(), lesson.title(), lesson.variation(), steps));
             }
         }
+        // Apply the display limit per position, after indexing every documented lesson.
         var choices = new HashMap<SearchKey, List<Theory>>();
-        authored.forEach((key, paths) -> choices.put(key, paths.values().stream().limit(MAX_PATHS).collect(Collectors.toList())));
+        authored.forEach((key, paths) -> choices.put(key, paths.values().stream().limit(MAX_PATHS)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), List::copyOf))));
         references(book).forEach((key, indexed) -> choices.computeIfAbsent(key, ignored -> indexed.entrySet().stream()
                 .sorted(Comparator.<Map.Entry<Move, Reference>>comparingInt(entry -> entry.getValue().coverage()).reversed()
                         .thenComparing(entry -> entry.getKey().uci()))
-                .limit(MAX_PATHS).map(entry -> fromIndex(entry.getValue())).collect(Collectors.toList())));
+                .limit(MAX_PATHS).map(entry -> fromIndex(entry.getValue()))
+                .collect(Collectors.collectingAndThen(Collectors.toList(), List::copyOf))));
         byPosition = Map.copyOf(choices);
     }
 

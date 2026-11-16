@@ -350,14 +350,15 @@ mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication
 `AnalysisLineTest` verifică navigarea, ramificarea, mutările speciale și exportul prefixului. Un cursor în istoric poate deschide analiza partidei sursă încheiate dacă linia întreagă îi păstrează mutările. O ramură diferită, o partidă în curs și un mat jucat manual folosesc analiza de studiu. `GameReviewTest` verifică analiza tuturor mutărilor și criteriile Elo. `MatchSlotsTest` verifică locul zece, refuzul la capacitate și respingerea răspunsurilor AI vechi. `MainMenuLayoutTest` acoperă intrarea localizată din meniu.
 
 Pentru Android folosiți `-ManualAnalysisOnly` sau `-IncludeManualAnalysis`.
-Proba deschide tabla din meniu, schimbă două trasee cu aceeași primă mutare
+Proba deschide tabla din meniu, joacă `1.d4` în afara celor trei sugestii inițiale,
+confirmă refacerea listei, apoi schimbă două trasee cu aceeași primă mutare
 și parcurge Italiana până la ultima semimutare. Verifică explicația ultimei
 mutări, revenirea cu săgeata și închiderea previzualizării la cursorul inițial.
 După ieșirea din repertoriu verifică indiciul motorului. La revenirea în istoric,
 captura arată eticheta de teorie sub tabla fixă, iar ultima aserțiune confirmă
 că mutarea indicată nu creează o partidă salvată. `OpeningTheoryTest` acoperă
 cele trei trasee, toate mutările din YAML, transpozițiile, rocada și trecerea
-de la lecții la indexul ECO și la motor. Publicați `manual-analysis.txt`
+de la lecții la indexul ECO și la motor. Verifică și ruta `1.d4 Nf6 2.c4 g6`, unde noile poziții aduc alte trei trasee, apoi unul și refac lista la revenirea în istoric. Publicați `manual-analysis.txt`
 cu `-Dtest=AndroidSanityPublication#publishManualAnalysisSanity` și
 `-Dchess.android.receipt=<cale>`. Raportul are cinci aserțiuni și o captură
 legată de recepție. Proba confirmă în PNG toate cele patru colțuri ale tablei.

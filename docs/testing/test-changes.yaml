@@ -309,11 +309,11 @@ testChanges:
     base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
     from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
     replacement: atf-tests/src/test/java/ro/atf/chess/OpeningTheoryTest.java
-    test: ro.atf.chess.OpeningTheoryTest#keepsThreeFullYamlPathsEvenWhenTheyStartWithTheSameMove
-    contract: "Prove complete YAML replay and same-first-move paths in JVM and navigate the rendered theory preview on Android"
+    test: ro.atf.chess.OpeningTheoryTest#recomputesFromAllTheoryAfterMovesOutsideTheVisiblePaths
+    contract: "Recompute paths from the full catalog after an unlisted move and exercise the rendered shortlist and full replay on Android"
     allowDelete: false
     nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
-    nativeProbe: "The manual hint marks a book move and explains its named opening"
+    nativeProbe: "A move outside the first three theory paths renews the shortlist on the manual board"
 
   - id: J7-THEORY-PATHS-COMPONENT
     base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
@@ -321,4 +321,28 @@ testChanges:
     replacement: atf-tests/src/test/java/ro/atf/chess/OpeningTheoryTest.java
     test: ro.atf.chess.OpeningTheoryTest#keepsThreeFullYamlPathsEvenWhenTheyStartWithTheSameMove
     contract: "Keep distinct full continuations even when paths start with the same move"
+    allowDelete: false
+
+  - id: J7-0151-ANDROID-VERSION
+    base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the Android patch and preserve the documented build"
+    allowDelete: false
+
+  - id: J7-0151-MAVEN-VERSION
+    base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Match the Maven reactor and documented source boundaries to the candidate"
+    allowDelete: false
+
+  - id: J7-0151-TESTS-VERSION
+    base: "86d4d35cd53cb184ec0f2e5c64cebf408c59b14c"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Match the test module to the candidate Maven parent"
     allowDelete: false

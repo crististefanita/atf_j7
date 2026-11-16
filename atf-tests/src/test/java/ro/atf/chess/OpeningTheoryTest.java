@@ -112,6 +112,44 @@ class OpeningTheoryTest {
         check.same("The completed board offers no theory or engine moves", 0, line("f2f3 e7e5 g2g4 d8h4").hint().count());
     }
 
+    @Test void recomputesFromAllTheoryAfterMovesOutsideTheVisiblePaths(Checks check) {
+        var initial = line("");
+        check.same("The initial three visible lines all start with e4", List.of("e2e4", "e2e4", "e2e4"),
+                paths(initial).stream().map(path -> path.move().uci()).toList());
+        var previousHint = initial.hint();
+        previousHint.revealNext();
+
+        var queensPawn = initial.play(Move.fromUci("d2d4"));
+        check.same("Playing d4 outside the previous shortlist produces three lines from the new position",
+                List.of("D63", "A48", "E05"), ecos(queensPawn));
+        check.same("A hint from the old board cannot open a path on the new board", true,
+                previousHint.theoryPlayback(queensPawn.position()).isEmpty());
+
+        var indian = queensPawn.play(Move.fromUci("g8f6"));
+        check.same("Nimzo-Indian can enter the next shortlist even though it was absent at d4",
+                List.of("A48", "E05", "E32"), ecos(indian));
+        var c4 = indian.play(Move.fromUci("c2c4"));
+        check.same("The next move promotes the King's Indian into the three visible lines",
+                List.of("E05", "E32", "E97"), ecos(c4));
+
+        var kingsIndian = c4.play(Move.fromUci("g7g6"));
+        var only = paths(kingsIndian);
+        check.same("A forced entry into one documented line keeps just that line",
+                List.of("E97"), only.stream().map(MatchHint.Theory::eco).toList());
+        var lesson = OpeningCatalog.load().stream().filter(opening -> opening.id().equals("kings-indian")).findFirst().orElseThrow();
+        check.same("The new hint keeps the exact suffix from the fourth ply",
+                lesson.steps().subList(4, lesson.steps().size()), only.getFirst().steps());
+        check.same("The same prior board restores its original shortlist from history", ecos(c4), ecos(kingsIndian.seek(3)));
+    }
+
+    private static List<MatchHint.Theory> paths(AnalysisLine line) {
+        var hint = line.hint();
+        hint.revealNext();
+        return hint.theoryPlayback(line.position()).orElseThrow().paths();
+    }
+
+    private static List<String> ecos(AnalysisLine line) { return paths(line).stream().map(MatchHint.Theory::eco).toList(); }
+
     private static AnalysisLine line(String moves) {
         var match = ChessMatch.restore("2|analysis|" + moves);
         return new AnalysisLine(match, match.ply());
