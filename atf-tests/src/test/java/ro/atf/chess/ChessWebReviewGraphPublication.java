@@ -136,7 +136,8 @@ class ChessWebReviewGraphPublication {
         checks.add(same(id + "marker is centered at the expected coordinate", true, width > 2 * INSET
                 && close(number(tap, "markerX"), marker)));
         verifyTouch(visit, tap, width, marker, checks);
-        checks.add(same(id + "square board remains at its original location for this viewport", true, sameBoard(baseline, tap.path("board"))));
+        checks.add(same(id + "square board stays fully visible at its original viewport location", true,
+                sameBoard(baseline, tap.path("board")) && withinViewport(tap.path("board"), visit)));
     }
 
     private static void verifyTouch(Visit visit, JsonNode tap, double width, double marker, List<AtfAssertion> checks) {
@@ -183,5 +184,11 @@ class ChessWebReviewGraphPublication {
             if (!close(first.path(index).asDouble(Double.NaN), second.path(index).asDouble(Double.NaN))) return false;
         }
         return true;
+    }
+
+    private static boolean withinViewport(JsonNode board, Visit visit) {
+        double x = board.path(0).asDouble(Double.NaN), y = board.path(1).asDouble(Double.NaN);
+        return x >= -.5 && y >= -.5 && x + board.path(2).asDouble(Double.NaN) <= visit.viewportWidth() + .5
+                && y + board.path(3).asDouble(Double.NaN) <= visit.viewportHeight() + .5;
     }
 }

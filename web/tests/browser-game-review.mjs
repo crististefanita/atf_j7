@@ -672,6 +672,7 @@ try {
         await capture('review-continued-game.png');
 
         await touch('#open-review');
+        if (await displayed('#review-close')) await touch('#review-close');
         await touch('#open-finished');
         await touch(`.match-row[data-id="${originArchiveId}"]`);
         const source = await waitActive('preserved source game', game => game.id === originArchiveId && game.readOnly);
@@ -718,11 +719,18 @@ try {
                 markerY: marker.top + marker.height / 2 - rect.top,
                 rowPly: Number(rows[0]?.dataset.ply), rowCount: rows.length, rowVisible: !!row && row.top >= Math.max(0, clip.top) - .5 &&
                     row.bottom <= Math.min(innerHeight, clip.bottom) + .5 && row.left >= clip.left - .5 && row.right <= clip.right + .5,
-                board: [board.x + scrollX, board.y + scrollY, board.width, board.height] };
+                board: [board.x, board.y, board.width, board.height] };
         })()`);
-        const alignGraph = () => evaluate("document.querySelector('#review-graph').scrollIntoView({block:'center',inline:'nearest'})");
+        const alignGraph = () => evaluate(`(() => {
+            const report = document.querySelector('#review-details');
+            const plot = document.querySelector('#review-graph').getBoundingClientRect();
+            const pane = report.getBoundingClientRect();
+            report.scrollTop += plot.top - pane.top - (pane.height - plot.height) / 2;
+        })()`);
         const within = (actual, expected) => Math.abs(actual - expected) < 1;
         const sameBoard = (first, second) => first.every((value, index) => within(value, second[index]));
+        const visibleBoard = ({board: [x, y, width, height], viewport: [screenWidth, screenHeight]}) =>
+            x >= -.5 && y >= -.5 && x + width <= screenWidth + .5 && y + height <= screenHeight + .5;
         const readSelection = ply => until(async () => {
             const geometry = await graph();
             const marker = geometry.inset + (geometry.width - 2 * geometry.inset) * ply / 185;
@@ -735,7 +743,7 @@ try {
             check(id, true, selection.fen === fen && selection.last === expected.lastMove &&
                 selection.turn === (turn === 'w' ? 'WHITE' : 'BLACK') && selection.archiveId === archiveId &&
                 geometry.plottedPly === selection.ply && geometry.rowPly === selection.ply && geometry.rowCount === 1 && geometry.rowVisible &&
-                geometry.totalPlies === 185 && geometry.inset === 2 && within(geometry.markerX, marker));
+                geometry.totalPlies === 185 && geometry.inset === 2 && within(geometry.markerX, marker) && visibleBoard(geometry));
             tapEvidence.push({ id, ply: selection.ply, fen: selection.fen, lastMove: selection.last, turn: selection.turn, touchX, ...geometry });
         }
         async function tapGraph(id, ply, edge = null) {
@@ -758,6 +766,8 @@ try {
             observed(id, selected, geometry, taps[before].x);
             return geometry;
         }
+        await until(async () => await evaluate("document.querySelector('#review').dataset.layout === 'stacked'"), 'stacked review layout');
+        const compactBefore = await graph();
         const left = await tapGraph('left-edge', 0, 'left');
         await capture('graph-left-edge.png');
         const middle = await tapGraph('middle-point', 93);
@@ -778,7 +788,7 @@ try {
         const wideBefore = await graph();
         const wideTarget = await tapGraph('wide-target', 184);
         await capture('graph-wide-target.png', wide);
-        check('board-anchored', true, [left, middle, native, right].every(position => sameBoard(opened.board, position.board)) &&
+        check('board-anchored', true, [left, middle, native, right].every(position => sameBoard(compactBefore.board, position.board)) &&
             sameBoard(wideBefore.board, wideTarget.board) && !within(wideTarget.width, native.width));
 
         await resize(viewport);
@@ -789,7 +799,7 @@ try {
         await capture('graph-reload.png');
         const ledgerSnapshot = await evaluate(`localStorage.getItem('${ledgerKey}')`);
         return { scope: 'review-graph', publicUrl, fixtureSha256: sha256(fixtureBytes), archiveId, ledgerSnapshot,
-            compactBaselineBoard: opened.board, wideBaselineBoard: wideBefore.board, tapEvidence };
+            compactBaselineBoard: compactBefore.board, wideBaselineBoard: wideBefore.board, tapEvidence };
     }
 
     await send('Page.enable');
