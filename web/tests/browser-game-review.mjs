@@ -307,8 +307,19 @@ try {
                 'English AI setup from the exact public README link');
             await touch('#open-review');
         }
+        const menu = await until(() => evaluate(`document.querySelector('#home-menu:not([hidden])') && [...document.querySelectorAll('.home-menu h2')].map(node => node.textContent)`),
+            'Android-style grouped home menu');
+        assert.deepEqual(menu, publicUrl ? ['Games', 'Study', 'Profile'] : ['Partide', 'Studiu', 'Profil']);
+        await touch('#home-name');
+        await until(() => evaluate(`document.activeElement.id === 'profile-name'`), 'profile input focus');
+        await send('Input.insertText', { text: 'Ana' });
+        await touch('#save-profile');
+        await until(() => evaluate(`document.querySelector('#home-name').textContent.endsWith(' · Ana')`), 'validated profile name');
         await touch('#open-match');
         await waitActive('fresh manual game', value => value.mode === 'LOCAL');
+        const shapes = await evaluate(`[...document.querySelectorAll('#match-board .piece[data-shape]')].map(piece => piece.dataset.shape)`);
+        assert.equal(shapes.length, 32);
+        assert.deepEqual([...new Set(shapes)].sort(), ['b', 'k', 'n', 'p', 'q', 'r']);
         const manual = await move('d2', 'd4', 1);
         assert.equal(manual.checkpoint, '1|d2d4');
         await touch('#open-review');
@@ -351,7 +362,8 @@ try {
         await touch('#open-match');
         const manualRestored = await waitActive('original manual game', value => value.mode === 'LOCAL' && value.ply === 1);
         await touch('#open-review');
-        await touch('#open-ai');
+        await touch('#open-saved');
+        await touch('.match-row[data-mode="AI"]');
         const aiRestored = await waitActive('AI game remains independently saved', value => value.mode === 'AI' && value.ply === 1);
         check('manual-independent', true, manualRestored.checkpoint === manual.checkpoint && manualRestored.fen === manual.fen &&
             aiRestored.checkpoint === replied.checkpoint);

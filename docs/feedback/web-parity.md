@@ -25,9 +25,11 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 **Criteriu de închidere.** Același caz J7 pornește din JAR-ul JVM, trece prin intrarea Android și prin motorul compilat pentru browser, apoi produce aceeași succesiune de stări și aceeași restaurare. Măsurați mărimea pachetului, pornirea la rece, timpul căutării la buget identic și întreruperea pe profil mobil înainte de alegerea pragurilor de livrare. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
 
-**Game Review · Web.** Edge expune poziția și evaluarea la grafic, mutarea din rândul selectat și revenirea la **De ce?**. Recepția verifică actualizarea arborelui de accesibilitate pentru fiecare acțiune. Confirmați vorbirea RO/EN într-o sesiune NVDA cu ieșire audio funcțională, inclusiv schimbarea unei singure semimutări și întoarcerea din explicație. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-game-review)
+**Game Review · Web.** NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului în ediția anterioară. Graficul folosește acum o singură valoare accesibilă, cu poziție și scor. Componenta acoperă actualizările repetate, iar Extent respinge o recepție Web cu descrierea duplicată. Confirmați vorbirea pe build-ul corectat în RO și EN. Păstrați focusul pe grafic între două semimutări cu scoruri diferite și verificați revenirea la declanșator după **De ce?**. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-game-review)
 
 ## WEB-02 · Adaptoare și afișaj comun
+
+**P1 · Meniul Studiu Web.** Meniul principal are aceleași grupe și etichete RO/EN ca APK-ul. Comenzile **Probleme**, **Deschideri** și **Tablă de analiză** rămân indisponibile în Web. Activați fiecare comandă după integrarea navigării și progresului ei, apoi afișați totalurile de studiu. Verificați submeniurile față de aceleași resurse Android, revenirea în meniul principal și restaurarea stării după reîncărcare. [Funcțiile Web](../../web/parity.md#contracte-și-probe)
 
 **P1 · Responsabili J7 pentru șah și J4 pentru extracțiile comune.** Componentele existente `BoardPanelLayout`, `GameReviewLayout`, `GameReviewTimeline` și `OpeningReplay` oferă punctele de plecare. Android aplică dreptunghiurile și efectele în `View` și dialoguri. Web aplică aceleași decizii în DOM/CSS, citește zona utilă și traduce clickul, atingerea și tastatura în aceleași intenții. [Ghidul tablei](../board/README.md) · [Game Review](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 

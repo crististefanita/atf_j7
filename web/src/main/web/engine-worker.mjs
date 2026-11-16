@@ -1,5 +1,5 @@
-import { analyzeRatedReview, analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, matchHistory, openLedger, openMatch, openReview,
-  archiveReviewCheckpoint, archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, playBot, playMatch, reviewAction, reviewGraphSelect,
+import { analyzeRatedReview, analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, matchHistory, normalizePlayerName, openLedger, openMatch, openReview,
+  archiveReviewCheckpoint, archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, pieceArtwork, playBot, playMatch, reviewAction, reviewGraphSelect,
   saveArchiveReview, snapshot } from "./chess-engine.mjs";
 
 let pending = Promise.resolve();
@@ -8,10 +8,12 @@ self.onmessage = ({ data }) => {
 };
 
 async function respond({ id, type, resources, archive, checkpoint, review, ledger, legacy, route, slot, archiveId, setup,
-  expectedRevision, automatic, action, move, x, width, rated = false, ply = -1 }) {
+  expectedRevision, automatic, action, move, x, width, name, rated = false, ply = -1 }) {
   try {
     if (type === "snapshot" && typeof resources === "string") {
       self.postMessage({ id, snapshot: snapshot(resources) });
+    } else if (type === "profile-name" && typeof name === "string") {
+      self.postMessage({ id, name: normalizePlayerName(name) });
     } else if (type === "review-open" && validArchive(archive)) {
       const canonical = canonicalCheckpoint(archive.checkpoint);
       const digest = await sha256(canonical);
@@ -43,7 +45,7 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       const result = JSON.parse(reviewGraphSelect(archiveId ?? null, expectedRevision, x, width));
       postReview(id, archiveId, result);
     } else if (type === "ledger-open" && optionalText(ledger) && optionalText(legacy?.local) && optionalText(legacy?.ai)) {
-      self.postMessage({ id, ...JSON.parse(openLedger(ledger ?? null, legacy?.local ?? null, legacy?.ai ?? null)) });
+      self.postMessage({ id, ...JSON.parse(openLedger(ledger ?? null, legacy?.local ?? null, legacy?.ai ?? null)), pieceArt: JSON.parse(pieceArtwork()) });
     } else if (type === "match-open" && validMatchOpen(route, slot, archiveId, setup)) {
       self.postMessage({ id, ...JSON.parse(openMatch(route ?? null, slot ?? 0, archiveId ?? null,
         setup?.mode ?? null, setup?.humanSide ?? null, setup?.level ?? null)) });

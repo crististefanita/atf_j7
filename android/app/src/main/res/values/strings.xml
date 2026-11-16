@@ -303,7 +303,7 @@
     <string name="game_review_line_next_move">Next: %1$s</string>
     <string name="game_review_selected_move">%1$s · %2$s</string>
     <string name="game_review_selected_score">Expected score · Best %1$.1f%% · Played %2$.1f%% · depth %3$d plies</string>
-    <string name="game_review_graph_selected">Evaluation by move. Selected position %1$d of %2$d, White score %3$.1f percent.</string>
+    <string name="game_review_graph_selected">Evaluation graph. Position %1$d of %2$d. White score %3$s percent.</string>
     <string name="game_review_move_row">Move %3$d of %4$d. %1$s. %2$s.</string>
     <string name="game_review_show_start">Show the starting position in the game</string>
     <string name="game_review_on_board_move">Show %1$s in the game</string>

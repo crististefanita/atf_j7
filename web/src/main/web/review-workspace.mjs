@@ -1,5 +1,5 @@
 import { revealDistance } from './review-focus.mjs';
-import { reviewGraphText, reviewPositionText } from './review-announcement.mjs';
+import { reviewGraphText, reviewPositionText, updateReviewRange } from './review-announcement.mjs';
 
 const axisInset = 2;
 const colors = { axis: '#56564c', curve: '#b8d88a', arrow: '#57e0b4', arrowOutline: '#173b31' };
@@ -236,30 +236,28 @@ export function createReviewWorkspace(locale, selectGraph) {
         return `${positionText(view)} ${words.linePosition(branch, view.step, view.lineLength)}`;
     }
 
+    function graphReady(view) {
+        return Array.isArray(view.whitePoints) && view.whitePoints.length === view.totalPlies + 1;
+    }
+
+    function graphAnnouncementText(view) {
+        const points = graphReady(view) ? view.whitePoints[view.ply] : null;
+        return reviewGraphText(locale, positionText(view), Number.isFinite(points) ? fractional.format(points / 10) : null);
+    }
+
     function render(next) {
         const moves = next.moves.join(' ');
         if (moves !== lastMoves) details.scrollTop = 0;
         lastMoves = moves;
         state = next;
-        const ready = Array.isArray(next.whitePoints) && next.whitePoints.length === next.totalPlies + 1;
+        const ready = graphReady(next);
         graph.hidden = marker.hidden = !ready;
         find('review-graph-label').hidden = !ready;
         find('review-graph-plot').toggleAttribute('data-ready', ready);
         graph.dataset.ply = marker.dataset.ply = next.ply;
         graph.dataset.total = next.totalPlies;
-        const seek = find('seek');
-        seek.disabled = next.totalPlies === 0;
-        seek.max = next.totalPlies;
-        const position = positionText(next);
-        let graphText = position;
-        if (ready) {
-            graph.dataset.whitePoints = next.whitePoints[next.ply];
-            graphText = reviewGraphText(locale, position, fractional.format(next.whitePoints[next.ply] / 10));
-        }
-        if (seek.getAttribute('aria-valuetext') !== graphText) seek.setAttribute('aria-valuetext', graphText);
-        const graphContext = find('review-graph-context');
-        if (graphContext.textContent !== graphText) graphContext.textContent = graphText;
-        seek.value = next.ply;
+        if (ready) graph.dataset.whitePoints = next.whitePoints[next.ply];
+        updateReviewRange(find('seek'), next.ply, next.totalPlies, graphAnnouncementText(next));
         const opening = find('review-opening');
         opening.hidden = !next.atEntry || !next.opening;
         opening.textContent = next.opening ? `${next.opening.name} · ${next.opening.eco}` : '';
@@ -299,7 +297,7 @@ export function createReviewWorkspace(locale, selectGraph) {
         toolbar.scrollLeft += revealDistance(viewport.left, viewport.right, selected.left, selected.right);
     }
 
-    return { render, moveLabel, positionText, announcementText, revealFocus,
+    return { render, moveLabel, positionText, announcementText, graphAnnouncementText, revealFocus,
         revealSelected: () => reveal(find('history').querySelector('[aria-current="step"]')),
         revealExplanation: () => reveal(find('why-title')) };
 }
@@ -307,16 +305,19 @@ export function createReviewWorkspace(locale, selectGraph) {
 export function showReviewPiece(element, type, art) {
     const shape = art?.[type];
     if (!shape) {
-        element.removeAttribute('data-shape');
+        if (element.dataset.shape) {
+            element.removeAttribute('data-shape');
+            element.replaceChildren();
+        }
         return false;
     }
     if (element.dataset.shape !== type) {
         const namespace = 'http://www.w3.org/2000/svg';
-        const svg = document.createElementNS(namespace, 'svg');
+        const svg = element.ownerDocument.createElementNS(namespace, 'svg');
         svg.setAttribute('viewBox', '0 0 48 48');
         svg.setAttribute('preserveAspectRatio', 'none');
         for (const [name, data, width] of [['body', shape.body, 1.35], ['details', shape.details, 1.12]]) {
-            const path = document.createElementNS(namespace, 'path');
+            const path = element.ownerDocument.createElementNS(namespace, 'path');
             path.setAttribute('d', data);
             path.setAttribute('class', `piece-${name}`);
             path.setAttribute('stroke-width', width);

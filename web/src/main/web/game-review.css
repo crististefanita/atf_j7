@@ -14,6 +14,20 @@
 [hidden] { display: none !important; }
 body { margin: 0; }
 main { margin: auto; max-width: 70rem; padding: clamp(.5rem, 2vw, 1.25rem); }
+body.home-active { background: #262522; color: #f5f3ec; }
+body.home-active main { max-width: 42rem; padding: 22px 20px 20px; }
+body.home-active h1 { font-size: 1.875rem; }
+.home-menu h2 { margin-block: 1rem .3125rem; font-size: .875rem; font-weight: normal; color: #c0bfb4; }
+.home-group { display: grid; padding: 4px; border-radius: 14px; background: #302e2a; }
+.home-group button {
+  min-width: 0; min-height: 3rem; padding: .45rem .875rem; border: 0; border-radius: 10px;
+  color: #f5f3ec; background: transparent; font-size: 1rem; text-align: start;
+}
+.home-group button.home-primary { color: #e0efca; background: #414a36; font-weight: 700; }
+.home-group button:enabled:hover { background: #414a36; }
+.home-group button:disabled { opacity: .58; }
+.home-profile { grid-template-columns: minmax(0, 1fr) auto; }
+.home-tools { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-block-start: 1rem; }
 header, .explanation-heading {
   display: flex;
   flex-wrap: wrap;
@@ -26,7 +40,7 @@ h2 { font-size: 1.1rem; margin: 0; }
 p { margin: .6rem 0; }
 .archive label { display: inline-grid; place-items: center; }
 .header-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
-#empty, #status, #evaluation { color: var(--muted); }
+#status, #evaluation { color: var(--muted); }
 .match { max-width: 42rem; margin: .9rem auto 0; }
 .ai-setup { max-width: 30rem; margin: .9rem auto 0; }
 .match-list { max-width: 42rem; margin: .9rem auto 0; }
@@ -66,15 +80,15 @@ dialog::backdrop { background: #121613a8; }
   display: grid;
   place-items: center;
   position: relative;
-  background: #ebefd2;
-  color: #394c2d;
+  background: #edf0d5;
+  color: #506638;
 }
-.square.dark { background: #789355; color: #f3f5da; }
+.square.dark { background: #769556; color: #edf0d5; }
 button.square { min-block-size: 0; padding: 0; border: 0; border-radius: 0; }
-button.square.dark { background: #789355; }
-button.square:not(.dark) { background: #ebefd2; }
-.square[data-last] { background: #c4ca59; color: #273711; }
-button.square[data-last] { background: #c4ca59; }
+button.square.dark { background: #769556; }
+button.square:not(.dark) { background: #edf0d5; }
+.square[data-last], button.square[data-last] { background: #f4ef86; }
+.square.dark[data-last], button.square.dark[data-last] { background: #bec953; }
 .square[data-cue] { box-shadow: inset 0 0 0 .16em #256155; }
 .square[data-selected] { box-shadow: inset 0 0 0 .2em #245b4d; }
 .square[data-target]::after { content: ''; position: absolute; inset: 36%; background: #103c32a0; border-radius: 50%; pointer-events: none; }
@@ -177,12 +191,12 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
 .review #board .coordinate { font-size: 2.375cqw; }
 .review #board .coordinate.rank { inset: 3% auto auto 5%; }
 .review #board .coordinate.file { inset: auto 5% 4% auto; }
-.review .piece[data-shape] { position: absolute; inset: 5% 10% auto; height: 88%; display: block; }
-.review .piece[data-shape] svg { display: block; width: 100%; height: 100%; }
-.review .piece[data-shape] .piece-body { fill: #51535a; stroke: #26272c; }
-.review .piece[data-shape] .piece-details { fill: none; stroke: #313238; }
-.review .piece.white[data-shape] .piece-body { fill: #fffef9; stroke: #414244; }
-.review .piece.white[data-shape] .piece-details { stroke: #666762; }
+.board .piece[data-shape] { position: absolute; inset: 5% 10% auto; height: 88%; display: block; }
+.board .piece[data-shape] svg { display: block; width: 100%; height: 100%; }
+.board .piece[data-shape] .piece-body { fill: #51535a; stroke: #26272c; }
+.board .piece[data-shape] .piece-details { fill: none; stroke: #313238; }
+.board .piece.white[data-shape] .piece-body { fill: #fffef9; stroke: #414244; }
+.board .piece.white[data-shape] .piece-details { stroke: #666762; }
 #review-cue { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .review-controls { position: relative; min-width: 0; }
 .review #position { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0; padding: 4px 8px 0;

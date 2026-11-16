@@ -592,3 +592,32 @@ testChanges:
     test: ro.atf.chess.GameReviewSpeechEvidenceTest#usesOnlyAudioAcceptedInTheCurrentProbeWindow
     contract: "Bind the Game Review speech report to both native locales and accepted TalkBack audio in each action window"
     allowDelete: false
+
+  - id: J7-REVIEW-SPEECH-PROBE
+    base: "df3509a36403d850f14aa7a24ec938ac6c4bab6e"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java
+    test: ro.atf.chess.GameReviewGraphLayoutTest#selectedPointKeepsThePositionAndWhiteScoreTogether
+    contract: "Keep the position and the White score verifiable offline while Android observes focus and speech"
+    allowDelete: false
+  - id: J7-REVIEW-GRAPH-SELECTION
+    base: "df3509a36403d850f14aa7a24ec938ac6c4bab6e"
+    from: atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java
+    test: ro.atf.chess.GameReviewGraphLayoutTest#selectedPointKeepsThePositionAndWhiteScoreTogether
+    contract: "Preserve graph geometry coverage and prove the same clamped point supplies the localized score"
+    allowDelete: false
+  - id: J7-REVIEW-WEB-SPEECH-PROJECTION
+    base: "df3509a36403d850f14aa7a24ec938ac6c4bab6e"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityTest.java
+    test: ro.atf.chess.ChessWebReviewAccessibilityTest#announcementPolicyRunsWithoutABrowserOrEmulator
+    contract: "Prove a single localized native range value for each committed position with mocked controls"
+    allowDelete: false
+  - id: J7-REVIEW-WEB-SPEECH-RECEIPT
+    base: "df3509a36403d850f14aa7a24ec938ac6c4bab6e"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityTest.java
+    test: ro.atf.chess.ChessWebReviewAccessibilityTest#announcementPolicyRunsWithoutABrowserOrEmulator
+    contract: "Verify single-value semantics in components while the browser publisher preserves real focus and range events"
+    allowDelete: false

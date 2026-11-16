@@ -1,5 +1,6 @@
 package ro.atf.chess;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.JSExport;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
@@ -15,6 +16,15 @@ public final class ChessWebEngine {
     public static String snapshot(String resourceNames) {
         return ChessWebParity.snapshot(resourceNames);
     }
+
+    @JSExport
+    public static String pieceArtwork() { return WebGameReview.pieceArtwork(); }
+
+    @JSExport
+    public static String normalizePlayerName(String name) { return PlayerProfile.normalize(name, ChessWebEngine::normalizeNfc); }
+
+    @JSBody(params = "name", script = "return name.normalize('NFC');")
+    private static native String normalizeNfc(String name);
 
     @JSExport
     public static String canonicalCheckpoint(String checkpoint) {

@@ -66,8 +66,8 @@ class ChessWebReviewAccessibilityPublication {
         checks.add(same("Evidence is provider data without recorded screen-reader audio", List.of(PROTOCOL, BooleanNode.FALSE),
                 List.of(evidence.path("protocol").asText(), evidence.path("spokenAudioRecorded"))));
         var visits = indexVisits(evidence.path("witnesses"), checks);
-        var left = graphDescription(review, context.earlier(), 2, publicRun);
-        var right = graphDescription(review, context.selected(), 3, publicRun);
+        var left = graphValueText(review, context.earlier(), 2, publicRun);
+        var right = graphValueText(review, context.selected(), 3, publicRun);
         verifyNavigation(visits, context, left, right, evidence.path("updates"), checks);
         verifyExplanation(visits, context, checks);
         int length = fixture.path("expected").path("recommendedLength").asInt();
@@ -98,15 +98,13 @@ class ChessWebReviewAccessibilityPublication {
         verifySlider("ArrowRight", target(visits, "graph-right", "slider"), context.slider(), right, 3, checks);
         for (var phase : List.of("graph-left", "graph-right")) {
             int ply = phase.equals("graph-left") ? 2 : 3;
-            String description = ply == 2 ? left : right;
             var matching = new ArrayList<JsonNode>();
             updates.forEach(update -> {
                 if (phase.equals(update.path("phase").asText()) && "slider".equals(update.path("target").asText())) matching.add(update);
             });
-            checks.add(same(phase + " · real AX event reports the committed value and localized description on the same focused node", true,
+            checks.add(same(phase + " · real AX event reports the committed value on the same focused node", true,
                     matching.stream().anyMatch(update -> sameNode(initial, update)
-                            && update.path("value").isNumber() && update.path("value").asInt() == ply && isFocused(update)
-                            && description.equals(update.path("description").asText()))));
+                            && update.path("value").isNumber() && update.path("value").asInt() == ply && isFocused(update))));
         }
         verifyControl("Tab reaches the selected move with its grade and position", "button", context.selected(),
                 target(visits, "selected-row", "row"), true, checks);
@@ -167,10 +165,10 @@ class ChessWebReviewAccessibilityPublication {
         return text;
     }
 
-    private static void verifySlider(String phase, JsonNode node, String name, String description, int ply, List<AtfAssertion> checks) {
+    private static void verifySlider(String phase, JsonNode node, String name, String valueText, int ply, List<AtfAssertion> checks) {
         verifyControl(phase + " · evaluation is a focused native slider", "slider", name, node, true, checks);
-        checks.add(same(phase + " · provider exposes the numerical position and localized context",
-                List.of(ply, "review-graph-context", description), List.of(node.path("value").asInt(-1),
+        checks.add(same(phase + " · the slider exposes the numerical position and one localized value",
+                List.of(ply, valueText, "", ""), List.of(node.path("value").asInt(-1), node.path("valueText").asText(),
                         node.path("properties").path("describedby").asText(), node.path("description").asText())));
     }
 
@@ -189,7 +187,7 @@ class ChessWebReviewAccessibilityPublication {
         return visits.getOrDefault(phase, com.fasterxml.jackson.databind.node.MissingNode.getInstance()).path(name);
     }
 
-    private static String graphDescription(GameReview review, String position, int ply, boolean english) {
+    private static String graphValueText(GameReview review, String position, int ply, boolean english) {
         var number = NumberFormat.getNumberInstance(Locale.forLanguageTag(english ? "en-US" : "ro-RO"));
         number.setMinimumFractionDigits(1);
         number.setMaximumFractionDigits(1);

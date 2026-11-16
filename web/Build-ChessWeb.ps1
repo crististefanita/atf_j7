@@ -59,6 +59,14 @@ $log = Join-Path $run 'teavm.log'
 if ($LASTEXITCODE -ne 0) { throw "Could not compile the TeaVM chess engine. See $log" }
 
 $webFiles = Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src/main/web') -File
-Copy-Item -LiteralPath $webFiles.FullName -Destination $site
+foreach ($file in $webFiles) {
+    $target = Join-Path $site $file.Name
+    if ($file.Extension -in '.html', '.css', '.mjs') {
+        $text = [IO.File]::ReadAllText($file.FullName).Replace([string][char]13 + [char]10, [string][char]10)
+        [IO.File]::WriteAllText($target, $text)
+    } else {
+        Copy-Item -LiteralPath $file.FullName -Destination $target
+    }
+}
 $null = New-Item -ItemType File -Path (Join-Path $site '.nojekyll')
 $site

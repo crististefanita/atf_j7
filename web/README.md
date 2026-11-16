@@ -130,6 +130,12 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewAccessibilityPublication' "
 
 Pentru proba publică, transmiteți URL-ul din README ca ultim argument și adăugați `-Dchess.web.accessibility.public=true`. Într-o probă de vorbire înregistrați cititorul, limba și mesajele efectiv trimise sintetizatorului. [Strategia de testare](../docs/testing/README.md#proba-talkback)
 
+## Meniul principal și piesele
+
+Intrarea Web grupează comenzile în aceeași ordine ca meniul Android. **Partide salvate** apare când există partide active. **Partidă nouă cu calculatorul** deschide configurarea, iar linkul direct din README deschide intrarea jocului cu AI. **Profil** validează numele prin `PlayerProfile`, iar **Setări** păstrează limba în browser. [Matricea funcțiilor](parity.md#contracte-și-probe)
+
+Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile comune din `ChessPieceArtwork`. Web primește contururile din worker și le desenează în coordonatele 48 × 48 din APK. `ChessWebShellTest` verifică ordinea și textele RO/EN față de resursele Android, persistența simulată și reutilizarea SVG. Sanity-ul Edge deschide meniul și verifică toate cele șase tipuri de piese înaintea primei mutări. [Strategia de testare](../docs/testing/README.md#partidă-și-istoric)
+
 ## Partida locală și o analiză nouă
 
 **Partidă locală** permite mutările ambelor culori și oferă alegerea piesei la promovare. Workerul validează fiecare mutare. Pagina salvează checkpointul canonic înainte de a afișa poziția rezultată. Reîncărcarea pornește un worker nou și reface istoricul, culoarea la mutare și mutările legale din checkpoint. [Matricea funcțiilor](parity.md#contracte-și-probe)

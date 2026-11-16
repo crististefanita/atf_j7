@@ -63,6 +63,11 @@ export async function createReviewAccessibilityProbe(send, socket) {
         const node = nodes.find(candidate => candidate.backendDOMNodeId === backendNodeId);
         assert.ok(node, 'Chromium did not expose AX data for ' + selector);
         const result = normalized(node);
+        if (target === 'slider') {
+            const { attributes } = await send('DOM.getAttributes', { nodeId });
+            const attribute = attributes.findIndex((name, index) => index % 2 === 0 && name === 'aria-valuetext');
+            result.valueText = attribute < 0 ? null : attributes[attribute + 1];
+        }
         if (selector === targets.announcement) {
             result.children = await textChildren(node);
         }

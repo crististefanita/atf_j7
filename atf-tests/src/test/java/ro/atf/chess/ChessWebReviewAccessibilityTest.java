@@ -29,6 +29,7 @@ class ChessWebReviewAccessibilityTest {
         runNode(check, "review-announcement.test.mjs", List.of(
                 "Move text speaks the recorded move and position in both languages",
                 "Graph text adds the White score without losing the move or cursor",
+                "A committed slider change publishes one textual value and keeps unchanged renders silent",
                 "Why text keeps the recorded move with or without a detailed reason",
                 "Focus, value and live status are mutually exclusive channels", "Slider commands clamp at the archived endpoints"));
     }

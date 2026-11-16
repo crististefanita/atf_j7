@@ -3,8 +3,14 @@ package ro.atf.chess;
 import atf.testkit.AtfComponentTest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import ro.atf.chess.ChessPosition.Move;
+import ro.atf.chess.ChessPosition.Side;
 
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
@@ -45,6 +51,27 @@ class GameReviewGraphLayoutTest {
                 GameReviewGraphLayout.xForPly(4, LONG_GAME, 3, 2));
         check.same("A collapsed graph resolves to the initial position", 0,
                 GameReviewGraphLayout.plyAtX(1.5, LONG_GAME, 3, 2));
+    }
+
+    @Test void selectedPointKeepsThePositionAndWhiteScoreTogether(Checks check) {
+        var player = new GameReview.Player(OptionalInt.empty(), Optional.empty(), 0, Map.of());
+        var played = Move.fromUci("f2f3");
+        var move = new GameReview.Turn(1, Side.WHITE, played, GameReview.Grade.MISTAKE,
+                500, 483, 17, 483, 0, List.of(), List.of(), 0);
+        var review = new GameReview(List.of(move), null, 0, 500, player, player);
+        var initial = GameReviewGraphLayout.pointForPly(review, -1);
+        var last = GameReviewGraphLayout.pointForPly(review, 4);
+        check.same("An index before the game resolves to the initial position and its White score",
+                new GameReviewGraphLayout.Point(0, 1, 500), initial);
+        check.same("An index after the game resolves to the last position and its White score",
+                new GameReviewGraphLayout.Point(1, 1, 483), last);
+        check.same("The same selected point formats a decimal in the review language", List.of("48.3", "48,3"),
+                List.of(last.whitePercent(Locale.US), last.whitePercent(Locale.forLanguageTag("ro-RO"))));
+        check.same("A whole percentage has no decimal padding", List.of("50", "50"),
+                List.of(initial.whitePercent(Locale.US), initial.whitePercent(Locale.forLanguageTag("ro-RO"))));
+        var empty = new GameReview(List.of(), null, 0, 1000, player, player);
+        check.same("An empty review retains its only score at position zero",
+                new GameReviewGraphLayout.Point(0, 0, 1000), GameReviewGraphLayout.pointForPly(empty, 1));
     }
 
     private static void verifyCenters(Checks check, int width, int inset, int lastPly) {

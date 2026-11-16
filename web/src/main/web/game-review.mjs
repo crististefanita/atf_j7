@@ -1,25 +1,20 @@
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
+import { createHomeMenu, homeLocale } from './home-menu.mjs';
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
-import { profileName, readProfile, writeProfile } from './player-profile.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
 const legacyMatchKeys = { local: 'chesslab.active-match.v1', ai: 'chesslab.ai-match.v1' };
 const routeHashes = { match: '#game', ai: '#ai', saved: '#saved', finished: '#finished' };
 const botDelayMillis = 650;
-let profile = readProfile(() => localStorage);
-const requestedLocale = new URLSearchParams(location.search).get('lang');
-const locale = requestedLocale === 'ro' || requestedLocale === 'en' ? requestedLocale : profile.language;
+const locale = homeLocale(location.search, localStorage);
 const words = {
     en: {
         title: 'Game review', 'archive-label': 'Open a review',
         'open-match': 'Local game', 'open-review': 'Game Review', 'new-match': 'New game',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
         'open-saved': 'Saved games', 'open-finished': 'Finished games', 'return-menu': 'Back',
-        'open-profile': 'Profile', 'profile-title': 'Profile', 'profile-name-label': 'Name', 'profile-language-label': 'Language',
-        'save-profile': 'Save', 'cancel-profile': 'Cancel', profileInvalid: 'Use up to 10 letters, digits, spaces, hyphens or apostrophes.',
-        profileSaveFailed: 'The browser could not save your profile.',
         'archive-review-back': 'Close', 'review-close': 'Close', 'reopen-review': 'Open analysis', openCached: 'Open analysis', reviewed: 'Analysis saved',
         'review-actions': 'Review actions', 'review-on-board': 'Show on board', 'next-key': 'Next key moment',
         bestLine: 'Show recommended line', hideLine: 'Hide recommended line', linePrevious: 'Previous line step', lineNext: 'Next line step',
@@ -40,7 +35,6 @@ const words = {
         matchFailure: 'Could not open or change the active game.', analysisFailure: 'Could not analyze the recorded moves.',
         matchSaveFailed: 'The browser could not save this move. The last saved position is still available.',
         WHITE_WINS: 'White wins', BLACK_WINS: 'Black wins', WON: 'Win', LOST: 'Loss', DRAW: 'Draw',
-        empty: 'Open a Chess Lab review archive to replay its moves and compare alternatives.',
         why: 'Why?', 'why-title': 'Why?', played: 'After move', recommended: 'Recommended',
         'history-label': 'Move history', 'seek-label': 'Select a move by position',
         movement: 'Review navigation', previous: 'Previous move', next: 'Next move',
@@ -62,9 +56,6 @@ const words = {
         'open-match': 'Partidă locală', 'open-review': 'Analiza partidei', 'new-match': 'Partidă nouă',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
         'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate', 'return-menu': 'Înapoi',
-        'open-profile': 'Profil', 'profile-title': 'Profil', 'profile-name-label': 'Nume', 'profile-language-label': 'Limbă',
-        'save-profile': 'Salvează', 'cancel-profile': 'Anulează', profileInvalid: 'Folosește cel mult 10 caractere: litere, cifre, spații, cratime sau apostrofuri.',
-        profileSaveFailed: 'Browserul nu a putut salva profilul.',
         'archive-review-back': 'Închide', 'review-close': 'Închide', 'reopen-review': 'Deschide analiza', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
         'review-actions': 'Acțiuni de analiză', 'review-on-board': 'Arată pe tablă', 'next-key': 'Moment-cheie următor',
         bestLine: 'Arată linia recomandată', hideLine: 'Ascunde linia recomandată',
@@ -86,7 +77,6 @@ const words = {
         matchFailure: 'Partida curentă nu a putut fi deschisă sau modificată.', analysisFailure: 'Mutările înregistrate nu au putut fi analizate.',
         matchSaveFailed: 'Browserul nu a salvat mutarea. Ultima poziție salvată este disponibilă.',
         WHITE_WINS: 'Albul câștigă', BLACK_WINS: 'Negrul câștigă', WON: 'Victorie', LOST: 'Înfrângere', DRAW: 'Remiză',
-        empty: 'Deschide o arhivă Chess Lab pentru a revedea mutările și a compara variantele.',
         why: 'De ce?', 'why-title': 'De ce?', played: 'După mutare', recommended: 'Recomandată',
         'history-label': 'Istoricul mutărilor', 'seek-label': 'Alege poziția din istoric',
         movement: 'Navigare în analiză', previous: 'Mutarea anterioară', next: 'Mutarea următoare',
@@ -106,6 +96,18 @@ const words = {
 }[locale];
 
 const find = id => document.getElementById(id);
+const homeMenu = createHomeMenu(find, locale, localStorage, async name => (await call('profile-name', { name })).name, (profile, fields) => {
+    if (fields !== 'name') {
+        const url = new URL(location.href);
+        if (url.searchParams.has('lang') || locale !== profile.language) {
+            url.searchParams.delete('lang');
+            if (url.href !== location.href) location.replace(url.href);
+            else location.reload();
+            return;
+        }
+    }
+    renderMatch();
+});
 const board = find('board');
 const matchBoard = find('match-board');
 const status = find('status');
@@ -126,6 +128,7 @@ let busy = false;
 let otherTabChanged = false;
 let stored = null;
 let storedLedger = null;
+let pieceArtwork;
 let ledgerReady = false;
 let savedMatches = [];
 let finishedMatches = [];
@@ -148,12 +151,11 @@ let analysis;
 
 document.documentElement.lang = locale;
 document.title = `Chess Lab · ${words.title}`;
-for (const id of ['title', 'archive-label', 'empty', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
-    'open-match', 'open-ai', 'open-review', 'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
+for (const id of ['title', 'archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
+    'open-match', 'open-review', 'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'start-ai', 'cancel-setup', 'retry-bot', 'open-saved',
     'open-finished', 'return-menu', 'new-local', 'new-ai', 'continue-match', 'continue-title', 'confirm-continue',
-    'cancel-continue', 'automatic-label', 'archive-review-back', 'continue-review', 'review-close', 'reopen-review', 'review-on-board',
-    'open-profile', 'profile-title', 'profile-name-label', 'profile-language-label', 'save-profile', 'cancel-profile']) {
+    'cancel-continue', 'automatic-label', 'archive-review-back', 'continue-review', 'review-close', 'reopen-review', 'review-on-board']) {
     find(id).textContent = words[id];
 }
 for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions', 'next-key']) find(id).setAttribute('aria-label', words[id]);
@@ -262,7 +264,7 @@ function drawBoard(target, cells, state) {
         const white = exists && token === token.toUpperCase();
         const type = token.toLowerCase();
         piece.classList.toggle('white', white);
-        if (target !== board || !showReviewPiece(piece, type, state.pieceArt)) piece.textContent = glyphs[type] ?? '';
+        if (!showReviewPiece(piece, type, state.pieceArt ?? pieceArtwork)) piece.textContent = glyphs[type] ?? '';
         const description = exists ? words.pieceAt(words.pieces[kinds[type]], white, name) : name;
         if (exists) descriptions.push(description);
         if (target === matchBoard) cell.setAttribute('aria-label', description);
@@ -345,15 +347,18 @@ function render() {
     container.hidden = !visibleReview;
     document.body.classList.toggle('review-active', visibleReview);
     document.body.classList.toggle('review-explaining', explaining);
+    const homeVisible = mode === 'review' && !visibleReview;
+    homeMenu.show(homeVisible, savedMatches);
+    document.body.classList.toggle('home-active', homeVisible);
     if (mode === 'review') {
-        for (const id of ['open-match', 'open-ai', 'open-saved', 'open-finished', 'review-import']) find(id).hidden = visibleReview;
+        find('title').textContent = homeVisible ? 'Chess Lab' : words.title;
+        document.title = homeVisible ? 'Chess Lab' : 'Chess Lab · ' + words.title;
     }
     find('review-close').hidden = !visibleReview || Boolean(archiveReviewId) || explaining;
     find('archive-review-back').hidden = !visibleReview || !archiveReviewId || explaining;
     find('close-why').hidden = !explaining;
     find('why-actions').hidden = !explaining || !archiveReviewId;
     find('reopen-review').hidden = mode !== 'review' || visibleReview || !view || Boolean(archiveReviewId);
-    find('empty').hidden = mode !== 'review' || Boolean(view);
     if (!visibleReview) return;
     find('title').textContent = explaining ? words['why-title'] : words.title;
     document.title = `Chess Lab · ${find('title').textContent}`;
@@ -465,8 +470,9 @@ function focusReview(intent, initiator) {
 
 function announceReview(intent, focus) {
     if (reviewAnnouncementChannel(intent, focus) !== 'status') return;
-    const context = intent === 'open-why' ? 'review-why-context' : intent === 'graph' ? 'review-graph-context' : null;
-    setReviewText('review-announcement', context ? find(context).textContent : reviewWorkspace.announcementText(view));
+    const text = intent === 'open-why' ? find('review-why-context').textContent
+        : intent === 'graph' ? reviewWorkspace.graphAnnouncementText(view) : reviewWorkspace.announcementText(view);
+    setReviewText('review-announcement', text);
 }
 
 function reviewCommand(type, fields, focusIntent) {
@@ -526,7 +532,7 @@ function renderMatch() {
     find('match-profile').hidden = !isAi;
     if (isAi) {
         const summary = words.aiProfile(levels[match.level], words[`${match.humanSide.toLowerCase()}-choice`]);
-        find('match-profile').textContent = profile.name ? `${profile.name} · ${summary}` : summary;
+        find('match-profile').textContent = homeMenu.name ? `${homeMenu.name} · ${summary}` : summary;
     }
     find('new-match').hidden = match.readOnly || !isAi && match.result === 'IN_PROGRESS';
     find('match-history').hidden = match.ply === 0;
@@ -609,8 +615,7 @@ function showMode(nextMode) {
     const title = { match: 'open-match', ai: 'open-ai', archive: 'open-finished', saved: 'open-saved', finished: 'open-finished' };
     find('title').textContent = words[title[mode] ?? 'title'];
     document.title = `Chess Lab · ${find('title').textContent}`;
-    for (const id of ['open-match', 'open-ai', 'open-saved', 'open-finished', 'review-import']) find(id).hidden = !main;
-    find('open-profile').hidden = !main && mode !== 'ai';
+    find('open-profile').hidden = mode !== 'ai';
     find('open-review').hidden = main || listing || mode === 'archive' || mode === 'archive-review';
     find('return-menu').hidden = !listing && mode !== 'archive';
     find('archive-review-back').hidden = mode !== 'archive-review';
@@ -663,6 +668,7 @@ function adoptMatchState(response) {
     }
     renderMatch();
     renderMatchList();
+    homeMenu.show(mode === 'review' && find('review').hidden, savedMatches);
 }
 
 async function commitMatch(response, failure = words.matchSaveFailed) {
@@ -900,7 +906,7 @@ function openMainReview() {
 }
 
 function openAiSetup() {
-    setupBackMode = listRoutes.has(mode) || mode === 'ai' ? mode : undefined;
+    setupBackMode = mode === 'review' || listRoutes.has(mode) || mode === 'ai' ? mode : undefined;
     if (matchRoute === 'ai' && match) {
         find('ai-side').value = match.humanSide;
         find('ai-level').value = match.level;
@@ -913,48 +919,7 @@ find('open-match').addEventListener('click', () => {
     void enterMatch({ route: 'LOCAL' });
 });
 find('open-ai').addEventListener('click', () => {
-    void enterMatch({ route: 'AI' });
-});
-
-const profileDialog = find('profile-dialog');
-const nameInput = find('profile-name');
-const languageInput = find('profile-language');
-const profileError = find('profile-error');
-find('open-profile').addEventListener('click', () => {
-    nameInput.value = profile.name;
-    languageInput.value = locale;
-    nameInput.setCustomValidity('');
-    profileError.hidden = true;
-    profileDialog.showModal();
-});
-nameInput.addEventListener('input', () => nameInput.setCustomValidity(''));
-find('cancel-profile').addEventListener('click', () => profileDialog.close());
-find('profile-form').addEventListener('submit', event => {
-    event.preventDefault();
-    const name = profileName(nameInput.value);
-    if (name === null) {
-        nameInput.setCustomValidity(words.profileInvalid);
-        nameInput.reportValidity();
-        return;
-    }
-    const next = { name, language: languageInput.value };
-    try {
-        writeProfile(localStorage, next);
-    } catch {
-        profileError.textContent = words.profileSaveFailed;
-        profileError.hidden = false;
-        return;
-    }
-    profile = next;
-    profileDialog.close();
-    const url = new URL(location.href);
-    if (url.searchParams.has('lang') || locale !== next.language) {
-        url.searchParams.delete('lang');
-        if (url.href !== location.href) location.replace(url.href);
-        else location.reload();
-    } else {
-        renderMatch();
-    }
+    openAiSetup();
 });
 
 find('open-review').addEventListener('click', openMainReview);
@@ -1200,6 +1165,7 @@ await exclusive(async () => {
         ? Object.fromEntries(Object.entries(legacyMatchKeys).map(([mode, key]) => [mode, localStorage.getItem(key)])) : {};
     try {
         const response = await call('ledger-open', { ledger: storedLedger, legacy });
+        pieceArtwork = response.pieceArt;
         ledgerReady = await commitMatch(response);
     } catch {
         setStatus(words.matchFailure);
@@ -1224,4 +1190,4 @@ else if (location.hash.startsWith('#review/')) await openArchiveReview(location.
 else if (location.hash.startsWith('#archive/')) {
     const id = location.hash.slice('#archive/'.length);
     await enterMatch({ archiveId: id });
-}
+} else render();

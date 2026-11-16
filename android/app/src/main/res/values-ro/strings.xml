@@ -297,7 +297,7 @@
     <string name="game_review_line_next_move">Urmează: %1$s</string>
     <string name="game_review_selected_move">%1$s · %2$s</string>
     <string name="game_review_selected_score">Scor estimat · Recomandată %1$.1f%% · Jucată %2$.1f%% · adâncime %3$d</string>
-    <string name="game_review_graph_selected">Evaluare pe mutări. Poziția selectată %1$d din %2$d, scorul albului %3$.1f la sută.</string>
+    <string name="game_review_graph_selected">Graficul evaluării. Poziția %1$d din %2$d. Scorul albului %3$s la sută.</string>
     <string name="game_review_move_row">Mutarea %3$d din %4$d. %1$s. %2$s.</string>
     <string name="game_review_show_start">Arată poziția de start în partidă</string>
     <string name="game_review_on_board_move">Arată %1$s în partidă</string>

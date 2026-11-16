@@ -195,7 +195,7 @@ public final class BoardSanity extends Instrumentation {
         focusTalkBack(R.id.game_review_graph);
         captureFrame("talkback-graph", "The localized evaluation graph takes accessibility focus",
                 image -> talkBackFrameVisible(image) && hasTalkBackFocus(R.id.game_review_graph));
-        SystemClock.sleep(8_000);
+        SystemClock.sleep(13_000);
         markTalkBack("GRAPH_END");
         markTalkBack("MOVE_BEGIN");
         focusTalkBack(R.id.game_review_selection);
@@ -204,7 +204,6 @@ public final class BoardSanity extends Instrumentation {
         SystemClock.sleep(8_000);
         markTalkBack("MOVE_END");
 
-        focusTalkBack(R.id.game_review_why);
         talkBackClick(R.id.game_review_why);
         focusTalkBack(R.id.hint_preview_return);
         markTalkBack("RETURN_BEGIN");
@@ -432,10 +431,14 @@ public final class BoardSanity extends Instrumentation {
         }
     }
 
-    private void awaitListTransition(Activity activity) throws java.util.concurrent.TimeoutException {
+    private void awaitListTransition(Activity activity) {
         waitForIdleSync();
-        getUiAutomation().waitForIdle(350, 5000);
-        if (!activity.hasWindowFocus()) throw new AssertionError("The game list transition did not transfer window focus");
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        do {
+            if (activity.hasWindowFocus()) return;
+            SystemClock.sleep(50);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("The game list transition did not transfer window focus");
     }
 
     private void captureLastGameRow(Activity list, String frame, int expectedRows) throws IOException {

@@ -130,6 +130,8 @@ final class WebGameReview {
                 + ",\"ratedMoves\":" + player.ratedMoves() + ",\"rating\":" + estimate + "}";
     }
 
+    static String pieceArtwork() { return ARTWORK; }
+
     private static String artwork() {
         var paths = new StringBuilder("{");
         for (Kind kind : Kind.values()) {

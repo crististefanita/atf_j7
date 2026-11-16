@@ -420,6 +420,8 @@ Pentru vorbire, activați **Display speech output**. La a cincea rezolvare, comp
 
 Activați TalkBack și **Explore by touch** pe emulator. Rulați fazele native `talkback-review-ro` și `talkback-review-en` din copia TMP. Fiecare folosește aceeași partidă arhivată. Focalizați graficul, apoi mutarea selectată. Intrați în **De ce?** și reveniți prin **Înapoi**. Verificați focusul pe butonul de deschidere și semimutarea salvată.
 
+Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scorul albului de 0 la sută. Proba a capturat audio și la mutarea selectată și la revenirea pe **De ce?**. `GameReviewGraphLayoutTest` verifică offline același punct al graficului și formatarea scorului. [Cititorul de ecran Web](../../web/README.md#cititorul-de-ecran-în-game-review)
+
 Pentru auditul vorbirii, rulați `TalkBackPublication#publishGameReviewTalkBack` cu `-Dchess.talkback.review` către directorul `run-<id>`. Pentru fiecare limbă, păstrați în același director recepția nativă, metadatele execuției și cele trei capturi. Jurnalul comun `talkback.log` conține limitele acțiunilor `J7ReviewProbe` și recepțiile `J7ReviewSpeech` cu text și audio PCM acceptat de observator pentru procesul TalkBack. Extent verifică identitatea, digesturile și anunțurile în fiecare interval. [Proba Web](../../web/README.md#cititorul-de-ecran-în-game-review)
 
 [Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)

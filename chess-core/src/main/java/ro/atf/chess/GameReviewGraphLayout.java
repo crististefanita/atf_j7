@@ -1,8 +1,26 @@
 package ro.atf.chess;
 
-/** Horizontal projection shared by the evaluation curve and touch selection. */
+import java.text.NumberFormat;
+import java.util.Locale;
+
+/** Evaluation points shared by the graph, its touch targets and their descriptions. */
 public final class GameReviewGraphLayout {
     private GameReviewGraphLayout() { }
+
+    public record Point(int ply, int lastPly, int whitePoints) {
+        public String whitePercent(Locale locale) {
+            var percent = NumberFormat.getNumberInstance(locale);
+            percent.setMaximumFractionDigits(1);
+            return percent.format(whitePoints / 10.0);
+        }
+    }
+
+    public static Point pointForPly(GameReview review, int ply) {
+        int lastPly = review.turns().size();
+        int selected = clampPly(ply, lastPly);
+        int whitePoints = selected == 0 ? review.initialWhitePoints() : review.turns().get(selected - 1).whitePoints();
+        return new Point(selected, lastPly, whitePoints);
+    }
 
     public static double xForPly(int ply, int lastPly, double width, double inset) {
         double span = width - 2 * inset;

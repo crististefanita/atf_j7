@@ -672,7 +672,8 @@ final class GameReviewDialog {
         private final GameReview result;
         private final IntConsumer select;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private int selected;
+        private GameReviewGraphLayout.Point selected;
+        private int tappedPly = -1;
 
         private EvaluationGraph(GameReview result, IntConsumer select) {
             super(context);
@@ -686,10 +687,20 @@ final class GameReviewDialog {
         }
 
         private void select(int ply) {
-            selected = Math.max(0, Math.min(result.turns().size(), ply));
-            int whitePoints = selected == 0 ? result.initialWhitePoints() : result.turns().get(selected - 1).whitePoints();
-            setContentDescription(context.getString(R.string.game_review_graph_selected, selected, result.turns().size(), whitePoints / 10.0));
+            var point = GameReviewGraphLayout.pointForPly(result, ply);
+            if (point.equals(selected)) return;
+            selected = point;
+            var locale = getResources().getConfiguration().getLocales().get(0);
+            setContentDescription(context.getString(R.string.game_review_graph_selected,
+                    point.ply(), point.lastPly(), point.whitePercent(locale)));
             invalidate();
+        }
+
+        @Override public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+            super.onInitializeAccessibilityNodeInfo(info);
+            // The Previous and Next controls expose graph navigation to screen readers.
+            info.setClickable(false);
+            info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
         }
 
         @Override protected void onDraw(Canvas canvas) {
@@ -718,9 +729,8 @@ final class GameReviewDialog {
                 x = nextX;
                 y = nextY;
             }
-            float selectedX = (float) GameReviewGraphLayout.xForPly(selected, count, width, inset);
-            float selectedY = inset + height * (1 - (selected == 0 ? result.initialWhitePoints()
-                    : result.turns().get(selected - 1).whitePoints()) / 1000f);
+            float selectedX = (float) GameReviewGraphLayout.xForPly(selected.ply(), count, width, inset);
+            float selectedY = inset + height * (1 - selected.whitePoints() / 1000f);
             paint.setColor(PRIMARY);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(dp(2));
@@ -730,7 +740,7 @@ final class GameReviewDialog {
 
         @Override public boolean onTouchEvent(MotionEvent event) {
             if (isClickable() && event.getActionMasked() == MotionEvent.ACTION_UP && getWidth() > 0) {
-                selected = GameReviewGraphLayout.plyAtX(event.getX(), result.turns().size(), getWidth(), dp(2));
+                tappedPly = GameReviewGraphLayout.plyAtX(event.getX(), result.turns().size(), getWidth(), dp(2));
             }
             return super.onTouchEvent(event);
         }
@@ -738,7 +748,9 @@ final class GameReviewDialog {
         @Override public boolean performClick() {
             super.performClick();
             if (result.turns().isEmpty()) return false;
-            select.accept(selected);
+            int ply = tappedPly < 0 ? selected.ply() : tappedPly;
+            tappedPly = -1;
+            select.accept(ply);
             return true;
         }
     }

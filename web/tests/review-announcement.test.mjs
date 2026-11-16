@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { reviewAnnouncementChannel, reviewGraphText, reviewPositionText, reviewWhyText, sliderPlyForKey } from '../src/main/web/review-announcement.mjs';
+import { reviewAnnouncementChannel, reviewGraphText, reviewPositionText, reviewWhyText,
+    sliderPlyForKey, updateReviewRange } from '../src/main/web/review-announcement.mjs';
 
 test('Move text speaks the recorded move and position in both languages', () => {
     const ro = reviewPositionText('ro', '2. g2 → g4 · Greșeală gravă', 3, 4);
@@ -19,6 +20,29 @@ test('Graph text adds the White score without losing the move or cursor', () => 
     assert.ok(english.includes(en));
     assert.match(romanian, /albului.*51,8/i);
     assert.match(english, /White.*51\.8/i);
+    assert.match(reviewGraphText('en', en, '0.0'), /White score 0\.0 percent\./);
+    assert.equal(reviewGraphText('ro', ro, null), ro);
+});
+
+test('A committed slider change publishes one textual value and keeps unchanged renders silent', () => {
+    const writes = [];
+    let value = '3';
+    let announcement = 'Position 3 of 4. White score 0.0 percent.';
+    const slider = {
+        max: '4', disabled: false,
+        get value() { return value; },
+        set value(next) { writes.push(['value', next]); value = next; },
+        getAttribute(name) { return name === 'aria-valuetext' ? announcement : null; },
+        setAttribute(name, next) { writes.push([name, next]); announcement = next; }
+    };
+    updateReviewRange(slider, 3, 4, announcement);
+    assert.deepEqual(writes, []);
+    const next = 'Position 2 of 4. White score 40.5 percent.';
+    updateReviewRange(slider, 2, 4, next);
+    updateReviewRange(slider, 2, 4, next);
+    assert.deepEqual(writes, [['aria-valuetext', next], ['value', '2']]);
+    updateReviewRange(slider, 0, 0, 'Starting position.');
+    assert.deepEqual([slider.max, slider.value, slider.disabled, announcement], ['0', '0', true, 'Starting position.']);
 });
 
 test('Why text keeps the recorded move with or without a detailed reason', () => {
