@@ -1,4 +1,6 @@
 release/*/reports/*.html -text
+# Keep the receipt bytes bound by qualification.json across checkout settings.
+release/*/reports/test-change-review-execution.json -text
 
 # Published POM bytes must match their producer hash and the copy inside the JAR.
 lib/*.pom -text
