@@ -926,7 +926,7 @@ public final class BoardSanity extends Instrumentation {
         var list = openMatchList(activity, R.id.match_archive);
         chooseListEntry(list, 0);
         awaitListTransition(activity);
-        tap(activity.findViewById(R.id.match_status));
+        clickReviewIcon(R.id.match_status);
         if (reviewNode(R.id.game_review_board, 4500) == null) throw new AssertionError("The archived review did not open");
         return activity;
     }

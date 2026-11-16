@@ -370,7 +370,7 @@ fazei de joc din directorul părinte. [Utilizare](../board/README.md#tablă-de-a
 
 ## Redare comună pe ecran compact
 
-Rulați `scripts/run-android-sanity.ps1 -Distribution -ReplayCompactOnly -SourceCommit <sha>` după build-ul semnat în TMP. Proba configurează profilul portret 720 × 1280, 320 dpi, font 1,3×, pornește aplicația în română și apoi în engleză și restaurează profilul emulatorului la final.
+Rulați `scripts/run-android-sanity.ps1 -Distribution -ReplayCompactOnly -SourceCommit <sha>` după build-ul semnat în TMP. Proba configurează profilul portret 720 × 1280, 320 dpi, font 1,3×, pornește aplicația în română și apoi în engleză, cu date de test independente, și restaurează profilul emulatorului la final.
 
 În fiecare limbă, deschide un traseu din Teoria deschiderilor și ambele variante din **De ce?**, urmărește comenzile și textul, derulează explicația și revine la poziția de pornire. Verifică dreptunghiul tablei și al săgeților la schimbarea variantei și a pasului. Testele JVM păstrează acoperirea geometriei și a cursorului fără emulator.
 
