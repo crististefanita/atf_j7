@@ -56,7 +56,7 @@ Proba Edge calculează două analize distincte cu workerul real și verifică am
 
 ```powershell
 node ./web/tests/browser-game-review.mjs $site --archives $evidence $edge
-$receipt = Join-Path $evidence 'web-receipt.json'
+$receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveReviewsPublication' "-Dchess.web.bundle=$site" "-Dchess.web.archive.reviews.receipt=$receipt"
 ```
 
