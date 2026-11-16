@@ -1,0 +1,127 @@
+.quest-study {
+  width: min(100%, 38rem);
+  margin-inline: auto;
+  padding: clamp(.5rem, 2vw, 1rem);
+  color: var(--foreground, #f5f3ec);
+}
+.quest-study #quest-study-menu,
+.quest-study #quest-study-game {
+  margin-inline: auto;
+  max-width: 35rem;
+}
+.quest-study #quest-study-menu {
+  text-align: center;
+}
+.quest-study #quest-study-chapters {
+  display: grid;
+  gap: .4rem;
+  margin-block: 1rem;
+}
+.quest-study #quest-study-chapters div {
+  padding: .2rem .65rem;
+  border-radius: .65rem;
+  background: var(--surface, #302e2a);
+}
+.quest-study #quest-study-chapters button {
+  display: block;
+  width: 100%;
+  text-align: start;
+  border: 0;
+  background: transparent;
+}
+.quest-study #quest-study-chapters p {
+  margin: 0 .7rem .4rem;
+  text-align: start;
+  font-size: .85rem;
+}
+.quest-study #quest-study-series,
+.quest-study #quest-study-total {
+  color: #b8d88a;
+}
+.quest-study .quest-study-head {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  min-height: 3rem;
+  gap: .6rem;
+}
+.quest-study .quest-study-head h2 {
+  margin: 0;
+  font-size: clamp(1rem, 3vw, 1.3rem);
+}
+.quest-study details > summary {
+  display: block;
+  cursor: pointer;
+  font-size: .85rem;
+  padding: .5rem .6rem;
+}
+.quest-study details > div {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  display: grid;
+  gap: .2rem;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  padding: .35rem;
+  background: var(--surface, #302e2a);
+  border-radius: .55rem;
+}
+.quest-study .quest-study-score,
+.quest-study .quest-study-dialog-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .5rem;
+}
+.quest-study .quest-study-score {
+  font-size: .85rem;
+}
+.quest-study progress {
+  display: block;
+  width: 100%;
+  height: .45rem;
+  margin-block: .35rem;
+  accent-color: #b8d88a;
+}
+.quest-study #quest-study-turn,
+.quest-study #quest-study-status {
+  margin-block: .4rem;
+  min-height: 1.2em;
+}
+.quest-study .quest-study-board {
+  width: 100%;
+  margin-inline: auto;
+}
+.quest-study .quest-study-actions {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: .6rem;
+}
+.quest-study button {
+  min-height: 2.75rem;
+}
+.quest-study dialog {
+  width: min(39rem, calc(100% - 1rem));
+  max-height: calc(100% - 1rem);
+  max-height: calc(100dvh - 1rem);
+  overflow: auto;
+}
+.quest-study .quest-study-dialog {
+  margin: 0;
+}
+.quest-study #quest-study-explain-text {
+  white-space: pre-line;
+}
+.quest-study #quest-study-promote-choices,
+.quest-study #quest-study-lesson-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-block: .5rem;
+}
+.quest-study #quest-study-error {
+  color: #ffb99d;
+}

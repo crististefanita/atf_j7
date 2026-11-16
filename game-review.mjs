@@ -1,18 +1,28 @@
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
-import { createHomeMenu, homeLocale } from './home-menu.mjs';
+import { createHomeMenu, homeLabels, homeLocale } from './home-menu.mjs';
+import { bindBoardSelection, boardPlacement, studyMarkers } from './study-board.mjs';
+import { createQuestStudy } from './study-quests.mjs';
+import { createOpeningStudy } from './study-openings.mjs';
+import { createAnalysisStudy } from './study-analysis.mjs';
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
 const legacyMatchKeys = { local: 'chesslab.active-match.v1', ai: 'chesslab.ai-match.v1' };
-const routeHashes = { match: '#game', ai: '#ai', saved: '#saved', finished: '#finished' };
+const routeHashes = { match: '#game', ai: '#ai', saved: '#saved', finished: '#finished',
+    quests: '#puzzles', openings: '#openings', analysis: '#analysis' };
+const studyRoutes = {
+    quests: ['home-puzzles', createQuestStudy],
+    openings: ['home-openings', createOpeningStudy],
+    analysis: ['home-analysis', createAnalysisStudy],
+};
 const botDelayMillis = 650;
 const locale = homeLocale(location.search, localStorage);
 const words = {
     en: {
         title: 'Game review', 'archive-label': 'Open a review',
-        'open-match': 'Local game', 'open-review': 'Game Review', 'new-match': 'New game',
+        'open-match': 'Local game', 'open-review': 'Main menu', 'new-match': 'New game',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
         'open-saved': 'Saved games', 'open-finished': 'Finished games', 'return-menu': 'Back',
         'archive-review-back': 'Close', 'review-close': 'Close', 'reopen-review': 'Open analysis', openCached: 'Open analysis', reviewed: 'Analysis saved',
@@ -53,7 +63,7 @@ const words = {
     },
     ro: {
         title: 'Analiza partidei', 'archive-label': 'Deschide o analiză',
-        'open-match': 'Partidă locală', 'open-review': 'Analiza partidei', 'new-match': 'Partidă nouă',
+        'open-match': 'Partidă locală', 'open-review': 'Meniu principal', 'new-match': 'Partidă nouă',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
         'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate', 'return-menu': 'Înapoi',
         'archive-review-back': 'Închide', 'review-close': 'Închide', 'reopen-review': 'Deschide analiza', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
@@ -148,6 +158,20 @@ let failedBotRevision;
 let selectedSquare;
 let promotionMoves = [];
 let analysis;
+let studyAnalysis;
+let studyReviewOpening = false;
+let studyReturn;
+let studyGeneration = 0;
+let studyTotalsDirty = true;
+const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, [, create]]) => {
+    const root = find('study-' + route);
+    return [route, create({
+        root, locale, home: leaveStudy, board: createStudyBoard,
+        openReview: openStudyReview, continueGame: continueStudyGame,
+        call: async (action, { value = '', index = 0, saved = '', option = '' } = {}) =>
+            (await call('study', { feature: route, action, value, index, saved, option, locale })).study,
+    })];
+}));
 
 document.documentElement.lang = locale;
 document.title = `Chess Lab · ${words.title}`;
@@ -161,6 +185,9 @@ for (const id of ['title', 'archive-label', 'why', 'why-title', 'played', 'recom
 for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions', 'next-key']) find(id).setAttribute('aria-label', words[id]);
 find('why-actions').setAttribute('aria-label', words['review-actions']);
 find('match-history').setAttribute('aria-label', words['match-history']);
+find('study-progress-label').textContent = words['progress-label'];
+find('cancel-study-analysis').textContent = words['cancel-analysis'];
+find('cancel-study-analysis').addEventListener('click', () => studyAnalysis?.cancel());
 for (const id of ['previous', 'next']) find(`match-${id}`).setAttribute('aria-label', words[id]);
 document.addEventListener('focusin', event => {
     focusChange++;
@@ -241,14 +268,13 @@ function orientBoard(target, cells, blackBelow) {
         cell.querySelectorAll('.coordinate').forEach(label => label.remove());
         if (index % 8 === 0) cell.append(coordinate('rank', cell.dataset.square[1]));
         if (index >= 56) cell.append(coordinate('file', cell.dataset.square[0]));
-        if (target === matchBoard) cell.tabIndex = cell.dataset.square === (blackBelow ? 'e7' : 'e2') ? 0 : -1;
+        if (cell.tagName === 'BUTTON') cell.tabIndex = cell.dataset.square === (blackBelow ? 'e7' : 'e2') ? 0 : -1;
     });
     target.replaceChildren(...order);
 }
 
 function drawBoard(target, cells, state) {
-    const placement = state.fen.split(' ')[0].split('/').join('').replace(/[1-8]/g, count => ' '.repeat(Number(count)));
-    if (placement.length !== 64) throw new Error('Invalid board placement');
+    const placement = boardPlacement(state.fen);
     target.dataset.fen = state.fen;
     target.dataset.lastMove = state.lastMove ?? '';
     target.dataset.turn = state.sideToMove;
@@ -267,7 +293,7 @@ function drawBoard(target, cells, state) {
         if (!showReviewPiece(piece, type, state.pieceArt ?? pieceArtwork)) piece.textContent = glyphs[type] ?? '';
         const description = exists ? words.pieceAt(words.pieces[kinds[type]], white, name) : name;
         if (exists) descriptions.push(description);
-        if (target === matchBoard) cell.setAttribute('aria-label', description);
+        if (cell.tagName === 'BUTTON') cell.setAttribute('aria-label', description);
     }
     const turn = words[state.sideToMove];
     target.setAttribute('aria-label', `${words.board} · ${turn}`);
@@ -275,6 +301,28 @@ function drawBoard(target, cells, state) {
         find('board-position').textContent = descriptions.join(', ');
         find('turn').textContent = turn;
     }
+}
+
+function createStudyBoard(host, onSquare) {
+    host.classList.add('board', 'study-board');
+    host.setAttribute('role', 'group');
+    const cells = buildBoard(host, true);
+    bindBoardSelection(host, onSquare);
+    return { render(state) {
+        const targets = new Set(state.targets ?? []);
+        const marks = studyMarkers(state.marks ?? []);
+        orientBoard(host, cells, state.blackBelow === true);
+        drawBoard(host, cells, { ...state, fen: state.board ?? state.fen });
+        for (const [square, { cell }] of cells) {
+            const selected = square === state.selected;
+            cell.toggleAttribute('data-selected', selected);
+            cell.toggleAttribute('data-target', targets.has(square));
+            cell.toggleAttribute('data-study-hint', marks.get(square) === 'hint');
+            cell.toggleAttribute('data-study-danger', marks.get(square) === 'danger');
+            cell.setAttribute('aria-pressed', String(selected));
+            cell.setAttribute('aria-disabled', String(state.locked === true));
+        }
+    } };
 }
 
 function drawExplanation(state) {
@@ -340,7 +388,9 @@ function setReviewText(id, text) {
 
 function render() {
     const container = find('review');
-    const visibleReview = Boolean(view && (archiveReviewId ? mode === 'archive-review' : mode === 'review' && !reviewDismissed));
+    const visibleReview = Boolean(view && (mode === 'study-review'
+        || (archiveReviewId ? mode === 'archive-review' : mode === 'review' && !reviewDismissed)));
+    const analysisReview = mode === 'study-review' && studyReturn?.route === 'analysis';
     const wasExplaining = document.body.classList.contains('review-explaining');
     const explaining = visibleReview && view.explanationOpen;
     if (explaining && !wasExplaining) reportScrollBeforeExplanation = find('review-details').scrollTop;
@@ -349,6 +399,7 @@ function render() {
     document.body.classList.toggle('review-explaining', explaining);
     const homeVisible = mode === 'review' && !visibleReview;
     homeMenu.show(homeVisible, savedMatches);
+    if (homeVisible) refreshStudyTotals();
     document.body.classList.toggle('home-active', homeVisible);
     if (mode === 'review') {
         find('title').textContent = homeVisible ? 'Chess Lab' : words.title;
@@ -357,7 +408,7 @@ function render() {
     find('review-close').hidden = !visibleReview || Boolean(archiveReviewId) || explaining;
     find('archive-review-back').hidden = !visibleReview || !archiveReviewId || explaining;
     find('close-why').hidden = !explaining;
-    find('why-actions').hidden = !explaining || !archiveReviewId;
+    find('why-actions').hidden = !explaining || (!archiveReviewId && !analysisReview);
     find('reopen-review').hidden = mode !== 'review' || visibleReview || !view || Boolean(archiveReviewId);
     if (!visibleReview) return;
     find('title').textContent = explaining ? words['why-title'] : words.title;
@@ -379,8 +430,8 @@ function render() {
     find('best-line').setAttribute('aria-pressed', recommended);
     find('best-line').setAttribute('aria-label', recommended ? words.hideLine : words.bestLine);
     find('next-key').disabled = !view.nextKey;
-    find('review-actions').hidden = !archiveReviewId;
-    find('continue-review').hidden = !archiveReviewId || !view.canContinue;
+    find('review-actions').hidden = !archiveReviewId && !analysisReview;
+    find('continue-review').hidden = analysisReview ? !view.canContinueStudy : !archiveReviewId || !view.canContinue;
     drawExplanation(view);
     drawHistory(view);
     reviewWorkspace.render(view);
@@ -482,9 +533,11 @@ function reviewCommand(type, fields, focusIntent) {
     const startFocus = focusChange;
     void exclusive(async () => {
         const archiveId = archiveReviewId;
-        const response = await call(type, { ...fields, expectedRevision: view.revision, archiveId });
+        const studyReview = mode === 'study-review';
+        const response = await call(type, { ...fields, expectedRevision: view.revision, archiveId, studyReview });
         if (response.outcome === 'STALE') {
-            if (archiveId) await restoreMatchDurable(words.failedAction);
+            if (studyReview) setStatus(words.failedAction);
+            else if (archiveId) await restoreMatchDurable(words.failedAction);
             else await restoreDurable(words.failedAction);
             return;
         }
@@ -505,6 +558,11 @@ function reviewCommand(type, fields, focusIntent) {
 }
 
 function commitReviewAction(response, archiveId) {
+    if (mode === 'study-review') {
+        view = response.view;
+        render();
+        return true;
+    }
     return archiveId ? commitArchiveReview(response, archiveId) : commit(response.view, archive);
 }
 
@@ -604,23 +662,32 @@ function renderMatchList() {
 }
 
 function showMode(nextMode) {
-    if (nextMode !== mode) cancelAnalysis();
+    if (nextMode !== mode) {
+        cancelAnalysis();
+        studyAnalysis?.cancel();
+        studyPanels[mode]?.close?.();
+        studyGeneration++;
+    }
     setReviewMenu(false);
     mode = nextMode;
     const hash = mode === 'archive-review' ? `#review/${encodeURIComponent(archiveReviewId)}`
-        : mode === 'archive' ? `#archive/${encodeURIComponent(match.archiveId)}` : routeHashes[mode];
+        : mode === 'archive' ? `#archive/${encodeURIComponent(match.archiveId)}`
+        : mode === 'study-review' ? routeHashes[studyReturn.route] : routeHashes[mode];
     window.history.replaceState(null, '', hash ?? (location.pathname + location.search));
     const main = mode === 'review';
     const listing = listRoutes.has(mode);
     const title = { match: 'open-match', ai: 'open-ai', archive: 'open-finished', saved: 'open-saved', finished: 'open-finished' };
-    find('title').textContent = words[title[mode] ?? 'title'];
+    const studying = Object.hasOwn(studyPanels, mode);
+    find('title').textContent = studying ? homeLabels[locale][studyRoutes[mode][0]] : words[title[mode] ?? 'title'];
     document.title = `Chess Lab · ${find('title').textContent}`;
     find('open-profile').hidden = mode !== 'ai';
-    find('open-review').hidden = main || listing || mode === 'archive' || mode === 'archive-review';
+    find('open-review').hidden = main || listing || studying || mode === 'study-review' || mode === 'archive' || mode === 'archive-review';
     find('return-menu').hidden = !listing && mode !== 'archive';
     find('archive-review-back').hidden = mode !== 'archive-review';
     find('ai-setup').hidden = mode !== 'ai' || !setupVisible;
     find('cancel-setup').hidden = !setupBackMode;
+    document.body.classList.toggle('study-active', studying);
+    for (const route of Object.keys(studyPanels)) find('study-' + route).hidden = route !== mode;
     renderMatch();
     renderMatchList();
     render();
@@ -893,6 +960,7 @@ function runReviewAnalysis(snapshot, openComputedReview, rated = false) {
 function openMainReview() {
     if (busy) return;
     setupVisible = false;
+    reviewDismissed = true;
     if (!archiveReviewId) {
         showMode('review');
         return;
@@ -915,6 +983,124 @@ function openAiSetup() {
     showMode('ai');
 }
 
+function refreshStudyTotals() {
+    if (!studyTotalsDirty || !studyPanels.quests.summary) return;
+    studyTotalsDirty = false;
+    const totals = find('home-study-totals');
+    const generation = studyGeneration;
+    Promise.resolve().then(() => studyPanels.quests.summary()).then(text => {
+        if (generation !== studyGeneration) return;
+        totals.textContent = text ?? '';
+        totals.hidden = !text;
+    }).catch(() => { if (generation === studyGeneration) totals.hidden = true; });
+}
+
+async function openStudy(route, resume = false) {
+    showMode(route);
+    setStatus('');
+    try {
+        await studyPanels[route].open(route === 'quests' ? { resume } : undefined);
+    } catch {
+        if (mode === route) setStatus(words.failedAction);
+    }
+}
+
+function leaveStudy() {
+    const route = mode;
+    studyTotalsDirty = true;
+    reviewDismissed = true;
+    showMode('review');
+    if (studyRoutes[route]) find(studyRoutes[route][0]).focus();
+}
+
+function computeStudyReview(checkpoint) {
+    const job = new Worker(new URL('./engine-worker.mjs', import.meta.url), { type: 'module' });
+    const id = String(++serial);
+    const progress = find('study-progress');
+    progress.removeAttribute('value');
+    find('study-review-progress').hidden = false;
+    return new Promise((resolve, reject) => {
+        const finish = (error, archive) => {
+            if (studyAnalysis?.job !== job) return;
+            studyAnalysis = undefined;
+            find('study-review-progress').hidden = true;
+            job.terminate();
+            if (error) reject(error);
+            else resolve(archive);
+        };
+        studyAnalysis = { job, cancel: () => finish() };
+        job.addEventListener('error', () => finish(new Error(words.analysisFailure)));
+        job.addEventListener('messageerror', () => finish(new Error(words.analysisFailure)));
+        job.addEventListener('message', ({ data }) => {
+            if (data.id !== id || studyAnalysis?.job !== job) return;
+            if (data.error) finish(new Error(words.analysisFailure));
+            else if (Number.isInteger(data.progress) && Number.isInteger(data.total) && data.total > 0) {
+                progress.max = data.total;
+                progress.value = data.progress;
+            } else finish(null, data.archive);
+        });
+        job.postMessage({ id, type: 'review-analyze', checkpoint });
+    });
+}
+
+async function openStudyReview(checkpoint, blackBelow, selectPly = -1) {
+    if (!Object.hasOwn(studyPanels, mode) || studyReviewOpening || busy || engineFailed) return false;
+    studyReviewOpening = true;
+    const route = mode;
+    const generation = studyGeneration;
+    const opener = document.activeElement;
+    try {
+        const result = await computeStudyReview(checkpoint);
+        if (!result || generation !== studyGeneration) return false;
+        const source = normalizeArchive(result);
+        if (source.checkpoint !== checkpoint) throw new Error('Analysis checkpoint differs from the study');
+        const response = await call('study-review-open', { archive: source, blackBelow, ply: selectPly });
+        if (generation !== studyGeneration) return false;
+        studyReturn = { route, opener, view, archiveReviewId, reviewDismissed };
+        view = response.view;
+        archiveReviewId = undefined;
+        showMode('study-review');
+        revealRestoredReview(view);
+        find('review-close').focus({ preventScroll: true });
+        return true;
+    } catch {
+        if (generation === studyGeneration) setStatus(words.analysisFailure);
+        return false;
+    } finally {
+        studyReviewOpening = false;
+    }
+}
+
+async function closeStudyReview() {
+    const previous = studyReturn;
+    studyReturn = undefined;
+    view = previous.view;
+    archiveReviewId = previous.archiveReviewId;
+    reviewDismissed = previous.reviewDismissed;
+    await openStudy(previous.route);
+    if (mode === previous.route && previous.opener?.isConnected) previous.opener.focus({ preventScroll: true });
+}
+
+async function continueStudyGame(checkpoint, automatic, blackBelow) {
+    if (!Object.hasOwn(studyPanels, mode) || !ledgerReady) return false;
+    let continued = false;
+    await exclusive(async () => {
+        const response = await call('study-match-continue', { checkpoint, automatic, blackBelow });
+        if (response.outcome === 'NO_FREE_SLOT') setStatus(words.noFreeSlot);
+        else if (response.outcome === 'SAVE_FAILED') setStatus(words.matchSaveFailed);
+        else if (response.outcome === 'APPLIED' && await commitMatch(response)) {
+            setupVisible = false;
+            showMode(matchRoute);
+            continued = true;
+        }
+    }, words.matchFailure);
+    return continued;
+}
+
+for (const [route, [id]] of Object.entries(studyRoutes)) {
+    find(id).addEventListener('click', () => { if (!busy) void openStudy(route); });
+}
+
 find('open-match').addEventListener('click', () => {
     void enterMatch({ route: 'LOCAL' });
 });
@@ -935,6 +1121,10 @@ find('archive-review-back').addEventListener('click', () => {
 });
 find('review-close').addEventListener('click', () => {
     if (busy) return;
+    if (mode === 'study-review') {
+        void closeStudyReview();
+        return;
+    }
     reviewDismissed = true;
     showMode('review');
 });
@@ -1008,6 +1198,12 @@ find('continue-match').addEventListener('click', () => {
         usesAi: match.mode === 'AI', automatic: match.automatic !== false });
 });
 find('continue-review').addEventListener('click', () => {
+    if (mode === 'study-review' && studyReturn?.route === 'analysis' && view?.canContinueStudy && !busy) {
+        const ply = view.ply;
+        setReviewMenu(false);
+        void closeStudyReview().then(() => mode === 'analysis' ? studyPanels.analysis.continueAt(ply) : null);
+        return;
+    }
     if (mode !== 'archive-review' || !archiveReviewId || !view?.canContinue || busy) return;
     setReviewMenu(false);
     const usesAi = view.automaticContinuation === true;
@@ -1040,30 +1236,7 @@ continueDialog.addEventListener('close', () => {
     }, words.matchFailure);
 });
 
-matchBoard.addEventListener('click', event => {
-    const cell = event.target.closest('button[data-square]');
-    if (!cell) return;
-    if (cell.tabIndex === -1) {
-        matchBoard.querySelector('[tabindex="0"]').tabIndex = -1;
-        cell.tabIndex = 0;
-    }
-    chooseSquare(cell.dataset.square);
-});
-matchBoard.addEventListener('keydown', event => {
-    const delta = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -8, ArrowDown: 8 }[event.key];
-    if (!delta) return;
-    const cell = event.target.closest('button[data-square]');
-    if (!cell) return;
-    const index = Array.from(matchBoard.children).indexOf(cell);
-    const next = index + delta;
-    if (Math.abs(delta) === 1 && Math.floor(index / 8) !== Math.floor(next / 8)) return;
-    const destination = matchBoard.children[next];
-    if (!destination) return;
-    event.preventDefault();
-    cell.tabIndex = -1;
-    destination.tabIndex = 0;
-    destination.focus();
-});
+bindBoardSelection(matchBoard, chooseSquare);
 
 function setReviewMenu(open) {
     find('review-menu').hidden = !open;
@@ -1078,6 +1251,12 @@ find('why-actions').addEventListener('click', () => {
     if (!busy) setReviewMenu(find('review-menu').hidden);
 });
 find('review-on-board').addEventListener('click', () => {
+    if (mode === 'study-review' && studyReturn?.route === 'analysis' && view && !busy) {
+        const ply = view.ply;
+        setReviewMenu(false);
+        void closeStudyReview().then(() => mode === 'analysis' ? studyPanels.analysis.seek(ply) : null);
+        return;
+    }
     if (!archiveReviewId || !view) return;
     setReviewMenu(false);
     void exclusive(async () => {
@@ -1094,7 +1273,7 @@ document.addEventListener('pointerdown', event => {
     if (!find('review-menu').hidden && !event.target.closest('#review-actions, #why-actions, #review-menu')) setReviewMenu(false);
 });
 document.addEventListener('keydown', event => {
-    if (event.key !== 'Escape') return;
+    if (event.key !== 'Escape' || event.defaultPrevented || document.querySelector('dialog[open]')) return;
     if (!find('review-menu').hidden) {
         event.preventDefault();
         setReviewMenu(false);
@@ -1102,6 +1281,12 @@ document.addEventListener('keydown', event => {
     } else if (!find('review').hidden && view?.explanationOpen) {
         event.preventDefault();
         action('CLOSE_EXPLANATION');
+    } else if (mode === 'study-review' && !busy) {
+        event.preventDefault();
+        void closeStudyReview();
+    } else if (studyPanels[mode]?.back) {
+        event.preventDefault();
+        void studyPanels[mode].back();
     }
 });
 find('previous').addEventListener('click', () => action('PREVIOUS'));
@@ -1186,6 +1371,9 @@ if (location.hash === routeHashes.match) await enterMatch({ route: 'LOCAL' });
 else if (location.hash === routeHashes.ai) await enterMatch({ route: 'AI' });
 else if (location.hash === routeHashes.saved) showMode('saved');
 else if (location.hash === routeHashes.finished) showMode('finished');
+else if (location.hash === routeHashes.quests) await openStudy('quests', true);
+else if (location.hash === routeHashes.openings) await openStudy('openings');
+else if (location.hash === routeHashes.analysis) await openStudy('analysis');
 else if (location.hash.startsWith('#review/')) await openArchiveReview(location.hash.slice('#review/'.length));
 else if (location.hash.startsWith('#archive/')) {
     const id = location.hash.slice('#archive/'.length);

@@ -28,6 +28,14 @@ body.home-active h1 { font-size: 1.875rem; }
 .home-group button:disabled { opacity: .58; }
 .home-profile { grid-template-columns: minmax(0, 1fr) auto; }
 .home-tools { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-block-start: 1rem; }
+.study-totals { margin: 0 .875rem .35rem; color: #b8d88a; font-size: .82rem; }
+body.study-active { background: #262522; color: #f5f3ec; }
+body.study-active main > header { display: none; }
+.study-surface { max-width: 42rem; margin: .75rem auto 0; }
+.study-surface .board { width: 100%; margin-inline: auto; }
+.study-surface button.square[aria-disabled="true"] { cursor: default; }
+.study-board .square[data-study-hint] { box-shadow: inset 0 0 0 .2em #57e0b4; }
+.study-board .square[data-study-danger] { box-shadow: inset 0 0 0 .2em #ffa86b; }
 header, .explanation-heading {
   display: flex;
   flex-wrap: wrap;
