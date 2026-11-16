@@ -769,6 +769,7 @@ try {
         await until(async () => await evaluate("document.querySelector('#review').dataset.layout === 'stacked'"), 'stacked review layout');
         const compactBefore = await graph();
         const left = await tapGraph('left-edge', 0, 'left');
+        await alignGraph();
         await capture('graph-left-edge.png');
         const middle = await tapGraph('middle-point', 93);
         const native = await tapGraph('native-target', 184);
