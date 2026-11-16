@@ -154,6 +154,37 @@ class GameReviewTimelineTest {
         check.same("Navigating in history clears the panel", new Snapshot(4, Branch.HISTORY, 0, false), original.snapshot());
     }
 
+    @Test void restoresAnOpenExplanationBranchAndReturnsToTheRecordedMoveOnClose(Checks check) {
+        var source = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
+        String archived = source.checkpoint();
+        var recommendation = moves("d2d4", "e5d4");
+        var review = review(source, 3, Grade.BLUNDER, 544, 0, recommendation, moves("g2g4", "d8h4"));
+        var timeline = new GameReviewTimeline(source, review);
+        timeline.seek(3);
+        timeline.setExplanationOpen(true);
+        check.same("The explanation can play the recommended move", List.of(true, true),
+                List.of(timeline.showBranch(Branch.RECOMMENDED), timeline.stepForward()));
+
+        var reopened = new GameReviewTimeline(source, review);
+        var open = new Snapshot(3, Branch.RECOMMENDED, 1, true);
+        check.same("An open explanation restores the branch and its exact next move",
+                List.of(true, open, recommendation.get(1)),
+                List.of(reopened.restore(timeline.snapshot()), reopened.snapshot(), reopened.nextLineMove().orElseThrow()));
+        check.same("The restored board contains the first recommended move", true,
+                source.positionAt(2).play(recommendation.get(0)).sameForRepetition(reopened.position()));
+
+        reopened.returnFromExplanation();
+        var closed = new Snapshot(3, Branch.HISTORY, 0, false);
+        check.same("Closing the explanation keeps the selected move and removes the branch and next-move cue",
+                List.of(closed, source.moveAt(3), false),
+                List.of(reopened.snapshot(), reopened.lastMove(), reopened.nextLineMove().isPresent()));
+        check.same("The recorded board is restored without changing the game or its result",
+                List.of(true, archived, ChessMatch.Result.BLACK_WINS),
+                List.of(source.positionAt(3).sameForRepetition(reopened.position()), source.checkpoint(), source.result()));
+        check.same("The closed explanation also restores at the same recorded position", List.of(true, closed),
+                List.of(timeline.restore(reopened.snapshot()), timeline.snapshot()));
+    }
+
     @Test void explainsBlackLosingMaterialAndUsesTheScoreForAPositionalDifference(Checks check) {
         var black = ChessMatch.restore("1|e2e4 e7e5 g1f3 h7h6");
         var report = review(black, 4, Grade.MISTAKE, 620, 490, moves("b8c6", "f1b5"), moves("h7h6", "f3e5"));

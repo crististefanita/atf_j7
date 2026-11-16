@@ -281,6 +281,7 @@
     <string name="game_review_line_next">Pasul următor al variantei</string>
     <string name="game_review_actions">Acțiuni de analiză</string>
     <string name="game_review_opening_details">Detalii despre deschidere</string>
+    <string name="game_review_why_choose_line">Alege linia de redat</string>
     <string name="game_review_why">De ce?</string>
     <string name="game_review_hide_why">Ascunde explicația</string>
     <string name="game_review_played_branch">După mutare</string>

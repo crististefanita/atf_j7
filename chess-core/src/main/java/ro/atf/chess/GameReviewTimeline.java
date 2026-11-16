@@ -63,6 +63,12 @@ public final class GameReviewTimeline {
         explanationOpen = open && turn().filter(value -> value.loss() > 0).isPresent();
     }
 
+    /** Closing replay keeps the selected recorded move and leaves the explanation dismissed. */
+    public void returnFromExplanation() {
+        explanationOpen = false;
+        hideBestLine();
+    }
+
     /** An unavailable variation falls back to the selected position in the recorded game. */
     public boolean restore(Snapshot snapshot) {
         if (snapshot == null || snapshot.ply() < 0 || snapshot.ply() > totalPlies()) return false;

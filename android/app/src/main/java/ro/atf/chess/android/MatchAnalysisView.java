@@ -1,6 +1,6 @@
 package ro.atf.chess.android;
 
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.text.SpannableString;
@@ -34,7 +34,7 @@ final class MatchAnalysisView extends TextView {
     private double shownTerminal = Double.NaN;
     private MatchHint hint;
     private MatchEvaluation shownEvaluation;
-    private AlertDialog preview;
+    private Dialog preview;
     private Future<?> pending;
     private int request;
 
@@ -224,7 +224,7 @@ final class MatchAnalysisView extends TextView {
                 rememberPreview(HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation)));
     }
 
-    private void rememberPreview(AlertDialog screen) {
+    private void rememberPreview(Dialog screen) {
         preview = screen;
         screen.setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
     }

@@ -14,7 +14,6 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -84,9 +83,8 @@ final class GameReviewDialog {
     private Button why;
     private Button playedBranch;
     private Button recommendedBranch;
-    private LinearLayout explanationPanel;
-    private TextView reason;
-    private ListView report;
+    private AnalysisReplayDialog replay;
+    private Dialog replayWindow;
     private Snapshot lastSnapshot;
     private MoveRows moveRows;
     private EvaluationGraph graph;
@@ -103,16 +101,8 @@ final class GameReviewDialog {
         this.continueFrom = continueFrom;
         this.initialSnapshot = initialSnapshot;
         this.rememberSnapshot = rememberSnapshot;
-        dialog = new Dialog(context, android.R.style.Theme_Material_NoActionBar);
         var screen = column();
-        screen.setBackgroundColor(0xff262522);
-        if (Build.VERSION.SDK_INT >= 35) {
-            screen.setOnApplyWindowInsetsListener((view, insets) -> {
-                var bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
-                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-                return insets;
-            });
-        }
+        dialog = AnalysisReplayDialog.fullScreen(context, screen);
         var header = new LinearLayout(context);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(dp(16), 0, dp(4), 0);
@@ -131,7 +121,6 @@ final class GameReviewDialog {
         screen.addView(header, new LinearLayout.LayoutParams(-1, -2));
         content = column();
         screen.addView(content, new LinearLayout.LayoutParams(-1, 0, 1));
-        dialog.setContentView(screen);
     }
 
     static Dialog show(Context context, ChessMatch match, GameReview cached, ExecutorService worker,
@@ -157,10 +146,10 @@ final class GameReviewDialog {
                                IntConsumer showPosition, BiConsumer<Integer, Runnable> continueFrom, Runnable onClose) {
         var view = new GameReviewDialog(context, mode == Mode.STUDY ? Side.WHITE : match.setup().humanSide(), blackBelow, mode,
                 notation, showPosition, continueFrom, initialSnapshot, rememberSnapshot);
-        view.dialog.show();
-        view.dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        AnalysisReplayDialog.showFullScreen(view.dialog);
         var job = view.load(match, cached, worker, human, bot, remember);
         view.dialog.setOnDismissListener(dialog -> {
+            if (view.replayWindow != null) view.replayWindow.dismiss();
             if (job != null) job.cancel(true);
             onClose.run();
         });
@@ -242,7 +231,7 @@ final class GameReviewDialog {
             navigation.addView(button, new LinearLayout.LayoutParams(dp(48), dp(48)));
         }
         why = textAction(R.id.game_review_why, R.string.game_review_why);
-        why.setOnClickListener(view -> toggleExplanation());
+        why.setOnClickListener(view -> openExplanation(result));
         navigation.addView(why, new LinearLayout.LayoutParams(-2, dp(48)));
         navigation.addView(actions, new LinearLayout.LayoutParams(dp(48), dp(48)));
         var toolbar = new HorizontalScrollView(context);
@@ -262,7 +251,6 @@ final class GameReviewDialog {
                 return true;
             }
         };
-        report = list;
         list.setId(R.id.game_review_moves);
         var summary = column();
         summary.setPadding(dp(16), dp(2), dp(16), dp(10));
@@ -272,19 +260,6 @@ final class GameReviewDialog {
         opening.setEllipsize(TextUtils.TruncateAt.END);
         opening.setPadding(0, dp(3), 0, dp(3));
         summary.addView(opening);
-        explanationPanel = column();
-        reason = text("", 15, PRIMARY);
-        reason.setId(R.id.game_review_reason);
-        reason.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        explanationPanel.addView(reason);
-        var branches = row();
-        playedBranch = branchAction(R.id.game_review_played_branch, R.string.game_review_played_branch, Branch.PLAYED);
-        playedBranch.setContentDescription(context.getString(R.string.game_review_played_branch_description));
-        recommendedBranch = branchAction(R.id.game_review_recommended_branch, R.string.game_review_recommended_branch, Branch.RECOMMENDED);
-        branches.addView(playedBranch, new LinearLayout.LayoutParams(0, -2, 1));
-        branches.addView(recommendedBranch, new LinearLayout.LayoutParams(0, -2, 1));
-        explanationPanel.addView(branches);
-        summary.addView(explanationPanel);
         var graphTitle = text(context.getString(R.string.game_review_graph), 12, MUTED);
         graphTitle.setPadding(0, dp(3), 0, dp(2));
         summary.addView(graphTitle);
@@ -311,6 +286,7 @@ final class GameReviewDialog {
         review.setId(R.id.game_review_workspace);
         content.addView(review, new LinearLayout.LayoutParams(-1, -1));
         refreshTimeline();
+        if (timeline.explanationOpen()) openExplanation(result);
     }
 
     private LinearLayout row() {
@@ -346,21 +322,36 @@ final class GameReviewDialog {
         return button;
     }
 
-    private Button branchAction(int id, int label, Branch branch) {
-        var button = textAction(id, label);
-        button.setGravity(Gravity.CENTER);
-        button.setOnClickListener(view -> {
-            if (timeline.branch() == branch) timeline.showBranch(Branch.HISTORY);
-            else timeline.showBranch(branch);
+    private void openExplanation(GameReview result) {
+        if (replayWindow != null || timeline.turn().filter(turn -> turn.loss() > 0).isEmpty()) return;
+        var actions = icon(R.drawable.match_more, R.id.game_review_actions, R.string.game_review_actions);
+        actions.setOnClickListener(view -> showActions(view, result));
+        var screen = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.REVIEW, blackBelow, true, actions, () -> {
+            replay = null;
+            timeline.returnFromExplanation();
             refreshTimeline();
         });
-        return button;
+        playedBranch = screen.addBranch(R.id.game_review_played_branch, context.getString(R.string.game_review_played_branch),
+                context.getString(R.string.game_review_played_branch_description), () -> selectExplanationBranch(Branch.PLAYED));
+        recommendedBranch = screen.addBranch(R.id.game_review_recommended_branch, context.getString(R.string.game_review_recommended_branch),
+                null, () -> selectExplanationBranch(Branch.RECOMMENDED));
+        screen.setNavigation(() -> { timeline.stepBackward(); refreshReplay(); },
+                () -> { timeline.stepForward(); refreshReplay(); });
+        replay = screen;
+        timeline.setExplanationOpen(true);
+        refreshReplay();
+        var window = screen.show();
+        replayWindow = window;
+        window.setOnDismissListener(dismissed -> {
+            if (replayWindow == window) {
+                replayWindow = null;
+                replay = null;
+            }
+        });
     }
 
-    private void toggleExplanation() {
-        timeline.setExplanationOpen(!timeline.explanationOpen());
-        refreshTimeline();
-        if (timeline.explanationOpen()) report.setSelection(0);
+    private void selectExplanationBranch(Branch branch) {
+        if (timeline.branch() != branch && timeline.showBranch(branch)) refreshReplay();
     }
 
     private void showActions(View anchor, GameReview result) {
@@ -421,7 +412,7 @@ final class GameReviewDialog {
             caption = context.getString(R.string.game_review_start_position);
             selectedScore.setText(R.string.game_review_initial_position);
         } else {
-            caption = context.getString(R.string.game_review_selected_move, moveLabel(selected), gradeLabel(selected.grade()));
+            caption = turnCaption(selected);
             String score = context.getString(R.string.game_review_selected_score,
                     selected.bestPoints() / 10.0, selected.playedPoints() / 10.0, selected.depth());
             if (selected.grade() == GameReview.Grade.BRILLIANT) {
@@ -443,11 +434,8 @@ final class GameReviewDialog {
         labelIcon(showLine, branch == Branch.RECOMMENDED ? R.string.game_review_hide_best : R.string.game_review_show_best);
         opening.setVisibility(timeline.atEntry() && opening.length() > 0 ? View.VISIBLE : View.GONE);
         lineProgress.setVisibility(inLine ? View.VISIBLE : View.GONE);
+        String lineState = inLine ? lineState(branch) : "";
         if (inLine) {
-            int label = branch == Branch.PLAYED ? R.string.game_review_played_branch : R.string.game_review_recommended_branch;
-            String lineState = context.getString(R.string.game_review_branch_step, context.getString(label), timeline.lineStep(), timeline.lineLength());
-            lineState += timeline.nextLineMove().map(move -> " · "
-                    + context.getString(R.string.game_review_line_next_move, notation.apply(move))).orElse("");
             lineProgress.setText(lineState);
             selectedMove.setContentDescription(caption + " · " + lineState);
             selectedMove.setText(context.getString(R.string.game_review_pv_caption,
@@ -456,9 +444,18 @@ final class GameReviewDialog {
             selectedMove.setContentDescription(null);
             selectedMove.setText(caption);
         }
-        refreshExplanation(selected);
+        why.setVisibility(selected != null && selected.loss() > 0 ? View.VISIBLE : View.GONE);
+        why.setSelected(timeline.explanationOpen());
         if (graph != null) graph.select(timeline.ply());
         if (moveRows != null) moveRows.select(timeline.ply());
+        rememberTimeline();
+    }
+
+    private String turnCaption(GameReview.Turn turn) {
+        return context.getString(R.string.game_review_selected_move, moveLabel(turn), gradeLabel(turn.grade()));
+    }
+
+    private void rememberTimeline() {
         var snapshot = timeline.snapshot();
         if (!snapshot.equals(lastSnapshot)) {
             rememberSnapshot.accept(snapshot);
@@ -466,18 +463,25 @@ final class GameReviewDialog {
         }
     }
 
-    private void refreshExplanation(GameReview.Turn turn) {
-        why.setVisibility(turn != null && turn.loss() > 0 ? View.VISIBLE : View.GONE);
-        boolean explanationOpen = timeline.explanationOpen();
-        why.setSelected(explanationOpen);
-        why.setContentDescription(context.getString(explanationOpen ? R.string.game_review_hide_why : R.string.game_review_why));
-        explanationPanel.setVisibility(explanationOpen ? View.VISIBLE : View.GONE);
-        if (!explanationOpen) return;
-        reason.setText(explain(timeline.explanation().orElseThrow(), turn));
+    private String lineState(Branch branch) {
+        int label = branch == Branch.PLAYED ? R.string.game_review_played_branch : R.string.game_review_recommended_branch;
+        return context.getString(R.string.game_review_branch_step, context.getString(label), timeline.lineStep(), timeline.lineLength())
+                + timeline.nextLineMove().map(move -> " · "
+                        + context.getString(R.string.game_review_line_next_move, notation.apply(move))).orElse("");
+    }
+
+    private void refreshReplay() {
+        if (replay == null) return;
+        var turn = timeline.turn().orElseThrow();
+        var branch = timeline.branch();
+        String lineState = branch == Branch.HISTORY ? context.getString(R.string.game_review_why_choose_line) : lineState(branch);
         playedBranch.setEnabled(timeline.canShowBranch(Branch.PLAYED));
         recommendedBranch.setEnabled(timeline.canShowBranch(Branch.RECOMMENDED));
-        playedBranch.setSelected(timeline.branch() == Branch.PLAYED);
-        recommendedBranch.setSelected(timeline.branch() == Branch.RECOMMENDED);
+        playedBranch.setSelected(branch == Branch.PLAYED);
+        recommendedBranch.setSelected(branch == Branch.RECOMMENDED);
+        replay.render(new AnalysisReplayDialog.Frame(timeline.position(), timeline.lastMove(), timeline.cue(), lineState,
+                timeline.canStepBackward(), timeline.canStepForward(), turnCaption(turn), explain(timeline.explanation().orElseThrow(), turn)));
+        rememberTimeline();
     }
 
     private String explain(GameReviewExplanation explanation, GameReview.Turn turn) {

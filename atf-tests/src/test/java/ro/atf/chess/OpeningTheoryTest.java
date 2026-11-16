@@ -142,6 +142,62 @@ class OpeningTheoryTest {
         check.same("The same prior board restores its original shortlist from history", ecos(c4), ecos(kingsIndian.seek(3)));
     }
 
+    @Test void rebranchesFromSicilianToFrenchAndHandsOffOutsideTheBook(Checks check) {
+        var e4 = line("e2e4");
+        check.same("The first three paths after e4 start with e5, e5 and c6",
+                List.of("e7e5", "e7e5", "c7c6"), paths(e4).stream().map(path -> path.move().uci()).toList());
+        var oldHint = e4.hint();
+        oldHint.revealNext();
+
+        var sicilian = e4.play(Move.fromUci("c7c5"));
+        check.same("Entering the unlisted Sicilian offers Najdorf and Alapin",
+                List.of("B90", "B22"), ecos(sicilian));
+        var alapin = sicilian.play(Move.fromUci("c2c3"));
+        var alapinLesson = authored("sicilian-alapin");
+        check.same("Alapin keeps its entire authored continuation",
+                alapinLesson.steps().subList(3, alapinLesson.steps().size()),
+                paths(alapin).getFirst().steps());
+        check.same("The old e5 remains legal but its hint cannot target the new board", List.of(true, true, true),
+                List.of(alapin.position().legalMoves().contains(oldHint.revealedMove()),
+                        oldHint.moveForTap(alapin.position(), -1, oldHint.revealedMove().to()) == null,
+                        oldHint.theoryPlayback(alapin.position()).isEmpty()));
+
+        var offBook = alapin.play(Move.fromUci("h7h5"));
+        var engine = offBook.hint();
+        engine.revealNext();
+        check.same("An off-book black reply immediately exposes a legal engine suggestion", true,
+                engine.revealedTheory() == null && engine.revealedMove() != null
+                        && offBook.position().legalMoves().contains(engine.revealedMove()));
+        check.same("Rewinding the off-book reply restores the Alapin hint", List.of("B22"), ecos(offBook.seek(3)));
+
+        var french = offBook.seek(1).play(Move.fromUci("e7e6"));
+        check.same("Branching from e4 into French regenerates the Advance line",
+                List.of("C02"), ecos(french));
+        check.same("The new line starts with d4 from the new board", "d2d4", paths(french).getFirst().move().uci());
+    }
+
+    @Test void transposesIntoTheCatalanFromAQueensGambitMoveOrder(Checks check) {
+        var direct = line("d2d4 g8f6 c2c4 e7e6 g1f3 d7d5");
+        var queensGambit = line("d2d4 d7d5 c2c4 e7e6");
+        check.same("The Queen's Gambit order initially suggests the Orthodox line", List.of("D63"), ecos(queensGambit));
+        var transposed = queensGambit.play(Move.fromUci("g1f3")).play(Move.fromUci("g8f6"));
+        check.same("Trading move order reaches the same position and the same named paths",
+                List.of(direct.position().searchKey(), paths(direct)), List.of(transposed.position().searchKey(), paths(transposed)));
+        var catalan = paths(transposed).getFirst();
+        var lesson = authored("catalan-open");
+        check.same("The catalogue identifies the exact remaining Open Catalan path",
+                List.of("E05", lesson.steps().subList(6, lesson.steps().size())), List.of(catalan.eco(), catalan.steps()));
+        var replay = new OpeningReplay(transposed.position(), catalan);
+        while (replay.hasNext()) replay.next();
+        check.same("Replaying the transposed path reaches the authored position after dxc4",
+                List.of(lesson.positionAt(lesson.steps().size()).searchKey(), Move.fromUci("d5c4")),
+                List.of(replay.position().searchKey(), replay.lastMove()));
+    }
+
+    private static OpeningCatalog.Opening authored(String id) {
+        return OpeningCatalog.load().stream().filter(opening -> opening.id().equals(id)).findFirst().orElseThrow();
+    }
+
     private static List<MatchHint.Theory> paths(AnalysisLine line) {
         var hint = line.hint();
         hint.revealNext();

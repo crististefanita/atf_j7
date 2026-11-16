@@ -285,6 +285,7 @@
     <string name="game_review_line_next">Next line step</string>
     <string name="game_review_actions">Review actions</string>
     <string name="game_review_opening_details">Opening details</string>
+    <string name="game_review_why_choose_line">Choose a line to replay</string>
     <string name="game_review_why">Why?</string>
     <string name="game_review_hide_why">Hide explanation</string>
     <string name="game_review_played_branch">After move</string>

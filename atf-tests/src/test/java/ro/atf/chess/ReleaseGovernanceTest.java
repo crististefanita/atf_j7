@@ -505,6 +505,20 @@ class ReleaseGovernanceTest {
                         .map(ReleaseRag.Citation::check).toList());
     }
 
+    @Test void sharedReplayRoutesToBothSignedAndroidScopesAndTheirComponents(Checks check) throws IOException {
+        String replay = "android/app/src/main/java/ro/atf/chess/android/AnalysisReplayDialog.java";
+        var inventory = ReleaseRag.inspect(ProjectRoot.locate(), List.of(replay));
+        check.same("A change confined to the shared replay is covered", List.of(replay), inventory.covered());
+        check.same("The shared replay cites testing guidance for both entry points", true,
+                inventory.citations().stream().anyMatch(citation -> citation.heading().equals("## Partidă și istoric")
+                        && citation.check().contains("GameReviewTimelineTest, GameReviewLayoutTest")
+                        && citation.check().contains("BoardSanity -Distribution -GameReviewOnly")));
+        check.same("The analysis-board route names theory, geometry and the signed manual probe",
+                List.of("OpeningTheoryTest, GameReviewLayoutTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
+                inventory.citations().stream().filter(citation -> citation.heading().equals("## Tablă de analiză"))
+                        .map(ReleaseRag.Citation::check).toList());
+    }
+
     @Test void eachTacticalHoldoutAssetCitesItsOwnerAndIndependentChecks(Checks check) throws IOException {
         var root = ProjectRoot.locate();
         var paths = List.of("atf-tests/src/test/resources/tactical-transfer-holdout.yaml",

@@ -1,11 +1,8 @@
 package ro.atf.chess.android;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
-import android.content.res.ColorStateList;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.RippleDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -62,34 +59,21 @@ final class HintPreviewDialog {
         return open(workspace.dialog());
     }
 
-    static AlertDialog showTheory(Context context, ChessPosition root, MatchHint.TheoryPlayback study,
-                                  boolean blackBelow, Function<Move, String> notation) {
-        var workspace = workspace(context, R.string.hint_theory_title, null, study.paths().size() > 1);
+    static Dialog showTheory(Context context, ChessPosition root, MatchHint.TheoryPlayback study,
+                             boolean blackBelow, Function<Move, String> notation) {
+        var workspace = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.THEORY, blackBelow,
+                study.paths().size() > 1, null, () -> { });
         var paths = study.paths().stream().map(path -> new OpeningReplay(root, path)).collect(Collectors.toList());
-        var title = new TextView(context);
-        title.setId(R.id.hint_preview_delta);
-        var idea = new TextView(context);
-        idea.setId(R.id.hint_preview_reason);
-        idea.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        var panel = new LinearLayout(context);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.addView(title);
-        panel.addView(idea);
-        workspace.details().addView(panel);
         var buttons = new ArrayList<Button>(paths.size());
-        var controls = new TheoryControls(workspace, study, paths, buttons, title, idea, blackBelow, notation);
+        var controls = new TheoryControls(context, workspace, study, paths, buttons, notation);
         for (int index = 0; index < paths.size(); index++) {
-            var button = branchButton(context);
-            button.setId(BRANCH_IDS[index]);
-            button.setText(context.getString(R.string.hint_theory_path, index + 1));
-            button.setContentDescription(button.getText() + " · " + theoryTitle(context, study.paths().get(index)));
+            String label = context.getString(R.string.hint_theory_path, index + 1);
             int active = index;
-            button.setOnClickListener(view -> controls.select(active));
-            addBranchButton(context, workspace.choices(), button, index + 1 < paths.size());
-            buttons.add(button);
+            buttons.add(workspace.addBranch(BRANCH_IDS[index], label, label + " · " + theoryTitle(context, study.paths().get(index)),
+                    () -> controls.select(active)));
         }
         controls.select(study.selected());
-        return open(workspace.dialog());
+        return workspace.show();
     }
 
     static String theoryTitle(Context context, MatchHint.Theory theory) {
@@ -161,7 +145,7 @@ final class HintPreviewDialog {
             var preview = HintPreview.openDefended(root, line).orElseThrow();
             String evaluation = preview.estimate().map(estimate -> pawns(context, estimate.finalCp()))
                     .orElseGet(() -> terminalLabel(context, preview));
-            var button = branchButton(context);
+            var button = AnalysisReplayDialog.branchButton(context);
             button.setId(BRANCH_IDS[index]);
             button.setText(context.getString(R.string.hint_compare_choice, index + 1, ChessActivity.compactNotation(line.move())));
             int spoken = index == 0 ? R.string.hint_compare_recommended_spoken : R.string.hint_compare_choice_spoken;
@@ -189,30 +173,6 @@ final class HintPreviewDialog {
         var layout = new LinearLayout.LayoutParams(0, -1, 1);
         if (more) layout.setMarginEnd(dp(context, 6));
         choices.addView(button, layout);
-    }
-
-    private static Button branchButton(Context context) {
-        var button = new Button(context, null, android.R.attr.borderlessButtonStyle);
-        int[] selected = {android.R.attr.state_selected};
-        int[] defaultState = {};
-        var surface = new StateListDrawable();
-        surface.addState(selected, branchSurface(context, 0xff29473e, 0xff57e0b4));
-        surface.addState(defaultState, branchSurface(context, 0xff34372e, 0xff525647));
-        button.setBackground(new RippleDrawable(ColorStateList.valueOf(0x3257e0b4), surface, null));
-        button.setTextColor(new ColorStateList(new int[][] {selected, defaultState}, new int[] {0xff9cf3d8, 0xfff5f3ec}));
-        button.setAllCaps(false);
-        button.setTextSize(13);
-        button.setMinHeight(dp(context, 48));
-        button.setPadding(dp(context, 8), dp(context, 4), dp(context, 8), dp(context, 4));
-        return button;
-    }
-
-    private static GradientDrawable branchSurface(Context context, int fill, int border) {
-        var surface = new GradientDrawable();
-        surface.setColor(fill);
-        surface.setCornerRadius(dp(context, 10));
-        surface.setStroke(dp(context, 1), border);
-        return surface;
     }
 
     private static int dp(Context context, int value) {
@@ -280,48 +240,45 @@ final class HintPreviewDialog {
     }
 
     private static final class TheoryControls {
-        private final Workspace workspace;
+        private final Context context;
+        private final AnalysisReplayDialog workspace;
         private final MatchHint.TheoryPlayback study;
         private final List<OpeningReplay> paths;
         private final List<Button> buttons;
-        private final TextView title;
-        private final TextView idea;
-        private final boolean blackBelow;
         private final Function<Move, String> notation;
         private int active;
 
-        TheoryControls(Workspace workspace, MatchHint.TheoryPlayback study, List<OpeningReplay> paths, List<Button> buttons,
-                       TextView title, TextView idea, boolean blackBelow, Function<Move, String> notation) {
+        TheoryControls(Context context, AnalysisReplayDialog workspace, MatchHint.TheoryPlayback study,
+                       List<OpeningReplay> paths, List<Button> buttons, Function<Move, String> notation) {
+            this.context = context;
             this.workspace = workspace;
             this.study = study;
             this.paths = paths;
             this.buttons = buttons;
-            this.title = title;
-            this.idea = idea;
-            this.blackBelow = blackBelow;
             this.notation = notation;
-            workspace.back().setOnClickListener(view -> { paths.get(active).previous(); render(); });
-            workspace.forward().setOnClickListener(view -> { paths.get(active).next(); render(); });
+            workspace.setNavigation(() -> { paths.get(active).previous(); render(); },
+                    () -> { paths.get(active).next(); render(); });
         }
 
         void select(int index) {
             active = index;
             for (int button = 0; button < buttons.size(); button++) buttons.get(button).setSelected(button == index);
-            title.setText(theoryTitle(workspace.board().getContext(), study.paths().get(index)));
             render();
         }
 
         private void render() {
-            var context = workspace.board().getContext();
             var path = study.paths().get(active);
             var replay = paths.get(active);
             var position = replay.position();
             Move last = replay.lastMove();
-            String step = last == null ? notation.apply(path.move()) : played(context, position, last, notation);
-            workspace.render(position, blackBelow, path.move(), last, replay.ply(), replay.length(), step);
+            String move = last == null ? notation.apply(path.move()) : played(context, position, last, notation);
+            String step = context.getString(R.string.hint_preview_step, replay.ply(), replay.length(), move);
+            var cue = replay.ply() == 0 ? QuestHint.SOLUTION.cue(path.move()) : new QuestHint.Cue(-1, -1);
             Text explanation = replay.explainedStep().idea();
-            idea.setText(explanation == null ? context.getString(R.string.hint_theory_index_detail)
-                    : explanation.in(context.getResources().getConfiguration().getLocales().get(0)));
+            String detail = explanation == null ? context.getString(R.string.hint_theory_index_detail)
+                    : explanation.in(context.getResources().getConfiguration().getLocales().get(0));
+            workspace.render(new AnalysisReplayDialog.Frame(position, last, cue, step, replay.hasPrevious(), replay.hasNext(),
+                    theoryTitle(context, path), detail));
         }
     }
 

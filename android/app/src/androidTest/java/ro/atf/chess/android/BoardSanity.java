@@ -261,9 +261,11 @@ public final class BoardSanity extends Instrumentation {
         tap(study.findViewById(R.id.match_hint));
         var theory = revealedTheory(match, 1);
         boolean labelled = ready && theoryShown(study, board, theory, 1);
+        var studyBounds = screenBounds(board);
         tap(study.findViewById(R.id.match_analysis));
         compare("The manual hint marks a book move and explains its named opening", true,
-                labelled && verifyTheoryPaths(study, match, theory));
+                labelled && verifyTheoryPaths(study, match, theory)
+                        && studyBounds.equals(screenBounds(board)) && theoryShown(study, board, theory, 1));
 
         for (int ply = 2; ply <= match.ply(); ply++) playMove(board, match.moveAt(ply));
         var offBook = match.position();
@@ -321,12 +323,14 @@ public final class BoardSanity extends Instrumentation {
         var hint = line.hint();
         hint.revealNext();
         var paths = hint.theoryPlayback(line.position()).orElseThrow().paths();
+        var replayBounds = fullscreenReplayBoard(study, R.id.hint_preview_board);
         var locale = study.getResources().getConfiguration().getLocales().get(0);
         boolean explained = paths.size() == 3 && theory.move().equals(paths.get(1).move())
                 && dialogNode(HintPreviewDialog.theoryTitle(study, theory), AccessibilityNodeInfo::isVisibleToUser, 3500) != null
                 && dialogNode(theory.idea().in(locale), AccessibilityNodeInfo::isVisibleToUser, 3500) != null;
         clickReviewIcon(R.id.hint_compare_other);
-        boolean second = dialogNode(HintPreviewDialog.theoryTitle(study, paths.get(1)), AccessibilityNodeInfo::isVisibleToUser, 3500) != null;
+        boolean second = dialogNode(HintPreviewDialog.theoryTitle(study, paths.get(1)), AccessibilityNodeInfo::isVisibleToUser, 3500) != null
+                && sameReplayBoard(R.id.hint_preview_board, replayBounds);
         clickReviewIcon(R.id.hint_compare_best);
         int length = theory.steps().size();
         for (int ply = 0; ply < length; ply++) clickReviewIcon(R.id.hint_preview_next);
@@ -334,10 +338,12 @@ public final class BoardSanity extends Instrumentation {
         var next = reviewNode(R.id.hint_preview_next, 4500);
         boolean finished = length > 3 && next != null && !next.isEnabled() && step != null
                 && step.getText().toString().startsWith(length + "/" + length)
+                && sameReplayBoard(R.id.hint_preview_board, replayBounds)
                 && dialogNode(theory.steps().get(length - 1).idea().in(locale), AccessibilityNodeInfo::isVisibleToUser, 3500) != null;
         clickReviewIcon(R.id.hint_preview_previous);
         var previous = reviewNode(R.id.hint_preview_step, 4500);
-        boolean rewound = previous != null && previous.getText().toString().startsWith((length - 1) + "/" + length);
+        boolean rewound = previous != null && previous.getText().toString().startsWith((length - 1) + "/" + length)
+                && sameReplayBoard(R.id.hint_preview_board, replayBounds);
         clickReviewIcon(R.id.hint_preview_return);
         var history = (ViewGroup) study.findViewById(R.id.match_history_moves);
         return explained && second && finished && rewound && history.getChildCount() == 2 && history.getChildAt(1).isSelected();
@@ -551,20 +557,36 @@ public final class BoardSanity extends Instrumentation {
         var review = GameReview.analyze(match, ignored -> { });
         if (!store.saveReview(archiveId, match, review)) throw new AssertionError("Could not prepare the archived review");
         var activity = openArchivedReview();
-        var board = nodeBounds(reviewNode(R.id.game_review_board, 4500));
+        var historyBoard = nodeBounds(reviewNode(R.id.game_review_board, 4500));
         for (int ply = match.ply(); ply > 1; ply--) clickReviewIcon(R.id.game_review_previous);
+        var selected = reviewNode(R.id.game_review_selection, 4500);
+        String selectedMove = selected == null ? "" : String.valueOf(selected.getText());
+        var historyViewport = reviewViewport();
         clickReviewIcon(R.id.game_review_why);
-        checkReviewFallback(activity, board, review.turns().get(0));
-        clickReviewIcon(R.id.game_review_why);
+        var fallbackBoard = fullscreenReplayBoard(activity, R.id.game_review_board);
+        checkReviewFallback(activity, fallbackBoard, review.turns().get(0));
+        clickReviewIcon(R.id.hint_preview_return);
+        boolean historyRestored = !selectedMove.isBlank() && !historyViewport.isEmpty() && reviewSelection(selectedMove)
+                && sameReviewBoard(historyBoard) && historyViewport.equals(reviewViewport())
+                && archiveMatches(store, archiveId, match, review);
         clickReviewIcon(R.id.game_review_next);
         clickReviewIcon(R.id.game_review_next);
         clickReviewIcon(R.id.game_review_why);
+        var firstBoard = fullscreenReplayBoard(activity, R.id.game_review_board);
+        var openInHistory = new GameReviewTimeline.Snapshot(3, GameReviewTimeline.Branch.HISTORY, 0, true);
+        var closedInHistory = new GameReviewTimeline.Snapshot(3, GameReviewTimeline.Branch.HISTORY, 0, false);
+        boolean openWasSaved = openInHistory.equals(store.readReviewBookmark(archiveId, match));
+        clickReviewIcon(R.id.hint_preview_return);
+        boolean closedWasSaved = closedInHistory.equals(store.readReviewBookmark(archiveId, match)) && sameReviewBoard(historyBoard);
+        clickReviewIcon(R.id.game_review_why);
+        var board = fullscreenReplayBoard(activity, R.id.game_review_board);
         var reason = reviewNode(R.id.game_review_reason, 4500);
         String reasonText = reason == null || reason.getText() == null ? "" : reason.getText().toString();
         String queen = activity.getString(R.string.queen);
         boolean namesMate = reasonText.contains("h4#") && reasonText.toLowerCase(Locale.ROOT).contains(queen.toLowerCase(Locale.ROOT));
         captureFrame("game-review-why", "Why names the mating queen on h4 for the archived g4 blunder",
-                image -> namesMate && sameReviewBoard(board) && visibleReviewNode(R.id.game_review_reason) != null);
+                image -> historyRestored && openWasSaved && closedWasSaved && namesMate && firstBoard.equals(board)
+                        && sameReviewBoard(board) && visibleReviewNode(R.id.game_review_reason) != null);
 
         var blunder = review.turns().get(2);
         var recommendation = blunder.bestLine().get(0);
@@ -574,7 +596,7 @@ public final class BoardSanity extends Instrumentation {
         var cue = awaitRenderedFrame(image -> hasColor(image, board, HINT_TINT, 20));
         if (cue != null) cue.recycle();
         boolean fromCommonRoot = reviewLineStep(reviewBranchStep(activity, R.string.game_review_recommended_branch, 0, blunder.bestLine().size()))
-                && dialogNode(originalPiece) != null && cue != null;
+                && sameReviewBoard(board) && dialogNode(originalPiece) != null && cue != null;
         clickReviewIcon(R.id.game_review_line_next);
         String recommendedPiece = pieceDescription(activity, root.play(recommendation).pieceAt(recommendation.to()), recommendation.to());
         boolean recommendedStep = reviewLineStep(reviewBranchStep(activity, R.string.game_review_recommended_branch, 1, blunder.bestLine().size()))
@@ -585,7 +607,7 @@ public final class BoardSanity extends Instrumentation {
         clickReviewIcon(R.id.game_review_played_branch);
         String g2 = pieceDescription(activity, Side.WHITE, ChessPosition.Kind.PAWN, "g2");
         boolean playedStartsAtRoot = reviewLineStep(reviewBranchStep(activity, R.string.game_review_played_branch, 0, 2))
-                && dialogNode(g2) != null;
+                && sameReviewBoard(board) && dialogNode(g2) != null;
         clickReviewIcon(R.id.game_review_line_next);
         String g4 = pieceDescription(activity, Side.WHITE, ChessPosition.Kind.PAWN, "g4");
         boolean playedG4 = reviewLineStep(reviewBranchStep(activity, R.string.game_review_played_branch, 1, 2))
@@ -629,8 +651,9 @@ public final class BoardSanity extends Instrumentation {
         String archiveId = store.archivedId(1);
         var review = GameReview.analyze(match, ignored -> { });
         var activity = openArchivedReview();
-        var board = nodeBounds(reviewNode(R.id.game_review_board, 4500));
-        boolean restored = matingReplyVisible(activity) && visibleReviewNode(R.id.game_review_reason) != null;
+        var board = fullscreenReplayBoard(activity, R.id.game_review_board);
+        boolean restored = matingReplyVisible(activity) && visibleReviewNode(R.id.game_review_reason) != null
+                && archiveMatches(store, archiveId, match, review);
         captureFrame("game-review-why-restore", "A restarted process reopens the archived analysis on the played mating reply",
                 image -> restored && !board.isEmpty() && sameReviewBoard(board));
 
@@ -778,8 +801,38 @@ public final class BoardSanity extends Instrumentation {
         return bounds;
     }
 
+    private Rect fullscreenReplayBoard(Activity activity, int boardId) {
+        var close = reviewNode(R.id.hint_preview_return, 4500);
+        var board = nodeBounds(reviewNode(boardId, 4500));
+        var window = activeWindowBounds();
+        var content = screenBounds(activity.findViewById(android.R.id.content));
+        if (close == null || !close.isEnabled() || !window.contains(nodeBounds(close)) || !window.contains(content)
+                || board.isEmpty() || board.width() != board.height() || !window.contains(board)) {
+            throw new AssertionError("Replay window must cover the activity and fit the square board and Close control: "
+                    + window + " for " + content + " with board " + board);
+        }
+        return board;
+    }
+
+    private boolean sameReplayBoard(int boardId, Rect expected) {
+        return expected.equals(nodeBounds(visibleReviewNode(boardId)));
+    }
+
     private boolean sameReviewBoard(Rect expected) {
-        return expected.equals(nodeBounds(visibleReviewNode(R.id.game_review_board)));
+        return sameReplayBoard(R.id.game_review_board, expected);
+    }
+
+    private List<String> reviewViewport() {
+        var report = reviewNode(R.id.game_review_moves, 4500);
+        if (report == null) return List.of();
+        var rows = new ArrayList<String>();
+        for (int index = 0; index < report.getChildCount(); index++) {
+            var child = report.getChild(index);
+            if (child != null && child.isVisibleToUser()) {
+                rows.add(nodeBounds(child) + " " + child.getText() + " " + child.getContentDescription());
+            }
+        }
+        return List.copyOf(rows);
     }
 
     private boolean reviewIcon(Activity activity, int id, int label) {

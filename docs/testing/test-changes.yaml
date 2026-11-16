@@ -346,3 +346,53 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
     contract: "Match the test module to the candidate Maven parent"
     allowDelete: false
+
+  - id: J7-ANALYSIS-REPLAY-NATIVE
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewLayoutTest.java
+    test: ro.atf.chess.GameReviewLayoutTest#fitsTheBranchPickerAndReplayControlsInCompactFullscreenWindows
+    contract: "Check replay geometry in the JVM and retain native fullscreen, branch, restart and archived return evidence"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "Why names the mating queen on h4 for the archived g4 blunder"
+
+  - id: J7-ANALYSIS-REPLAY-LAYOUT
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: atf-tests/src/test/java/ro/atf/chess/GameReviewLayoutTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewLayoutTest.java
+    test: ro.atf.chess.GameReviewLayoutTest#fitsTheBranchPickerAndReplayControlsInCompactFullscreenWindows
+    contract: "Reserve the square, fixed branch controls and scrollable explanation in both orientations"
+    allowDelete: false
+
+  - id: J7-ANALYSIS-REPLAY-STATE
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java
+    test: ro.atf.chess.GameReviewTimelineTest#restoresAnOpenExplanationBranchAndReturnsToTheRecordedMoveOnClose
+    contract: "Keep the snapshot and close at the selected recorded move without mutating history"
+    allowDelete: false
+
+  - id: J7-ANALYSIS-REPLAY-BOOKMARK
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchStoreTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchStoreTest.java
+    test: ro.atf.chess.MatchStoreTest#savesTheExplanationPanelInHistoryAndReadsLegacyBookmarks
+    contract: "Persist the open state and preserve the older bookmark format"
+    allowDelete: false
+
+  - id: J7-ANALYSIS-REPLAY-THEORY
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: atf-tests/src/test/java/ro/atf/chess/OpeningTheoryTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/OpeningTheoryTest.java
+    test: ro.atf.chess.OpeningTheoryTest#rebranchesFromSicilianToFrenchAndHandsOffOutsideTheBook
+    contract: "Verify an independent theory branch, stale hint rejection and engine handoff"
+    allowDelete: false
+
+  - id: J7-SHARED-REPLAY-RAG
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+    test: ro.atf.chess.ReleaseGovernanceTest#sharedReplayRoutesToBothSignedAndroidScopesAndTheirComponents
+    contract: "Cite both signed native scopes and relevant JVM coverage for an isolated shared replay change"
+    allowDelete: false

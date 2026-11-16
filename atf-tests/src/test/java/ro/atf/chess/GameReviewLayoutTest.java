@@ -20,6 +20,33 @@ class GameReviewLayoutTest {
                 GameReviewLayout.fit(320, 48, 48, 240, 132, 248, 8));
     }
 
+    @Test void fitsTheBranchPickerAndReplayControlsInCompactFullscreenWindows(Checks check) {
+        int branchPickerHeight = 52;
+        int arrowRowHeight = 48;
+        int enlargedCaptionRowHeight = 64;
+        int controlsWidth = 240;
+        int reportPreview = 132;
+        int reportMinWidth = 248;
+        int gutter = 8;
+
+        check.same("Compact portrait leaves a visible report below the fixed replay controls",
+                new GameReviewLayout(false, 214, 320),
+                GameReviewLayout.fit(320, 420, branchPickerHeight + arrowRowHeight,
+                        controlsWidth, reportPreview, reportMinWidth, gutter));
+        check.same("A two-line enlarged caption makes the board smaller while preserving the report preview",
+                new GameReviewLayout(false, 203, 320),
+                GameReviewLayout.fit(320, 420, branchPickerHeight + enlargedCaptionRowHeight,
+                        controlsWidth, reportPreview, reportMinWidth, gutter));
+        check.same("Wide landscape places the report beside a panel that fits both control rows",
+                new GameReviewLayout(true, 224, 240),
+                GameReviewLayout.fit(720, 340, branchPickerHeight + enlargedCaptionRowHeight,
+                        controlsWidth, reportPreview, reportMinWidth, gutter));
+        check.same("Narrow landscape stacks the report when the two panels would squeeze the controls",
+                new GameReviewLayout(false, 150, 480),
+                GameReviewLayout.fit(480, 340, branchPickerHeight + enlargedCaptionRowHeight,
+                        controlsWidth, reportPreview, reportMinWidth, gutter));
+    }
+
     @Test void placesTheReportBesideTheBoardOnlyWhenBothPanelsFit(Checks check) {
         check.same("Wide landscape gives the board and report their full height", new GameReviewLayout(true, 290, 290),
                 GameReviewLayout.fit(728, 360, 70, 240, 132, 248, 8));

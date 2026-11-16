@@ -126,7 +126,7 @@ Rezultatul unic actualizează o distribuție uniformă a scorului așteptat la `
 ## Salvare și verificare
 
 - Analiza terminată se păstrează lângă partida din arhivă. Cache-ul are versiune și amprenta SHA-256 a salvării exacte, inclusiv rezultatul și configurația. O analiză absentă, trunchiată sau incompatibilă se recalculează la redeschidere.
-- Raportul din arhivă include scorurile și liniile calculate pentru fiecare mutare. Marcajul de vizualizare păstrează semimutarea, linia activă și pasul după redeschidere sau restart. ID-ul arhivei și amprenta salvării leagă marcajul de partida exactă. Prima deschidere pornește la final. O linie sau un pas indisponibil readuce tabla la poziția jucată.
+- Raportul din arhivă include scorurile și liniile calculate pentru fiecare mutare. Marcajul păstrează semimutarea, linia, pasul și starea ferestrei **De ce?** după redeschidere sau restart. Închiderea explicită lasă mutarea selectată în istoric. ID-ul arhivei și amprenta salvării leagă marcajul de partida exactă. Prima deschidere pornește la final. O linie sau un pas indisponibil readuce tabla la poziția jucată.
 - Închiderea ferestrei în timpul calculului oprește căutarea. Arhiva reține ultimele zece rezultate și elimină raportul și marcajul odată cu intrarea veche. Continuarea din arhivă creează o partidă separată.
 - `GameReviewTest` verifică evaluarea, clasificarea, estimarea Elo și reconcilierea tabelului. `GameReviewGovernanceTest` verifică pragurile, reperele și catalogul ECO. `MatchArchiveTest` verifică refacerea raportului complet și respingerea cache-urilor incompatibile. [Strategia de testare](../testing/README.md#partidă-și-istoric)
 
@@ -148,11 +148,11 @@ flowchart LR
     C -->|sincronizează| B["Poziție pe tablă"]
     C -->|sincronizează| S["Scor și categorie"]
     C -->|poziționează| M["Marcaj pe grafic"]
-    C -->|"De ce?"| E["Motiv bazat pe linie sau pe scor"]
+    C -->|"De ce?"| E["Redare pe tot ecranul, motiv și scor"]
     E -->|deschide| R["Linii comparate"]
     C -->|"Bec"| R
     R -->|"Săgeți"| P["Parcurge linia din poziția comună"]
-    P -->|"Aceeași linie selectată din nou"| C
+    P -->|"Înapoi la mutarea selectată"| C
     P -->|salvează| A["Marcaj de reluare"]
 ```
 
@@ -164,9 +164,9 @@ flowchart LR
 
 </details>
 
-Becul deschide linia recomandată și indică piesa și destinația următoarei mutări. **De ce?** arată motivul și oferă acces la **Jucată** și **Recomandată**. Ambele pornesc din aceeași poziție, înaintea mutării selectate. În **Jucată**, prima mutare este cea înregistrată în partidă. Continuarea arată replicile calculate de motor. Istoricul păstrează replicile efectiv jucate. Săgețile parcurg pașii liniei, iar eticheta accesibilă anunță linia și pasul. Apăsarea din nou a liniei active, selecția din listă sau grafic și saltul la un moment-cheie readuc tabla în istoricul partidei.
+Becul deschide linia recomandată direct în review. La o mutare care pierde scor, **De ce?** deschide aceeași fereastră pe tot ecranul ca Teoria deschiderilor. Tabla și săgețile rămân fixe, iar explicația se derulează separat. **După mutare** și **Recomandată** pornesc din poziția anterioară mutării selectate. Prima mutare din **După mutare** este cea din partidă, iar continuarea conține replicile calculate. **Înapoi** revine la mutarea selectată, cu graficul și lista în locul în care erau. [Teoria pe tabla de analiză](openings.md#indicii-de-teorie-pe-tabla-de-analiză)
 
-Pentru o mutare cu pierdere de scor, explicația folosește liniile validate cu regulile și istoricul poziției. În exemplul `g4`, linia jucată arată `…Dh4#`. La mat prin promovare, explicația numește piesa ajunsă pe ultima linie. La material, compară ramurile la același număr de pași și numește captura care produce cea mai mare pierdere ce persistă până la finalul comparației. Deficitul net descrie întreaga comparație. Când dovada tactică lipsește, explicația arată evaluarea mutării jucate, evaluarea recomandării și adâncimea comună, din perspectiva culorii care mută. O linie ilegală din cache rămâne indisponibilă. [Proba mutării](../../atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java)
+Pentru o mutare cu pierdere de scor, explicația folosește liniile validate cu regulile și istoricul poziției. În exemplul `g4`, linia jucată arată `…Dh4#`. La mat prin promovare, explicația numește piesa ajunsă pe ultima linie. La material, compară ramurile la același număr de pași și numește captura care produce cea mai mare pierdere ce persistă până la finalul comparației. Deficitul net descrie întreaga comparație. Când ramura recomandată dovedește un câștig material ratat la același orizont, explicația numește captura și valoarea care rămâne după apărare. Când dovada tactică lipsește, explicația arată evaluarea mutării jucate, evaluarea recomandării și adâncimea comună, din perspectiva culorii care mută. O linie ilegală din cache rămâne indisponibilă. [Proba mutării](../../atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java)
 
 În meniul de acțiuni, **Vezi pe tablă** închide review-ul și mută cursorul activ la semimutarea aleasă. **Reîncearcă mutarea** cere confirmarea continuării din poziția anterioară pentru mutările jucătorului sau pentru ambele culori în studiu. Anularea sau lipsa unui loc liber păstrează analiza la linia și pasul curent. Continuarea confirmată din arhivă deschide o partidă nouă din prefixul original.
 
