@@ -396,3 +396,51 @@ testChanges:
     test: ro.atf.chess.ReleaseGovernanceTest#sharedReplayRoutesToBothSignedAndroidScopesAndTheirComponents
     contract: "Cite both signed native scopes and relevant JVM coverage for an isolated shared replay change"
     allowDelete: false
+
+  - id: J7-0152-ANDROID-VERSION
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the signed patch while retaining the documented app and build"
+    allowDelete: false
+
+  - id: J7-0152-MAVEN-VERSION
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Align the reactor version with the app and the documented modules"
+    allowDelete: false
+
+  - id: J7-0152-TESTS-VERSION
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Retain the Maven parent and test source boundaries"
+    allowDelete: false
+
+  - id: J7-REPLAY-COMPACT-REPORT
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#compactReplayRequiresBothLocalesAndNativeCaptures
+    contract: "Require both compact replay locales and their exact native captures in Extent"
+    allowDelete: false
+
+  - id: J7-REPLAY-COMPACT-RECEIPT
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#compactReplayRequiresBothLocalesAndNativeCaptures
+    contract: "Reject missing or substituted evidence from the two compact replay phases"
+    allowDelete: false
+
+  - id: J7-REPLAY-COMPACT-RUNNER
+    base: "d3975b2bd40627df22669e2485e8c1b6e6fb9c06"
+    from: scripts/run-android-sanity.ps1
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#compactReplayRequiresBothLocalesAndNativeCaptures
+    contract: "Retain the distribution identity and exercise both locales at the exact compact profile"
+    allowDelete: false

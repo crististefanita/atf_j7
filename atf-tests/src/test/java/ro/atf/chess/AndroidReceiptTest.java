@@ -268,6 +268,75 @@ class AndroidReceiptTest {
         }
     }
 
+    @Test void compactReplayRequiresBothLocalesAndNativeCaptures(Checks check) throws Exception {
+        var checks = List.of(
+                "Compact replay uses the requested locale and enlarged Android display profile",
+                "Opening Theory shows three readable choices, a square board and fixed navigation",
+                "Opening Theory replays the full path, exposes its last explanation and returns to the same position",
+                "Game Review shows both readable branches, a square board and fixed navigation",
+                "Game Review replays both branches and exposes the complete explanation",
+                "Closing the enlarged replay returns to the archived move without changing the game");
+        var frames = List.of("opening-theory", "review-why");
+        var identity = new ReviewIdentity("f".repeat(40), "release", "a".repeat(64), "1".repeat(32));
+        var json = new ObjectMapper();
+        for (String state : List.of("complete", "wrong-font", "different-run", "substituted-png")) {
+            Path directory = Files.createDirectory(folder.resolve("compact-replay-" + state));
+            Path romanian = Files.createDirectory(directory.resolve("replay-compact-ro"));
+            Path english = Files.createDirectory(directory.resolve("replay-compact-en"));
+            writeReviewRun(romanian, "replay-compact-ro", 111, checks.size(), identity, checks, frames, 1);
+            writeReviewRun(english, "replay-compact-en", 222, checks.size(),
+                    state.equals("different-run") ? identity.withRunId("2".repeat(32)) : identity, checks, frames, 3);
+            Path receipt = appendReplayProfile(romanian, "ro", "1.3", json);
+            appendReplayProfile(english, "en", state.equals("wrong-font") ? "1.0" : "1.3", json);
+            if (state.equals("substituted-png")) {
+                Path frame = english.resolve("opening-theory.png");
+                Files.copy(romanian.resolve(frame.getFileName()), frame, StandardCopyOption.REPLACE_EXISTING);
+                Path execution = english.resolve("execution.json");
+                var manifest = (com.fasterxml.jackson.databind.node.ObjectNode) json.readTree(execution.toFile());
+                manifest.withObject("/captureSha256").put(frame.getFileName().toString(), sha256(frame));
+                json.writeValue(execution.toFile(), manifest);
+            }
+            boolean complete = state.equals("complete");
+            if (complete) AndroidSanityPublication.publishReplayCompact(receipt);
+            else check.rejects("Compact replay rejects " + state, AssertionError.class,
+                    () -> AndroidSanityPublication.publishReplayCompact(receipt));
+            var report = Jsoup.parse(directory.resolve("android-replay-compact.html").toFile(), "UTF-8");
+            int screenshots = complete ? 4 : state.equals("substituted-png") ? 3 : 0;
+            String status = complete ? "pass" : "fail";
+            check.same("Extent has the correct verdict and bound frames for " + state, List.of(1, screenshots),
+                    List.of(report.select("li.test-item[status=" + status + "]").size(),
+                            report.select("a.atf-ui-action-screenshot-link").size()));
+            String diagnosis = switch (state) {
+                case "wrong-font" -> "Native compact replay profile";
+                case "different-run" -> "Missing or mismatched phase run identity";
+                case "substituted-png" -> "Capture SHA-256 mismatch: opening-theory.png";
+                default -> "720x1280, 320 dpi, font 1.3, language en";
+            };
+            check.same("Extent preserves the compact profile or rejection reason for " + state, true, report.text().contains(diagnosis));
+            if (complete) {
+                var run = report.select("table.helm-evidence-table tr > td:matchesOwn(^RUN ID$)");
+                check.same("Extent publishes one shared execution identity for archive qualification", List.of(1, identity.runId()),
+                        List.of(run.size(), run.isEmpty() ? "" : run.getFirst().nextElementSibling().text()));
+            }
+        }
+    }
+
+    private static Path appendReplayProfile(Path directory, String locale, String fontScale, ObjectMapper json) throws Exception {
+        Path receipt = directory.resolve("replay-compact-" + locale + ".txt");
+        Files.writeString(receipt, """
+                INSTRUMENTATION_RESULT: replayLocale=%s
+                INSTRUMENTATION_RESULT: replayFontScale=%s
+                INSTRUMENTATION_RESULT: replayWidth=720
+                INSTRUMENTATION_RESULT: replayHeight=1280
+                INSTRUMENTATION_RESULT: replayDensityDpi=320
+                """.formatted(locale, fontScale), java.nio.file.StandardOpenOption.APPEND);
+        Path execution = directory.resolve("execution.json");
+        var manifest = (com.fasterxml.jackson.databind.node.ObjectNode) json.readTree(execution.toFile());
+        manifest.put("receiptSha256", sha256(receipt));
+        json.writeValue(execution.toFile(), manifest);
+        return receipt;
+    }
+
     @Test void rejectsManualReceiptWithNoOpeningLabelAssertion(Checks check) throws Exception {
         Path receipt = analysisFixture("manual-missing-theory", "1".repeat(32), "1".repeat(32));
         Path manual = receipt.resolveSibling("manual-analysis").resolve("manual-analysis.txt");

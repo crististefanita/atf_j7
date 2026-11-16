@@ -517,6 +517,10 @@ class ReleaseGovernanceTest {
                 List.of("OpeningTheoryTest, GameReviewLayoutTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
                 inventory.citations().stream().filter(citation -> citation.heading().equals("## Tablă de analiză"))
                         .map(ReleaseRag.Citation::check).toList());
+        check.same("The shared surface also requires the signed compact language probe",
+                List.of("GameReviewLayoutTest și BoardSanity -Distribution -ReplayCompactOnly"),
+                inventory.citations().stream().filter(citation -> citation.heading().equals("## Redare comună pe ecran compact"))
+                        .map(ReleaseRag.Citation::check).toList());
     }
 
     @Test void eachTacticalHoldoutAssetCitesItsOwnerAndIndependentChecks(Checks check) throws IOException {

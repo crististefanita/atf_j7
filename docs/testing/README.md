@@ -368,6 +368,14 @@ fazei de joc din directorul părinte. [Utilizare](../board/README.md#tablă-de-a
 
 `-MatchMenusOnly` rulează cele două meniuri pe aceeași instalare. Pentru probe separate de dezvoltare, folosiți `-MatchSlotsOnly` sau `-MatchArchiveOnly`. Publicați cu `AndroidSanityPublication#publishMatchSlotsSanity` sau `#publishMatchArchiveSanity` și recepția fazei. Extent leagă aserțiunea, captura încorporată și amprenta ei de același pas Android. Identitatea execuției include procesul, commitul și amprenta APK-ului pentru distribuție. [Partide salvate și încheiate](../board/README.md#partidă-cu-calculatorul)
 
+## Redare comună pe ecran compact
+
+Rulați `scripts/run-android-sanity.ps1 -Distribution -ReplayCompactOnly -SourceCommit <sha>` după build-ul semnat în TMP. Proba configurează profilul portret 720 × 1280, 320 dpi, font 1,3×, pornește aplicația în română și apoi în engleză și restaurează profilul emulatorului la final.
+
+În fiecare limbă, deschide un traseu din Teoria deschiderilor și ambele variante din **De ce?**, urmărește comenzile și textul, derulează explicația și revine la poziția de pornire. Verifică dreptunghiul tablei și al săgeților la schimbarea variantei și a pasului. Testele JVM păstrează acoperirea geometriei și a cursorului fără emulator.
+
+Publicați raportul cu `-Dtest=AndroidSanityPublication#publishReplayCompactSanity` și `-Dchess.android.receipt=<recepția RO>`. `android-replay-compact.html` include cele 12 aserțiuni și patru capturi. Raportul cere ambele limbi și același APK, commit, profil, dispozitiv și ID de rulare, cu procese distincte. [Calificarea ediției](../release/README.md#calificare-și-publicare)
+
 ## Proba TalkBack
 
 1. Activați TalkBack pe emulator. În **Mat în 1**, deschideți **Indiciu**, apoi **Arată mutarea**. Atingeți culoarea la mutare și glisați de două ori spre dreapta prin intrarea tactilă a emulatorului. După fiecare gest, capturați evenimentul Android `TYPE_VIEW_ACCESSIBILITY_FOCUSED` și cadrul cu focusul. Repetați după **Întoarce tabla**. [Intrarea tactilă a emulatorului](https://developer.android.com/studio/run/emulator-console)

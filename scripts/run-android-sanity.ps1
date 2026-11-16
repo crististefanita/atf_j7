@@ -10,6 +10,7 @@ param(
     [switch]$AnalysisOnly,
     [switch]$OpeningsOnly,
     [switch]$GameReviewOnly,
+    [switch]$ReplayCompactOnly,
     [switch]$ManualAnalysisOnly,
     [switch]$MatchSlotsOnly,
     [switch]$MatchArchiveOnly,
@@ -38,6 +39,12 @@ $variant = if ($Distribution) { 'release' } else { 'sanity' }
 if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distribution requires the exact source commit.' }
 if ($QualificationRunId -and !($Distribution -and ($GameReviewOnly -or $IncludeGameReview))) {
     throw 'A qualification run ID applies to signed Game Review evidence.'
+}
+if ($ReplayCompactOnly -and (!$Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or
+        $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or $MatchMenusOnly -or
+        $TacticsExplanationOnly -or $TrainingFinishOnly -or $PuzzleMateReplayOnly -or $PuzzleDangerOnly -or $PuzzleUxOnly -or
+        $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
+    throw 'ReplayCompactOnly selects both compact locales on the signed APK.'
 }
 $puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly, $PuzzleUxOnly).Where({ $_ })
 if ($puzzleProbes.Count -gt 1 -or ($puzzleProbes.Count -eq 1 -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or
@@ -115,6 +122,37 @@ function Invoke-Device([string[]]$Command) {
     if ($LASTEXITCODE) { throw "ADB failed for $($Command[0])" }
 }
 
+function Read-DisplayProfile {
+    $size = (Invoke-Device @('shell','wm','size')) -join [char]10
+    $density = (Invoke-Device @('shell','wm','density')) -join [char]10
+    $font = (Invoke-Device @('shell','settings','get','system','font_scale') | Out-String).Trim()
+    $overrideSize = [regex]::Match($size,'(?m)^Override size:\s*(\d+x\d+)\s*$').Groups[1].Value
+    $overrideDensity = [regex]::Match($density,'(?m)^Override density:\s*(\d+)\s*$').Groups[1].Value
+    if ($size -notmatch '(?m)^Physical size:\s*\d+x\d+' -or $density -notmatch '(?m)^Physical density:\s*\d+' -or
+            ($size -match 'Override' -and !$overrideSize) -or ($density -match 'Override' -and !$overrideDensity) -or
+            $font -notmatch '^(null|\d+(\.\d+)?)$') { throw 'Unexpected Android display settings.' }
+    [pscustomobject]@{size=$overrideSize; density=$overrideDensity; font=$font}
+}
+
+function Set-DisplayProfile($Profile) {
+    $size = if ($Profile.size) { $Profile.size } else { 'reset' }
+    $density = if ($Profile.density) { $Profile.density } else { 'reset' }
+    Invoke-Device @('shell','wm','size',$size) | Out-Null
+    Invoke-Device @('shell','wm','density',$density) | Out-Null
+    if ($Profile.font -ceq 'null') {
+        Invoke-Device @('shell','settings','delete','system','font_scale') | Out-Null
+    } else {
+        Invoke-Device @('shell','settings','put','system','font_scale',$Profile.font) | Out-Null
+    }
+    $deadline = [datetime]::UtcNow.AddSeconds(4)
+    do {
+        $actual = Read-DisplayProfile
+        if ($actual.size -ceq $Profile.size -and $actual.density -ceq $Profile.density -and $actual.font -ceq $Profile.font) { return }
+        Start-Sleep -Milliseconds 150
+    } while ([datetime]::UtcNow -lt $deadline)
+    throw 'Android did not reach the requested display profile.'
+}
+
 function Receive-Frame([string]$Name, [string]$Directory = $run) {
     $start = [Diagnostics.ProcessStartInfo]::new($adbExe)
     $start.UseShellExecute = $false
@@ -167,6 +205,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
     switch ($Phase) {
         'analysis-prepare' { $frames = @('match-analysis') }
         'analysis-restore' { $frames = @() }
+        { $_ -in 'replay-compact-ro', 'replay-compact-en' } { $frames = @('opening-theory', 'review-why') }
         'match-slots' { $frames += 'saved-games' }
         'match-archive' { $frames += 'finished-games' }
         'game-review' { $frames += 'game-review-navigation', 'game-review-line', 'game-review-comparison', 'game-review-actions' }
@@ -185,7 +224,8 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         Receive-Frame $frame $Directory
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
-        if ($Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux') {
+        if ($Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux',
+                'replay-compact-ro','replay-compact-en') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
                 throw "Pulled PNG does not match the native capture: $file."
@@ -211,6 +251,33 @@ function Invoke-IncludedSanity([string]$Directory, [string]$Phase, [int]$Expecte
     $phaseDirectory = Join-Path $Directory $Phase
     $null = New-Item -ItemType Directory $phaseDirectory
     Invoke-FocusedSanity $phaseDirectory $Phase $Expected $RunId
+}
+
+function Invoke-ReplayCompactSanity([string]$Directory) {
+    $runId = [guid]::NewGuid().ToString('N')
+    $original = Read-DisplayProfile
+    try {
+        Set-DisplayProfile @{size='720x1280'; density='320'; font='1.3'}
+        $pids = foreach ($locale in 'ro','en') {
+            $phase = "replay-compact-$locale"
+            Invoke-IncludedSanity $Directory $phase 6 $runId
+            $receipt = @(Get-Content -LiteralPath (Join-Path $Directory "$phase/$phase.txt"))
+            $fields = [ordered]@{replayLocale=$locale; replayFontScale='1.3'; replayWidth='720'; replayHeight='1280'; replayDensityDpi='320'}
+            foreach ($name in $fields.Keys) {
+                $prefix = "INSTRUMENTATION_RESULT: $name="
+                $values = @($receipt | Where-Object { $_.StartsWith($prefix) })
+                if ($values.Count -ne 1 -or $values[0] -cne ($prefix + $fields[$name])) {
+                    throw "Unexpected compact display evidence in $phase ($name)."
+                }
+            }
+            $observed = @($receipt | Where-Object { $_ -match '^INSTRUMENTATION_RESULT: pid=[1-9][0-9]*$' })
+            if ($observed.Count -ne 1) { throw "Invalid instrumentation PID in $phase." }
+            $observed[0]
+        }
+        if ($pids[0] -ceq $pids[1]) { throw 'Romanian and English compact probes require distinct Android processes.' }
+    } finally {
+        Set-DisplayProfile $original
+    }
 }
 
 function Invoke-GameReviewSanity([string]$Directory) {
@@ -267,6 +334,10 @@ try {
     $runner = "$app.test/ro.atf.chess.android.BoardSanity"
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
+    if ($ReplayCompactOnly) {
+        Invoke-ReplayCompactSanity $run
+        return
+    }
     if ($TacticsExplanationOnly) {
         Invoke-FocusedSanity $run 'tactics-explanation' 6 ([guid]::NewGuid().ToString('N'))
         return

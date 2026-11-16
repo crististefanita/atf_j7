@@ -8,6 +8,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
@@ -43,6 +44,8 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Predicate;
 import ro.atf.chess.AnalysisLine;
+import ro.atf.chess.AppLanguage;
+import ro.atf.chess.AppLanguagePreference;
 import ro.atf.chess.BoardSquare;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition;
@@ -65,6 +68,7 @@ public final class BoardSanity extends Instrumentation {
     private static final int MATE_THREE_SIZE = 200;
     private static final int TACTICS_SIZE = 100;
     private static final int HINT_TINT = 0xff57e0b4;
+    private static final String COMPACT_REPLAY = "replay-compact-";
     private static final int MAX_REVIEW_SCROLLS = 12;
     private static final String REVIEW_MATE = "3|WHITE|ADVANCED|0|f2f3 e7e5 g2g4 d8h4";
     // Fixed 185-ply game from the offline J7 league, game 1500-11.
@@ -112,6 +116,7 @@ public final class BoardSanity extends Instrumentation {
             else if ("game-review".equals(phase)) checkGameReview();
             else if ("game-review-why".equals(phase)) checkReviewExplanation();
             else if ("game-review-why-restore".equals(phase)) checkReviewExplanationRestore();
+            else if (phase.startsWith(COMPACT_REPLAY)) checkCompactReplay();
             else if ("tactics-explanation".equals(phase)) checkTacticsExplanation();
             else if ("training-finish".equals(phase)) checkTrainingFinish();
             else if ("puzzle-mate-replay".equals(phase)) checkPuzzleMateReplay();
@@ -290,6 +295,227 @@ public final class BoardSanity extends Instrumentation {
         compare("Returning to the study lets the player apply the hint without saving a match", true,
                 history.getChildCount() == 7 && history.getChildAt(6).isSelected() && store.matches().readMatch() == null
                         && cell(board, "c5").getContentDescription().toString().contains(study.getString(R.string.bishop)));
+    }
+
+    private void checkCompactReplay() throws Exception {
+        var locale = AppLanguage.fromTag(phase.substring(COMPACT_REPLAY.length())).orElseThrow();
+        var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
+        if (!new AppLanguagePreference(new AndroidGamePreferences(settings)).save(locale)) {
+            throw new AssertionError("Could not select the replay language");
+        }
+        enableReviewNodeIds();
+        var home = launch();
+        replayCapture = displayCaptureGeometry();
+        var config = home.getResources().getConfiguration();
+        String language = config.getLocales().get(0).getLanguage();
+        int density = home.getResources().getDisplayMetrics().densityDpi;
+        receipt.putString("replayLocale", language);
+        receipt.putString("replayFontScale", Float.toString(config.fontScale));
+        receipt.putString("replayWidth", Integer.toString(replayCapture.logicalWidth()));
+        receipt.putString("replayHeight", Integer.toString(replayCapture.logicalHeight()));
+        receipt.putString("replayDensityDpi", Integer.toString(density));
+        compare("Compact replay uses the requested locale and enlarged Android display profile",
+                List.of(locale.locale().getLanguage(), 1.3f, 720, 1280, 320),
+                List.of(language, config.fontScale, replayCapture.logicalWidth(), replayCapture.logicalHeight(), density));
+        checkCompactTheory(home);
+        checkCompactReview(home);
+    }
+
+    private void checkCompactTheory(Activity home) throws Exception {
+        var monitor = addMonitor(AnalysisActivity.class.getName(), null, false);
+        Activity study;
+        try {
+            tap(home.findViewById(R.id.open_analysis));
+            study = waitForMonitorWithTimeout(monitor, 7000);
+        } finally { removeMonitor(monitor); }
+        if (study == null) throw new AssertionError("Could not open the compact analysis board");
+        waitForIdleSync();
+        var locale = study.getResources().getConfiguration().getLocales().get(0);
+        if (study.getResources().getConfiguration().fontScale != 1.3f
+                || !locale.getLanguage().equals(receipt.getString("replayLocale"))) {
+            throw new AssertionError("Analysis board did not inherit the compact locale and font scale");
+        }
+        var board = findBoard(viewsOf(study));
+        var match = ChessMatch.restore("2|analysis|e2e4");
+        var line = new AnalysisLine(match, 1);
+        playMove(board, match.moveAt(1));
+        if (!awaitHiddenAnalysis(study, 1)) throw new AssertionError("Initial analysis did not finish");
+        var initialBoard = screenBounds(board);
+        tap(study.findViewById(R.id.match_hint));
+        tap(study.findViewById(R.id.match_analysis));
+        var mode = AnalysisReplayDialog.Mode.THEORY;
+        var geometry = compactReplayGeometry(study, mode);
+        var choices = List.of(R.id.hint_compare_best, R.id.hint_compare_other, R.id.hint_compare_third);
+        var labels = List.of(study.getString(R.string.hint_theory_path, 1), study.getString(R.string.hint_theory_path, 2),
+                study.getString(R.string.hint_theory_path, 3));
+        captureFrame("opening-theory", "Opening Theory shows three readable choices, a square board and fixed navigation",
+                image -> replayChoicesReadable(image, geometry, choices, labels));
+
+        var hint = line.hint();
+        hint.revealNext();
+        var paths = hint.theoryPlayback(line.position()).orElseThrow().paths();
+        clickReviewIcon(choices.get(2));
+        var third = visibleReviewNode(choices.get(2));
+        boolean switched = third != null && third.isSelected() && geometry.equals(compactReplayGeometry(study, mode));
+        clickReviewIcon(choices.get(0));
+        var steps = paths.get(0).steps();
+        boolean anchored = true;
+        for (int step = 0; step < steps.size(); step++) {
+            clickReviewIcon(mode.next);
+            anchored &= geometry.equals(compactReplayGeometry(study, mode));
+        }
+        var atEnd = visibleReviewNode(mode.next);
+        var step = visibleReviewNode(mode.step);
+        boolean complete = atEnd != null && !atEnd.isEnabled() && step != null && step.getText() != null
+                && step.getText().toString().startsWith(steps.size() + "/" + steps.size())
+                && explanationReadable(mode.reason, steps.get(steps.size() - 1).idea().in(locale))
+                && geometry.equals(compactReplayGeometry(study, mode));
+        clickReviewIcon(mode.back);
+        var atPrevious = visibleReviewNode(mode.step);
+        boolean reversed = atPrevious != null && atPrevious.getText() != null
+                && atPrevious.getText().toString().startsWith((steps.size() - 1) + "/" + steps.size())
+                && geometry.equals(compactReplayGeometry(study, mode));
+        clickReviewIcon(R.id.hint_preview_return);
+        var history = (ViewGroup) study.findViewById(R.id.match_history_moves);
+        compare("Opening Theory replays the full path, exposes its last explanation and returns to the same position",
+                List.of(3, true, true, true, true, true),
+                List.of(paths.size(), switched, anchored, complete, reversed, initialBoard.equals(screenBounds(board))
+                        && history.getChildCount() == 2 && history.getChildAt(1).isSelected()));
+        closeActivity(study);
+    }
+
+    private void checkCompactReview(Activity home) throws Exception {
+        var match = ChessMatch.restore(REVIEW_MATE);
+        var store = new ChessProgressStore(getTargetContext()).matches();
+        seedGame(1, match);
+        String archiveId = store.archivedId(1);
+        var review = GameReview.analyze(match, ignored -> { });
+        if (!store.saveReview(archiveId, match, review)) throw new AssertionError("Could not seed the archived replay");
+        var activity = openArchivedReview(home);
+        clickReviewIcon(R.id.game_review_previous);
+        var historyBoard = nodeBounds(reviewNode(R.id.game_review_board, 4500));
+        var selected = reviewNode(R.id.game_review_selection, 4500);
+        String selectedMove = selected == null ? "" : String.valueOf(selected.getText());
+        var viewport = reviewViewport();
+        clickReviewIcon(R.id.game_review_why);
+        var mode = AnalysisReplayDialog.Mode.REVIEW;
+        var geometry = compactReplayGeometry(activity, mode);
+        var choices = List.of(R.id.game_review_played_branch, R.id.game_review_recommended_branch);
+        var labels = List.of(activity.getString(R.string.game_review_played_branch), activity.getString(R.string.game_review_recommended_branch));
+        clickReviewIcon(R.id.game_review_recommended_branch);
+        captureFrame("review-why", "Game Review shows both readable branches, a square board and fixed navigation",
+                image -> replayChoicesReadable(image, geometry, choices, labels));
+
+        var turn = review.turns().get(2);
+        boolean recommended = reviewLineStep(reviewBranchStep(activity, R.string.game_review_recommended_branch, 0, turn.bestLine().size()));
+        clickReviewIcon(mode.next);
+        boolean recommendedStep = reviewLineStep(reviewBranchStep(activity, R.string.game_review_recommended_branch, 1, turn.bestLine().size()))
+                && geometry.equals(compactReplayGeometry(activity, mode));
+        clickReviewIcon(R.id.game_review_played_branch);
+        boolean played = reviewLineStep(reviewBranchStep(activity, R.string.game_review_played_branch, 0, 2))
+                && dialogNode(pieceDescription(activity, Side.WHITE, ChessPosition.Kind.PAWN, "g2")) != null;
+        clickReviewIcon(mode.next);
+        clickReviewIcon(mode.next);
+        String queen = activity.getString(R.string.queen).toLowerCase(activity.getResources().getConfiguration().getLocales().get(0));
+        String explanation = activity.getString(R.string.game_review_why_allows_mate, queen, "h4");
+        compare("Game Review replays both branches and exposes the complete explanation",
+                List.of(true, true, true, true, true, true),
+                List.of(recommended, recommendedStep, played, matingReplyVisible(activity),
+                        explanationReadable(mode.reason, explanation), geometry.equals(compactReplayGeometry(activity, mode))));
+        clickReviewIcon(R.id.hint_preview_return);
+        var returnedViewport = reviewViewport();
+        var bookmark = new GameReviewTimeline.Snapshot(3, GameReviewTimeline.Branch.HISTORY, 0, false);
+        compare("Closing the enlarged replay returns to the archived move without changing the game",
+                List.of(true, true, true, true, true),
+                List.of(!selectedMove.isBlank() && reviewSelection(selectedMove), sameReviewBoard(historyBoard),
+                        !viewport.isEmpty() && viewport.equals(returnedViewport), archiveMatches(store, archiveId, match, review),
+                        bookmark.equals(store.readReviewBookmark(archiveId, match))));
+    }
+
+    private List<Rect> compactReplayGeometry(Activity activity, AnalysisReplayDialog.Mode mode) {
+        var board = fullscreenReplayBoard(activity, mode.board);
+        var close = nodeBounds(visibleReviewNode(R.id.hint_preview_return));
+        var previous = nodeBounds(visibleReviewNode(mode.back));
+        var next = nodeBounds(visibleReviewNode(mode.next));
+        var step = nodeBounds(visibleReviewNode(mode.step));
+        int touchSize = Math.round(48 * activity.getResources().getDisplayMetrics().density);
+        var window = activeWindowBounds();
+        if (previous.top < board.bottom || next.top < board.bottom || close.bottom > board.top
+                || previous.right > step.left || step.right > next.left || step.isEmpty()
+                || List.of(close, previous, next).stream().anyMatch(bounds -> !window.contains(bounds)
+                        || bounds.width() < touchSize || bounds.height() < touchSize)) {
+            throw new AssertionError("Compact replay controls overlap or leave the viewport: "
+                    + List.of(board, close, previous, step, next) + " in " + window);
+        }
+        return List.of(board, close, previous, step, next);
+    }
+
+    private boolean replayChoicesReadable(Bitmap image, List<Rect> geometry, List<Integer> ids, List<String> labels) {
+        if (!hintBoardCornersAreRendered(image, geometry.get(0))) return false;
+        int previousRight = 0;
+        for (int index = 0; index < ids.size(); index++) {
+            var node = visibleReviewNode(ids.get(index));
+            var label = labels.get(index);
+            var bounds = nodeBounds(node);
+            if (node == null || !node.isClickable() || !node.isEnabled() || !label.contentEquals(node.getText())
+                    || bounds.left < previousRight || bounds.top < geometry.get(0).bottom || bounds.bottom > geometry.get(2).top
+                    || !textCharactersVisible(node, label)
+                    || !hasColor(image, bounds, node.isSelected() ? 0xff9cf3d8 : 0xfff5f3ec, 12)) return false;
+            previousRight = bounds.right;
+        }
+        return true;
+    }
+
+    private boolean explanationReadable(int reasonId, String expected) throws Exception {
+        boolean startVisible = false;
+        for (int scroll = 0; scroll <= 4; scroll++) {
+            var node = visibleReviewNode(reasonId);
+            if (node != null && node.getText() != null && expected.contentEquals(node.getText())) {
+                startVisible |= textCharacterVisible(node, 0);
+                if (startVisible && textCharacterVisible(node, expected.length() - 1)) return true;
+            }
+            var region = replayScroll(getUiAutomation().getRootInActiveWindow());
+            if (region == null || !region.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)) break;
+            getUiAutomation().waitForIdle(150, 3000);
+        }
+        return false;
+    }
+
+    private static AccessibilityNodeInfo replayScroll(AccessibilityNodeInfo node) {
+        if (node == null) return null;
+        if (ScrollView.class.getName().contentEquals(node.getClassName()) && node.isVisibleToUser()) return node;
+        for (int index = 0; index < node.getChildCount(); index++) {
+            var found = replayScroll(node.getChild(index));
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private static boolean textCharacterVisible(AccessibilityNodeInfo node, int index) {
+        var characters = textCharacterBounds(node, index, 1);
+        return characters != null && characters[0] instanceof RectF box && !box.isEmpty();
+    }
+
+    private static boolean textCharactersVisible(AccessibilityNodeInfo node, String text) {
+        var characters = textCharacterBounds(node, 0, text.length());
+        if (characters == null || characters.length != text.length()) return false;
+        var clipped = new RectF(nodeBounds(node));
+        RectF previous = null;
+        for (int index = 0; index < text.length(); index++) {
+            if (Character.isWhitespace(text.charAt(index))) continue;
+            if (!(characters[index] instanceof RectF box) || box.isEmpty() || !clipped.contains(box)) return false;
+            if (previous != null && box.top == previous.top && box.centerX() <= previous.centerX()) return false;
+            previous = box;
+        }
+        return true;
+    }
+
+    private static android.os.Parcelable[] textCharacterBounds(AccessibilityNodeInfo node, int start, int length) {
+        var range = new Bundle();
+        range.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, start);
+        range.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH, length);
+        String key = AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY;
+        return node.refreshWithExtraData(key, range) ? node.getExtras().getParcelableArray(key) : null;
     }
 
     private boolean verifyTheoryRegeneration(Activity study, BoardView board) {
@@ -693,7 +919,10 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private Activity openArchivedReview() throws Exception {
-        var activity = launch(true);
+        return openArchivedReview(launch(true));
+    }
+
+    private Activity openArchivedReview(Activity activity) throws Exception {
         var list = openMatchList(activity, R.id.match_archive);
         chooseListEntry(list, 0);
         awaitListTransition(activity);
@@ -2805,7 +3034,8 @@ public final class BoardSanity extends Instrumentation {
             if (!image.compress(Bitmap.CompressFormat.PNG, 100, output)) throw new IOException("PNG write failed");
         }
         if ("analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
-                || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase) || "puzzle-ux".equals(phase)) {
+                || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
+                || "puzzle-ux".equals(phase) || phase.startsWith(COMPACT_REPLAY)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }

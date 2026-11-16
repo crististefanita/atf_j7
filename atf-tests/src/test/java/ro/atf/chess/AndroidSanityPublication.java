@@ -39,6 +39,13 @@ class AndroidSanityPublication {
     private static final List<String> REVIEW_RESTORE_CHECKS = List.of(
             "A restarted process reopens the archived analysis on the played mating reply",
             "Confirming from the reopened review creates a separate game and keeps the archived analysis");
+    private static final List<String> COMPACT_REPLAY_CHECKS = List.of(
+            "Compact replay uses the requested locale and enlarged Android display profile",
+            "Opening Theory shows three readable choices, a square board and fixed navigation",
+            "Opening Theory replays the full path, exposes its last explanation and returns to the same position",
+            "Game Review shows both readable branches, a square board and fixed navigation",
+            "Game Review replays both branches and exposes the complete explanation",
+            "Closing the enlarged replay returns to the archived move without changing the game");
     private static final List<String> OPENING_GEOMETRY_CHECKS = List.of(
             "Next preserves the board and its corner squares when Resume lesson appears",
             "Next preserves the board and its corner squares when Lesson hint returns");
@@ -193,7 +200,7 @@ class AndroidSanityPublication {
                             sameExecution ? "Matching run ID, APK, source, variant, device and API" : "Missing or mismatched phase run identity", sameExecution)),
                     complete);
             for (var run : runs) {
-                complete &= publishBoundRun(phase, run, acceptedCaptures, false, true);
+                complete &= publishBoundRun(phase, run, acceptedCaptures, false, true, true);
             }
             var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
             phase.complete(status);
@@ -240,11 +247,11 @@ class AndroidSanityPublication {
     }
 
     private static boolean publishBoundRun(atf.reporting.contract.AtfReportPorts.Phase phase, BoundRun run,
-                                           Set<String> captures, boolean nativeDigest, boolean attach)
+                                           Set<String> captures, boolean nativeDigest, boolean attach, boolean showRunId)
             throws IOException, java.security.NoSuchAlgorithmException {
         if (!run.identity().isEmpty()) {
             var audit = new ArrayList<>(run.identity());
-            audit.add(new ReportField("Run ID", run.execution().path("runId").asText()));
+            if (showRunId) audit.add(new ReportField("Run ID", run.execution().path("runId").asText()));
             audit.add(new ReportField("Android process", run.evidence().pid()));
             phase.observation(new ReportObservation(run.scope() + " execution identity", audit, List.of(), List.of()));
         }
@@ -485,8 +492,52 @@ class AndroidSanityPublication {
         publishNativeRuns("manual-analysis", "Study an opening and resume engine hints outside theory", receipt, List.of(manual), anchor);
     }
 
+    @Test void publishReplayCompactSanity() throws Exception {
+        publishReplayCompact(Path.of(System.getProperty("chess.android.receipt")));
+    }
+
+    static void publishReplayCompact(Path romanianReceipt) throws Exception {
+        Path root = romanianReceipt.toAbsolutePath().getParent().getParent();
+        var romanian = compactReplayRun(romanianReceipt, "ro", "Romanian");
+        var english = compactReplayRun(root.resolve("replay-compact-en/replay-compact-en.txt"), "en", "English");
+        publishNativeRuns("replay-compact", "Read and navigate both replay screens at enlarged font in RO and EN",
+                root.resolve("android-replay-compact.html"), List.of(romanian, english), null, true);
+    }
+
+    private static BoundRun compactReplayRun(Path receipt, String locale, String language) throws Exception {
+        String scope = "replay-compact-" + locale;
+        var run = boundRun(scope, "Read and replay in " + language, receipt, COMPACT_REPLAY_CHECKS.size(), COMPACT_REPLAY_CHECKS,
+                "compact replay", List.of(new Frame("opening-theory.png", language + " · Opening Theory fullscreen"),
+                        new Frame("review-why.png", language + " · Game Review explanation fullscreen")));
+        var markers = run.nativeMarkers();
+        var observed = List.of(replayValues(markers, "Locale"), replayValues(markers, "FontScale"), replayValues(markers, "Width"),
+                replayValues(markers, "Height"), replayValues(markers, "DensityDpi"));
+        var expected = List.of(List.of(locale), List.of("1.3"), List.of("720"), List.of("1280"), List.of("320"));
+        boolean profile = observed.equals(expected) && run.execution().path("variant").asText().equals("release");
+        var rows = new ArrayList<>(run.evidence().rows());
+        var identity = new ArrayList<>(run.identity());
+        String display = "720x1280, 320 dpi, font 1.3, language " + locale;
+        if (profile && !identity.isEmpty()) {
+            identity.add(new ReportField("Replay display profile", display));
+        } else if (!profile) {
+            rows.add(new AtfAssertion("Native compact replay profile", display + " on a signed release",
+                    "Locale, font, width, height and dpi " + observed + " · " + run.execution().path("variant").asText(), false));
+            identity.clear();
+        }
+        var evidence = new PhaseEvidence(run.evidence().pid(), rows, run.evidence().passed() && profile);
+        return new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), identity, run.frames(), markers);
+    }
+
+    private static List<String> replayValues(List<String> markers, String parameter) {
+        return markerValues(markers, "INSTRUMENTATION_RESULT: replay" + parameter + "=");
+    }
+
     private static void publishNativeRuns(String scope, String scenarioTitle, Path receipt, List<BoundRun> runs, BoundRun anchor) throws Exception {
-        Path report = receipt.resolveSibling("android-" + scope + ".html");
+        publishNativeRuns(scope, scenarioTitle, receipt.resolveSibling("android-" + scope + ".html"), runs, anchor, false);
+    }
+
+    private static void publishNativeRuns(String scope, String scenarioTitle, Path report, List<BoundRun> runs, BoundRun anchor,
+                                          boolean sharedRunId) throws Exception {
         if (Files.exists(report)) throw new IllegalArgumentException("Use a fresh Android evidence folder");
         boolean sameExecution = sameExecution(runs) && (anchor == null || anchor.evidence().passed() && sameExecution(List.of(anchor, runs.getFirst())));
         var pids = runs.stream().map(run -> run.evidence().pid()).toList();
@@ -504,14 +555,18 @@ class AndroidSanityPublication {
                 checks.add(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs", String.join(" → ", pids), restarted));
             }
             publish(phase, "Verify native provenance", checks, complete);
+            if (sameExecution && sharedRunId) {
+                var identity = new ReportField("Run ID", runs.getFirst().execution().path("runId").asText());
+                phase.observation(new ReportObservation("Shared native execution", List.of(identity), List.of(), List.of()));
+            }
             var acceptedCaptures = new HashSet<String>();
-            for (var run : runs) complete &= publishBoundRun(phase, run, acceptedCaptures, true, sameExecution);
+            for (var run : runs) complete &= publishBoundRun(phase, run, acceptedCaptures, true, sameExecution, !sharedRunId);
             var status = complete ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
             phase.complete(status);
             scenario.complete(status);
         }
         System.out.println("J7 Android Extent: " + report);
-        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android " + scope + " evidence: " + receipt);
+        org.junit.jupiter.api.Assertions.assertTrue(complete, "Missing or failed Android " + scope + " evidence: " + report);
     }
     @Test void publishBoardSanity() throws Exception {
         publishBoardSanity(Path.of(System.getProperty("chess.android.receipt")), System.getProperty("chess.android.runId", ""));
