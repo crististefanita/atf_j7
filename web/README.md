@@ -30,6 +30,24 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 
 Proba pornește browserul sub `/atf_j7/`, reîncarcă în tura calculatorului și verifică mutarea cu JVM. Raportul încorporează capturile. Pentru verificarea destinației publice, treceți URL-ul din README ca ultim argument al comenzii Node și adăugați `-Dchess.web.bot.public=true` la publicarea Extent. Driverul verifică fișierele servite înaintea probei Edge. [Proba Android](../docs/testing/README.md#partidă-și-istoric)
 
+## Partide salvate și încheiate
+
+**Partide salvate** arată numai partidele în desfășurare. **Partide încheiate** arată numai rezultatele arhivate. Ambele liste folosesc `MatchStore` și păstrează cel mult zece intrări fiecare, ordonate de la cea mai nouă. Interfața afișează data, numărul de semimutări și profilul. La o partidă cu AI, rezultatul este din perspectiva jucătorului.
+
+Săgețile tablei schimbă poziția afișată. **Continuă de aici** cere confirmarea și păstrează mutările până la poziția selectată. Pentru o partidă activă rescrie slotul curent. Din arhivă pornește o partidă separată într-un slot liber sau reutilizabil, cu sursa păstrată. Dacă toate sloturile sunt active, utilizatorul rămâne la poziția selectată. Într-o partidă cu AI, confirmarea poate lăsa replica automată activă sau poate trece la control manual.
+
+Browserul păstrează biblioteca într-o singură înregistrare locală versionată. La prima deschidere, salvează împreună partidele locale și AI din previzualizarea veche. La deschiderile ulterioare citește biblioteca salvată. Schimbarea partidei sau a poziției din istoric invalidează comenzile din revizia precedentă. [Matricea APK–Web](parity.md#contracte-și-probe)
+
+Cu `$site`, `$edge` și un dosar `$evidence` nou în TMP:
+
+```powershell
+node ./web/tests/browser-game-review.mjs $site --ledger $evidence $edge
+$receipt = Join-Path $evidence 'result.json'
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebLedgerPublication' "-Dchess.web.bundle=$site" "-Dchess.web.ledger.receipt=$receipt"
+```
+
+Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.ledger.public=true` la publicarea Extent.
+
 ## Partida locală și o analiză nouă
 
 **Partidă locală** permite mutările ambelor culori și oferă alegerea piesei la promovare. Workerul validează fiecare mutare. Pagina salvează checkpointul canonic înainte de a afișa poziția rezultată. Reîncărcarea pornește un worker nou și reface istoricul, culoarea la mutare și mutările legale din checkpoint. [Matricea funcțiilor](parity.md#contracte-și-probe)

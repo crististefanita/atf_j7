@@ -78,7 +78,7 @@ class SuiteGovernanceTest {
         check.same("Web parity requires an explicit worker build", Set.of(ChessWebParityPublication.class.getName()), webPublishers);
         check.same("Browser publishers require explicit driver receipts",
                 Set.of(ChessWebReviewPublication.class.getName(), ChessWebGamePublication.class.getName(),
-                        ChessWebBotPublication.class.getName()), browserPublishers);
+                        ChessWebBotPublication.class.getName(), ChessWebLedgerPublication.class.getName()), browserPublishers);
         check.same("The discovered component inventory is nonempty", true, !expected.isEmpty());
         check.same("All JVM methods have a valid test layer", Set.of(), wronglyTagged);
         check.same("All JVM methods attach the Extent audit", Set.of(), unaudited);

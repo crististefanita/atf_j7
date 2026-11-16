@@ -32,8 +32,13 @@ public final class ChessWebEngine {
     }
 
     @JSExport
-    public static String openMatch(String checkpoint, String mode, String humanSide, String level) {
-        return GAME.open(checkpoint, mode, humanSide, level);
+    public static String openLedger(String ledger, String legacyLocal, String legacyAi) {
+        return GAME.openLedger(ledger, legacyLocal, legacyAi);
+    }
+
+    @JSExport
+    public static String openMatch(String route, int slot, String archiveId, String mode, String humanSide, String level) {
+        return GAME.open(route, slot, archiveId, mode, humanSide, level);
     }
 
     @JSExport
@@ -41,6 +46,12 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String playBot(int revision) { return GAME.playBot(revision); }
+
+    @JSExport
+    public static String matchHistory(int revision, int ply) { return GAME.history(revision, ply); }
+
+    @JSExport
+    public static String continueMatch(int revision, boolean automatic) { return GAME.continueGame(revision, automatic); }
 
     @JSExport
     public static String analyzeReview(String checkpoint, String digest, Progress progress) {

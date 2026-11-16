@@ -1,6 +1,7 @@
 const storageKey = 'chesslab.game-review.v1';
-const matchKeys = { match: 'chesslab.active-match.v1', ai: 'chesslab.ai-match.v1' };
-const routeHashes = { match: '#game', ai: '#ai' };
+const ledgerKey = 'chesslab.match-ledger.v1';
+const legacyMatchKeys = { local: 'chesslab.active-match.v1', ai: 'chesslab.ai-match.v1' };
+const routeHashes = { match: '#game', ai: '#ai', saved: '#saved', finished: '#finished' };
 const botDelayMillis = 650;
 const locale = new URLSearchParams(location.search).get('lang') === 'ro' ? 'ro' : 'en';
 const words = {
@@ -8,6 +9,15 @@ const words = {
         title: 'Game Review', 'archive-label': 'Open a review',
         'open-match': 'Local game', 'open-review': 'Game Review', 'new-match': 'New game',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
+        'open-saved': 'Saved games', 'open-finished': 'Finished games', 'return-menu': 'Back',
+        'new-local': 'New local game', 'new-ai': 'New AI game', 'match-history': 'Game history',
+        'continue-match': 'Continue from here', 'continue-title': 'Continue from here', 'confirm-continue': 'Continue',
+        'cancel-continue': 'Cancel', 'automatic-label': 'Keep AI replies enabled',
+        emptySaved: 'No saved games.', emptyFinished: 'No finished games.',
+        noFreeSlot: 'All saved game slots are in use. Finish a saved game before continuing this result.',
+        continueActive: ply => `Continue this game from move ${ply}? Later moves will be replaced.`,
+        continueArchive: ply => `Start a saved game from move ${ply}? The finished game stays in the archive.`,
+        moves: count => `${count} ${count === 1 ? 'move' : 'moves'}`, active: 'In progress',
         'white-choice': 'White', 'black-choice': 'Black', 'start-ai': 'Start game', 'cancel-setup': 'Cancel',
         'retry-bot': 'Retry AI move', botTurn: 'AI to move…', botFailure: 'The AI move could not be completed. You can retry from this position.',
         aiProfile: (level, side) => `AI · ${level} · You play ${side.toLowerCase()}`,
@@ -15,7 +25,7 @@ const words = {
         'promote-label': 'Promote to', promotion: 'Choose a piece',
         matchFailure: 'Could not open or change the active game.', analysisFailure: 'Could not analyze the recorded moves.',
         matchSaveFailed: 'The browser could not save this move. The last saved position is still available.',
-        WHITE_WINS: 'White wins', BLACK_WINS: 'Black wins', DRAW: 'Draw',
+        WHITE_WINS: 'White wins', BLACK_WINS: 'Black wins', WON: 'Win', LOST: 'Loss', DRAW: 'Draw',
         empty: 'Open a Chess Lab review archive to replay its moves and compare alternatives.',
         why: 'Why?', 'why-title': 'Why?', played: 'Played line', recommended: 'Recommended line',
         'history-label': 'Move history', 'seek-label': 'Select a move by position',
@@ -37,6 +47,15 @@ const words = {
         title: 'Analiza partidei', 'archive-label': 'Deschide o analiză',
         'open-match': 'Partidă locală', 'open-review': 'Analiza partidei', 'new-match': 'Partidă nouă',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
+        'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate', 'return-menu': 'Înapoi',
+        'new-local': 'Partidă locală nouă', 'new-ai': 'Partidă nouă cu AI', 'match-history': 'Istoricul partidei',
+        'continue-match': 'Continuă de aici', 'continue-title': 'Continuă de aici', 'confirm-continue': 'Continuă',
+        'cancel-continue': 'Anulează', 'automatic-label': 'Păstrează replicile AI',
+        emptySaved: 'Nu ai partide salvate.', emptyFinished: 'Nu ai partide încheiate.',
+        noFreeSlot: 'Toate locurile sunt ocupate. Încheie o partidă salvată pentru a continua acest rezultat.',
+        continueActive: ply => `Continui această partidă de la mutarea ${ply}? Mutările ulterioare vor fi înlocuite.`,
+        continueArchive: ply => `Începi o partidă salvată de la mutarea ${ply}? Rezultatul inițial rămâne în arhivă.`,
+        moves: count => `${count} ${count === 1 ? 'mutare' : 'mutări'}`, active: 'În desfășurare',
         'white-choice': 'Alb', 'black-choice': 'Negru', 'start-ai': 'Începe partida', 'cancel-setup': 'Anulează',
         'retry-bot': 'Reîncearcă mutarea AI', botTurn: 'AI este la mutare…', botFailure: 'AI nu a terminat mutarea. Poți reîncerca din această poziție.',
         aiProfile: (level, side) => `AI · ${level} · Joci cu ${side.toLowerCase()}`,
@@ -44,7 +63,7 @@ const words = {
         'promote-label': 'Promovează în', promotion: 'Alege piesa',
         matchFailure: 'Partida curentă nu a putut fi deschisă sau modificată.', analysisFailure: 'Mutările înregistrate nu au putut fi analizate.',
         matchSaveFailed: 'Browserul nu a salvat mutarea. Ultima poziție salvată este disponibilă.',
-        WHITE_WINS: 'Albul câștigă', BLACK_WINS: 'Negrul câștigă', DRAW: 'Remiză',
+        WHITE_WINS: 'Albul câștigă', BLACK_WINS: 'Negrul câștigă', WON: 'Victorie', LOST: 'Înfrângere', DRAW: 'Remiză',
         empty: 'Deschide o arhivă Chess Lab pentru a revedea mutările și a compara variantele.',
         why: 'De ce?', 'why-title': 'De ce?', played: 'Linia jucată', recommended: 'Linia recomandată',
         'history-label': 'Istoricul mutărilor', 'seek-label': 'Alege poziția din istoric',
@@ -72,7 +91,10 @@ const history = find('history');
 const glyphs = { p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
 const kinds = { p: 'PAWN', n: 'KNIGHT', b: 'BISHOP', r: 'ROOK', q: 'QUEEN', k: 'KING' };
 const score = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+const gameDate = new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' });
 const levels = { BASIC: 'Basic', ADVANCED: 'Advanced', HARD: 'Hard' };
+const listRoutes = new Set(['saved', 'finished']);
+const localSetup = { mode: 'LOCAL', humanSide: 'WHITE', level: 'BASIC' };
 const worker = new Worker(new URL('./engine-worker.mjs', import.meta.url), { type: 'module' });
 const pending = new Map();
 let serial = 0;
@@ -80,13 +102,17 @@ let engineFailed = false;
 let busy = false;
 let otherTabChanged = false;
 let stored = null;
-const storedMatches = { match: null, ai: null };
+let storedLedger = null;
+let ledgerReady = false;
+let savedMatches = [];
+let finishedMatches = [];
 let archive;
 let view;
 let match;
 let matchRoute;
 let mode = 'review';
 let setupVisible = false;
+let setupBackMode;
 let botTimer;
 let failedBotRevision;
 let selectedSquare;
@@ -97,10 +123,14 @@ document.documentElement.lang = locale;
 document.title = `Chess Lab · ${words.title}`;
 for (const id of ['title', 'archive-label', 'empty', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
     'open-match', 'open-ai', 'open-review', 'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
-    'side-label', 'level-label', 'white-choice', 'black-choice', 'start-ai', 'cancel-setup', 'retry-bot']) {
+    'side-label', 'level-label', 'white-choice', 'black-choice', 'start-ai', 'cancel-setup', 'retry-bot', 'open-saved',
+    'open-finished', 'return-menu', 'new-local', 'new-ai', 'continue-match', 'continue-title', 'confirm-continue',
+    'cancel-continue', 'automatic-label']) {
     find(id).textContent = words[id];
 }
 for (const id of ['movement', 'previous', 'next', 'close-why']) find(id).setAttribute('aria-label', words[id]);
+find('match-history').setAttribute('aria-label', words['match-history']);
+for (const id of ['previous', 'next']) find(`match-${id}`).setAttribute('aria-label', words[id]);
 
 const squares = buildBoard(board, false);
 const matchSquares = buildBoard(matchBoard, true);
@@ -353,20 +383,31 @@ function renderMatch() {
     const container = find('match');
     container.hidden = mode !== matchRoute || !match || setupVisible;
     if (container.hidden) return;
-    const isAi = matchRoute === 'ai';
+    const isAi = match.mode === 'AI';
+    const browsing = match.viewPly < match.ply;
     container.dataset.ply = match.ply;
+    container.dataset.viewPly = match.viewPly;
     container.dataset.result = match.result;
     container.dataset.mode = match.mode;
+    container.dataset.slot = match.slot;
+    container.dataset.matchId = match.archiveId ?? savedMatches.find(entry => entry.slot === match.slot)?.id ?? '';
+    container.dataset.readOnly = match.readOnly;
+    container.dataset.checkpoint = match.checkpoint;
     container.dataset.humanSide = match.humanSide;
     container.dataset.level = match.level;
     container.dataset.awaitingBot = match.awaitingBot;
-    orientBoard(matchBoard, matchSquares, isAi && match.humanSide === 'BLACK');
+    orientBoard(matchBoard, matchSquares, match.blackBelow);
     drawBoard(matchBoard, matchSquares, match);
-    const result = match.result === 'IN_PROGRESS' ? words[match.sideToMove] : words[match.result] ?? words.DRAW;
+    const result = browsing || match.result === 'IN_PROGRESS' ? words[match.sideToMove] : words[match.result] ?? words.DRAW;
     find('match-turn').textContent = match.awaitingBot && failedBotRevision !== match.revision ? words.botTurn : result;
     find('match-profile').hidden = !isAi;
     if (isAi) find('match-profile').textContent = words.aiProfile(levels[match.level], words[`${match.humanSide.toLowerCase()}-choice`]);
-    find('new-match').hidden = !isAi && match.result === 'IN_PROGRESS';
+    find('new-match').hidden = match.readOnly || !isAi && match.result === 'IN_PROGRESS';
+    find('match-history').hidden = match.ply === 0;
+    find('match-ply').textContent = `${match.viewPly}/${match.ply}`;
+    find('match-previous').disabled = match.viewPly === 0;
+    find('match-next').disabled = !browsing;
+    find('continue-match').hidden = !match.canContinue;
     find('retry-bot').hidden = !match.awaitingBot || failedBotRevision !== match.revision;
     const targets = new Set(match.legalMoves.filter(move => move.slice(0, 2) === selectedSquare).map(move => move.slice(2, 4)));
     for (const [square, { cell }] of matchSquares) {
@@ -386,95 +427,163 @@ function renderAnalysis() {
     find('new-match').disabled = running || Boolean(match?.awaitingBot);
 }
 
+function renderMatchList() {
+    const list = find('match-list');
+    list.hidden = !listRoutes.has(mode);
+    if (list.hidden) return;
+    const archived = mode === 'finished';
+    const entries = archived ? finishedMatches : savedMatches;
+    find('empty-list').hidden = entries.length > 0;
+    find('empty-list').textContent = archived ? words.emptyFinished : words.emptySaved;
+    find('add-matches').hidden = archived;
+    const rows = entries.map(entry => {
+        const item = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'match-row';
+        button.dataset.slot = entry.slot;
+        button.dataset.id = entry.id;
+        button.dataset.mode = entry.mode;
+        button.dataset.result = entry.result;
+        button.dataset.ply = entry.ply;
+        const title = document.createElement('strong');
+        const opponent = entry.mode === 'AI' ? `AI · ${levels[entry.level]}` : words['open-match'];
+        title.textContent = archived ? opponent : `${entry.slot} · ${opponent}`;
+        const details = document.createElement('span');
+        details.className = 'match-subtitle';
+        const outcome = entry.mode === 'AI' ? entry.status ?? entry.result : entry.result;
+        const result = archived ? words[outcome] ?? words.DRAW : words.active;
+        details.textContent = `${words.moves(entry.ply)} · ${result}`;
+        button.append(title, details);
+        if (entry.timestamp > 0) {
+            const date = new Date(entry.timestamp);
+            const time = document.createElement('time');
+            time.dateTime = date.toISOString();
+            time.textContent = gameDate.format(date);
+            button.append(time);
+        }
+        item.append(button);
+        return item;
+    });
+    find('match-rows').replaceChildren(...rows);
+}
+
 function showMode(nextMode) {
     if (nextMode !== mode) cancelAnalysis();
     mode = nextMode;
-    window.history.replaceState(null, '', routeHashes[mode] ?? (location.pathname + location.search));
-    const game = mode !== 'review';
-    find('title').textContent = words[mode === 'ai' ? 'open-ai' : game ? 'open-match' : 'title'];
+    const hash = mode === 'archive' ? `#archive/${encodeURIComponent(match.archiveId)}` : routeHashes[mode];
+    window.history.replaceState(null, '', hash ?? (location.pathname + location.search));
+    const main = mode === 'review';
+    const listing = listRoutes.has(mode);
+    const title = { match: 'open-match', ai: 'open-ai', archive: 'open-finished', saved: 'open-saved', finished: 'open-finished' };
+    find('title').textContent = words[title[mode] ?? 'title'];
     document.title = `Chess Lab · ${find('title').textContent}`;
-    find('open-match').hidden = game;
-    find('open-ai').hidden = game;
-    find('open-review').hidden = !game;
-    find('review-import').hidden = game;
+    for (const id of ['open-match', 'open-ai', 'open-saved', 'open-finished', 'review-import']) find(id).hidden = !main;
+    find('open-review').hidden = main || listing || mode === 'archive';
+    find('return-menu').hidden = !listing && mode !== 'archive';
     find('ai-setup').hidden = mode !== 'ai' || !setupVisible;
-    find('cancel-setup').hidden = storedMatches.ai === null;
+    find('cancel-setup').hidden = !setupBackMode;
     renderMatch();
+    renderMatchList();
     render();
     scheduleBot();
 }
 
 async function restoreMatchDurable(message) {
-    const checkpoint = storedMatches[matchRoute];
-    if (checkpoint && !otherTabChanged) {
-        try {
-            match = (await call('match-open', { checkpoint })).match;
-        } catch {
-            stopWorker();
-            return;
+    if (otherTabChanged) return;
+    const previous = match;
+    try {
+        let response = await call('ledger-open', { ledger: storedLedger, legacy: {} });
+        if (previous?.archiveId || previous?.slot > 0) {
+            const source = previous.readOnly || previous.slot === 0 ? { archiveId: previous.archiveId } : { slot: previous.slot };
+            const opened = await call('match-open', source);
+            if (opened.match) response = opened;
+            if (opened.match && previous.viewPly < opened.match.ply) {
+                response = await call('match-history', { expectedRevision: opened.match.revision, ply: previous.viewPly });
+            }
         }
+        adoptMatchState(response);
+        setStatus(message);
+    } catch {
+        stopWorker();
     }
-    selectedSquare = undefined;
-    promotionMoves = [];
-    renderMatch();
-    setStatus(message);
 }
 
-async function commitMatch(state, route) {
-    if (state.mode !== (route === 'ai' ? 'AI' : 'LOCAL')) throw new Error('Match mode does not match storage slot');
-    try {
-        if (otherTabChanged || localStorage.getItem(matchKeys[route]) !== storedMatches[route]) {
-            otherTabChanged = true;
-            setStatus(words.changed);
-            return false;
-        }
-        localStorage.setItem(matchKeys[route], state.checkpoint);
-        storedMatches[route] = state.checkpoint;
-    } catch {
-        await restoreMatchDurable(words.matchSaveFailed);
-        return false;
-    }
-    match = state;
-    matchRoute = route;
+function adoptMatchState(response) {
+    savedMatches = response.saved;
+    finishedMatches = response.finished;
+    match = response.match;
+    matchRoute = match ? match.readOnly && match.slot === 0 ? 'archive' : match.mode === 'AI' ? 'ai' : 'match' : undefined;
     failedBotRevision = undefined;
     selectedSquare = undefined;
     promotionMoves = [];
     renderMatch();
+    renderMatchList();
+}
+
+async function commitMatch(response) {
+    if (typeof response.ledger !== 'string' || !Array.isArray(response.saved) || !Array.isArray(response.finished)) {
+        throw new Error('Invalid game ledger response');
+    }
+    const writeLedger = () => {
+        if (otherTabChanged || localStorage.getItem(ledgerKey) !== storedLedger) {
+            otherTabChanged = true;
+            setStatus(words.changed);
+            return false;
+        }
+        if (response.ledger !== storedLedger) localStorage.setItem(ledgerKey, response.ledger);
+        storedLedger = response.ledger;
+        return true;
+    };
+    try {
+        const committed = navigator.locks ? await navigator.locks.request(ledgerKey, writeLedger) : writeLedger();
+        if (!committed) return false;
+    } catch {
+        await restoreMatchDurable(words.matchSaveFailed);
+        return false;
+    }
+    adoptMatchState(response);
     return true;
 }
 
-async function enterMatch(route, setup) {
-    if (route === 'ai' && storedMatches.ai === null && !setup) {
-        openAiSetup();
-        return;
-    }
-    if (matchRoute === route && match && !setup) {
-        setupVisible = false;
-        showMode(route);
+async function enterMatch(options) {
+    if (!ledgerReady) {
+        setStatus(words.matchFailure);
         return;
     }
     await exclusive(async () => {
-        const checkpoint = storedMatches[route];
-        const options = setup ? { setup } : checkpoint === null ? {} : { checkpoint };
-        const response = await call('match-open', options);
-        if (await commitMatch(response.match, route)) {
+        let response = await call('match-open', options);
+        if (!response.match && options.route === 'AI') {
+            openAiSetup();
+            return;
+        }
+        if (!response.match && options.route === 'LOCAL') response = await call('match-open', { setup: localSetup });
+        if (!response.match) throw new Error('Requested match unavailable');
+        if (await commitMatch(response)) {
             setupVisible = false;
-            showMode(route);
+            showMode(matchRoute);
         }
     }, words.matchFailure);
 }
 
+async function commitPlayedMatch(response, sourceMode) {
+    const committed = await commitMatch(response);
+    if (committed && mode === sourceMode && matchRoute !== sourceMode) showMode(matchRoute);
+    return committed;
+}
+
 function play(move) {
-    if (analysis || !match || match.awaitingBot) return;
+    if (analysis || !canPlayMatch()) return;
     void exclusive(async () => {
+        const sourceMode = mode;
         const response = await call('match-play', { move, expectedRevision: match.revision });
-        if (response.outcome === 'APPLIED') await commitMatch(response.match, matchRoute);
+        if (response.outcome === 'APPLIED') await commitPlayedMatch(response, sourceMode);
         else await restoreMatchDurable(words.matchFailure);
     }, words.matchFailure);
 }
 
 function scheduleBot() {
-    const ready = mode === 'ai' && matchRoute === 'ai' && !setupVisible && match?.awaitingBot &&
+    const ready = mode === 'ai' && matchRoute === 'ai' && !setupVisible && match?.awaitingBot && match.viewPly === match.ply &&
         failedBotRevision !== match.revision && !busy && !analysis && !engineFailed && !otherTabChanged;
     if (!ready) {
         clearTimeout(botTimer);
@@ -490,18 +599,23 @@ function scheduleBot() {
             try {
                 const response = await call('match-bot', { expectedRevision: waiting.revision });
                 if (response.outcome !== 'APPLIED') throw new Error('Bot move unavailable at this revision');
-                if (await commitMatch(response.match, 'ai')) return;
+                if (await commitPlayedMatch(response, 'ai')) return;
             } catch {
                 await restoreMatchDurable(words.botFailure);
             }
-            failedBotRevision = match.revision;
+            if (otherTabChanged || engineFailed) return;
+            failedBotRevision = match?.revision;
             renderMatch();
         }, words.botFailure);
     }, botDelayMillis);
 }
 
+function canPlayMatch() {
+    return match && !match.readOnly && !match.awaitingBot && match.viewPly === match.ply && match.result === 'IN_PROGRESS';
+}
+
 function chooseSquare(square) {
-    if (!match || busy || analysis || otherTabChanged || engineFailed || match.awaitingBot || match.result !== 'IN_PROGRESS') return;
+    if (!canPlayMatch() || busy || analysis || otherTabChanged || engineFailed) return;
     const target = `${selectedSquare}${square}`;
     const moves = match.legalMoves.filter(move => move.slice(0, 4) === target);
     if (moves.length === 1) {
@@ -568,6 +682,7 @@ function analyzeMatch() {
 }
 
 function openAiSetup() {
+    setupBackMode = listRoutes.has(mode) || mode === 'ai' ? mode : undefined;
     if (matchRoute === 'ai' && match) {
         find('ai-side').value = match.humanSide;
         find('ai-level').value = match.level;
@@ -577,27 +692,41 @@ function openAiSetup() {
 }
 
 find('open-match').addEventListener('click', () => {
-    if (!busy) void enterMatch('match');
+    void enterMatch({ route: 'LOCAL' });
 });
 find('open-ai').addEventListener('click', () => {
-    if (!busy) void enterMatch('ai');
+    void enterMatch({ route: 'AI' });
 });
 find('open-review').addEventListener('click', () => {
     setupVisible = false;
     showMode('review');
 });
+find('open-saved').addEventListener('click', () => showMode('saved'));
+find('open-finished').addEventListener('click', () => showMode('finished'));
+find('return-menu').addEventListener('click', () => showMode(mode === 'archive' ? 'finished' : 'review'));
+find('match-rows').addEventListener('click', event => {
+    const row = event.target.closest('button.match-row');
+    if (!row) return;
+    void enterMatch(mode === 'finished' ? { archiveId: row.dataset.id } : { slot: Number(row.dataset.slot) });
+});
+find('new-local').addEventListener('click', () => void enterMatch({ setup: localSetup }));
+find('new-ai').addEventListener('click', () => {
+    if (!busy) openAiSetup();
+});
 find('new-match').addEventListener('click', () => {
     if (busy || analysis || !match || match.awaitingBot) return;
     if (matchRoute === 'ai') openAiSetup();
-    else if (match.result !== 'IN_PROGRESS') void enterMatch('match', { mode: 'LOCAL', humanSide: 'WHITE', level: 'BASIC' });
+    else if (match.result !== 'IN_PROGRESS') void enterMatch({ setup: localSetup });
 });
 find('ai-setup').addEventListener('submit', event => {
     event.preventDefault();
     if (busy || mode !== 'ai') return;
-    void enterMatch('ai', { mode: 'AI', humanSide: find('ai-side').value, level: find('ai-level').value });
+    void enterMatch({ setup: { mode: 'AI', humanSide: find('ai-side').value, level: find('ai-level').value } });
 });
 find('cancel-setup').addEventListener('click', () => {
-    if (!busy) void enterMatch('ai');
+    if (busy || !setupBackMode) return;
+    setupVisible = false;
+    showMode(setupBackMode);
 });
 find('retry-bot').addEventListener('click', () => {
     if (failedBotRevision !== match?.revision) return;
@@ -611,6 +740,38 @@ find('cancel-analysis').addEventListener('click', cancelAnalysis);
 find('promote').addEventListener('change', event => {
     if (promotionMoves.includes(event.target.value)) play(event.target.value);
 });
+
+function browseMatch(delta) {
+    if (!match || analysis) return;
+    void exclusive(async () => {
+        const response = await call('match-history', { expectedRevision: match.revision, ply: match.viewPly + delta });
+        if (response.outcome === 'APPLIED') await commitMatch(response);
+        else if (response.outcome === 'STALE') await restoreMatchDurable(words.matchFailure);
+    }, words.matchFailure);
+}
+
+find('match-previous').addEventListener('click', () => browseMatch(-1));
+find('match-next').addEventListener('click', () => browseMatch(1));
+const continueDialog = find('continue-dialog');
+find('continue-match').addEventListener('click', () => {
+    if (!match?.canContinue || busy || analysis) return;
+    find('continue-description').textContent = (match.readOnly ? words.continueArchive : words.continueActive)(match.viewPly);
+    find('automatic-option').hidden = match.mode !== 'AI';
+    find('continue-automatic').checked = match.automatic !== false;
+    continueDialog.returnValue = '';
+    continueDialog.showModal();
+});
+continueDialog.addEventListener('close', () => {
+    if (continueDialog.returnValue !== 'continue' || !match?.canContinue) return;
+    void exclusive(async () => {
+        const response = await call('match-continue', { expectedRevision: match.revision,
+            automatic: match.mode === 'AI' && find('continue-automatic').checked });
+        if (response.outcome === 'NO_FREE_SLOT') setStatus(words.noFreeSlot);
+        else if (response.outcome === 'APPLIED' && await commitMatch(response)) showMode(matchRoute);
+        else if (response.outcome === 'STALE') await restoreMatchDurable(words.matchFailure);
+    }, words.matchFailure);
+});
+
 matchBoard.addEventListener('click', event => {
     const cell = event.target.closest('button[data-square]');
     if (!cell) return;
@@ -659,9 +820,8 @@ find('archive').addEventListener('change', event => {
 });
 addEventListener('storage', event => {
     if (event.storageArea !== localStorage) return;
-    const matchChanged = Object.entries(matchKeys).some(([route, key]) => event.key === key && event.newValue !== storedMatches[route]);
-    if ((event.key === storageKey && event.newValue !== stored) || matchChanged
-        || (event.key === null && (stored !== null || Object.values(storedMatches).some(value => value !== null)))) {
+    if ((event.key === storageKey && event.newValue !== stored) || (event.key === ledgerKey && event.newValue !== storedLedger)
+        || (event.key === null && (stored !== null || storedLedger !== null))) {
         otherTabChanged = true;
         cancelAnalysis();
         scheduleBot();
@@ -671,7 +831,15 @@ addEventListener('storage', event => {
 
 await exclusive(async () => {
     stored = localStorage.getItem(storageKey);
-    for (const [route, key] of Object.entries(matchKeys)) storedMatches[route] = localStorage.getItem(key);
+    storedLedger = localStorage.getItem(ledgerKey);
+    const legacy = storedLedger === null
+        ? Object.fromEntries(Object.entries(legacyMatchKeys).map(([mode, key]) => [mode, localStorage.getItem(key)])) : {};
+    try {
+        const response = await call('ledger-open', { ledger: storedLedger, legacy });
+        ledgerReady = await commitMatch(response);
+    } catch {
+        setStatus(words.matchFailure);
+    }
     if (stored === null) return;
     const restored = normalizeArchive(JSON.parse(stored));
     const response = await call('review-open', { archive: restored });
@@ -679,6 +847,11 @@ await exclusive(async () => {
     view = response.view;
     render();
 }, words.badArchive);
-for (const [route, hash] of Object.entries(routeHashes)) {
-    if (location.hash === hash) await enterMatch(route);
+if (location.hash === routeHashes.match) await enterMatch({ route: 'LOCAL' });
+else if (location.hash === routeHashes.ai) await enterMatch({ route: 'AI' });
+else if (location.hash === routeHashes.saved) showMode('saved');
+else if (location.hash === routeHashes.finished) showMode('finished');
+else if (location.hash.startsWith('#archive/')) {
+    const id = location.hash.slice('#archive/'.length);
+    await enterMatch({ archiveId: id });
 }

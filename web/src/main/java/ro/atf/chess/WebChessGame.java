@@ -1,5 +1,7 @@
 package ro.atf.chess;
 
+import java.util.function.Supplier;
+import org.teavm.jso.JSBody;
 import ro.atf.chess.ChessGameSession.Outcome;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
@@ -10,70 +12,194 @@ import static ro.atf.chess.WebBoardState.quote;
 
 final class WebChessGame {
     private enum Mode { LOCAL, AI }
-    private static final String AI_PREFIX = "ai|";
+
+    private MatchLedger ledger;
     private ChessGameSession session;
     private Mode mode;
+    private boolean blackBelow;
+    private int slot;
+    private String archiveId;
+    private int viewPly;
     private int revision;
 
-    String open(String checkpoint, String mode, String humanSide, String level) {
-        if (checkpoint != null) {
-            boolean automatic = checkpoint.startsWith(AI_PREFIX);
-            var raw = automatic ? checkpoint.substring(AI_PREFIX.length()) : checkpoint;
-            return replace(ChessMatch.restore(raw), automatic ? Mode.AI : Mode.LOCAL);
-        }
-        Mode choice = mode == null ? Mode.LOCAL : Mode.valueOf(mode);
-        var match = choice == Mode.LOCAL ? ChessMatch.start()
-                : ChessMatch.start(new MatchSetup(Side.valueOf(humanSide), Level.valueOf(level), false));
-        return replace(match, choice);
+    String openLedger(String saved, String legacyLocal, String legacyAi) {
+        ledger = MatchLedger.open(saved, legacyLocal, legacyAi, System::currentTimeMillis, WebChessGame::newId);
+        return select(null, null, false, 0, null);
     }
 
-    private String replace(ChessMatch match, Mode choice) {
-        var next = new ChessGameSession(match, choice == Mode.AI);
-        String projection = view(next, choice, revision + 1);
-        session = next;
-        mode = choice;
+    String open(String route, int selectedSlot, String selectedArchive, String newMode, String humanSide, String level) {
+        var matches = matches();
+        if (selectedArchive != null) {
+            var archived = matches.readArchivedMatch(selectedArchive);
+            return archived == null ? select(null, null, false, 0, null)
+                    : select(archived.match(), mode(archived.manualUsed()), archived.blackBelow(), 0, archived.id());
+        }
+        if (newMode != null) {
+            Mode choice = Mode.valueOf(newMode);
+            var match = choice == Mode.LOCAL ? ChessMatch.start()
+                    : ChessMatch.start(new MatchSetup(Side.valueOf(humanSide), Level.valueOf(level), false));
+            return startMatch(match, choice);
+        }
+        if (route != null) return resumeMode(Mode.valueOf(route));
+        return resumeSlot(selectedSlot);
+    }
+
+    private String startMatch(ChessMatch match, Mode choice) {
+        var matches = matches();
+        int next = matches.slotForNewMatch();
+        boolean flipped = match.setup().humanSide() == Side.BLACK;
+        boolean manual = choice == Mode.LOCAL;
+        requireSaved(matches.startMatch(next, match, flipped, manual, manual));
+        return select(match, choice, flipped, next, null);
+    }
+
+    private String resumeMode(Mode requested) {
+        var matches = matches();
+        int previous = matches.activeMatchSlot();
+        if (matches.readSavedMatch(previous) != null && mode(matches.matchManualAi(previous)) == requested) {
+            return resumeSlot(previous);
+        }
+        for (int candidate : matches.savedMatchSlots()) {
+            if (mode(matches.matchManualAi(candidate)) == requested) return resumeSlot(candidate);
+        }
+        return select(null, null, false, 0, null);
+    }
+
+    private String resumeSlot(int selectedSlot) {
+        var matches = matches();
+        var match = matches.readSavedMatch(selectedSlot);
+        if (match == null) return select(null, null, false, 0, null);
+        requireSaved(matches.selectSaved(selectedSlot));
+        return select(match, mode(matches.matchManualAi(selectedSlot)), matches.matchBlackBelow(selectedSlot), selectedSlot, null);
+    }
+
+    private String select(ChessMatch match, Mode selectedMode, boolean flipped, int selectedSlot, String selectedArchive) {
+        session = match == null ? null : new ChessGameSession(match, selectedMode == Mode.AI);
+        mode = selectedMode;
+        blackBelow = flipped;
+        slot = selectedSlot;
+        archiveId = selectedArchive;
+        viewPly = match == null ? 0 : match.ply();
         revision++;
-        return projection;
+        return state(null);
     }
 
     String play(int expectedRevision, String uci) {
-        requireSession();
-        return finish(expectedRevision != revision ? Outcome.STALE : session.play(session.revision(), Move.fromUci(uci)));
+        return change(expectedRevision, () -> session.play(session.revision(), Move.fromUci(uci)));
     }
 
     String playBot(int expectedRevision) {
-        requireSession();
-        return finish(expectedRevision != revision ? Outcome.STALE : session.playBot(session.revision()));
+        return change(expectedRevision, () -> session.playBot(session.revision()));
     }
 
-    private void requireSession() {
-        if (session == null) throw new IllegalStateException("Open a game first");
-    }
-
-    private String finish(Outcome outcome) {
-        if (outcome == Outcome.APPLIED) revision++;
-        return "{\"outcome\":" + quote(outcome.name()) + ",\"match\":" + view(session, mode, revision) + "}";
-    }
-
-    private static String view(ChessGameSession session, Mode mode, int revision) {
-        var match = session.match();
-        var position = match.position();
-        boolean awaitingBot = session.awaitingBot();
-        var legal = new StringBuilder("[");
-        if (!awaitingBot && match.result() == ChessMatch.Result.IN_PROGRESS) {
-            for (Move candidate : position.legalMoves()) {
-                if (legal.length() > 1) legal.append(',');
-                legal.append(move(candidate));
+    private String change(int expectedRevision, Supplier<Outcome> command) {
+        if (expectedRevision != revision) return state("STALE");
+        if (session == null || archiveId != null || viewPly != session.match().ply()) return state("UNAVAILABLE");
+        Outcome outcome = command.get();
+        if (outcome == Outcome.APPLIED) {
+            var matches = matches();
+            var match = session.match();
+            boolean manual = mode == Mode.LOCAL;
+            requireSaved(matches.saveMatch(slot, match, blackBelow, manual, manual));
+            if (match.result() != ChessMatch.Result.IN_PROGRESS) {
+                archiveId = matches.archivedId(slot);
+                slot = 0;
             }
+            viewPly = match.ply();
+            revision++;
         }
+        return state(outcome.name());
+    }
+
+    String history(int expectedRevision, int ply) {
+        if (expectedRevision != revision) return state("STALE");
+        if (session == null || ply < 0 || ply > session.match().ply() || ply == viewPly) return state("UNAVAILABLE");
+        viewPly = ply;
+        revision++;
+        return state("APPLIED");
+    }
+
+    String continueGame(int expectedRevision, boolean automatic) {
+        if (expectedRevision != revision) return state("STALE");
+        if (session == null || viewPly >= session.match().ply()) return state("UNAVAILABLE");
+        int next = ledger.continueGame(slot, archiveId, viewPly, automatic);
+        if (next == 0) return state(archiveId == null ? "UNAVAILABLE" : "NO_FREE_SLOT");
+        var continuation = matches().readSavedMatch(next);
+        session = new ChessGameSession(continuation, automatic);
+        mode = automatic ? Mode.AI : Mode.LOCAL;
+        slot = next;
+        archiveId = null;
+        viewPly = continuation.ply();
+        revision++;
+        return state("APPLIED");
+    }
+
+    private String state(String outcome) {
+        var matches = matches();
+        var saved = new StringBuilder("[");
+        for (int number : matches.savedMatchSlots()) {
+            var match = matches.readSavedMatch(number);
+            appendRow(saved, match, matches.archivedId(number), mode(matches.matchManualAi(number)),
+                    MatchListEntry.saved(number, match, matches.startedAt(number)));
+        }
+        var finished = new StringBuilder("[");
+        for (var entry : matches.archivedMatches()) {
+            appendRow(finished, entry.match(), entry.id(), mode(entry.manualUsed()), MatchListEntry.finished(entry));
+        }
+        String result = outcome == null ? "" : "\"outcome\":" + quote(outcome) + ",";
+        return "{" + result + "\"ledger\":" + quote(ledger.snapshot()) + ",\"match\":" + (session == null ? "null" : view())
+                + ",\"saved\":" + saved.append(']') + ",\"finished\":" + finished.append(']') + "}";
+    }
+
+    private static void appendRow(StringBuilder rows, ChessMatch match, String id, Mode mode, MatchListEntry entry) {
+        if (rows.length() > 1) rows.append(',');
+        rows.append("{\"slot\":").append(entry.slot()).append(",\"id\":").append(quote(id)).append(",\"mode\":").append(quote(mode.name()))
+                .append(",\"humanSide\":").append(quote(match.setup().humanSide().name()))
+                .append(",\"level\":").append(quote(entry.opponent().name())).append(",\"ply\":").append(entry.moves())
+                .append(",\"status\":").append(quote(entry.status().name())).append(",\"result\":").append(quote(match.result().name()))
+                .append(",\"timestamp\":").append(entry.timestamp()).append('}');
+    }
+
+    private String view() {
+        var match = session.match();
+        var position = match.positionAt(viewPly);
+        boolean latest = viewPly == match.ply();
+        boolean awaitingBot = latest && session.awaitingBot();
+        var legal = new StringBuilder("[");
+        if (latest && !awaitingBot && archiveId == null && match.result() == ChessMatch.Result.IN_PROGRESS) {
+            for (Move candidate : position.legalMoves()) appendMove(legal, candidate);
+        }
+        var history = new StringBuilder("[");
+        for (int ply = 1; ply <= match.ply(); ply++) appendMove(history, match.moveAt(ply));
         String raw = match.checkpoint();
-        String checkpoint = mode == Mode.AI ? AI_PREFIX + raw : raw;
+        String checkpoint = mode == Mode.AI ? MatchLedger.AI_PREFIX + raw : raw;
         return "{\"revision\":" + revision + ",\"fen\":" + quote(placement(position))
                 + ",\"sideToMove\":" + quote(position.turn().name()) + ",\"checkpoint\":" + quote(checkpoint)
                 + ",\"reviewCheckpoint\":" + quote(raw) + ",\"mode\":" + quote(mode.name())
                 + ",\"humanSide\":" + quote(match.setup().humanSide().name()) + ",\"level\":" + quote(match.setup().level().name())
-                + ",\"awaitingBot\":" + awaitingBot
-                + ",\"ply\":" + match.ply() + ",\"result\":" + quote(match.result().name())
-                + ",\"legalMoves\":" + legal.append(']') + ",\"lastMove\":" + move(match.lastMove()) + "}";
+                + ",\"awaitingBot\":" + awaitingBot + ",\"blackBelow\":" + blackBelow
+                + ",\"ply\":" + match.ply() + ",\"result\":" + quote(match.result().name()) + ",\"viewPly\":" + viewPly
+                + ",\"slot\":" + slot + ",\"archiveId\":" + quote(archiveId) + ",\"readOnly\":" + (archiveId != null)
+                + ",\"canContinue\":" + !latest + ",\"history\":" + history.append(']')
+                + ",\"legalMoves\":" + legal.append(']') + ",\"lastMove\":" + move(match.moveAt(viewPly)) + "}";
     }
+
+    private static void appendMove(StringBuilder moves, Move value) {
+        if (moves.length() > 1) moves.append(',');
+        moves.append(move(value));
+    }
+
+    private MatchStore matches() {
+        if (ledger == null) throw new IllegalStateException("Open the match library first");
+        return ledger.matches();
+    }
+
+    private static Mode mode(boolean manual) { return manual ? Mode.LOCAL : Mode.AI; }
+
+    private static void requireSaved(boolean saved) {
+        if (!saved) throw new IllegalStateException("The match library could not be updated");
+    }
+
+    @JSBody(script = "return crypto.randomUUID();")
+    private static native String newId();
 }

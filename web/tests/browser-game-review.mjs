@@ -8,15 +8,17 @@ import { basename, dirname, extname, join, relative, resolve, sep } from 'node:p
 import { setTimeout as pause } from 'node:timers/promises';
 
 const args = process.argv.slice(2);
-assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs <site> <archive.json|--active|--ai> <new-evidence-directory> <edge-exe> [public-ai-url]');
+assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs <site> <archive.json|--active|--ai|--ledger> <new-evidence-directory> <edge-exe> [public-ai-url]');
 const [site, , evidence, browserPath] = args.map(path => resolve(path));
 const activeScenario = args[1] === '--active';
 const aiScenario = args[1] === '--ai';
-const fixturePath = activeScenario || aiScenario ? null : resolve(args[1]);
+const ledgerScenario = args[1] === '--ledger';
+const fixturePath = activeScenario || aiScenario || ledgerScenario ? null : resolve(args[1]);
 const hostPath = '/atf_j7/';
 const publicUrl = args[4];
 const readmeUrl = `https://crististefanita.github.io${hostPath}#ai`;
-if (publicUrl) assert.ok(aiScenario && publicUrl === readmeUrl, `Public smoke requires --ai and the README URL ${readmeUrl}`);
+if (publicUrl) assert.ok((aiScenario || ledgerScenario) && publicUrl === readmeUrl,
+    `Public smoke requires --ai or --ledger and the README URL ${readmeUrl}`);
 const relativeEvidence = relative(site, evidence);
 assert.ok(relativeEvidence === '..' || relativeEvidence.startsWith('..' + sep), 'Keep evidence outside the built site');
 const viewport = { width: 390, height: 844, deviceScaleFactor: 1, locale: publicUrl ? 'en-US' : 'ro-RO' };
@@ -38,6 +40,8 @@ const startOfLinesFen = 'rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR';
 const playedFen = 'rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR';
 const recommendedFen = 'rnbqkbnr/pppp1ppp/8/4p3/3P4/5P2/PPP1P1PP/RNBQKBNR';
 const mateFen = 'rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR';
+const legacyLocalCheckpoint = '1|f2f3 e7e5 g2g4';
+const legacyAiCheckpoint = 'ai|3|WHITE|ADVANCED|0|d2d4 e7e5';
 
 function check(id, expected, actual) {
     const passed = Object.is(expected, actual);
@@ -206,21 +210,23 @@ try {
 
     const manualKey = 'chesslab.active-match.v1';
     const aiKey = 'chesslab.ai-match.v1';
-    const savedMatch = `localStorage.getItem('${manualKey}')`;
+    const ledgerKey = 'chesslab.match-ledger.v1';
+    const savedMatch = "document.querySelector('#match').dataset.checkpoint";
     const savedReview = "JSON.parse(localStorage.getItem('chesslab.game-review.v1'))";
     const activeState = () => evaluate(`(() => {
         const match = document.querySelector('#match');
         if (match.hidden || match.getAttribute('aria-busy') !== 'false') return null;
         const board = document.querySelector('#match-board');
         const rect = board.getBoundingClientRect();
-        return { ply: Number(match.dataset.ply), turn: board.dataset.turn, last: board.dataset.lastMove,
+        return { ply: Number(match.dataset.ply), viewPly: Number(match.dataset.viewPly), turn: board.dataset.turn, last: board.dataset.lastMove,
             result: match.dataset.result, fen: board.dataset.fen, cells: board.children.length, width: rect.width, height: rect.height,
             mode: match.dataset.mode, level: match.dataset.level, humanSide: match.dataset.humanSide, awaitingBot: match.dataset.awaitingBot === 'true',
+            readOnly: match.dataset.readOnly === 'true', id: match.dataset.matchId, slot: Number(match.dataset.slot),
             orientation: board.dataset.orientation, upperLeft: board.firstElementChild.dataset.square,
             lowerRight: board.lastElementChild.dataset.square, profile: document.querySelector('#match-profile').textContent,
             announcing: document.querySelector('#match-turn').textContent, urlPath: location.pathname,
             analyzing: !document.querySelector('#analysis-progress').hidden, analyzeDisabled: document.querySelector('#analyze').disabled,
-            checkpoint: localStorage.getItem(match.dataset.mode === 'AI' ? '${aiKey}' : '${manualKey}') };
+            checkpoint: match.dataset.checkpoint };
     })()`);
     const waitActive = (label, predicate) => until(async () => {
         const state = await activeState();
@@ -303,8 +309,11 @@ try {
         await touch('#open-review');
         await touch('#open-match');
         const manualRestored = await waitActive('original manual game', value => value.mode === 'LOCAL' && value.ply === 1);
+        await touch('#open-review');
+        await touch('#open-ai');
+        const aiRestored = await waitActive('AI game remains independently saved', value => value.mode === 'AI' && value.ply === 1);
         check('manual-independent', true, manualRestored.checkpoint === manual.checkpoint && manualRestored.fen === manual.fen &&
-            await evaluate(`localStorage.getItem('${aiKey}')`) === replied.checkpoint);
+            aiRestored.checkpoint === replied.checkpoint);
         return { scope: 'ai-bot-reload', hostPath, publicUrl, pendingCheckpoint: pending.checkpoint, completedCheckpoint: replied.checkpoint,
             pendingMatchCheckpoint, completedMatchCheckpoint, botMove: replied.last };
     }
@@ -367,11 +376,114 @@ try {
             recordedCheckpoint: complete.checkpoint, unfinishedReview: partialArchive.review, generatedReview: generated.review };
     }
 
+    async function exerciseLedger() {
+        const listRows = () => evaluate(`(() => {
+            if (document.querySelector('#match-list').hidden) return null;
+            return [...document.querySelectorAll('.match-row')].map(row => ({ ...row.dataset, timestamp: row.querySelector('time')?.dateTime }));
+        })()`);
+        const waitRows = (label, count) => until(async () => {
+            const rows = await listRows();
+            return rows?.length === count ? rows : null;
+        }, label);
+
+        if (publicUrl) {
+            await waitActive('migrated AI match from the public README link', value => value.mode === 'AI' && value.ply === 2);
+            assert.equal(await evaluate('location.href'), publicUrl);
+            assert.equal(await evaluate('document.documentElement.lang'), 'en');
+            await touch('#open-review');
+        }
+        await touch('#open-saved');
+        const migrated = await waitRows('two migrated saved matches', 2);
+        const legacyLocalId = migrated.find(row => row.mode === 'LOCAL')?.id;
+        const legacyAiId = migrated.find(row => row.mode === 'AI')?.id;
+        const hasLedgerAndBackups = await evaluate(`Boolean(localStorage.getItem('${ledgerKey}')) &&
+            localStorage.getItem('${manualKey}') === ${JSON.stringify(legacyLocalCheckpoint)} &&
+            localStorage.getItem('${aiKey}') === ${JSON.stringify(legacyAiCheckpoint)}`);
+        check('legacy-migration', true, hasLedgerAndBackups && Boolean(legacyLocalId) && Boolean(legacyAiId) && legacyLocalId !== legacyAiId);
+        check('saved-only-active', true, migrated.every(row => row.result === 'IN_PROGRESS' && Number(row.slot) > 0) &&
+            migrated.find(row => row.id === legacyLocalId).ply === '3' && migrated.find(row => row.id === legacyAiId).ply === '2');
+        await capture('saved-games.png');
+        await touch('#return-menu');
+        await touch('#open-finished');
+        await waitRows('empty finished list before mate', 0);
+        await touch('#return-menu');
+        await touch('#open-saved');
+        await touch(`.match-row[data-id="${legacyLocalId}"]`);
+        const opening = await waitActive('saved manual game', value => value.ply === 3 && value.id === legacyLocalId);
+        assert.equal(opening.checkpoint, legacyLocalCheckpoint);
+        const completed = await move('d8', 'h4', 4);
+        check('mate-archived', true, completed.result === 'BLACK_WINS' && completed.checkpoint === `${legacyLocalCheckpoint} d8h4` && completed.fen === mateFen);
+
+        if (completed.readOnly) {
+            await touch('#return-menu');
+            await touch('#return-menu');
+        } else await touch('#open-review');
+        await touch('#open-saved');
+        const remaining = await waitRows('finished game removed from saved matches', 1);
+        assert.equal(remaining[0].id, legacyAiId);
+        await touch('#return-menu');
+        await touch('#open-finished');
+        const finished = await waitRows('one completed result', 1);
+        const archiveId = finished[0].id;
+        check('finished-only-complete', true, archiveId === legacyLocalId && finished[0].result === 'BLACK_WINS' &&
+            Number(finished[0].slot) === 0 && finished[0].ply === '4' && Boolean(finished[0].timestamp));
+        await capture('finished-games.png');
+
+        await touch(`.match-row[data-id="${archiveId}"]`);
+        const archived = await waitActive('read-only archived board', value => value.id === archiveId && value.readOnly);
+        check('archive-open', true, archived.checkpoint === completed.checkpoint && archived.fen === mateFen && archived.viewPly === 4);
+        await touch('#match-previous');
+        await waitActive('archived history at ply 3', value => value.viewPly === 3);
+        await touch('#match-previous');
+        const selected = await waitActive('archived history at ply 2', value => value.viewPly === 2);
+        assert.equal(selected.fen, startOfLinesFen);
+        assert.equal(selected.ply, 4);
+        await capture('selected-history.png');
+        await touch('#continue-match');
+        await until(() => evaluate('document.querySelector(\'#continue-dialog\').open'), 'native continuation confirmation');
+        await touch('#confirm-continue');
+        const branch = await waitActive('new active branch', value => value.ply === 2 && !value.readOnly && value.id !== archiveId);
+        const forkId = branch.id;
+        const forkOriginCheckpoint = '1|f2f3 e7e5';
+        check('history-fork', true, Boolean(forkId) && branch.checkpoint === forkOriginCheckpoint && branch.fen === selected.fen && branch.viewPly === 2);
+        const playedBranch = await move('d2', 'd4', 3);
+        assert.equal(playedBranch.checkpoint, `${forkOriginCheckpoint} d2d4`);
+        await reload();
+        const restored = await waitActive('same branch after full browser reload', value => value.id === forkId && value.ply === 3);
+        check('fork-reloaded', true, restored.checkpoint === playedBranch.checkpoint && restored.fen === recommendedFen && restored.slot === branch.slot);
+        await capture('resumed-fork.png');
+
+        await touch('#open-review');
+        await touch('#open-saved');
+        const savedAfterIds = (await waitRows('branch and original AI match', 2)).map(row => row.id);
+        assert.deepEqual(savedAfterIds, [forkId, legacyAiId]);
+        await touch(`.match-row[data-id="${legacyAiId}"]`);
+        const separateAi = await waitActive('separate AI match preserved', value => value.id === legacyAiId && value.mode === 'AI');
+        assert.equal(separateAi.checkpoint, legacyAiCheckpoint);
+        await touch('#open-review');
+        await touch('#open-finished');
+        const finishedAfterIds = (await waitRows('original archive after forking', 1)).map(row => row.id);
+        await touch(`.match-row[data-id="${archiveId}"]`);
+        const archiveAgain = await waitActive('preserved original archived board', value => value.id === archiveId && value.readOnly);
+        check('archive-unchanged', true, archiveAgain.checkpoint === archived.checkpoint && archiveAgain.fen === archived.fen &&
+            finishedAfterIds.length === 1 && finishedAfterIds[0] === archiveId);
+        return { scope: 'match-ledger', publicUrl, legacyLocalCheckpoint, legacyAiCheckpoint, legacyLocalId, legacyAiId, archiveId,
+            archiveCheckpoint: archiveAgain.checkpoint, forkId, forkPly: branch.ply, forkOriginCheckpoint: branch.checkpoint,
+            forkCheckpoint: restored.checkpoint, separateAiCheckpoint: separateAi.checkpoint, savedAfterIds, finishedAfterIds };
+    }
+
     await send('Page.enable');
     await send('Emulation.setDeviceMetricsOverride', { width: viewport.width, height: viewport.height,
         deviceScaleFactor: viewport.deviceScaleFactor, mobile: true });
     await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
     await send('Emulation.setLocaleOverride', { locale: viewport.locale.replace('-', '_') });
+    if (ledgerScenario) {
+        await send('Page.addScriptToEvaluateOnNewDocument', { source: `
+            if (location.pathname === ${JSON.stringify(hostPath)} && localStorage.getItem('${ledgerKey}') === null) {
+                localStorage.setItem('${manualKey}', ${JSON.stringify(legacyLocalCheckpoint)});
+                localStorage.setItem('${aiKey}', ${JSON.stringify(legacyAiCheckpoint)});
+            }` });
+    }
     await send('Page.navigate', { url: page });
     await until(() => evaluate("document.querySelector('#review')?.getAttribute('aria-busy') === 'false'"), 'review page ready');
     let sourceProof;
@@ -379,6 +491,8 @@ try {
         sourceProof = await exerciseActive();
     } else if (aiScenario) {
         sourceProof = await exerciseAi();
+    } else if (ledgerScenario) {
+        sourceProof = await exerciseLedger();
     } else {
         sourceProof = await exerciseArchive();
     }

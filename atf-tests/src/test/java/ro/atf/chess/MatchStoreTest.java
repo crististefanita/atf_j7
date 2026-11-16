@@ -233,6 +233,38 @@ class MatchStoreTest {
                 List.of(reopened.readArchivedMatch(ending).match().result(), reopened.readArchivedMatch(ending).finishedAt()));
     }
 
+    @Test void migratesMixedLegacySlotsOnceWhileKeepingDamagedEntriesOutOfBothMenus(Checks check) {
+        var disk = new MemoryPreferences();
+        var draw = ChessMatch.restore(LEGACY).offerDraw().checkpoint();
+        String otherActive = "3|BLACK|ADVANCED|0|e2e4";
+        disk.data.put("match-checkpoint", LEGACY);
+        disk.data.put("match-checkpoint-2", MATE);
+        disk.data.put("match-checkpoint-4", "damaged checkpoint");
+        disk.data.put("match-checkpoint-7", draw);
+        disk.data.put("match-checkpoint-10", otherActive);
+        disk.data.put("active-match-slot", 2);
+        disk.data.put("match-black-below-2", true);
+
+        var migrated = store(disk, START);
+        migrated.migrateCompletedMatches();
+        check.same("Saved contains only the two playable legacy slots in their existing order", List.of(10, 1), migrated.savedMatchSlots());
+        check.same("The migrated active checkpoints keep their exact moves and settings", List.of(otherActive, LEGACY),
+                List.of(migrated.readSavedMatch(10).checkpoint(), migrated.readSavedMatch(1).checkpoint()));
+        var archives = migrated.archivedMatches();
+        check.same("Both finished legacy games retain exact outcomes and leave their finish dates unknown",
+                List.of(List.of(MATE, ChessMatch.Result.BLACK_WINS, 0L), List.of(draw, ChessMatch.Result.AGREED_DRAW, 0L)),
+                archives.stream().map(entry -> List.of(entry.match().checkpoint(), entry.match().result(), entry.finishedAt())).toList());
+        check.same("Migration retains the archived board orientation", true, archives.getFirst().blackBelow());
+        check.same("A malformed checkpoint cannot acquire a game identity", null, migrated.archivedId(4));
+
+        var identities = ids(migrated);
+        var snapshot = Map.copyOf(disk.data);
+        var reopened = store(disk, FINISH);
+        reopened.migrateCompletedMatches();
+        check.same("Repeated migration after restart preserves identities and data byte for byte", List.of(identities, snapshot),
+                List.of(ids(reopened), Map.copyOf(disk.data)));
+    }
+
     @Test void reusesACompletedSlotBeforeEvictingAnActiveGame(Checks check) {
         var disk = new MemoryPreferences();
         var store = store(disk, START);

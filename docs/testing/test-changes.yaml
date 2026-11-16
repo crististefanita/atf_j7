@@ -486,3 +486,17 @@ testChanges:
     test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
     contract: "Reject substituted or incomplete pending-bot evidence"
     allowDelete: false
+  - id: J7-LEDGER-BROWSER-SUITE
+    base: "adb526b422ef6bb1c1f9eb305921d8b5a6f040f1"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Keep the ledger browser evidence outside the JVM component suite"
+    allowDelete: false
+  - id: J7-LEDGER-NATIVE-STORE
+    base: "adb526b422ef6bb1c1f9eb305921d8b5a6f040f1"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchStoreTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchStoreTest.java
+    test: ro.atf.chess.MatchStoreTest#migratesMixedLegacySlotsOnceWhileKeepingDamagedEntriesOutOfBothMenus
+    contract: "Keep mixed legacy migration and list separation covered in both adapters"
+    allowDelete: false

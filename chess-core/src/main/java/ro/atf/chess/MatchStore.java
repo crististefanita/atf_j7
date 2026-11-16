@@ -4,6 +4,8 @@ import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import ro.atf.chess.GameReviewTimeline.Snapshot;
 
 /** Persists match slots and finished games through one atomic preferences transaction per change. */
@@ -42,11 +44,17 @@ public final class MatchStore {
     private static final String REVIEW_BOOKMARK = "review-bookmark";
 
     private final Preferences preferences;
-    private final Clock clock;
+    private final LongSupplier now;
+    private final Supplier<String> ids;
 
     public MatchStore(Preferences preferences, Clock clock) {
+        this(preferences, clock::millis, () -> UUID.randomUUID().toString());
+    }
+
+    MatchStore(Preferences preferences, LongSupplier now, Supplier<String> ids) {
         this.preferences = preferences;
-        this.clock = clock;
+        this.now = now;
+        this.ids = ids;
     }
 
     public ChessMatch readMatch() {
@@ -76,6 +84,10 @@ public final class MatchStore {
     public long startedAt(int slot) { return preferences.getLong(MatchSlots.key(MATCH_STARTED_AT, slot), 0); }
 
     public int activeMatchSlot() { return preferences.getInt(ACTIVE_MATCH_SLOT, 1); }
+    public boolean selectSaved(int slot) {
+        return readSavedMatch(slot) != null && preferences.edit().putInt(ACTIVE_MATCH_SLOT, slot)
+                .putBoolean(RESUME_MATCH, true).remove(RESUME_CHAPTER).commit();
+    }
     public boolean hasMatch(int slot) { return preferences.contains(MatchSlots.key(MATCH, slot)); }
     public int freeMatchSlot() {
         int empty = MatchSlots.firstFree(this::hasMatch);
@@ -120,10 +132,10 @@ public final class MatchStore {
         String idKey = MatchSlots.key(MATCH_ID, slot);
         String archivedKey = MatchSlots.key(MATCH_ARCHIVED, slot);
         String id = fresh ? null : preferences.getString(idKey, null);
-        if (id == null) id = UUID.randomUUID().toString();
+        if (id == null) id = ids.get();
         boolean archived = !fresh && preferences.getBoolean(archivedKey, false);
         boolean newlyFinished = !archived && match.result() != ChessMatch.Result.IN_PROGRESS;
-        long recordedAt = fresh || newlyFinished ? clock.millis() : 0;
+        long recordedAt = fresh || newlyFinished ? now.getAsLong() : 0;
         var edit = preferences.edit().putString(idKey, id).putString(MatchSlots.key(MATCH, slot), match.checkpoint())
                 .putBoolean(MatchSlots.key(MATCH_BLACK_BELOW, slot), blackBelow)
                 .putBoolean(MatchSlots.key(MATCH_MANUAL_USED, slot), manualUsed)
@@ -170,7 +182,7 @@ public final class MatchStore {
         if (!hasMatch(slot) || preferences.contains(MatchSlots.key(MATCH_ID, slot))) return;
         try {
             var saved = readMatch(slot);
-            String id = UUID.randomUUID().toString();
+            String id = ids.get();
             var edit = preferences.edit().putString(MatchSlots.key(MATCH_ID, slot), id);
             if (saved.result() != ChessMatch.Result.IN_PROGRESS) {
                 edit.putBoolean(MatchSlots.key(MATCH_ARCHIVED, slot), true);
