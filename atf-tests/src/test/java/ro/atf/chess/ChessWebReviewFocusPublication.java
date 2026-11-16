@@ -61,10 +61,10 @@ class ChessWebReviewFocusPublication {
         Path fixture = configuredPath("chess.web.focus.fixture");
         boolean publicRun = Boolean.getBoolean("chess.web.focus.public");
         WebEvidencePublication.publish(configuredPath("chess.web.focus.receipt"), configuredPath("chess.web.bundle"),
-                FOCUS, receipt -> inspect(receipt, fixture, publicRun));
+                FOCUS, receipt -> inspect(receipt, fixture, publicRun, SCOPE));
     }
 
-    private static Contract inspect(JsonNode receipt, Path fixturePath, boolean publicRun) throws IOException {
+    static Contract inspect(JsonNode receipt, Path fixturePath, boolean publicRun, String scope) throws IOException {
         byte[] fixtureBytes = Files.readAllBytes(fixturePath);
         JsonNode fixture = WebEvidencePublication.readObject(fixtureBytes, "Archived Fool's Mate review fixture");
         String fixtureHash = WebEvidencePublication.sha256(fixtureBytes);
@@ -75,7 +75,7 @@ class ChessWebReviewFocusPublication {
         var review = GameReviewCodec.decode(source, encoded);
         var checks = new ArrayList<>(List.of(
                 same("Focus evidence matches the native scenario and exact archived fixture",
-                        List.of(SCOPE, SCOPE, CHECKPOINT, fixtureHash), List.of(receipt.path("scope").asText(),
+                        List.of(scope, SCOPE, CHECKPOINT, fixtureHash), List.of(receipt.path("scope").asText(),
                                 fixture.path("scope").asText(), fixture.path("checkpoint").asText(), receipt.path("fixtureSha256").asText())),
                 same("Browser uses the expected deployment channel", publicRun ? PLAY_URL : "", publicUrl),
                 same("Native game ends at the fourth recorded ply", 4, review.turns().size()),
@@ -142,10 +142,13 @@ class ChessWebReviewFocusPublication {
                 if (visit.focus().startsWith("row-")) {
                     checks.add(same(label + "the focused move is visible inside the history pane", true, isTrue(entry, "rowVisible")));
                 } else if ("seek".equals(visit.focus())) {
-                    String announcement = publicRun ? "Selected position " + visit.ply() + " of 4, White score "
+                    String oldAnnouncement = publicRun ? "Selected position " + visit.ply() + " of 4, White score "
                             : "Poziția selectată " + visit.ply() + " din 4, scorul albului ";
+                    String currentAnnouncement = publicRun ? ". Position " + visit.ply() + " of 4. White score "
+                            : ". Poziția " + visit.ply() + " din 4. Scorul albului ";
+                    String valueText = entry.path("seekLabel").asText();
                     checks.add(same(label + "the graph slider announces the current move", true,
-                            entry.path("seekLabel").asText().startsWith(announcement)));
+                            valueText.startsWith(oldAnnouncement) || valueText.contains(currentAnnouncement)));
                 }
             }
         }

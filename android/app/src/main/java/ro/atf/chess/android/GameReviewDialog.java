@@ -14,6 +14,8 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -215,6 +217,7 @@ final class GameReviewDialog {
         selectedMove.setEllipsize(TextUtils.TruncateAt.END);
         selectedMove.setPadding(dp(8), dp(4), dp(8), 0);
         selectedMove.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) selectedMove.setScreenReaderFocusable(true);
         controls.addView(selectedMove, new LinearLayout.LayoutParams(-1, -2));
 
         var navigation = row();
@@ -265,6 +268,7 @@ final class GameReviewDialog {
         summary.addView(opening);
         var graphTitle = text(context.getString(R.string.game_review_graph), 12, MUTED);
         graphTitle.setPadding(0, dp(3), 0, dp(2));
+        graphTitle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         summary.addView(graphTitle);
         graph = new EvaluationGraph(result, this::selectPly);
         graph.setId(R.id.game_review_graph);
@@ -329,7 +333,9 @@ final class GameReviewDialog {
         if (replayWindow != null || timeline.turn().filter(turn -> turn.loss() > 0).isEmpty()) return;
         var actions = icon(R.drawable.match_more, R.id.game_review_actions, R.string.game_review_actions);
         actions.setOnClickListener(view -> showActions(view, result));
+        var returning = new boolean[1];
         var screen = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.REVIEW, blackBelow, true, actions, () -> {
+            returning[0] = true;
             replay = null;
             dispatch(Action.CLOSE_EXPLANATION);
             refreshTimeline();
@@ -349,8 +355,33 @@ final class GameReviewDialog {
             if (replayWindow == window) {
                 replayWindow = null;
                 replay = null;
+                if (returning[0]) restoreExplanationFocus();
             }
         });
+    }
+
+    private void restoreExplanationFocus() {
+        var accessibility = context.getSystemService(AccessibilityManager.class);
+        if (!dialog.isShowing() || accessibility == null || !accessibility.isTouchExplorationEnabled()) return;
+        if (why.hasWindowFocus()) {
+            focusExplanationTrigger();
+            return;
+        }
+        var observer = why.getViewTreeObserver();
+        if (!observer.isAlive()) return;
+        observer.addOnWindowFocusChangeListener(new ViewTreeObserver.OnWindowFocusChangeListener() {
+            @Override public void onWindowFocusChanged(boolean hasFocus) {
+                if (!hasFocus) return;
+                if (observer.isAlive()) observer.removeOnWindowFocusChangeListener(this);
+                why.post(GameReviewDialog.this::focusExplanationTrigger);
+            }
+        });
+    }
+
+    private void focusExplanationTrigger() {
+        if (dialog.isShowing() && replayWindow == null && why.isShown() && why.isEnabled() && why.hasWindowFocus()) {
+            why.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null);
+        }
     }
 
     private void selectExplanationBranch(Branch branch) {
@@ -628,7 +659,9 @@ final class GameReviewDialog {
                 case MISTAKE, MISS, BLUNDER -> 0xffffb591;
                 default -> PRIMARY;
             });
-            label.setBackgroundColor(turn.ply() == selectedPly ? 0xff3d4933 : 0x00000000);
+            boolean selected = turn.ply() == selectedPly;
+            label.setSelected(selected);
+            label.setBackgroundColor(selected ? 0xff3d4933 : 0x00000000);
             label.setContentDescription(context.getString(R.string.game_review_move_row,
                     moveLabel(turn), gradeLabel(turn.grade()), turn.ply(), turns.size()));
             return label;
@@ -646,7 +679,10 @@ final class GameReviewDialog {
             this.result = result;
             this.select = select;
             select(timeline.ply());
-            setClickable(!result.turns().isEmpty());
+            boolean hasTurns = !result.turns().isEmpty();
+            setClickable(hasTurns);
+            setFocusable(hasTurns);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) setScreenReaderFocusable(true);
         }
 
         private void select(int ply) {

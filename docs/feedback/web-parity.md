@@ -25,7 +25,7 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 **Criteriu de închidere.** Același caz J7 pornește din JAR-ul JVM, trece prin intrarea Android și prin motorul compilat pentru browser, apoi produce aceeași succesiune de stări și aceeași restaurare. Măsurați mărimea pachetului, pornirea la rece, timpul căutării la buget identic și întreruperea pe profil mobil înainte de alegerea pragurilor de livrare. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
 
-**Game Review.** Ordinea tastaturii Web și revenirea din **De ce?** sunt acoperite la font 1,3×. Măsurați cu cititorul de ecran ordinea efectivă și anunțurile în RO și EN, de la valoarea graficului la mutarea selectată și înapoi din explicație. Pe APK folosiți o glisare TalkBack, iar pe Web o probă de citire echivalentă. [Contractul analizei](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
+**Game Review · Web.** Edge expune poziția și evaluarea la grafic, mutarea din rândul selectat și revenirea la **De ce?**. Recepția verifică actualizarea arborelui de accesibilitate pentru fiecare acțiune. Confirmați vorbirea RO/EN într-o sesiune NVDA cu ieșire audio funcțională, inclusiv schimbarea unei singure semimutări și întoarcerea din explicație. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-game-review)
 
 ## WEB-02 · Adaptoare și afișaj comun
 

@@ -42,10 +42,13 @@ function fontSizes() {
         .map(element => Number.parseFloat(getComputedStyle(element).fontSize));
 }
 
-export async function exerciseReviewFocus({ evaluate, until, wait, touch, pressKey, capture, check, openMigratedReview, playedFen }) {
+export async function exerciseReviewFocus({ evaluate, until, wait, touch, pressKey, capture, check, openMigratedReview, playedFen, accessibility }) {
     const { archiveId } = await openMigratedReview(4);
+    await accessibility?.observe('before-toolbar');
+    accessibility?.begin('toolbar');
     await touch('#previous');
     await wait('the historical Fool’s Mate blunder at ply 3', review => review.ply === 3 && review.selected === 3);
+    await accessibility?.observe('after-toolbar');
     const read = () => evaluate('(' + readFocus.toString() + ')()');
     const measureFonts = () => evaluate('(' + fontSizes.toString() + ')()');
     const baseFonts = await measureFonts();
@@ -69,6 +72,7 @@ export async function exerciseReviewFocus({ evaluate, until, wait, touch, pressK
         const target = await focused(focus);
         const result = { id, ply, fen: review.fen, lastMove: review.last, turn: review.turn, branch: review.branch, why, ...target };
         focusEvidence.push(result);
+        await accessibility?.observe(id);
         return result;
     }
     async function tabChain(initial, expected, shift = false) {
@@ -87,15 +91,21 @@ export async function exerciseReviewFocus({ evaluate, until, wait, touch, pressK
     const afterBoard = ['board', 'previous', 'best-line', 'next', ...(hasNextKey ? ['next-key'] : []), 'why', 'review-actions', 'seek'];
     const normalOrder = await tabChain((await read()).focus, afterBoard);
     check('review-tab-order', true, normalOrder[0] === 'archive-review-back');
+    await accessibility?.observe('graph-before');
 
+    accessibility?.begin('graph-left');
     await pressKey('ArrowLeft');
     const left = await witness('graph-left', 'seek', 2);
+    if (accessibility) await until(() => accessibility.sawSliderChange('graph-left', 2), 'Edge AX graph update for ply 2');
+    accessibility?.begin('graph-right');
     await pressKey('ArrowRight');
     const right = await witness('graph-right', 'seek', 3);
+    if (accessibility) await until(() => accessibility.sawSliderChange('graph-right', 3), 'Edge AX graph update for ply 3');
     check('graph-retains-focus', true, [left, right].every(entry => entry.keyboardFocus && entry.plotPly === entry.ply &&
         entry.seekValue === entry.ply && entry.rowPly === entry.ply && entry.seekLabel.includes(String(entry.ply))));
     await capture('focus-graph.png');
 
+    accessibility?.begin('selected-row');
     await pressKey('Tab');
     const selected = await witness('selected-row', 'row-3', 3);
     check('selected-row-only-tab-stop', true, selected.keyboardFocus && selected.rowVisible && selected.rowCount === 1 &&
@@ -112,21 +122,26 @@ export async function exerciseReviewFocus({ evaluate, until, wait, touch, pressK
     check('history-navigation-keys', true, true);
 
     const reverseOrder = await tabChain((await read()).focus, ['seek', 'review-actions', 'why'], true);
+    accessibility?.begin('why-entry');
     await pressKey('Enter');
     const entered = await witness('why-entry', 'close-why', 3, true);
     const whyOrder = await tabChain(entered.focus, ['why-actions', 'board', 'played', 'recommended']);
     check('why-entry-order', true, entered.keyboardFocus && !entered.seekVisible && !entered.rowVisible && entered.whyExpanded);
+    accessibility?.begin('why-recommended');
     await pressKey('Enter');
     const recommended = await witness('why-recommended', 'recommended', 3, true);
     assert.equal(recommended.branch, 'RECOMMENDED');
     await capture('focus-why.png');
 
+    accessibility?.begin('why-escape');
     await pressKey('Escape');
     const escaped = await witness('why-escape', 'why', 3);
     check('escape-restores-launcher', true, escaped.keyboardFocus && !escaped.whyExpanded && escaped.branch === 'HISTORY' &&
         escaped.rowPly === 3 && escaped.fen === playedFen);
+    accessibility?.begin('why-reopen');
     await pressKey('Enter');
     await witness('why-reopen', 'close-why', 3, true);
+    accessibility?.begin('why-back');
     await pressKey('Enter');
     const closed = await witness('why-back', 'why', 3);
     check('back-restores-launcher', true, closed.keyboardFocus && !closed.whyExpanded && closed.branch === 'HISTORY' &&
@@ -137,5 +152,6 @@ export async function exerciseReviewFocus({ evaluate, until, wait, touch, pressK
         entry.board.every((value, index) => Math.abs(value - right.board[index]) < 1)));
     const analysisRequests = await evaluate('window.chessWebAudit.requests.length');
     check('cached-review-used', 0, analysisRequests);
-    return { archiveId, baseFonts, scaledFonts, normalOrder, reverseOrder, whyOrder, focusEvidence, analysisRequests };
+    return { archiveId, baseFonts, scaledFonts, normalOrder, reverseOrder, whyOrder, focusEvidence, analysisRequests,
+        accessibility: accessibility?.evidence() };
 }

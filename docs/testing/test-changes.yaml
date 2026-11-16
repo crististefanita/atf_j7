@@ -556,3 +556,39 @@ testChanges:
     test: ro.atf.chess.GameReviewSessionTest#archivedExplanationResumesTheExactBranchAndReturnsToTheOriginalMove
     contract: "Preserve history and branch restoration while exporting the native-position browser focus fixture"
     allowDelete: false
+  - id: J7-REVIEW-A11Y-SUITES
+    base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Keep browser accessibility evidence outside the offline and native suite selections"
+    allowDelete: false
+  - id: J7-REVIEW-A11Y-NODE
+    base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewFocusComponents.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityTest.java
+    test: ro.atf.chess.ChessWebReviewAccessibilityTest#announcementPolicyRunsWithoutABrowserOrEmulator
+    contract: "Check localized text and one announcement channel per committed review action offline"
+    allowDelete: true
+  - id: J7-REVIEW-A11Y-ANDROID
+    base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewSessionTest.java
+    test: ro.atf.chess.GameReviewSessionTest#archivedExplanationResumesTheExactBranchAndReturnsToTheOriginalMove
+    contract: "Keep recorded position and branch restoration covered offline alongside the native focus and speech entry"
+    allowDelete: false
+  - id: J7-REVIEW-A11Y-FOCUS-EVIDENCE
+    base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewFocusPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityTest.java
+    test: ro.atf.chess.ChessWebReviewAccessibilityTest#announcementPolicyRunsWithoutABrowserOrEmulator
+    contract: "Keep localized graph position spoken through the committed accessibility channel"
+    allowDelete: false
+
+  - id: J7-REVIEW-TALKBACK-PUBLISHER
+    base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
+    from: atf-tests/src/test/java/ro/atf/chess/TalkBackPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewSpeechEvidenceTest.java
+    test: ro.atf.chess.GameReviewSpeechEvidenceTest#usesOnlyAudioAcceptedInTheCurrentProbeWindow
+    contract: "Bind the Game Review speech report to both native locales and accepted TalkBack audio in each action window"
+    allowDelete: false

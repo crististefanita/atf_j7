@@ -104,7 +104,7 @@ Rulați componentele de focus cu Node prin Maven. Extent consemnează fiecare co
 
 ```powershell
 $componentReport = Join-Path $workRoot 'review-focus-components.html'
-mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewFocusComponents' "-Dchess.extent=$componentReport"
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewAccessibilityTest' "-Dchess.extent=$componentReport"
 $focusFixture = Join-Path $workRoot 'review-focus.json'
 java -cp $cp ro.atf.chess.GameReviewArchiveFixture $focusFixture --focus
 node ./web/tests/browser-game-review.mjs $site $focusFixture $evidence $edge
@@ -113,6 +113,20 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewFocusPublication' "-Dchess.
 ```
 
 Folosiți classpath-ul din proba graficului și un director nou pentru dovezi. Pentru difuzarea publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.focus.public=true`.
+
+### Cititorul de ecran în Game Review
+
+Graficul expune poziția, mutarea înregistrată și scorul albului. Rândul curent anunță mutarea și poziția. **Înapoi** din **De ce?** readuce focusul pe declanșator și păstrează semimutarea. Proiecția în RO și EN și alegerea canalului de anunț se verifică în `ChessWebReviewAccessibilityTest`. Folosiți o singură sursă pentru mesajul fiecărei acțiuni, prin valoarea controlului, focus sau zona de stare.
+
+Proba Edge păstrează valorile și schimbările de focus din arborele de accesibilitate al browserului. Folosiți fixture-ul de la proba tastaturii și câte un director nou pentru fiecare limbă.
+
+```powershell
+node ./web/tests/browser-game-review.mjs --accessibility $site $focusFixture $evidence $edge
+$receipt = Join-Path $evidence 'result.json'
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewAccessibilityPublication' "-Dchess.web.bundle=$site" "-Dchess.web.accessibility.fixture=$focusFixture" "-Dchess.web.accessibility.receipt=$receipt"
+```
+
+Pentru proba publică, transmiteți URL-ul din README ca ultim argument și adăugați `-Dchess.web.accessibility.public=true`. Într-o probă de vorbire înregistrați cititorul, limba și mesajele efectiv trimise sintetizatorului. [Strategia de testare](../docs/testing/README.md#proba-talkback)
 
 ## Partida locală și o analiză nouă
 

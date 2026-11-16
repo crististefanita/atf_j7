@@ -8,9 +8,12 @@ import { basename, dirname, extname, join, relative, resolve, sep } from 'node:p
 import { setTimeout as pause } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 import { exerciseReviewFocus } from './review-focus.mjs';
+import { createReviewAccessibilityProbe } from './review-accessibility.mjs';
 
 const args = process.argv.slice(2);
-assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs <site> <archive.json|--active|--ai|--ledger|--archives|--review-continue> <new-evidence-directory> <edge-exe> [public-ai-url]');
+const accessibilityScenario = args[0] === '--accessibility';
+if (accessibilityScenario) args.shift();
+assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs [--accessibility] <site> <archive fixture|scenario> <new-evidence-directory> <edge-exe> [public-ai-url]');
 const [site, , evidence, browserPath] = args.map(path => resolve(path));
 const activeScenario = args[1] === '--active';
 const aiScenario = args[1] === '--ai';
@@ -33,6 +36,7 @@ const fixture = fixtureBytes && JSON.parse(fixtureBytes.toString('utf8'));
 const anchor = fixture?.expected;
 const reviewGraphScenario = fixture?.scope === 'review-graph';
 const reviewFocusScenario = fixture?.scope === 'review-focus';
+assert.ok(!accessibilityScenario || reviewFocusScenario, '--accessibility requires the review-focus fixture');
 if (publicUrl) assert.ok((aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario || reviewGraphScenario || reviewFocusScenario) &&
     publicUrl === readmeUrl, `Public smoke requires an evidence scenario and the README URL ${readmeUrl}`);
 if (reviewGraphScenario) {
@@ -90,8 +94,8 @@ const server = createServer((request, response) => {
     response.writeHead(200, { 'Content-Type': mime[extname(path)] ?? 'application/octet-stream', 'Cache-Control': 'no-store' }).end(bytes);
 });
 
-async function until(probe, label) {
-    const deadline = Date.now() + 12000;
+async function until(probe, label, timeout = 12000) {
+    const deadline = Date.now() + timeout;
     let error;
     while (Date.now() < deadline) {
         try {
@@ -160,13 +164,14 @@ const browser = spawn(browserPath, ['--headless=new', '--disable-gpu', '--disabl
 let browserError;
 browser.on('error', error => { browserError = error; });
 let socket;
+let send;
 let browserVersion;
 
 try {
     const port = await until(async () => {
         if (browserError) throw browserError;
         return (await readFile(join(profileDirectory, 'DevToolsActivePort'), 'utf8')).split(/\r?\n/)[0];
-    }, 'Edge DevTools port');
+    }, 'Edge DevTools port', 30000);
     const endpoint = `http://127.0.0.1:${port}`;
     const version = await (await fetch(`${endpoint}/json/version`)).json();
     browserVersion = version.Browser;
@@ -176,7 +181,8 @@ try {
         socket.addEventListener('open', resolve, { once: true });
         socket.addEventListener('error', reject, { once: true });
     });
-    const send = client(socket);
+    send = client(socket);
+    const accessibility = accessibilityScenario ? await createReviewAccessibilityProbe(send, socket) : null;
     const evaluate = async expression => {
         const { result, exceptionDetails } = await send('Runtime.evaluate', { expression, returnByValue: true });
         if (exceptionDetails) throw new Error(result.description ?? exceptionDetails.text);
@@ -870,8 +876,8 @@ try {
     } else if (reviewGraphScenario) {
         sourceProof = await exerciseReviewGraph();
     } else if (reviewFocusScenario) {
-        sourceProof = { scope: 'review-focus', publicUrl, fixtureSha256: sha256(fixtureBytes),
-            ...(await exerciseReviewFocus({ evaluate, until, wait, touch, pressKey, capture, check, openMigratedReview, playedFen })),
+        sourceProof = { scope: accessibility ? 'review-accessibility' : 'review-focus', publicUrl, fixtureSha256: sha256(fixtureBytes),
+            ...(await exerciseReviewFocus({ evaluate, until, wait, touch, pressKey, capture, check, openMigratedReview, playedFen, accessibility })),
             ledgerSnapshot: await evaluate(`localStorage.getItem('${ledgerKey}')`) };
     } else {
         sourceProof = await exerciseArchive();
@@ -946,8 +952,14 @@ try {
         return { fixtureSha256: sha256(fixtureBytes) };
     }
 } finally {
+    if (socket?.readyState === WebSocket.OPEN && send) {
+        await Promise.race([send('Browser.close').catch(() => {}), pause(1000)]);
+    }
     socket?.close();
-    if (server.listening) server.close();
+    if (server.listening) {
+        server.close();
+        server.closeAllConnections();
+    }
     if (browser.pid && browser.exitCode === null) {
         browser.kill();
         await Promise.race([new Promise(resolve => browser.once('exit', resolve)), pause(2000)]);

@@ -69,6 +69,10 @@ class TalkBackPublication {
         org.junit.jupiter.api.Assertions.assertEquals(AtfReportStatus.PASS, result, "See " + report);
     }
 
+    @Test void publishGameReviewTalkBack() throws Exception {
+        GameReviewSpeechEvidence.publish(Path.of(System.getProperty("chess.talkback.review")));
+    }
+
     @Test void publishTalkBackGestures() throws Exception {
         Path receipt = Path.of(System.getProperty("chess.talkback.gestures"));
         Path report = receipt.resolveSibling("talkback-gestures-extent.html");

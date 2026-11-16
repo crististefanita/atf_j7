@@ -63,7 +63,9 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 `GameReviewGraphParityTest` folosește partida de 185 de semimutări din APK și poziții de control verificate separat. În JVM verifică punctul 184 la geometria nativă și la două lățimi Web, ambele capete, piesele Staunton originale și dimensiunile capturilor. Sanity-ul Android păstrează atingerea și redarea nativă. `ChessWebReviewGraphPublication` cere coordonatele trimise de interfață către worker, poziția de pe tablă, rândul vizibil și marcajul din arhivă după reîncărcare. [Graficul Game Review](../../web/README.md#graficul-din-game-review)
 
-`ChessWebReviewFocusComponents` verifică în Node destinațiile de focus, limitele istoricului și derularea necesară. `GameReviewSessionTest` verifică revenirea la poziția jucată după **De ce?**. Sanity-ul Edge păstrează proba Tab, săgeți și revenirea cu focus vizibil la font 1,3×. Reperul Android compact RO/EN verifică încadrarea și păstrarea poziției. [Tastatura în Game Review](../../web/README.md#tastatura-în-game-review) · [Redarea compactă](#redare-comună-pe-ecran-compact)
+`ChessWebReviewAccessibilityTest` verifică în Node destinațiile de focus, limitele istoricului și derularea necesară. `GameReviewSessionTest` verifică revenirea la poziția jucată după **De ce?**. Sanity-ul Edge păstrează proba Tab, săgeți și revenirea cu focus vizibil la font 1,3×. Reperul Android compact RO/EN verifică încadrarea și păstrarea poziției. [Tastatura în Game Review](../../web/README.md#tastatura-în-game-review) · [Redarea compactă](#redare-comună-pe-ecran-compact)
+
+Pentru cititoare de ecran, `ChessWebReviewAccessibilityTest` verifică textele RO/EN, limitele graficului și sursa fiecărui anunț. Sanity-ul urmărește valoarea graficului, rândul selectat și revenirea din **De ce?**. Extent indică sursa fiecărei observații, precum arborele Chromium, un eveniment Android sau o cerere către sintetizator. [Cititorul de ecran Web](../../web/README.md#cititorul-de-ecran-în-game-review) · [Proba TalkBack](#proba-talkback)
 
 Pe Android, `-MatchMenusOnly` verifică listele și deschiderea rândurilor salvate și încheiate. `-GameReviewOnly` verifică o mutare alternativă în continuare și păstrarea intrării arhivate. [Partidă și istoric](#partidă-și-istoric)
 
@@ -168,12 +170,12 @@ node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resour
 
 | Intrare JUnit | Ce verifică |
 |---|---|
-| `ChessComponentSuite` | Regulile, pozițiile și problemele, progresul, partida, deschiderile, indiciile și geometria verificată în JVM. Rulează offline. |
+| `ChessComponentSuite` | Regulile, pozițiile și problemele, progresul, partida, deschiderile, indiciile și geometria verificată în JVM. Include contractele de accesibilitate Web rulate prin Node.js. Rulează offline. |
 | `ChessGovernanceSuite` | Inventarul suitelor, rezultatele și diagnosticul din Extent, legăturile locale din documentație, politica AI și calificarea release-ului. |
 | `ChessBenchmarkSuite` | Stockfish, liga offline și ancora Elo. Fiecare probă pornește când primește intrările documentate. |
 | `ChessJvmSuite` | Intrarea Maven implicită. Reunește cele trei selecții într-un raport. |
 
-Din copia TMP, cu JDK 21 și Maven:
+Din copia TMP, cu JDK 21, Maven și Node.js disponibil în PATH, rulați suita necesară.
 
 ```powershell
 mvn test '-Dmaven.repo.local=target/maven-repo' '-Dchess.extent=target/jvm.html'
@@ -413,5 +415,11 @@ Publicați raportul cu `-Dtest=AndroidSanityPublication#publishReplayCompactSani
 Pentru republicare, rulați `TalkBackPublication#publishTalkBackGestures` din copia TMP și indicați logul prin `-Dchess.talkback.gestures`. Logul unei singure probe conține evenimentele `J7FocusProbe` și markerii `J7ProbeMarker`, de la `BLACK_ANCHOR_START` la `WHITE_DESTINATION_END`. În același director puneți `emulator.json`, capturile `BLACK-color.png`, `BLACK-PIECE.png`, `BLACK-DESTINATION.png` și echivalentele `WHITE-*`.
 
 Pentru vorbire, activați **Display speech output**. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. Proba anterioară compară ediția 0.3.0 cu build-ul corectat și consemnează cererile TalkBack și audio PCM sintetizat. [Extent-ul istoric](https://github.com/crististefanita/atf_j7/blob/v0.3.1/release/0.3.1/reports/talkback-extent.html) este păstrat în tagul Git.
+
+### Game Review
+
+Rulați fazele native `talkback-review-ro` și `talkback-review-en` din copia TMP cu TalkBack activ. Fiecare folosește aceeași partidă arhivată. Focalizați graficul, apoi mutarea selectată. Intrați în **De ce?** și reveniți prin **Înapoi**. Verificați focusul pe butonul de deschidere și semimutarea salvată.
+
+Pentru auditul vorbirii, rulați `TalkBackPublication#publishGameReviewTalkBack` cu `-Dchess.talkback.review` către directorul `run-<id>`. Pentru fiecare limbă, păstrați în același director recepția nativă, metadatele execuției și cele trei capturi. Jurnalul comun `talkback.log` conține limitele acțiunilor `J7ReviewProbe` și recepțiile `J7ReviewSpeech` cu text și audio PCM acceptat de observator pentru procesul TalkBack. Extent verifică identitatea, digesturile și anunțurile în fiecare interval. [Proba Web](../../web/README.md#cititorul-de-ecran-în-game-review)
 
 [Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)

@@ -3,6 +3,7 @@ package ro.atf.chess.android;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.app.UiAutomation;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -21,6 +22,7 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -129,6 +131,7 @@ public final class BoardSanity extends Instrumentation {
             else if ("active-match-restore".equals(phase)) checkActiveMatch(true);
             else if ("pending-bot-prepare".equals(phase)) checkPendingBot(false);
             else if ("pending-bot-restore".equals(phase)) checkPendingBot(true);
+            else if (talkBackReview()) checkTalkBackReview();
             else if (phase.startsWith("analysis-")) checkAnalysis();
             else if (phase.startsWith("match-")) checkMatch();
             else checkQuests();
@@ -147,6 +150,110 @@ public final class BoardSanity extends Instrumentation {
             }
             finish(Activity.RESULT_CANCELED, receipt);
         }
+    }
+
+    private boolean talkBackReview() { return phase != null && phase.startsWith("talkback-review-"); }
+
+    @Override public UiAutomation getUiAutomation() {
+        return super.getUiAutomation(talkBackReview() ? UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES : 0);
+    }
+
+    private void checkTalkBackReview() throws Exception {
+        var language = AppLanguage.fromTag(phase.substring("talkback-review-".length())).orElseThrow();
+        var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
+        if (!new AppLanguagePreference(new AndroidGamePreferences(settings)).save(language)) {
+            throw new AssertionError("Could not select the review language");
+        }
+        enableReviewNodeIds();
+        var match = ChessMatch.restore(REVIEW_MATE);
+        var store = new ChessProgressStore(getTargetContext()).matches();
+        seedGame(1, match);
+        String archiveId = store.archivedId(1);
+        var review = GameReview.analyze(match, ignored -> { });
+        if (!store.saveReview(archiveId, match, review)) throw new AssertionError("Could not cache the archived review");
+        var activity = launch();
+        var list = openMatchList(activity, R.id.match_archive);
+        chooseListEntry(list, 0);
+        awaitListTransition(activity);
+        talkBackClick(R.id.match_status);
+        talkBackClick(R.id.game_review_previous);
+        replayCapture = displayCaptureGeometry();
+        var selected = reviewNode(R.id.game_review_selection, 4500);
+        if (selected == null || selected.getText() == null) throw new AssertionError("No selected move in Game Review");
+        String caption = selected.getText().toString();
+        receipt.putString("talkbackLocale", activity.getResources().getConfiguration().getLocales().get(0).getLanguage());
+        var graph = reviewNode(R.id.game_review_graph, 4500);
+        if (graph == null || graph.getContentDescription() == null) throw new AssertionError("No evaluation graph in Game Review");
+        receipt.putString("graphLabel", graph.getContentDescription().toString());
+        receipt.putString("moveLabel", caption);
+        receipt.putString("returnLabel", activity.getString(R.string.game_review_why));
+        boolean touchExploration = activity.getSystemService(AccessibilityManager.class).isTouchExplorationEnabled();
+        receipt.putString("touchExploration", Boolean.toString(touchExploration));
+        if (!touchExploration) throw new AssertionError("TalkBack touch exploration is disabled");
+
+        markTalkBack("GRAPH_BEGIN");
+        focusTalkBack(R.id.game_review_graph);
+        captureFrame("talkback-graph", "The localized evaluation graph takes accessibility focus",
+                image -> talkBackFrameVisible(image) && hasTalkBackFocus(R.id.game_review_graph));
+        SystemClock.sleep(8_000);
+        markTalkBack("GRAPH_END");
+        markTalkBack("MOVE_BEGIN");
+        focusTalkBack(R.id.game_review_selection);
+        captureFrame("talkback-move", "The selected move takes accessibility focus",
+                image -> talkBackFrameVisible(image) && hasTalkBackFocus(R.id.game_review_selection) && reviewSelection(caption));
+        SystemClock.sleep(8_000);
+        markTalkBack("MOVE_END");
+
+        focusTalkBack(R.id.game_review_why);
+        talkBackClick(R.id.game_review_why);
+        focusTalkBack(R.id.hint_preview_return);
+        markTalkBack("RETURN_BEGIN");
+        talkBackClick(R.id.hint_preview_return);
+        captureFrame("talkback-return", "Returning from Why restores focus to its opener and preserves the selected move",
+                image -> talkBackFrameVisible(image) && hasTalkBackFocus(R.id.game_review_why) && reviewSelection(caption)
+                        && new GameReviewTimeline.Snapshot(3, GameReviewTimeline.Branch.HISTORY, 0, false)
+                        .equals(store.readReviewBookmark(archiveId, match)));
+        SystemClock.sleep(8_000);
+        markTalkBack("RETURN_END");
+    }
+
+    private boolean talkBackFrameVisible(Bitmap frame) {
+        int center = frame.getWidth() / 2;
+        for (int quarter = 1; quarter < 4; quarter++) {
+            if ((frame.getPixel(center, quarter * frame.getHeight() / 4) & 0x00ffffff) != 0) return true;
+        }
+        return false;
+    }
+
+    private void markTalkBack(String marker) {
+        android.util.Log.i("J7ReviewProbe", runId + " " + phase + " " + marker);
+    }
+
+    private void talkBackClick(int id) throws Exception {
+        var node = reviewNode(id, 4500);
+        if (node == null || !node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+            throw new AssertionError("Accessibility click failed for " + getTargetContext().getResources().getResourceName(id));
+        }
+        getUiAutomation().waitForIdle(100, 3500);
+    }
+
+    private void focusTalkBack(int id) {
+        var node = reviewNode(id, 4500);
+        if (node == null) throw new AssertionError("Missing accessibility target " + getTargetContext().getResources().getResourceName(id));
+        if (node.isAccessibilityFocused() && node.performAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS)) {
+            node = reviewNode(id, 4500);
+        }
+        if (node != null && (node.isAccessibilityFocused()
+                || node.performAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS) || hasTalkBackFocus(id))) return;
+        var window = getUiAutomation().getRootInActiveWindow();
+        var focused = window == null ? null : window.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY);
+        throw new AssertionError("Accessibility focus did not reach " + getTargetContext().getResources().getResourceName(id)
+                + ", target=" + node + ", current=" + focused);
+    }
+
+    private boolean hasTalkBackFocus(int id) {
+        var node = visibleReviewNode(id);
+        return node != null && node.isAccessibilityFocused();
     }
 
     private void checkMatchArchive() throws Exception {
@@ -3121,7 +3228,7 @@ public final class BoardSanity extends Instrumentation {
         }
         int api = Build.VERSION.SDK_INT;
         Bitmap capture;
-        if (replayCapture.useFullDisplay(api)) {
+        if (talkBackReview() || replayCapture.useFullDisplay(api)) {
             // Android 9 crops UI Automation to the logical dimensions even when the compositor is larger.
             try (var stream = new ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand("screencap -p"))) {
                 capture = BitmapFactory.decodeStream(stream);
@@ -3150,7 +3257,7 @@ public final class BoardSanity extends Instrumentation {
         if ("analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
                 || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
                 || "puzzle-ux".equals(phase) || "active-match-restore".equals(phase) || "pending-bot-restore".equals(phase)
-                || phase.startsWith(COMPACT_REPLAY)) {
+                || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }
