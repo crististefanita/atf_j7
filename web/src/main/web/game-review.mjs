@@ -1,3 +1,5 @@
+import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
+
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
 const legacyMatchKeys = { local: 'chesslab.active-match.v1', ai: 'chesslab.ai-match.v1' };
@@ -6,11 +8,13 @@ const botDelayMillis = 650;
 const locale = new URLSearchParams(location.search).get('lang') === 'ro' ? 'ro' : 'en';
 const words = {
     en: {
-        title: 'Game Review', 'archive-label': 'Open a review',
+        title: 'Game review', 'archive-label': 'Open a review',
         'open-match': 'Local game', 'open-review': 'Game Review', 'new-match': 'New game',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
         'open-saved': 'Saved games', 'open-finished': 'Finished games', 'return-menu': 'Back',
-        'archive-review-back': 'Back to game', openCached: 'Open analysis', reviewed: 'Analysis saved',
+        'archive-review-back': 'Close', 'review-close': 'Close', 'reopen-review': 'Open analysis', openCached: 'Open analysis', reviewed: 'Analysis saved',
+        'review-actions': 'Review actions', 'review-on-board': 'Show on board', 'next-key': 'Next key moment',
+        bestLine: 'Show recommended line', hideLine: 'Hide recommended line', linePrevious: 'Previous line step', lineNext: 'Next line step',
         'new-local': 'New local game', 'new-ai': 'New AI game', 'match-history': 'Game history',
         'continue-match': 'Continue from here', 'continue-title': 'Continue from here', 'confirm-continue': 'Continue',
         'continue-review': 'Continue from here',
@@ -29,7 +33,7 @@ const words = {
         matchSaveFailed: 'The browser could not save this move. The last saved position is still available.',
         WHITE_WINS: 'White wins', BLACK_WINS: 'Black wins', WON: 'Win', LOST: 'Loss', DRAW: 'Draw',
         empty: 'Open a Chess Lab review archive to replay its moves and compare alternatives.',
-        why: 'Why?', 'why-title': 'Why?', played: 'Played line', recommended: 'Recommended line',
+        why: 'Why?', 'why-title': 'Why?', played: 'After move', recommended: 'Recommended',
         'history-label': 'Move history', 'seek-label': 'Select a move by position',
         movement: 'Review navigation', previous: 'Previous move', next: 'Next move',
         'close-why': 'Close explanation', board: 'Chess board', WHITE: 'White to move', BLACK: 'Black to move',
@@ -50,7 +54,10 @@ const words = {
         'open-match': 'Partidă locală', 'open-review': 'Analiza partidei', 'new-match': 'Partidă nouă',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
         'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate', 'return-menu': 'Înapoi',
-        'archive-review-back': 'Înapoi la partidă', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
+        'archive-review-back': 'Închide', 'review-close': 'Închide', 'reopen-review': 'Deschide analiza', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
+        'review-actions': 'Acțiuni de analiză', 'review-on-board': 'Arată pe tablă', 'next-key': 'Moment-cheie următor',
+        bestLine: 'Arată linia recomandată', hideLine: 'Ascunde linia recomandată',
+        linePrevious: 'Pasul anterior al variantei', lineNext: 'Pasul următor al variantei',
         'new-local': 'Partidă locală nouă', 'new-ai': 'Partidă nouă cu AI', 'match-history': 'Istoricul partidei',
         'continue-match': 'Continuă de aici', 'continue-title': 'Continuă de aici', 'confirm-continue': 'Continuă',
         'continue-review': 'Continuă de aici',
@@ -69,7 +76,7 @@ const words = {
         matchSaveFailed: 'Browserul nu a salvat mutarea. Ultima poziție salvată este disponibilă.',
         WHITE_WINS: 'Albul câștigă', BLACK_WINS: 'Negrul câștigă', WON: 'Victorie', LOST: 'Înfrângere', DRAW: 'Remiză',
         empty: 'Deschide o arhivă Chess Lab pentru a revedea mutările și a compara variantele.',
-        why: 'De ce?', 'why-title': 'De ce?', played: 'Linia jucată', recommended: 'Linia recomandată',
+        why: 'De ce?', 'why-title': 'De ce?', played: 'După mutare', recommended: 'Recomandată',
         'history-label': 'Istoricul mutărilor', 'seek-label': 'Alege poziția din istoric',
         movement: 'Navigare în analiză', previous: 'Mutarea anterioară', next: 'Mutarea următoare',
         'close-why': 'Închide explicația', board: 'Tabla de șah', WHITE: 'Albul la mutare', BLACK: 'Negrul la mutare',
@@ -92,6 +99,7 @@ const board = find('board');
 const matchBoard = find('match-board');
 const status = find('status');
 const history = find('history');
+const reviewWorkspace = createReviewWorkspace(locale, (x, width) => reviewCommand('review-graph-select', { x, width }, true));
 const glyphs = { p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚' };
 const kinds = { p: 'PAWN', n: 'KNIGHT', b: 'BISHOP', r: 'ROOK', q: 'QUEEN', k: 'KING' };
 const score = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
@@ -113,6 +121,8 @@ let finishedMatches = [];
 let archive;
 let view;
 let archiveReviewId;
+let reviewDismissed = false;
+let reportScrollBeforeExplanation = 0;
 let match;
 let matchRoute;
 let mode = 'review';
@@ -130,10 +140,11 @@ for (const id of ['title', 'archive-label', 'empty', 'why', 'why-title', 'played
     'open-match', 'open-ai', 'open-review', 'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'start-ai', 'cancel-setup', 'retry-bot', 'open-saved',
     'open-finished', 'return-menu', 'new-local', 'new-ai', 'continue-match', 'continue-title', 'confirm-continue',
-    'cancel-continue', 'automatic-label', 'archive-review-back', 'continue-review']) {
+    'cancel-continue', 'automatic-label', 'archive-review-back', 'continue-review', 'review-close', 'reopen-review', 'review-on-board']) {
     find(id).textContent = words[id];
 }
-for (const id of ['movement', 'previous', 'next', 'close-why']) find(id).setAttribute('aria-label', words[id]);
+for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions', 'next-key']) find(id).setAttribute('aria-label', words[id]);
+find('why-actions').setAttribute('aria-label', words['review-actions']);
 find('match-history').setAttribute('aria-label', words['match-history']);
 for (const id of ['previous', 'next']) find(`match-${id}`).setAttribute('aria-label', words[id]);
 
@@ -230,10 +241,11 @@ function drawBoard(target, cells, state) {
         cell.dataset.piece = exists ? token : '';
         cell.toggleAttribute('data-last', state.lastMove?.slice(0, 2) === name || state.lastMove?.slice(2, 4) === name);
         cell.toggleAttribute('data-cue', state.cueFrom === name || state.cueTo === name);
+        if (target === board) cell.toggleAttribute('data-cue-origin', state.cueFrom === name);
         const white = exists && token === token.toUpperCase();
         const type = token.toLowerCase();
         piece.classList.toggle('white', white);
-        piece.textContent = glyphs[type] ?? '';
+        if (target !== board || !showReviewPiece(piece, type, state.pieceArt)) piece.textContent = glyphs[type] ?? '';
         const description = exists ? words.pieceAt(words.pieces[kinds[type]], white, name) : name;
         if (exists) descriptions.push(description);
         if (target === matchBoard) cell.setAttribute('aria-label', description);
@@ -248,8 +260,10 @@ function drawBoard(target, cells, state) {
 
 function drawExplanation(state) {
     find('why').disabled = !state.why && !state.explanationOpen;
+    find('why').hidden = find('why').disabled;
     find('why').setAttribute('aria-expanded', state.explanationOpen);
     find('explanation').hidden = !state.explanationOpen;
+    find('review-branches').hidden = !state.explanationOpen;
     if (!state.explanationOpen) return;
     const reason = find('reason');
     const explain = words[state.reason];
@@ -258,8 +272,10 @@ function drawExplanation(state) {
     reason.dataset.square = state.decisiveSquare ?? '';
     reason.textContent = explain ? explain(words.pieces[state.decisivePiece], state.decisiveSquare,
         words.pieces[state.capturedPiece], score.format(state.materialCp / 100)) : '';
+    find('evaluation').hidden = Boolean(explain);
     find('evaluation').textContent = words.evaluation(score.format(state.playedPoints / 10),
         score.format(state.bestPoints / 10), state.depth);
+    find('why-title').textContent = reviewWorkspace.moveLabel(state, state.ply);
     for (const branch of ['played', 'recommended']) {
         find(branch).disabled = !state[branch];
         find(branch).setAttribute('aria-pressed', state.branch === branch.toUpperCase());
@@ -275,7 +291,7 @@ function drawHistory(state) {
             item.type = 'button';
             item.dataset.ply = ply;
             row.dataset.move = move;
-            item.textContent = ply === 0 ? move : `${ply} · ${move}`;
+            item.textContent = reviewWorkspace.moveLabel(state, ply);
             row.append(item);
             return row;
         });
@@ -283,7 +299,10 @@ function drawHistory(state) {
     }
     for (const row of history.children) {
         const item = row.firstElementChild;
-        if (Number(item.dataset.ply) === state.ply) item.setAttribute('aria-current', 'step');
+        const ply = Number(item.dataset.ply);
+        const label = reviewWorkspace.moveLabel(state, ply);
+        if (item.textContent !== label) item.textContent = label;
+        if (ply === state.ply) item.setAttribute('aria-current', 'step');
         else item.removeAttribute('aria-current');
     }
     find('seek').max = state.totalPlies;
@@ -292,10 +311,25 @@ function drawHistory(state) {
 
 function render() {
     const container = find('review');
-    const visibleReview = view && (archiveReviewId ? mode === 'archive-review' : mode === 'review');
+    const visibleReview = Boolean(view && (archiveReviewId ? mode === 'archive-review' : mode === 'review' && !reviewDismissed));
+    const wasExplaining = document.body.classList.contains('review-explaining');
+    const explaining = visibleReview && view.explanationOpen;
+    if (explaining && !wasExplaining) reportScrollBeforeExplanation = find('review-details').scrollTop;
     container.hidden = !visibleReview;
-    find('empty').hidden = mode !== 'review' || Boolean(visibleReview);
+    document.body.classList.toggle('review-active', visibleReview);
+    document.body.classList.toggle('review-explaining', explaining);
+    if (mode === 'review') {
+        for (const id of ['open-match', 'open-ai', 'open-saved', 'open-finished', 'review-import']) find(id).hidden = visibleReview;
+    }
+    find('review-close').hidden = !visibleReview || Boolean(archiveReviewId) || explaining;
+    find('archive-review-back').hidden = !visibleReview || !archiveReviewId || explaining;
+    find('close-why').hidden = !explaining;
+    find('why-actions').hidden = !explaining || !archiveReviewId;
+    find('reopen-review').hidden = mode !== 'review' || visibleReview || !view || Boolean(archiveReviewId);
+    find('empty').hidden = mode !== 'review' || Boolean(view);
     if (!visibleReview) return;
+    find('title').textContent = explaining ? words['why-title'] : words.title;
+    document.title = `Chess Lab · ${find('title').textContent}`;
     container.dataset.archiveId = archiveReviewId ?? '';
     container.dataset.ply = view.ply;
     container.dataset.branch = view.branch;
@@ -303,12 +337,22 @@ function render() {
     const onLine = view.branch !== 'HISTORY';
     orientBoard(board, squares, view.blackBelow === true);
     drawBoard(board, squares, view);
-    find('previous').disabled = !(onLine ? view.linePrevious : view.previous);
-    find('next').disabled = !(onLine ? view.lineNext : view.next);
+    const stepping = onLine || explaining;
+    find('previous').disabled = !(stepping ? view.linePrevious : view.previous);
+    find('next').disabled = !(stepping ? view.lineNext : view.next);
+    find('previous').setAttribute('aria-label', stepping ? words.linePrevious : words.previous);
+    find('next').setAttribute('aria-label', stepping ? words.lineNext : words.next);
+    const recommended = view.branch === 'RECOMMENDED';
+    find('best-line').disabled = !view.recommended;
+    find('best-line').setAttribute('aria-pressed', recommended);
+    find('best-line').setAttribute('aria-label', recommended ? words.hideLine : words.bestLine);
+    find('next-key').disabled = !view.nextKey;
+    find('review-actions').hidden = !archiveReviewId;
     find('continue-review').hidden = !archiveReviewId || !view.canContinue;
-    find('position').textContent = onLine ? `${words.step} ${view.step}/${view.lineLength}` : `${view.ply}/${view.totalPlies}`;
     drawExplanation(view);
     drawHistory(view);
+    reviewWorkspace.render(view);
+    if (wasExplaining && !explaining) find('review-details').scrollTop = reportScrollBeforeExplanation;
 }
 
 function setStatus(message) {
@@ -371,23 +415,35 @@ async function commit(state, source) {
     }
     archive = nextArchive;
     archiveReviewId = undefined;
+    reviewDismissed = false;
     view = state;
     render();
     return true;
 }
 
 function action(action, ply) {
+    reviewCommand('review-action', { action, ply });
+}
+
+function reviewCommand(type, fields, reveal = false) {
     if (!view) return;
     void exclusive(async () => {
         const archiveId = archiveReviewId;
-        const response = await call('review-action', { action, expectedRevision: view.revision, ply, archiveId });
+        const response = await call(type, { ...fields, expectedRevision: view.revision, archiveId });
         if (response.outcome === 'STALE') {
             if (archiveId) await restoreMatchDurable(words.failedAction);
             else await restoreDurable(words.failedAction);
         } else if (response.outcome === 'APPLIED' && await commitReviewAction(response, archiveId)) {
-            if (action === 'OPEN_EXPLANATION') find('why-title').focus({ preventScroll: true });
-            if (action === 'CLOSE_EXPLANATION') find('why').focus({ preventScroll: true });
-        } else if (response.outcome === 'UNAVAILABLE') render();
+            if (fields.action === 'OPEN_EXPLANATION') {
+                reviewWorkspace.revealExplanation();
+                find('why-title').focus({ preventScroll: true });
+            }
+            if (fields.action === 'CLOSE_EXPLANATION') find('why').focus({ preventScroll: true });
+            if (reveal) reviewWorkspace.revealSelected();
+        } else if (response.outcome === 'UNAVAILABLE') {
+            render();
+            if (reveal) reviewWorkspace.revealSelected();
+        }
     }, words.failedAction);
 }
 
@@ -489,6 +545,7 @@ function renderMatchList() {
 
 function showMode(nextMode) {
     if (nextMode !== mode) cancelAnalysis();
+    setReviewMenu(false);
     mode = nextMode;
     const hash = mode === 'archive-review' ? `#review/${encodeURIComponent(archiveReviewId)}`
         : mode === 'archive' ? `#archive/${encodeURIComponent(match.archiveId)}` : routeHashes[mode];
@@ -699,14 +756,19 @@ async function commitArchiveReview(response, archiveId) {
 async function openArchiveReview(archiveId, snapshot) {
     let needsAnalysis = false;
     let opened = false;
+    let rated = false;
     await exclusive(async () => {
         const response = await call('archive-review-open', { archiveId });
         if (response.outcome === 'OPENED') {
             opened = await commitArchiveReview(response, archiveId);
-            if (opened) showMode('archive-review');
+            if (opened) {
+                showMode('archive-review');
+                revealRestoredReview(view);
+            }
         } else if (response.outcome === 'NEEDS_ANALYSIS') {
             if (snapshot && response.checkpoint !== snapshot.reviewCheckpoint) throw new Error('Archive checkpoint changed');
             needsAnalysis = true;
+            rated = response.rated === true;
         } else throw new Error('Archived game not available');
     }, words.badArchive);
     if (!needsAnalysis) {
@@ -720,11 +782,19 @@ async function openArchiveReview(archiveId, snapshot) {
             const response = await call('archive-review-save', { archiveId, checkpoint: source.checkpoint, review: source.review });
             if (response.outcome !== 'OPENED') throw new Error('Archive no longer accepts analysis');
             if (await commitArchiveReview(response, archiveId)) showMode('archive-review');
-        });
+        }, rated);
     }
 }
 
-function runReviewAnalysis(snapshot, openComputedReview) {
+function revealRestoredReview(snapshot) {
+    requestAnimationFrame(() => {
+        if (view !== snapshot || find('review').hidden) return;
+        if (snapshot.explanationOpen) reviewWorkspace.revealExplanation();
+        else if (snapshot.atEntry === false && snapshot.branch === 'HISTORY') reviewWorkspace.revealSelected();
+    });
+}
+
+function runReviewAnalysis(snapshot, openComputedReview, rated = false) {
     const route = matchRoute;
     const job = new Worker(new URL('./engine-worker.mjs', import.meta.url), { type: 'module' });
     analysis = job;
@@ -756,7 +826,7 @@ function runReviewAnalysis(snapshot, openComputedReview) {
             await openComputedReview(source);
         }, words.analysisFailure);
     });
-    job.postMessage({ id, type: 'review-analyze', checkpoint: snapshot.reviewCheckpoint });
+    job.postMessage({ id, type: 'review-analyze', checkpoint: snapshot.reviewCheckpoint, ...(rated ? { rated } : {}) });
 }
 
 function openMainReview() {
@@ -800,6 +870,15 @@ find('return-menu').addEventListener('click', () => {
 });
 find('archive-review-back').addEventListener('click', () => {
     if (archiveReviewId) void enterMatch({ archiveId: archiveReviewId });
+});
+find('review-close').addEventListener('click', () => {
+    if (busy) return;
+    reviewDismissed = true;
+    showMode('review');
+});
+find('reopen-review').addEventListener('click', () => {
+    reviewDismissed = false;
+    render();
 });
 find('match-rows').addEventListener('click', event => {
     const row = event.target.closest('button.match-row');
@@ -868,6 +947,7 @@ find('continue-match').addEventListener('click', () => {
 });
 find('continue-review').addEventListener('click', () => {
     if (mode !== 'archive-review' || !archiveReviewId || !view?.canContinue || busy) return;
+    setReviewMenu(false);
     const usesAi = view.automaticContinuation === true;
     confirmContinuation({ archiveId: archiveReviewId, revision: view.revision, ply: view.ply, readOnly: true,
         usesAi, automatic: usesAi });
@@ -923,8 +1003,44 @@ matchBoard.addEventListener('keydown', event => {
     destination.focus();
 });
 
+function setReviewMenu(open) {
+    find('review-menu').hidden = !open;
+    find('review-actions').setAttribute('aria-expanded', open);
+    find('why-actions').setAttribute('aria-expanded', open);
+}
+
+find('review-actions').addEventListener('click', () => {
+    if (!busy) setReviewMenu(find('review-menu').hidden);
+});
+find('why-actions').addEventListener('click', () => {
+    if (!busy) setReviewMenu(find('review-menu').hidden);
+});
+find('review-on-board').addEventListener('click', () => {
+    if (!archiveReviewId || !view) return;
+    setReviewMenu(false);
+    void exclusive(async () => {
+        let response = await call('match-open', { archiveId: archiveReviewId });
+        if (!response.match) throw new Error('Requested match unavailable');
+        if (response.match.viewPly !== view.ply) {
+            response = await call('match-history', { expectedRevision: response.match.revision, ply: view.ply });
+            if (response.outcome !== 'APPLIED') throw new Error('Requested match position unavailable');
+        }
+        if (await commitMatch(response)) showMode(matchRoute);
+    }, words.matchFailure);
+});
+document.addEventListener('pointerdown', event => {
+    if (!find('review-menu').hidden && !event.target.closest('#review-actions, #why-actions, #review-menu')) setReviewMenu(false);
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !find('review-menu').hidden) {
+        setReviewMenu(false);
+        find(view?.explanationOpen ? 'why-actions' : 'review-actions').focus();
+    }
+});
 find('previous').addEventListener('click', () => action('PREVIOUS'));
 find('next').addEventListener('click', () => action('NEXT'));
+find('best-line').addEventListener('click', () => action('TOGGLE_BEST'));
+find('next-key').addEventListener('click', () => action('NEXT_KEY'));
 find('why').addEventListener('click', () => action(view.explanationOpen ? 'CLOSE_EXPLANATION' : 'OPEN_EXPLANATION'));
 find('close-why').addEventListener('click', () => action('CLOSE_EXPLANATION'));
 find('played').addEventListener('click', () => action('SELECT_PLAYED'));
@@ -976,6 +1092,7 @@ await exclusive(async () => {
     archive = restored;
     view = response.view;
     render();
+    revealRestoredReview(view);
 }, words.badArchive);
 if (location.hash === routeHashes.match) await enterMatch({ route: 'LOCAL' });
 else if (location.hash === routeHashes.ai) await enterMatch({ route: 'AI' });

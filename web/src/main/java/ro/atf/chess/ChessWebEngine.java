@@ -32,6 +32,11 @@ public final class ChessWebEngine {
     }
 
     @JSExport
+    public static boolean archiveReviewRated(String id) {
+        return !archivedMatch(id).manualUsed();
+    }
+
+    @JSExport
     public static String openArchiveReview(String id, String digest) {
         var entry = archivedMatch(id);
         var record = GAME.matches().readReviewRecord(id);
@@ -59,6 +64,11 @@ public final class ChessWebEngine {
     @JSExport
     public static String reviewAction(String archiveId, int revision, String action, int ply) {
         return REVIEW.action(archiveId, revision, action, ply, archiveId == null ? null : GAME.matches());
+    }
+
+    @JSExport
+    public static String reviewGraphSelect(String archiveId, int revision, double x, double width) {
+        return REVIEW.selectGraph(archiveId, revision, x, width, archiveId == null ? null : GAME.matches());
     }
 
     @JSExport
@@ -105,6 +115,13 @@ public final class ChessWebEngine {
         var match = ChessMatch.restore(checkpoint);
         // The local Web board records both sides without assigning a bot level or estimating Elo.
         var review = GameReview.analyzeLine(match, ply -> progress.onPly(ply, match.ply()));
+        return GameReviewCodec.encode(review, digest);
+    }
+
+    @JSExport
+    public static String analyzeRatedReview(String checkpoint, String digest, Progress progress) {
+        var match = ChessMatch.restore(checkpoint);
+        var review = GameReview.analyze(match, ply -> progress.onPly(ply, match.ply()));
         return GameReviewCodec.encode(review, digest);
     }
 

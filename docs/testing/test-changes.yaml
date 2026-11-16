@@ -514,3 +514,24 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Run Edge continuation evidence separately from deterministic continuation component tests"
     allowDelete: false
+  - id: J7-WEB-GRAPH-SUITE
+    base: "ecc2ff0ffd5cfe5a586243b2554661e1bf14a49b"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Keep graph browser evidence outside deterministic component discovery"
+    allowDelete: false
+  - id: J7-WEB-GRAPH-FRAME
+    base: "ecc2ff0ffd5cfe5a586243b2554661e1bf14a49b"
+    from: atf-tests/src/test/java/ro/atf/chess/WebEvidencePublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewGraphParityTest.java
+    test: ro.atf.chess.GameReviewGraphParityTest#browserEvidenceRequiresTheDimensionsDeclaredForEachImage
+    contract: "Require exact compact and tablet screenshot dimensions without launching a device"
+    allowDelete: false
+  - id: J7-WEB-GRAPH-RATING
+    base: "ecc2ff0ffd5cfe5a586243b2554661e1bf14a49b"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebArchiveReviewsPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewGraphParityTest.java
+    test: ro.atf.chess.GameReviewGraphParityTest#playbackAndRatedReviewKeepTheSameAnalysisCurve
+    contract: "Preserve the common evaluation curve and apply the native rating to an eligible finished AI game"
+    allowDelete: false

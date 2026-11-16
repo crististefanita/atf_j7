@@ -61,6 +61,8 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 `ArchivedReviewContinuationTest` verifică poziția exactă din istoric, slotul separat, biblioteca plină și o singură replică AI după reluare. `ChessWebArchiveContinuationPublication` compară dovada din browser cu checkpointul, analiza și poziția de reluare originale, inclusiv după o mutare în partida nouă. Android păstrează proba nativă de continuare din arhivă în `-GameReviewOnly`. [Continuarea din Game Review](../../web/README.md#continuarea-din-game-review)
 
+`GameReviewGraphParityTest` folosește partida de 185 de semimutări din APK și poziții de control verificate separat. În JVM verifică punctul 184 la geometria nativă și la două lățimi Web, ambele capete, piesele Staunton originale și dimensiunile capturilor. Sanity-ul Android păstrează atingerea și redarea nativă. `ChessWebReviewGraphPublication` cere coordonatele trimise de interfață către worker, poziția de pe tablă, rândul vizibil și marcajul din arhivă după reîncărcare. [Graficul Game Review](../../web/README.md#graficul-din-game-review)
+
 Pe Android, `-MatchMenusOnly` verifică listele și deschiderea rândurilor salvate și încheiate. `-GameReviewOnly` verifică o mutare alternativă în continuare și păstrarea intrării arhivate. [Partidă și istoric](#partidă-și-istoric)
 
 ### Reluarea Game Review pe Android și Web

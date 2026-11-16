@@ -20,8 +20,6 @@ const fixturePath = activeScenario || aiScenario || ledgerScenario || archivesSc
 const hostPath = '/atf_j7/';
 const publicUrl = args[4];
 const readmeUrl = `https://crististefanita.github.io${hostPath}#ai`;
-if (publicUrl) assert.ok((aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario) && publicUrl === readmeUrl,
-    `Public smoke requires --ai, --ledger, --archives or --review-continue and the README URL ${readmeUrl}`);
 const relativeEvidence = relative(site, evidence);
 assert.ok(relativeEvidence === '..' || relativeEvidence.startsWith('..' + sep), 'Keep evidence outside the built site');
 const viewport = { width: 390, height: 844, deviceScaleFactor: 1, locale: publicUrl ? 'en-US' : 'ro-RO' };
@@ -32,7 +30,13 @@ const captures = [];
 const fixtureBytes = fixturePath === null ? null : await readFile(fixturePath);
 const fixture = fixtureBytes && JSON.parse(fixtureBytes.toString('utf8'));
 const anchor = fixture?.expected;
-if (fixturePath !== null) {
+const reviewGraphScenario = fixture?.scope === 'review-graph';
+if (publicUrl) assert.ok((aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario || reviewGraphScenario) && publicUrl === readmeUrl,
+    `Public smoke requires --ai, --ledger, --archives, --review-continue or the review graph fixture and the README URL ${readmeUrl}`);
+if (reviewGraphScenario) {
+    assert.equal(anchor.totalPlies, 185);
+    assert.deepEqual(anchor.samples.map(sample => sample.ply), [0, 93, 184, 185]);
+} else if (fixturePath !== null) {
     assert.equal(anchor.ply, 3);
     assert.equal(anchor.playedUci, 'g2g4');
     assert.equal(anchor.matingUci, 'd8h4');
@@ -177,6 +181,7 @@ try {
         return result.value;
     };
     const visible = selector => `!document.querySelector(${JSON.stringify(selector)}).hidden`;
+    const displayed = selector => evaluate(`Boolean(document.querySelector(${JSON.stringify(selector)})?.getClientRects().length)`);
     const state = () => evaluate(`(() => {
         const review = document.querySelector('#review');
         if (review.hidden || review.getAttribute('aria-busy') !== 'false') return null;
@@ -200,7 +205,8 @@ try {
     }, label).catch(async failure => {
         const diagnostic = await evaluate(`({ hash: location.hash, status: document.querySelector('#status').textContent,
             reviewHidden: document.querySelector('#review').hidden, analyzing: !document.querySelector('#analysis-progress').hidden,
-            requests: window.chessWebAudit?.requests, replies: window.chessWebAudit?.reviews.length })`).catch(() => null);
+            requests: window.chessWebAudit?.requests, replies: window.chessWebAudit?.reviews.length,
+            graphTaps: window.chessWebAudit?.graphTaps, ply: document.querySelector('#review').dataset.ply })`).catch(() => null);
         throw new Error(`${failure.message}. Browser state: ${JSON.stringify(diagnostic)}`, { cause: failure });
     });
 
@@ -217,11 +223,11 @@ try {
         await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     }
 
-    async function capture(file) {
+    async function capture(file, dimensions = viewport) {
         const { data } = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
         const bytes = Buffer.from(data, 'base64');
-        assert.equal(bytes.readUInt32BE(16), viewport.width);
-        assert.equal(bytes.readUInt32BE(20), viewport.height);
+        assert.equal(bytes.readUInt32BE(16), dimensions.width);
+        assert.equal(bytes.readUInt32BE(20), dimensions.height);
         await writeFile(join(evidence, file), bytes, { flag: 'wx' });
         captures.push({ file, sha256: sha256(bytes) });
     }
@@ -366,6 +372,7 @@ try {
         const partial = await wait('fresh review of unfinished line', value => value.ply === 3 && value.branch === 'HISTORY');
         const partialArchive = await evaluate(savedReview);
         check('unfinished-analysis', true, partial.fen === recorded.fen && typeof partialArchive.review === 'string' && await evaluate(savedMatch) === recorded.checkpoint);
+        if (await displayed('#review-close')) await touch('#review-close');
         await touch('#open-match');
         await waitActive('returned from unfinished analysis to same match', value => value.ply === 3);
         const complete = await move('d8', 'h4', 4);
@@ -510,7 +517,10 @@ try {
         }
 
         async function backToResults(id) {
-            await touch('#archive-review-back');
+            if (await displayed('#why-actions')) {
+                await touch('#why-actions');
+                await touch('#review-on-board');
+            } else await touch('#archive-review-back');
             await waitActive('returned to exact archive', game => game.id === id && game.readOnly);
             await touch('#return-menu');
             return finishList();
@@ -597,6 +607,7 @@ try {
                 'public preview starts in AI setup');
             await touch('#open-review');
         }
+        if (await displayed('#review-close')) await touch('#review-close');
         await touch('#open-finished');
         const originArchiveId = await until(() => evaluate("document.querySelector('.match-row[data-mode=AI]')?.dataset.id"), 'archived AI game');
         await touch(`.match-row[data-id="${originArchiveId}"]`);
@@ -625,6 +636,7 @@ try {
         const ledgerBefore = await savedLedger();
         assert.ok(ledgerBefore);
 
+        if (await displayed('#review-actions')) await touch('#review-actions');
         await touch('#continue-review');
         await until(modalOpen, 'shared continuation confirmation');
         const confirming = await evaluate(`({ visible: !document.querySelector('#automatic-option').hidden,
@@ -638,6 +650,7 @@ try {
         check('cancel-preserves-ledger', true, await savedLedger() === ledgerBefore && afterCancel.archiveId === originArchiveId &&
             afterCancel.ply === selectedPly && afterCancel.canContinue);
 
+        if (await displayed('#review-actions')) await touch('#review-actions');
         await touch('#continue-review');
         await until(modalOpen, 'reopened shared confirmation');
         await touch('#continue-automatic');
@@ -673,20 +686,129 @@ try {
             forkCheckpoint, selectedPly, ledgerBefore, ledgerAfter };
     }
 
+    async function exerciseReviewGraph() {
+        if (publicUrl && await evaluate(visible('#cancel-setup'))) await touch('#cancel-setup');
+        if (await displayed('#review-close')) await touch('#review-close');
+        await touch('#open-finished');
+        const archiveId = await until(() => evaluate("document.querySelector('.match-row[data-mode=AI]')?.dataset.id"),
+            'the migrated long archived game');
+        await touch(`.match-row[data-id="${archiveId}"]`);
+        const original = await waitActive('the complete game from the fixture', game => game.id === archiveId && game.readOnly);
+        assert.equal(original.checkpoint, 'ai|' + fixture.checkpoint);
+        await touch('#analyze');
+        const opened = await wait('cached Game Review with 185 plies', review => review.archiveId === archiveId && review.ply === 185);
+        check('graph-long-fixture', true, opened.cells === 64 && opened.branch === 'HISTORY' &&
+            (await evaluate("document.querySelector('#history').children.length")) === 186);
+
+        const tapEvidence = [];
+        const sample = ply => anchor.samples.find(position => position.ply === ply);
+        const graph = () => evaluate(`(() => {
+            const chart = document.querySelector('#review-graph');
+            const rect = chart.getBoundingClientRect();
+            const marker = document.querySelector('#review-graph-marker').getBoundingClientRect();
+            const list = document.querySelector('#history');
+            const clip = document.querySelector('#review-details').getBoundingClientRect();
+            const rows = list.querySelectorAll('button[aria-current="step"]');
+            const row = rows[0]?.getBoundingClientRect();
+            const board = document.querySelector('#board').getBoundingClientRect();
+            return { viewport: [innerWidth, innerHeight], layout: document.querySelector('#review').dataset.layout,
+                width: rect.width, height: rect.height,
+                left: rect.left, top: rect.top, inset: Number(chart.dataset.inset), plottedPly: Number(chart.dataset.ply),
+                totalPlies: Number(chart.dataset.total), markerX: marker.left + marker.width / 2 - rect.left,
+                markerY: marker.top + marker.height / 2 - rect.top,
+                rowPly: Number(rows[0]?.dataset.ply), rowCount: rows.length, rowVisible: !!row && row.top >= Math.max(0, clip.top) - .5 &&
+                    row.bottom <= Math.min(innerHeight, clip.bottom) + .5 && row.left >= clip.left - .5 && row.right <= clip.right + .5,
+                board: [board.x + scrollX, board.y + scrollY, board.width, board.height] };
+        })()`);
+        const alignGraph = () => evaluate("document.querySelector('#review-graph').scrollIntoView({block:'center',inline:'nearest'})");
+        const within = (actual, expected) => Math.abs(actual - expected) < 1;
+        const sameBoard = (first, second) => first.every((value, index) => within(value, second[index]));
+        const readSelection = ply => until(async () => {
+            const geometry = await graph();
+            const marker = geometry.inset + (geometry.width - 2 * geometry.inset) * ply / 185;
+            return geometry.rowVisible && within(geometry.markerX, marker) ? geometry : null;
+        }, `visible selected row and marker for ply ${ply}`);
+        function observed(id, selection, geometry, touchX = null) {
+            const expected = sample(selection.ply);
+            const [fen, turn] = expected.fen.split(' ');
+            const marker = geometry.inset + (geometry.width - 2 * geometry.inset) * selection.ply / 185;
+            check(id, true, selection.fen === fen && selection.last === expected.lastMove &&
+                selection.turn === (turn === 'w' ? 'WHITE' : 'BLACK') && selection.archiveId === archiveId &&
+                geometry.plottedPly === selection.ply && geometry.rowPly === selection.ply && geometry.rowCount === 1 && geometry.rowVisible &&
+                geometry.totalPlies === 185 && geometry.inset === 2 && within(geometry.markerX, marker));
+            tapEvidence.push({ id, ply: selection.ply, fen: selection.fen, lastMove: selection.last, turn: selection.turn, touchX, ...geometry });
+        }
+        async function tapGraph(id, ply, edge = null) {
+            await alignGraph();
+            const plotted = await graph();
+            assert.ok(plotted.width > 4 && plotted.height > 0 && plotted.top >= 0 && plotted.top + plotted.height <= plotted.viewport[1]);
+            const localX = edge === 'left' ? 1 : edge === 'right' ? plotted.width - 1
+                : plotted.inset + (plotted.width - 2 * plotted.inset) * ply / 185;
+            const point = { x: plotted.left + localX, y: plotted.top + plotted.height / 4 };
+            assert.equal(await evaluate(`document.elementFromPoint(${point.x}, ${point.y})?.id`), 'review-graph');
+            const before = await evaluate('window.chessWebAudit.graphTaps.length');
+            await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+            await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+            const selected = await wait(`graph tap ${id} on ply ${ply}`, review => review.ply === ply && review.selected === ply);
+            const geometry = await readSelection(ply);
+            const taps = await evaluate('window.chessWebAudit.graphTaps');
+            assert.equal(taps.length, before + 1);
+            assert.ok(within(plotted.width, geometry.width) && within(taps[before].width, geometry.width)
+                && within(taps[before].x, localX));
+            observed(id, selected, geometry, taps[before].x);
+            return geometry;
+        }
+        const left = await tapGraph('left-edge', 0, 'left');
+        await capture('graph-left-edge.png');
+        const middle = await tapGraph('middle-point', 93);
+        const native = await tapGraph('native-target', 184);
+        await capture('graph-native-target.png');
+        const right = await tapGraph('right-edge', 185, 'right');
+        await capture('graph-right-edge.png');
+
+        const wide = { ...viewport, width: 1024, height: 768 };
+        async function resize(dimensions) {
+            await send('Emulation.setDeviceMetricsOverride', { width: dimensions.width, height: dimensions.height,
+                deviceScaleFactor: dimensions.deviceScaleFactor, mobile: true });
+            await until(async () => await evaluate(`innerWidth === ${dimensions.width} && innerHeight === ${dimensions.height}`),
+                `${dimensions.width}px viewport`);
+        }
+        await resize(wide);
+        await until(async () => await evaluate("document.querySelector('#review').dataset.layout === 'split'"), 'split review layout');
+        const wideBefore = await graph();
+        const wideTarget = await tapGraph('wide-target', 184);
+        await capture('graph-wide-target.png', wide);
+        check('board-anchored', true, [left, middle, native, right].every(position => sameBoard(opened.board, position.board)) &&
+            sameBoard(wideBefore.board, wideTarget.board) && !within(wideTarget.width, native.width));
+
+        await resize(viewport);
+        await reload();
+        const reopened = await wait('native target and selected row after a real page reload', review => review.ply === 184 && review.selected === 184);
+        assert.equal(await evaluate('window.chessWebAudit.graphTaps.length'), 0);
+        observed('reload-cursor', reopened, await readSelection(184));
+        await capture('graph-reload.png');
+        const ledgerSnapshot = await evaluate(`localStorage.getItem('${ledgerKey}')`);
+        return { scope: 'review-graph', publicUrl, fixtureSha256: sha256(fixtureBytes), archiveId, ledgerSnapshot,
+            compactBaselineBoard: opened.board, wideBaselineBoard: wideBefore.board, tapEvidence };
+    }
+
     await send('Page.enable');
     await send('Emulation.setDeviceMetricsOverride', { width: viewport.width, height: viewport.height,
         deviceScaleFactor: viewport.deviceScaleFactor, mobile: true });
     await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
     await send('Emulation.setLocaleOverride', { locale: viewport.locale.replace('-', '_') });
-    if (ledgerScenario || archivesScenario || reviewContinueScenario || activeScenario) {
+    if (ledgerScenario || archivesScenario || reviewContinueScenario || activeScenario || reviewGraphScenario) {
         await send('Page.addScriptToEvaluateOnNewDocument', { source: `
             if (location.pathname === ${JSON.stringify(hostPath)}) {
-                if (${ledgerScenario || archivesScenario || reviewContinueScenario} && localStorage.getItem('${ledgerKey}') === null) {
+                if (${reviewGraphScenario} && localStorage.getItem('${ledgerKey}') === null) {
+                    localStorage.setItem('${aiKey}', ${JSON.stringify(reviewGraphScenario ? 'ai|' + fixture.checkpoint : null)});
+                    localStorage.setItem('chesslab.game-review.v1', ${JSON.stringify(reviewGraphScenario ? JSON.stringify(fixture) : null)});
+                } else if (${ledgerScenario || archivesScenario || reviewContinueScenario} && localStorage.getItem('${ledgerKey}') === null) {
                     localStorage.setItem('${manualKey}', ${JSON.stringify(archivesScenario || reviewContinueScenario ? archiveACheckpoint : legacyLocalCheckpoint)});
                     localStorage.setItem('${aiKey}', ${JSON.stringify(archivesScenario || reviewContinueScenario ? 'ai|' + archiveBCheckpoint : legacyAiCheckpoint)});
                     if (${reviewContinueScenario}) localStorage.setItem('chesslab.game-review.v1', ${JSON.stringify(preparedReview)});
                 }
-                window.chessWebAudit = { requests: [], reviews: [] };
+                window.chessWebAudit = { requests: [], reviews: [], graphTaps: [] };
                 const postMessage = Worker.prototype.postMessage;
                 Worker.prototype.postMessage = function(message, ...options) {
                     if (message?.type === 'review-analyze') {
@@ -694,6 +816,8 @@ try {
                         this.addEventListener('message', ({data}) => {
                             if (data.id === message.id && data.archive) window.chessWebAudit.reviews.push(data.archive);
                         });
+                    } else if (message?.type === 'review-graph-select') {
+                        window.chessWebAudit.graphTaps.push({ x: message.x, width: message.width });
                     }
                     return Reflect.apply(postMessage, this, [message, ...options]);
                 };
@@ -712,6 +836,8 @@ try {
         sourceProof = await exerciseArchives();
     } else if (reviewContinueScenario) {
         sourceProof = await exerciseReviewContinue();
+    } else if (reviewGraphScenario) {
+        sourceProof = await exerciseReviewGraph();
     } else {
         sourceProof = await exerciseArchive();
     }

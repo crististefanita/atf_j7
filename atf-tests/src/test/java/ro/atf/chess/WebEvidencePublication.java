@@ -39,7 +39,9 @@ final class WebEvidencePublication {
             .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
-    record Frame(String file, String title) { }
+    record Frame(String file, String title, int width, int height) {
+        Frame(String file, String title) { this(file, title, WIDTH, HEIGHT); }
+    }
     record Scenario(String className, String title, String tag, String report, String observationTitle, List<Frame> frames) { }
     record Contract(List<ReportField> fields, List<AtfAssertion> identities, Map<String, JsonNode> observations, String locale) {
         Contract(List<ReportField> fields, List<AtfAssertion> identities, Map<String, JsonNode> observations) {
@@ -133,10 +135,11 @@ final class WebEvidencePublication {
             Path image = directory.resolve(frame.file());
             byte[] bytes = Files.isRegularFile(image, LinkOption.NOFOLLOW_LINKS) ? Files.readAllBytes(image) : null;
             String hash = bytes == null ? "" : sha256(bytes);
-            boolean matches = claimed != null && claimed.path("sha256").asText().equals(hash) && validPng(bytes);
+            boolean matches = claimed != null && claimed.path("sha256").asText().equals(hash) && validPng(bytes, frame);
             if (!matches) {
                 passed = false;
-                step(phase, frame.title(), List.of(rule(frame.file(), "Readable 390x844 PNG matching receipt SHA-256",
+                step(phase, frame.title(), List.of(rule(frame.file(),
+                        "Readable " + frame.width() + "x" + frame.height() + " PNG matching receipt SHA-256",
                         hash.isEmpty() ? "Missing PNG" : "Observed SHA-256 " + hash, false)));
                 continue;
             }
@@ -155,7 +158,7 @@ final class WebEvidencePublication {
         return indexed;
     }
 
-    private static boolean validPng(byte[] bytes) {
+    static boolean validPng(byte[] bytes, Frame frame) {
         if (bytes == null) return false;
         try (var stream = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
             var readers = ImageIO.getImageReaders(stream);
@@ -165,7 +168,7 @@ final class WebEvidencePublication {
                 reader.setInput(stream);
                 if (!"PNG".equalsIgnoreCase(reader.getFormatName())) return false;
                 var image = reader.read(0);
-                return image != null && image.getWidth() == WIDTH && image.getHeight() == HEIGHT;
+                return image != null && image.getWidth() == frame.width() && image.getHeight() == frame.height();
             } finally {
                 reader.dispose();
             }

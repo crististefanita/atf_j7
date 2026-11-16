@@ -85,8 +85,10 @@ class ChessWebArchiveReviewsPublication {
         if (archived == null || !expected.checkpoint().equals(archived.match().checkpoint())) return;
         var match = archived.match();
         var review = store.readReview(expected.id(), match);
+        var expectedReview = archived.manualUsed() ? GameReview.analyzeLine(match, ignored -> { })
+                : GameReview.analyze(match, ignored -> { });
         checks.add(same(label + " persisted analysis matches all turns from the same JVM checkpoint", true,
-                GameReview.analyzeLine(match, ignored -> { }).equals(review)));
+                expectedReview.equals(review)));
         var bookmark = store.readReviewBookmark(expected.id(), match);
         checks.add(same(label + " bookmark belongs to the exact archived game and review branch", expected.bookmark(), bookmark));
         if (review == null || bookmark == null) return;

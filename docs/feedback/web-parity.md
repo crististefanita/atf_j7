@@ -25,7 +25,7 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 **Criteriu de închidere.** Același caz J7 pornește din JAR-ul JVM, trece prin intrarea Android și prin motorul compilat pentru browser, apoi produce aceeași succesiune de stări și aceeași restaurare. Măsurați mărimea pachetului, pornirea la rece, timpul căutării la buget identic și întreruperea pe profil mobil înainte de alegerea pragurilor de livrare. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
 
-**Game Review.** Legați graficul de același cursor folosit de tablă și de lista mutărilor. Verificați selecția la atingere pe o partidă lungă, primul și ultimul punct, apoi reîncărcarea exact la semimutarea selectată. [Contractul analizei](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
+**Game Review.** Verificați ordinea focusului între grafic, comenzi și rândul selectat, inclusiv după revenirea din **De ce?**. Comparați în RO și EN etichetele, rândul selectat și pașii variantelor la font mărit. Păstrați în JVM pozițiile, notarea și limitele cursorului, iar în sanity o glisare și o revenire. [Contractul analizei](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 
 ## WEB-02 · Adaptoare și afișaj comun
 

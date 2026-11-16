@@ -30,6 +30,18 @@ final class WebBoardState {
 
     static String move(Move move) { return move == null ? "null" : quote(move.uci()); }
 
-    // Only controlled chess tokens, canonical checkpoints and validated archive IDs are serialized here.
-    static String quote(String token) { return token == null ? "null" : '"' + token + '"'; }
+    static String quote(String token) {
+        if (token == null) return "null";
+        var json = new StringBuilder().append('"');
+        for (int index = 0; index < token.length(); index++) {
+            char value = token.charAt(index);
+            if (value == '"' || value == '\\') json.append('\\');
+            if (value < ' ') {
+                json.append("\\u00").append(Character.forDigit(value >> 4, 16)).append(Character.forDigit(value & 15, 16));
+            } else {
+                json.append(value);
+            }
+        }
+        return json.append('"').toString();
+    }
 }

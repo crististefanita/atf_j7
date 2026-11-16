@@ -76,6 +76,26 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveContinuationPublication' "
 
 Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.archive.continuation.public=true` la publicarea Extent. [Probe de componentă și sanity](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
 
+### Graficul din Game Review
+
+Tabla și comenzile rămân fixe, iar raportul se derulează separat, ca în APK. Graficul folosește scorul albului, o axă neutră, un marcaj pentru poziția selectată și același calcul pentru atingere ca Android. O atingere selectează aceeași semimutare pe tablă, în lista mutărilor și în marcajul arhivei. Web și Android desenează piesele din aceleași contururi Staunton. Analizele noi ale partidelor eligibile cu AI folosesc și estimarea Elo din APK.
+
+Generați în TMP fixture-ul de 185 de semimutări. Driverul verifică atingerea la două lățimi, inclusiv punctul 184, apoi reîncarcă pagina și verifică poziția și analiza păstrate.
+
+```powershell
+$cpFile = Join-Path $workRoot 'graph-classpath.txt'
+mvn -B -ntp -pl atf-tests test-compile org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath "-Dmdep.outputFile=$cpFile"
+$dependencies = (Get-Content -LiteralPath $cpFile -Raw).Trim()
+$cp = @('atf-tests/target/classes', 'atf-tests/target/test-classes', $dependencies) -join [IO.Path]::PathSeparator
+$fixture = Join-Path $workRoot 'review-graph.json'
+java -cp $cp ro.atf.chess.GameReviewGraphFixture $fixture
+node ./web/tests/browser-game-review.mjs $site $fixture $evidence $edge
+$receipt = Join-Path $evidence 'result.json'
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewGraphPublication' "-Dchess.web.bundle=$site" "-Dchess.web.graph.fixture=$fixture" "-Dchess.web.graph.receipt=$receipt"
+```
+
+Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.graph.public=true` la publicarea Extent. [Probe de componentă și sanity](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
+
 ## Partida locală și o analiză nouă
 
 **Partidă locală** permite mutările ambelor culori și oferă alegerea piesei la promovare. Workerul validează fiecare mutare. Pagina salvează checkpointul canonic înainte de a afișa poziția rezultată. Reîncărcarea pornește un worker nou și reface istoricul, culoarea la mutare și mutările legale din checkpoint. [Matricea funcțiilor](parity.md#contracte-și-probe)
