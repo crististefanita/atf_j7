@@ -18,6 +18,7 @@
         <button id="open-review" type="button" hidden>Game Review</button>
         <button id="open-saved" type="button">Saved games</button>
         <button id="open-finished" type="button">Finished games</button>
+        <button id="open-profile" type="button">Profile</button>
         <button id="return-menu" type="button" hidden>Back</button>
         <button id="archive-review-back" type="button" hidden>Close</button>
         <button id="review-close" type="button" hidden>Close</button>
@@ -84,6 +85,27 @@
         <progress id="progress"></progress>
       </div>
     </section>
+    <dialog id="profile-dialog" aria-labelledby="profile-title">
+      <form id="profile-form">
+        <h2 id="profile-title">Profile</h2>
+        <div class="setup-fields">
+          <label><span id="profile-name-label">Name</span>
+            <input id="profile-name" type="text" autocomplete="nickname">
+          </label>
+          <label><span id="profile-language-label">Language</span>
+            <select id="profile-language">
+              <option value="en" lang="en">English</option>
+              <option value="ro" lang="ro">Română</option>
+            </select>
+          </label>
+        </div>
+        <div class="setup-actions">
+          <button id="save-profile" type="submit">Save</button>
+          <button id="cancel-profile" type="button">Cancel</button>
+        </div>
+        <p id="profile-error" role="alert" hidden></p>
+      </form>
+    </dialog>
     <dialog id="continue-dialog" aria-labelledby="continue-title">
       <form method="dialog">
         <h2 id="continue-title">Continue from here</h2>
