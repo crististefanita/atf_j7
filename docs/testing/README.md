@@ -277,7 +277,7 @@ Verificați și un capitol de mat completat anterior. `mate-129`, `mate2-024nn` 
 
 ## Deschideri
 
-`OpeningCatalogTest` verifică liniile, alternarea culorilor și validarea catalogului. `OpeningLessonTest` verifică navigarea prin toate liniile cu ambele culori, o singură semimutare la fiecare apăsare, pauza replicii și rejucarea din istoric. `MatchAiGovernanceTest` verifică pozițiile de comparație cu Stockfish pentru fiecare lecție.
+`OpeningCatalogTest` verifică parcurgerea pentru ambele culori, pozițiile finale distincte și recunoașterea noilor linii în indexul ECO. `OpeningLessonTest` verifică o singură semimutare la fiecare apăsare, pauza replicii și rejucarea din istoric. `MatchAiGovernanceTest` verifică pozițiile de comparație cu Stockfish pentru fiecare lecție. În Engleză și Nimzo-indiană, pozițiile noi măsoară răspunsul negrului înainte de retragerea calului, respectiv de schimbul de pe c3. În Catalană și Alapin, comparația pornește cu albul la mutare după ultima replică din lecție.
 
 Pe Android, rulați sanity cu `-OpeningsOnly`. Proba joacă destinația indicată în Italiană și sugestia AI compatibilă cu lecția. Verifică mesajul pentru varianta spaniolă sugerată de AI, navigarea în ambele sensuri, rejucarea dintr-o poziție anterioară și tabla orientată pentru negru.
 

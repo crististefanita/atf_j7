@@ -3,6 +3,7 @@ package ro.atf.chess;
 import atf.testkit.AtfComponentTest;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,9 +20,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class OpeningCatalogTest {
     @Test void everyLessonReplaysFromBothSidesAndTeachesADistinctPosition(Checks check) {
         var catalog = OpeningCatalog.load();
-        check.same("The catalog presents ten independently selectable lessons in order",
-                List.of("italian", "ruy-lopez", "caro-kann", "queens-gambit", "sicilian", "scotch", "french", "scandinavian", "london", "kings-indian"),
+        check.same("All fourteen lessons are independently selectable in the authored order",
+                List.of("italian", "ruy-lopez", "caro-kann", "queens-gambit", "sicilian", "scotch", "french", "scandinavian", "london",
+                        "english-four-knights", "catalan-open", "nimzo-indian", "sicilian-alapin", "kings-indian"),
                 catalog.stream().map(OpeningCatalog.Opening::id).toList());
+        var finalPositions = new HashSet<ChessPosition.SearchKey>();
+        for (var opening : catalog) {
+            check.same(opening.id() + " reaches its own study position", true,
+                    finalPositions.add(opening.positionAt(opening.steps().size()).searchKey()));
+        }
         for (var opening : catalog) for (Side side : Side.values()) {
             var practice = new OpeningPractice(opening, side, 0);
             int learnerMoves = 0;
@@ -53,6 +60,20 @@ class OpeningCatalogTest {
                 List.of(new Piece(Side.WHITE, Kind.PAWN), new Piece(Side.BLACK, Kind.PAWN), new Piece(Side.BLACK, Kind.BISHOP)),
                 List.of(closedCenter.pieceAt(BoardSquare.parse("d5")), closedCenter.pieceAt(BoardSquare.parse("e5")),
                         closedCenter.pieceAt(BoardSquare.parse("g7"))));
+    }
+
+    @Test void newLessonsMatchThePinnedOpeningIndexAtTheirStudyPosition(Checks check) {
+        var expected = Map.of("english-four-knights", "A29", "catalan-open", "E05",
+                "nimzo-indian", "E32", "sicilian-alapin", "B22");
+        for (var lesson : OpeningCatalog.load()) {
+            String eco = expected.get(lesson.id());
+            if (eco == null) continue;
+            var moves = lesson.steps().stream().map(step -> step.move().uci()).toList();
+            var match = ChessMatch.restore("2|analysis|" + String.join(" ", moves));
+            var recognized = OpeningIndex.CURRENT.recognize(match);
+            check.same(lesson.id() + " agrees with the pinned ECO and includes the full book line",
+                    List.of(eco, eco, moves.size()), List.of(lesson.eco(), recognized.opening().eco(), recognized.bookPlies()));
+        }
     }
 
     @Test void legalAlternativesDoNotAdvanceTheBookAndAnalysisLeavesTheLessonIntact(Checks check) {

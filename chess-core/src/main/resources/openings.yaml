@@ -264,6 +264,126 @@ openings:
         idea: {en: "Secure the king and bring the rook toward the center.", ro: "Pune regele la adăpost și apropie turnul de centru."}
       - move: e1g1
         idea: {en: "Finish kingside development before the central pawn breaks.", ro: "Încheie dezvoltarea pe flancul regelui înaintea rupturilor de pioni în centru."}
+  - id: english-four-knights
+    eco: A29
+    source: "https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/a.tsv#L453"
+    title: {en: "English Opening", ro: "Deschiderea engleză"}
+    variation: {en: "Four Knights · Fianchetto", ro: "Patru cai · fianchetto"}
+    plan: {en: "Control d5 from the flank and meet Black’s central break before opening the long diagonal.", ro: "Controlează d5 de pe flanc și răspunde la ruptura centrală înainte să deschizi diagonala lungă."}
+    line:
+      - move: c2c4
+        idea: {en: "Contest d5 without committing the d-pawn.", ro: "Contești d5 fără să muți pionul d."}
+      - move: e7e5
+        idea: {en: "Occupy the center and control d4.", ro: "Ocupă centrul și controlează d4."}
+      - move: b1c3
+        idea: {en: "Reinforce control of d5 with a developing move.", ro: "Întărești controlul lui d5 și dezvolți calul."}
+      - move: g8f6
+        idea: {en: "Keep an eye on d5 and prevent an uncontested e4.", ro: "Controlezi d5 și pui presiune pe câmpul e4."}
+      - move: g1f3
+        idea: {en: "Develop the second knight with pressure on e5.", ro: "Dezvolți al doilea cal cu presiune pe e5."}
+      - move: b8c6
+        idea: {en: "Defend e5 and complete the four-knight setup.", ro: "Aperi e5 și completezi dezvoltarea celor patru cai."}
+      - move: g2g3
+        idea: {en: "Prepare to place the bishop on g2.", ro: "Pregătești dezvoltarea nebunului pe g2."}
+      - move: d7d5
+        idea: {en: "Challenge the c4-pawn before White finishes developing.", ro: "Ataci pionul c4 înainte ca albul să termine dezvoltarea."}
+      - move: c4d5
+        idea: {en: "Exchange the flank pawn for Black’s central d-pawn.", ro: "Schimbi pionul de flanc pe pionul central d al negrului."}
+      - move: f6d5
+        idea: {en: "Recover the pawn and centralize the knight.", ro: "Recuperezi pionul și aduci calul în centru."}
+      - move: f1g2
+        idea: {en: "Prepare castling and line up the bishop behind the f3-knight.", ro: "Pregătești rocada și așezi nebunul pe diagonala calului de pe f3."}
+      - move: d5b6
+        idea: {en: "Move the knight out of the center while keeping control of d5.", ro: "Retragi calul din centru și păstrezi controlul asupra lui d5."}
+  - id: catalan-open
+    eco: E05
+    source: "https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/e.tsv#L17"
+    title: {en: "Catalan Opening", ro: "Deschiderea catalană"}
+    variation: {en: "Open Catalan · Classical Line", ro: "Catalana deschisă · linia clasică"}
+    plan: {en: "Develop the bishop on g2 and secure the king before deciding how to recover the pawn on c4.", ro: "Dezvoltă nebunul pe g2 și adăpostește regele înainte să alegi cum recuperezi pionul de pe c4."}
+    line:
+      - move: d2d4
+        idea: {en: "Claim central space and clear the c1-bishop’s diagonal.", ro: "Ocupă centrul și eliberează diagonala nebunului de pe c1."}
+      - move: g8f6
+        idea: {en: "Develop toward the center and control e4.", ro: "Dezvolți calul spre centru și controlezi e4."}
+      - move: c2c4
+        idea: {en: "Prepare to challenge a black pawn on d5.", ro: "Pregătești presiunea asupra unui pion negru pe d5."}
+      - move: e7e6
+        idea: {en: "Prepare d5 and open the diagonal for the f8-bishop.", ro: "Pregătești d5 și eliberezi diagonala nebunului de pe f8."}
+      - move: g1f3
+        idea: {en: "Develop the knight and support the d4-pawn.", ro: "Dezvolți calul și susții pionul d4."}
+      - move: d7d5
+        idea: {en: "Challenge c4 from the center with support from e6.", ro: "Ataci c4 din centru, cu sprijinul pionului e6."}
+      - move: g2g3
+        idea: {en: "Prepare a bishop on g2 to contest the long diagonal.", ro: "Pregătești nebunul pe g2 pentru controlul diagonalei lungi."}
+      - move: f8e7
+        idea: {en: "Prepare kingside castling while keeping the central tension.", ro: "Pregătești rocada mică și păstrezi tensiunea în centru."}
+      - move: f1g2
+        idea: {en: "Develop the bishop behind the f3-knight and clear the path to castling.", ro: "Dezvolți nebunul în spatele calului de pe f3 și eliberezi drumul pentru rocadă."}
+      - move: e8g8
+        idea: {en: "Secure the king before resolving the tension on c4.", ro: "Adăpostești regele înainte să rezolvi tensiunea de pe c4."}
+      - move: e1g1
+        idea: {en: "Secure the king before choosing a plan in the center.", ro: "Adăpostești regele înainte să alegi un plan în centru."}
+      - move: d5c4
+        idea: {en: "Take the c4-pawn and make White choose how to recover it.", ro: "Capturezi pionul c4 și lași albului alegerea modului de recuperare."}
+  - id: nimzo-indian
+    eco: E32
+    source: "https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/e.tsv#L169"
+    title: {en: "Nimzo-Indian Defense", ro: "Apărarea Nimzo-indiană"}
+    variation: {en: "Classical · Keres Defense", ro: "Clasică · apărarea Keres"}
+    plan: {en: "Study the pin on c3 and how Qc2 preserves White’s pawn structure after the exchange.", ro: "Studiază legarea calului de pe c3 și cum Dc2 păstrează structura de pioni după schimb."}
+    line:
+      - move: d2d4
+        idea: {en: "Occupy the center and open the c1-bishop’s diagonal.", ro: "Ocupă centrul și deschide diagonala nebunului de pe c1."}
+      - move: g8f6
+        idea: {en: "Control e4 before committing a central pawn.", ro: "Controlezi e4 înainte să muți un pion central."}
+      - move: c2c4
+        idea: {en: "Expand on the queenside and contest d5.", ro: "Câștigi spațiu pe flancul damei și contești d5."}
+      - move: e7e6
+        idea: {en: "Clear the f8-bishop’s diagonal to b4.", ro: "Eliberezi diagonala nebunului de pe f8 spre b4."}
+      - move: b1c3
+        idea: {en: "Develop the knight to support a future e4.", ro: "Dezvolți calul pentru a susține un viitor e4."}
+      - move: f8b4
+        idea: {en: "Pin the c3-knight to the king and contest e4 indirectly.", ro: "Legi calul de pe c3 de rege și contești indirect e4."}
+      - move: d1c2
+        idea: {en: "Prepare to recapture on c3 with the queen and keep the b-pawn in place.", ro: "Pregătești recaptura pe c3 cu dama și păstrezi pionul b pe loc."}
+      - move: e8g8
+        idea: {en: "Secure the king before deciding whether to trade the bishop.", ro: "Adăpostești regele înainte să decizi dacă schimbi nebunul."}
+      - move: a2a3
+        idea: {en: "Ask the bishop to exchange or retreat.", ro: "Îl obligi pe nebun să aleagă între schimb și retragere."}
+      - move: b4c3
+        idea: {en: "Exchange the bishop for the knight with check.", ro: "Schimbi nebunul pe cal și dai șah."}
+      - move: c2c3
+        idea: {en: "Answer the check with the queen and avoid doubled c-pawns.", ro: "Răspunzi la șah cu dama și eviți dublarea pionilor pe coloana c."}
+      - move: b7b6
+        idea: {en: "Prepare to develop the remaining bishop on b7.", ro: "Pregătești dezvoltarea celuilalt nebun pe b7."}
+  - id: sicilian-alapin
+    eco: B22
+    source: "https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/b.tsv#L451"
+    title: {en: "Alapin Sicilian", ro: "Siciliana Alapin"}
+    variation: {en: "Barmen Defense · Modern Line", ro: "Apărarea Barmen · linia modernă"}
+    plan: {en: "Support d4 with c3 and see how Black challenges the center immediately with d5.", ro: "Susține d4 cu c3 și vezi cum negrul atacă imediat centrul cu d5."}
+    line:
+      - move: e2e4
+        idea: {en: "Claim central space and free the f1-bishop.", ro: "Câștigi spațiu în centru și eliberezi nebunul de pe f1."}
+      - move: c7c5
+        idea: {en: "Contest d4 with a pawn from the flank.", ro: "Contești d4 cu un pion de pe flanc."}
+      - move: c2c3
+        idea: {en: "Support a future d4 while leaving the knight on b1.", ro: "Susții un viitor d4, iar calul rămâne deocamdată pe b1."}
+      - move: d7d5
+        idea: {en: "Challenge e4 before White builds the pawn center.", ro: "Ataci e4 înainte ca albul să își formeze centrul de pioni."}
+      - move: e4d5
+        idea: {en: "Resolve the central tension by capturing on d5.", ro: "Rezolvi tensiunea centrală prin captura de pe d5."}
+      - move: d8d5
+        idea: {en: "Recover the pawn and keep pressure on d4.", ro: "Recuperezi pionul și menții presiunea pe d4."}
+      - move: d2d4
+        idea: {en: "Claim d4 with support from c3.", ro: "Ocupă d4 cu sprijinul pionului c3."}
+      - move: g8f6
+        idea: {en: "Develop the knight and reinforce control of e4.", ro: "Dezvolți calul și întărești controlul asupra lui e4."}
+      - move: g1f3
+        idea: {en: "Develop a piece and defend the d4-pawn.", ro: "Dezvolți calul și aperi pionul d4."}
+      - move: c8g4
+        idea: {en: "Pin the f3-knight to the queen before White finishes developing.", ro: "Legi calul de pe f3 de damă înainte ca albul să termine dezvoltarea."}
   - id: kings-indian
     eco: E97
     source: "https://github.com/lichess-org/chess-openings/blob/master/e.tsv#L358"

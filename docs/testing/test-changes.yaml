@@ -214,3 +214,19 @@ testChanges:
     test: ro.atf.chess.AndroidReceiptTest#archivedHintsRejectChangedReportsCapturesAndForeignPhases
     contract: "Verify raw phases and exact embedded captures for the published hint report and attest the Git review"
     allowDelete: false
+
+  - id: J7-OPENING-LESSONS
+    base: "34f8d68dd6c4edfdcac7c1a313a951ba4e896e30"
+    from: atf-tests/src/test/java/ro/atf/chess/OpeningCatalogTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/OpeningCatalogTest.java
+    test: ro.atf.chess.OpeningCatalogTest#newLessonsMatchThePinnedOpeningIndexAtTheirStudyPosition
+    contract: "Preserve selectable lesson IDs and verify each new line against the pinned ECO index"
+    allowDelete: false
+
+  - id: J7-OPENING-CHECKPOINTS
+    base: "34f8d68dd6c4edfdcac7c1a313a951ba4e896e30"
+    from: atf-tests/src/test/resources/opening-ai-benchmark.yaml
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    test: ro.atf.chess.MatchAiGovernanceTest#frozenOpeningCorpusCoversTheLiveCatalogWithBothColors
+    contract: "Keep the frozen positions for existing lessons and add one distinct checkpoint for each new lesson"
+    allowDelete: false

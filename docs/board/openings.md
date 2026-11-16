@@ -13,6 +13,10 @@ Din meniul principal, intră în **Deschideri**, alege o linie și joacă cu alb
 | Apărarea franceză | Avans, C02 | Albului îi revine spațiul de pe e5, iar negrul atacă baza d4 cu c5. [Chess.com](https://www.chess.com/openings/French-Defense-Advance-Variation) · [Linia cu 6.a3 în Lichess](https://github.com/lichess-org/chess-openings/blob/master/c.tsv#L60) |
 | Apărarea scandinavă | Varianta clasică, B01 | Dezvoltare cu tempo asupra damei și eliberarea nebunului cu Bf5. [Linia clasică în Lichess](https://github.com/lichess-org/chess-openings/blob/master/b.tsv#L95) |
 | Sistemul Londonez | Împotriva fianchetto-ului, A48 | Bf4 înainte de e3 și dezvoltarea pentru rocada ambelor părți. [Chess.com](https://www.chess.com/openings/London-System) · [Linia cu Be2 în Lichess](https://github.com/lichess-org/chess-openings/blob/master/a.tsv#L642) |
+| Deschiderea engleză | Patru cai și fianchetto, A29 | Controlezi d5 cu pionul c și răspunzi la ruptura centrală înainte de rocada albului. [Linia cu Nb6 în Lichess](https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/a.tsv#L453) |
+| Deschiderea catalană | Catalana deschisă, linia clasică, E05 | Dezvolți nebunul pe g2 și faci rocada înainte de a decide cum recuperezi pionul de pe c4. [Linia clasică în Lichess](https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/e.tsv#L17) |
+| Apărarea Nimzo-indiană | Clasică, apărarea Keres, E32 | Negrul leagă calul de pe c3, iar albul pregătește recaptura cu dama pentru a păstra structura de pioni. [Linia Keres în Lichess](https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/e.tsv#L169) |
+| Siciliana Alapin | Apărarea Barmen, linia modernă, B22 | Albul pregătește d4 prin c3, iar negrul răspunde din timp cu d5. [Linia Barmen în Lichess](https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/b.tsv#L451) |
 | Apărarea est-indiană | Aronin–Taimanov, E97 | Centrul larg al albului, contraatacul cu e5 și poziția închisă după d5. [Linia Aronin–Taimanov în Lichess](https://github.com/lichess-org/chess-openings/blob/master/e.tsv#L358) |
 
 Săgețile deasupra tablei parcurg câte o semimutare. În istoric vezi poziția și explicația mutării alese. Atinge progresul pentru a sări la o poziție jucată. **Rejoacă de aici** reia lecția de la poziția afișată. Comanda sistemului **Înapoi** revine din istoric la poziția curentă.
@@ -23,7 +27,7 @@ Pe aceeași fereastră, tabla păstrează poziția și dimensiunea când parcurg
 
 **Indiciu lecție** evidențiază întâi piesa. **Arată mutarea** selectează piesa, trasează săgeata și afișează coordonatele și ideea. Atinge destinația marcată ca să joci mutarea.
 
-**Analiză AI** evaluează poziția afișată, inclusiv în istoric și la finalul lecției. Becul parcurge până la cinci continuări. Când sugestia coincide cu mutarea ta din lecție, o poți juca atingând destinația. O sugestie diferită apare etichetată drept variantă AI. Schimbarea poziției ascunde săgeata anterioară și actualizează evaluarea. [Politica indiciilor AI](ai-quality.md)
+**Analiză AI** evaluează poziția afișată, inclusiv în istoric și la finalul lecției. Becul parcurge cel mult trei continuări. Când sugestia coincide cu mutarea ta din lecție, o poți juca atingând destinația. O sugestie diferită apare etichetată drept variantă AI. Schimbarea poziției ascunde săgeata anterioară și actualizează evaluarea. [Politica indiciilor AI](ai-quality.md)
 
 ## Configurarea lecțiilor
 
