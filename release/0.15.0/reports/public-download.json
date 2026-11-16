@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "observedUtc": "2026-11-16T07:33:01.3942611Z",
+  "channel": "Anonymous browser-compatible release asset",
+  "repository": "crististefanita/atf_j7",
+  "readmeSource": "staged",
+  "readmeCommit": "57a1c4122b0370c616354e2f9c2058eb0dfe34fd",
+  "readmeBlob": "a9faaaa52def72800671dd1c1a7b9177c130a565",
+  "tag": "v0.15.0",
+  "targetCommit": "fdc12496679be702eefd64dde0c43cabd1a737a1",
+  "releaseUrl": "https://github.com/crististefanita/atf_j7/releases/tag/v0.15.0",
+  "assetUrl": "https://github.com/crististefanita/atf_j7/releases/download/v0.15.0/ChessLab-0.15.0.apk",
+  "assetId": 753912709,
+  "httpStatus": 200,
+  "bytes": 1211163,
+  "sha256": "d06a01a4b29533df9d849f71c0cd0f157dc4474fbdb0bb745f890f3c426a4ef7",
+  "zipCrc": "PASS"
+}
