@@ -6,9 +6,19 @@ export function reviewPositionText(locale, moveLabel, ply, total) {
 }
 
 export function reviewGraphText(locale, positionText, formattedWhiteScore) {
+    if (formattedWhiteScore === null) return positionText;
     const evaluation = locale === 'ro' ? `Scorul albului ${formattedWhiteScore} la sută.`
         : `White score ${formattedWhiteScore} percent.`;
     return `${positionText} ${evaluation}`;
+}
+
+export function updateReviewRange(input, ply, total, text) {
+    const limit = String(total);
+    const value = String(ply);
+    if (input.getAttribute('aria-valuetext') !== text) input.setAttribute('aria-valuetext', text);
+    if (input.max !== limit) input.max = limit;
+    if (input.value !== value) input.value = value;
+    if (input.disabled !== (total === 0)) input.disabled = total === 0;
 }
 
 export function reviewWhyText(locale, positionText, explanation) {
