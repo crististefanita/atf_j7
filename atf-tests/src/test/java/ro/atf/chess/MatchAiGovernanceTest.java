@@ -262,10 +262,10 @@ class MatchAiGovernanceTest {
         var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
         var hint = new HashMap<Object, Object>(ChessYaml.map(root, "hint"));
         root.put("hint", hint);
-        hint.put("max-variants", 6);
-        check.same("Six suggestions violate the product limit", true,
+        hint.put("max-variants", 4);
+        check.same("Four suggestions violate the product limit", true,
                 assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("max-variants"));
-        hint.put("max-variants", 5);
+        hint.put("max-variants", 3);
         hint.put("extra-nodes", 1);
         check.same("The coaching budget cannot be lower than Hard", true,
                 assertThrows(IllegalArgumentException.class, () -> MatchAiPolicy.read(root)).getMessage().contains("Hard"));

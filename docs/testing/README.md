@@ -324,7 +324,10 @@ rulează și tabla manuală cu același ID.
 `MatchHintTest` verifică ordinea variantelor, destinația jucabilă, promovarea exactă și prioritatea selecției manuale. Include un caz în care mutarea indicată aparține culorii care a mutat deja. `MatchEvaluationTest` verifică perspectiva albului, formatarea și proporțiile barei pentru avantaj, egalitate și final. `MatchSetupTest` verifică alegerile de culoare, adâncimile AI, salvările anterioare și mutarea de deschidere a motorului când omul joacă cu negrul. `PlayerProfileTest` verifică validarea numelui, iar `MainMenuLayoutTest` verifică gruparea și opțiunile celor două dropdownuri.
 
 `HintPreviewTest` verifică pașii motorului pe poziții reale, revenirea exactă,
-matul, schimbul compensat și respingerea unei linii ilegale. `HintComparisonTest`
+matul, schimbul compensat și respingerea unei linii ilegale. Proba din
+Siciliană urmărește `…Qxf2+ Kxf2` și verifică diferența față de start din
+perspectiva negrului. `MatchHintTest` acoperă una, două și trei linii și
+exclude o alternativă pozitivă din afara ferestrei de 25 cp. `HintComparisonTest`
 verifică ordinea comună a becului, dialogului și mutării la atingere în
 Siciliană, Caro–Kann și Catalană, pentru ambele culori. Extent consemnează
 mutările, orizontul comun și consumul sub plafonul configurat. Probele redau

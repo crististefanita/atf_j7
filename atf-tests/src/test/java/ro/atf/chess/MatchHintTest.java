@@ -30,15 +30,14 @@ class MatchHintTest {
                 hint.moveForTap(position.play(ChessPosition.Move.fromUci("h1g1")), -1, queen.to()));
     }
 
-    @Test void hidesThenCyclesAtMostFiveContinuationsWithoutPlayingThem(Checks check) {
+    @Test void keepsOneRecommendationWhenTheRepliesLeaveNoDefendedGain(Checks check) {
         String checkpoint = "2|analysis|e2e4";
         var match = ChessMatch.restore(checkpoint);
         var lines = match.bestLinesAt(match.ply());
         var hint = match.hintAt(match.ply());
-        check.same("Black has multiple eligible replies to e4 within the configured limit", true,
-                lines.size() >= 2 && lines.size() <= MatchAiPolicy.CURRENT.hint.maxVariants());
-        check.same("Every displayed alternative stays within the leader's score window", true,
-                lines.stream().allMatch(line -> lines.getFirst().score() - line.score() <= MatchAiPolicy.CURRENT.hint.maxLossCp()));
+        check.same("After e4 the verified shortlist offers just the leading reply", 1, lines.size());
+        var projection = HintPreview.openDefended(match.position(), lines.getFirst()).orElseThrow().estimate().orElseThrow();
+        check.same("The leader's projection does not report a gain after the reply", true, projection.changeCp() < 0);
         check.same("Evaluation is available while its hint is still hidden", true, hint.first() != null && hint.revealed() == null);
         var seen = new HashSet<ChessPosition.Move>();
         for (int index = 0; index < lines.size(); index++) {
@@ -57,18 +56,37 @@ class MatchHintTest {
         var moves = ChessPosition.initial().legalMoves();
         var finite = new ArrayList<TacticalAnalysis.Variation>();
         for (int index = 0; index < 6; index++) {
-            int score = index < 4 ? 200 : index == 4 ? 200 - policy.maxLossCp() : 199 - policy.maxLossCp();
+            int score = index < 2 ? 200 : index == 2 ? 200 - policy.maxLossCp() : 199 - policy.maxLossCp();
             finite.add(new TacticalAnalysis.Variation(List.of(moves.get(index)), score, 0, TacticalAnalysis.Ending.HORIZON));
         }
-        check.same("The boundary is inclusive", finite.subList(0, 5),
+        check.same("The third line may sit at the inclusive score boundary", finite.subList(0, 3),
                 TacticalAnalysis.hintLines(new TacticalAnalysis.Result(finite), policy));
+        var equal = finite.stream().map(line -> new TacticalAnalysis.Variation(line.line(), 200, 0, line.ending())).toList();
+        check.same("Only three of six equal candidates appear", equal.subList(0, 3),
+                TacticalAnalysis.hintLines(new TacticalAnalysis.Result(equal), policy));
         var shorter = List.of(finite.get(0), finite.get(5));
-        check.same("A significant loss stops the list before reaching five", shorter.subList(0, 1),
+        check.same("A significant loss stops the list before reaching three", shorter.subList(0, 1),
                 TacticalAnalysis.hintLines(new TacticalAnalysis.Result(shorter), policy));
         var mates = List.of(new TacticalAnalysis.Variation(List.of(moves.get(0)), 99_999, 0, TacticalAnalysis.Ending.CHECKMATE),
                 new TacticalAnalysis.Variation(List.of(moves.get(1)), 99_997, 0, TacticalAnalysis.Ending.CHECKMATE));
         check.same("A slower forced mate is excluded even though the numeric gap is small", mates.subList(0, 1),
                 TacticalAnalysis.hintLines(new TacticalAnalysis.Result(mates), policy));
+    }
+
+    @Test void fillsOnlyTheSlotsEarnedByTheDefendedPosition(Checks check) {
+        var position = ChessPosition.fromFen("6k1/8/3p4/8/1p1R1p2/8/8/6K1 w - - 0 1");
+        var candidates = List.of("d4b4", "d4f4", "d4d6", "d4d1").stream()
+                .map(ChessPosition.Move::fromUci)
+                .map(move -> new TacticalAnalysis.Variation(List.of(move), 0, 0, TacticalAnalysis.Ending.HORIZON)).toList();
+        check.same("All three close gains remain available after the opponent's reply", candidates.subList(0, 3),
+                MatchHint.defendedChoices(position, candidates.subList(0, 3)));
+        var withRetreat = List.of(candidates.get(0), candidates.get(1), candidates.get(3));
+        check.same("An equally ranked retreat that loses after defence leaves only two alternatives", candidates.subList(0, 2),
+                MatchHint.defendedChoices(position, withRetreat));
+        var withKnights = ChessPosition.fromFen("6k1/8/3p4/8/1n1R1n2/8/8/6K1 w - - 0 1");
+        var ranked = List.of(candidates.get(1), candidates.get(0), candidates.get(2));
+        check.same("The pawn capture also drops out when it gains less than the two knight captures", ranked.subList(0, 2),
+                MatchHint.defendedChoices(withKnights, ranked));
     }
 
     @Test void basicGetsTheSameFivePlyForcedMateHintAsHard(Checks check) {
@@ -79,6 +97,9 @@ class MatchHintTest {
         check.same("The opponent setting does not change the hint", hard.bestLinesAt(0), hints);
         check.same("The strongest line proves mate in three", List.of("c4c8", 5),
                 List.of(hints.getFirst().move().uci(), hints.getFirst().signedMatePlies()));
+        var analyzedHint = basic.hintAt(0);
+        analyzedHint.revealNext();
+        check.same("The mate playback excludes non-equivalent alternatives", hints, analyzedHint.playback(board).orElseThrow().lines());
         check.same("The Basic opponent search does not prove this five-ply mate", 0,
                 TacticalAnalysis.botAnalysis(board, MatchSetup.Level.BASIC).result().best().getFirst().signedMatePlies());
         for (var hint : hints) {

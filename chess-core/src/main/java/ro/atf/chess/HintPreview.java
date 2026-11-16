@@ -13,51 +13,102 @@ public final class HintPreview {
 
     public record Evidence(Reason reason, Move move, Kind piece, Kind captured, int netMaterial) { }
 
+    public record Estimate(int initialCp, int finalCp) {
+        public int changeCp() { return finalCp - initialCp; }
+    }
+
     private record Frame(ChessPosition position, Move move, Kind piece, Kind captured) { }
 
     private final List<Frame> frames;
     private final Evidence evidence;
+    private final Optional<Estimate> estimate;
+    private final boolean addedDefense;
     private int step;
 
-    private HintPreview(List<Frame> frames, Evidence evidence) {
+    private HintPreview(List<Frame> frames, Evidence evidence, Optional<Estimate> estimate, boolean addedDefense) {
         this.frames = List.copyOf(frames);
         this.evidence = evidence;
+        this.estimate = estimate;
+        this.addedDefense = addedDefense;
     }
 
     public static Optional<HintPreview> open(ChessPosition root, TacticalAnalysis.Variation line) {
+        return open(root, line, false);
+    }
+
+    public static Optional<HintPreview> openDefended(ChessPosition root, TacticalAnalysis.Variation line) {
+        return open(root, line, true);
+    }
+
+    private static Optional<HintPreview> open(ChessPosition root, TacticalAnalysis.Variation line, boolean defend) {
         if (line.line().isEmpty()) return Optional.empty();
         var board = root;
         var frames = new ArrayList<Frame>();
         frames.add(new Frame(root, null, null, null));
         for (Move move : line.line()) {
             try {
-                var next = board.play(move);
-                var victim = MatchMaterial.victim(board, move);
-                frames.add(new Frame(next, move, next.pieceAt(move.to()).kind(), victim == null ? null : victim.kind()));
-                board = next;
+                board = append(frames, board, move);
             } catch (IllegalArgumentException invalid) {
                 return Optional.empty();
             }
         }
-        return Optional.of(new HintPreview(frames, evidence(root, board, frames, line)));
+        boolean addedDefense = false;
+        if (defend && board.turn() != root.turn()) {
+            var reply = TacticalAnalysis.bestImmediateDefense(board);
+            if (reply != null) {
+                board = append(frames, board, reply);
+                addedDefense = true;
+            }
+        }
+        var ending = line.ending();
+        if (defend) {
+            ending = TacticalAnalysis.Ending.HORIZON;
+            if (!board.hasLegalMove()) ending = board.isCheck() ? TacticalAnalysis.Ending.CHECKMATE : TacticalAnalysis.Ending.STALEMATE;
+        }
+        var estimate = defend && ending == TacticalAnalysis.Ending.HORIZON
+                ? Optional.of(new Estimate(TacticalAnalysis.positionValue(root, root.turn()), TacticalAnalysis.positionValue(board, root.turn())))
+                : Optional.<Estimate>empty();
+        return Optional.of(new HintPreview(frames, evidence(root, board, frames, ending), estimate, addedDefense));
     }
 
-    private static Evidence evidence(ChessPosition root, ChessPosition end, List<Frame> frames, TacticalAnalysis.Variation line) {
+    private static ChessPosition append(List<Frame> frames, ChessPosition board, Move move) {
+        var next = board.play(move);
+        var victim = MatchMaterial.victim(board, move);
+        frames.add(new Frame(next, move, next.pieceAt(move.to()).kind(), victim == null ? null : victim.kind()));
+        return next;
+    }
+
+    private static Evidence evidence(ChessPosition root, ChessPosition end, List<Frame> frames, TacticalAnalysis.Ending ending) {
         Side side = root.turn();
-        if (line.ending() == TacticalAnalysis.Ending.CHECKMATE && end.isCheckmate()) {
+        if (ending == TacticalAnalysis.Ending.CHECKMATE && end.isCheckmate()) {
             var mate = frames.get(frames.size() - 1);
             var reason = end.turn() == side ? Reason.CHECKMATE_AGAINST : Reason.CHECKMATE;
             return new Evidence(reason, mate.move(), mate.piece(), mate.captured(), 0);
         }
-        if (line.ending() == TacticalAnalysis.Ending.STALEMATE && !end.isCheck() && end.legalMoves().isEmpty()) {
+        if (ending == TacticalAnalysis.Ending.STALEMATE && !end.isCheck() && end.legalMoves().isEmpty()) {
             return new Evidence(Reason.STALEMATE, null, null, null, 0);
         }
-        int gain = MatchMaterial.balance(end, side) - MatchMaterial.balance(root, side);
-        if (line.ending() == TacticalAnalysis.Ending.HORIZON && gain > 0) {
+        if (ending == TacticalAnalysis.Ending.HORIZON) {
             var capture = singleCapture(frames, side);
-            if (capture != null) return new Evidence(Reason.CAPTURE, capture.move(), capture.piece(), capture.captured(), gain);
+            if (capture != null) {
+                int gain = retainedGain(root, end, side);
+                if (gain > 0) return new Evidence(Reason.CAPTURE, capture.move(), capture.piece(), capture.captured(), gain);
+            }
         }
         return new Evidence(Reason.ESTIMATE, null, null, null, 0);
+    }
+
+    static int retainedGain(ChessPosition root, ChessPosition end, Side side) {
+        int original = MatchMaterial.balance(root, side);
+        int gain = MatchMaterial.balance(end, side) - original;
+        if (gain <= 0 || end.turn() == side) return gain;
+        for (Move reply : end.legalMoves()) {
+            if (reply.promotion() != null || MatchMaterial.victim(end, reply) != null) {
+                int afterReply = MatchMaterial.balance(end.playGenerated(reply), side) - original;
+                gain = Math.min(gain, afterReply);
+            }
+        }
+        return gain;
     }
 
     private static Frame singleCapture(List<Frame> frames, Side side) {
@@ -73,6 +124,8 @@ public final class HintPreview {
     }
 
     public Evidence evidence() { return evidence; }
+    public Optional<Estimate> estimate() { return estimate; }
+    public boolean addedDefense() { return addedDefense; }
     public int step() { return step; }
     public int length() { return frames.size() - 1; }
     public ChessPosition position() { return frames.get(step).position(); }

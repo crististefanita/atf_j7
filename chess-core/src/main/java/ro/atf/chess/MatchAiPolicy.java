@@ -101,7 +101,7 @@ final class MatchAiPolicy {
         requireKeys(hardTranspositions, "entries-per-thousand-nodes", "max-entries");
         int basicPlies = bounded(ChessYaml.map(settings, Level.BASIC.name()), "standard-max-plies", 2, BASE_PLIES);
         return new MatchAiPolicy(opponents, basicPlies, new Hint(search,
-                bounded(row, "max-variants", 1, 5), bounded(row, "max-loss-cp", 0, 100),
+                bounded(row, "max-variants", 1, 3), bounded(row, "max-loss-cp", 0, 100),
                 bounded(row, "tactical-extension-plies", 0, 2), verification), new Evaluation(
                         bounded(evaluation, "nodes", 1_000, 40_000), bounded(evaluation, "max-horizon-correction-cp", 0, 50)),
                 new Repetition(bounded(repetition, "min-advantage-cp", 75, 250), bounded(repetition, "max-score-loss-cp", 1, 75)),

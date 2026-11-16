@@ -32,6 +32,12 @@ final class ArchivedReleaseEvidence {
     private static final HintPhase MANUAL = new HintPhase("manual-analysis", 5, "manual-analysis.png", "android-manual-analysis.html");
     private static final List<HintPhase> HINT_PHASES = List.of(PREPARE, RESTORE, MANUAL);
     private static final Set<String> LEGACY_HINT_EDITIONS = Set.of("0.13.5", "0.13.6");
+    private static final Map<String, String> ANDROID_NATIVE_SCOPES = Map.of(
+            "match-analysis", "analysis-only", "puzzle-ux-1080", "puzzle-ux", "puzzle-mate-replay-1080", "puzzle-mate-replay");
+    private static final String GIT_REVIEW_RECEIPT = "test-change-review-execution.json";
+    private static final Map<String, String> GIT_REVIEW_REPORTS = Map.of(
+            "test-change-review.html", "extentSha256", "test-change-review.html.proof.html", "replacementExtentSha256",
+            "governance.html", "governanceExtentSha256");
     private static final String PNG_DATA = "data:image/png;base64,";
 
     private ArchivedReleaseEvidence() { }
@@ -58,6 +64,18 @@ final class ArchivedReleaseEvidence {
         var usedFiles = new HashSet<>(Set.of("components.html", "qualification.json"));
         for (var entry : android.properties()) {
             verifyAndroid(directory, candidate, entry.getKey(), entry.getValue(), usedFiles);
+        }
+        if (qualified.has("additionalAndroidChecks")) {
+            var additional = qualified.path("additionalAndroidChecks");
+            require(additional.isObject() && !additional.isEmpty(), "Invalid supplemental Android evidence");
+            for (var entry : additional.properties()) {
+                require(!android.has(entry.getKey()), "Repeated Android evidence scope: " + entry.getKey());
+                var receipt = verifyAndroid(directory, candidate, entry.getKey(), entry.getValue(), usedFiles);
+                verifySupplementalReport(directory, entry.getValue(), receipt);
+            }
+        }
+        if (qualified.has("testChangeReviewSha256") || Files.exists(directory.resolve(GIT_REVIEW_RECEIPT), LinkOption.NOFOLLOW_LINKS)) {
+            verifyGitReview(directory, candidate, text(qualified, "testChangeReviewSha256"), usedFiles);
         }
         if (qualified.has("hintAnalysisExecutionSha256") || LEGACY_HINT_EDITIONS.contains(version)
                 || Files.exists(directory.resolve(HINT_RECEIPT), LinkOption.NOFOLLOW_LINKS)) {
@@ -173,8 +191,8 @@ final class ArchivedReleaseEvidence {
         }
     }
 
-    private static void verifyAndroid(Path directory, ReleaseEvidence.Candidate candidate, String scope, JsonNode qualified,
-                                      Set<String> usedFiles) throws IOException {
+    private static JsonNode verifyAndroid(Path directory, ReleaseEvidence.Candidate candidate, String scope, JsonNode qualified,
+                                          Set<String> usedFiles) throws IOException {
         String report = text(qualified, "report");
         String execution = text(qualified, "execution");
         require(report.endsWith(".html") && execution.endsWith(".json") && usedFiles.add(report) && usedFiles.add(execution),
@@ -183,8 +201,7 @@ final class ArchivedReleaseEvidence {
         String reportHash = text(qualified, "extentSha256");
         verifyDigest(directory, report, reportHash);
         var receipt = read(directory, execution);
-        String nativeScope = scope.equals("match-analysis") ? "analysis-only" : scope;
-        verifyExecution(receipt, candidate, nativeScope);
+        verifyExecution(receipt, candidate, ANDROID_NATIVE_SCOPES.getOrDefault(scope, scope));
         int expected = positiveCount(qualified.path("nativeAssertions"), "qualified Android assertion count");
         var assertions = receipt.path("assertions");
         require(assertionTotal(assertions) == expected, "Android assertion count differs for " + scope);
@@ -192,6 +209,49 @@ final class ArchivedReleaseEvidence {
             require(reportHash.equals(text(receipt, "extentSha256")), "Android receipt links another report for " + scope);
         }
         if (receipt.has("phases")) verifyPhases(receipt, candidate, expected);
+        return receipt;
+    }
+
+    private static void verifySupplementalReport(Path directory, JsonNode qualified, JsonNode receipt) throws IOException {
+        String name = text(qualified, "report");
+        String reportHash = text(qualified, "extentSha256");
+        String runId = text(receipt, "runId");
+        require(runId.matches("[a-f0-9]{32}") && reportHash.equals(text(receipt, "extentSha256")),
+                "Supplemental Android receipt lacks report or run identity: " + name);
+        byte[] html = Files.readAllBytes(file(directory, name));
+        require(sha256(html).equals(reportHash), "Archived Extent hash mismatch: " + name);
+        var report = Jsoup.parse(new String(html, java.nio.charset.StandardCharsets.UTF_8));
+        var runCells = report.select("table.helm-evidence-table tr > td:matchesOwn(^RUN ID$)");
+        require(runCells.size() == 1 && runCells.getFirst().parent().children().eachText().equals(List.of("RUN ID", runId)),
+                "Supplemental Android report belongs to another run: " + name);
+
+        var captures = receipt.path("captureSha256");
+        require(captures.isObject() && !captures.isEmpty(), "Supplemental Android receipt has no captures: " + name);
+        var expected = captures.properties().stream().map(entry -> entry.getValue().asText("")).sorted().toList();
+        var observed = new ArrayList<String>();
+        for (var capture : report.select("a.atf-ui-action-screenshot-link")) {
+            observed.add(pngDigest(capture.attr("href")));
+        }
+        observed.sort(String::compareTo);
+        require(expected.equals(observed), "Supplemental Android embedded PNG SHA-256 mismatch: " + name);
+    }
+
+    private static void verifyGitReview(Path directory, ReleaseEvidence.Candidate candidate, String digest,
+                                        Set<String> usedFiles) throws IOException {
+        require(usedFiles.add(GIT_REVIEW_RECEIPT), "Git review receipt reuses Android evidence");
+        byte[] bytes = Files.readAllBytes(file(directory, GIT_REVIEW_RECEIPT));
+        require(sha256(bytes).equals(digest), "Archived Git review receipt SHA-256 mismatch");
+        var receipt = JSON.readTree(bytes);
+        require(receipt != null && receipt.isObject(), "Invalid archived receipt: " + GIT_REVIEW_RECEIPT);
+        String base = text(receipt, "reviewBase");
+        require("PASS".equals(text(receipt, "status")) && candidate.commit().equals(text(receipt, "sourceCommit"))
+                        && base.matches("[a-f0-9]{40}") && !base.equals(candidate.commit())
+                        && text(receipt, "receiptSha256").matches("[a-f0-9]{64}"),
+                "Archived Git review receipt does not match the qualified commit and base");
+        for (var report : GIT_REVIEW_REPORTS.entrySet()) {
+            require(usedFiles.add(report.getKey()), "Git review report reuses Android evidence: " + report.getKey());
+            verifyDigest(directory, report.getKey(), text(receipt, report.getValue()));
+        }
     }
 
     private static void verifyPhases(JsonNode receipt, ReleaseEvidence.Candidate candidate, int expected) throws IOException {

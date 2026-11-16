@@ -140,3 +140,77 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
     contract: "Advance the patch version and retain the documented Gradle and Maven boundaries"
     allowDelete: false
+
+  - id: J7-0145-ANDROID-VERSION
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the Android patch version with the documented build and SDK boundaries"
+    allowDelete: false
+
+  - id: J7-0145-MAVEN-VERSION
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the Maven reactor patch version with the documented module structure"
+    allowDelete: false
+
+  - id: J7-0145-TESTS-VERSION
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Keep the matching Maven parent and the documented test source boundaries"
+    allowDelete: false
+
+  - id: J7-0145-HINT-PREVIEW
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
+    test: ro.atf.chess.HintPreviewTest#extendsTheSicilianCaptureThroughTheBestImmediateDefence
+    contract: "Replay the legal defence and compare both endpoint evaluations from one perspective"
+    allowDelete: false
+
+  - id: J7-0145-HINT-COMPARISON
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    test: ro.atf.chess.HintComparisonTest#keepsTheLeaderWhenCyclingAndRejectsAStaleHistoricalFrame
+    contract: "Keep the displayed move tied to the selected recommendation and reject the wrong historical position"
+    allowDelete: false
+
+  - id: J7-0145-HINT-COUNT
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    test: ro.atf.chess.MatchHintTest#fillsOnlyTheSlotsEarnedByTheDefendedPosition
+    contract: "Prove one to three variants, with optional branches subject to the defended score window"
+    allowDelete: false
+
+  - id: J7-0145-HINT-POLICY
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    test: ro.atf.chess.MatchAiGovernanceTest#rejectsAnOverlongHintListOrSearchWeakerThanHard
+    contract: "Reject a fourth suggestion and retain the coaching search-budget guard"
+    allowDelete: false
+
+  - id: J7-0145-HINT-NATIVE
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
+    test: ro.atf.chess.HintPreviewTest#extendsTheSicilianCaptureThroughTheBestImmediateDefence
+    contract: "Move exact line checks to JVM and retain the signed native final frame and return to history"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "The suggested line and its navigation are visible with a fixed preview board"
+
+  - id: J7-0145-ARCHIVED-IDENTITY
+    base: "d3d66f611773997059849ed17b9966add87acedc"
+    from: atf-tests/src/test/java/ro/atf/chess/ArchivedReleaseEvidence.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+    test: ro.atf.chess.AndroidReceiptTest#archivedHintsRejectChangedReportsCapturesAndForeignPhases
+    contract: "Verify raw phases and exact embedded captures for the published hint report and attest the Git review"
+    allowDelete: false

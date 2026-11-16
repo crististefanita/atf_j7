@@ -12,11 +12,13 @@ import java.util.concurrent.CancellationException;
 import java.util.stream.Collectors;
 import ro.atf.chess.ChessPosition.Kind;
 import ro.atf.chess.ChessPosition.Move;
+import ro.atf.chess.ChessPosition.Side;
 
 /** Bounded tactical search from the point of view of the side to move. */
 public final class TacticalAnalysis {
     private static final int MATE = 100_000;
     private static final int LIMIT = MATE + 1;
+    private static final int HINT_ROOT_LIMIT = 3;
     private static final Policy POLICY = Policy.load();
     private static final Comparator<Variation> RANK = Comparator.comparingInt(Variation::score).reversed()
             .thenComparing(entry -> entry.move().uci());
@@ -179,7 +181,7 @@ public final class TacticalAnalysis {
         var tacticalPolicy = new MatchAiPolicy.Search(policy.search().maxPlies(), available - policy.verificationNodes());
         var tactical = matchSearch(root, tacticalPolicy, policy.maxLossCp(), policy.tacticalExtensionPlies(), false, false, base);
         var verified = chooseCoachingSearch(position, base, hard, tactical, policy);
-        return new SearchReport(new Result(hintLines(new Result(coachingOrder(position, verified.result())), policy)),
+        return new SearchReport(new Result(coachingOrder(position, verified.result())),
                 verified.depth(), hard.extraNodes() + tactical.extraNodes() + verified.extraNodes());
     }
 
@@ -225,6 +227,20 @@ public final class TacticalAnalysis {
         return analyze(position, MatchAiPolicy.BASE_PLIES, position.legalMoves(), Objective.POSITION);
     }
 
+    static Move bestImmediateDefense(ChessPosition position) {
+        var replies = analyze(position, 1, position.legalMoves(), Objective.POSITION).ranked();
+        return replies.isEmpty() ? null : replies.get(0).move();
+    }
+
+    static int positionValue(ChessPosition position, Side perspective) {
+        int score = positionScore(position, material(position));
+        return position.turn() == perspective ? score : -score;
+    }
+
+    private static int positionScore(ChessPosition position, int materialBalance) {
+        return materialBalance + MatchPositionEvaluation.bonus(position);
+    }
+
     public static List<Variation> recommendations(ChessPosition position) {
         return verifiedHints(position).lines();
     }
@@ -237,25 +253,33 @@ public final class TacticalAnalysis {
         var repertoire = OpeningRepertoire.CURRENT.reply(position);
         int seedNodes = repertoire == null ? totalNodes : totalNodes - policy.verificationNodes();
         var seed = hintAnalysis(position, repertoire, policy, seedNodes);
-        var lines = seed.result().ranked();
+        var ranked = seed.result().ranked();
+        var lines = hintLines(seed.result(), policy);
         var legal = position.legalMoves();
         if (legal.size() < 2 || lines.isEmpty()) return new HintSearch(lines, null, seed.extraNodes());
 
-        var roots = lines.stream().map(Variation::move).collect(Collectors.toCollection(ArrayList::new));
+        var eligibleRoots = lines.get(0).signedMatePlies() == 0 ? ranked : lines;
+        var roots = eligibleRoots.stream().limit(HINT_ROOT_LIMIT).map(Variation::move)
+                .collect(Collectors.toCollection(ArrayList::new));
         int verificationNodes = Math.min(policy.verificationNodes(), totalNodes - seed.extraNodes());
         int shortlistNodes = 0;
-        if (roots.size() == 1) {
+        if (roots.size() == 1 && lines.get(0).signedMatePlies() == 0) {
             var shortlist = new SearchBudget(verificationNodes, 0);
             var alternatives = new ArrayList<>(legal);
             alternatives.remove(roots.get(0));
             try {
-                var next = hintRootLines(position, alternatives, 2, Collections.nCopies(alternatives.size(), shortlist));
+                var shallow = hintRootLines(position, alternatives, 2, Collections.nCopies(alternatives.size(), shortlist));
+                var next = coachingOrder(position, new Result(shallow));
                 roots.add(next.get(0).move());
+                if (next.size() > 1 && next.get(0).score() - next.get(1).score() <= policy.maxLossCp()) {
+                    roots.add(next.get(1).move());
+                }
             } catch (BudgetExhausted exhausted) {
                 return new HintSearch(lines, null, seed.extraNodes() + verificationNodes - shortlist.remaining);
             }
             shortlistNodes = verificationNodes - shortlist.remaining;
         }
+        if (roots.size() < 2) return new HintSearch(lines, null, seed.extraNodes());
         var comparison = verifyHintRoots(position, roots, verificationNodes - shortlistNodes, policy.search().maxPlies());
         return verifiedHints(lines, seed, comparison, shortlistNodes, repertoire, policy);
     }
@@ -273,22 +297,36 @@ public final class TacticalAnalysis {
         boolean lostMateProof = original.signedMatePlies() != 0
                 && (best.signedMatePlies() == 0 || best.score() < original.score());
         boolean shallowerBookReversal = repertoire != null && !best.move().equals(repertoire) && comparison.depth() < seed.depth();
-        // A positional reversal needs deeper evidence and support from equal turns or a concrete material gain.
+        // Reversals use the total position score. A material swing at an unanswered ply proves neither line is better.
         var comparedOriginal = ranked.stream().filter(line -> line.move().equals(original.move())).findFirst().orElseThrow();
-        boolean unsupportedReversal = !best.move().equals(original.move()) && best.signedMatePlies() == 0
-                && (comparison.depth() <= seed.depth() || !supportsAtEqualTurns(verified.balancedLines(), best.move(), original.move())
-                && best.materialChange() <= comparedOriginal.materialChange());
+        boolean beatsLosingSeed = original.score() < 0 && best.score() > 0;
+        boolean decisiveExactGain = (comparison.depth() == seed.depth() || comparison.depth() > seed.depth() && beatsLosingSeed)
+                && original.line().size() <= comparison.depth() && best.score() - comparedOriginal.score() > policy.maxLossCp();
+        boolean unsupportedReversal = !decisiveExactGain && !best.move().equals(original.move()) && best.signedMatePlies() == 0
+                && (comparison.depth() <= seed.depth() || !supportsAtEqualTurns(verified.balancedLines(), best.move(), original.move()));
         if (lostMateProof || shallowerBookReversal || unsupportedReversal) {
             return new HintSearch(lines, null, used);
         }
-        return new HintSearch(hintLines(comparison.result(), policy), comparison, used);
+        // A shorter comparison can corroborate a deeper replay when it follows the same moves.
+        if (comparison.depth() < seed.depth() && !extendsLine(original, best)) return new HintSearch(lines, null, used);
+        var eligible = hintLines(comparison.result(), policy);
+        var replays = eligible.stream().map(line -> lines.stream().filter(saved -> extendsLine(saved, line))
+                .findFirst().orElse(line)).collect(Collectors.toList());
+        int comparisonSize = best.signedMatePlies() == 0 ? Math.min(ranked.size(), Math.max(2, eligible.size())) : eligible.size();
+        comparison = new SearchReport(new Result(ranked.subList(0, comparisonSize)), comparison.depth(), comparison.extraNodes());
+        return new HintSearch(Collections.unmodifiableList(replays), comparison.result().ranked().size() > 1 ? comparison : null, used);
+    }
+
+    private static boolean extendsLine(Variation replay, Variation compared) {
+        int length = compared.line().size();
+        return replay.line().size() > length && replay.line().subList(0, length).equals(compared.line());
     }
 
     private static boolean supportsAtEqualTurns(List<Variation> lines, Move proposed, Move incumbent) {
         if (lines.isEmpty()) return false;
         var next = lines.stream().filter(line -> line.move().equals(proposed)).findFirst().orElseThrow();
         var previous = lines.stream().filter(line -> line.move().equals(incumbent)).findFirst().orElseThrow();
-        return next.score() >= previous.score() || next.score() - next.materialChange() >= previous.score() - previous.materialChange();
+        return next.score() >= previous.score();
     }
 
     /** Verifies both root moves with full windows and one completed horizon. */
@@ -310,8 +348,11 @@ public final class TacticalAnalysis {
     }
 
     private static HintVerification verifyHintRoots(ChessPosition position, List<Move> moves, int nodes, int maxPlies) {
-        int nodesPerMove = nodes / moves.size();
-        var budgets = moves.stream().map(move -> new SearchBudget(nodesPerMove, 0)).collect(Collectors.toList());
+        var policy = MatchAiPolicy.CURRENT;
+        var budget = new SearchBudget(nodes, 0, policy.hardTranspositions.entryLimit(nodes));
+        budget.checkOrderBonus = policy.hardOrdering.checkBonus();
+        budget.quietMoveOrdering = new QuietMoveOrdering();
+        var budgets = Collections.nCopies(moves.size(), budget);
         List<Variation> ranked = List.of();
         List<Variation> balanced = List.of();
         int completed = 0;
@@ -324,8 +365,7 @@ public final class TacticalAnalysis {
                 break;
             }
         }
-        int used = budgets.stream().mapToInt(budget -> nodesPerMove - budget.remaining).sum();
-        return new HintVerification(new SearchReport(new Result(ranked), completed, used), balanced);
+        return new HintVerification(new SearchReport(new Result(ranked), completed, nodes - budget.remaining), balanced);
     }
 
     private static List<Variation> hintRootLines(ChessPosition position, List<Move> moves, int depth, List<SearchBudget> budgets) {

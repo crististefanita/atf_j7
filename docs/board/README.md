@@ -132,26 +132,26 @@ Bifează **Analiză AI** înainte de pornire. Bara verticală reflectă evaluare
 
 Apasă becul din bara de sub tablă pentru cea mai bine evaluată linie și săgeata primei mutări. Când controlezi culoarea la mutare, atinge destinația indicată ca să joci prima mutare. În istoric poți consulta varianta și alege **Continuă de aici** pentru a juca din poziția afișată. În tura AI-ului poți aștepta replica sau debifa **Lasă AI-ul să mute** pentru a juca acea mutare.
 
-Indiciul pornește de la căutarea Hard, independent de nivelul adversarului. Comparația la adâncime comună folosește cel mult 32.000 de noduri din plafonul de 220.000 de noduri suplimentare al indiciului. Apăsările următoare parcurg până la cinci variante, în ordinea scorului. Lista se oprește când o mutare pierde mai mult de un sfert de pion față de prima. În poziții cu mat demonstrat, apar doar maturile cu același rezultat și aceeași distanță. Schimbarea poziției și încheierea partidei ascund indiciul. Opțiunea **Analiză AI** se păstrează la reluare. [Evaluarea AI](ai-quality.md)
+Indiciul pornește de la căutarea Hard, independent de nivelul adversarului.
+Comparația la adâncime comună folosește cel mult 32.000 de noduri din plafonul
+de 220.000 de noduri suplimentare. Becul parcurge cel mult trei variante.
+Alternativele apar când diferența estimată după apărare este pozitivă și
+rămâne la cel mult 0,25 pioni sub prima variantă. Dacă liderul nu arată o
+îmbunătățire, apare singur, cu estimarea disponibilă. La mat demonstrat,
+variantele au același rezultat și aceeași distanță. [Evaluarea AI](ai-quality.md)
 
-După ce apeși becul, atinge varianta subliniată. Tabla ei pornește de la poziția
-consultată. Prima săgeată înainte joacă recomandarea, a doua arată replica
-adversarului calculată de motor. Eticheta indică semimutarea și culoarea care
-a jucat. Săgeata înapoi parcurge linia invers, iar **Înapoi la poziție** revine
-la mutarea din istoric cu indiciul păstrat. Același parcurs este disponibil pe
-tabla manuală. Explicația numește piesa care dă mat sau captura care păstrează
-un câștig material în linia calculată. În rest arată evaluarea motorului.
-Comparația folosește ordinea deja verificată a indiciului, la ultima adâncime
-terminată pentru toate variantele comparate. Prima variantă din bec și linia
-recomandată coincid. Dacă parcurgi alternativele cu becul, dialogul deschide
-linia afișată, iar atingerea destinației joacă exact mutarea marcată. Poți
-parcurge ambele linii, inclusiv o alternativă din afara pragului becului.
-Atinge explicația pentru a sări la captura sau replica de mat indicată. Pentru
-a schimba recomandarea pozițională, motorul cere o căutare mai adâncă și
-confirmarea după un număr egal de mutări pentru ambele părți sau un câștig
-material în linie. Când lipsește confirmarea sau s-ar pierde dovada de mat,
-dialogul oferă doar linia disponibilă. La revenire, becul păstrează varianta
-marcată înainte de deschiderea dialogului.
+După bec, **Vezi linia** deschide tabla la poziția consultată. Prima săgeată
+înainte joacă recomandarea și a doua arată replica. Când linia se încheie
+înaintea răspunsului adversarului, motorul compară toate răspunsurile legale
+imediate și îl adaugă pe cel mai bine evaluat. Sub tablă apar scorul inițial,
+scorul final și diferența, din perspectiva culorii care muta la început.
+Avantajul poate veni din evaluarea poziției, iar matul și patul au rezultat
+propriu. Săgețile parcurg toate semimutările disponibile.
+
+Prima variantă din bec și linia recomandată coincid. Atingerea destinației
+joacă exact mutarea marcată. **Înapoi la poziție** restaurează cursorul și
+indiciul, inclusiv pe tabla manuală. Schimbarea poziției și terminarea partidei
+ascund indiciul. Opțiunea **Analiză AI** se păstrează la reluare.
 
 Sub fiecare nume apar piesele capturate, cu un număr lângă simbol când sunt mai multe de același fel. Jucătorul cu avantaj material vede `+N` în același rând. Capturile și avantajul urmează semimutarea afișată, inclusiv în istoric și după reluare. [Referința de afișare Chess.com](https://support.chess.com/en/articles/8708638-how-can-i-see-the-captured-pieces-and-material-count)
 

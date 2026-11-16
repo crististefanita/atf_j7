@@ -4,7 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.text.SpannableString;
-import android.text.style.UnderlineSpan;
+import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.widget.ImageButton;
@@ -174,18 +174,14 @@ final class MatchAnalysisView extends TextView {
             setOnClickListener(null);
             setClickable(false);
         } else {
-            var compact = new StringJoiner(" · ");
             var spoken = new StringJoiner(". ");
-            int shown = Math.min(3, revealed.line().size());
-            for (int index = 0; index < revealed.line().size(); index++) {
-                Move move = revealed.line().get(index);
-                if (index < shown) compact.add(ChessActivity.compactNotation(move));
-                spoken.add(notation.apply(move));
-            }
-            if (shown < revealed.line().size()) compact.add("…");
-            String line = hint.count() > 1 ? context.getString(R.string.match_analysis_variant, hint.number(), hint.count(), compact.toString()) : compact.toString();
-            var caption = new SpannableString(score + "\n" + line);
-            caption.setSpan(new UnderlineSpan(), score.length() + 1, caption.length(), 0);
+            for (Move move : revealed.line()) spoken.add(notation.apply(move));
+            String firstMove = ChessActivity.compactNotation(revealed.move());
+            String choice = hint.count() > 1
+                    ? context.getString(R.string.match_analysis_variant, hint.number(), hint.count(), firstMove) : firstMove;
+            String action = context.getString(R.string.hint_preview_action, choice);
+            var caption = new SpannableString(score + "\n" + action);
+            caption.setSpan(new ForegroundColorSpan(0xff57e0b4), score.length() + 1, caption.length(), 0);
             setText(caption);
             String full = context.getString(R.string.match_analysis_variant_spoken, hint.number(), hint.count(), spoken.toString());
             setContentDescription(spokenScore + ". " + full + ". " + context.getString(R.string.hint_preview_open));
@@ -196,10 +192,10 @@ final class MatchAnalysisView extends TextView {
 
     private void openPreview() {
         var position = shownPosition;
-        var selected = hint.revealed();
         var current = hint;
-        current.preview(position).ifPresent(replay -> {
-            var screen = HintPreviewDialog.show(getContext(), position, replay, selected, current.compare(position), evaluationBar.blackBelow(), notation);
+        if (current == null || preview != null) return;
+        current.playback(position).ifPresent(playback -> {
+            var screen = HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation);
             preview = screen;
             screen.setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
         });

@@ -52,7 +52,8 @@ public record HintComparison(TacticalAnalysis.Variation stronger, TacticalAnalys
             }
             position = position.play(move);
         }
-        return Optional.ofNullable(decisive);
+        var side = inStronger ? start.turn() : start.turn().other();
+        return decisive != null && HintPreview.retainedGain(start, position, side) > 0 ? Optional.of(decisive) : Optional.empty();
     }
 
     private static Optional<DecisiveMove> matingMove(ChessPosition start, TacticalAnalysis.Variation line, boolean inStronger) {

@@ -2,9 +2,11 @@
 <resources>
     <item name="hint_preview_board" type="id"/>
     <item name="hint_preview_reason" type="id"/>
+    <item name="hint_preview_delta" type="id"/>
     <item name="hint_compare_summary" type="id"/>
     <item name="hint_compare_best" type="id"/>
     <item name="hint_compare_other" type="id"/>
+    <item name="hint_compare_third" type="id"/>
     <item name="hint_preview_step" type="id"/>
     <item name="hint_preview_previous" type="id"/>
     <item name="hint_preview_next" type="id"/>

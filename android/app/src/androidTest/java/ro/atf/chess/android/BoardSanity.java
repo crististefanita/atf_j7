@@ -254,15 +254,22 @@ public final class BoardSanity extends Instrumentation {
         var board = findBoard(viewsOf(study));
         compare("Home opens the manual board without creating a saved game", true,
                 cell(board, "e2").isEnabled() && store.matches().readMatch() == null && awaitHiddenAnalysis(study, 0));
-        var lines = ro.atf.chess.TacticalAnalysis.recommendations(ChessPosition.initial());
+        var firstMove = ChessPosition.Move.fromUci("e2e4");
+        playMove(board, firstMove);
+        var root = ChessPosition.initial().play(firstMove);
+        var hint = ro.atf.chess.MatchHint.analyze(root);
+        hint.revealNext();
+        var preview = hint.playback(root).orElseThrow();
+        boolean analyzedBlackReply = awaitHiddenAnalysis(study, 1);
         tap(study.findViewById(R.id.match_hint));
-        compare("The manual hint marks the recommended first move", true, hintShown(study, board, lines, 0));
-        checkHintPreview(study, "manual-analysis", lines.get(0).move());
-        var destination = lines.get(0).move().to();
+        compare("The manual hint marks the recommended first move", true,
+                analyzedBlackReply && preview.lines().size() == 1 && hintShown(study, board, hint));
+        checkHintPreview(study, "manual-analysis", root, preview);
+        var destination = hint.revealed().move().to();
         tap(cell(board, BoardSquare.name(destination)));
         var history = (ViewGroup) study.findViewById(R.id.match_history_moves);
         compare("Returning to the study lets the player apply the hint without saving a match", true,
-                history.getChildCount() == 2 && history.getChildAt(1).isSelected() && store.matches().readMatch() == null);
+                history.getChildCount() == 3 && history.getChildAt(2).isSelected() && store.matches().readMatch() == null);
     }
     private static boolean hasPawn(Activity activity, BoardView board, String square) {
         return cell(board, square).getContentDescription().toString().contains(activity.getString(R.string.pawn));
@@ -1592,7 +1599,10 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private Rect payoffCell(int square, boolean blackBelow) {
-        var board = nodeBounds(visibleReviewNode(R.id.quest_payoff_board));
+        return boardCell(nodeBounds(visibleReviewNode(R.id.quest_payoff_board)), square, blackBelow);
+    }
+
+    private static Rect boardCell(Rect board, int square, boolean blackBelow) {
         int index = BoardSquare.displayIndex(square, blackBelow);
         int column = index % 8;
         int row = index / 8;
@@ -1669,46 +1679,104 @@ public final class BoardSanity extends Instrumentation {
         var bounds = screenBounds(board);
         compare("The saved game opens analysis at the selected historical position", true,
                 awaitHiddenAnalysis(activity, 1) && hasPawn(activity, board, "e4") && !hasPawn(activity, board, "e5"));
-        var lines = saved.bestLinesAt(1);
+        var hint = saved.hintAt(1);
+        hint.revealNext();
         tap(activity.findViewById(R.id.match_hint));
-        compare("The historical hint marks its own legal recommendation", true, hintShown(activity, board, lines, 0));
-        checkHintPreview(activity, "match-analysis", lines.get(0).move());
+        compare("The historical hint marks its own legal recommendation", true, hintShown(activity, board, hint));
+        var root = saved.positionAt(1);
+        checkHintPreview(activity, "match-analysis", root, hint.playback(root).orElseThrow());
         compare("Returning to history preserves the selected move and the saved game", true,
-                bounds.equals(screenBounds(board)) && hintShown(activity, board, lines, 0)
+                bounds.equals(screenBounds(board)) && hintShown(activity, board, hint)
                         && saved.checkpoint().equals(store.matches().readMatch().checkpoint()));
     }
 
-    private void checkHintPreview(Activity activity, String frame, ChessPosition.Move expected) throws Exception {
+    private void checkHintPreview(Activity activity, String frame, ChessPosition root, ro.atf.chess.MatchHint.Playback expected) throws Exception {
         tap(activity.findViewById(R.id.match_analysis));
-        var recommended = reviewNode(R.id.hint_compare_best, 12000);
-        if (recommended == null || reviewNode(R.id.hint_compare_other, 2500) == null) {
-            throw new AssertionError("Both verified hint lines must be selectable");
-        }
-        String label = recommended.getText().toString().toLowerCase(java.util.Locale.ROOT);
-        boolean selectedRecommendation = recommended.isSelected()
-                && label.endsWith(ChessActivity.compactNotation(expected).toLowerCase(java.util.Locale.ROOT));
         var previewBoard = nodeBounds(reviewNode(R.id.hint_preview_board, 4500));
-        clickReviewIcon(R.id.hint_compare_other);
-        clickReviewIcon(R.id.hint_preview_next);
-        var alternative = reviewNode(R.id.hint_preview_step, 2500);
-        String alternativeText = alternative == null ? "" : alternative.getText().toString();
-        clickReviewIcon(R.id.hint_compare_best);
+        boolean branchesAligned = checkHintBranches(activity, root, expected, previewBoard);
         clickReviewIcon(R.id.hint_preview_next);
         clickReviewIcon(R.id.hint_preview_next);
-        var second = reviewNode(R.id.hint_preview_step, 2500);
-        boolean secondReached = second != null && second.getText().toString().startsWith("2/");
+        var main = ro.atf.chess.HintPreview.openDefended(root, expected.lines().get(0)).orElseThrow();
+        boolean secondReached = hintStepShows(activity, main, 2);
         clickReviewIcon(R.id.hint_preview_previous);
-        var first = reviewNode(R.id.hint_preview_step, 2500);
         compare("Next shows the calculated reply and Previous returns to the first move", true,
-                selectedRecommendation && secondReached && first != null && first.getText().toString().startsWith("1/")
-                        && first.getText().toString().endsWith(ChessActivity.notation(activity, expected)) && alternativeText.startsWith("1/")
-                        && !alternativeText.split(" · ", 2)[1].equals(first.getText().toString().split(" · ", 2)[1]));
+                branchesAligned && secondReached && hintStepShows(activity, main, 1));
+        for (int ply = 1; ply < main.length(); ply++) clickReviewIcon(R.id.hint_preview_next);
+        boolean finalReplyVisible = hintStepShows(activity, main, main.length());
+        var score = reviewNode(R.id.hint_preview_delta, 2500);
+        boolean signedChangeVisible = score != null && String.valueOf(score.getText()).contains("Δ") && score.getContentDescription() != null;
+        replayCapture = displayCaptureGeometry();
         captureFrame(frame, "The suggested line and its navigation are visible with a fixed preview board",
-                image -> !previewBoard.isEmpty() && previewBoard.equals(nodeBounds(visibleReviewNode(R.id.hint_preview_board)))
+                image -> branchesAligned && finalReplyVisible && signedChangeVisible && !previewBoard.isEmpty()
+                        && previewBoard.equals(nodeBounds(visibleReviewNode(R.id.hint_preview_board)))
+                        && hintBoardCornersAreRendered(image, previewBoard)
+                        && hintLastMoveIsRendered(image, previewBoard, main.lastMove())
                         && visibleReviewNode(R.id.hint_preview_reason) != null
-                        && visibleReviewNode(R.id.hint_compare_summary) != null
+                        && (visibleReviewNode(R.id.hint_compare_summary) != null) == (expected.depth() > 0)
                         && visibleReviewNode(R.id.hint_preview_next) != null && visibleReviewNode(R.id.hint_preview_return) != null);
         clickReviewIcon(R.id.hint_preview_return);
+    }
+
+    private boolean checkHintBranches(Activity activity, ChessPosition root, ro.atf.chess.MatchHint.Playback expected, Rect previewBoard) throws Exception {
+        int[] ids = {R.id.hint_compare_best, R.id.hint_compare_other, R.id.hint_compare_third};
+        var lines = expected.lines();
+        if (lines.size() == 1) return java.util.Arrays.stream(ids).noneMatch(id -> visibleReviewNode(id) != null);
+        int minimumTarget = Math.round(48 * activity.getResources().getDisplayMetrics().density);
+        var main = reviewNode(ids[0], 2500);
+        if (main == null || !main.isSelected()) return false;
+        var mainBounds = nodeBounds(main);
+        for (int index = 0; index < ids.length; index++) {
+            var node = visibleReviewNode(ids[index]);
+            if (index >= lines.size()) {
+                if (node != null) return false;
+                continue;
+            }
+            if (node == null) return false;
+            var line = lines.get(index);
+            var bounds = nodeBounds(node);
+            String expectedText = activity.getString(R.string.hint_compare_choice, index + 1, ChessActivity.compactNotation(line.move()));
+            if (!expectedText.contentEquals(node.getText())
+                    || !String.valueOf(node.getContentDescription()).contains(ChessActivity.notation(activity, line.move()))
+                    || bounds.top != mainBounds.top || bounds.bottom != mainBounds.bottom
+                    || bounds.height() < minimumTarget || bounds.width() < minimumTarget) return false;
+            if (index == 0) continue;
+            clickReviewIcon(ids[index]);
+            var active = visibleReviewNode(ids[index]);
+            clickReviewIcon(R.id.hint_preview_next);
+            var replay = ro.atf.chess.HintPreview.openDefended(root, line).orElseThrow();
+            if (active == null || !active.isSelected() || !hintStepShows(activity, replay, 1)
+                    || !previewBoard.equals(nodeBounds(visibleReviewNode(R.id.hint_preview_board)))) return false;
+        }
+        clickReviewIcon(ids[0]);
+        return true;
+    }
+
+    private boolean hintStepShows(Activity activity, ro.atf.chess.HintPreview replay, int ply) throws Exception {
+        var node = reviewNode(R.id.hint_preview_step, 2500);
+        if (node == null || node.getText() == null || replay.length() < ply) return false;
+        replay.seek(ply);
+        String label = node.getText().toString();
+        return label.startsWith(ply + "/" + replay.length() + " · ")
+                && label.endsWith(ChessActivity.notation(activity, replay.lastMove()));
+    }
+
+    private boolean hintBoardCornersAreRendered(Bitmap image, Rect board) {
+        return List.of("a1", "h1", "a8", "h8").stream().allMatch(name -> {
+            int square = BoardSquare.parse(name);
+            boolean light = BoardSquare.isLight(square);
+            var cell = boardCell(board, square, false);
+            return hasColor(image, cell, light ? 0xffedf0d5 : 0xff769556, 24)
+                    || hasColor(image, cell, light ? 0xfff4ef86 : 0xffbec953, 24);
+        });
+    }
+
+    private boolean hintLastMoveIsRendered(Bitmap image, Rect board, ChessPosition.Move move) {
+        return List.of(false, true).stream().anyMatch(blackBelow ->
+                hintSquareIsMarked(image, board, move.from(), blackBelow) && hintSquareIsMarked(image, board, move.to(), blackBelow));
+    }
+
+    private boolean hintSquareIsMarked(Bitmap image, Rect board, int square, boolean blackBelow) {
+        return hasColor(image, boardCell(board, square, blackBelow), BoardSquare.isLight(square) ? 0xfff4ef86 : 0xffbec953, 24);
     }
     private boolean awaitHiddenAnalysis(Activity activity, int ply) {
         TextView panel = activity.findViewById(R.id.match_analysis);
@@ -1731,18 +1799,18 @@ public final class BoardSanity extends Instrumentation {
         waitForIdleSync();
     }
 
-    private static boolean hintShown(Activity activity, BoardView board, List<ro.atf.chess.TacticalAnalysis.Variation> lines, int index) {
-        var variation = lines.get(index);
-        var sequence = new java.util.StringJoiner(" · ");
-        for (int step = 0; step < Math.min(3, variation.line().size()); step++) {
-            sequence.add(ChessActivity.compactNotation(variation.line().get(step)));
-        }
-        if (variation.line().size() > 3) sequence.add("…");
-        String expected = lines.size() == 1 ? sequence.toString()
-                : activity.getString(R.string.match_analysis_variant, index + 1, lines.size(), sequence.toString());
+    private static boolean hintShown(Activity activity, BoardView board, ro.atf.chess.MatchHint hint) {
+        var variation = hint.revealed();
+        String firstMove = ChessActivity.compactNotation(variation.move());
+        String choice = hint.count() == 1 ? firstMove : activity.getString(R.string.match_analysis_variant, hint.number(), hint.count(), firstMove);
+        String action = activity.getString(R.string.hint_preview_action, choice);
+        var spoken = new java.util.StringJoiner(". ");
+        for (var move : variation.line()) spoken.add(ChessActivity.notation(activity, move));
+        String expectedSpokenLine = activity.getString(R.string.match_analysis_variant_spoken, hint.number(), hint.count(), spoken.toString());
         TextView panel = activity.findViewById(R.id.match_analysis);
         View destination = cell(board, BoardSquare.name(variation.move().to()));
-        return activity.findViewById(R.id.match_hint).isSelected() && panel.getText().toString().endsWith("\n" + expected)
+        return activity.findViewById(R.id.match_hint).isSelected() && panel.isClickable() && panel.getText().toString().endsWith("\n" + action)
+                && String.valueOf(panel.getContentDescription()).contains(expectedSpokenLine)
                 && destination.getContentDescription().toString().endsWith(activity.getString(R.string.hint_destination, ""));
     }
 
