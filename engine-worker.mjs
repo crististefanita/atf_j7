@@ -1,12 +1,13 @@
 import { analyzeReview, canonicalCheckpoint, continueMatch, matchHistory, openLedger, openMatch, openReview,
-  playBot, playMatch, reviewAction, snapshot } from "./chess-engine.mjs";
+  archiveReviewCheckpoint, importLegacyReview, ledgerState, openArchiveReview, playBot, playMatch, reviewAction,
+  saveArchiveReview, snapshot } from "./chess-engine.mjs";
 
 let pending = Promise.resolve();
 self.onmessage = ({ data }) => {
   pending = pending.then(() => respond(data ?? {}));
 };
 
-async function respond({ id, type, resources, archive, checkpoint, ledger, legacy, route, slot, archiveId, setup,
+async function respond({ id, type, resources, archive, checkpoint, review, ledger, legacy, route, slot, archiveId, setup,
   expectedRevision, automatic, action, move, ply = -1 }) {
   try {
     if (type === "snapshot" && typeof resources === "string") {
@@ -16,9 +17,26 @@ async function respond({ id, type, resources, archive, checkpoint, ledger, legac
       const digest = await sha256(canonical);
       const view = JSON.parse(openReview(archive.id, canonical, archive.review, archive.bookmark ?? null, digest));
       self.postMessage({ id, view });
+    } else if (type === "archive-review-open" && validArchiveId(archiveId)) {
+      const canonical = archiveReviewCheckpoint(archiveId);
+      const view = openArchiveReview(archiveId, await sha256(canonical));
+      const state = JSON.parse(ledgerState());
+      self.postMessage(view === null ? { id, ...state, outcome: "NEEDS_ANALYSIS", checkpoint: canonical }
+        : { id, ...state, outcome: "OPENED", view: JSON.parse(view) });
+    } else if (type === "archive-review-save" && validArchiveId(archiveId) && typeof checkpoint === "string" && typeof review === "string") {
+      const canonical = archiveReviewCheckpoint(archiveId);
+      if (checkpoint !== canonical) throw new TypeError("The analysis checkpoint does not match the archived game");
+      const view = JSON.parse(saveArchiveReview(archiveId, canonical, review, await sha256(canonical)));
+      self.postMessage({ id, ...JSON.parse(ledgerState()), outcome: "OPENED", view });
+    } else if (type === "archive-review-migrate" && validArchive(archive)) {
+      const canonical = canonicalLegacyCheckpoint(archive.checkpoint);
+      const digest = canonical === null ? null : await sha256(canonical);
+      self.postMessage({ id, ...JSON.parse(importLegacyReview(archive.id, canonical, archive.review, archive.bookmark ?? null, digest)) });
     } else if (type === "review-action" && validRevision(expectedRevision) && typeof action === "string" && Number.isInteger(ply) &&
-        ply >= -1 && ply <= 2147483647) {
-      self.postMessage({ id, ...JSON.parse(reviewAction(expectedRevision, action, ply)) });
+        ply >= -1 && ply <= 2147483647 && (archiveId == null || validArchiveId(archiveId))) {
+      const result = JSON.parse(reviewAction(archiveId ?? null, expectedRevision, action, ply));
+      const state = archiveId == null ? {} : JSON.parse(ledgerState());
+      self.postMessage({ id, ...state, ...result });
     } else if (type === "ledger-open" && optionalText(ledger) && optionalText(legacy?.local) && optionalText(legacy?.ai)) {
       self.postMessage({ id, ...JSON.parse(openLedger(ledger ?? null, legacy?.local ?? null, legacy?.ai ?? null)) });
     } else if (type === "match-open" && validMatchOpen(route, slot, archiveId, setup)) {
@@ -53,11 +71,15 @@ function optionalText(value) {
   return value == null || typeof value === "string";
 }
 
+function validArchiveId(value) {
+  return typeof value === "string" && /^[a-f0-9-]{36}$/.test(value);
+}
+
 function validMatchOpen(route, slot, archiveId, setup) {
   if ([route, slot, archiveId, setup].filter(value => value != null).length !== 1) return false;
   if (route != null) return ["LOCAL", "AI"].includes(route);
   if (slot != null) return Number.isInteger(slot) && slot >= 1 && slot <= 10;
-  if (archiveId != null) return typeof archiveId === "string" && /^[a-f0-9-]{36}$/.test(archiveId);
+  if (archiveId != null) return validArchiveId(archiveId);
   return setup.mode === "LOCAL" || (setup.mode === "AI" && ["WHITE", "BLACK"].includes(setup.humanSide)
     && ["BASIC", "ADVANCED", "HARD"].includes(setup.level));
 }
@@ -70,4 +92,12 @@ async function sha256(checkpoint) {
 function validArchive(archive) {
   return archive && typeof archive.id === "string" && typeof archive.checkpoint === "string" &&
     typeof archive.review === "string" && (archive.bookmark == null || typeof archive.bookmark === "string");
+}
+
+function canonicalLegacyCheckpoint(checkpoint) {
+  try {
+    return canonicalCheckpoint(checkpoint);
+  } catch {
+    return null;
+  }
 }
