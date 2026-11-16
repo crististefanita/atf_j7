@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { setTimeout as pause } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
+import { exerciseReviewFocus } from './review-focus.mjs';
 
 const args = process.argv.slice(2);
 assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs <site> <archive.json|--active|--ai|--ledger|--archives|--review-continue> <new-evidence-directory> <edge-exe> [public-ai-url]');
@@ -31,8 +32,9 @@ const fixtureBytes = fixturePath === null ? null : await readFile(fixturePath);
 const fixture = fixtureBytes && JSON.parse(fixtureBytes.toString('utf8'));
 const anchor = fixture?.expected;
 const reviewGraphScenario = fixture?.scope === 'review-graph';
-if (publicUrl) assert.ok((aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario || reviewGraphScenario) && publicUrl === readmeUrl,
-    `Public smoke requires --ai, --ledger, --archives, --review-continue or the review graph fixture and the README URL ${readmeUrl}`);
+const reviewFocusScenario = fixture?.scope === 'review-focus';
+if (publicUrl) assert.ok((aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario || reviewGraphScenario || reviewFocusScenario) &&
+    publicUrl === readmeUrl, `Public smoke requires an evidence scenario and the README URL ${readmeUrl}`);
 if (reviewGraphScenario) {
     assert.equal(anchor.totalPlies, 185);
     assert.deepEqual(anchor.samples.map(sample => sample.ply), [0, 93, 184, 185]);
@@ -230,6 +232,15 @@ try {
         assert.equal(bytes.readUInt32BE(20), dimensions.height);
         await writeFile(join(evidence, file), bytes, { flag: 'wx' });
         captures.push({ file, sha256: sha256(bytes) });
+    }
+
+    async function pressKey(key, shift = false) {
+        const codes = { Tab: 9, Enter: 13, Escape: 27, End: 35, Home: 36, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
+        const event = { key, code: key, windowsVirtualKeyCode: codes[key], modifiers: shift ? 8 : 0 };
+        await send('Input.dispatchKeyEvent', key === 'Enter'
+            ? { type: 'keyDown', ...event, text: '\r', unmodifiedText: '\r' }
+            : { type: 'rawKeyDown', ...event });
+        await send('Input.dispatchKeyEvent', { type: 'keyUp', ...event });
     }
 
     const manualKey = 'chesslab.active-match.v1';
@@ -687,7 +698,7 @@ try {
             forkCheckpoint, selectedPly, ledgerBefore, ledgerAfter };
     }
 
-    async function exerciseReviewGraph() {
+    async function openMigratedReview(total) {
         if (publicUrl) {
             await until(() => evaluate(`${visible('#ai-setup')} && location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
                 'public preview starts in AI setup');
@@ -696,12 +707,17 @@ try {
         if (await displayed('#review-close')) await touch('#review-close');
         await touch('#open-finished');
         const archiveId = await until(() => evaluate("document.querySelector('.match-row[data-mode=AI]')?.dataset.id"),
-            'the migrated long archived game');
+            'the migrated archived game');
         await touch(`.match-row[data-id="${archiveId}"]`);
         const original = await waitActive('the complete game from the fixture', game => game.id === archiveId && game.readOnly);
         assert.equal(original.checkpoint, 'ai|' + fixture.checkpoint);
         await touch('#analyze');
-        const opened = await wait('cached Game Review with 185 plies', review => review.archiveId === archiveId && review.ply === 185);
+        const opened = await wait('the cached archived Game Review', review => review.archiveId === archiveId && review.ply === total);
+        return { archiveId, opened };
+    }
+
+    async function exerciseReviewGraph() {
+        const { archiveId, opened } = await openMigratedReview(185);
         check('graph-long-fixture', true, opened.cells === 64 && opened.branch === 'HISTORY' &&
             (await evaluate("document.querySelector('#history').children.length")) === 186);
 
@@ -812,12 +828,12 @@ try {
         deviceScaleFactor: viewport.deviceScaleFactor, mobile: true });
     await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
     await send('Emulation.setLocaleOverride', { locale: viewport.locale.replace('-', '_') });
-    if (ledgerScenario || archivesScenario || reviewContinueScenario || activeScenario || reviewGraphScenario) {
+    if (ledgerScenario || archivesScenario || reviewContinueScenario || activeScenario || reviewGraphScenario || reviewFocusScenario) {
         await send('Page.addScriptToEvaluateOnNewDocument', { source: `
             if (location.pathname === ${JSON.stringify(hostPath)}) {
-                if (${reviewGraphScenario} && localStorage.getItem('${ledgerKey}') === null) {
-                    localStorage.setItem('${aiKey}', ${JSON.stringify(reviewGraphScenario ? 'ai|' + fixture.checkpoint : null)});
-                    localStorage.setItem('chesslab.game-review.v1', ${JSON.stringify(reviewGraphScenario ? JSON.stringify(fixture) : null)});
+                if (${reviewGraphScenario || reviewFocusScenario} && localStorage.getItem('${ledgerKey}') === null) {
+                    localStorage.setItem('${aiKey}', ${JSON.stringify(reviewGraphScenario || reviewFocusScenario ? 'ai|' + fixture.checkpoint : null)});
+                    localStorage.setItem('chesslab.game-review.v1', ${JSON.stringify(reviewGraphScenario || reviewFocusScenario ? JSON.stringify(fixture) : null)});
                 } else if (${ledgerScenario || archivesScenario || reviewContinueScenario} && localStorage.getItem('${ledgerKey}') === null) {
                     localStorage.setItem('${manualKey}', ${JSON.stringify(archivesScenario || reviewContinueScenario ? archiveACheckpoint : legacyLocalCheckpoint)});
                     localStorage.setItem('${aiKey}', ${JSON.stringify(archivesScenario || reviewContinueScenario ? 'ai|' + archiveBCheckpoint : legacyAiCheckpoint)});
@@ -853,6 +869,10 @@ try {
         sourceProof = await exerciseReviewContinue();
     } else if (reviewGraphScenario) {
         sourceProof = await exerciseReviewGraph();
+    } else if (reviewFocusScenario) {
+        sourceProof = { scope: 'review-focus', publicUrl, fixtureSha256: sha256(fixtureBytes),
+            ...(await exerciseReviewFocus({ evaluate, until, wait, touch, pressKey, capture, check, openMigratedReview, playedFen })),
+            ledgerSnapshot: await evaluate(`localStorage.getItem('${ledgerKey}')`) };
     } else {
         sourceProof = await exerciseArchive();
     }

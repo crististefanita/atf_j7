@@ -535,3 +535,24 @@ testChanges:
     test: ro.atf.chess.GameReviewGraphParityTest#playbackAndRatedReviewKeepTheSameAnalysisCurve
     contract: "Preserve the common evaluation curve and apply the native rating to an eligible finished AI game"
     allowDelete: false
+  - id: J7-WEB-FOCUS-SUITES
+    base: "03f43eda1c610cd6d59ada3f01390bdeaf5175c2"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Discover offline Web focus components and real browser evidence at their explicit entry points"
+    allowDelete: false
+  - id: J7-WEB-PLAY-LINK
+    base: "03f43eda1c610cd6d59ada3f01390bdeaf5175c2"
+    from: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#mainReadmeShowsOneDirectPlayLinkBelowTheApk
+    contract: "Show the single canonical online play link with the approved label"
+    allowDelete: false
+  - id: J7-WEB-FOCUS-FIXTURE
+    base: "03f43eda1c610cd6d59ada3f01390bdeaf5175c2"
+    from: atf-tests/src/test/java/ro/atf/chess/GameReviewSessionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewSessionTest.java
+    test: ro.atf.chess.GameReviewSessionTest#archivedExplanationResumesTheExactBranchAndReturnsToTheOriginalMove
+    contract: "Preserve history and branch restoration while exporting the native-position browser focus fixture"
+    allowDelete: false

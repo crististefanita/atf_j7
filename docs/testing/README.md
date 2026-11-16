@@ -63,6 +63,8 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 `GameReviewGraphParityTest` folosește partida de 185 de semimutări din APK și poziții de control verificate separat. În JVM verifică punctul 184 la geometria nativă și la două lățimi Web, ambele capete, piesele Staunton originale și dimensiunile capturilor. Sanity-ul Android păstrează atingerea și redarea nativă. `ChessWebReviewGraphPublication` cere coordonatele trimise de interfață către worker, poziția de pe tablă, rândul vizibil și marcajul din arhivă după reîncărcare. [Graficul Game Review](../../web/README.md#graficul-din-game-review)
 
+`ChessWebReviewFocusComponents` verifică în Node destinațiile de focus, limitele istoricului și derularea necesară. `GameReviewSessionTest` verifică revenirea la poziția jucată după **De ce?**. Sanity-ul Edge păstrează proba Tab, săgeți și revenirea cu focus vizibil la font 1,3×. Reperul Android compact RO/EN verifică încadrarea și păstrarea poziției. [Tastatura în Game Review](../../web/README.md#tastatura-în-game-review) · [Redarea compactă](#redare-comună-pe-ecran-compact)
+
 Pe Android, `-MatchMenusOnly` verifică listele și deschiderea rândurilor salvate și încheiate. `-GameReviewOnly` verifică o mutare alternativă în continuare și păstrarea intrării arhivate. [Partidă și istoric](#partidă-și-istoric)
 
 ### Reluarea Game Review pe Android și Web

@@ -36,7 +36,7 @@ Proba pornește browserul sub `/atf_j7/`, reîncarcă în tura calculatorului ș
 
 Săgețile tablei schimbă poziția afișată. **Continuă de aici** cere confirmarea și păstrează mutările până la poziția selectată. Pentru o partidă activă rescrie slotul curent. Din arhivă pornește o partidă separată într-un slot liber sau reutilizabil, cu sursa păstrată. Dacă toate sloturile sunt active, utilizatorul rămâne la poziția selectată. Într-o partidă cu AI, confirmarea poate lăsa replica automată activă sau poate trece la control manual.
 
-Browserul păstrează biblioteca într-o singură înregistrare locală versionată. La prima deschidere, salvează împreună partidele locale și AI din previzualizarea veche. La deschiderile ulterioare citește biblioteca salvată. Schimbarea partidei sau a poziției din istoric invalidează comenzile din revizia precedentă. [Matricea APK–Web](parity.md#contracte-și-probe)
+Browserul păstrează biblioteca într-o singură înregistrare locală versionată. La prima deschidere, salvează împreună partidele locale și AI din versiunea Web anterioară. La deschiderile ulterioare citește biblioteca salvată. Schimbarea partidei sau a poziției din istoric invalidează comenzile din revizia precedentă. [Matricea APK–Web](parity.md#contracte-și-probe)
 
 Cu `$site`, `$edge` și un dosar `$evidence` nou în TMP:
 
@@ -95,6 +95,24 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewGraphPublication' "-Dchess.
 ```
 
 Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.graph.public=true` la publicarea Extent. [Probe de componentă și sanity](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
+
+### Tastatura în Game Review
+
+Tab trece prin tablă, comenzile disponibile, grafic și rândul selectat. Săgețile graficului păstrează focusul pe grafic și sincronizează tabla și istoricul. În listă, săgețile sus/jos, Home și End schimbă poziția și duc focusul la rândul rezultat. **De ce?** deschide redarea cu focus pe **Înapoi**. La închidere, focusul revine la **De ce?**, cu semimutarea și poziția din raport păstrate.
+
+Rulați componentele de focus cu Node prin Maven. Extent consemnează fiecare contract așteptat. Proba Edge folosește tastatura la font 1,3× pe aceeași poziție de mat în patru semimutări folosită la calificarea APK. [Strategia de testare](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
+
+```powershell
+$componentReport = Join-Path $workRoot 'review-focus-components.html'
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewFocusComponents' "-Dchess.extent=$componentReport"
+$focusFixture = Join-Path $workRoot 'review-focus.json'
+java -cp $cp ro.atf.chess.GameReviewArchiveFixture $focusFixture --focus
+node ./web/tests/browser-game-review.mjs $site $focusFixture $evidence $edge
+$receipt = Join-Path $evidence 'result.json'
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewFocusPublication' "-Dchess.web.bundle=$site" "-Dchess.web.focus.fixture=$focusFixture" "-Dchess.web.focus.receipt=$receipt"
+```
+
+Folosiți classpath-ul din proba graficului și un director nou pentru dovezi. Pentru difuzarea publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.focus.public=true`.
 
 ## Partida locală și o analiză nouă
 

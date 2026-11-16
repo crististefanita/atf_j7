@@ -365,6 +365,17 @@ class DocumentationGovernanceTest {
                 List.of(), missingReadmeRoutes(prose(root.resolve("README.md"))));
     }
 
+    @Test void mainReadmeShowsOneDirectPlayLinkBelowTheApk(Checks check) throws IOException {
+        var readme = prose(ProjectRoot.locate().resolve("README.md"));
+        String address = "https://crististefanita.github.io/atf_j7/#ai";
+        var game = readme.stream().dropWhile(line -> !line.equals("## Jocul")).skip(1)
+                .takeWhile(line -> !line.startsWith("## ")).filter(line -> !line.isBlank()).toList();
+        check.same("Jocul ends with the direct online play link", "- [Joacă online](" + address + ")",
+                game.isEmpty() ? "" : game.getLast());
+        check.same("The canonical play address appears exactly once", 1L,
+                readme.stream().filter(line -> line.contains(address)).count());
+    }
+
     @Test void projectReadmeArchitectureMatchesTheExecutableBuild(Checks check) throws Exception {
         Path root = ProjectRoot.locate();
         var declarations = new BuildDeclarations(Files.readString(root.resolve("pom.xml")),

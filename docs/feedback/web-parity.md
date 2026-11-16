@@ -25,7 +25,7 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 **Criteriu de închidere.** Același caz J7 pornește din JAR-ul JVM, trece prin intrarea Android și prin motorul compilat pentru browser, apoi produce aceeași succesiune de stări și aceeași restaurare. Măsurați mărimea pachetului, pornirea la rece, timpul căutării la buget identic și întreruperea pe profil mobil înainte de alegerea pragurilor de livrare. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
 
-**Game Review.** Verificați ordinea focusului între grafic, comenzi și rândul selectat, inclusiv după revenirea din **De ce?**. Comparați în RO și EN etichetele, rândul selectat și pașii variantelor la font mărit. Păstrați în JVM pozițiile, notarea și limitele cursorului, iar în sanity o glisare și o revenire. [Contractul analizei](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
+**Game Review.** Ordinea tastaturii Web și revenirea din **De ce?** sunt acoperite la font 1,3×. Măsurați cu cititorul de ecran ordinea efectivă și anunțurile în RO și EN, de la valoarea graficului la mutarea selectată și înapoi din explicație. Pe APK folosiți o glisare TalkBack, iar pe Web o probă de citire echivalentă. [Contractul analizei](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 
 ## WEB-02 · Adaptoare și afișaj comun
 
@@ -54,6 +54,6 @@ Primii martori sunt `1.e4 c5 2.c3 h5`, cu revenire din istoric la traseul Alapin
 
 ## WEB-04 · Calificare și publicare
 
-**P2 · Responsabili J7 și release.** J7 servește previzualizarea Web statică din `gh-pages`, după modelul J4. Proba la adresa publică verifică fișierele servite și reluarea într-un profil nou. Includeți în RAG actualizarea Web și legați commitul, cataloagele și SHA-urile APK și Web de recepții și revizia publicată. Pentru ediția 1:1, verificați recuperarea stocării la upgrade și aceeași versiune a contractului pe ambele platforme.
+**P2 · Responsabili J7 și release.** J7 servește jocul Web static din `gh-pages`. Proba la adresa publică verifică fișierele servite și reluarea într-un profil nou. Includeți în RAG actualizarea Web și legați commitul, cataloagele și SHA-urile APK și Web de recepții și revizia publicată. Verificați recuperarea stocării la upgrade și versiunea contractului pe ambele platforme.
 
-**Criteriu de închidere.** După verificarea URL-ului public, linkul **Joacă online · previzualizare** apare sub APK. Pentru a elimina statutul de previzualizare cereți toate funcțiile din matrice, cu dovezi pe Android și Web pentru aceeași ediție. Păstrați dovezile în dosarul ediției. [Procesul de release](../release/README.md#calificare-și-publicare) · [Publicarea GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+**Criteriu de închidere.** Proba pornește din **Joacă online**, sub APK în README, și confirmă accesul la joc și pachetul corect. Păstrați dovezile de paritate din matrice în dosarul ediției. [Procesul de release](../release/README.md#calificare-și-publicare) · [Publicarea GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)

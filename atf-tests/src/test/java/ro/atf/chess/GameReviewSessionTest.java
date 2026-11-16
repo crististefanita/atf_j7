@@ -169,7 +169,10 @@ final class GameReviewArchiveFixture {
     private GameReviewArchiveFixture() { }
 
     public static void main(String[] arguments) throws IOException {
-        if (arguments.length != 1) throw new IllegalArgumentException("Supply the destination for the browser archive fixture");
+        boolean focus = arguments.length == 2 && "--focus".equals(arguments[1]);
+        if (arguments.length != 1 && !focus) {
+            throw new IllegalArgumentException("Supply the destination for the browser archive fixture and optional --focus");
+        }
         var source = ChessMatch.restore("3|WHITE|ADVANCED|0|f2f3 e7e5 g2g4 d8h4");
         var review = GameReview.analyze(source, ignored -> { });
         var blunder = review.turns().get(2);
@@ -177,11 +180,12 @@ final class GameReviewArchiveFixture {
         int recommendedLength = blunder.bestLine().size();
         Files.writeString(Path.of(arguments[0]), """
                 {
-                  "id": "fools-mate-native",
+                  %s"id": "fools-mate-native",
                   "checkpoint": "%s",
                   "review": "%s",
                   "expected": {"ply": 3, "playedUci": "g2g4", "matingUci": "d8h4", "recommendedUci": "%s", "recommendedLength": %d}
                 }
-                """.formatted(source.checkpoint(), GameReviewCodec.encode(source, review), recommended, recommendedLength));
+                """.formatted(focus ? "\"scope\": \"review-focus\",\n  " : "", source.checkpoint(), GameReviewCodec.encode(source, review),
+                        recommended, recommendedLength));
     }
 }

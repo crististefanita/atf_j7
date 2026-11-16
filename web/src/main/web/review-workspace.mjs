@@ -1,3 +1,5 @@
+import { revealDistance } from './review-focus.mjs';
+
 const axisInset = 2;
 const colors = { axis: '#56564c', curve: '#b8d88a', arrow: '#57e0b4', arrowOutline: '#173b31' };
 const find = id => document.getElementById(id);
@@ -266,10 +268,19 @@ export function createReviewWorkspace(locale, selectGraph) {
         if (!element) return;
         const viewport = details.getBoundingClientRect();
         const selected = element.getBoundingClientRect();
-        if (selected.top < viewport.top || selected.bottom > viewport.bottom) details.scrollTop += selected.top - viewport.top;
+        details.scrollTop += revealDistance(viewport.top, viewport.bottom, selected.top, selected.bottom);
     }
 
-    return { render, moveLabel,
+    function revealFocus(element) {
+        if (details.contains(element)) reveal(element);
+        const toolbar = element.closest('#movement');
+        if (!toolbar) return;
+        const viewport = toolbar.getBoundingClientRect();
+        const selected = element.getBoundingClientRect();
+        toolbar.scrollLeft += revealDistance(viewport.left, viewport.right, selected.left, selected.right);
+    }
+
+    return { render, moveLabel, revealFocus,
         revealSelected: () => reveal(find('history').querySelector('[aria-current="step"]')),
         revealExplanation: () => reveal(find('why-title')) };
 }

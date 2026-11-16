@@ -75,12 +75,13 @@ class SuiteGovernanceTest {
         check.same("Native publishers keep a separate entry point", Set.of(AndroidSanityPublication.class.getName(), TalkBackPublication.class.getName()),
                 nativePublishers);
         check.same("The Git review is selected only with an explicit base", Set.of(TestChangeReview.class.getName()), explicitReview);
-        check.same("Web parity requires an explicit worker build", Set.of(ChessWebParityPublication.class.getName()), webPublishers);
+        check.same("Web component and parity contracts have explicit entry points",
+                Set.of(ChessWebParityPublication.class.getName(), ChessWebReviewFocusComponents.class.getName()), webPublishers);
         check.same("Browser publishers require explicit driver receipts",
                 Set.of(ChessWebReviewPublication.class.getName(), ChessWebGamePublication.class.getName(),
                         ChessWebBotPublication.class.getName(), ChessWebLedgerPublication.class.getName(),
                         ChessWebArchiveReviewsPublication.class.getName(), ChessWebArchiveContinuationPublication.class.getName(),
-                        ChessWebReviewGraphPublication.class.getName()), browserPublishers);
+                        ChessWebReviewGraphPublication.class.getName(), ChessWebReviewFocusPublication.class.getName()), browserPublishers);
         check.same("The discovered component inventory is nonempty", true, !expected.isEmpty());
         check.same("All JVM methods have a valid test layer", Set.of(), wronglyTagged);
         check.same("All JVM methods attach the Extent audit", Set.of(), unaudited);
