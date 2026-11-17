@@ -1,5 +1,7 @@
 # Bibliotecile ATF
 
+## Pe scurt
+
 Acest director documentează adoptarea bibliotecilor ATF în testele Chess Lab.
 Implementarea și regresiile generice aparțin J0; J7 verifică integrarea proprie.
 
@@ -7,16 +9,26 @@ Implementarea și regresiile generice aparțin J0; J7 verifică integrarea propr
 
 ```mermaid
 flowchart LR
-    J0["Surse și publicare ATF · J0"] -->|furnizează cinci perechi JAR/POM| Lib["Chess · lib/"]
-    Lib -->|identitate fixată în manifest| Provenance["library-provenance.json"]
-    Lib -->|POM-ul rădăcină instalează perechile| Maven["Depozit Maven de build"]
-    Maven -->|rezolvă Reporting și Test Kit în scope test| Suite["Suite Chess · atf-tests"]
-    Suite -->|publică aserțiuni și dovezi| Extent["HTML Extent sau fallback"]
+    J0["ATF J0"]
+    Donor["J4 · pachet fixat"]
+    Lib["Chess · lib/"]
+    Provenance["library-provenance.json"]
+    Maven["Maven"]
+    Suite["atf-tests"]
+    Extent["Extent"]
+    J0 -->|produce| Donor
+    Donor -->|cinci perechi| Lib
+    Lib -->|fixează| Provenance
+    Lib -->|instalează| Maven
+    Maven -->|scope test| Suite
+    Suite -->|dovezi| Extent
 ```
 
 <details>
 <summary>Legendă · Cum ajung bibliotecile ATF în rapoartele Chess</summary>
 
+- J0 produce bibliotecile. Manifestul de proveniență fixează și commitul J4
+  de la care provin cele cinci perechi JAR/POM incluse.
 - [POM-ul rădăcină](../pom.xml) instalează perechile. [Manifestul de proveniență](../library-provenance.json)
   fixează identitatea fișierelor, verificată de [testul de proveniență](../atf-tests/src/test/java/ro/atf/chess/PlatformLibraryProvenanceTest.java).
 - [POM-ul testelor](../atf-tests/pom.xml) declară Reporting și Test Kit în
@@ -37,6 +49,17 @@ flowchart LR
 | [Console](README.Console.md) | Evenimente și diagnostic în Maven și IntelliJ. |
 | [Mock](README.Mock.md) | Contracte HTTP deterministe, cu un catalog local. |
 | [Test Kit](README.TestKit.md) | Lifecycle și audit JUnit. |
+
+## Verificare
+
+Rulați din checkoutul TMP. Testul de proveniență compară perechile instalate cu
+manifestul. Guvernanța Extent verifică raportarea folosită de Chess.
+
+```powershell
+mvn -pl atf-tests -am test '-Dtest=PlatformLibraryProvenanceTest,ExtentGovernanceTest' '-Dsurefire.failIfNoSpecifiedTests=false'
+```
+
+J0 deține contractele exemplelor de bibliotecă. [Ghidurile executabile J0](https://github.com/crististefanita/atf_j0/blob/master/docs/ATF_Platform_Libraries.md)
 
 ## Mentenanță și feedback
 

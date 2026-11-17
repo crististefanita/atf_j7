@@ -36,3 +36,5 @@ public static void verifyState(RecordedAssertions audit, String actual) {
 ---
 
 Verificați contractele locale cu `PlatformLibraryProvenanceTest` și `SuiteGovernanceTest`. Păstrați coordonatele, hash-urile și notele de integrare sincronizate cu `library-provenance.json`.
+
+[Verificați integrarea în Chess și exemplele în J0](README.md#verificare)

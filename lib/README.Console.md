@@ -38,8 +38,12 @@ reporting:
 
 Calea cere opt-in, consolă activă și eveniment cu artifact confirmat; `detailsEnabled` controlează doar detaliile.
 
-Console depinde de Core; Kit este opțional pentru legătura JUnit. Proiecția rămâne diagnostică: comparația și verdictul aparțin testului.
+Console depinde de Core. Kit este opțional pentru integrarea JUnit.
+
+Console proiectează diagnosticul. Testul deține comparația și verdictul.
 
 ---
 
 Înainte de o versiune nouă, verificați compatibilitatea locală cu `PlatformLibraryProvenanceTest` și randarea diagnosticelor cu `ExtentGovernanceTest`. Păstrați coordonatele, hash-urile și notele de integrare sincronizate cu `library-provenance.json`.
+
+[Verificați integrarea în Chess și exemplele în J0](README.md#verificare)

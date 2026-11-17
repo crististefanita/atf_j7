@@ -1,6 +1,6 @@
 # Chess Lab
 
-Play chess against AI, solve puzzles, and study openings.
+Joacă șah cu AI, rezolvă probleme și studiază deschiderile.
 
 ## Jocul
 
@@ -24,12 +24,18 @@ Play chess against AI, solve puzzles, and study openings.
 
 ```mermaid
 flowchart LR
-    Core["Motor Java + resurse YAML"] -->|build Gradle| Android["Aplicație Android :app"]
-    Core -->|build TeaVM| Worker["Worker Web"]
-    Browser["Interfață Web"] <-->|comenzi și răspunsuri| Worker
-    Core -->|verificat în Maven| Tests["Suite JVM"]
-    Tests -->|publică| Extent["Extent"]
-    Android -.->|recepții native| Tests
+    Core["Java + YAML"]
+    Android["Android :app"]
+    Worker["Worker Web"]
+    Browser["Interfață Web"]
+    Tests["Suite JVM"]
+    Extent["Extent"]
+    Core -->|Gradle| Android
+    Core -->|TeaVM| Worker
+    Browser <-->|comenzi| Worker
+    Core -->|Maven| Tests
+    Android -.->|recepții| Tests
+    Tests -->|publică| Extent
 ```
 
 <details>

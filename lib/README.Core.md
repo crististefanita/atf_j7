@@ -42,3 +42,5 @@ var total = body.path("total").decimalValue();
 ---
 
 Înainte de o versiune nouă, verificați compatibilitatea locală cu `PlatformLibraryProvenanceTest` și contractele folosite de Chess Lab. Păstrați coordonatele, hash-urile și notele de integrare sincronizate cu `library-provenance.json`.
+
+[Verificați integrarea în Chess și exemplele în J0](README.md#verificare)

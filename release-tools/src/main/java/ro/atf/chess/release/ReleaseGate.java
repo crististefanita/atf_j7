@@ -20,6 +20,13 @@ public final class ReleaseGate {
             ReleaseEvidence.gameLinks(Files.readString(Path.of(args[1]))).forEach(System.out::println);
             return;
         }
+        if (args.length > 0 && "documentation-pair".equals(args[0])) {
+            if (args.length != 4) throw new IllegalArgumentException("Expected documentation-pair <Git root> <EN ref> <RO ref>");
+            var result = DocumentationPair.verify(Path.of(args[1]), args[2], args[3]);
+            System.out.printf("PASS documentation-pair main=%s main_RO=%s documents=%d links=%d sectionLinks=%d%n",
+                    result.english(), result.romanian(), result.documents(), result.links(), result.sectionLinks());
+            return;
+        }
         if (args.length > 0 && "preflight".equals(args[0])) {
             if (args.length != 4) throw new IllegalArgumentException("Expected preflight <Surefire directory> <Git root> <base SHA>");
             preflight(Path.of(args[1]), Path.of(args[2]), args[3]);

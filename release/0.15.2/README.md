@@ -1,5 +1,9 @@
 # Chess Lab 0.15.2
 
+## Pe scurt
+
+Descarcă APK-ul semnat din **Assets**.
+
 ## Îmbunătățiri
 
 - Teoria deschiderilor și **De ce?** din Game Review folosesc aceeași redare pe
@@ -14,6 +18,6 @@
 
 ## Instalare
 
-Descarcă APK-ul semnat din **Assets**. [Ediția pe GitHub](https://github.com/crististefanita/chess/releases/tag/v0.15.2)
+[Ediția pe GitHub](https://github.com/crististefanita/chess/releases/tag/v0.15.2)
 
 [Dovezile ediției](reports/README.md)

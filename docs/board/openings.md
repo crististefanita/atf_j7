@@ -1,6 +1,11 @@
 # Deschideri
 
-Din meniul principal, intră în **Deschideri**, alege o linie și joacă cu albele sau cu negrele. Tabla se orientează cu piesele tale jos. Aplicația redă replicile din lecție și explică ideea fiecărei mutări. O mutare legală din altă variantă lasă lecția la pasul curent.
+## Pe scurt
+
+- **Domeniu.** Exersează o linie adnotată din catalog cu oricare culoare. Tabla de analiză poate afișa și continuările documentate pentru poziția exactă.
+- **Probe.** `OpeningCatalogTest` verifică datele și mutările legale, `OpeningLessonTest` verifică jocul și reluarea, iar `OpeningTheoryTest` verifică găsirea teoriei. `ChessWebOpeningStudyTest` verifică comenzile Web.
+
+- Din meniul principal, intră în **Deschideri**, alege o linie și joacă cu albele sau cu negrele. Tabla se orientează cu piesele tale jos. Aplicația redă replicile din lecție și explică ideea fiecărei mutări. O mutare legală din altă variantă lasă lecția la pasul curent.
 
 | Lecție | Poziția studiată | Ideea urmărită |
 |---|---|---|
@@ -19,22 +24,27 @@ Din meniul principal, intră în **Deschideri**, alege o linie și joacă cu alb
 | Siciliana Alapin | Apărarea Barmen, linia modernă, B22 | Albul pregătește d4 prin c3, iar negrul răspunde din timp cu d5. [Linia Barmen în Lichess](https://github.com/lichess-org/chess-openings/blob/3ba6b20d31b2e6125cb0e6a2e792f400717d9d39/b.tsv#L451) |
 | Apărarea est-indiană | Aronin–Taimanov, E97 | Centrul larg al albului, contraatacul cu e5 și poziția închisă după d5. [Linia Aronin–Taimanov în Lichess](https://github.com/lichess-org/chess-openings/blob/master/e.tsv#L358) |
 
-Săgețile deasupra tablei parcurg câte o semimutare. În istoric vezi poziția și explicația mutării alese. Atinge progresul pentru a sări la o poziție jucată. **Rejoacă de aici** reia lecția de la poziția afișată. Comanda sistemului **Înapoi** revine din istoric la poziția curentă.
+- Săgețile deasupra tablei parcurg câte o semimutare. În istoric vezi poziția și explicația mutării alese. Atinge progresul pentru a sări la o poziție jucată. **Rejoacă de aici** reia lecția de la poziția afișată. Comanda sistemului **Înapoi** revine din istoric la poziția curentă.
 
-La poziția curentă, săgeata înainte aplică exact următoarea mutare din lecție. Când replica din catalog rămâne în așteptare, mai apasă o dată săgeata sau folosește **Continuă lecția**. Dacă joci cu piesele pe tablă, replica vine automat. La final poți reveni la orice pas sau exersa din nou.
+- La poziția curentă, săgeata înainte aplică exact următoarea mutare din lecție. Când replica din catalog rămâne în așteptare, mai apasă o dată săgeata sau folosește **Continuă lecția**. Dacă joci cu piesele pe tablă, replica vine automat. La final poți reveni la orice pas sau exersa din nou.
 
-Pe aceeași fereastră, tabla păstrează poziția și dimensiunea când parcurgi mutările. Progresul și butoanele își rezervă înălțimea, iar **Indiciu lecție**, **Continuă lecția** și **Rejoacă de aici** folosesc același loc.
+- Pe aceeași fereastră, tabla păstrează poziția și dimensiunea când parcurgi mutările. Progresul și butoanele își rezervă înălțimea, iar **Indiciu lecție**, **Continuă lecția** și **Rejoacă de aici** folosesc același loc.
 
-**Indiciu lecție** evidențiază întâi piesa. **Arată mutarea** selectează piesa, trasează săgeata și afișează coordonatele și ideea. Atinge destinația marcată ca să joci mutarea.
+- **Indiciu lecție** evidențiază întâi piesa. **Arată mutarea** selectează piesa, trasează săgeata și afișează coordonatele și ideea. Atinge destinația marcată ca să joci mutarea.
 
-**Analiză AI** evaluează poziția afișată, inclusiv în istoric și la finalul lecției. Becul parcurge cel mult trei continuări. Când sugestia coincide cu mutarea ta din lecție, o poți juca atingând destinația. O sugestie diferită apare etichetată drept variantă AI. Schimbarea poziției ascunde săgeata anterioară și actualizează evaluarea. [Politica indiciilor AI](ai-quality.md)
+- **Analiză AI** evaluează poziția afișată, inclusiv în istoric și la finalul lecției. Becul parcurge cel mult trei continuări. Când sugestia coincide cu mutarea ta din lecție, o poți juca atingând destinația. O sugestie diferită apare etichetată drept variantă AI. Schimbarea poziției ascunde săgeata anterioară și actualizează evaluarea. [Politica indiciilor AI](ai-quality.md)
 
 ## Configurarea lecțiilor
 
+- **Ordine și identitate.** Ordinea din `openings.yaml` stabilește ordinea din meniu. Fiecare lecție are ID stabil, cod ECO, sursă HTTPS, titlu, variantă și plan în română și engleză.
+- **Mutări și idei.** În `line`, fiecare pas conține mutarea UCI și ideea în ambele limbi. Pentru rocadă se declară mutarea regelui, de exemplu `e1g1`.
+- **Validare.** Motorul reia toate mutările de la poziția inițială și indică lecția și pasul dacă găsește o mutare ilegală. [Catalogul YAML](../../chess-core/src/main/resources/openings.yaml)
+- **Adăugarea unei linii.** Verificați codul ECO și mutările din sursă. Explicați ce schimbă mutarea pe tablă și ce plan pregătește. Păstrați ID-ul la editarea textului și adăugați o intrare distinctă pentru o variantă nouă.
+- **Verificarea schimbării.** Rulați suita de componente pentru ambele culori și proba Android pentru navigare, rejucare și indicii. [Setul ECO Lichess](https://github.com/lichess-org/chess-openings) · [Strategia de testare](../testing/README.md#deschideri)
+
 ## Indicii de teorie pe tabla de analiză
 
-Pe [Tabla de analiză](README.md#tablă-de-analiză), indiciile caută traseele din poziția exactă, inclusiv rocada și en passant. Din lecțiile YAML apar până la trei trasee în ordinea catalogului. După fiecare mutare, poziția nouă este căutată în întregul catalog, inclusiv dacă mutarea nu apărea în cele trei sugestii anterioare. Numărul de trasee se actualizează la ce există în poziția respectivă. Două trasee cu aceeași primă mutare rămân distincte când continuă diferit. Fiecare traseu păstrează toate semimutările rămase și explicațiile lor. Eticheta de sub tablă deschide redarea pe tot ecranul. Schimbarea traseului sau pasului păstrează tabla și săgețile în același loc. Fiecare traseu își păstrează propriul pas cât timp fereastra este deschisă. Înapoi revine la aceeași poziție de analiză. [Redarea în Game Review](game-review.md#navigarea-în-review-și-variantele-recomandate) Când lecțiile nu oferă un traseu, se aleg continuări complete din indexul ECO. Un traseu ECO nu are explicațiile adnotate ale lecțiilor. Dacă poziția nu are nicio continuare documentată, becul revine la motor.
-
-Ordinea elementelor din `openings.yaml` stabilește ordinea din meniu. Fiecare lecție are un ID stabil, cod ECO, sursă HTTPS, titlu, variantă și plan în română și engleză. În `line`, fiecare pas conține mutarea UCI și ideea în ambele limbi. Pentru rocadă se declară mutarea regelui, de exemplu `e1g1`. Motorul reia toate mutările de la poziția inițială și indică lecția și pasul dacă găsește o mutare ilegală. [Catalogul YAML](../../chess-core/src/main/resources/openings.yaml)
-
-La adăugarea unei linii, verificați codul ECO și mutările din sursă. Explicați ce schimbă mutarea pe tablă și ce plan pregătește. Păstrați ID-ul la editarea textului, iar pentru o variantă nouă adăugați o intrare distinctă. Rulați suita de componente pentru ambele culori și proba Android pentru navigare, rejucare și indicii. [Setul ECO Lichess](https://github.com/lichess-org/chess-openings) · [Strategia de testare](../testing/README.md#deschideri)
+- **Poziția.** Pe [Tabla de analiză](README.md#tablă-de-analiză), indiciile caută traseele din poziția exactă, inclusiv rocada și en passant. După fiecare mutare aplicația caută noua poziție în întregul catalog, inclusiv după o mutare care nu apărea în sugestiile anterioare.
+- **Traseele din catalog.** Lecțiile YAML oferă până la trei trasee în ordinea din catalog. Numărul afișat urmează disponibilitatea din poziția respectivă. Traseele cu aceeași primă mutare rămân distincte când continuă diferit și păstrează toate semimutările și explicațiile rămase.
+- **Redare.** Eticheta de sub tablă deschide redarea pe tot ecranul. Schimbarea traseului sau a pasului păstrează tabla și săgețile fixe. Fiecare traseu își păstrează pasul cât timp fereastra este deschisă, iar Înapoi revine la aceeași poziție. [Redarea în Game Review](game-review.md#navigarea-în-review-și-variantele-recomandate)
+- **Rezervă.** Fără lecție YAML aplicabilă, aplicația folosește continuări complete din indexul ECO. Traseele ECO nu au adnotările lecțiilor. Fără continuare documentată, becul revine la analiza motorului.

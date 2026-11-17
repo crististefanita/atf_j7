@@ -1,5 +1,7 @@
 # Edițiile Chess Lab
 
+## Pe scurt
+
 Catalogul indică ediția disponibilă și locul unde pot fi verificate dovezile ei.
 
 ## Ediția publicată

@@ -1,5 +1,7 @@
 # Documentația Chess Lab
 
+## Pe scurt
+
 Porniți de la ghidul care răspunde întrebării. Verificați afirmațiile despre comportament în surse și în testele proiectului.
 
 | Întrebare | Ghid |

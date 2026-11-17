@@ -103,7 +103,7 @@ public final class GitTestChanges {
         return !paths.isEmpty();
     }
 
-    private static List<String> fields(String value) throws IOException {
+    static List<String> fields(String value) throws IOException {
         if (value.isEmpty()) return List.of();
         if (value.charAt(value.length() - 1) != 0) throw new IOException("Git output is missing its NUL terminator");
         var parts = Arrays.asList(value.split("\u0000", -1));
@@ -112,11 +112,15 @@ public final class GitTestChanges {
         return result;
     }
 
-    private static String line(String output) {
+    static String line(String output) {
         return output.replaceFirst("\\r?\\n\\z", "");
     }
 
-    private static String command(Path root, String... args) throws IOException {
+    static String command(Path root, String... args) throws IOException {
+        return StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(command(root, new byte[0], args))).toString();
+    }
+
+    static byte[] command(Path root, byte[] input, String... args) throws IOException {
         var invocation = new ArrayList<>(List.of("git", "-C", root.toString(), "-c", "core.fsmonitor=false"));
         invocation.addAll(List.of(args));
         var builder = new ProcessBuilder(invocation);
@@ -131,6 +135,13 @@ public final class GitTestChanges {
         var process = builder.start();
         var output = drain(process.getInputStream());
         var errors = drain(process.getErrorStream());
+        var inputWriter = new FutureTask<Void>(() -> {
+            try (var stream = process.getOutputStream()) {
+                stream.write(input);
+            }
+            return null;
+        });
+        Thread.ofVirtual().start(inputWriter);
         try {
             if (!process.waitFor(20, TimeUnit.SECONDS)) throw new IOException("Git timed out during " + args[0]);
             byte[] bytes = output.get(5, TimeUnit.SECONDS);
@@ -139,7 +150,8 @@ public final class GitTestChanges {
                 throw new IOException("Git " + args[0] + " failed (exit " + process.exitValue() + ")"
                         + (diagnostic.isEmpty() ? "" : ": " + diagnostic));
             }
-            return StandardCharsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
+            inputWriter.get(5, TimeUnit.SECONDS);
+            return bytes;
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
             throw new IOException("Git test-change scan interrupted", interrupted);
@@ -149,6 +161,7 @@ public final class GitTestChanges {
             if (process.isAlive()) process.destroyForcibly();
             output.cancel(true);
             errors.cancel(true);
+            inputWriter.cancel(true);
         }
     }
 

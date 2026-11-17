@@ -1,5 +1,7 @@
 # Release și RAG
 
+## Pe scurt
+
 Acest ghid leagă commitul, APK-ul semnat, proba Android și descărcarea verificată.
 [Catalogul edițiilor](../../release/README.md) indică versiunea disponibilă și dovezile ei.
 
@@ -9,11 +11,11 @@ Versiunea disponibilă se verifică în README-ul din `origin/main`. Dacă ramur
 
 1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
 2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului. În `release/index.json`, `currentVersion` este ediția curentă, iar `versions` conține curentul urmat de o singură ediție anterioară pentru comparație. Candidatul rămâne separat până la publicare. [Catalogul edițiilor](../../release/README.md)
-3. Actualizați notele ediției și ghidurile afectate. Mutați regulile confirmate din feedback în ghidul care le deține și păstrați criteriile încă deschise. Puneți **Jocul** imediat după orientare, cu două linkuri în ordine: **Descarcă APK** și **Joacă în browser**. Sub arhitectură, puneți linkul către notele GitHub în **Ediția publicată**. Verificatorul confruntă tagul din note cu APK-ul. [Publicarea Web](../../web/parity.md#publicarea-linkului)
+3. Actualizați notele și ghidurile afectate în ambele ramuri. Mutați regulile confirmate din feedback în ghidul ownerului. În `main` folosiți **Play** și **Published Release**. În `main_RO` folosiți **Jocul** și **Ediția publicată**. Așezați linkurile APK și browser în această ordine sub titlul de joc. Puneți notele GitHub sub arhitectură. [Documentație bilingvă](#documentație-bilingvă) · [Publicarea Web](../../web/parity.md#publicarea-linkului)
 4. Creați commitul candidat în worktree-ul Git curat din TMP. Declarați SHA-ul bazei de revizuire, strămoș distinct al candidatului. Rulați DocumentationGovernanceTest, ReleaseGovernanceTest, ExtentGovernanceTest, TestChangeReview și ReleaseGate preflight înainte de semnare. Păstrați rapoartele și recepția reviziei Git. Activați probele AI când diff-ul afectează motorul sau corpusul. [Suitele JVM](../testing/README.md#suite-jvm) · [Schimbarea testelor](../testing/README.md#schimbarea-testelor-față-de-o-bază-git)
 5. Inițializați identitatea externă prin dot-sourcing `scripts/Initialize-J7Signing.ps1`. Pentru o cheie nouă după o ediție publicată, folosiți explicit `-StartNewIdentity`; scriptul refuză rotația implicită și protejează cheia cu ACL și DPAPI. Construiți APK-ul și testele Android cu Gradle, verificați semnătura, `versionCode` și compatibilitatea prin `scripts/verify-signing-continuity.ps1`. Rulați pe emulator parcursul potrivit schimbării și păstrați hash-ul APK-ului instalat și Extent-ul. Dacă semnarea s-a rotit și emulatorul păstrează ediția veche, nu dezinstalați instalarea cu date valoroase pentru a forța testul. Un APK sanity cu alt `applicationId` este suplimentar și nu califică binarul distribuibil.
 6. Rulați `ChessComponentSuite` și sanity Game Review sub același ID de calificare. Treceți APK-ul, commitul, directoarele recepțiilor brute și rapoartele Extent prin `ReleaseGate qualification`. Verificați în Extent comparațiile extensibile și capturile din pașii lor. Pentru o schimbare în Teoria deschiderilor sau **De ce?**, adăugați proba compactă la font 1,3× în RO și EN pe același APK și commit. [Redarea comună](../testing/README.md#redare-comună-pe-ecran-compact) [Criterii de audit Extent](../testing/README.md#raportare-extent)
-7. După semnare și calificare, împingeți tagul candidat fără a rescrie istoricul și publicați asset-ul GitHub. Păstrați `currentVersion`, lista de comparație și README-ul principal pe ultima ediție verificată până când asset-ul nou există. Apoi promovați candidatul în catalog și README. Păstrați în GitHub Release și local doar ediția nouă și ediția imediat anterioară; retrageți celelalte release-uri și dosare după ce noul asset și ruta din README au trecut verificarea. Nu ștergeți tagurile Git.
+7. După semnare și calificare, împingeți tagul candidat fără a rescrie istoricul și publicați asset-ul GitHub. Păstrați `currentVersion`, lista de comparație și README-ul principal pe ultima ediție verificată până când asset-ul nou există. Apoi promovați catalogul și README-ul în ambele ramuri. Păstrați în GitHub Release și local doar ediția nouă și ediția imediat anterioară; retrageți celelalte release-uri și dosare după ce noul asset și ruta din README au trecut verificarea. Nu ștergeți tagurile Git.
 8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
 
 După publicarea unui draft, recitiți release-ul după tag și identificați asset-ul după ID. GitHub poate returna o rută provizorie cu segmentul „untagged” în răspunsul de upload. Folosiți în README doar ruta canonică din metadatele release-ului publicat și verificați descărcarea completă.
@@ -24,13 +26,53 @@ Păstrați HTML-ul Extent generat la octet, inclusiv în indexul Git, pentru ca 
 
 În checkout, guvernanța ediției curente recalculează amprentele HTML pentru calificarea strictă și compară recepțiile Android cu sursa, APK-ul și totalul de aserțiuni. Căile rapoartelor și ale recepțiilor trebuie să rămână în dosarul ediției.
 
+## Documentație bilingvă
+
+Folosiți `main` pentru engleză și `main_RO` pentru română. Pregătiți ambele
+actualizări în worktree-uri detașate în TMP. Ramura implicită deține publicarea,
+iar metadatele, linkul APK și dovezile identifică aceeași ediție în ambele ramuri.
+
+1. Porniți din `origin/main` și `origin/main_RO` live. Precizați formularea
+   românească și transpuneți aceeași schimbare în engleză. Aliniați căile,
+   ierarhia secțiunilor, sensul comenzilor, valorile și dovezile.
+2. Revizuiți formulările și etichetele reale ale interfeței în ambele limbi.
+   Folosiți SAN standard în exemplele de șah EN. Consemnați localizările care
+   diferă intenționat la afișare și păstrează mutarea sau comportamentul.
+3. Rulați `DocumentationGovernanceTest` în fiecare worktree candidat și poarta
+   perechii pe cele două SHA-uri candidate comise. Verificați regulile J0 pentru
+   orientare, proză vizibilă concisă, etichetele diagramelor și legendele alăturate.
+4. Împingeți împreună cele două commituri testate prin fast-forward atomic.
+   Când se schimbă ediția, verificați APK-ul complet din README-ul EN de pe
+   `main` și confirmați că ruta RO indică aceeași ediție.
+
+```powershell
+java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate documentation-pair . $enCommit $roCommit
+git push --atomic origin "${enCommit}:refs/heads/main" "${roCommit}:refs/heads/main_RO"
+```
+
+Poarta perechii verifică inventarul Markdown urmărit, ordinea structurii,
+linkurile și destinațiile de heading corespondente și identitatea în octeți a
+dovezilor publicate. Revizuirea umană verifică fidelitatea traducerii. [Strategia de testare](../testing/README.md#alegerea-nivelului)
+
+GitHub Actions livrează artefactul Web calificat dintr-un commit Git imuabil
+prin [workflow-ul Pages](../../.github/workflows/chess-pages.yml).
+Ramurile permanente sunt `main` și `main_RO`. Păstrați tagurile Git ale
+edițiilor publicate și pachetelor Web servite. [Publicarea Web](../../web/parity.md#publicarea-linkului)
+
 ## Excepție strictă pentru instalarea APK-ului exact
 
 `ReleaseGate qualification` confruntă cazurile Surefire cu tabelele de aserțiuni din Extent. Pe Android citește cele trei recepții de instrumentare, metadatele și PNG-urile și le compară cu raportul. Cere același ID de calificare, sursa exactă și hash-ul APK-ului distribuibil. Un HTML fără rezultate, o fază de la altă rulare ori o probă cu alt APK oprește calificarea.
 
+Excepția cere autorizare explicită de publicare, o schimbare de semnătură confirmată și date vechi de păstrat pe emulator.
+
+<details>
+<summary>Dovezi obligatorii și pași de semnare</summary>
+
 Dacă semnătura s-a schimbat, singurul emulator disponibil conține instalarea veche și date care nu trebuie șterse, iar utilizatorul a cerut explicit publicarea prin README, ediția poate fi publicată numai cu starea `PUBLISHED_WITH_INSTALL_EXCEPTION`. Dosarul ediției trebuie să conțină `publication-exception.json`, build receipt verificabil, raportul și recepția sanity suplimentară, tranziția de semnare, Extent-ul cu hash verificat, recepțiile publică și autentificată de download și metadatele release-ului GitHub. Excepția este limitată la instalarea exactă: motivul, commitul și hash-ul APK-ului distribuibil, hash-ul diferit al APK-ului sanity, numărul aserțiunilor suplimentare și `CLEAN_INSTALL_REQUIRED` sunt validate separat. Nu se emite `qualification.json`, nu se afirmă că APK-ul exact a fost instalat și excepția nu relaxează testele, semnătura, integritatea asset-ului ori downloadul complet. După ce există un emulator curat, rulați calificarea strictă și înlocuiți excepția cu dovezile complete.
 
 Dot-source scriptul în sesiunea de build pentru a încărca `J7_SIGNING_STORE` și `J7_SIGNING_PASSWORD`; parola este decriptată local cu DPAPI și nu este afișată. Pentru upgrade, certificatul trebuie să coincidă exact. O semnătură diferită cere explicit modul `CLEAN_INSTALL`; Android nu poate actualiza versiunea instalată, iar datele aplicației vechi nu sunt migrate. Gradle construiește perechea semnată cu `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`. Runnerul cu `-Distribution -SourceCommit <sha>` cere un emulator fără pachetul jocului și confruntă octeții instalați cu APK-ul calificat înaintea instrumentării.
+
+</details>
 
 ## Identitatea de semnare și instalare curată
 
@@ -131,7 +173,7 @@ Dacă ediția schimbă și tabla sau indiciile, rulați parcursul de analiză cu
 
 `ReleaseGate` expune verificările de calificare și publicare din Java. Pentru o ediție privată, citiți README-ul din `main` cu contul autentificat, reconciliați linkul cu `browser_download_url` al asset-ului din tag și descărcați prin API-ul autentificat. Înregistrați ruta, statusul, commitul, hash-ul și rezultatul CRC în dosarul ediției. Linkul din README rămâne ruta din browser pentru utilizatorii conectați. [API-ul GitHub pentru asset-uri](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
 
-Pentru auditarea unei publicări istorice, folosiți verificatorul din commitul calificat al ediției și README-ul identificat în recepția publicării. Edițiile noi aplică formatul curent al secțiunii **Jocul**.
+Pentru auditarea unei publicări istorice, folosiți verificatorul din commitul calificat al ediției și README-ul identificat în recepția publicării. Pentru edițiile noi, README-ul implicit folosește **Play**, iar ramura RO folosește **Jocul**.
 
 După publicare, rulați verificarea cu autentificarea GitHub existentă în Git Credential Manager. Directorul de ieșire este nou și rămâne în TMP.
 
