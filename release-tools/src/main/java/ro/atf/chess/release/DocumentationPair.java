@@ -24,12 +24,12 @@ final class DocumentationPair {
     private static final Pattern EXTERNAL = Pattern.compile("^(?:[a-zA-Z][a-zA-Z0-9+.-]*:|//)");
     private static final String README = "README.md";
     private static final String RELEASE_GUIDE = "docs/release/README.md";
-    private static final Role ENGLISH = new Role("main", "## Play", "## Published Release", "## Qualification and Publication");
-    private static final Role ROMANIAN = new Role("main_RO", "## Jocul", "## Ediția publicată", "## Calificare și publicare");
+    private static final Role ENGLISH = new Role("main", "## Play", "## Published Release", "## Overview", "## Qualification and Publication");
+    private static final Role ROMANIAN = new Role("main_RO", "## Jocul", "## Ediția publicată", "## Pe scurt", "## Calificare și publicare");
 
     record Result(String english, String romanian, int documents, int links, int sectionLinks) { }
 
-    private record Role(String name, String play, String edition, String qualification) { }
+    private record Role(String name, String play, String edition, String overview, String qualification) { }
 
     private record Entry(String mode, String type, String object) { }
 
@@ -103,6 +103,15 @@ final class DocumentationPair {
         require(root.contains(expected.play()) && root.contains(expected.edition()) && release.contains(expected.qualification())
                         && !root.contains(other.play()) && !root.contains(other.edition()) && !release.contains(other.qualification()),
                 expected.name() + " must use its localized README and release headings");
+        for (var entry : tree.documents().entrySet()) {
+            String path = entry.getKey();
+            if (!path.endsWith("/README.md")) continue;
+            var headings = entry.getValue().outline().headings();
+            require(headings.stream().filter(heading -> heading.startsWith("# ")).count() == 1
+                            && headings.stream().filter(heading -> heading.startsWith("## ")).findFirst()
+                            .filter(expected.overview()::equals).isPresent(),
+                    expected.name() + " must open " + path + " with one title and the localized " + expected.overview() + " section");
+        }
     }
 
     private static void verifyReleaseFiles(Tree en, Tree ro) throws IOException {

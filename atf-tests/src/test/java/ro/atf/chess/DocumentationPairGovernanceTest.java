@@ -33,15 +33,16 @@ class DocumentationPairGovernanceTest {
     static void createSnapshots() throws Exception {
         git("", "init", "--quiet");
         var en = snapshot("Play", "Published Release", "Qualification and Publication", "Overview", "Usage", "overview");
-        var ro = snapshot("Jocul", "Ediția publicată", "Calificare și publicare", "Început", "Folosire", "%C3%AEnceput");
+        var ro = snapshot("Jocul", "Ediția publicată", "Calificare și publicare", "Pe scurt", "Folosire", "pe-scurt");
         var importer = new StringBuilder();
         add(importer, "main", en);
         add(importer, "main_RO", ro);
         add(importer, "inventory-drift", with(ro, "unpaired.md", "# Unpaired guide\n"));
         add(importer, "shape-drift", with(ro, GUIDE, ro.get(GUIDE).replace("## Folosire", "### Folosire")));
         add(importer, "table-drift", with(ro, GUIDE, ro.get(GUIDE).replace("| Caz | Probă |", "| Caz | Probă | Owner |")));
-        add(importer, "wrong-target", with(ro, RELEASE, ro.get(RELEASE).replace("%C3%AEnceput", "folosire")));
-        add(importer, "missing-target", with(ro, RELEASE, ro.get(RELEASE).replace("%C3%AEnceput", "absent")));
+        add(importer, "wrong-target", with(ro, RELEASE, ro.get(RELEASE).replace("#pe-scurt", "#folosire")));
+        add(importer, "missing-target", with(ro, RELEASE, ro.get(RELEASE).replace("#pe-scurt", "#absent")));
+        add(importer, "wrong-overview", with(ro, RELEASE, ro.get(RELEASE).replace("## Pe scurt", "## Overview")));
         add(importer, "receipt-drift", with(ro, RECEIPT, "{\"status\":404}\n"));
         git(importer.toString(), "fast-import", "--quiet");
     }
@@ -55,6 +56,8 @@ class DocumentationPairGovernanceTest {
                 result("main_RO", "main").contains("main must use its localized"));
         check.same("A single snapshot cannot stand in for the pair", true,
                 result("main", "main").contains("distinct commits"));
+        check.same("An owner README must use its opening section in its own language", true,
+                result("main", "wrong-overview").contains("localized ## Pe scurt section"));
     }
 
     @Test
@@ -120,7 +123,7 @@ class DocumentationPairGovernanceTest {
                 """.formatted(first, second);
         return Map.of(
                 "README.md", readme,
-                RELEASE, "# Release\n\n## " + release + "\n\n[Guide](../../" + GUIDE + "#" + anchor + ")\n",
+                RELEASE, "# Release\n\n## " + first + "\n\n## " + release + "\n\n[Guide](../../" + GUIDE + "#" + anchor + ")\n",
                 GUIDE, guide,
                 RECEIPT, "{\"status\":200}\n");
     }

@@ -36,11 +36,9 @@ reporting:
 | Calea raportului final în consolă | Constructorul cu `reportPathEnabled: true` și evenimentul `REPORT_PUBLISHED` |
 | Politică JUnit per clasă | Adaptorul JUnit Console și adnotările Test Kit; declarați Kit explicit |
 
-Calea cere opt-in, consolă activă și eveniment cu artifact confirmat; `detailsEnabled` controlează doar detaliile.
-
-Console depinde de Core. Kit este opțional pentru integrarea JUnit.
-
-Console proiectează diagnosticul. Testul deține comparația și verdictul.
+- Afișarea căii cere activare explicită, consolă activă și un eveniment cu artefact confirmat. `detailsEnabled` controlează doar detaliile.
+- Console depinde de Core. Adaptorul JUnit folosește Kit când acesta este declarat.
+- Console afișează diagnosticul. Testul care îl invocă decide comparația și verdictul.
 
 ---
 

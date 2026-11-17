@@ -18,13 +18,13 @@ Versiunea disponibilă se verifică în README-ul din `origin/main`. Dacă ramur
 7. După semnare și calificare, împingeți tagul candidat fără a rescrie istoricul și publicați asset-ul GitHub. Păstrați `currentVersion`, lista de comparație și README-ul principal pe ultima ediție verificată până când asset-ul nou există. Apoi promovați catalogul și README-ul în ambele ramuri. Păstrați în GitHub Release și local doar ediția nouă și ediția imediat anterioară; retrageți celelalte release-uri și dosare după ce noul asset și ruta din README au trecut verificarea. Nu ștergeți tagurile Git.
 8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
 
-După publicarea unui draft, recitiți release-ul după tag și identificați asset-ul după ID. GitHub poate returna o rută provizorie cu segmentul „untagged” în răspunsul de upload. Folosiți în README doar ruta canonică din metadatele release-ului publicat și verificați descărcarea completă.
+- După publicarea unui draft, recitiți release-ul după tag și identificați asset-ul după ID. GitHub poate returna o rută provizorie cu segmentul „untagged” în răspunsul de upload. Folosiți în README doar ruta canonică din metadatele release-ului publicat și verificați descărcarea completă.
 
-Trimiteți notele din fișierul UTF-8. Pentru REST, trimiteți octeții UTF-8 ai JSON-ului și recitiți corpul release-ului publicat după tag. Comparați textul cu sursa și verificați că linkul spre dovezi deschide dosarul ediției.
+- Trimiteți notele din fișierul UTF-8. Pentru REST, trimiteți octeții UTF-8 ai JSON-ului și recitiți corpul release-ului publicat după tag. Comparați textul cu sursa și verificați că linkul spre dovezi deschide dosarul ediției.
 
-Păstrați HTML-ul Extent generat la octet, inclusiv în indexul Git, pentru ca hash-urile din calificare să rămână valide. Aplicați verificarea de formatare fișierelor editate manual.
+- Păstrați HTML-ul Extent generat la octet, inclusiv în indexul Git, pentru ca hash-urile din calificare să rămână valide. Aplicați verificarea de formatare fișierelor editate manual.
 
-În checkout, guvernanța ediției curente recalculează amprentele HTML pentru calificarea strictă și compară recepțiile Android cu sursa, APK-ul și totalul de aserțiuni. Căile rapoartelor și ale recepțiilor trebuie să rămână în dosarul ediției.
+- În checkout, guvernanța ediției curente recalculează amprentele HTML pentru calificarea strictă și compară recepțiile Android cu sursa, APK-ul și totalul de aserțiuni. Căile rapoartelor și ale recepțiilor trebuie să rămână în dosarul ediției.
 
 ## Documentație bilingvă
 
@@ -61,7 +61,8 @@ edițiilor publicate și pachetelor Web servite. [Publicarea Web](../../web/pari
 
 ## Excepție strictă pentru instalarea APK-ului exact
 
-`ReleaseGate qualification` confruntă cazurile Surefire cu tabelele de aserțiuni din Extent. Pe Android citește cele trei recepții de instrumentare, metadatele și PNG-urile și le compară cu raportul. Cere același ID de calificare, sursa exactă și hash-ul APK-ului distribuibil. Un HTML fără rezultate, o fază de la altă rulare ori o probă cu alt APK oprește calificarea.
+- `ReleaseGate qualification` compară cazurile Surefire cu tabelele Extent și cele trei recepții Android, metadatele și PNG-urile.
+- Calificarea cere un singur ID de rulare, sursa exactă și hash-ul APK-ului distribuibil. Rezultatele absente, altă rulare sau alt APK opresc poarta.
 
 Excepția cere autorizare explicită de publicare, o schimbare de semnătură confirmată și date vechi de păstrat pe emulator.
 
@@ -76,23 +77,23 @@ Dot-source scriptul în sesiunea de build pentru a încărca `J7_SIGNING_STORE` 
 
 ## Identitatea de semnare și instalare curată
 
-Identificați certificatul ediției curente din [catalog](../../release/README.md):
-calificarea strictă îl păstrează în recepția de calificare; ediția publicată cu
-excepție îl păstrează în recepția de build. Dacă lipsește cheia existentă,
-recuperați-o sau decideți explicit o instalare curată cu o identitate nouă.
-Android nu migrează salvările locale peste semnături diferite.
+- Identificați certificatul ediției curente din [catalog](../../release/README.md):
+  calificarea strictă îl păstrează în recepția de calificare; ediția publicată cu
+  excepție îl păstrează în recepția de build. Dacă lipsește cheia existentă,
+  recuperați-o sau decideți explicit o instalare curată cu o identitate nouă.
+  Android nu migrează salvările locale peste semnături diferite.
 
-`Initialize-J7Signing.ps1` refuză înregistrări parțiale și păstrează cheia,
-certificatul și parola DPAPI în `infrastructure/signing` sub `-DataRoot`,
-în afara sursei și a TMP. Pentru rotația deliberată folosiți `-StartNewIdentity`.
-Poarta `signing-continuity` respinge diferența în modul `UPGRADE`; numai
-`CLEAN_INSTALL` o consemnează ca incompatibilitate.
-[Testele negative](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
-verifică poarta.
+- `Initialize-J7Signing.ps1` refuză înregistrări parțiale și păstrează cheia,
+  certificatul și parola DPAPI în `infrastructure/signing` sub `-DataRoot`,
+  în afara sursei și a TMP. Pentru rotația deliberată folosiți `-StartNewIdentity`.
+  Poarta `signing-continuity` respinge diferența în modul `UPGRADE`; numai
+  `CLEAN_INSTALL` o consemnează ca incompatibilitate.
+  [Testele negative](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
+  verifică poarta.
 
-Fără un baseline explicit, `verify-signing-continuity.ps1` caută dovada
-certificatului în dosarul ediției curente. La recuperarea unei chei absente,
-inițializarea citește și ea catalogul și oprește rotația dacă dovada ediției curente lipsește.
+- Fără un baseline explicit, `verify-signing-continuity.ps1` caută dovada
+  certificatului în dosarul ediției curente. La recuperarea unei chei absente,
+  inițializarea citește și ea catalogul și oprește rotația dacă dovada ediției curente lipsește.
 
 În copia TMP, înainte de semnare:
 
@@ -108,12 +109,9 @@ mvn test "-Dtest=TestChangeReview" "-Dchess.testChanges.base=$reviewBase" "-Dche
 java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate preflight atf-tests/target/surefire-reports . $reviewBase
 ```
 
-Porniți suitele din același checkout TMP. Folosiți un director Surefire proaspăt
-pentru rularea componentei și salvați-l înainte ca publicatorul Android să scrie
-alte XML-uri în el. Folosiți căi de raport noi.
-Construiți pachetul Web din commitul candidat, în TMP, și furnizați-l prin
-`chess.study.bundle`. Fără pachet, trei probe ale workerului sunt omise, iar
-`ReleaseGate qualification` respinge orice caz omis din suită. [Buildul Web](../../web/README.md#build-și-verificare)
+- Rulați suitele din același checkout TMP și alegeți căi noi pentru rapoarte.
+- Salvați directorul Surefire nou al componentelor înainte ca publicatorul Android să scrie alte XML-uri în el.
+- Construiți pachetul Web din commitul candidat în TMP și furnizați-l prin `chess.study.bundle`. Fără el, trei probe ale workerului sunt omise și `ReleaseGate qualification` respinge suita. [Buildul Web](../../web/README.md#build-și-verificare)
 
 ```powershell
 $runId = [guid]::NewGuid().ToString('N')
@@ -122,8 +120,8 @@ $site = ./web/Build-ChessWeb.ps1 -WorkRoot (Join-Path $env:TEMP "chess-web-quali
 mvn -pl atf-tests -am test "-Dtest=ChessComponentSuite" "-Dsurefire.failIfNoSpecifiedTests=false" `
   "-Dchess.study.bundle=$site" `
   "-Dchess.extent=$componentExtent" "-Dchess.qualification.commit=$commit" "-Dchess.qualification.runId=$runId"
-# Mutați recepțiile Surefire ale suitei în $componentReceipts înainte de publicarea Android.
-# Rulați sanity-ul semnat cu -SourceCommit $commit -QualificationRunId $runId.
+  # Mutați recepțiile Surefire ale suitei în $componentReceipts înainte de publicarea Android.
+  # Rulați sanity-ul semnat cu -SourceCommit $commit -QualificationRunId $runId.
 java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate qualification `
   $version $commit $apk $componentReceipts $componentExtent $nativeRun $nativeExtent
 ```
@@ -132,11 +130,19 @@ java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate qualification
 `why` și `why-restore`. Arhivați în dosarul ediției HTML-urile și amprentele
 recepțiilor; păstrați XML-urile brute și capturile deja încorporate în TMP.
 
+<details>
+<summary>Tabla și marcajul de pericol din Probleme</summary>
+
 Pentru modificările la tabla sau marcajul de pericol din Probleme, rulați
 `-Distribution -PuzzleDangerOnly -SourceCommit <sha>` pe APK-ul semnat.
 La schimbări de layout, rulați și `-Distribution -PuzzleMateReplayOnly -SourceCommit <sha>`
 pentru profilurile 720 × 1280 la 320 dpi și 1080 × 1920 nativ, ambele la font 1,3×. Publicați Extent din cele două recepții
 și confruntați commitul și hash-ul APK-ului. [Probele Probleme](../testing/README.md#progresul-problemelor)
+
+</details>
+
+<details>
+<summary>Antetul, punctajul și comenzile din Probleme</summary>
 
 Pentru schimbări la antetul, punctajul sau comenzile comune din Probleme, rulați
 `-Distribution -PuzzleUxOnly -SourceCommit <sha>` cu `-PuzzleLanguage ro` pe
@@ -145,15 +151,45 @@ profilul compact și cu `-PuzzleLanguage en` pe profilul fizic, ambele la font
 și păstrați rezultatul și amprentele celor șase capturi ale fiecărui profil.
 [Contractul celor șase capitole](../testing/README.md#progresul-problemelor)
 
+</details>
+
+<details>
+<summary>Deschideri</summary>
+
 Pentru schimbările din Deschideri, adăugați `-IncludeOpenings` la sanity-ul semnat. Runnerul execută proba pe același APK după verificarea reluării partidei. Publicați Extent din recepția `openings/openings.txt` și folosiți același commit și hash APK la calificarea ambelor rapoarte. [Proba Deschideri](../testing/README.md#deschideri)
+
+</details>
+
+<details>
+<summary>Geometria compactă a jocului cu AI</summary>
 
 Pentru schimbări de geometrie în jocul cu AI, rulați `-Distribution -AnalysisOnly -CompactMatchAnalysisOnly -SourceCommit <sha>` pe același APK semnat. Publicați Extent din `analysis-compact-prepare-ro/analysis-compact-prepare-ro.txt`. Verificați același ID pentru pregătirea și reluarea în RO și EN și păstrați raportul, recepția agregată și amprentele celor șase capturi sub `additionalAndroidChecks.analysis-compact` în calificare. [Geometria și proba compactă](../testing/README.md#partidă-și-istoric)
 
+</details>
+
+<details>
+<summary>Analiza partidei</summary>
+
 Pentru o schimbare limitată la Analiza partidei, folosiți `-Distribution -GameReviewOnly -SourceCommit <sha> -QualificationRunId <id>`. Publicați Extent din `game-review.txt`. Dacă diff-ul afectează și parcursurile de bază, rulați-le cu `-IncludeGameReview`; recepția analizei se află atunci în subdirectorul `game-review`. [Proba de reluare și analiză](../testing/README.md#partidă-și-istoric)
+
+</details>
+
+<details>
+<summary>Tabla de analiză și reperele Elo</summary>
 
 Pentru schimbările din Tabla de analiză, folosiți `-ManualAnalysisOnly` în dezvoltare și `-IncludeManualAnalysis` pentru sanity-ul semnat. Publicați Extent din `manual-analysis/manual-analysis.txt` și verificați identitatea APK-ului prin `manual-analysis/execution.json`. Pentru schimbarea reperelor Elo, păstrați cele trei perechi de rapoarte și reluări TSV și verificați calculul cu `GameReviewGovernanceTest`. [Tabla de analiză](../testing/README.md#tablă-de-analiză) · [Protocolul ancorei](../board/ai-quality.md#rezultatele-ancorei-externe)
 
+</details>
+
+<details>
+<summary>Indicii comune</summary>
+
 Pentru indiciile comune, rulați `-Distribution -AnalysisOnly -IncludeManualAnalysis -SourceCommit <sha>`. Publicați ambele rapoarte Extent cât timp directoarele brute păstrează structura produsă de runner. Cele trei faze folosesc același ID, iar publicatoarele compară sursa, APK-ul și amprentele din instrumentare. Păstrați aceste rapoarte ca dovezi ale fluxurilor afectate alături de calificarea Game Review. [Partidă și istoric](../testing/README.md#partidă-și-istoric)
+
+</details>
+
+<details>
+<summary>Dovezile arhivate ale indiciilor</summary>
 
 Arhiva indiciilor conține cele două HTML-uri și `hint-analysis-execution.json`.
 În `qualification.json`, înregistrați SHA-256 al recepției finale sub
@@ -162,7 +198,14 @@ identitatea rulării și APK-ului cu tabelele Extent și recalculează amprentel
 HTML-urilor și ale PNG-urilor încorporate. Edițiile 0.13.5 și 0.13.6 folosesc
 recepția existentă. Edițiile fără acest traseu își păstrează formatul.
 
+</details>
+
+<details>
+<summary>Meniurile partidelor salvate și încheiate</summary>
+
 Pentru schimbări la listele de partide, rulați proba semnată a celor două meniuri. Runnerul păstrează aceeași instalare și resetează datele de test între faze. Calificați separat cele două rapoarte Extent cu identitatea comună a APK-ului. Verificările de persistență rulează în `MatchStoreTest`.
+
+</details>
 
 ```powershell
 ./scripts/run-android-sanity.ps1 -Adb <adb> -Serial <serial> -LeaseFile <registru> `
@@ -171,11 +214,11 @@ Pentru schimbări la listele de partide, rulați proba semnată a celor două me
 
 Dacă ediția schimbă și tabla sau indiciile, rulați parcursul de analiză cu `-AnalysisOnly -IncludeManualAnalysis -IncludeMatchSlots -IncludeMatchArchive`.
 
-`ReleaseGate` expune verificările de calificare și publicare din Java. Pentru o ediție privată, citiți README-ul din `main` cu contul autentificat, reconciliați linkul cu `browser_download_url` al asset-ului din tag și descărcați prin API-ul autentificat. Înregistrați ruta, statusul, commitul, hash-ul și rezultatul CRC în dosarul ediției. Linkul din README rămâne ruta din browser pentru utilizatorii conectați. [API-ul GitHub pentru asset-uri](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
+- `ReleaseGate` expune verificările de calificare și publicare din Java. Pentru o ediție privată, citiți README-ul din `main` cu contul autentificat, reconciliați linkul cu `browser_download_url` al asset-ului din tag și descărcați prin API-ul autentificat. Înregistrați ruta, statusul, commitul, hash-ul și rezultatul CRC în dosarul ediției. Linkul din README rămâne ruta din browser pentru utilizatorii conectați. [API-ul GitHub pentru asset-uri](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
 
-Pentru auditarea unei publicări istorice, folosiți verificatorul din commitul calificat al ediției și README-ul identificat în recepția publicării. Pentru edițiile noi, README-ul implicit folosește **Play**, iar ramura RO folosește **Jocul**.
+- Pentru auditarea unei publicări istorice, folosiți verificatorul din commitul calificat al ediției și README-ul identificat în recepția publicării. Pentru edițiile noi, README-ul implicit folosește **Play**, iar ramura RO folosește **Jocul**.
 
-După publicare, rulați verificarea cu autentificarea GitHub existentă în Git Credential Manager. Directorul de ieșire este nou și rămâne în TMP.
+- După publicare, rulați verificarea cu autentificarea GitHub existentă în Git Credential Manager. Directorul de ieșire este nou și rămâne în TMP.
 
 ```powershell
 ./scripts/verify-authenticated-download.ps1 -Repository crististefanita/chess `
@@ -196,4 +239,6 @@ $paths = @(git -C $checkout diff --name-only $previousTag $candidateCommit)
 java -cp "$scratch/atf-tests/target/classes" ro.atf.chess.release.ReleaseRag $scratch @paths
 ```
 
-Extrageți lista din checkout-ul Git și transmiteți-o comenzii din copia TMP. RAG raportează fiecare cale drept `COVERED` sau `NEEDS_REVIEW`, inclusiv când lista conține ambele tipuri. Fiecare citare indică documentul, ancora, linia, hash-ul și verificarea potrivită. Când este citată secțiunea **Calificare și publicare**, RAG afișează și pașii în ordine. Păstrați ieșirea în dosarul ediției. Verificările de calificare și publicare se execută separat.
+- Transmiteți căile din checkout-ul Git comenzii din TMP. RAG raportează fiecare cale drept `COVERED` sau `NEEDS_REVIEW`, inclusiv listele mixte.
+- Fiecare citare indică documentul, ancora, linia, hash-ul și verificarea. Citările secțiunii **Calificare și publicare** afișează și pașii în ordine.
+- Păstrați ieșirea în dosarul ediției. Rulați separat verificările de calificare și publicare.

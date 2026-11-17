@@ -22,12 +22,13 @@ care necesită decizii echivalente în `ChessActivity`, `AnalysisActivity`
 și adaptorul Web. Începeți cu reluarea, anularea și primirea unei replici
 AI întârziate. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
 
-**Criteriu de închidere.** Același caz cu ceas și stocare simulate
-verifică poziția, revizia, acțiunile permise și ignorarea replicii
-expirate pe JVM și în worker. Sanity-ul nativ verifică o singură
-reluare și ordinea afișată. Măsurați separat pornirea la rece a workerului
-și timpul până la prima semimutare de analiză, cu același buget, pe profil
-mobil. Verificați anularea și schimbarea slotului în timpul calculului.
+**Verificări de închidere**
+
+- Pe JVM și în worker, folosiți același caz cu ceas și stocare simulate.
+  Verificați poziția, revizia, acțiunile permise și respingerea replicilor expirate.
+- În sanity-ul nativ, verificați o singură reluare și ordinea afișată.
+- Pe mobil, măsurați separat pornirea la rece și timpul workerului până la prima
+  semimutare de analiză, cu același buget. Verificați anularea și schimbarea slotului în timpul calculului.
 
 <details>
 <summary>Anunțuri și focus la cititorul de ecran</summary>
