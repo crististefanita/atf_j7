@@ -104,7 +104,17 @@ main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height
 }
 .match-automatic input { flex: none; inline-size: 1rem; block-size: 1rem; margin: 0; accent-color: var(--accent); }
 .match-automatic:has(input:disabled) { color: var(--muted); }
-.ai-analysis-option { display: flex; gap: .45rem; align-items: center; margin-block-start: .6rem; width: fit-content; }
+.ai-analysis-option {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  inline-size: fit-content;
+  min-block-size: 48px;
+  margin-block-start: .6rem;
+  cursor: pointer;
+}
+.ai-analysis-option input { flex: none; inline-size: 1rem; block-size: 1rem; margin: 0; accent-color: var(--accent); }
+.ai-analysis-option small { display: block; color: var(--muted); font-size: .82em; }
 .options-anchor { position: relative; justify-self: start; }
 .options-panel {
   position: absolute;
@@ -188,17 +198,22 @@ dialog::backdrop { background: #121613a8; }
   inset-block: 0;
   inset-inline-end: calc(100% + 2px);
   inline-size: min(8px, calc(var(--play-page-padding) - 2px));
+}
+.chess-evaluation-meter {
+  border: 1px solid #77756c;
   border-radius: 2px;
-  background: #45443d;
+  background: #262522;
   overflow: hidden;
 }
-.match-inline-meter > span {
+.chess-evaluation-meter[aria-hidden="true"] { background: #48463f; }
+.chess-evaluation-meter > :first-child {
   position: absolute;
   inset-inline: 0;
   background: #edeadf;
 }
 .match-inline-analysis {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: .3rem;
@@ -210,7 +225,12 @@ dialog::backdrop { background: #121613a8; }
   min-block-size: var(--play-action-size);
   padding-inline: .45rem;
 }
-#match-inline-hint { display: grid; place-items: center; min-inline-size: var(--play-action-size); }
+#match-inline-hint {
+  display: grid;
+  place-items: center;
+  min-inline-size: var(--play-action-size);
+  padding: 0;
+}
 #match-inline-hint[aria-pressed="true"] { color: #57e0b4; }
 #match-inline-preview {
   inline-size: min(35rem, calc(100% - 1rem));

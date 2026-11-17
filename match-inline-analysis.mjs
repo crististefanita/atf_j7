@@ -63,8 +63,9 @@ export function createInlineAnalysisSession({ createWorker, publish }) {
             } catch { fail(owner); }
         },
         command(action, index = 0) {
-            if (!current?.state || current.pending) return;
+            if (!current?.state || current.pending) return false;
             request(current, 'match-analysis-action', { expectedRevision: current.revision, action, index });
+            return true;
         },
         revealedMove() { return current?.state?.hint?.move ?? null; },
     };
@@ -88,7 +89,7 @@ const labels = {
     },
 };
 
-export function bindInlineMatchAnalysis({ find, locale, createWorker, createBoard, cue }) {
+export function bindInlineMatchAnalysis({ find, locale, createWorker, createBoard, cue, clearSelection }) {
     const words = labels[locale] ?? labels.en;
     const panel = find('match-inline-analysis');
     const meter = find('match-inline-meter');
@@ -119,7 +120,7 @@ export function bindInlineMatchAnalysis({ find, locale, createWorker, createBoar
         const frame = owner?.state;
         const shown = frame?.hint;
         const move = shown?.move;
-        panel.hidden = meter.hidden = !owner;
+        panel.hidden = meter.hidden = hint.hidden = !owner;
         cue(move, owner?.match.blackBelow);
         if (!owner) {
             if (dialog.open) dialog.close();
@@ -127,10 +128,11 @@ export function bindInlineMatchAnalysis({ find, locale, createWorker, createBoar
             return;
         }
         setText(score, owner.failed ? words.failed : analysisScore(frame?.evaluation, locale));
-        renderAnalysisMeter(meter, meter.firstElementChild, frame?.evaluation, owner.match.blackBelow);
+        renderAnalysisMeter(meter, meter.firstElementChild, frame?.evaluation, owner.match.blackBelow, locale);
         hint.disabled = !shown?.count;
         hint.setAttribute('aria-pressed', Boolean(move));
-        label(hint, move ? shown.count > 1 ? words.nextHint : words.shown : words.show);
+        hint.title = move ? shown.count > 1 ? words.nextHint : words.shown : words.show;
+        label(hint, hint.title);
         setText(announcement, analysisHintDescription(shown, locale));
         replay.hidden = !move;
         if (move) {
@@ -167,7 +169,9 @@ export function bindInlineMatchAnalysis({ find, locale, createWorker, createBoar
     label(previous, words.previous);
     label(next, words.next);
     find('match-inline-preview-title').textContent = words.line;
-    hint.addEventListener('click', () => session.command('hint'));
+    hint.addEventListener('click', () => {
+        if (session.command('hint')) clearSelection();
+    });
     replay.addEventListener('click', () => session.command('preview'));
     find('match-inline-close').addEventListener('click', () => session.command('preview-close'));
     dialog.addEventListener('cancel', event => { event.preventDefault(); session.command('preview-close'); });

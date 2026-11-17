@@ -37,7 +37,6 @@
         <button id="return-menu" type="button" hidden>Back</button>
         <button id="archive-review-back" type="button" hidden>Close</button>
         <button id="review-close" type="button" hidden>Close</button>
-        <button id="reopen-review" type="button" hidden>Open analysis</button>
         <button id="why-actions" class="review-icon" type="button" aria-label="Review actions" aria-expanded="false" aria-controls="review-menu" hidden><svg class="dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
       </div>
     </header>
@@ -72,6 +71,7 @@
           <label for="archive" id="archive-label">Open a review</label>
           <input id="archive" class="visually-hidden" type="file" accept=".json,application/json">
         </div>
+        <button id="reopen-review" type="button" hidden>Resume last review</button>
       </div>
     </div>
     <section id="study-quests" class="study-surface" hidden></section>
@@ -107,7 +107,11 @@
           </select>
         </label>
       </div>
-      <label class="ai-analysis-option"><input id="ai-analysis" type="checkbox"><span id="ai-analysis-label">AI analysis for a new game</span></label>
+      <label class="ai-analysis-option">
+        <input id="ai-analysis" type="checkbox" aria-labelledby="ai-analysis-label" aria-describedby="ai-analysis-help">
+        <span><span id="ai-analysis-label">AI analysis for a new game</span>
+          <small id="ai-analysis-help">Evaluation bar and hints during the game</small></span>
+      </label>
       <div class="setup-actions">
         <button id="start-ai" type="submit">Start game</button>
         <button id="cancel-setup" type="button" hidden>Cancel</button>
@@ -115,25 +119,25 @@
     </form>
     <section id="match" class="match" aria-busy="false" hidden>
       <div class="match-board-frame">
-        <div id="match-inline-meter" class="match-inline-meter" role="meter" aria-label="Evaluation for White" aria-valuemin="0" aria-valuemax="100" hidden><span></span></div>
+        <div id="match-inline-meter" class="match-inline-meter chess-evaluation-meter" role="meter" aria-label="Evaluation for White" aria-valuemin="0" aria-valuemax="100" hidden><span></span></div>
         <div id="match-board" class="board match-board study-board" role="group"></div>
       </div>
       <p id="match-turn" class="turn" aria-live="polite"></p>
       <p id="match-profile" class="turn" hidden></p>
+      <div id="match-inline-analysis" class="match-inline-analysis" hidden>
+        <output id="match-inline-score" aria-live="polite"></output>
+        <button id="match-inline-replay" type="button" aria-haspopup="dialog" hidden></button>
+        <output id="match-inline-announcement" class="visually-hidden" aria-atomic="true"></output>
+      </div>
       <nav id="match-history" class="movement" aria-label="Game history" hidden>
         <button id="match-previous" type="button" aria-label="Previous move">‹</button>
         <output id="match-ply" aria-live="polite"></output>
         <button id="match-next" type="button" aria-label="Next move">›</button>
         <button id="continue-match" type="button" hidden>Continue from here</button>
-      </nav>
-      <div id="match-inline-analysis" class="match-inline-analysis" hidden>
-        <output id="match-inline-score" aria-live="polite"></output>
-        <button id="match-inline-replay" type="button" aria-haspopup="dialog" hidden></button>
-        <button id="match-inline-hint" class="review-icon" type="button" aria-label="Show AI line">
+        <button id="match-inline-hint" class="review-icon" type="button" aria-label="Show AI line" hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6m-5 4h4M8 14a6 6 0 1 1 8 0c-.7.5-1 1-1 2H9c0-1-.3-1.5-1-2Z"/></svg>
         </button>
-        <output id="match-inline-announcement" class="visually-hidden" aria-atomic="true"></output>
-      </div>
+      </nav>
       <div id="promotion" class="movement" hidden>
         <label for="promote" id="promote-label">Promote to</label>
         <select id="promote"></select>

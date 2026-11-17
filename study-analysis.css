@@ -19,7 +19,7 @@
 
 .analysis-study-header { min-height: 3rem; }
 .analysis-study-header h2 { flex: 1; margin: 0; font-size: 1.19rem; line-height: 1.25; }
-.analysis-study-header button,
+.analysis-study-header > button,
 .analysis-study-navigation .analysis-study-icon,
 .analysis-study-menu summary {
   display: inline-grid;
@@ -33,7 +33,7 @@
   font-size: min(1.55rem, 28px);
 }
 
-.analysis-study-header button:hover,
+.analysis-study-header > button:hover,
 .analysis-study-navigation .analysis-study-icon:hover,
 .analysis-study-menu summary:hover {
   background: #373632;
@@ -63,6 +63,8 @@
   gap: .5rem;
   border: 0;
   background: transparent;
+  font-size: clamp(.9375rem, 4vw, 1.085rem);
+  line-height: 1.3;
   text-align: start;
 }
 
@@ -100,12 +102,8 @@
 .analysis-study-meter {
   position: relative;
   flex: 0 0 var(--analysis-meter-width);
-  background: #51535a;
-  border-radius: .16rem;
-  overflow: hidden;
 }
-
-.analysis-study-meter-fill { position: absolute; inset-inline: 0; background: #f5f3ec; transition: block-size .12s ease; }
+.analysis-study-meter-fill { transition: height .12s ease; }
 .analysis-study-status,
 .analysis-study-score,
 .analysis-study-evidence,

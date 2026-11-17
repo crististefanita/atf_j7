@@ -27,14 +27,14 @@ const words = {
         'open-match': 'Local game', 'open-review': 'Main menu', 'new-match': 'New game',
         'match-options-title': 'Game options', 'flip-match': 'Flip board',
         'menu-saved': 'Saved games', 'menu-analysis': 'Analysis board', 'menu-review': 'Game review',
-        'menu-draw': 'Offer draw', 'menu-resign': 'Resign game', 'ai-analysis-label': 'AI analysis for a new game',
+        'menu-draw': 'Offer draw', 'menu-resign': 'Resign game', 'ai-analysis-label': 'AI analysis for a new game', 'ai-analysis-help': 'Evaluation bar and hints during the game',
         'resign-message': 'End this game and record a loss?', 'resign-confirm': 'Confirm resignation', 'resign-cancel': 'Cancel',
         drawDeclined: 'The AI declined the draw.', resigned: 'You resigned', agreedDraw: 'Draw by agreement', reviewEmpty: 'There are no moves to analyze.',
         'match-automatic-label': 'Let AI play its moves', manualAiTurn: 'Your move for the AI side',
         automationSaveFailed: 'The browser could not save the AI setting.',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
         'open-saved': 'Saved games', 'open-finished': 'Finished games', 'return-menu': 'Back',
-        'archive-review-back': 'Close', 'review-close': 'Close', 'reopen-review': 'Open analysis', openCached: 'Open analysis', reviewed: 'Analysis saved',
+        'archive-review-back': 'Close', 'review-close': 'Close', 'reopen-review': 'Resume last review', openCached: 'Open analysis', reviewed: 'Analysis saved',
         'review-actions': 'Review actions', 'review-on-board': 'Show on board', 'next-key': 'Next key moment',
         bestLine: 'Show recommended line', hideLine: 'Hide recommended line', linePrevious: 'Previous line step', lineNext: 'Next line step',
         'new-local': 'New local game', 'new-ai': 'New AI game', 'match-history': 'Game history',
@@ -76,14 +76,14 @@ const words = {
         'open-match': 'Partidă locală', 'open-review': 'Meniu principal', 'new-match': 'Partidă nouă',
         'match-options-title': 'Opțiunile partidei', 'flip-match': 'Întoarce tabla',
         'menu-saved': 'Partide salvate', 'menu-analysis': 'Tablă de analiză', 'menu-review': 'Analiza partidei',
-        'menu-draw': 'Oferă remiză', 'menu-resign': 'Renunță la partidă', 'ai-analysis-label': 'Analiză AI pentru o partidă nouă',
+        'menu-draw': 'Oferă remiză', 'menu-resign': 'Renunță la partidă', 'ai-analysis-label': 'Analiză AI pentru o partidă nouă', 'ai-analysis-help': 'Bară de evaluare și indicii în timpul partidei',
         'resign-message': 'Închei partida și înregistrezi o înfrângere?', 'resign-confirm': 'Confirmă renunțarea', 'resign-cancel': 'Anulează',
         drawDeclined: 'AI-ul a refuzat remiza.', resigned: 'Ai renunțat la partidă', agreedDraw: 'Remiză prin acord', reviewEmpty: 'Partida nu are mutări de analizat.',
         'match-automatic-label': 'Lasă AI-ul să mute', manualAiTurn: 'Mută pentru culoarea AI-ului',
         automationSaveFailed: 'Browserul nu a putut salva setarea AI.',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
         'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate', 'return-menu': 'Înapoi',
-        'archive-review-back': 'Închide', 'review-close': 'Închide', 'reopen-review': 'Deschide analiza', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
+        'archive-review-back': 'Închide', 'review-close': 'Închide', 'reopen-review': 'Reia ultima analiză', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
         'review-actions': 'Acțiuni de analiză', 'review-on-board': 'Arată pe tablă', 'next-key': 'Moment-cheie următor',
         bestLine: 'Arată linia recomandată', hideLine: 'Ascunde linia recomandată',
         linePrevious: 'Pasul anterior al variantei', lineNext: 'Pasul următor al variantei',
@@ -204,7 +204,7 @@ const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, 
 document.documentElement.lang = locale;
 for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
     'open-match', 'open-review', 'flip-match', 'match-automatic-label',
-    'menu-saved', 'menu-analysis', 'menu-review', 'menu-draw', 'menu-resign', 'ai-analysis-label',
+    'menu-saved', 'menu-analysis', 'menu-review', 'menu-draw', 'menu-resign', 'ai-analysis-label', 'ai-analysis-help',
     'resign-message', 'resign-confirm', 'resign-cancel',
     'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'random-choice', 'start-ai', 'cancel-setup',
@@ -235,6 +235,12 @@ const drawMatchHintArrow = mountStudyArrow(matchBoard);
 let matchHintSquares = [];
 const inlineMatchAnalysis = bindInlineMatchAnalysis({
     find, locale, createBoard: createStudyBoard, cue: drawMatchHint,
+    clearSelection: () => {
+        if (selectedSquare === undefined && promotionMoves.length === 0) return;
+        selectedSquare = undefined;
+        promotionMoves = [];
+        renderMatch();
+    },
     createWorker: () => new Worker(new URL('./engine-worker.mjs', import.meta.url), { type: 'module' }),
 });
 
@@ -670,7 +676,7 @@ function renderMatch() {
         find('match-profile').textContent = homeMenu.name ? `${homeMenu.name} · ${summary}` : summary;
     }
     find('new-match').hidden = match.readOnly || !isAi && match.result === 'IN_PROGRESS';
-    find('match-history').hidden = match.ply === 0;
+    find('match-history').hidden = match.ply === 0 && !match.analysisEnabled;
     find('match-ply').textContent = `${match.viewPly}/${match.ply}`;
     find('match-previous').disabled = match.viewPly === 0;
     find('match-next').disabled = !browsing;
