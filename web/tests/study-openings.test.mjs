@@ -166,15 +166,20 @@ async function mountLesson(locale) {
   }
   const lesson = { id: 'italian', title: 'Italian Game', ply: 0, practicePly: 0, total: 4,
     phase: 'LEARNER', canPlay: true, learner: 'WHITE', canAutoReply: false, sideToMove: 'WHITE',
-    fen: '8/8/8/8/8/8/4P3/8', plan: longPlan, hint: 'NONE', legal: ['e2e4'] };
+    fen: '8/8/8/8/8/8/4P3/8', plan: longPlan, hint: 'NONE', legal: ['e2e3', 'e2e4'], nextStep: { move: 'e2e4', idea: 'Control d5.' } };
   let tap;
+  let hint = 'NONE';
+  const frames = [];
   const study = createOpeningStudy({
     root, locale, home() {},
-    board: (_, onTap) => { tap = onTap; return { render() {} }; },
+    board: (_, onTap) => { tap = onTap; return { render: frame => frames.push(frame) }; },
     async call(action) {
       if (action === 'CATALOG') return { entries: [{ ...lesson, eco: 'C50', variation: 'Giuoco Piano', source: '#' }] };
       if (action === 'START') return lesson;
-      if (action === 'THEORY') return { ...lesson, hint: 'PIECE', hintPiece: 'PAWN' };
+      if (action === 'THEORY') {
+        hint = hint === 'NONE' ? 'PIECE' : 'SOLUTION';
+        return { ...lesson, hint, hintPiece: 'PAWN' };
+      }
       if (action === 'AI_TOGGLE') return { ...lesson, aiEnabled: true };
       if (action === 'ANALYZE') return { evaluation: { whiteCentipawns: 22, whiteShare: .55 }, variants: [] };
       assert.fail('Unexpected worker action ' + action);
@@ -184,7 +189,7 @@ async function mountLesson(locale) {
   find('opening-card').click();
   find('opening-dialog-actions').children[0].click();
   await tick();
-  return { find, document, tap };
+  return { find, document, tap, frames };
 }
 
 for (const [locale, title, hint] of [
@@ -222,7 +227,7 @@ for (const [locale, title, hint] of [
 }
 
 test('The board and leading evaluation meter share one row before and after enabling analysis', async () => {
-  const { find } = await mountLesson('en');
+  const { find, frames } = await mountLesson('en');
   const row = find('opening-board-row');
   const [meter, board] = row.children;
   assert.equal(meter.className, 'opening-evaluation-bar');
@@ -233,6 +238,14 @@ test('The board and leading evaluation meter share one row before and after enab
   assert.deepEqual(row.children, [meter, board]);
   assert.equal(meter.attributes.has('data-withheld'), false);
   assert.ok(meter.attributes.has('data-measured'));
+  const guidance = find('opening-actions').children[0];
+  guidance.click();
+  await tick();
+  assert.deepEqual(frames.at(-1).targets, []);
+  guidance.click();
+  await tick();
+  assert.equal(frames.at(-1).selected, 'e2');
+  assert.deepEqual(frames.at(-1).targets, ['e3', 'e4']);
   const css = readFileSync(new URL('../src/main/web/study-openings.css', import.meta.url), 'utf8');
   assert.match(css, /\.opening-study button:not\(\.square\)\s*\{[^}]*min-block-size: 2\.75rem/s);
   assert.match(css, /\.opening-board-row\s*\{[^}]*grid-template-columns:[^}]*minmax\(0, 1fr\)/s);

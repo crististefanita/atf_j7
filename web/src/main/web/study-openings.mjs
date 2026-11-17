@@ -360,7 +360,7 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
     const pageChanged = Boolean(lesson) !== Boolean(state);
     const before = lesson;
     lesson = state;
-    selected = null;
+    selected = state?.canPlay && state.hint === 'SOLUTION' ? state.nextStep.move.slice(0, 2) : null;
     error.hidden = true;
     workspace.hidden = !lesson;
     catalog.hidden = Boolean(lesson);

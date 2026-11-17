@@ -132,6 +132,7 @@
 .analysis-study-toolbar { gap: 0; min-inline-size: 0; background: #2b2926; }
 .analysis-study-toolbar > button { flex: 0 0 min(15%, 48px); min-inline-size: 0; }
 .analysis-study-variants { justify-content: center; flex-wrap: wrap; }
+.analysis-study-playback { flex: 1; margin: 0; font-size: .85rem; text-align: center; }
 .analysis-study-history { display: flex; flex: 1; min-inline-size: 0; overflow-x: auto; scrollbar-width: none; }
 .analysis-study-history button {
   flex: 0 0 auto;
@@ -158,13 +159,15 @@
     block-size: calc(100dvh - 2 * var(--analysis-page-padding));
   }
   .analysis-study-replay .analysis-study-stage {
-    flex: 0 1 auto;
+    flex: none;
     min-block-size: 0;
     container-type: inline-size;
   }
   .analysis-study-replay .analysis-study-stack {
-    inline-size: min(100%, max(8rem, calc(100dvh - 12rem)));
+    inline-size: min(100%, max(8rem, calc(100dvh - 14rem)));
   }
+  .analysis-study-replay .analysis-study-variants { flex: none; flex-wrap: nowrap; gap: .2rem; padding-inline: .35rem; }
+  .analysis-study-replay .analysis-study-variants button { flex: 1; min-inline-size: 0; min-block-size: 48px; font-size: .85rem; }
   .analysis-study-replay-details {
     flex: 1 1 auto;
     min-block-size: 0;

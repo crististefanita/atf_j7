@@ -134,10 +134,10 @@ test('Analysis places evaluation to the left and all history controls in APK ord
     assert.equal(bottom.textContent, 'Black to move');
 
     const toolbar = root.children.find(item => item.className?.includes('analysis-study-toolbar'));
-    assert.deepEqual(toolbar.children.map(item => item.attributes.get('aria-label')),
+    assert.deepEqual(toolbar.children.filter(item => !item.hidden).map(item => item.attributes.get('aria-label')),
         ['Previous move', 'Move history', 'Next move', 'Jump to latest move', 'Show AI variation']);
-    assert.equal(toolbar.children[1].tag, 'nav');
-    assert.equal(toolbar.children[1].children[1].attributes.get('aria-current'), 'step');
+    assert.equal(toolbar.children[2].tag, 'nav');
+    assert.equal(toolbar.children[2].children[1].attributes.get('aria-current'), 'step');
 
     const { root: replay } = await mountAnalysis(frame(1, 1, { history: ['e2e4'], promotions: [], preview: {
         kind: 'THEORY', sideToMove: 'BLACK', ply: 0, total: 4, branch: 0,
@@ -145,18 +145,21 @@ test('Analysis places evaluation to the left and all history controls in APK ord
     } }));
     const details = replay.children.find(item => item.className === 'analysis-study-replay-details');
     const replayToolbar = replay.children.find(item => item.className?.includes('analysis-study-toolbar'));
+    const variants = replay.children.find(item => item.className === 'analysis-study-variants');
     assert.equal(details.hidden, false);
-    assert.equal(details.children[0].children.length, 2);
-    assert.match(details.children[1].textContent, /Control the center/);
+    assert.deepEqual(variants.children.map(item => item.textContent), ['Line 1', 'Line 2']);
+    assert.equal(variants.children[1].attributes.get('aria-label'), 'Line 2 · c7 → c5');
+    assert.match(details.children[0].textContent, /Control the center/);
     assert.equal(details.children.includes(replayToolbar), false);
-    assert.equal(replayToolbar.children[1].hidden, true);
+    assert.equal(replayToolbar.children[2].hidden, true);
+    assert.match(replayToolbar.children[1].textContent, /Step 0 of 4 · e7 → e5/);
 });
 
 test('Selecting an offscreen analysis move scrolls only the strip in either direction', async () => {
     const { root, view } = await mountAnalysis(frame(1, 0, { analysis: false, total: 3,
         history: ['e2e4', 'e7e5', 'g1f3'], promotions: [] }));
     const toolbar = root.children.find(item => item.className?.includes('analysis-study-toolbar'));
-    const strip = toolbar.children[1];
+    const strip = toolbar.children.find(item => item.tag === 'nav');
     strip.clientWidth = 100;
     strip.getBoundingClientRect = () => ({ left: 40, right: 140 });
     strip.children.forEach((item, index) => {
