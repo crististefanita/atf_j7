@@ -198,12 +198,19 @@ public final class ChessMatch {
 
     record BotDecision(Move move, int depth, int extraNodes) { }
 
+    record BotAnalysis(BotDecision decision, TacticalAnalysis.SearchReport search) { }
+
     BotDecision botDecision() {
         if (!awaitingBot()) throw new IllegalStateException("It is not the computer's turn");
         return botDecision(setup.level());
     }
 
     BotDecision botDecision(MatchSetup.Level level) {
+        return analyzeBot(level).decision();
+    }
+
+    /** Retains the search that actually selected the move; auditing must not run a different second search. */
+    BotAnalysis analyzeBot(MatchSetup.Level level) {
         if (result != Result.IN_PROGRESS) throw new IllegalStateException("The match has ended");
         var board = position();
         boolean hard = level == MatchSetup.Level.HARD;
@@ -237,7 +244,7 @@ public final class ChessMatch {
                         .map(TacticalAnalysis.Variation::move).filter(move -> visitsAfter(move) < visits).findFirst().orElse(chosen);
             }
         }
-        return new BotDecision(chosen, search.depth(), search.extraNodes());
+        return new BotAnalysis(new BotDecision(chosen, search.depth(), search.extraNodes()), search);
     }
 
     private int visitsAfter(Move move) {
