@@ -384,7 +384,7 @@ Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <s
 
 ## Partidă și istoric
 
-`ChessGameBotSessionTest` verifică profilul și culoarea după restaurare, proprietatea turei și respingerea unei replici duplicate. `ChessWebBotPublication` publică proba Edge la `/atf_j7/` și compară mutarea livrată de worker cu JVM. [Sanity Web cu AI](../../web/README.md#partida-cu-ai)
+`ChessGameBotSessionTest` verifică profilul și culoarea după restaurare, proprietatea turei și respingerea unei replici duplicate. `ChessWebBotPublication` publică proba Edge la `/chess/` și compară mutarea livrată de worker cu JVM. [Sanity Web cu AI](../../web/README.md#partida-cu-ai)
 
 `-ActiveMatchOnly` verifică poziția exactă după restart pe tura jucătorului. Publicați recepția `active-match-prepare.txt` cu `AndroidSanityPublication#publishActiveMatchSanity`.
 
@@ -476,12 +476,12 @@ Publicați raportul cu `-Dtest=AndroidSanityPublication#publishReplayCompactSani
 ## Proba TalkBack
 
 1. Activați TalkBack pe emulator. În **Mat în 1**, deschideți **Indiciu**, apoi **Arată mutarea**. Atingeți culoarea la mutare și glisați de două ori spre dreapta prin intrarea tactilă a emulatorului. După fiecare gest, capturați evenimentul Android `TYPE_VIEW_ACCESSIBILITY_FOCUSED` și cadrul cu focusul. Repetați după **Întoarce tabla**. [Intrarea tactilă a emulatorului](https://developer.android.com/studio/run/emulator-console)
-2. Pentru prima problemă din 0.3.1, traseul este negrul la mutare → regina neagră de pe d8 → h4, cu oricare dintre culori jos. Proba pe API 33 cu TalkBack 14.2 a confirmat cele patru glisări prin `EmulatorController/sendTouch`. [Extent-ul istoric](https://github.com/crististefanita/atf_j7/blob/v0.3.1/release/0.3.1/reports/talkback-gestures-extent.html) rămâne în tagul Git, în afara retenției scurte a release-urilor.
+2. Pentru prima problemă din 0.3.1, traseul este negrul la mutare → regina neagră de pe d8 → h4, cu oricare dintre culori jos. Proba pe API 33 cu TalkBack 14.2 a confirmat cele patru glisări prin `EmulatorController/sendTouch`. [Extent-ul istoric](https://github.com/crististefanita/chess/blob/v0.4.0/release/0.3.1/reports/talkback-gestures-extent.html) rămâne în tagul Git, în afara retenției scurte a release-urilor.
 3. `QuestHintTest` verifică proiecția în ambele orientări. Sanity-ul verifică actualizarea legăturilor native. Proba glisărilor are propriul raport și folosește evenimentele de focus ca dovadă.
 
 Pentru republicare, rulați `TalkBackPublication#publishTalkBackGestures` din copia TMP și indicați logul prin `-Dchess.talkback.gestures`. Logul unei singure probe conține evenimentele `J7FocusProbe` și markerii `J7ProbeMarker`, de la `BLACK_ANCHOR_START` la `WHITE_DESTINATION_END`. În același director puneți `emulator.json`, capturile `BLACK-color.png`, `BLACK-PIECE.png`, `BLACK-DESTINATION.png` și echivalentele `WHITE-*`.
 
-Pentru vorbire, activați **Display speech output**. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. Proba anterioară compară ediția 0.3.0 cu build-ul corectat și consemnează cererile TalkBack și audio PCM sintetizat. [Extent-ul istoric](https://github.com/crististefanita/atf_j7/blob/v0.3.1/release/0.3.1/reports/talkback-extent.html) este păstrat în tagul Git.
+Pentru vorbire, activați **Display speech output**. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. Proba anterioară compară ediția 0.3.0 cu build-ul corectat și consemnează cererile TalkBack și audio PCM sintetizat. [Extent-ul istoric](https://github.com/crististefanita/chess/blob/v0.3.1/docs/feedback/talkback-extent.html) este păstrat în tagul Git.
 
 ### Game Review
 

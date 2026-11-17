@@ -1,4 +1,4 @@
-# ATF J7 · Chess Lab
+# Chess Lab
 
 Play chess against AI, solve puzzles, and study openings.
 
