@@ -92,9 +92,12 @@ test('The match options expose native board actions in RO and EN', async () => {
     const anchor = html.match(/<div id="match-options-anchor"[^>]*>([^]*?)<h1 id="title">/)?.[1];
     assert.match(anchor, /id="match-options-button"[^>]+aria-controls="match-options" aria-expanded="false"/);
     const panel = anchor.match(/<div id="match-options"[^>]* role="group"[^>]* hidden>([^]*?)<\/div>/)?.[1];
-    assert.match(panel, /<button id="flip-match"[^>]*>Flip board<\/button>/);
-    assert.match(panel, /<button id="close-match-options"[^>]*>Close<\/button>/);
-    for (const [id, key] of [['match-options-title', 'match_actions'], ['flip-match', 'flip'], ['open-review', 'main_menu']]) {
+    assert.deepEqual([...panel.matchAll(/<button id="([^"]+)"/g)].map(entry => entry[1]),
+        ['flip-match', 'open-review', 'menu-saved', 'menu-analysis', 'menu-review', 'menu-draw', 'menu-resign']);
+    for (const [id, key] of [['match-options-title', 'match_actions'], ['flip-match', 'flip'], ['open-review', 'main_menu'],
+        ['menu-saved', 'match_saved_games'], ['menu-analysis', 'manual_analysis'], ['menu-review', 'match_game_review'],
+        ['menu-draw', 'match_offer_draw'], ['menu-resign', 'match_resign'], ['ai-analysis-label', 'match_analysis_option'],
+        ['resign-confirm', 'match_confirm_resign'], ['resign-message', 'match_resign_confirm']]) {
         const localized = [...adapter.matchAll(new RegExp("'" + id + "': '([^']+)'", 'g'))].map(match => match[1]);
         const nativeLabels = [english, romanian].map(resources => resources.match(new RegExp('<string name="' + key + '">([^<]+)'))?.[1]);
         assert.deepEqual(localized, nativeLabels, id);

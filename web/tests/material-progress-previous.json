@@ -1,0 +1,22 @@
+{
+  "source": "01e2c94f5e3a51ef897f2e9bbe4d7a41a83e33c9",
+  "saved": "AAAAAQAAAAoAAAAMbGFzdC10YWN0aWNzAQAAAAp0YWN0aWMtMDA1AAAADnJlc3VtZS1jaGFwdGVyAgEAAAAKY3VycmVudC1pZAEAAAAMdHJhaW5pbmctMTA1AAAACnNvbHZlZC1pZHMBAAAAGWludGVybWV6em8tMDEzCnRhY3RpYy0wMDUAAAANcmV3YXJkLXBvaW50cwEAAAAfaW50ZXJtZXp6by0wMTM9MTAKdGFjdGljLTAwNT0xMAAAAA9yZXdhcmQtYXNzaXN0ZWQBAAAADHRyYWluaW5nLTEwNQAAAA1yZXdhcmQtc3RyZWFrAwAAAAAAAAATd2ViLXF1ZXN0LXBvc2l0aW9ucwEAAABacXVlc3QtZmluaXNoLWludGVybWV6em8tMDEzCTE6YzFlMwpxdWVzdC1maW5pc2gtdGFjdGljLTAwNQkwOmQyYzMKcXVlc3QtcGx5LXRyYWluaW5nLTEwNQkyAAAAD2xhc3QtaW50ZXJtZXp6bwEAAAAOaW50ZXJtZXp6by0wMTMAAAANbGFzdC10cmFpbmluZwEAAAAMdHJhaW5pbmctMTA1",
+  "tactic": {
+    "id": "tactic-005",
+    "board": "  bqr  k   pbp    p p p rpP P  pp  P P  P QB  P R    N P  BR  K "
+  },
+  "inter": {
+    "id": "intermezzo-013",
+    "board": "     qk      ppp    pn  n          P        QPPP    N B      RK "
+  },
+  "training": {
+    "id": "training-105",
+    "ply": 2,
+    "board": "       kp     qp p b             P QBP          P      P       K"
+  },
+  "totals": {
+    "solved": 2,
+    "total": 1238,
+    "points": 20
+  }
+}

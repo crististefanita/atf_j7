@@ -245,6 +245,11 @@ try {
         await touch(selector);
     }
 
+    async function openMatchReview() {
+        if (await displayed('#analyze')) await touch('#analyze');
+        else await touchMatchOption('#menu-review');
+    }
+
     async function pressKey(key, shift = false) {
         const codes = { Tab: 9, Enter: 13, Escape: 27, End: 35, Home: 36, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
         const event = { key, code: key, windowsVirtualKeyCode: codes[key], modifiers: shift ? 8 : 0 };
@@ -372,7 +377,7 @@ try {
             aiRestored.checkpoint === replied.checkpoint);
         const language = publicUrl ? 'ro' : 'en';
         const ledgerBefore = await evaluate("localStorage.getItem('chesslab.match-ledger.v1')");
-        await touchMatchOption('#open-profile');
+        await touch('#open-profile');
         await evaluate("document.querySelector('#profile-name').value = 'Ștefan'; void 0");
         await evaluate(`document.querySelector('#profile-language').value = '${language}'; void 0`);
         await touch('#save-profile');
@@ -403,7 +408,7 @@ try {
         check('recorded-line', true, recorded.checkpoint === '1|f2f3 e7e5 g2g4' && recorded.fen === playedFen && recorded.turn === 'BLACK');
         await capture('active-after-ply3.png');
 
-        await touch('#analyze');
+        await openMatchReview();
         await waitActive('analysis started in separate worker', value => value.analyzing);
         await touch('#cancel-analysis');
         const canceled = await waitActive('analysis canceled', value => !value.analyzing && !value.analyzeDisabled);
@@ -415,7 +420,7 @@ try {
             resumed.result === 'IN_PROGRESS' && resumed.last === 'g2g4' && resumed.turn === 'BLACK');
         await capture('active-reloaded.png');
 
-        await touch('#analyze');
+        await openMatchReview();
         const partial = await wait('fresh review of unfinished line', value => value.ply === 3 && value.branch === 'HISTORY');
         const partialArchive = await evaluate(savedReview);
         check('unfinished-analysis', true, partial.fen === recorded.fen && typeof partialArchive.review === 'string' && await evaluate(savedMatch) === recorded.checkpoint);
@@ -428,7 +433,7 @@ try {
         assert.equal(complete.fen, mateFen);
         assert.equal(complete.checkpoint, '1|f2f3 e7e5 g2g4 d8h4');
 
-        await touch('#analyze');
+        await openMatchReview();
         const fresh = await wait('fresh review of checkmate', value => value.ply === 4 && value.branch === 'HISTORY');
         const generated = await evaluate(`window.chessWebAudit.reviews.find(record => record.checkpoint === ${JSON.stringify(complete.checkpoint)})`);
         check('analysis-archive', true, generated.checkpoint === complete.checkpoint && generated.review.length > 0 &&
@@ -563,7 +568,7 @@ try {
             await touch(`.match-row[data-id="${id}"]`);
             const stored = await waitActive('exact archived game', game => game.id === id && game.readOnly);
             assert.equal(stored.checkpoint, checkpoint);
-            await touch('#analyze');
+            await openMatchReview();
             return wait('archive review with stable ID', review => review.archiveId === id);
         }
 
@@ -654,8 +659,8 @@ try {
         await touch(`.match-row[data-id="${originArchiveId}"]`);
         const archived = await waitActive('exact read-only origin', game => game.id === originArchiveId && game.readOnly);
         assert.equal(archived.checkpoint, 'ai|' + archiveCheckpoint);
-        assert.equal(await evaluate("document.querySelector('#analyze').textContent"), publicUrl ? 'Open analysis' : 'Deschide analiza');
-        await touch('#analyze');
+        assert.equal(await evaluate("document.querySelector('#menu-review').textContent"), publicUrl ? 'Game review' : 'Analiza partidei');
+        await openMatchReview();
         const terminal = await wait('completed archive Game Review', review => review.archiveId === originArchiveId && review.ply === 4);
         assert.ok(!terminal.canContinue);
         assert.deepEqual(await evaluate('window.chessWebAudit.requests'), []);
@@ -720,7 +725,7 @@ try {
         await touch('#open-finished');
         await touch(`.match-row[data-id="${originArchiveId}"]`);
         const source = await waitActive('preserved source game', game => game.id === originArchiveId && game.readOnly);
-        await touch('#analyze');
+        await openMatchReview();
         const original = await wait('cached original review', review => review.archiveId === originArchiveId && review.ply === selectedPly);
         const ledgerAfter = await savedLedger();
         check('origin-review-preserved', true, source.checkpoint === archived.checkpoint && source.fen === archived.fen &&
@@ -740,7 +745,7 @@ try {
         await touch(`.match-row[data-id="${archiveId}"]`);
         const original = await waitActive('the complete game from the fixture', game => game.id === archiveId && game.readOnly);
         assert.equal(original.checkpoint, 'ai|' + fixture.checkpoint);
-        await touch('#analyze');
+        await openMatchReview();
         const opened = await wait('the cached archived Game Review', review => review.archiveId === archiveId && review.ply === total);
         return { archiveId, opened };
     }

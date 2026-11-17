@@ -49,6 +49,7 @@ class ChessWebStudyShellTest {
                 "study review retains the selected ply and leaves the ordinary review independent",
                 "study continuation preserves orientation and a full game ledger"));
         verify(check, "study-quests-worker.test.mjs", List.of("--test", "--test-reporter=tap"), List.of(), "ok ", List.of(
+                "Material progress from the published Web package retains solved boards and the pending exercise",
                 "Built Web engine accepts APK puzzle stages, restores a pending defense and awards a solution once",
                 "Built Web engine opens all material chapters with the authored replay and no solved credit",
                 "Built Web engine solves one real puzzle in each of the six native chapters",

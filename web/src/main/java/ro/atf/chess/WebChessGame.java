@@ -7,6 +7,7 @@ import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
 import ro.atf.chess.MatchSetup.ColorChoice;
 import ro.atf.chess.MatchSetup.Level;
+import ro.atf.chess.MatchControls.Action;
 import ro.atf.chess.MatchStore.GameOrigin;
 import static ro.atf.chess.WebBoardState.move;
 import static ro.atf.chess.WebBoardState.placement;
@@ -27,7 +28,7 @@ final class WebChessGame {
         return select(null, null, false, 0, null, null);
     }
 
-    String open(String route, int selectedSlot, String selectedArchive, String newMode, String colorChoice, String level) {
+    String open(String route, int selectedSlot, String selectedArchive, String newMode, String colorChoice, String level, boolean analysis) {
         var matches = matches();
         if (selectedArchive != null) {
             var archived = matches.readArchivedMatch(selectedArchive);
@@ -38,7 +39,7 @@ final class WebChessGame {
             GameOrigin choice = GameOrigin.valueOf(newMode);
             var match = choice == GameOrigin.LOCAL ? ChessMatch.start()
                     : ChessMatch.start(new MatchSetup(ColorChoice.valueOf(colorChoice).resolve(WebChessGame::randomBlack),
-                            Level.valueOf(level), false));
+                            Level.valueOf(level), analysis));
             return startMatch(match, choice);
         }
         if (route != null) return resumeMode(GameOrigin.valueOf(route));
@@ -154,6 +155,24 @@ final class WebChessGame {
         return state("APPLIED");
     }
 
+    String decide(int expectedRevision, Action action) {
+        if (expectedRevision != revision) return state("STALE");
+        if (session == null || mode != GameOrigin.AI || archiveId != null) return state("UNAVAILABLE");
+        var match = session.match();
+        boolean manual = !session.automatic();
+        var item = new MatchControls.MenuItem(action, true);
+        if (!MatchControls.menu(match, viewPly < match.ply(), manual).contains(item)) return state("UNAVAILABLE");
+        var ending = switch (action) {
+            case OFFER_DRAW -> match.offerDraw();
+            case RESIGN -> match.resign();
+            default -> throw new IllegalArgumentException("Unknown match decision");
+        };
+        if (ending == match) return state("DECLINED");
+        var matches = matches();
+        if (!matches.saveMatch(slot, ending, blackBelow, mode, manual, matches.matchManualUsed(slot))) return state("SAVE_FAILED");
+        return select(ending, mode, blackBelow, 0, matches.archivedId(slot), "APPLIED");
+    }
+
     String continueGame(int expectedRevision, boolean automatic) {
         if (expectedRevision != revision) return state("STALE");
         if (session == null || viewPly >= session.match().ply()) return state("UNAVAILABLE");
@@ -240,9 +259,20 @@ final class WebChessGame {
                 + ",\"enabled\":" + (showAutomation && automation.enabled()) + ",\"checked\":" + automation.checked() + "}"
                 + ",\"awaitingBot\":" + awaitingBot + ",\"blackBelow\":" + blackBelow
                 + ",\"ply\":" + match.ply() + ",\"result\":" + quote(match.result().name()) + ",\"viewPly\":" + viewPly
+                + ",\"resigned\":" + match.resigned() + ",\"menu\":" + menu(match, latest)
                 + ",\"slot\":" + slot + ",\"archiveId\":" + quote(archiveId) + ",\"readOnly\":" + (archiveId != null)
                 + ",\"canContinue\":" + !latest + ",\"history\":" + history.append(']')
                 + ",\"legalMoves\":" + legal.append(']') + ",\"lastMove\":" + move(match.moveAt(viewPly)) + "}";
+    }
+
+    private String menu(ChessMatch match, boolean latest) {
+        var rows = new StringBuilder("{");
+        for (var item : MatchControls.menu(match, !latest, !session.automatic())) {
+            if (mode == GameOrigin.LOCAL && (item.action() == Action.OFFER_DRAW || item.action() == Action.RESIGN)) continue;
+            if (rows.length() > 1) rows.append(',');
+            rows.append(quote(item.action().name())).append(':').append(item.enabled());
+        }
+        return rows.append('}').toString();
     }
 
     private static void appendMove(StringBuilder moves, Move value) {

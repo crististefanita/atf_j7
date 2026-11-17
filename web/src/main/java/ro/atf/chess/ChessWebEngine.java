@@ -139,8 +139,8 @@ public final class ChessWebEngine {
     }
 
     @JSExport
-    public static String openMatch(String route, int slot, String archiveId, String mode, String colorChoice, String level) {
-        return GAME.open(route, slot, archiveId, mode, colorChoice, level);
+    public static String openMatch(String route, int slot, String archiveId, String mode, String colorChoice, String level, boolean analysis) {
+        return GAME.open(route, slot, archiveId, mode, colorChoice, level, analysis);
     }
 
     @JSExport
@@ -157,6 +157,9 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String matchAutomation(int revision, boolean automatic) { return GAME.changeAutomation(revision, automatic); }
+
+    @JSExport
+    public static String matchDecision(int revision, String action) { return GAME.decide(revision, MatchControls.Action.valueOf(action)); }
 
     @JSExport
     public static String matchHistory(int revision, int ply) { return GAME.history(revision, ply); }

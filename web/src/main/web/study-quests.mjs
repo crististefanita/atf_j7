@@ -68,7 +68,7 @@ const labels = {
         check: line => 'Check. Opponent line: ' + line, gain: n => '+' + n + ' in pawn units',
         opponentMate: 'opponent mates', ownMate: 'you can mate', draw: 'stalemate',
         equal: (n, move) => n + ' equal replies, including ' + move, final: 'Final move: win material now.',
-        alternative: move => 'Why is ' + move + ' weaker?', alternateReplay: move => 'Play ' + move,
+        alternative: move => 'Why is ' + move + ' weaker?', alternateReplay: move => 'Line after ' + move,
         attemptDetails: 'Move details',
         replay: 'Puzzle replay', threat: 'Danger', white: 'White', black: 'Black', turn: side => side + ' to move',
         tally: ({ solved, total, points }) => solved + '/' + total + ' solved · ' + points + ' pts', overall: 'Overall',
@@ -120,7 +120,7 @@ const labels = {
         check: line => 'Șah. Linia adversarului: ' + line, gain: n => '+' + n + ' în unități de pion',
         opponentMate: 'adversarul dă mat', ownMate: 'poți da mat', draw: 'pat',
         equal: (n, move) => n + ' replici egale, inclusiv ' + move, final: 'Ultima mutare: câștigă material imediat.',
-        alternative: move => 'De ce e mai slabă ' + move + '?', alternateReplay: move => 'Redă ' + move,
+        alternative: move => 'De ce e mai slabă ' + move + '?', alternateReplay: move => 'Linia după ' + move,
         attemptDetails: 'Detaliile mutării',
         replay: 'Reia exercițiul', threat: 'Pericol', white: 'Alb', black: 'Negru', turn: side => side + ' la mutare',
         tally: ({ solved, total, points }) => solved + '/' + total + ' rezolvate · ' + points + ' pct.', overall: 'Total',
@@ -341,6 +341,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
           <div class="quest-study-replay-body">
             <div id="quest-study-replay" hidden><div id="quest-study-replay-board" class="quest-study-board"></div></div>
             <div id="quest-study-replay-details" class="quest-study-replay-details" tabindex="0" role="region">
+              <p id="quest-study-danger-reason" role="status" hidden></p>
               <p id="quest-study-replay-status" aria-live="polite" hidden></p>
               <p id="quest-study-explain-text"></p>
             </div>
@@ -604,7 +605,8 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         replay = data;
         replayPly = data.initial;
         danger = false;
-        at('explain-title').textContent = data.title ?? (data.mate ? words.matingLine : data.depth !== null ? words.defenseStudy : words.whyTactic);
+        at('explain-title').textContent = data.alternative ? words.alternateReplay(data.title)
+            : data.mate ? words.matingLine : data.depth !== null ? words.defenseStudy : words.whyTactic;
         at('lesson-actions').hidden = true;
         showReplayFrame(true);
         renderReplay();
@@ -613,6 +615,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
 
     function showReplayFrame(visible) {
         for (const id of ['replay', 'replay-status', 'replay-actions']) at(id).hidden = !visible;
+        at('danger-reason').hidden = true;
         at('explanation').toggleAttribute('data-replay', visible);
     }
 
@@ -648,8 +651,10 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         else if (replay.frames.length === 2) replayStatus.push(words.materialOne(signedMaterial(current.material)));
         else replayStatus.push(displayMaterial(current.material));
         if (current.captured) replayStatus.push(words.capture(words.pieces[current.captured], current.captureSquare));
-        if (danger && current.danger) replayStatus.push(current.danger.kind === 'MATE' ? words.provenMate(current.danger.square)
-            : words.provenCapture(current.danger.square, signedMaterial(current.danger.gain)));
+        const threat = danger ? current.danger : null;
+        at('danger-reason').hidden = !threat;
+        setText('danger-reason', !threat ? '' : threat.kind === 'MATE' ? words.provenMate(threat.square)
+            : words.provenCapture(threat.square, signedMaterial(threat.gain)));
         at('explain-text').textContent = replayExplanation(replay, current, final);
         setText('replay-status', replayStatus.filter(Boolean).join(' · '));
         at('replay-details').scrollTop = 0;

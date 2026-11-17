@@ -221,6 +221,12 @@
 }
 .quest-study .quest-study-replay-details { padding-inline: .35rem; }
 .quest-study .quest-study-replay-details p { margin-block: .35rem; }
+.quest-study #quest-study-danger-reason {
+  padding: .3rem .5rem;
+  border-radius: .35rem;
+  background: #322a21;
+  color: #ffbc78;
+}
 .quest-study .quest-study-dialog {
   margin: 0;
 }

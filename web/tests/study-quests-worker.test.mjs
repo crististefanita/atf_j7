@@ -1,9 +1,42 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 
 const site = process.env.J7_STUDY_WEB_SITE;
+
+test('Material progress from the published Web package retains solved boards and the pending exercise', { skip: !site }, async () => {
+    const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+    const old = JSON.parse(await readFile(new URL('./material-progress-previous.json', import.meta.url), 'utf8'));
+    let saved = old.saved;
+    const run = (action, value = '', hint = '') => {
+        const response = JSON.parse(studyCommand('quests', action, value, 0, saved, hint));
+        saved = response.saved ?? saved;
+        return response.data ?? response;
+    };
+    assert.deepEqual(run('summary').overall, old.totals);
+    assert.equal(run('menu').resume, 'training');
+    let position = run('open', 'training');
+    assert.deepEqual([position.id, position.ply, position.board, position.solved], [old.training.id, old.training.ply, old.training.board, false]);
+    for (const [chapter, previous] of [['tactics', old.tactic], ['intermezzo', old.inter]]) {
+        position = run('open', chapter);
+        assert.deepEqual([position.id, position.board, position.solved, position.earned], [previous.id, previous.board, true, 0]);
+        const before = saved;
+        const replay = run('explain');
+        assert.equal(replay.type, 'replay');
+        assert.equal(replay.initial, replay.frames.length - 1);
+        assert.equal(replay.frames.at(-1).board, previous.board);
+        assert.equal(saved, before, 'reading an explanation leaves the persisted position and points alone');
+    }
+    assert.equal(run('open', 'training').board, old.training.board);
+    const piece = run('hint');
+    const hint = run('hint', '', piece.hint);
+    position = run('play', hint.suggestion, hint.hint);
+    assert.equal(position.solved, true);
+    assert.equal(run('play', hint.suggestion).earned, 0);
+    assert.deepEqual(run('summary').overall, { ...old.totals, solved: old.totals.solved + 1, points: old.totals.points + 10 });
+});
 
 test('Built Web engine accepts APK puzzle stages, restores a pending defense and awards a solution once', { skip: !site }, async () => {
     const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));

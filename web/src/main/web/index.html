@@ -22,8 +22,11 @@
         <div id="match-options" class="options-panel" role="group" aria-label="Game options" hidden>
           <button id="flip-match" type="button">Flip board</button>
           <button id="open-review" type="button">Main menu</button>
-          <button id="open-profile" type="button" hidden>Profile</button>
-          <button id="close-match-options" type="button">Close</button>
+          <button id="menu-saved" type="button">Saved games</button>
+          <button id="menu-analysis" type="button">Analysis board</button>
+          <button id="menu-review" type="button" hidden>Game review</button>
+          <button id="menu-draw" type="button" hidden>Offer draw</button>
+          <button id="menu-resign" type="button" hidden>Resign game</button>
         </div>
       </div>
       <h1 id="title">Chess Lab</h1>
@@ -104,6 +107,7 @@
           </select>
         </label>
       </div>
+      <label class="ai-analysis-option"><input id="ai-analysis" type="checkbox"><span id="ai-analysis-label">AI analysis for a new game</span></label>
       <div class="setup-actions">
         <button id="start-ai" type="submit">Start game</button>
         <button id="cancel-setup" type="button" hidden>Cancel</button>
@@ -128,6 +132,7 @@
         <button id="retry-bot" type="button" hidden>Retry AI move</button>
         <button id="open-match-analysis" type="button">Analysis board</button>
         <button id="analyze" type="button">Analyze game</button>
+        <button id="open-profile" type="button" hidden>Profile</button>
         <button id="cancel-analysis" type="button" hidden>Cancel analysis</button>
       </div>
       <div id="analysis-progress" class="analysis-progress" hidden>
@@ -135,6 +140,14 @@
         <progress id="progress"></progress>
       </div>
     </section>
+    <dialog id="match-resign" aria-labelledby="resign-title" aria-describedby="resign-message">
+      <h2 id="resign-title">Resign game</h2>
+      <p id="resign-message">End this game and record a loss?</p>
+      <form method="dialog" class="setup-actions">
+        <button id="resign-cancel" type="submit" value="cancel" autofocus>Cancel</button>
+        <button id="resign-confirm" type="submit" value="confirm">Confirm resignation</button>
+      </form>
+    </dialog>
     <dialog id="profile-dialog" aria-labelledby="profile-title">
       <form id="profile-form">
         <h2 id="profile-title">Profile</h2>

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -17,6 +18,25 @@ class ChessWebShellTest {
     private static final Pattern PASS = Pattern.compile("^ok [0-9]+ - (.+)$");
 
     @TempDir Path output;
+
+    @Test
+    @EnabledIfSystemProperty(named = "chess.study.bundle", matches = ".+")
+    void packagedWorkerAppliesTheAndroidMatchActions(Checks check) throws IOException, InterruptedException {
+        Path root = ProjectRoot.locate();
+        Path evidence = output.resolve("match-menu.log");
+        var process = new ProcessBuilder(System.getProperty("chess.web.node", "node"),
+                root.resolve("web/tests/match-menu-worker.mjs").toString(), System.getProperty("chess.study.bundle"))
+                .directory(root.toFile()).redirectErrorStream(true).redirectOutput(evidence.toFile()).start();
+        boolean finished = process.waitFor(40, TimeUnit.SECONDS);
+        if (!finished) process.destroyForcibly().waitFor();
+        check.same("The real worker responds to the match menu", true, finished);
+        String transcript = Files.readString(evidence);
+        check.same("The worker completed the match cases", "ok", process.exitValue() == 0 ? "ok" : transcript);
+        check.same("History, refusal and ending checkpoints were all checked", List.of(
+                "PASS History and stale decisions are guarded and a resignation is archived once",
+                "PASS Draw refusal keeps the saved game and agreement archives a draw"),
+                transcript.lines().filter(line -> line.startsWith("PASS ")).toList());
+    }
 
     @Test void homeAndArtworkFollowAndroidWithoutEmulator(Checks check) throws IOException, InterruptedException {
         Path root = ProjectRoot.locate();

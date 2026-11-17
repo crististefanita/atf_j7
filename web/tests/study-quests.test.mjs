@@ -369,9 +369,9 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     const board = ' '.repeat(64);
     const { at, markup, replayReports } = await mountPuzzle({ ...tacticsState, hintAction: 'EXPLAIN' }, action => {
         assert.equal(action, 'hint');
-        return { type: 'replay', initial: 1, depth: null, lesson: 'FORK', frames: [
+        return { type: 'replay', initial: 1, depth: null, lesson: 'FORK', alternative: true, title: 'Rd8+', frames: [
             { board, sideToMove: 'WHITE', material: 0 },
-            { board, sideToMove: 'BLACK', material: 100, lastMove: 'd1e2' },
+            { board, sideToMove: 'BLACK', material: 100, lastMove: 'd1e2', danger: { kind: 'CAPTURE', square: 'e4', gain: 300 } },
         ] };
     });
     at('hint').events.get('click')();
@@ -382,12 +382,18 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     assert.equal(at('replay-previous').disabled, false);
     assert.equal(at('replay-next').disabled, true);
     assert.equal(replayReports.at(-1).lastMove, 'd1e2');
+    assert.equal(at('explain-title').textContent, 'Linia după Rd8+');
+    at('threat').events.get('click')();
+    assert.equal(at('danger-reason').textContent, 'Captură pe e4 · +3 în unități de pion după orice replică legală');
+    assert.equal(at('danger-reason').hidden, false);
+    assert.doesNotMatch(at('replay-status').textContent, /Captură pe e4/);
     at('replay-details').scrollTop = 100;
     at('replay-previous').events.get('click')();
     assert.equal(at('replay-details').scrollTop, 0);
     assert.equal(at('replay-previous').disabled, true);
     assert.equal(at('replay-next').disabled, false);
     assert.equal(replayReports.at(-1).sideToMove, 'WHITE');
+    assert.equal(at('danger-reason').hidden, true);
     assert.match(markup, /id="quest-study-replay-details"[^]*?<\/div>\s*<\/div>\s*<nav id="quest-study-replay-actions"/);
     const css = await readFile(new URL('../src/main/web/study-quests.css', import.meta.url), 'utf8');
     const shared = await readFile(new URL('../src/main/web/game-review.css', import.meta.url), 'utf8');

@@ -158,6 +158,16 @@ Meniul **Studiu** deschide **Probleme**, **Deschideri** și **Tablă de analiză
 
 Atât în probleme, cât și în partide, meniul cu trei linii se deschide sub buton fără să deplaseze tabla. Escape închide meniul și readuce focusul la buton. Un clic în afară îl închide. Tabla din Deschideri folosește aceeași limită după dimensiunea ferestrei și rezervă spațiu pentru bara de evaluare, explicație și comenzi.
 
+### Explicațiile și progresul la actualizare
+
+**Tactică**, **Antrenament tactic** și **Mutarea intermediară** folosesc aceeași linie `QuestPayoff` ca APK-ul. Redarea arată mutarea, captura, bilanțul material și, când există, lecția sau studiul apărării. **Pericol** marchează câmpul verificat și anunță motivul separat. Săgețile schimbă pasul redării fără să schimbe rezolvarea sau punctajul.
+
+Proba de actualizare pornește de la pachetul public și rezolvă câte o problemă din Tactică și Mutarea intermediară. Lasă Antrenamentul după prima replică a adversarului, apoi servește candidatul la aceeași adresă. Reîncărcarea trebuie să păstreze poziția exactă, cele două rezolvări și cele 20 de puncte. Rezolvarea rămasă trebuie să ducă totalul la 30. În componentă, `material-progress-previous.json` conține o salvare produsă de pachetul de pe `gh-pages`, cu revizia sursă și pozițiile de control.
+
+### Opțiunile partidei cu AI
+
+Meniul urmează `MatchControls` din APK. **Tablă de analiză** pornește la poziția afișată, iar **Analiza partidei** este disponibilă la încheiere și în timpul jocului dacă opțiunea **Analiză AI pentru o partidă nouă** a fost bifată și există mutări. În istoric rămân acțiunile de navigare. Remiza acceptată și renunțarea confirmată păstrează același ID în arhivă. Dacă AI-ul refuză oferta, partida continuă din aceeași poziție.
+
 Comanda **Tablă de analiză** dintr-o partidă activă sau încheiată folosește `AnalysisEntry`. Studiul pornește de la semimutarea afișată și păstrează orientarea. **Înapoi** revine la aceeași partidă, cu selecția și focusul restaurate. Studiul contextual are marcaj propriu pe durata vizitei, iar reîncărcarea adresei deschide studiul independent. [Cazurile comune JVM și Web](../docs/testing/README.md#tabla-de-analiză-dintr-o-partidă)
 
 Testele cu stocare și controale simulate rulează în copia TMP. Pentru proba integrată, transmiteți pachetul TeaVM. Testul parcurge comenzile workerului prin Node.js.
