@@ -24,33 +24,18 @@ export const homeLabels = {
 };
 
 const supported = value => value === 'en' || value === 'ro';
-const mainMenuIntent = 'chessLabMainMenu';
 
 export function homeLocale(search, storage) {
     const requested = new URLSearchParams(search).get('lang');
     return supported(requested) ? requested : readProfile(() => storage).language;
 }
 
-export function restoreMainMenu(browser) {
-    return browser.history.state?.[mainMenuIntent] === true;
-}
-
-export function clearMainMenuIntent(browser) {
-    if (!restoreMainMenu(browser)) return;
-    const state = { ...browser.history.state };
-    delete state[mainMenuIntent];
-    browser.history.replaceState(state, '');
-}
-
 export function reloadProfileLanguage(browser, locale, language, fields) {
     if (fields === 'name') return false;
     const url = new URL(browser.location.href);
     if (locale === language && !url.searchParams.has('lang')) return false;
-    const state = { ...browser.history.state };
     url.searchParams.delete('lang');
-    // A saved review can be restored in the background without taking over the menu.
-    if (fields === 'language') state[mainMenuIntent] = true;
-    browser.history.replaceState(state, '', url.href);
+    browser.history.replaceState(browser.history.state, '', url.href);
     browser.location.reload();
     return true;
 }

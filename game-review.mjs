@@ -1,17 +1,16 @@
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
-import { clearMainMenuIntent, createHomeMenu, homeLabels, homeLocale, reloadProfileLanguage, restoreMainMenu } from './home-menu.mjs';
+import { createHomeMenu, homeLabels, homeLocale, reloadProfileLanguage } from './home-menu.mjs';
 import { bindBoardSelection, boardPlacement, mountStudyArrow, studyMarkers, studySquareDescription } from './study-board.mjs';
 import { createQuestStudy } from './study-quests.mjs';
 import { createOpeningStudy } from './study-openings.mjs';
 import { createAnalysisStudy } from './study-analysis.mjs';
-import { matchAnalysisNavigation, studyHashes, studyRouteForHash, watchStudyHistory, writeModeHash } from './study-navigation.mjs';
+import { matchAnalysisNavigation, routeForHash, routeHashes, watchRouteHistory, writeModeHash } from './study-navigation.mjs';
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
 const legacyMatchKeys = { local: 'chesslab.active-match.v1', ai: 'chesslab.ai-match.v1' };
-const routeHashes = { match: '#game', ai: '#ai', saved: '#saved', finished: '#finished', ...studyHashes };
 const studyRoutes = {
     quests: ['home-puzzles', createQuestStudy],
     openings: ['home-openings', createOpeningStudy],
@@ -136,12 +135,11 @@ let finishedMatches = [];
 let archive;
 let view;
 let archiveReviewId;
-let reviewDismissed = restoreMainMenu(window);
 let reportScrollBeforeExplanation = 0;
 let focusChange = 0;
 let match;
 let matchRoute;
-let mode = 'review';
+let mode;
 let setupVisible = false;
 let setupBackMode;
 let botTimer;
@@ -391,8 +389,7 @@ function setReviewText(id, text) {
 
 function render() {
     const container = find('review');
-    const visibleReview = Boolean(view && (mode === 'study-review'
-        || (archiveReviewId ? mode === 'archive-review' : mode === 'review' && !reviewDismissed)));
+    const visibleReview = Boolean(view && (mode === 'study-review' || mode === 'archive-review' || mode === 'review'));
     const analysisReview = mode === 'study-review' && studyReturn?.route === 'analysis';
     const wasExplaining = document.body.classList.contains('review-explaining');
     const explaining = visibleReview && view.explanationOpen;
@@ -400,19 +397,15 @@ function render() {
     container.hidden = !visibleReview;
     document.body.classList.toggle('review-active', visibleReview);
     document.body.classList.toggle('review-explaining', explaining);
-    const homeVisible = mode === 'review' && !visibleReview;
+    const homeVisible = mode === 'home';
     homeMenu.show(homeVisible, savedMatches);
     if (homeVisible) refreshStudyTotals();
     document.body.classList.toggle('home-active', homeVisible);
-    if (mode === 'review') {
-        find('title').textContent = homeVisible ? 'Chess Lab' : words.title;
-        document.title = homeVisible ? 'Chess Lab' : 'Chess Lab · ' + words.title;
-    }
     find('review-close').hidden = !visibleReview || Boolean(archiveReviewId) || explaining;
     find('archive-review-back').hidden = !visibleReview || !archiveReviewId || explaining;
     find('close-why').hidden = !explaining;
     find('why-actions').hidden = !explaining || (!archiveReviewId && !analysisReview);
-    find('reopen-review').hidden = mode !== 'review' || visibleReview || !view || Boolean(archiveReviewId);
+    find('reopen-review').hidden = !homeVisible || !archive;
     if (!visibleReview) return;
     find('title').textContent = explaining ? words['why-title'] : words.title;
     document.title = `Chess Lab · ${find('title').textContent}`;
@@ -501,8 +494,6 @@ async function commit(state, source) {
     }
     archive = nextArchive;
     archiveReviewId = undefined;
-    reviewDismissed = false;
-    clearMainMenuIntent(window);
     view = state;
     render();
     return true;
@@ -666,6 +657,12 @@ function renderMatchList() {
     find('match-rows').replaceChildren(...rows);
 }
 
+function shownRouteHash() {
+    if (mode === 'archive-review') return `#review/${encodeURIComponent(archiveReviewId)}`;
+    if (mode === 'archive') return `#archive/${encodeURIComponent(match.archiveId)}`;
+    return routeHashes[mode === 'study-review' ? studyReturn.route : mode];
+}
+
 function showMode(nextMode, addHistory = false) {
     if (nextMode !== mode) {
         cancelAnalysis();
@@ -675,16 +672,13 @@ function showMode(nextMode, addHistory = false) {
     }
     setReviewMenu(false);
     mode = nextMode;
-    const hash = mode === 'archive-review' ? `#review/${encodeURIComponent(archiveReviewId)}`
-        : mode === 'archive' ? `#archive/${encodeURIComponent(match.archiveId)}`
-        : mode === 'study-review' ? routeHashes[studyReturn.route] : routeHashes[mode];
-    writeModeHash(window, hash, addHistory);
-    const main = mode === 'review';
+    writeModeHash(window, shownRouteHash(), addHistory);
+    const main = mode === 'home' || mode === 'review';
     const listing = listRoutes.has(mode);
     const title = { match: 'open-match', ai: 'open-ai', archive: 'open-finished', saved: 'open-saved', finished: 'open-finished' };
     const studying = Object.hasOwn(studyPanels, mode);
-    find('title').textContent = studying ? homeLabels[locale][studyRoutes[mode][0]] : words[title[mode] ?? 'title'];
-    document.title = `Chess Lab · ${find('title').textContent}`;
+    find('title').textContent = mode === 'home' ? 'Chess Lab' : studying ? homeLabels[locale][studyRoutes[mode][0]] : words[title[mode] ?? 'title'];
+    document.title = mode === 'home' ? 'Chess Lab' : `Chess Lab · ${find('title').textContent}`;
     find('open-profile').hidden = mode !== 'ai';
     find('open-review').hidden = main || listing || studying || mode === 'study-review' || mode === 'archive' || mode === 'archive-review';
     find('return-menu').hidden = !listing && mode !== 'archive';
@@ -740,7 +734,7 @@ function adoptMatchState(response) {
     }
     renderMatch();
     renderMatchList();
-    homeMenu.show(mode === 'review' && find('review').hidden, savedMatches);
+    homeMenu.show(mode === 'home', savedMatches);
 }
 
 async function commitMatch(response, failure = words.matchSaveFailed) {
@@ -872,7 +866,7 @@ function analyzeMatch() {
     } else {
         runReviewAnalysis(match, async source => {
             const response = await call('review-open', { archive: source });
-            if (await commit(response.view, source)) showMode('review');
+            if (await commit(response.view, source)) showMode('review', true);
         });
     }
 }
@@ -959,33 +953,40 @@ function runReviewAnalysis(snapshot, openComputedReview, rated = false) {
             await openComputedReview(source);
         }, words.analysisFailure);
     });
-    job.postMessage({ id, type: 'review-analyze', checkpoint: snapshot.reviewCheckpoint, ...(rated ? { rated } : {}) });
+    job.postMessage({ id, type: 'review-analyze', checkpoint: snapshot.reviewCheckpoint, rated });
 }
 
-function openMainReview() {
-    if (busy) return;
+function showMainMenu(addHistory = false) {
     setupVisible = false;
-    reviewDismissed = true;
-    if (!archiveReviewId) {
-        showMode('review');
+    if (archiveReviewId) {
+        archiveReviewId = undefined;
+        view = undefined;
+    }
+    showMode('home', addHistory);
+}
+
+async function openStandaloneReview(addHistory = false) {
+    if (!archive) {
+        showMainMenu();
         return;
     }
-    void exclusive(async () => {
-        const response = archive ? await call('review-open', { archive }) : null;
+    await exclusive(async () => {
+        if (!view || archiveReviewId) view = (await call('review-open', { archive })).view;
         archiveReviewId = undefined;
-        view = response?.view;
-        showMode('review');
+        showMode('review', addHistory);
+        revealRestoredReview(view);
     }, words.badArchive);
 }
 
 function openAiSetup() {
-    setupBackMode = mode === 'review' || listRoutes.has(mode) || mode === 'ai' ? mode : undefined;
+    const previousMode = mode ?? 'home';
+    setupBackMode = previousMode === 'home' || listRoutes.has(previousMode) || previousMode === 'ai' ? previousMode : undefined;
     if (matchRoute === 'ai' && match) {
         find('ai-side').value = match.humanSide;
         find('ai-level').value = match.level;
     }
     setupVisible = true;
-    showMode('ai');
+    showMode('ai', true);
 }
 
 function refreshStudyTotals() {
@@ -1016,8 +1017,7 @@ function leaveStudy() {
     const route = mode;
     if (route === 'analysis' && contextualAnalysis.back()) return;
     studyTotalsDirty = true;
-    reviewDismissed = true;
-    showMode('review', true);
+    showMainMenu(true);
     if (studyRoutes[route]) find(studyRoutes[route][0]).focus();
 }
 
@@ -1064,7 +1064,7 @@ async function openStudyReview(checkpoint, blackBelow, selectPly = -1) {
         if (source.checkpoint !== checkpoint) throw new Error('Analysis checkpoint differs from the study');
         const response = await call('study-review-open', { archive: source, blackBelow, ply: selectPly });
         if (generation !== studyGeneration) return false;
-        studyReturn = { route, opener, view, archiveReviewId, reviewDismissed };
+        studyReturn = { route, opener, view, archiveReviewId };
         view = response.view;
         archiveReviewId = undefined;
         showMode('study-review');
@@ -1085,7 +1085,6 @@ function restoreStudyReviewOrigin() {
     studyReturn = undefined;
     view = previous.view;
     archiveReviewId = previous.archiveReviewId;
-    reviewDismissed = previous.reviewDismissed;
     return previous;
 }
 
@@ -1124,13 +1123,13 @@ find('open-ai').addEventListener('click', () => {
     openAiSetup();
 });
 
-find('open-review').addEventListener('click', openMainReview);
-find('open-saved').addEventListener('click', () => showMode('saved'));
-find('open-finished').addEventListener('click', () => showMode('finished'));
+find('open-review').addEventListener('click', () => { if (!busy) showMainMenu(); });
+find('open-saved').addEventListener('click', () => showMode('saved', true));
+find('open-finished').addEventListener('click', () => showMode('finished', true));
 find('return-menu').addEventListener('click', () => {
     if (busy) return;
     if (mode === 'archive') showMode('finished');
-    else openMainReview();
+    else showMainMenu();
 });
 find('archive-review-back').addEventListener('click', () => {
     if (archiveReviewId) void enterMatch({ archiveId: archiveReviewId });
@@ -1141,14 +1140,9 @@ find('review-close').addEventListener('click', () => {
         void closeStudyReview();
         return;
     }
-    reviewDismissed = true;
-    showMode('review');
+    showMainMenu();
 });
-find('reopen-review').addEventListener('click', () => {
-    reviewDismissed = false;
-    clearMainMenuIntent(window);
-    render();
-});
+find('reopen-review').addEventListener('click', () => { void openStandaloneReview(true); });
 find('match-rows').addEventListener('click', event => {
     const row = event.target.closest('button.match-row');
     if (!row) return;
@@ -1349,7 +1343,7 @@ find('archive').addEventListener('change', event => {
     void exclusive(async () => {
         const imported = normalizeArchive(JSON.parse(await file.text()));
         const response = await call('review-open', { archive: imported });
-        await commit(response.view, imported);
+        if (await commit(response.view, imported)) showMode('review', true);
     }, words.badArchive);
 });
 addEventListener('storage', event => {
@@ -1377,15 +1371,11 @@ await exclusive(async () => {
     }
     if (stored === null) return;
     const restored = normalizeArchive(JSON.parse(stored));
+    archive = restored;
     if (ledgerReady) {
         const migrated = await call('archive-review-migrate', { archive: restored });
         await commitMatch(migrated, words.saveFailed);
     }
-    const response = await call('review-open', { archive: restored });
-    archive = restored;
-    view = response.view;
-    render();
-    revealRestoredReview(view);
 }, words.badArchive);
 const activeStudyRoute = () => studyReturn?.route ?? (Object.hasOwn(studyRoutes, mode) ? mode : undefined);
 
@@ -1393,21 +1383,21 @@ async function openLocatedMode(hash) {
     const previousStudy = activeStudyRoute();
     restoreStudyReviewOrigin();
     if (contextualAnalysis.restore(hash)) return;
-    const study = studyRouteForHash(hash);
-    if (study) await openStudy(study, { resume: study === 'quests' });
-    else if (hash === routeHashes.match) await enterMatch({ route: 'LOCAL' });
-    else if (hash === routeHashes.ai) await enterMatch({ route: 'AI' });
-    else if (hash === routeHashes.saved) showMode('saved');
-    else if (hash === routeHashes.finished) showMode('finished');
-    else if (hash.startsWith('#review/')) await openArchiveReview(hash.slice('#review/'.length));
-    else if (hash.startsWith('#archive/')) await enterMatch({ archiveId: hash.slice('#archive/'.length) });
-    else if (previousStudy) {
-        studyTotalsDirty = true;
-        reviewDismissed = true;
-        showMode('review');
-        find(studyRoutes[previousStudy][0]).focus();
-    } else render();
+    const { mode: destination, archiveId } = routeForHash(hash);
+    if (Object.hasOwn(studyRoutes, destination)) await openStudy(destination, { resume: destination === 'quests' });
+    else if (destination === 'match') await enterMatch({ route: 'LOCAL' });
+    else if (destination === 'ai') await enterMatch({ route: 'AI' });
+    else if (listRoutes.has(destination)) showMode(destination);
+    else if (destination === 'review') await openStandaloneReview();
+    else if (destination === 'archive-review') await openArchiveReview(archiveId);
+    else if (destination === 'archive') await enterMatch({ archiveId });
+    else {
+        if (previousStudy) studyTotalsDirty = true;
+        showMainMenu();
+        if (previousStudy) find(studyRoutes[previousStudy][0]).focus();
+    }
 }
 
-watchStudyHistory(window, activeStudyRoute, openLocatedMode);
+watchRouteHistory(window, shownRouteHash, openLocatedMode);
 await openLocatedMode(location.hash);
+if (!mode) showMainMenu();
