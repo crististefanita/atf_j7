@@ -111,6 +111,21 @@ The H17/H19 audit separates the first recommendation from the deliberately playe
 
 The Italian losses also reproduce on the prior engine. After the bishop capture, `Kxf2 …Qc5+ d4` is a real defense and the later knight fork matters. The hint's shallow credit and shortlist are distinct from the actual foreground Hard decision. In the matched White Caro–Kann grid after `…d5`, selected depths are H5/H5/H4 at 50k/100k/200k. A larger allowance therefore does not imply a deeper selected result or a stronger move. These are explicit follow-up cases, not a passed global-strength gate.
 
+All three subsequent Italian algorithm probes were rejected; the qualified Sicilian and Caro–Kann corrections and source `a7e71d9` remain unchanged. The independent foreground Hard check preserved the move and depth on all 24 v1 histories against the prior engine. Five node costs changed, including two reserve uses from 100k to 200k. This sample establishes neither identical cost nor an Elo gain.
+
+<details>
+<summary>Rejected Italian probes and the retained contract</summary>
+
+| Probe | Local result | Reason for rejection |
+|---|---|---|
+| V1 · raw credit filtering and removal of H2 fallback | S5 reaches `…Qg6` | Sicilian S7 changes `N1c3` to `Bg5`, SF H19 499.5‰ to 24‰; the Italian S1 200k control changes `…Nge7` to `…Qf6`, 243.5‰ to 26.5‰ |
+| V2 · restore H3 and book fallback | Preserves Sicilian S7 | Still regresses the Italian S1 control |
+| V3 · retain the raw eligible domain before credit pruning | Retains the relevant alternative | Cannot complete H4 within the 50k seed; S5 falls back to H3 and `…Bxf2+`; 78/79 component gate fails |
+
+The next P1 is to preserve raw eligible alternatives without starving either seed search or common-horizon comparison within the same 200k total. Keep the actual native Hard `…Na5` control separate from hint S5. Captured mistakes become frozen, source-bound regression cases with free Stockfish H17/H19 replies and sound-sacrifice counterexamples, never runtime FEN bans or automatically trusted training labels. The transfer guard preserves the Sicilian leader; it does not claim that the still-offered `Bg5` is filtered. [Frozen transfer guards](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
+
+</details>
+
 [Audit protocol](../testing/hint-audit.md) · [Open algorithm feedback](../feedback/README.md)
 
 ## Checks for every change

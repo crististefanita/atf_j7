@@ -12,8 +12,8 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
-| P1 | Italian · hint and Hard defensive replies | The audit finds the false `…Bxf2+` compensation; the actual Hard choice is also inferior. | Compare `…Bxf2+`, `…Na5` and `…Qg6` through free defenses at a common horizon and preserve sound sacrifices. |
-| P1 | Hint · independent alternative accuracy | Some alternatives remain overrated after exchange verification. | Verify ranking and every offered alternative against free replies at the same budget. |
+| P1 | Italian · hint and Hard defensive replies | All three probes were rejected; false `…Bxf2+` compensation remains. | Preserve raw eligible alternatives without starving seed search or comparison within 200k; retain the frozen transfer and sacrifice guards. |
+| P1 | Hint · independent alternative accuracy | The correct Sicilian `N1c3` leader still offers the inferior `Bg5`. | Correct the offered alternatives without regressing the leader, with common-horizon and free-reply evidence. |
 | P2 | Hint audit · broader transfer | The initial plan covers three short opening paths and three budgets. | Add new history-separated families and measure leader loss separately from deliberately played lower ranks. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
@@ -62,7 +62,9 @@ Confirm speech on the corrected build in RO and EN and a return to the same move
 
 The source-bound `opening-hints-v1` collection finds `italian-ranked` decision 5 recommending `…Bxf2+`. Stockfish H19 gives −311 cp / 0‰ through `Kxf2 …Qc5+ d4`, versus −49 cp / 444‰ for `…Qg6`. The hint's raw H4 already prefers `Qg6 −59` to `Bxf2+ −90`, but the earlier-horizon credit raises the sacrifice to −41 and the shortlist drops `Qg6`. Separately, actual Hard at 100k chooses `…Na5`, evaluated at −120 cp / 155.5‰. Both are existing gaps, reproduced with the prior engine.
 
-Keep current-horizon evidence distinct from heuristic ordering, and require a relevant challenger. Verify quiet central defenses and the later knight fork. Compare the actual Hard API and the 200k hint independently, with proper bishop, queen and knight sacrifices as controls. Retain the Sicilian, Caro–Kann, Catalan and `Qxc2` gates. Preserve the immutable first collection and verify transfer before promoting a correction. [Audit protocol](../testing/hint-audit.md)
+Three isolated Italian probes were rejected; the qualified production engine is unchanged. No Italian correction or Elo gain was qualified. [Measured trials](../board/ai-quality.md#first-move-by-move-collection)
+
+Next preserve raw eligible alternatives without starving seed search or comparison within the single 200k ceiling. Verify quiet central defenses and the later knight fork; measure actual completed horizons and node allocation. Compare the native Hard `…Na5` and hint S5 separately. Retain correct bishop, queen and knight sacrifices, the Sicilian, Caro–Kann, Catalan and `Qxc2` controls, and the immutable v1 evidence. Promote only after independent transfer; captured failures are regression data, not runtime FEN exceptions or automatic learning labels. [Frozen transfer guards](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java) · [Audit protocol](../testing/hint-audit.md)
 
 </details>
 
@@ -70,6 +72,8 @@ Keep current-horizon evidence distinct from heuristic ordering, and require a re
 <summary>P1 · Hint · independent alternative accuracy</summary>
 
 The primary Sicilian `…Nd7` alternative and Caro–Kann `…d6` leader are corrected. The remaining transfer gap is visible in the Sicilian neighbor with `Nc3`, where the existing `…Nd7` leader gives 44.5‰ versus 479.5‰ for `…cxd4` at H19. In the Caro–Kann `Nc3` neighbor, `…d6` still gives 400‰ versus 482‰ for `…d5`. The critical pre-`Nxc2` leader remains `…Nf6`, while its offered `…b5` is weaker. Catalan `cxd5` remains inferior to Stockfish's `Nf3`. [Completed comparisons](../board/ai-quality.md#selective-hint-comparison-and-move-by-move-audit)
+
+In v1 Sicilian S7, the leader `N1c3` has −1 cp / 499.5‰ at H19, while the offered `Bg5` has −166 cp / 24‰ after free `…Qa5+`. Relative to the free-root optimum, their losses are 9‰ and 484.5‰; the gap between those forced roots is 475.5‰. The regression guard protects the leader only and does not certify exclusion of the bad alternative.
 
 Improve the shared ranking within the total 200,000-node hint ceiling. Compare all offered moves at a common completed horizon and check free opposing replies at H17/H19 on new families. Keep the sound queen and knight sacrifices, exact-cache bound negatives, and bulb/comparison/replay identity. A replay-integrity PASS does not establish that the alternatives are equally strong. Preserve completed-depth and actual-node evidence. [AI checks](../testing/README.md#game-and-history)
 
@@ -178,6 +182,8 @@ Start by extracting resumption, cancellation, and delayed AI results into a JVM-
 <summary>P1 · Hard adaptive strength</summary>
 
 Foreground search uses a configurable 100,000-node allowance with a reserve to 200,000. Continuation retains the active stack and cache. Component checks protect the existing exchange proof.
+
+At v1 Sicilian S7, native Hard retains `Bg5` (a7 uses the 100k→200k reserve; SF 24‰) against the hint's `N1c3` (499.5‰), while Italian S5 favors native `…Na5` (155.5‰) over the hint's `…Bxf2+` (0‰); compare the APIs independently rather than blindly routing Hard through the hint.
 
 Measure fixed 100,000, fixed 200,000, and the adaptive mode from the same source on held-out games and Stockfish-verified loss positions. Keep the learned-order league's source identity separate and check legal quiet alternatives, mate, and drawn endgames. [Adaptive contract](../board/ai-quality.md#adaptive-foreground-budget)
 

@@ -90,6 +90,21 @@ suite do not establish move strength. A change that fixes one opening and
 regresses another remains experimental. Document development cases, untouched
 transfer cases, and cases later reused as regression controls separately.
 
+Captured mistakes become frozen full-history regression cases only after the
+oracle inputs, free defenses and source are pinned. Retain a known correct
+incumbent and sound-sacrifice counterexamples alongside each failure. Inspected
+cases are no longer an untouched transfer set. Raw game outcomes do not become
+automatic learning labels, and runtime FEN bans cannot stand in for search.
+[Frozen transfer contracts](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
+
+All three Italian algorithm probes were rejected. Recovering one quiet defense
+cannot close the issue while another opening regresses or the seed cannot
+finish its required horizon. The next iteration must preserve raw eligible
+alternatives without starving seed search or comparison within the same 200k
+total, report actual completed depths, and retain immutable v1 receipts. Native
+Hard and the hint remain separately measured APIs; partial diagnostic paths do
+not establish an Elo improvement.
+
 Exact-cache tests distinguish full-window values from cutoff bounds and compare
 warm, cold, and disabled caches. The upstream reference also classifies bounds
 separately. [Stockfish 19 search](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp#L1460-L1468)
