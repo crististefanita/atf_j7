@@ -90,6 +90,22 @@ nu stabilesc forța mutării. O schimbare care repară o deschidere și strică 
 rămâne experimentală. Documentați separat cazurile de dezvoltare, cele de
 transfer neatinse și cazurile refolosite ulterior ca martori de regresie.
 
+Greșelile capturate devin cazuri de regresie cu istoric complet, înghețate numai
+după fixarea intrărilor oracolului, a apărărilor libere și a sursei. Păstrează un
+lider cunoscut corect și contraexemple de sacrificii corecte lângă fiecare eșec.
+Cazurile inspectate nu mai sunt un lot de transfer neatins. Rezultatele brute
+ale partidelor nu devin etichete automate de învățare, iar interdicțiile FEN în
+runtime nu pot înlocui căutarea.
+[Contracte de transfer înghețate](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
+
+Toate cele trei probe algoritmice italiene au fost respinse. Recuperarea unei
+apărări liniștite nu închide problema dacă altă deschidere pierde sau căutarea
+inițială nu încheie orizontul cerut. Următoarea iterație trebuie să păstreze
+alternativele brute eligibile fără a epuiza căutarea inițială sau comparația în
+același total de 200k, să raporteze adâncimile complete efective și să conserve
+recepțiile v1 imuabile. Hard nativ și indiciul rămân API-uri măsurate separat;
+traseele diagnostice parțiale nu stabilesc o creștere Elo.
+
 Testele cache-ului exact disting valorile ferestrei complete de limitele tăierilor
 și compară cache-ul încălzit, rece și dezactivat. Referința originală clasifică
 și ea limitele separat. [Căutarea Stockfish 19](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp#L1460-L1468)

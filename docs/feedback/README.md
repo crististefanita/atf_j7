@@ -12,8 +12,8 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
-| P1 | Italiană · replicile defensive din indiciu și Hard | Auditul găsește compensația falsă pentru `…Bxf2+`; și alegerea Hard efectivă este inferioară. | Compară `…Bxf2+`, `…Na5` și `…Qg6` prin apărări libere la orizont comun și păstrează sacrificiile corecte. |
-| P1 | Indiciu · precizia alternativelor independente | Unele alternative rămân supraevaluate după verificarea schimburilor. | Verifică ordonarea și fiecare alternativă oferită față de replici libere, în același buget. |
+| P1 | Italiană · replicile defensive din indiciu și Hard | Toate cele trei probe au fost respinse; compensația falsă pentru `…Bxf2+` rămâne. | Păstrează alternativele brute eligibile fără a epuiza căutarea inițială sau comparația în 200k; menține martorii de transfer și sacrificiile corecte. |
+| P1 | Indiciu · precizia alternativelor independente | Liderul sicilian corect `N1c3` încă oferă alternativa inferioară `Bg5`. | Corectează alternativele oferite fără regresia liderului, cu dovezi la orizont comun și replici libere. |
 | P2 | Audit indicii · transfer mai larg | Planul inițial acoperă trei trasee scurte de deschidere și trei bugete. | Adaugă familii cu istorii separate și măsoară pierderea liderului distinct de rangurile inferioare jucate intenționat. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
 | P2 | Android · gestul predictiv | Gestul predictiv mai cere un dispozitiv compatibil. | Verifică anularea și reluarea pe API 33+. |
@@ -62,7 +62,9 @@ Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceea
 
 Colecția `opening-hints-v1`, legată de sursă, găsește decizia 5 din `italian-ranked` recomandând `…Bxf2+`. Stockfish H19 dă −311 cp / 0‰ prin `Kxf2 …Qc5+ d4`, față de −49 cp / 444‰ pentru `…Qg6`. H4 brut al indiciului preferă deja `Qg6 −59` față de `Bxf2+ −90`, dar creditul orizontului anterior ridică sacrificiul la −41, iar selecția candidaților pierde `Qg6`. Separat, Hard efectiv la 100k alege `…Na5`, evaluat la −120 cp / 155,5‰. Ambele sunt lacune existente, reproduse cu motorul precedent.
 
-Păstrați dovezile orizontului curent distincte de ordonarea euristică și cereți un candidat relevant. Verificați apărările centrale liniștite și furculița ulterioară de cal. Comparați independent API-ul Hard efectiv și indiciul de 200k, cu sacrificii corecte de nebun, damă și cal ca martori. Păstrați porțile Sicilianei, Caro–Kann, Catalanei și `Qxc2`. Conservați prima colecție imuabilă și verificați transferul înainte de promovarea corecției. [Protocolul auditului](../testing/hint-audit.md)
+Trei probe italiene izolate au fost respinse; motorul calificat de producție rămâne neschimbat. Nicio corecție italiană sau creștere Elo nu a fost calificată. [Probe măsurate](../board/ai-quality.md#prima-colecție-de-audit-mutare-cu-mutare)
+
+Următorul pas păstrează alternativele brute eligibile fără a epuiza căutarea inițială sau comparația în plafonul unic de 200k. Verifică apărările centrale liniștite și furculița ulterioară de cal; măsoară orizonturile complete și alocarea efectivă a nodurilor. Compară separat Hard-ul nativ `…Na5` și indiciul S5. Menține sacrificiile corecte de nebun, damă și cal, martorii Sicilianei, Caro–Kann, Catalanei și `Qxc2`, precum și dovezile v1 imuabile. Promovează numai după transfer independent; eșecurile capturate sunt date de regresie, nu excepții FEN în runtime sau etichete de învățare automată. [Martori de transfer înghețați](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java) · [Protocolul auditului](../testing/hint-audit.md)
 
 </details>
 
@@ -70,6 +72,8 @@ Păstrați dovezile orizontului curent distincte de ordonarea euristică și cer
 <summary>P1 · Indiciu · precizia alternativelor independente</summary>
 
 Alternativa `…Nd7` din Siciliana principală și liderul `…d6` din Caro–Kann principală sunt corectate. Diferența de transfer rămasă apare în vecinul Sicilian cu `Nc3`, unde vechiul lider `…Nd7` are 44,5‰ față de 479,5‰ pentru `…cxd4` la H19. În vecinul Caro–Kann cu `Nc3`, `…d6` are încă 400‰ față de 482‰ pentru `…d5`. Liderul martorului anterior capturii `Nxc2` rămâne `…Nf6`, iar alternativa sa `…b5` este mai slabă. `cxd5` din Catalană rămâne inferior lui `Nf3` din Stockfish. [Comparații închise](../board/ai-quality.md#comparația-selectivă-a-indiciului-și-auditul-mutărilor)
+
+În S7 sicilian din v1, liderul `N1c3` are −1 cp / 499,5‰ la H19, iar alternativa oferită `Bg5` are −166 cp / 24‰ după replica liberă `…Qa5+`. Față de optimul rădăcinii libere, pierderile sunt 9‰ și 484,5‰; diferența dintre rădăcinile impuse este 475,5‰. Martorul de regresie protejează numai liderul și nu certifică eliminarea alternativei slabe.
 
 Îmbunătățiți ordonarea comună în plafonul total de 200.000 de noduri pentru indiciu. Comparați toate mutările oferite la același orizont complet și verificați replicile adverse libere la H17/H19 pe familii noi. Păstrați sacrificiile corecte de damă și cal, negativele limitelor din cache și identitatea bec/comparație/rejucare. Un PASS de integritate a rejucării nu dovedește forță egală între alternative. Păstrați dovezile adâncimii complete și ale nodurilor efective. [Probe AI](../testing/README.md#partidă-și-istoric)
 
@@ -178,6 +182,8 @@ Extrageți întâi tranzițiile reluare, anulare și rezultat AI întârziat în
 <summary>P1 · Forța Hard adaptiv</summary>
 
 Căutarea pentru mutarea curentă folosește o alocație configurabilă de 100.000 de noduri, cu o rezervă până la 200.000. Continuarea păstrează stiva activă și cache-ul. Testele de componentă protejează verificarea existentă a schimbului.
+
+În S7 sicilian din v1, Hard nativ păstrează `Bg5` (a7 folosește rezerva 100k→200k; SF 24‰), față de `N1c3` din indiciu (499,5‰), iar S5 italian favorizează `…Na5` nativ (155,5‰) față de `…Bxf2+` din indiciu (0‰); compară API-urile independent, fără a direcționa orbește Hard prin indiciu.
 
 Măsurați 100.000 fix, 200.000 fix și modul adaptiv pe aceeași sursă, în partide excluse din ajustare și în poziții cu pierderi verificate de Stockfish. Păstrați identitatea sursei pentru liga ordonării învățate și verificați alternativele legale liniștite, matul și finalurile de remiză. [Contractul adaptiv](../board/ai-quality.md#buget-adaptiv-în-prim-plan)
 

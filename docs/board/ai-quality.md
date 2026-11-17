@@ -112,6 +112,21 @@ Auditul H17/H19 separă prima recomandare de rangul jucat intenționat. Găseșt
 
 Pierderile italiene se reproduc și cu motorul precedent. După captura nebunului, `Kxf2 …Qc5+ d4` este o apărare reală și contează furculița ulterioară de cal. Creditul superficial și candidații indiciului sunt distincte de decizia Hard efectivă. În grila Caro–Kann cu albul după `…d5`, adâncimile selectate sunt H5/H5/H4 la 50k/100k/200k. O alocație mai mare nu implică deci un rezultat selectat mai adânc sau o mutare mai puternică. Acestea sunt cazuri explicite pentru continuare, fără a reprezenta o poartă de forță globală trecută.
 
+Toate cele trei probe algoritmice italiene ulterioare au fost respinse; corecțiile calificate din Siciliană și Caro–Kann și sursa `a7e71d9` rămân neschimbate. Verificarea independentă a Hard-ului efectiv păstrează mutarea și adâncimea pe toate cele 24 de istorice v1 față de motorul precedent. Cinci costuri în noduri diferă, inclusiv două utilizări ale rezervei de la 100k la 200k. Eșantionul nu dovedește cost identic sau câștig Elo.
+
+<details>
+<summary>Probe italiene respinse și contractul păstrat</summary>
+
+| Probă | Rezultat local | Motivul respingerii |
+|---|---|---|
+| V1 · filtrarea creditului brut și eliminarea rezervei H2 | S5 ajunge la `…Qg6` | S7 sicilian schimbă `N1c3` în `Bg5`, SF H19 de la 499,5‰ la 24‰; martorul italian S1 la 200k schimbă `…Nge7` în `…Qf6`, de la 243,5‰ la 26,5‰ |
+| V2 · restabilește rezerva H3 și cea de teorie | Păstrează S7 sicilian | Produce în continuare regresie în martorul italian S1 |
+| V3 · păstrează domeniul brut eligibil înaintea eliminării după credit | Păstrează alternativa relevantă | Nu încheie H4 în cele 50k ale căutării inițiale; S5 revine la H3 și `…Bxf2+`; poarta de componente 78/79 eșuează |
+
+Următorul P1 este păstrarea alternativelor brute eligibile fără a epuiza căutarea inițială sau comparația la orizont comun în același total de 200k. Păstrează controlul Hard efectiv `…Na5` separat de indiciul S5. Greșelile capturate devin cazuri de regresie înghețate și legate de sursă, cu replici Stockfish H17/H19 libere și contraexemple de sacrificii corecte, niciodată interdicții FEN în runtime sau etichete de antrenare acceptate automat. Martorul de transfer păstrează liderul sicilian; nu pretinde că alternativa `Bg5`, încă oferită, este filtrată. [Martori de transfer înghețați](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
+
+</details>
+
 [Protocolul auditului](../testing/hint-audit.md) · [Feedback algoritmic deschis](../feedback/README.md)
 
 ## Control la fiecare schimbare
