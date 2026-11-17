@@ -22,6 +22,8 @@ Qualification ties the source commit, signed APK, component suite and Android ob
 - [Raw-receipt provenance](raw-receipts.json)
 - [Signing continuity](signing-transition.json)
 - [Published APK identity](github-release.json)
+- [Complete download from the README](public-download.json)
+- [Authenticated complete download](distribution-verification.json)
 - [Advisory RAG context](rag.txt)
 
 [Qualification and publication process](../../../docs/release/README.md#qualification-and-publication) · [Choosing the test level](../../../docs/testing/README.md#choosing-the-test-level)
