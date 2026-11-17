@@ -19,3 +19,40 @@ export function watchStudyHistory(browser, currentStudy, navigate) {
         if (destination !== current && (destination || current)) void navigate(hash);
     });
 }
+
+export function matchAnalysisNavigation({ browser, currentMatch, openStudy, returnToMatch }) {
+    let origin;
+    let returning = false;
+
+    function discard() {
+        origin = undefined;
+        returning = false;
+    }
+
+    return {
+        open(mode, opener) {
+            const match = currentMatch();
+            if (origin || !match?.reviewCheckpoint) return false;
+            origin = { match, mode, opener, hash: browser.location.hash };
+            void openStudy({ checkpoint: match.reviewCheckpoint, ply: match.viewPly, blackBelow: match.blackBelow });
+            return true;
+        },
+        back() {
+            if (!origin) return false;
+            if (!returning) {
+                returning = true;
+                browser.history.back();
+            }
+            return true;
+        },
+        restore(hash) {
+            const previous = origin;
+            discard();
+            if (!previous || previous.hash !== hash || previous.match !== currentMatch()) return false;
+            returnToMatch(previous.mode);
+            if (previous.opener?.isConnected) previous.opener.focus({ preventScroll: true });
+            return true;
+        },
+        discard,
+    };
+}
