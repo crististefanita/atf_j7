@@ -99,6 +99,22 @@ previzualizării și recalcularea la o semimutare din istoric. Aplicarea
 indiciului și replica AI au păstrat geometria tablei. Cazurile JVM folosesc
 modelul comun din adaptorul Android, iar proba TeaVM execută workerul compilat.
 
+### Actualizarea pachetului Web
+
+În componentă, verificați că adresele din `index.html` indică aceeași
+versiune pentru toate stilurile și modulul de intrare, inclusiv după
+schimbarea unui singur fișier. Urmăriți importurile relative și workerul
+până la motorul TeaVM din directorul versiunii. Un pachet cu același manifest
+trebuie să aibă aceeași adresă de runtime. [Schema pachetului](../../web/README.md#identitatea-pachetului-web)
+
+Pentru sanity în browser MCP, păstrați un profil care a deschis ediția
+anterioară și are o partidă salvată. După publicare, reîncărcați normal din
+linkul README, cu memoria cache activă. Verificați adresele efectiv cerute,
+reluarea slotului și funcționarea barei și a becului. În Extent, înregistrați
+revizia, directorul runtime, checkpointul și capturile. O probă HTTP care
+citește fiecare fișier ocolind memoria cache verifică publicarea octeților.
+[Publicarea Web](../../web/parity.md#publicarea-linkului)
+
 ### Orientarea tablei în partidă
 
 `MatchControlsTest` verifică disponibilitatea acțiunii în partidă și în istoric. `MatchStoreTest` și `ChessWebParityPublication#packagedWorkerPreservesTheMatchWhenFlipping` folosesc același fixture pentru păstrarea poziției, istoricului și orientării la redeschidere. Workerul respinge o replică rămasă la revizia veche. `ChessWebShellTest` folosește un ceas simulat și verifică înlocuirea programării vechi cu o singură replică la revizia curentă. [Comanda de verificare](../../web/README.md#motorul-chess-lab-în-browser)

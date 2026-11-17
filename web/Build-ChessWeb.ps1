@@ -18,8 +18,9 @@ if ($relative -ne '..' -and !$relative.StartsWith($parent) -and ![IO.Path]::IsPa
 $run = Join-Path $root ('chess-web-' + [guid]::NewGuid().ToString('N'))
 $generatedPackage = Join-Path $run 'generated/ro/atf/chess'
 $classes = Join-Path $run 'classes'
+$compiled = Join-Path $run 'compiled'
 $site = Join-Path $run 'site'
-$null = New-Item -ItemType Directory -Path $generatedPackage, $classes, $site -Force
+$null = New-Item -ItemType Directory -Path $generatedPackage, $classes, $compiled -Force
 
 $toolchain = Join-Path $PSScriptRoot 'tools'
 $classpathFile = Join-Path $run 'toolchain.classpath'
@@ -55,18 +56,11 @@ if ($LASTEXITCODE -ne 0) { throw "Could not compile the chess sources and Web ad
 $compiler = Join-Path $toolchain 'CompileChessWeb.java'
 $compilerClasspath = @($classes, $webClasspath) -join [IO.Path]::PathSeparator
 $log = Join-Path $run 'teavm.log'
-& java "-Djava.io.tmpdir=$run" '-XX:ActiveProcessorCount=3' '-Xmx1g' -cp $compilerClasspath $compiler $site *> $log
+& java "-Djava.io.tmpdir=$run" '-XX:ActiveProcessorCount=3' '-Xmx1g' -cp $compilerClasspath $compiler $compiled *> $log
 if ($LASTEXITCODE -ne 0) { throw "Could not compile the TeaVM chess engine. See $log" }
 
-$webFiles = Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src/main/web') -File
-foreach ($file in $webFiles) {
-    $target = Join-Path $site $file.Name
-    if ($file.Extension -in '.html', '.css', '.mjs') {
-        $text = [IO.File]::ReadAllText($file.FullName).Replace([string][char]13 + [char]10, [string][char]10)
-        [IO.File]::WriteAllText($target, $text)
-    } else {
-        Copy-Item -LiteralPath $file.FullName -Destination $target
-    }
-}
-$null = New-Item -ItemType File -Path (Join-Path $site '.nojekyll')
+$log = Join-Path $run 'package.log'
+$packager = Join-Path $toolchain 'package-web.mjs'
+& node $packager (Join-Path $PSScriptRoot 'src/main/web') (Join-Path $compiled 'chess-engine.mjs') $site *> $log
+if ($LASTEXITCODE -ne 0) { throw "Could not package the Web runtime. See $log" }
 $site

@@ -1,13 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import test from 'node:test';
+import { runtimeDirectory } from '../tools/package-web.mjs';
 
 const site = process.env.J7_STUDY_WEB_SITE;
+const runtime = site ? await runtimeDirectory(site) : null;
+const engine = runtime ? pathToFileURL(join(runtime, 'chess-engine.mjs')) : null;
 
 test('Material progress from the published Web package retains solved boards and the pending exercise', { skip: !site }, async () => {
-    const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+    const { studyCommand } = await import(engine);
     const old = JSON.parse(await readFile(new URL('./material-progress-previous.json', import.meta.url), 'utf8'));
     let saved = old.saved;
     const run = (action, value = '', hint = '') => {
@@ -39,7 +42,7 @@ test('Material progress from the published Web package retains solved boards and
 });
 
 test('Built Web engine accepts APK puzzle stages, restores a pending defense and awards a solution once', { skip: !site }, async () => {
-    const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+    const { studyCommand } = await import(engine);
     let saved = '';
     let option = '';
     const run = (action, value = '', index = 0) => {
@@ -93,7 +96,7 @@ test('Built Web engine accepts APK puzzle stages, restores a pending defense and
 });
 
 test('Built Web engine opens all material chapters with the authored replay and no solved credit', { skip: !site }, async () => {
-    const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+    const { studyCommand } = await import(engine);
     let saved = '';
     const run = (action, value = '') => {
         const response = JSON.parse(studyCommand('quests', action, value, 0, saved, ''));
@@ -115,7 +118,7 @@ test('Built Web engine opens all material chapters with the authored replay and 
 });
 
 test('Built Web engine solves one real puzzle in each of the six native chapters', { skip: !site }, async () => {
-    const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+    const { studyCommand } = await import(engine);
     let saved = '';
     let hint = '';
     const run = (action, value = '', index = 0) => {
@@ -150,7 +153,7 @@ test('Built Web engine solves one real puzzle in each of the six native chapters
 });
 
 test('Mate chapters restore their own cursor and solved credit from one saved snapshot', { skip: !site }, async () => {
-    const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+    const { studyCommand } = await import(engine);
     let saved = '';
     const call = (action, value = '', index = 0, hint = '') => {
         const response = JSON.parse(studyCommand('quests', action, value, index, saved, hint));

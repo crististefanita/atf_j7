@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-import { resolve } from 'node:path';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { runtimeDirectory } from '../tools/package-web.mjs';
 
 const site = process.argv[2];
 assert.ok(site, 'Provide the external build site directory');
-const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+const { studyCommand } = await import(pathToFileURL(join(await runtimeDirectory(site), 'chess-engine.mjs')));
 const execute = (action, { value = '', index = 0, saved = '', option = 'ro' } = {}) =>
   JSON.parse(studyCommand('openings', action, value, index, saved, option, option));
 

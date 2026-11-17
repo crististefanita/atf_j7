@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { resolve } from 'node:path';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { runtimeDirectory } from '../tools/package-web.mjs';
 
 const site = process.argv[2];
 let receive;
 globalThis.self = { postMessage: reply => receive(reply) };
-await import(pathToFileURL(resolve(site, 'engine-worker.mjs')));
+await import(pathToFileURL(join(await runtimeDirectory(site), 'engine-worker.mjs')));
 
 async function call(type, data) {
     const response = await new Promise(resolve => {

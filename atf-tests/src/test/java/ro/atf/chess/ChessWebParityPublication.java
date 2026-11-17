@@ -7,10 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Comparator;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,16 +23,27 @@ import org.junit.jupiter.api.io.TempDir;
 @Tag("web-parity")
 @ExtendWith(ExtentAudit.class)
 class ChessWebParityPublication {
+    private static final Pattern INDEX_MODULE = Pattern.compile("<script\\b(?=[^>]*\\btype=\"module\")[^>]*\\bsrc=\"([^\"]+)\"");
+    private static final Pattern INDEX_STYLESHEET = Pattern.compile("<link\\b(?=[^>]*\\brel=\"stylesheet\")[^>]*\\bhref=\"([^\"]+)\"");
+    private static final Pattern RUNTIME_ENTRY = Pattern.compile("runtime/[0-9a-f]{64}/game-review\\.mjs");
+    private static final Pattern RUNTIME_ASSET = Pattern.compile("runtime/[0-9a-f]{64}/[a-z0-9_-]+\\.(?:mjs|css)");
     @TempDir Path evidence;
 
     @Test void workerAndJvmShareTheRulesAndData(Checks check) throws Exception {
         var configured = System.getProperty("chess.web.bundle", "");
         check.same("A compiled Web bundle was supplied explicitly", true, !configured.isBlank());
         var site = Path.of(configured).toAbsolutePath().normalize();
-        var worker = site.resolve("engine-worker.mjs");
-        var engine = site.resolve("chess-engine.mjs");
-        check.same("Bundle includes the Worker entry and compiled TeaVM module", true,
+        var index = Files.readString(site.resolve("index.html"));
+        var runtime = runtimePath(site, index);
+        verifyRuntimeReferences(check, site, index, runtime);
+        var worker = runtime.resolve("engine-worker.mjs");
+        var engine = runtime.resolve("chess-engine.mjs");
+        check.same("The same runtime includes the Worker entry and compiled TeaVM module", true,
                 Files.isRegularFile(worker) && Files.isRegularFile(engine));
+        check.same("The site root has no unversioned worker or engine alias", false,
+                Files.exists(site.resolve(worker.getFileName())) || Files.exists(site.resolve(engine.getFileName())));
+        check.same("The runtime directory identifies the complete asset manifest",
+                runtime.getFileName().toString(), runtimeDigest(runtime));
 
         String bundleHash = sha256(Files.readAllBytes(engine));
         String workerHash = sha256(Files.readAllBytes(worker));
@@ -55,7 +70,7 @@ class ChessWebParityPublication {
         check.same("The packaged worker is supplied for the color case", true, !configured.isBlank());
         var root = ProjectRoot.locate();
         var fixture = root.resolve("atf-tests/src/test/resources/match-color-choices.json");
-        var worker = Path.of(configured).toAbsolutePath().normalize().resolve("engine-worker.mjs");
+        var worker = packagedWorker(configured);
         var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-color-worker.mjs", worker, fixture).strip());
         var cases = new ObjectMapper().readTree(fixture.toFile());
         for (var color : cases) {
@@ -76,7 +91,7 @@ class ChessWebParityPublication {
         var configured = System.getProperty("chess.web.bundle", "");
         check.same("The bundled worker is supplied for the board orientation cases", true, !configured.isBlank());
         var root = ProjectRoot.locate();
-        var worker = Path.of(configured).toAbsolutePath().normalize().resolve("engine-worker.mjs");
+        var worker = packagedWorker(configured);
         var fixture = root.resolve("atf-tests/src/test/resources/match-flip-cases.json");
         var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-flip-worker.mjs", worker, fixture).strip());
         var cases = new ObjectMapper().readTree(fixture.toFile());
@@ -102,9 +117,9 @@ class ChessWebParityPublication {
         String configured = System.getProperty("chess.web.bundle", "");
         check.same("The packaged worker is supplied for the manual automation cases", true, !configured.isBlank());
         Path root = ProjectRoot.locate();
-        Path site = Path.of(configured).toAbsolutePath().normalize();
+        Path worker = packagedWorker(configured);
         Path fixture = root.resolve("atf-tests/src/test/resources/match-automation-cases.json");
-        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-automation-worker.mjs", site.resolve("engine-worker.mjs"), fixture).strip());
+        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-automation-worker.mjs", worker, fixture).strip());
         var cases = new ObjectMapper().readTree(fixture.toFile());
         for (var example : cases) {
             String id = example.get("id").asText();
@@ -132,9 +147,9 @@ class ChessWebParityPublication {
         String configured = System.getProperty("chess.web.bundle", "");
         check.same("The packaged worker is supplied for inline match analysis", true, !configured.isBlank());
         Path root = ProjectRoot.locate();
-        Path site = Path.of(configured).toAbsolutePath().normalize();
+        Path worker = packagedWorker(configured);
         Path fixture = root.resolve("atf-tests/src/test/resources/match-analysis-cases.json");
-        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-analysis-worker.mjs", site.resolve("engine-worker.mjs"), fixture).strip());
+        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-analysis-worker.mjs", worker, fixture).strip());
         var cases = MatchAnalysisParityTest.fixture();
         int revisionChecks = 0;
         int manualChecks = 0;
@@ -164,6 +179,43 @@ class ChessWebParityPublication {
                 rows.get("input-guards"));
         check.same("The packaged worker reports every inline and manual analysis observation",
                 3 * cases.length + revisionChecks + manualChecks + 2, rows.size());
+    }
+
+    private static Path packagedWorker(String configured) throws IOException {
+        var site = Path.of(configured).toAbsolutePath().normalize();
+        return runtimePath(site, Files.readString(site.resolve("index.html"))).resolve("engine-worker.mjs");
+    }
+
+    private static Path runtimePath(Path site, String index) throws IOException {
+        var entries = indexReferences(INDEX_MODULE, index).stream()
+                .filter(path -> RUNTIME_ENTRY.matcher(path).matches()).toList();
+        if (entries.size() != 1) throw new IOException("index.html must name one content-addressed game-review.mjs entry: " + entries);
+        return site.resolve(entries.getFirst()).getParent();
+    }
+
+    private static List<String> indexReferences(Pattern pattern, String index) {
+        return pattern.matcher(index).results().map(match -> match.group(1)).toList();
+    }
+
+    private static void verifyRuntimeReferences(Checks check, Path site, String index, Path runtime) {
+        var styles = indexReferences(INDEX_STYLESHEET, index);
+        check.same("The index names its packaged stylesheets", true, !styles.isEmpty());
+        var invalid = Stream.concat(indexReferences(INDEX_MODULE, index).stream(), styles.stream())
+                .filter(reference -> !RUNTIME_ASSET.matcher(reference).matches() || !site.resolve(reference).getParent().equals(runtime)
+                        || !Files.isRegularFile(site.resolve(reference)))
+                .toList();
+        check.same("Every index module and stylesheet exists in the same content-addressed runtime", List.of(), invalid);
+    }
+
+    private static String runtimeDigest(Path runtime) throws IOException, NoSuchAlgorithmException {
+        var manifest = new StringBuilder();
+        try (var entries = Files.list(runtime)) {
+            var files = entries.sorted(Comparator.comparing(path -> path.getFileName().toString())).toList();
+            for (Path file : files) {
+                manifest.append(sha256(Files.readAllBytes(file))).append("  ").append(file.getFileName()).append('\n');
+            }
+        }
+        return sha256(manifest.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     private String runWorker(Path root, String script, Path worker, Path input) throws IOException, InterruptedException {

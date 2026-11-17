@@ -16,6 +16,19 @@ mvn -B -ntp -pl atf-tests -am test '-Dtest=ChessWebRulesComponentTest,ChessWebPa
 
 Proba explicită cere pachetul compilat și compară rezultatele efective din JVM și worker pentru aceleași resurse și poziții. Raportul indică fiecare grup de date și de reguli. Verificarea JVM rămâne în suita componentelor. [Paritatea Web](../docs/testing/README.md#paritatea-web-a-motorului)
 
+### Identitatea pachetului Web
+
+Pagina `index.html` încarcă stilurile și modulul de intrare din
+`runtime/<SHA-256>/`. Identificatorul complet provine din manifestul ordonat
+al fișierelor runtime. Fiecare intrare din manifest leagă calea relativă de
+amprenta conținutului. CSS, modulele JavaScript, workerul și motorul TeaVM
+aparțin aceluiași director. Importurile relative și lansarea workerului
+rămân în acel director, inclusiv după navigare în aplicație.
+
+Un build cu același manifest folosește același director. O schimbare a
+fișierelor runtime produce o adresă nouă. Adresa jocului rămâne aceeași.
+[Publicarea și păstrarea versiunilor](parity.md#publicarea-linkului)
+
 ## Partida cu AI
 
 **Partidă cu AI** deschide aceleași alegeri ca pe Android, Alb, Negru sau Aleatoriu, și nivelurile Basic, Advanced și Hard. Workerul alege culoarea aleatorie o singură dată la crearea jocului și păstrează culoarea rezultată și nivelul în checkpoint. Browserul salvează tura curentă înainte de a afișa mutarea și programează căutarea după pauza de 650 ms când replicile automate sunt active. După reîncărcare, poziția și automatizarea salvată decid dacă urmează o replică AI. Workerul respinge reviziile expirate, iar o replică deja salvată lasă jucătorul la mutare.

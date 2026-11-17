@@ -28,4 +28,19 @@ Detaliile produsului, inclusiv regulile de continuare și comportamentele care d
 
 ## Publicarea linkului
 
-Versiunea Web publică oferă partida cu AI, partida locală și meniul Studiu. Publicați pachetul static și `.nojekyll` în rădăcina `gh-pages`. Verificați din **Joacă în browser** pachetul servit și reluarea în browser. Pentru paritatea ediției, legați commitul și identitățile APK/Web de recepțiile Extent și verificați jocul fără rețea după încărcare și recuperarea progresului la actualizare. [Procesul de release](../docs/release/README.md) · [Reper J4](https://crististefanita.github.io/atf_j4/)
+1. Construiți și verificați pachetul în TMP. Pregătiți `gh-pages` într-un
+   worktree separat, de la revizia publicată.
+2. Adăugați directorul `runtime/<SHA-256>/` al buildului calificat și
+   publicați-l în același commit cu noul `index.html` și `.nojekyll`.
+   Păstrați directoarele runtime deja publicate cu aceiași octeți. În perioada
+   de migrare păstrați și adresele vechi din rădăcină pentru paginile deschise
+   înaintea versionării.
+3. Porniți din **Joacă în browser**. Verificați fișierele versiunii declarate
+   de pagină și testați o reîncărcare normală cu memoria cache păstrată.
+   O filă deja deschisă poate continua pe versiunea ei până la reîncărcare.
+   Verificați reluarea partidei și funcționarea fără rețea după încărcare,
+   apoi legați revizia și amprenta pachetului de recepțiile Extent.
+
+[Schema pachetului](README.md#identitatea-pachetului-web) ·
+[Strategia de testare](../docs/testing/README.md#actualizarea-pachetului-web) ·
+[Procesul de release](../docs/release/README.md)

@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import { setTimeout as pause } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
+import { runtimeDirectory } from '../tools/package-web.mjs';
 import { exerciseReviewFocus } from './review-focus.mjs';
 import { createReviewAccessibilityProbe } from './review-accessibility.mjs';
 
@@ -76,7 +77,7 @@ const manifest = [...files.keys()].sort().map(path => `${sha256(files.get(path))
 const bundleSha256 = sha256(manifest);
 let preparedReview;
 if (reviewContinueScenario) {
-    const { analyzeReview } = await import(pathToFileURL(join(site, 'chess-engine.mjs')).href);
+    const { analyzeReview } = await import(pathToFileURL(join(await runtimeDirectory(site), 'chess-engine.mjs')).href);
     const digest = createHash('sha256').update(archiveBCheckpoint).digest('base64');
     const review = analyzeReview(archiveBCheckpoint, digest, () => {});
     preparedReview = JSON.stringify({ id: 'edge-archived-continue', checkpoint: archiveBCheckpoint, review });

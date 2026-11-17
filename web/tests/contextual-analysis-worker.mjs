@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { runtimeDirectory } from '../tools/package-web.mjs';
 
 const cases = JSON.parse(readFileSync(new URL('../../atf-tests/src/test/resources/contextual-analysis.json', import.meta.url), 'utf8'));
 const site = process.argv[2];
 assert.ok(site, 'Provide the built TeaVM site');
-const { studyCommand, openLedger, ledgerState } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+const { studyCommand, openLedger, ledgerState } = await import(pathToFileURL(join(await runtimeDirectory(site), 'chess-engine.mjs')));
 const invoke = (action, { value = '', index = 0, saved = '', option = '' } = {}) =>
     JSON.parse(studyCommand('analysis', action, value, index, saved, option, 'en'));
 
