@@ -24,6 +24,13 @@ Calificarea leagă commitul sursă, APK-ul semnat, suita de componente și obser
 - [Identitatea APK-ului publicat](github-release.json)
 - [Descărcarea completă din README](public-download.json)
 - [Descărcarea completă autentificată](distribution-verification.json)
+- [Guvernanța publicării și documentației](publication-governance.html)
+- [Guvernanța documentației românești, compilată din sursele proprii](publication-documentation-ro.html)
+- [Recepția guvernanței publicării](publication-governance-execution.json)
+- [Verdictul guvernanței pentru main publicat](publication-governance.json)
+- [Perechea exactă de documentație engleză–română](documentation-pair.txt)
+- [Publicarea Web fixată și 124 de asset-uri servite — randarea rămâne nevalidată](web-publication.json)
+- [Păstrarea ediției publicate curente și precedente](release-retention.json)
 - [Contextul consultativ RAG](rag.txt)
 
 [Procesul de calificare și publicare](../../../docs/release/README.md#calificare-și-publicare) · [Alegerea nivelului de testare](../../../docs/testing/README.md#alegerea-nivelului)

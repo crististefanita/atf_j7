@@ -6,3 +6,5 @@ release/*/reports/hint-analysis-execution.json -text
 # Published POM bytes must match their producer hash and the copy inside the JAR.
 lib/*.pom -text
 release/*/reports/analysis-compact-execution.json -text
+
+release/*/reports/documentation-pair.txt -text
