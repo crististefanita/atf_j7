@@ -31,6 +31,8 @@ final class AnalysisReplayDialog {
     private static final int ACCENT = 0xff57e0b4;
 
     enum Mode {
+        CALCULATED(R.string.hint_preview_title, R.id.hint_preview_board, R.id.hint_preview_step, R.id.hint_preview_delta,
+                R.id.hint_preview_reason, R.id.hint_preview_previous, R.id.hint_preview_next),
         THEORY(R.string.hint_theory_title, R.id.hint_preview_board, R.id.hint_preview_step, R.id.hint_preview_delta,
                 R.id.hint_preview_reason, R.id.hint_preview_previous, R.id.hint_preview_next),
         REVIEW(R.string.game_review_why, R.id.game_review_board, R.id.game_review_line_progress, R.id.game_review_selection,
@@ -65,6 +67,7 @@ final class AnalysisReplayDialog {
     private final TextView step;
     private final TextView caption;
     private final TextView reason;
+    private final TextView summary;
     private final ImageButton previous;
     private final ImageButton next;
     private final LinearLayout choices;
@@ -120,6 +123,9 @@ final class AnalysisReplayDialog {
 
         var details = column(context);
         details.setPadding(dp(context, 16), dp(context, 6), dp(context, 16), dp(context, 16));
+        summary = label(R.id.hint_compare_summary, 13, MUTED);
+        summary.setVisibility(View.GONE);
+        details.addView(summary, new LinearLayout.LayoutParams(-1, -2));
         caption = label(mode.caption, 16, PRIMARY);
         caption.setTypeface(null, Typeface.BOLD);
         if (Build.VERSION.SDK_INT >= 28) caption.setAccessibilityHeading(true);
@@ -150,6 +156,21 @@ final class AnalysisReplayDialog {
         next.setOnClickListener(ignored -> forward.run());
     }
 
+    void setSummary(String text) {
+        summary.setText(text);
+        summary.setVisibility(text == null ? View.GONE : View.VISIBLE);
+    }
+
+    void setCaptionDescription(String description) { caption.setContentDescription(description); }
+
+    void setReasonAction(String description, Runnable action) {
+        reason.setContentDescription(description);
+        reason.setOnClickListener(action == null ? null : ignored -> action.run());
+        reason.setClickable(action != null);
+        reason.setFocusable(action != null);
+        reason.setMinHeight(action == null ? 0 : dp(context, 48));
+    }
+
     void render(Frame frame) {
         board.show(frame.position(), blackBelow, -1, List.of(), frame.lastMove(), frame.cue(), false, step.getId());
         step.setText(frame.step());
@@ -157,6 +178,7 @@ final class AnalysisReplayDialog {
         next.setEnabled(frame.next());
         caption.setText(frame.caption());
         reason.setText(frame.reason());
+        setReasonAction(null, null);
     }
 
     Dialog show() {

@@ -277,12 +277,12 @@ Pentru proba publică, transmiteți URL-ul din README ca ultim argument și adă
 - **Partide salvate** apare când există partide active, iar **Partidă nouă cu calculatorul** deschide configurarea. Adresele explicite, cum sunt `#ai`, `#openings` și `#review`, deschid ecranul cerut.
 - **Profil** validează numele prin `PlayerProfile`, iar **Setări** păstrează limba în browser. [Matricea funcțiilor](parity.md#contracte-și-probe)
 
-Analiza unei partide se redeschide din partida sau arhiva ei. **Reia ultima
-analiză** apare jos în meniul principal, lângă import, când browserul are o
-analiză independentă salvată. Antetul afișează **Chess Lab**.
+- Ecranul principal se încheie cu Nume și Setări.
+- Importul și reluarea analizelor importate se află pe ecranul de analiză
+  `#review`. Analiza unei partide se redeschide din partida sau arhiva ei.
 
 - Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile comune din `ChessPieceArtwork`. Web primește contururile din worker și le desenează în coordonatele 48 × 48 din APK.
-- `ChessWebShellTest` verifică ordinea și textele RO/EN față de resursele Android, persistența simulată și reutilizarea SVG. Sanity-ul Edge deschide meniul și verifică toate cele șase tipuri de piese înaintea primei mutări.
+- `ChessWebShellTest` verifică ordinea și textele RO/EN față de resursele Android, persistența simulată și reutilizarea SVG. Sanity-ul MCP deschide meniul și verifică toate cele șase tipuri de piese înaintea primei mutări.
 - [Strategia de testare](../docs/testing/README.md#partidă-și-istoric)
 
 ## Studiu
@@ -309,6 +309,12 @@ analiză independentă salvată. Antetul afișează **Chess Lab**.
 ### Opțiunile partidei cu AI
 
 Meniul partidei cu AI folosește aceeași proiecție a comenzilor ca Android. Verificați rezultatele comune înainte de a proba navigarea platformei.
+
+- Numele și configurarea unei partide noi se accesează din meniul principal.
+  Zona de sub tabla unei partide AI active conține comenzile și analiza partidei.
+- Meniurile cu trei linii se deschid lângă buton. Poziționarea comună folosește
+  fereastra vizibilă, deschide deasupra când este nevoie și derulează intern listele lungi.
+  Escape și apăsarea în exterior închid panoul, cu revenirea focusului la cerere.
 
 <details>
 <summary>Comenzi cu mock, trasee de browser și Extent</summary>

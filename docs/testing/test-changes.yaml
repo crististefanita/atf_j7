@@ -705,3 +705,35 @@ testChanges:
     allowDelete: false
     nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
     nativeProbe: "Graph and arrow navigation synchronize the selected move, hide the opening and keep the board anchored"
+
+  - id: J7-UI-PARITY-SHELL-EN
+    base: "71d122d833406381aab6d1d08ddd09407edb9b12"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebShellTest.java
+    test: ro.atf.chess.ChessWebShellTest#homeAndArtworkFollowAndroidWithoutEmulator
+    contract: "Retain APK menu order, RO/EN labels, profile, navigation and artwork, relocating import recovery away from Home and removing duplicate game controls"
+    allowDelete: false
+
+  - id: J7-UI-PARITY-ANALYSIS-EN
+    base: "71d122d833406381aab6d1d08ddd09407edb9b12"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+    test: ro.atf.chess.ChessWebAnalysisStudyTest#analysisStudyUsesMockWorkersWithoutABrowser
+    contract: "Retain all analysis, hint, theory, replay and recovery cases, adding anchored menu and focus coverage"
+    allowDelete: false
+
+  - id: J7-UI-PARITY-SHELL-RO
+    base: "805c3480fd06d8630b710ec3628b62db83e63868"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebShellTest.java
+    test: ro.atf.chess.ChessWebShellTest#homeAndArtworkFollowAndroidWithoutEmulator
+    contract: "Retain APK menu order, RO/EN labels, profile, navigation and artwork, relocating import recovery away from Home and removing duplicate game controls"
+    allowDelete: false
+
+  - id: J7-UI-PARITY-ANALYSIS-RO
+    base: "805c3480fd06d8630b710ec3628b62db83e63868"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+    test: ro.atf.chess.ChessWebAnalysisStudyTest#analysisStudyUsesMockWorkersWithoutABrowser
+    contract: "Retain all analysis, hint, theory, replay and recovery cases, adding anchored menu and focus coverage"
+    allowDelete: false

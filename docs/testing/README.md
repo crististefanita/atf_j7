@@ -97,6 +97,21 @@ estimării Elo. Liga ordonării învățate folosește propria sursă și politi
 
 Proba MCP a măsurat aceeași latură în ambele ecrane, 324 px pe compact în RO și 469,8 px pe desktop în EN. La 320 × 480 în RO, ambele table păstrează o latură de 249,6 px și pot derula vertical pentru a păstra accesul la comenzi.
 
+### Paritatea meniurilor și indiciilor
+
+- `ChessWebShellTest` compară acțiunile principale și de partidă cu Android și
+  verifică recuperarea importurilor pe ruta proprie. Nume și Setări sunt ultimele acțiuni principale.
+- `ChessWebOptionsMenuTest` testează controlerul real de meniu cu dimensiuni
+  simulate, schimbări de fereastră, tastatură și focus. Includeți dimensiuni
+  compacte și desktop, text 130%, origine derulată și liste lungi.
+- `HintReplayPresentationTest` verifică afișajul comun, cursoarele independente
+  ale liniilor și adaptorul Android. Poziția selectată în istoric se păstrează.
+- `WebUiParityGovernanceTest` cere ca RAG să citeze aceste componente și secțiunea
+  responsabilă. O suprafață necunoscută rămâne semnalată pentru revizuire.
+
+Folosiți browserul MCP pentru proba Web randată și Android pentru adaptorul
+nativ. Consemnați separat aceste observații și verdictul componentelor offline.
+
 ### Controlul replicilor AI
 
 - Selectați `ChessWebParityPublication#packagedWorkerKeepsAiIdentityThroughManualControl` în comanda Maven pentru pachetul TeaVM. `MatchControlsTest` și workerul citesc același fixture pentru comutarea fără mutare manuală și pentru mutarea legală jucată de partea AI.

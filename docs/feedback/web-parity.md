@@ -97,3 +97,26 @@ la upgrade biblioteca de partide, o analiză arhivată și semimutarea de
 reluare, inclusiv după reîncărcare și într-o filă deja deschisă.
 [Upgrade Web](../../web/README.md#explicațiile-și-progresul-la-actualizare) ·
 [Procesul de release](../release/README.md#calificare-și-publicare)
+
+## WEB-05 · Meniuri și opțiuni ancorate
+
+**P2 · Verificare randată în așteptare.** Componentele verifică încheierea
+meniului cu Nume și Setări, eliminarea comenzilor AI duplicate și recuperarea
+importurilor pe ruta proprie. Controlerul comun acoperă poziționarea și focusul.
+[Contractul meniului](../../web/README.md#meniul-principal-și-piesele) · [Componente](../testing/README.md#paritatea-meniurilor-și-indiciilor)
+
+Folosiți MCP pentru Probleme, Tablă de analiză și Game Review, inclusiv De ce,
+la 360 × 640 și 1280 × 900, cu text RO/EN la 130%. Deschideți lângă buton,
+atingeți ultima opțiune, închideți și verificați focusul. Sesiunea curentă
+nu oferă browserul MCP, astfel că verdictul randării rămâne în așteptare.
+
+## WEB-06 · Afișarea indiciului pe Android
+
+**P2 · Randare nativă în așteptare.** Indiciile calculate folosesc acum aceeași
+suprafață pe tot ecranul ca teoria deschiderilor. Matricea de componentă verifică
+dimensiunile fixe, cursoarele independente și checkpoint-ul inițial. Buildul
+Android release și lint trec. [Contractul indiciului](../board/README.md#analiza-partidei-și-indiciile)
+
+Verificați buildul Android curent pe compact și mare, în RO/EN la 130%.
+Schimbați toate liniile disponibile, parcurgeți săgețile și închideți la poziția
+inițială din istoric. Confirmați încadrarea tablei, comenzilor și explicației derulabile.

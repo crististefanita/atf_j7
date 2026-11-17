@@ -38,7 +38,7 @@ body.home-active h1 { font-size: 1.875rem; }
 .home-group button:enabled:hover { background: #414a36; }
 .home-group button:disabled { opacity: .58; }
 .home-profile { grid-template-columns: minmax(0, 1fr) auto; }
-.home-tools { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-block-start: 1rem; }
+.review-import-tools { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-block-start: 1rem; }
 .study-totals { margin: 0 .875rem .35rem; color: #b8d88a; font-size: .82rem; }
 body.study-active { background: #262522; color: #f5f3ec; }
 body.study-active main > header { display: none; }
@@ -117,14 +117,14 @@ main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height
 .ai-analysis-option small { display: block; color: var(--muted); font-size: .82em; }
 .options-anchor { position: relative; justify-self: start; }
 .options-panel {
-  position: absolute;
-  inset-block-start: calc(100% + .25rem);
-  inset-inline-start: 0;
+  position: fixed;
+  inset: auto;
   z-index: 5;
   display: grid;
   inline-size: min(15rem, calc(100vw - 2.5rem));
-  max-block-size: 65dvh;
+  max-block-size: calc(100dvh - 1rem);
   overflow: auto;
+  overscroll-behavior: contain;
   gap: .2rem;
   padding: .25rem;
   border: 1px solid var(--border);
@@ -445,7 +445,8 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
 .review-icon svg.dots { fill: currentColor; stroke: none; }
 .review-active #movement button[aria-pressed="true"] { color: #57e0b4; background: #3a3936; }
 .review-toolbar button:disabled { opacity: .43; }
-.review-menu { position: absolute; inset: 100% 8px auto auto; width: max-content; max-width: calc(100% - 16px); z-index: 2;
+.review-menu { position: fixed; inset: auto; width: max-content; max-width: calc(100vw - 16px); z-index: 5;
+  max-block-size: calc(100dvh - 1rem); overflow: auto; overscroll-behavior: contain;
   padding: 4px; background: #393833; box-shadow: 0 .3rem 1rem #0006; }
 .review-menu button { display: block; width: 100%; text-align: start; border: 0; border-radius: 0; background: transparent; }
 .review-menu button:is(:hover, :focus-visible) { background: #45443d; }
@@ -485,7 +486,6 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
 .review-explaining #movement { grid-area: 2 / 1; justify-content: space-between; pointer-events: none; }
 .review-explaining #movement button { display: none; }
 .review-explaining #movement :is(#previous, #next) { display: inline-grid; pointer-events: auto; }
-.review-explaining #review-menu { position: fixed; inset: 48px 8px auto auto; }
 .review-explaining :is(#review-summary, #review-players, .review-history) { display: none; }
 .review-explaining #explanation { padding: 6px 16px 16px; }
 .review-explaining #why-title { font-size: 1.125rem; font-weight: 700; }

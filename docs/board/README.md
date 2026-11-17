@@ -87,6 +87,9 @@
 
 ### Comenzi și preferințe
 
+- Numele și configurarea unei partide noi sunt disponibile din meniul principal.
+  Bara partidei urmează același inventar de acțiuni pe Android și Web.
+
 - Bifa **Lasă AI-ul să mute** stă în antet, pe același rând cu meniul. Debifeaz-o
   pentru a juca mutările legale ale ambelor culori. Opțiunea se salvează separat
   pe fiecare partidă, iar bifarea în tura AI-ului pornește replica. În istoricul
@@ -168,6 +171,10 @@
   scorul final și diferența, din perspectiva culorii care muta la început.
   Avantajul poate veni din evaluarea poziției, iar matul și patul au rezultat
   propriu. Săgețile parcurg toate semimutările disponibile.
+
+- Indiciile calculate și teoria deschiderilor folosesc aceeași suprafață de
+  redare pe tot ecranul Android. Tabla și săgețile își păstrează dimensiunile
+  când detaliile se derulează dedesubt. Fiecare linie își reține pasul când schimbi varianta.
 
 - Prima variantă din bec și linia recomandată coincid. Atingerea destinației
   joacă exact mutarea marcată. **Înapoi la poziție** restaurează cursorul și

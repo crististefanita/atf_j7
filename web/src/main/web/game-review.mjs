@@ -9,7 +9,8 @@ import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 import { createMatchBotTimer } from './match-bot-timer.mjs';
 import { bindInlineMatchAnalysis, guidedMatchMove } from './match-inline-analysis.mjs';
-import { attachOptionsMenu } from './options-menu.mjs';
+import { attachOptionsMenu, followOptionsMenu } from './options-menu.mjs';
+import { createReviewImport } from './review-import.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
@@ -24,7 +25,7 @@ const locale = homeLocale(location.search, localStorage);
 const words = {
     en: {
         title: 'Game review', 'archive-label': 'Open a review',
-        'open-match': 'Local game', 'open-review': 'Main menu', 'new-match': 'New game',
+        'open-match': 'Local game', 'open-review': 'Main menu',
         'match-options-title': 'Game options', 'flip-match': 'Flip board',
         'menu-saved': 'Saved games', 'menu-analysis': 'Analysis board', 'menu-review': 'Game review',
         'menu-draw': 'Offer draw', 'menu-resign': 'Resign game', 'ai-analysis-label': 'AI analysis for a new game', 'ai-analysis-help': 'Evaluation bar and hints during the game',
@@ -73,7 +74,7 @@ const words = {
     },
     ro: {
         title: 'Analiza partidei', 'archive-label': 'Deschide o analiză',
-        'open-match': 'Partidă locală', 'open-review': 'Meniu principal', 'new-match': 'Partidă nouă',
+        'open-match': 'Partidă locală', 'open-review': 'Meniu principal',
         'match-options-title': 'Opțiunile partidei', 'flip-match': 'Întoarce tabla',
         'menu-saved': 'Partide salvate', 'menu-analysis': 'Tablă de analiză', 'menu-review': 'Analiza partidei',
         'menu-draw': 'Oferă remiză', 'menu-resign': 'Renunță la partidă', 'ai-analysis-label': 'Analiză AI pentru o partidă nouă', 'ai-analysis-help': 'Bară de evaluare și indicii în timpul partidei',
@@ -127,6 +128,11 @@ const find = id => document.getElementById(id);
 const homeMenu = createHomeMenu(find, locale, localStorage, async name => (await call('profile-name', { name })).name, (profile, fields) => {
     if (!reloadProfileLanguage(window, locale, profile.language, fields)) renderMatch();
 });
+const reviewImport = createReviewImport(find, () => openStandaloneReview(true), file => exclusive(async () => {
+    const imported = normalizeArchive(JSON.parse(await file.text()));
+    const response = await call('review-open', { archive: imported });
+    if (await commit(response.view, imported)) showMode('review', true);
+}, words.badArchive));
 const board = find('board');
 const matchBoard = find('match-board');
 const matchOptions = find('match-options');
@@ -170,6 +176,7 @@ let view;
 let archiveReviewId;
 let reportScrollBeforeExplanation = 0;
 let focusChange = 0;
+let releaseReviewMenu;
 let match;
 let matchRoute;
 let mode;
@@ -203,10 +210,10 @@ const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, 
 
 document.documentElement.lang = locale;
 for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
-    'open-match', 'open-review', 'flip-match', 'match-automatic-label',
+    'open-review', 'flip-match', 'match-automatic-label',
     'menu-saved', 'menu-analysis', 'menu-review', 'menu-draw', 'menu-resign', 'ai-analysis-label', 'ai-analysis-help',
     'resign-message', 'resign-confirm', 'resign-cancel',
-    'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
+    'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'random-choice', 'start-ai', 'cancel-setup',
     'retry-bot', 'open-saved',
     'open-finished', 'return-menu', 'new-local', 'new-ai', 'continue-match', 'continue-title', 'confirm-continue',
@@ -478,7 +485,7 @@ function render() {
     find('archive-review-back').hidden = !visibleReview || !archiveReviewId || explaining;
     find('close-why').hidden = !explaining;
     find('why-actions').hidden = !explaining || (!archiveReviewId && !analysisReview);
-    find('reopen-review').hidden = !homeVisible || !archive;
+    reviewImport.show(mode, Boolean(archive), Boolean(liveReviewOrigin));
     if (!visibleReview) return;
     find('title').textContent = explaining ? words['why-title'] : words.title;
     document.title = `Chess Lab · ${find('title').textContent}`;
@@ -649,7 +656,6 @@ function renderMatch() {
         return;
     }
     const isAi = match.mode === 'AI';
-    find('open-profile').hidden = !isAi || match.readOnly;
     const browsing = match.viewPly < match.ply;
     container.dataset.ply = match.ply;
     container.dataset.viewPly = match.viewPly;
@@ -675,7 +681,6 @@ function renderMatch() {
         const summary = words.aiProfile(levels[match.level], words[`${match.humanSide.toLowerCase()}-choice`]);
         find('match-profile').textContent = homeMenu.name ? `${homeMenu.name} · ${summary}` : summary;
     }
-    find('new-match').hidden = match.readOnly || !isAi && match.result === 'IN_PROGRESS';
     find('match-history').hidden = match.ply === 0 && !match.analysisEnabled;
     find('match-ply').textContent = `${match.viewPly}/${match.ply}`;
     find('match-previous').disabled = match.viewPly === 0;
@@ -716,7 +721,6 @@ function renderAnalysis() {
         button.hidden = !Object.hasOwn(available, action);
         button.disabled = !available[action] || (action !== 'HOME' && action !== 'SAVED_GAMES' && (running || engineFailed || otherTabChanged));
     }
-    find('new-match').disabled = running || Boolean(match?.awaitingBot);
     renderMatchAutomation();
 }
 
@@ -784,7 +788,7 @@ function showMode(nextMode, addHistory = false) {
     const studying = Object.hasOwn(studyPanels, mode);
     find('title').textContent = mode === 'home' ? 'Chess Lab' : studying ? homeLabels[locale][studyRoutes[mode][0]] : words[title[mode] ?? 'title'];
     document.title = mode === 'home' ? 'Chess Lab' : `Chess Lab · ${find('title').textContent}`;
-    find('return-menu').hidden = !listing && mode !== 'archive';
+    find('return-menu').hidden = !listing && mode !== 'archive' && !(mode === 'review' && !view);
     find('archive-review-back').hidden = mode !== 'archive-review';
     find('ai-setup').hidden = mode !== 'ai' || !setupVisible;
     find('cancel-setup').hidden = !setupBackMode;
@@ -1113,7 +1117,9 @@ function showMainMenu(addHistory = false) {
 
 async function openStandaloneReview(addHistory = false) {
     if (!archive) {
-        showMainMenu();
+        archiveReviewId = undefined;
+        view = undefined;
+        showMode('review', addHistory);
         return;
     }
     await exclusive(async () => {
@@ -1259,9 +1265,6 @@ for (const [route, [id]] of Object.entries(studyRoutes)) {
     find(id).addEventListener('click', () => { if (!busy) void openStudy(route, { addHistory: true }); });
 }
 
-find('open-match').addEventListener('click', () => {
-    void enterMatch({ route: 'LOCAL' });
-});
 find('open-ai').addEventListener('click', () => {
     openAiSetup();
 });
@@ -1350,7 +1353,6 @@ find('review-close').addEventListener('click', () => {
         matchOptionsButton.focus({ preventScroll: true });
     } else showMainMenu();
 });
-find('reopen-review').addEventListener('click', () => { void openStandaloneReview(true); });
 find('match-rows').addEventListener('click', event => {
     const row = event.target.closest('button.match-row');
     if (!row) return;
@@ -1359,11 +1361,6 @@ find('match-rows').addEventListener('click', event => {
 find('new-local').addEventListener('click', () => void enterMatch({ setup: localSetup }));
 find('new-ai').addEventListener('click', () => {
     if (!busy) openAiSetup();
-});
-find('new-match').addEventListener('click', () => {
-    if (busy || analysis || !match || match.awaitingBot) return;
-    if (matchRoute === 'ai') openAiSetup();
-    else if (match.result !== 'IN_PROGRESS') void enterMatch({ setup: localSetup });
 });
 find('ai-setup').addEventListener('submit', event => {
     event.preventDefault();
@@ -1463,17 +1460,24 @@ continueDialog.addEventListener('close', () => {
 
 bindBoardSelection(matchBoard, chooseSquare);
 
-function setReviewMenu(open) {
-    find('review-menu').hidden = !open;
+function setReviewMenu(open, trigger) {
+    releaseReviewMenu?.();
+    releaseReviewMenu = undefined;
+    const menu = find('review-menu');
+    menu.hidden = !open;
     find('review-actions').setAttribute('aria-expanded', open);
     find('why-actions').setAttribute('aria-expanded', open);
+    if (open) {
+        const anchor = trigger ?? find(view?.explanationOpen ? 'why-actions' : 'review-actions');
+        releaseReviewMenu = followOptionsMenu(anchor, menu, () => setReviewMenu(false));
+    }
 }
 
-find('review-actions').addEventListener('click', () => {
-    if (!busy) setReviewMenu(find('review-menu').hidden);
+find('review-actions').addEventListener('click', event => {
+    if (!busy) setReviewMenu(find('review-menu').hidden, event.currentTarget);
 });
-find('why-actions').addEventListener('click', () => {
-    if (!busy) setReviewMenu(find('review-menu').hidden);
+find('why-actions').addEventListener('click', event => {
+    if (!busy) setReviewMenu(find('review-menu').hidden, event.currentTarget);
 });
 find('review-on-board').addEventListener('click', () => {
     if (mode === 'study-review' && studyReturn?.route === 'analysis' && view && !busy) {
@@ -1546,16 +1550,6 @@ history.addEventListener('keydown', event => {
     if (target === null) return;
     event.preventDefault();
     if (target !== from) action('SEEK', target, 'history');
-});
-find('archive').addEventListener('change', event => {
-    const file = event.target.files[0];
-    event.target.value = '';
-    if (!file) return;
-    void exclusive(async () => {
-        const imported = normalizeArchive(JSON.parse(await file.text()));
-        const response = await call('review-open', { archive: imported });
-        if (await commit(response.view, imported)) showMode('review', true);
-    }, words.badArchive);
 });
 addEventListener('storage', event => {
     if (event.storageArea !== localStorage) return;

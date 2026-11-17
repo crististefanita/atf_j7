@@ -205,7 +205,7 @@ test('A revealed analysis hint names its moves and opening for screen readers', 
     assert.equal(analysisHintDescription({ number: 0 }, 'en'), '');
 });
 
-async function mountAnalysis(openingState) {
+async function mountAnalysis(openingState, locale = 'en') {
     class Element {
         constructor(tag) { this.tag = tag; }
         children = [];
@@ -216,26 +216,47 @@ async function mountAnalysis(openingState) {
         style = {};
         hidden = false;
         scrollLeft = 0;
-        append(...items) { this.children.push(...items); }
+        append(...items) {
+            this.children.push(...items);
+            for (const item of items) if (typeof item === 'object') item.parentElement = this;
+        }
         replaceChildren(...items) { this.children = items; }
         setAttribute(name, value) { this.attributes.set(name, value); }
         removeAttribute(name) { this.attributes.delete(name); }
         addEventListener(name, action) { this.events.set(name, action); }
-        focus() {}
+        focus(options) { this.ownerDocument.activeElement = this; this.focusOptions = options; }
+        contains(item) { return this === item || this.children.some(child => typeof child === 'object' && child.contains(item)); }
+        querySelector() {
+            for (const child of this.children) {
+                if (typeof child !== 'object') continue;
+                if (['input', 'button'].includes(child.tag) && !child.hidden && !child.disabled) return child;
+                const match = child.querySelector();
+                if (match) return match;
+            }
+            return null;
+        }
     }
 
     const root = new Element('section');
-    root.ownerDocument = { createElement: tag => new Element(tag) };
-    const view = createAnalysisStudy({ root, locale: 'en', storage: () => undefined,
+    const document = {
+        events: new Map(),
+        addEventListener(name, action) { this.events.set(name, action); },
+        createElement(tag) { return Object.assign(new Element(tag), { ownerDocument: document }); },
+    };
+    root.ownerDocument = document;
+    const commands = [];
+    const view = createAnalysisStudy({ root, locale, storage: () => undefined,
         home: () => assert.fail('The study stays open'), board: () => ({ render() {} }),
         call: async (action, { index }) => {
+            commands.push(action);
             if (action === 'resume') return openingState;
+            if (action === 'flip') return { ...openingState, blackBelow: !openingState.blackBelow };
             assert.equal(action, 'seek');
             return { ...openingState, ply: index };
         },
     });
     await view.open();
-    return { root, view };
+    return { root, view, commands };
 }
 
 test('Analysis places evaluation to the left and all history controls in APK order', async () => {
@@ -292,4 +313,41 @@ test('Selecting an offscreen analysis move scrolls only the strip in either dire
     assert.equal(strip.scrollLeft, 0);
     assert.equal(strip.children[0].attributes.get('aria-current'), 'step');
     assert.equal(root.scrollLeft, 0);
+});
+
+test('Analysis options use the shared anchored menu and preserve the board on dismissal in RO and EN', async () => {
+    for (const [locale, label] of [['en', 'Analysis board options'], ['ro', 'Opțiunile tablei de analiză']]) {
+        const { root, view, commands } = await mountAnalysis(frame(1, 0, {
+            analysis: false, promotions: [], history: [], sideToMove: 'WHITE',
+        }), locale);
+        const header = root.children.find(child => child.className === 'analysis-study-header');
+        const menu = header.children.find(child => child.className === 'analysis-study-menu options-anchor');
+        const [trigger, panel] = menu.children;
+        const board = root.children.find(child => child.className === 'analysis-study-stage');
+        assert.equal(trigger.tag, 'button');
+        assert.equal(trigger.attributes.get('aria-label'), label);
+        assert.equal(trigger.attributes.get('aria-controls'), panel.id);
+        assert.equal(panel.hidden, true);
+        trigger.events.get('click')();
+        assert.equal(panel.hidden, false);
+        assert.equal(trigger.attributes.get('aria-expanded'), 'true');
+        assert.equal(root.ownerDocument.activeElement, panel.children[0].children[0]);
+        let handled = false;
+        menu.events.get('keydown')({ key: 'Escape', preventDefault() { handled = true; }, stopPropagation() {} });
+        assert.equal(handled, true);
+        assert.equal(panel.hidden, true);
+        assert.equal(root.ownerDocument.activeElement, trigger);
+        assert.deepEqual(trigger.focusOptions, { preventScroll: true });
+        assert.deepEqual(commands, ['resume']);
+        trigger.events.get('click')();
+        panel.children.at(-1).events.get('click')();
+        await flush();
+        assert.equal(panel.hidden, true);
+        assert.equal(root.ownerDocument.activeElement, trigger);
+        assert.deepEqual(commands, ['resume', 'flip']);
+        assert.equal(root.children.find(child => child.className === 'analysis-study-stage'), board);
+        trigger.events.get('click')();
+        view.close();
+        assert.equal(panel.hidden, true);
+    }
 });
