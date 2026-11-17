@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { analysisHintDescription, analysisScore, analysisStudySession, createAnalysisStudy } from '../src/main/web/study-analysis.mjs';
+import { matchAnalysisNavigation, studyHashes, studyRouteForHash, watchStudyHistory, writeModeHash } from '../src/main/web/study-navigation.mjs';
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const frame = (revision, ply, extra = {}) => ({
@@ -70,6 +71,123 @@ test('Analysis retains a playable session when storage is blocked', async () => 
         },
     });
     assert.equal((await session.open()).ply, 0);
+});
+
+test('Match analysis restores its own line after review without touching the standalone bookmark', async () => {
+    const observed = [];
+    const storageReads = [];
+    const storageWrites = [];
+    const storage = () => ({
+        getItem: key => { storageReads.push(key); return 'standalone-before'; },
+        setItem: (key, value) => storageWrites.push([key, value]),
+    });
+    const analysis = analysisStudySession({
+        storage,
+        failed: () => assert.fail('Both lines should restore'),
+        render: () => {},
+        call: async (action, input) => {
+            observed.push([action, input]);
+            const ply = action === 'resume' ? input.saved === 'standalone-before' ? 4 : 2 : input.index;
+            return frame(1, ply, { analysis: false });
+        },
+    });
+    await analysis.open({ checkpoint: 'game-checkpoint', ply: 3, blackBelow: true });
+    await analysis.request('seek', { index: 2 });
+    analysis.close();
+    assert.equal((await analysis.restore()).ply, 2, 'return from Game Review preserves the contextual cursor');
+    analysis.close();
+    assert.deepEqual(observed, [
+        ['open', { value: 'game-checkpoint', index: 3, option: 'black' }],
+        ['seek', { index: 2 }],
+        ['resume', { saved: 'line:2' }],
+    ]);
+    assert.deepEqual(storageReads, []);
+    assert.deepEqual(storageWrites, []);
+
+    assert.equal((await analysis.open()).ply, 4);
+    assert.deepEqual(observed.at(-1), ['resume', { saved: 'standalone-before' }]);
+    assert.deepEqual(storageReads, ['chesslab.analysis-study.v1']);
+    assert.deepEqual(storageWrites, [['chesslab.analysis-study.v1', 'line:4']]);
+});
+
+test('Contextual analysis returns once to the exact active or archived game and restores focus', () => {
+    const origins = [['ai', '#ai'], ['match', '#game'], ['archive', '#archive/finished-12']];
+    for (const [mode, hash] of origins) {
+        const match = Object.freeze({
+            checkpoint: 'encoded-ledger-move-history', reviewCheckpoint: 'bare-chess-line',
+            viewPly: 2, ply: 5, blackBelow: true, revision: 6,
+        });
+        const shown = [];
+        const history = [];
+        let screen = mode;
+        let focused = 0;
+        let onHashChange;
+        const browser = {
+            location: { hash },
+            history: {
+                pushState(state, _title, hash) {
+                    history.push(['push', state, hash]);
+                    browser.location.hash = hash;
+                },
+                back() { history.push(['back']); },
+            },
+            addEventListener(type, handler) {
+                assert.equal(type, 'hashchange');
+                onHashChange = handler;
+            },
+        };
+        const navigation = matchAnalysisNavigation({
+            browser,
+            currentMatch: () => match,
+            openStudy(entry) {
+                screen = 'analysis';
+                shown.push(['open', entry]);
+                writeModeHash(browser, studyHashes.analysis, true);
+            },
+            returnToMatch(route) {
+                screen = route;
+                shown.push(['resume source', route, match.viewPly, match.revision]);
+            },
+        });
+        watchStudyHistory(browser, () => screen === 'analysis' ? screen : undefined, destination => {
+            if (navigation.restore(destination)) return;
+            screen = studyRouteForHash(destination);
+            shown.push(['direct', destination]);
+        });
+        const opener = { isConnected: true, focus({ preventScroll }) { assert.equal(preventScroll, true); focused++; } };
+        assert.equal(navigation.open(mode, opener), true);
+        assert.equal(navigation.open(mode, opener), false, 'double activation must not replace the source');
+        assert.equal(browser.location.hash, studyHashes.analysis);
+        assert.equal(navigation.back(), true);
+        assert.equal(navigation.back(), true);
+        browser.location.hash = hash;
+        onHashChange();
+        onHashChange();
+        assert.equal(focused, 1);
+        assert.deepEqual(history, [['push', null, '#analysis'], ['back']], 'no source data enters browser history');
+        assert.deepEqual(shown, [
+            ['open', { checkpoint: 'bare-chess-line', ply: 2, blackBelow: true }],
+            ['resume source', mode, 2, 6],
+        ]);
+        assert.equal(navigation.back(), false);
+        browser.location.hash = '#analysis';
+        onHashChange();
+        assert.deepEqual(shown.at(-1), ['direct', '#analysis'], 'forward navigation has no stale transient source');
+    }
+});
+
+test('Leaving contextual analysis through another route discards the old game origin', () => {
+    const current = { reviewCheckpoint: 'game', viewPly: 0, blackBelow: false };
+    const navigation = matchAnalysisNavigation({
+        browser: { location: { hash: '#ai' }, history: { back: () => assert.fail('No saved origin remains') } },
+        currentMatch: () => current,
+        openStudy: () => {},
+        returnToMatch: () => assert.fail('Do not replace a newly selected route'),
+    });
+    assert.equal(navigation.open('ai'), true);
+    assert.equal(navigation.restore('#saved'), false);
+    assert.equal(navigation.restore('#ai'), false);
+    assert.equal(navigation.back(), false);
 });
 
 test('Reported analysis score uses the same side, mate and decimal policy as Android', () => {

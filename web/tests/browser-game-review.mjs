@@ -21,7 +21,7 @@ const ledgerScenario = args[1] === '--ledger';
 const archivesScenario = args[1] === '--archives';
 const reviewContinueScenario = args[1] === '--review-continue';
 const fixturePath = activeScenario || aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario ? null : resolve(args[1]);
-const hostPath = '/atf_j7/';
+const hostPath = '/chess/';
 const publicUrl = args[4];
 const readmeUrl = `https://crististefanita.github.io${hostPath}#ai`;
 const relativeEvidence = relative(site, evidence);

@@ -16,7 +16,7 @@ test('Each study route has an enabled home entry and a distinct panel', async ()
 });
 
 test('Study links, Back and Forward reopen the route represented by the address', () => {
-    const origin = 'http://127.0.0.1/atf_j7/?lang=ro';
+    const origin = 'http://127.0.0.1/chess/?lang=ro';
     const entries = [new URL(origin)];
     let index = 0;
     let onHashChange;

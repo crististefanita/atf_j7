@@ -24,7 +24,6 @@ import ro.atf.chess.WebEvidencePublication.Scenario;
 @Tag("web-evidence")
 class ChessWebArchiveContinuationPublication {
     private static final String SCOPE = "review-continue";
-    private static final String PLAY_URL = "https://crististefanita.github.io/atf_j7/#ai";
     private static final String SOURCE = "3|BLACK|ADVANCED|0|f2f4 e7e6 g2g4 d8h4";
     private static final int SELECTED_PLY = 1;
     private static final Snapshot CURSOR = new Snapshot(SELECTED_PLY, Branch.HISTORY, 0, false);
@@ -54,7 +53,7 @@ class ChessWebArchiveContinuationPublication {
         String after = receipt.path("ledgerAfter").asText();
         String publicUrl = receipt.path("publicUrl").asText("");
         var checks = new ArrayList<>(List.of(same("Evidence belongs to archived Game Review continuation", SCOPE, receipt.path("scope").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
                 same("The finished original has the exact archived checkpoint", SOURCE, receipt.path("archiveCheckpoint").asText()),
                 same("The user selects the exact recorded move", SELECTED_PLY, receipt.path("selectedPly").asInt()),
                 same("The fork starts at the JVM history checkpoint", start.checkpoint(), receipt.path("forkStartCheckpoint").asText()),

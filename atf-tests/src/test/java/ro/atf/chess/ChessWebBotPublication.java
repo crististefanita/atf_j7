@@ -22,8 +22,6 @@ import ro.atf.chess.WebEvidencePublication.Scenario;
 @Tag("web-evidence")
 class ChessWebBotPublication {
     private static final String SCOPE = "ai-bot-reload";
-    private static final String HOST_PATH = "/atf_j7/";
-    private static final String PLAY_URL = "https://crististefanita.github.io/atf_j7/#ai";
     private static final String AI_PREFIX = "ai|";
     private static final String PENDING = "3|BLACK|HARD|0|";
     private static final List<String> OBSERVATIONS = List.of("ai-setup", "ai-black-orientation", "bot-pending",
@@ -57,8 +55,8 @@ class ChessWebBotPublication {
                 new ReportField("Pending game checkpoint", pendingStored), new ReportField("Committed reply checkpoint", completedStored),
                 new ReportField("JVM bot reference UCI", reference.uci()), new ReportField("Browser bot UCI", botUci));
         var checks = new ArrayList<>(List.of(same("Evidence belongs to the AI game flow", SCOPE, receipt.path("scope").asText()),
-                same("Browser serves the production-shaped subpath", HOST_PATH, receipt.path("hostPath").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? PLAY_URL : "", publicUrl),
+                same("Browser serves the production-shaped subpath", ChessPublicationRoutes.PAGES_PATH, receipt.path("hostPath").asText()),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
                 same("Pending checkpoint retains Black's seat and the Hard profile", PENDING, pendingRaw),
                 same("Browser persists the pending game in AI mode", AI_PREFIX + pendingRaw, pendingStored),
                 same("The real worker replies with the same move as the JVM bot", reference.uci(), botUci),

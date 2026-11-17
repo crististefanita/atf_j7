@@ -8,6 +8,7 @@ Porniți de la ghidul care răspunde întrebării. Verificați afirmațiile desp
 | Cum se joacă și cum se configurează problemele? | [Tabla și jocul](board/README.md) · [Catalogul](board/quest-curation.md) |
 | Cum se măsoară adversarii AI și cum se interpretează analiza unei partide? | [Protocolul AI](board/ai-quality.md#control-la-fiecare-schimbare) · [Analiza partidei](board/game-review.md) |
 | Ce trebuie verificat înaintea unei schimbări? | [Alegerea nivelului de testare](testing/README.md#alegerea-nivelului) · [Raportare Extent](testing/README.md#raportare-extent) |
+| Cum se verifică o funcție pe Web și APK? | [Ghidul Web](../web/README.md) · [Matricea de paritate](../web/parity.md) |
 | Cum se califică un APK și unde sunt dovezile ediției? | [Procesul de release](release/README.md#calificare-și-publicare) · [Edițiile publicate](../release/README.md) |
 | Ce ipoteze mai cer dovezi? | [Feedback](feedback/README.md) |
 
@@ -38,6 +39,7 @@ mvn test '-Dtest=DocumentationGovernanceTest,ReleaseGovernanceTest' '-Dchess.ext
 
 `DocumentationGovernanceTest` verifică harta README-ului, navigarea locală,
 destinațiile ediției curente, structura feedback-ului și regulile Markdown pentru ghiduri și diagrame.
+Aceleași verificări se aplică ghidului Web și matricei de paritate.
 `ReleaseGovernanceTest` verifică regulile de publicare și traseele RAG.
 
 La revizie, comparați afirmațiile cu sursele și declarațiile de build.

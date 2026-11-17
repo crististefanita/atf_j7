@@ -217,8 +217,8 @@ class ChessWebStudyPublication {
 
     private static boolean studyUri(String value, String route) {
         URI url = URI.create(value);
-        boolean publicWeb = "https".equals(url.getScheme()) && "crististefanita.github.io".equals(url.getHost())
-                && "/atf_j7/".equals(url.getPath());
+        boolean publicWeb = "https".equals(url.getScheme()) && ChessPublicationRoutes.PAGES_HOST.equals(url.getHost())
+                && ChessPublicationRoutes.PAGES_PATH.equals(url.getPath());
         boolean local = "http".equals(url.getScheme()) && ("localhost".equals(url.getHost())
                 || "127.0.0.1".equals(url.getHost()) || "[::1]".equals(url.getHost()));
         return (publicWeb || local) && route.equals(url.getFragment());

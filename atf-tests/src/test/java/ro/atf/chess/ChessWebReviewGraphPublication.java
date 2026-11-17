@@ -25,7 +25,6 @@ import ro.atf.chess.WebEvidencePublication.Scenario;
 @Tag("web-evidence")
 class ChessWebReviewGraphPublication {
     private static final String SCOPE = "review-graph";
-    private static final String PLAY_URL = "https://crististefanita.github.io/atf_j7/#ai";
     private static final int TOTAL = 185;
     private static final int TARGET = 184;
     private static final int INSET = 2;
@@ -60,7 +59,7 @@ class ChessWebReviewGraphPublication {
         String archiveId = receipt.path("archiveId").asText();
         String publicUrl = receipt.path("publicUrl").asText("");
         var checks = new ArrayList<>(List.of(same("Evidence belongs to Game Review graph", SCOPE, receipt.path("scope").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
                 same("The fixture is the exact native review used in the browser", fixtureHash, receipt.path("fixtureSha256").asText()),
                 same("The source is the completed native 185-ply game", List.of(SCOPE, TOTAL, TOTAL, ChessMatch.Result.WHITE_WINS),
                         List.of(fixture.path("scope").asText(), fixture.path("expected").path("totalPlies").asInt(),

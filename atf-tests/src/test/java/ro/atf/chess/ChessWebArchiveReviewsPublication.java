@@ -23,7 +23,6 @@ import ro.atf.chess.WebEvidencePublication.Scenario;
 @Tag("web-evidence")
 class ChessWebArchiveReviewsPublication {
     private static final String SCOPE = "archive-reviews";
-    private static final String PLAY_URL = "https://crististefanita.github.io/atf_j7/#ai";
     private static final String LOCAL = "1|f2f3 e7e5 g2g4 d8h4";
     private static final String AI = "3|BLACK|ADVANCED|0|f2f4 e7e6 g2g4 d8h4";
     private static final List<String> OBSERVATIONS = List.of("two-archives", "analysis-a", "archive-a-bookmark", "analysis-b",
@@ -50,7 +49,7 @@ class ChessWebArchiveReviewsPublication {
         String encoded = receipt.path("ledgerSnapshot").asText();
         String publicUrl = receipt.path("publicUrl").asText("");
         var checks = new ArrayList<>(List.of(same("Evidence belongs to the two archived reviews", SCOPE, receipt.path("scope").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
                 same("The archived games have two separate identities", true, !first.isBlank() && !second.isBlank() && !first.equals(second)),
                 same("The local archive has the exact first checkpoint", LOCAL, firstCheckpoint),
                 same("The AI archive has its own exact checkpoint", AI, secondCheckpoint)));

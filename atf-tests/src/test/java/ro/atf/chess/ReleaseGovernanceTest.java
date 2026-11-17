@@ -68,10 +68,10 @@ class ReleaseGovernanceTest {
     private static final String COMPONENT_SUITE = "ro.atf.chess.suites.ChessComponentSuite";
     private static final String COMPONENT_CLASS = "ro.atf.chess.ExampleTest";
     private static final String COMPONENT_METHOD = "recordsPosition";
-    private static final String REPOSITORY = "example/atf_j7";
+    private static final String REPOSITORY = "example/chess";
     private static final String BASE = "https://github.com/" + REPOSITORY + "/releases/";
     private static final String URL = BASE + "download/v0.1.0/ChessLab-0.1.0.apk";
-    private static final String PLAY = "- [Joacă în browser](https://example.github.io/atf_j7/#ai)";
+    private static final String PLAY = "- [Joacă în browser](https://example.github.io/chess/#ai)";
     private static final String EDITION = "- [Release](" + BASE + "tag/v0.1.0)";
     private static final String README = "# Chess Lab\n\nȘah și studiu.\n\n## Jocul\n\n- [APK](" + URL + ")\n"
             + PLAY + "\n\n## În joc\n\n[Studiu](docs/board/README.md)\n\n## Ediția publicată\n\n" + EDITION + "\n";
@@ -349,7 +349,7 @@ class ReleaseGovernanceTest {
                 List.of(BASE + "tag/v0.1.0", URL), ReleaseEvidence.gameLinks(README));
         check.same("A Pages link for a different repository is rejected",
                 "The online game must open the repository's AI game on GitHub Pages",
-                decision(() -> ReleaseEvidence.gameLinks(README.replace("/atf_j7/#ai", "/another/#ai"))));
+                decision(() -> ReleaseEvidence.gameLinks(README.replace("/chess/#ai", "/another/#ai"))));
         check.same("The APK link must be first", "Jocul must start with the canonical APK link",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("- [APK](" + URL + ")\n" + PLAY, PLAY + "\n- [APK](" + URL + ")"))));
         check.same("A third link in Jocul is rejected", "Jocul must contain only the APK and browser links",
@@ -366,7 +366,7 @@ class ReleaseGovernanceTest {
         var version = java.util.regex.Pattern.compile("(?m)^\\s*versionName '([0-9]+\\.[0-9]+\\.[0-9]+)'$").matcher(gradle);
         if (!version.find()) throw new IOException("Missing Android versionName");
         String name = version.group(1);
-        String base = "https://github.com/crististefanita/atf_j7/releases/";
+        String base = ChessPublicationRoutes.RELEASES;
         List<String> links = ReleaseEvidence.gameLinks(Files.readString(root.resolve("README.md")));
         Path publication = root.resolve("release").resolve(name).resolve("reports/distribution-verification.json");
         boolean candidatePublished = Files.isRegularFile(publication)

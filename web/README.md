@@ -20,7 +20,7 @@ Proba explicită cere pachetul compilat și compară rezultatele efective din JV
 
 **Partidă cu AI** deschide alegerea culorii și a profilului Basic, Advanced sau Hard. Workerul folosește aceeași căutare ca motorul Android pentru o replică fără lucru pregătit în fundal. Culoarea și nivelul se păstrează în checkpoint. Browserul salvează tura curentă înainte de a afișa mutarea și programează căutarea după pauza de 650 ms. După reîncărcare, poziția decide dacă mai este rândul AI. Workerul respinge reviziile expirate, iar o replică deja salvată lasă jucătorul la mutare.
 
-Din **Profil** poți seta numele afișat în partida cu AI și limba English sau Română. Browserul păstrează profilul local, separat de partide, și îl recitește după reîncărcare. Numele gol revine la afișarea implicită, iar limba implicită este English. Ștergerea datelor site-ului șterge și preferințele. Validarea numelui și stocarea pot fi verificate cu `node --test web/tests/player-profile.test.mjs`.
+Din meniul principal, schimbă limba în **Setări** și numele afișat în **Nume**. După salvarea limbii se redeschide același meniu, inclusiv când browserul păstrează o analiză. **Profil** este disponibil din partida cu AI și păstrează ruta partidei după schimbare. Browserul salvează profilul local, separat de partide. Limba implicită este engleza, iar un nume gol afișează **You** sau **Tu**, în funcție de limbă. `ChessWebShellTest` verifică reîncărcarea cu stocare, istoric și adresă simulate. [Strategia de testare](../docs/testing/README.md)
 
 Cu `$site`, `$edge` și un dosar `$evidence` nou în TMP:
 
@@ -30,7 +30,7 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bundle=$site" "-Dchess.web.bot.receipt=$receipt"
 ```
 
-Proba pornește browserul sub `/atf_j7/`, reîncarcă în tura calculatorului și verifică mutarea cu JVM. Schimbă apoi numele și limba, reîncarcă și confirmă că partida are același checkpoint. Raportul încorporează capturile. Pentru verificarea destinației publice, treceți URL-ul din README ca ultim argument al comenzii Node și adăugați `-Dchess.web.bot.public=true` la publicarea Extent. Driverul verifică fișierele servite înaintea probei Edge. [Proba Android](../docs/testing/README.md#partidă-și-istoric)
+Proba pornește browserul sub `/chess/`, reîncarcă în tura calculatorului și verifică mutarea cu JVM. Schimbă apoi numele și limba, reîncarcă și confirmă că partida are același checkpoint. Raportul încorporează capturile. Pentru verificarea destinației publice, treceți URL-ul din README ca ultim argument al comenzii Node și adăugați `-Dchess.web.bot.public=true` la publicarea Extent. Driverul verifică fișierele servite înaintea probei Edge. [Proba Android](../docs/testing/README.md#partidă-și-istoric)
 
 ## Partide salvate și încheiate
 
@@ -144,6 +144,8 @@ Meniul **Studiu** deschide **Probleme**, **Deschideri** și **Tablă de analiză
 - **Deschideri** (`#openings`) folosește catalogul și `OpeningLesson` pentru poziții, mutări, istoric și replica de carte. Selectați explicația lecției pentru textul complet. În analiza AI, comparația deschide mutarea decisivă când aceasta există în varianta verificată.
 - **Tablă de analiză** (`#analysis`) folosește `AnalysisLine` pentru mutări, ramificare și cursor. Bara de evaluare stă în stânga, iar selecția se păstrează la vedere în rândul cu istoricul și comenzile. Game Review revine la poziția selectată. **Continuă de aici** rezervă un loc liber și păstrează orientarea și alegerea replicilor AI.
 
+Comanda **Tablă de analiză** dintr-o partidă activă sau încheiată folosește `AnalysisEntry`. Studiul pornește de la semimutarea afișată și păstrează orientarea. **Înapoi** revine la aceeași partidă, cu selecția și focusul restaurate. Studiul contextual are marcaj propriu pe durata vizitei, iar reîncărcarea adresei deschide studiul independent. [Cazurile comune JVM și Web](../docs/testing/README.md#tabla-de-analiză-dintr-o-partidă)
+
 Testele cu stocare și controale simulate rulează în copia TMP. Pentru proba integrată, transmiteți pachetul TeaVM. Testul parcurge comenzile workerului prin Node.js.
 
 ```powershell
@@ -164,7 +166,7 @@ Testați și schimbarea adresei între cele trei destinații Studiu, apoi comenz
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebStudyPublication' "-Dchess.web.study.browser=$browserReceipts" "-Dchess.web.study.native=$nativeReferences" "-Dchess.web.study.source=$sourceCommit" "-Dchess.web.study.extent=$report"
 ```
 
-[Matricea de paritate](parity.md#contracte-și-probe) · [Dovezile APK-ului 0.15.2](../release/0.15.2/reports/README.md)
+[Matricea de paritate](parity.md#contracte-și-probe) · [Dovezile edițiilor publicate](../release/README.md)
 
 ## Partida locală și o analiză nouă
 

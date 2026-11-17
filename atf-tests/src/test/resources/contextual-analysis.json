@@ -1,0 +1,38 @@
+[
+  {
+    "id": "active-ai-history",
+    "checkpoint": "3|BLACK|ADVANCED|0|e2e4 e7e5 g1f3 b8c6",
+    "ply": 2,
+    "blackBelow": true,
+    "side": "WHITE",
+    "sourceResult": "IN_PROGRESS",
+    "studyResult": "IN_PROGRESS",
+    "lastMove": "e7e5",
+    "branchMove": "f1c4",
+    "branchHistory": ["e2e4", "e7e5", "f1c4"]
+  },
+  {
+    "id": "archived-resignation-history",
+    "checkpoint": "4|RESIGN|3|BLACK|ADVANCED|0|e2e4 e7e5 g1f3 b8c6",
+    "ply": 1,
+    "blackBelow": false,
+    "side": "BLACK",
+    "sourceResult": "WHITE_WINS",
+    "studyResult": "IN_PROGRESS",
+    "lastMove": "e2e4",
+    "branchMove": "c7c5",
+    "branchHistory": ["e2e4", "c7c5"]
+  },
+  {
+    "id": "archived-terminal-position",
+    "checkpoint": "1|f2f3 e7e5 g2g4 d8h4",
+    "ply": 4,
+    "blackBelow": true,
+    "side": "WHITE",
+    "sourceResult": "BLACK_WINS",
+    "studyResult": "BLACK_WINS",
+    "lastMove": "d8h4",
+    "branchMove": null,
+    "branchHistory": []
+  }
+]

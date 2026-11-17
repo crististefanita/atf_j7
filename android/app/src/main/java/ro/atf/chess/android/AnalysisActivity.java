@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
+import ro.atf.chess.AnalysisEntry;
 import ro.atf.chess.AnalysisLine;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition.Move;
@@ -73,10 +74,11 @@ public final class AnalysisActivity extends LocalizedActivity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         var intent = getIntent();
-        sourceMatch = ChessMatch.restore(intent.getStringExtra(LINE));
-        entry = new AnalysisLine(sourceMatch, intent.getIntExtra(PLY, 0));
+        var initial = AnalysisEntry.restore(intent.getStringExtra(LINE), intent.getIntExtra(PLY, 0), intent.getBooleanExtra(BLACK_BELOW, false));
+        sourceMatch = initial.source();
+        entry = initial.line();
         study = state == null ? entry : new AnalysisLine(ChessMatch.restore(state.getString(LINE)), state.getInt(PLY));
-        blackBelow = state == null ? intent.getBooleanExtra(BLACK_BELOW, false) : state.getBoolean(BLACK_BELOW);
+        blackBelow = state == null ? initial.blackBelow() : state.getBoolean(BLACK_BELOW);
         analysisEnabled = state == null || state.getBoolean(ANALYSIS_ENABLED, true);
         setContentView(buildScreen());
     }

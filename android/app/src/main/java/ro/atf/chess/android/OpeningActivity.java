@@ -3,14 +3,18 @@ package ro.atf.chess.android;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.res.Configuration;
+import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsets;
@@ -37,6 +41,11 @@ public final class OpeningActivity extends BackNavigableActivity {
     private static final int PRIMARY = 0xfff5f3ec;
     private static final int MUTED = 0xffc0bfb4;
     private static final int ACCENT = 0xffb8d88a;
+    private static final int CONTROL_FILL = 0xff29362d;
+    private static final int CONTROL_STROKE = 0xff435047;
+    private static final int CONTROL_ACTIVE = 0xffb8db8c;
+    private static final int TOUCH_SIZE = 48;
+    private static final int CONTROL_GAP = 8;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Runnable bookReply = this::playReply;
     private List<Opening> catalog;
@@ -159,27 +168,18 @@ public final class OpeningActivity extends BackNavigableActivity {
         root.addView(header(localized(next.practice().opening().title())));
         root.addView(navigation());
 
-        var workspace = new LinearLayout(this);
-        boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-        workspace.setOrientation(landscape ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
-        root.addView(workspace, new LinearLayout.LayoutParams(-1, 0, 1));
         top = seat();
         bottom = seat();
-        board = new BoardView(this, this::tap);
+        board = new BoardView(this, this::tap, true);
         board.setId(R.id.opening_board);
         analysis = new MatchAnalysisView(this, this::notation, this::showAiHint);
+        analysis.setIncludeFontPadding(false);
+        analysis.setTextSize(12);
         analysis.evaluationBar().setBlackBelow(next.practice().learner() == Side.BLACK);
-        var panel = new BoardPanel(this, top, board, bottom, analysis.evaluationBar());
-        workspace.addView(panel, landscape ? new LinearLayout.LayoutParams(0, -1, 1)
-                : new LinearLayout.LayoutParams(-1, 0, 1));
+        var panel = new BoardPanel(this, top, board, bottom, analysis.evaluationBar(), true);
         var controls = controls();
-        if (landscape) {
-            var scroll = new ScrollView(this);
-            scroll.addView(controls);
-            workspace.addView(scroll, new LinearLayout.LayoutParams(0, -1, 1));
-        } else {
-            workspace.addView(controls, new LinearLayout.LayoutParams(-1, -2));
-        }
+        var workspace = new OpeningWorkspace(this, panel, controls.content(), message, controls.actions());
+        root.addView(workspace, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
         render();
         scheduleReply();
@@ -194,13 +194,17 @@ public final class OpeningActivity extends BackNavigableActivity {
                 () -> navigate(lesson.show(lesson.shownPly() - 1)));
         nextButton = arrow(R.id.opening_next, R.string.opening_next_move, "›", () -> navigate(lesson.forward()));
         progress = text("", 13, ACCENT);
+        progress.setIncludeFontPadding(false);
+        progress.setPadding(dp(8), 0, dp(8), 0);
         progress.setId(R.id.opening_progress);
         progress.setGravity(Gravity.CENTER);
         BoardCaption.reserve(progress, 2);
         progress.setOnClickListener(view -> review());
-        row.addView(previousButton, new LinearLayout.LayoutParams(dp(48), -2));
-        row.addView(progress, new LinearLayout.LayoutParams(0, -2, 1));
-        row.addView(nextButton, new LinearLayout.LayoutParams(dp(48), -2));
+        row.addView(previousButton, new LinearLayout.LayoutParams(dp(TOUCH_SIZE), dp(TOUCH_SIZE)));
+        var center = new LinearLayout.LayoutParams(0, dp(TOUCH_SIZE), 1);
+        center.leftMargin = center.rightMargin = dp(CONTROL_GAP);
+        row.addView(progress, center);
+        row.addView(nextButton, new LinearLayout.LayoutParams(dp(TOUCH_SIZE), dp(TOUCH_SIZE)));
         return row;
     }
 
@@ -214,10 +218,13 @@ public final class OpeningActivity extends BackNavigableActivity {
         return arrow;
     }
 
-    private LinearLayout controls() {
+    private record LessonControls(LinearLayout content, View actions) { }
+
+    private LessonControls controls() {
         var controls = column();
         controls.setPadding(dp(14), dp(4), dp(14), dp(6));
-        message = text("", 15, PRIMARY);
+        message = text("", 14, PRIMARY);
+        message.setIncludeFontPadding(false);
         message.setId(R.id.opening_message);
         message.setGravity(Gravity.CENTER);
         message.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -247,16 +254,20 @@ public final class OpeningActivity extends BackNavigableActivity {
         });
         // The hint and the practice action use the same slot throughout a lesson.
         var lessonAction = new FrameLayout(this);
-        BoardCaption.reserve(hintButton, 2);
-        BoardCaption.reserve(practiceButton, 2);
-        BoardCaption.reserve(aiButton, 2);
-        lessonAction.addView(hintButton, new FrameLayout.LayoutParams(-1, -2));
-        lessonAction.addView(practiceButton, new FrameLayout.LayoutParams(-1, -2));
-        actions.addView(lessonAction, new LinearLayout.LayoutParams(0, -2, 1));
-        actions.addView(aiButton, new LinearLayout.LayoutParams(0, -2, 1));
-        actions.addView(analysis.bulb());
-        controls.addView(actions, new LinearLayout.LayoutParams(-1, -2));
-        return controls;
+        lessonAction.addView(hintButton, new FrameLayout.LayoutParams(-1, -1));
+        lessonAction.addView(practiceButton, new FrameLayout.LayoutParams(-1, -1));
+        int actionHeight = Math.max(dp(TOUCH_SIZE), 2 * aiButton.getLineHeight());
+        actions.addView(lessonAction, new LinearLayout.LayoutParams(0, actionHeight, 1));
+        var secondAction = new LinearLayout.LayoutParams(0, actionHeight, 1);
+        secondAction.leftMargin = dp(CONTROL_GAP);
+        actions.addView(aiButton, secondAction);
+        var bulb = new LinearLayout.LayoutParams(dp(TOUCH_SIZE), dp(TOUCH_SIZE));
+        bulb.leftMargin = dp(CONTROL_GAP);
+        actions.addView(analysis.bulb(), bulb);
+        var actionRow = new LinearLayout.LayoutParams(-1, actionHeight);
+        actionRow.topMargin = dp(CONTROL_GAP);
+        controls.addView(actions, actionRow);
+        return new LessonControls(controls, actions);
     }
 
     private void theory() {
@@ -363,6 +374,7 @@ public final class OpeningActivity extends BackNavigableActivity {
         progress.setContentDescription(practice.ply() == 0 ? null
                 : progress.getText() + ". " + getString(R.string.opening_review));
         progress.setClickable(practice.ply() > 0);
+        progress.setEnabled(practice.ply() > 0);
         previousButton.setEnabled(ply > 0);
         nextButton.setEnabled(ply < practice.opening().steps().size());
         var position = practice.opening().positionAt(ply);
@@ -377,6 +389,7 @@ public final class OpeningActivity extends BackNavigableActivity {
         practiceButton.setText(reviewing ? R.string.opening_replay : lesson.replyPaused() ? R.string.opening_continue : R.string.opening_retry);
         hintButton.setVisibility(showPracticeAction ? View.INVISIBLE : View.VISIBLE);
         hintButton.setEnabled(playable);
+        hintButton.setSelected(theoryHint != QuestHint.NONE);
         hintButton.setText(switch (theoryHint) {
             case NONE -> R.string.opening_hint;
             case PIECE -> R.string.opening_show_move;
@@ -384,8 +397,8 @@ public final class OpeningActivity extends BackNavigableActivity {
         });
         aiButton.setSelected(aiEnabled);
         aiButton.setText(aiEnabled ? R.string.opening_ai_enabled : R.string.opening_ai);
-        analysis.setVisibility(aiEnabled ? View.VISIBLE : View.INVISIBLE);
-        analysis.bulb().setVisibility(aiEnabled ? View.VISIBLE : View.INVISIBLE);
+        analysis.setVisibility(aiEnabled ? View.VISIBLE : View.GONE);
+        analysis.bulb().setVisibility(aiEnabled ? View.VISIBLE : View.GONE);
         analysis.evaluationBar().setVisibility(aiEnabled ? View.VISIBLE : View.INVISIBLE);
         if (aiEnabled && resumed) analysis.show(position);
         var cue = playable && theoryHint != QuestHint.NONE
@@ -447,15 +460,18 @@ public final class OpeningActivity extends BackNavigableActivity {
 
     private LinearLayout header(String title) {
         var header = new LinearLayout(this);
-        header.setPadding(dp(10), 0, dp(14), 0);
+        header.setPadding(dp(10), 0, dp(10), 0);
         header.setGravity(Gravity.CENTER_VERTICAL);
         var back = button(R.string.opening_back);
         back.setText("‹");
         back.setTextSize(24);
         back.setContentDescription(getString(R.string.opening_back));
         back.setOnClickListener(view -> back());
-        header.addView(back, new LinearLayout.LayoutParams(dp(48), -2));
+        var backLayout = new LinearLayout.LayoutParams(dp(TOUCH_SIZE), dp(TOUCH_SIZE));
+        backLayout.rightMargin = dp(CONTROL_GAP);
+        header.addView(back, backLayout);
         var label = text(title, 21, PRIMARY);
+        label.setIncludeFontPadding(false);
         label.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         if (Build.VERSION.SDK_INT >= 28) label.setAccessibilityHeading(true);
         header.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
@@ -465,7 +481,11 @@ public final class OpeningActivity extends BackNavigableActivity {
     private TextView seat() {
         var label = text("", 13, MUTED);
         label.setId(View.generateViewId());
-        label.setPadding(dp(12), dp(3), dp(12), dp(3));
+        label.setPadding(dp(12), 0, dp(12), 0);
+        label.setIncludeFontPadding(false);
+        label.setGravity(Gravity.CENTER_VERTICAL);
+        label.setMinHeight(Math.max(dp(20), Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
+                16, getResources().getDisplayMetrics()))));
         BoardCaption.reserve(label, 1);
         return label;
     }
@@ -474,8 +494,44 @@ public final class OpeningActivity extends BackNavigableActivity {
         var button = new Button(this);
         button.setText(label);
         button.setAllCaps(false);
-        button.setMinHeight(dp(48));
+        button.setTextSize(14);
+        button.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
+        button.setMaxLines(2);
+        button.setEllipsize(TextUtils.TruncateAt.END);
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
+        button.setMinHeight(dp(TOUCH_SIZE));
+        button.setMinimumHeight(dp(TOUCH_SIZE));
+        styleControl(button, PRIMARY);
         return button;
+    }
+
+    private void styleControl(TextView view, int color) {
+        int[] disabled = {-android.R.attr.state_enabled};
+        int[] selected = {android.R.attr.state_selected};
+        int[] focused = {android.R.attr.state_focused};
+        int[] normal = {};
+        var background = new StateListDrawable();
+        background.addState(disabled, controlBackground(0x9e29362d, 0x9e435047));
+        background.addState(selected, controlBackground(CONTROL_FILL, CONTROL_ACTIVE));
+        background.addState(focused, controlBackground(CONTROL_FILL, CONTROL_ACTIVE));
+        background.addState(normal, controlBackground(CONTROL_FILL, CONTROL_STROKE));
+        view.setBackgroundTintList(null);
+        view.setBackground(new RippleDrawable(ColorStateList.valueOf(0x26b8db8c), background, null));
+        view.setTextColor(new ColorStateList(new int[][]{disabled, normal}, new int[]{0x9e000000 | (color & 0xffffff), color}));
+        view.setPadding(dp(8), 0, dp(8), 0);
+        view.setGravity(Gravity.CENTER);
+        view.setIncludeFontPadding(false);
+        view.setStateListAnimator(null);
+        view.setElevation(0);
+    }
+
+    private GradientDrawable controlBackground(int fill, int stroke) {
+        var background = new GradientDrawable();
+        background.setColor(fill);
+        background.setCornerRadius(dp(8));
+        background.setStroke(dp(1), stroke);
+        return background;
     }
 
     private TextView text(String value, int size, int color) {

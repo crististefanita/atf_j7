@@ -26,7 +26,6 @@ import ro.atf.chess.WebEvidencePublication.Scenario;
 @Tag("web-evidence")
 class ChessWebReviewFocusPublication {
     private static final String SCOPE = "review-focus";
-    private static final String PLAY_URL = "https://crististefanita.github.io/atf_j7/#ai";
     private static final String CHECKPOINT = "3|WHITE|ADVANCED|0|f2f3 e7e5 g2g4 d8h4";
     private static final Scenario FOCUS = new Scenario("ChessWebReviewFocusPublication",
             "Use the Game Review keyboard at 130% text", SCOPE, "web-review-focus.html",
@@ -77,7 +76,7 @@ class ChessWebReviewFocusPublication {
                 same("Focus evidence matches the native scenario and exact archived fixture",
                         List.of(scope, SCOPE, CHECKPOINT, fixtureHash), List.of(receipt.path("scope").asText(),
                                 fixture.path("scope").asText(), fixture.path("checkpoint").asText(), receipt.path("fixtureSha256").asText())),
-                same("Browser uses the expected deployment channel", publicRun ? PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
                 same("Native game ends at the fourth recorded ply", 4, review.turns().size()),
                 same("Enlargement changes computed fonts for the page, Why and history rows by 30%", true, enlarged(receipt)),
                 same("The browser consumes the cached review without new engine requests", IntNode.valueOf(0), receipt.path("analysisRequests"))));

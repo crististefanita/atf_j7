@@ -27,11 +27,12 @@ final class WebAnalysisStudy {
     private int branch;
 
     String command(String action, String value, int index, String saved, String option) {
-        if (entry == null && !"open".equals(action)) resume(saved);
+        if ("resume".equals(action) || entry == null && !"open".equals(action)) resume(saved);
         String continuation = null;
         switch (action) {
             case "resume" -> { }
-            case "open" -> open(empty(value) ? ChessMatch.start() : ChessMatch.restore(value), index, "black".equals(option));
+            case "open" -> open(empty(value) ? new AnalysisEntry(ChessMatch.start(), index, "black".equals(option))
+                    : AnalysisEntry.restore(value, index, "black".equals(option)));
             case "seek" -> select(study.seek(index));
             case "reset" -> select(entry);
             case "flip" -> blackBelow = !blackBelow;
@@ -98,12 +99,12 @@ final class WebAnalysisStudy {
                 }
             }
         }
-        open(ChessMatch.start(), 0, false);
+        open(new AnalysisEntry(ChessMatch.start(), 0, false));
     }
 
-    private void open(ChessMatch source, int index, boolean flip) {
-        entry = new AnalysisLine(source, index);
-        blackBelow = flip;
+    private void open(AnalysisEntry initial) {
+        entry = initial.line();
+        blackBelow = initial.blackBelow();
         analysis = true;
         select(entry);
     }

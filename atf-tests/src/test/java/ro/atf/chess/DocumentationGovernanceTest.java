@@ -29,6 +29,7 @@ import ro.atf.chess.release.ReleaseEvidence;
 @Tag("governance")
 @ExtendWith(ExtentAudit.class)
 class DocumentationGovernanceTest {
+    private static final List<String> WEB_GUIDES = List.of("web/README.md", "web/parity.md");
     private static final Pattern LINK = Pattern.compile("\\]\\(([^)\\s]+)\\)");
     private static final Pattern HEADING = Pattern.compile("^#{1,6}\\s+(.+)$");
     private static final Pattern FENCE = Pattern.compile("^(`{3,}|~{3,})(.*)$");
@@ -43,6 +44,7 @@ class DocumentationGovernanceTest {
         Path root = ProjectRoot.locate();
         Path readme = root.resolve("README.md");
         var documents = new ArrayList<>(List.of(readme, root.resolve("release/README.md")));
+        WEB_GUIDES.stream().map(root::resolve).forEach(documents::add);
         try (var libraries = Files.newDirectoryStream(root.resolve("lib"), "README*.md")) {
             for (Path library : libraries) if (Files.isRegularFile(library)) documents.add(library);
         }
@@ -72,6 +74,7 @@ class DocumentationGovernanceTest {
     @Test void authoredGuidesKeepPortableMarkdownAndExplainedDiagrams(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         var documents = new ArrayList<>(List.of(root.resolve("README.md")));
+        WEB_GUIDES.stream().map(root::resolve).forEach(documents::add);
         for (String directory : List.of("docs", "lib")) {
             try (var paths = Files.walk(root.resolve(directory))) {
                 paths.filter(path -> path.toString().endsWith(".md")).sorted().forEach(documents::add);
@@ -91,6 +94,25 @@ class DocumentationGovernanceTest {
                 List.of("2 diagram edge needs a label", "5 diagram needs an adjacent collapsed legend", "7 fence needs a language"),
                 MarkdownVisualContract.inspect(List.of("# Guide", "```mermaid", "flowchart LR", "    A --> B", "```", "",
                         "```", "ignored --> example", "```")));
+    }
+
+    @Test void archivedReceiptsKeepTheSameReleaseAcrossTheRepositoryRename(Checks check) {
+        String tag = "tag/v0.15.2";
+        String apk = "download/v0.15.2/ChessLab-0.15.2.apk";
+        String current = ChessPublicationRoutes.RELEASES;
+        String previous = "https://github.com/crististefanita/atf_j7/releases/";
+        check.same("A current receipt keeps the exact release URL", true,
+                ChessPublicationRoutes.archivedReleaseUrlMatches(current + tag, current + tag));
+        check.same("A preserved receipt under the old repository still identifies the same release", true,
+                ChessPublicationRoutes.archivedReleaseUrlMatches(previous + tag, current + tag));
+        check.same("A preserved receipt under the old repository still identifies the same APK", true,
+                ChessPublicationRoutes.archivedReleaseUrlMatches(previous + apk, current + apk));
+        check.same("The previous name does not permit another tag", false,
+                ChessPublicationRoutes.archivedReleaseUrlMatches(previous + "tag/v0.15.1", current + tag));
+        check.same("The previous name does not permit another APK", false,
+                ChessPublicationRoutes.archivedReleaseUrlMatches(previous + apk.replace("ChessLab-", "Other-"), current + apk));
+        check.same("The same tag in another owner repository is rejected", false,
+                ChessPublicationRoutes.archivedReleaseUrlMatches(previous.replace("crististefanita", "other") + tag, current + tag));
     }
 
     @Test void mainReadmeLinksOnlyToAReleaseWithCompletePublicationEvidence(Checks check) throws IOException {
@@ -177,11 +199,11 @@ class DocumentationGovernanceTest {
             if (releaseCommit.isBlank()) releaseCommit = jsonValue(release, "candidateCommit");
             complete = qualifiedOrException
                     && jsonValue(release, "tag").equals(tag)
-                    && jsonValue(release, "releaseUrl").equals(releaseUrl)
-                    && jsonValue(release, "assetUrl").equals(assetUrl)
+                    && ChessPublicationRoutes.archivedReleaseUrlMatches(jsonValue(release, "releaseUrl"), releaseUrl)
+                    && ChessPublicationRoutes.archivedReleaseUrlMatches(jsonValue(release, "assetUrl"), assetUrl)
                     && releaseCommit.equals(sourceCommit)
                     && jsonValue(direct, "status").equals("PASS")
-                    && jsonValue(direct, "assetUrl").equals(assetUrl)
+                    && ChessPublicationRoutes.archivedReleaseUrlMatches(jsonValue(direct, "assetUrl"), assetUrl)
                     && jsonValue(direct, "httpStatus").equals("200")
                     && jsonValue(direct, "zipCrc").equals("PASS")
                     && jsonValue(direct, "sha256").equals(apkSha)
@@ -189,8 +211,8 @@ class DocumentationGovernanceTest {
                     && jsonValue(authenticated, "status").equals("PASS")
                     && jsonValue(authenticated, "tag").equals(tag)
                     && jsonValue(authenticated, "targetCommit").equals(sourceCommit)
-                    && jsonValue(authenticated, "releaseUrl").equals(releaseUrl)
-                    && jsonValue(authenticated, "assetUrl").equals(assetUrl)
+                    && ChessPublicationRoutes.archivedReleaseUrlMatches(jsonValue(authenticated, "releaseUrl"), releaseUrl)
+                    && ChessPublicationRoutes.archivedReleaseUrlMatches(jsonValue(authenticated, "assetUrl"), assetUrl)
                     && jsonValue(authenticated, "channel").toLowerCase(Locale.ROOT).contains("authenticated")
                     && jsonValue(authenticated, "httpStatus").equals("200")
                     && jsonValue(authenticated, "zipCrc").equals("PASS")
@@ -303,7 +325,7 @@ class DocumentationGovernanceTest {
                 && (candidate ? catalogVersion.equals(androidVersion.group(1)) && !previous.isBlank()
                         : catalogVersion.equals(current) && !previous.isBlank() && !previous.equals(current))
                 && catalogCode.equals(androidCode.group(1))
-                && jsonValue(catalog, "repository").equals("crististefanita/atf_j7");
+                && jsonValue(catalog, "repository").equals(ChessPublicationRoutes.REPOSITORY);
         check.same("The root points only to the current APK while the catalog retains at most one immediate comparison release", true, aligned);
         if (aligned) {
             try (var directories = Files.list(root.resolve("release"))) {
@@ -352,8 +374,9 @@ class DocumentationGovernanceTest {
         check.same("The project README links to its documentation index", true,
                 prose(root.resolve("README.md")).stream().anyMatch(line -> line.contains("](docs/README.md)")));
         var index = prose(root.resolve("docs/README.md"));
-        var targets = List.of("board/README.md", "board/quest-curation.md", "testing/README.md#alegerea-nivelului",
-                "testing/README.md#raportare-extent", "release/README.md#calificare-și-publicare", "feedback/README.md");
+        var targets = new ArrayList<>(List.of("board/README.md", "board/quest-curation.md", "testing/README.md#alegerea-nivelului",
+                "testing/README.md#raportare-extent", "release/README.md#calificare-și-publicare", "feedback/README.md"));
+        WEB_GUIDES.forEach(guide -> targets.add("../" + guide));
         check.same("The index routes readers to each local owner", List.of(), targets.stream()
                 .filter(target -> index.stream().noneMatch(line -> line.contains("](" + target + ")"))).toList());
         check.same("The document verification has a stable section", true, anchors(root.resolve("docs/README.md")).contains("verificarea-documentației"));
@@ -367,7 +390,7 @@ class DocumentationGovernanceTest {
 
     @Test void mainReadmeShowsOneDirectPlayLinkBelowTheApk(Checks check) throws IOException {
         var readme = prose(ProjectRoot.locate().resolve("README.md"));
-        String address = "https://crististefanita.github.io/atf_j7/#ai";
+        String address = ChessPublicationRoutes.PLAY_URL;
         var game = readme.stream().dropWhile(line -> !line.equals("## Jocul")).skip(1)
                 .takeWhile(line -> !line.startsWith("## ")).filter(line -> !line.isBlank()).toList();
         check.same("Jocul contains exactly two links", 2, game.size());

@@ -1,10 +1,10 @@
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
-import { createHomeMenu, homeLabels, homeLocale } from './home-menu.mjs';
+import { clearMainMenuIntent, createHomeMenu, homeLabels, homeLocale, reloadProfileLanguage, restoreMainMenu } from './home-menu.mjs';
 import { bindBoardSelection, boardPlacement, mountStudyArrow, studyMarkers, studySquareDescription } from './study-board.mjs';
 import { createQuestStudy } from './study-quests.mjs';
 import { createOpeningStudy } from './study-openings.mjs';
 import { createAnalysisStudy } from './study-analysis.mjs';
-import { studyHashes, studyRouteForHash, watchStudyHistory, writeModeHash } from './study-navigation.mjs';
+import { matchAnalysisNavigation, studyHashes, studyRouteForHash, watchStudyHistory, writeModeHash } from './study-navigation.mjs';
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 
@@ -107,16 +107,7 @@ const words = {
 
 const find = id => document.getElementById(id);
 const homeMenu = createHomeMenu(find, locale, localStorage, async name => (await call('profile-name', { name })).name, (profile, fields) => {
-    if (fields !== 'name') {
-        const url = new URL(location.href);
-        if (url.searchParams.has('lang') || locale !== profile.language) {
-            url.searchParams.delete('lang');
-            if (url.href !== location.href) location.replace(url.href);
-            else location.reload();
-            return;
-        }
-    }
-    renderMatch();
+    if (!reloadProfileLanguage(window, locale, profile.language, fields)) renderMatch();
 });
 const board = find('board');
 const matchBoard = find('match-board');
@@ -145,7 +136,7 @@ let finishedMatches = [];
 let archive;
 let view;
 let archiveReviewId;
-let reviewDismissed = false;
+let reviewDismissed = restoreMainMenu(window);
 let reportScrollBeforeExplanation = 0;
 let focusChange = 0;
 let match;
@@ -163,6 +154,12 @@ let studyReviewOpening = false;
 let studyReturn;
 let studyGeneration = 0;
 let studyTotalsDirty = true;
+const contextualAnalysis = matchAnalysisNavigation({
+    browser: window,
+    currentMatch: () => match,
+    openStudy: entry => openStudy('analysis', { addHistory: true, entry }),
+    returnToMatch: showMode,
+});
 const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, [, create]]) => {
     const root = find('study-' + route);
     return [route, create({
@@ -183,6 +180,7 @@ for (const id of ['title', 'archive-label', 'why', 'why-title', 'played', 'recom
     find(id).textContent = words[id];
 }
 for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions', 'next-key']) find(id).setAttribute('aria-label', words[id]);
+find('open-match-analysis').textContent = homeLabels[locale]['home-analysis'];
 find('why-actions').setAttribute('aria-label', words['review-actions']);
 find('match-history').setAttribute('aria-label', words['match-history']);
 find('study-progress-label').textContent = words['progress-label'];
@@ -504,6 +502,7 @@ async function commit(state, source) {
     archive = nextArchive;
     archiveReviewId = undefined;
     reviewDismissed = false;
+    clearMainMenuIntent(window);
     view = state;
     render();
     return true;
@@ -618,6 +617,7 @@ function renderAnalysis() {
     const running = Boolean(analysis);
     find('analysis-progress').hidden = !running;
     find('cancel-analysis').hidden = !running;
+    find('open-match-analysis').disabled = running || !match?.reviewCheckpoint;
     find('analyze').disabled = running || !match || match.awaitingBot || match.ply === 0;
     const reviewed = match?.archiveId && finishedMatches.some(entry => entry.id === match.archiveId && entry.reviewed);
     find('analyze').textContent = reviewed ? words.openCached : words.analyze;
@@ -1000,12 +1000,13 @@ function refreshStudyTotals() {
     }).catch(() => { if (generation === studyGeneration) totals.hidden = true; });
 }
 
-async function openStudy(route, resume = false, addHistory = false) {
+async function openStudy(route, { resume = false, addHistory = false, entry, restore = false } = {}) {
     showMode(route, addHistory);
     setStatus('');
     const generation = studyGeneration;
     try {
-        await studyPanels[route].open(route === 'quests' ? { resume } : undefined);
+        if (restore) await studyPanels[route].restore();
+        else await studyPanels[route].open(route === 'quests' ? { resume } : entry);
     } catch {
         if (generation === studyGeneration && mode === route) setStatus(words.failedAction);
     }
@@ -1013,6 +1014,7 @@ async function openStudy(route, resume = false, addHistory = false) {
 
 function leaveStudy() {
     const route = mode;
+    if (route === 'analysis' && contextualAnalysis.back()) return;
     studyTotalsDirty = true;
     reviewDismissed = true;
     showMode('review', true);
@@ -1045,7 +1047,7 @@ function computeStudyReview(checkpoint) {
                 progress.value = data.progress;
             } else finish(null, data.archive);
         });
-        job.postMessage({ id, type: 'review-analyze', checkpoint });
+        job.postMessage({ id, type: 'review-analyze', checkpoint, rated: false });
     });
 }
 
@@ -1090,7 +1092,7 @@ function restoreStudyReviewOrigin() {
 async function closeStudyReview() {
     const previous = restoreStudyReviewOrigin();
     if (!previous) return;
-    await openStudy(previous.route);
+    await openStudy(previous.route, { restore: previous.route === 'analysis' });
     if (mode === previous.route && previous.opener?.isConnected) previous.opener.focus({ preventScroll: true });
 }
 
@@ -1102,6 +1104,7 @@ async function continueStudyGame(checkpoint, automatic, blackBelow) {
         if (response.outcome === 'NO_FREE_SLOT') setStatus(words.noFreeSlot);
         else if (response.outcome === 'SAVE_FAILED') setStatus(words.matchSaveFailed);
         else if (response.outcome === 'APPLIED' && await commitMatch(response)) {
+            contextualAnalysis.discard();
             setupVisible = false;
             showMode(matchRoute);
             continued = true;
@@ -1111,7 +1114,7 @@ async function continueStudyGame(checkpoint, automatic, blackBelow) {
 }
 
 for (const [route, [id]] of Object.entries(studyRoutes)) {
-    find(id).addEventListener('click', () => { if (!busy) void openStudy(route, false, true); });
+    find(id).addEventListener('click', () => { if (!busy) void openStudy(route, { addHistory: true }); });
 }
 
 find('open-match').addEventListener('click', () => {
@@ -1143,6 +1146,7 @@ find('review-close').addEventListener('click', () => {
 });
 find('reopen-review').addEventListener('click', () => {
     reviewDismissed = false;
+    clearMainMenuIntent(window);
     render();
 });
 find('match-rows').addEventListener('click', event => {
@@ -1177,6 +1181,9 @@ find('retry-bot').addEventListener('click', () => {
     scheduleBot();
 });
 find('analyze').addEventListener('click', analyzeMatch);
+find('open-match-analysis').addEventListener('click', event => {
+    if (mode === matchRoute && !busy && !analysis && !engineFailed && !setupVisible) contextualAnalysis.open(mode, event.currentTarget);
+});
 find('cancel-analysis').addEventListener('click', cancelAnalysis);
 find('promote').addEventListener('change', event => {
     if (promotionMoves.includes(event.target.value)) play(event.target.value);
@@ -1385,8 +1392,9 @@ const activeStudyRoute = () => studyReturn?.route ?? (Object.hasOwn(studyRoutes,
 async function openLocatedMode(hash) {
     const previousStudy = activeStudyRoute();
     restoreStudyReviewOrigin();
+    if (contextualAnalysis.restore(hash)) return;
     const study = studyRouteForHash(hash);
-    if (study) await openStudy(study, study === 'quests');
+    if (study) await openStudy(study, { resume: study === 'quests' });
     else if (hash === routeHashes.match) await enterMatch({ route: 'LOCAL' });
     else if (hash === routeHashes.ai) await enterMatch({ route: 'AI' });
     else if (hash === routeHashes.saved) showMode('saved');

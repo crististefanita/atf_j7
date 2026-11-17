@@ -36,6 +36,7 @@ class ChessWebShellTest {
                 "Only active saved games show the home action",
                 "Profile persistence respects the native validator and write failures",
                 "Board piece renderer reuses the same Staunton SVG on a move and clears it on capture",
-                "Home name, settings and AI profile share the existing dialog and stored profile"), passed);
+                "Home name, settings and AI profile share the existing dialog and stored profile",
+                "Language reload retains Home with a saved review and preserves the AI profile route"), passed);
     }
 }

@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
-import { createHomeMenu, hasSavedHomeGames, homeLabels, homeLocale, saveHomeProfile } from '../src/main/web/home-menu.mjs';
+import { clearMainMenuIntent, createHomeMenu, hasSavedHomeGames, homeLabels, homeLocale, reloadProfileLanguage, restoreMainMenu,
+    saveHomeProfile } from '../src/main/web/home-menu.mjs';
 import { profileKey, readProfile, writeProfile } from '../src/main/web/player-profile.mjs';
 import { showReviewPiece } from '../src/main/web/review-workspace.mjs';
 
@@ -139,4 +140,43 @@ test('Home name, settings and AI profile share the existing dialog and stored pr
         { profile: { name: 'Ana', language: 'en' }, fields: 'language' },
     ]);
     assert.deepEqual([...entries.keys()], [profileKey]);
+});
+
+test('Language reload retains Home with a saved review and preserves the AI profile route', async () => {
+    const entries = new Map([
+        ['chesslab.game-review.v1', 'saved review'], ['chesslab.match-ledger.v1', 'saved games'],
+    ]);
+    const storage = { getItem: key => entries.get(key), setItem: (key, value) => entries.set(key, value) };
+    const browser = (href) => {
+        const location = { href, reloads: 0, reload() { this.reloads++; } };
+        const history = {
+            state: { other: 'kept' },
+            replaceState(state, _, url) {
+                this.state = structuredClone(state);
+                if (url) location.href = url;
+            },
+        };
+        return { location, history };
+    };
+
+    const fromHome = browser('https://example.test/chess/?lang=en&example=1');
+    const settings = await saveHomeProfile(storage, { language: 'ro' }, 'language', false);
+    assert.equal(reloadProfileLanguage(fromHome, 'en', settings.language, 'language'), true);
+    assert.equal(fromHome.location.reloads, 1);
+    assert.equal(fromHome.location.href, 'https://example.test/chess/?example=1');
+    assert.equal(homeLocale(new URL(fromHome.location.href).search, storage), 'ro');
+    assert.equal(restoreMainMenu(fromHome), true);
+    assert.equal(entries.get('chesslab.game-review.v1'), 'saved review');
+    assert.equal(entries.get('chesslab.match-ledger.v1'), 'saved games');
+    clearMainMenuIntent(fromHome);
+    assert.equal(restoreMainMenu(fromHome), false);
+    assert.deepEqual(fromHome.history.state, { other: 'kept' });
+    assert.equal(reloadProfileLanguage(fromHome, 'ro', 'ro', 'language'), false);
+    assert.equal(fromHome.location.reloads, 1);
+
+    const inAi = browser('https://example.test/chess/?lang=ro&example=1#ai');
+    assert.equal(reloadProfileLanguage(inAi, 'ro', 'en', 'both'), true);
+    assert.equal(inAi.location.reloads, 1);
+    assert.equal(inAi.location.href, 'https://example.test/chess/?example=1#ai');
+    assert.equal(restoreMainMenu(inAi), false);
 });

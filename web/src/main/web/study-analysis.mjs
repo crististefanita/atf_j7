@@ -111,6 +111,8 @@ export function analysisStudySession({ call, render, failed, storage }) {
     let generation = 0;
     let latest = 0;
     let requestedEvaluation;
+    let bookmark;
+    let contextual = false;
     async function request(action, input = {}) {
         if (!active) return null;
         const route = generation;
@@ -119,7 +121,10 @@ export function analysisStudySession({ call, render, failed, storage }) {
             const reply = await call(action, input);
             if (!active || route !== generation || ticket !== latest) return null;
             const state = reply.state ?? reply;
-            saveBookmark(storage, state.saved);
+            if (typeof state.saved === 'string') {
+                bookmark = state.saved;
+                if (!contextual) saveBookmark(storage, bookmark);
+            }
             render(state);
             if (state.analysis && state.result === 'IN_PROGRESS' && !state.evaluation
                     && action !== 'evaluate' && requestedEvaluation !== state.revision) {
@@ -135,14 +140,20 @@ export function analysisStudySession({ call, render, failed, storage }) {
             return null;
         }
     }
+    function activate(action, input) {
+        active = true;
+        generation++;
+        requestedEvaluation = undefined;
+        return request(action, input);
+    }
     return {
         open(entry) {
-            active = true;
-            generation++;
-            requestedEvaluation = undefined;
-            return entry ? request('open', { value: entry.checkpoint ?? '', index: entry.ply ?? 0,
-                option: entry.blackBelow ? 'black' : '' }) : request('resume', { saved: loadBookmark(storage) });
+            contextual = Boolean(entry);
+            bookmark = contextual ? '' : loadBookmark(storage);
+            return entry ? activate('open', { value: entry.checkpoint ?? '', index: entry.ply ?? 0,
+                option: entry.blackBelow ? 'black' : '' }) : activate('resume', { saved: bookmark });
         },
+        restore() { return activate('resume', { saved: bookmark }); },
         request,
         close() { active = false; generation++; },
     };
@@ -174,6 +185,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         return element;
     };
     const request = (action, body) => {
+        if (!state) return null;
         if (controls) controls.error.hidden = true;
         return session.request(action, body);
     };
@@ -181,10 +193,11 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
     const closePreview = async () => {
         if (await request('preview-close')) controls.replay.focus();
     };
+    const back = () => state?.preview ? closePreview() : home();
 
     function mount() {
         const header = text('div', '', 'analysis-study-header');
-        const back = button(words.back, () => state?.preview ? void closePreview() : home(), '‹');
+        const backButton = button(words.back, back, '‹');
         const title = text('h2', words.title);
         const reset = button(words.reset, () => void request('reset'), '↺');
         const menu = text('details', '', 'analysis-study-menu');
@@ -211,7 +224,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         const flip = button(words.flip, () => { menu.open = false; void request('flip'); });
         actions.append(toggler, review, saveGame, flip);
         menu.append(summary, actions);
-        header.append(back, title, reset, menu);
+        header.append(backButton, title, reset, menu);
         const top = text('p', '', 'analysis-study-side');
         const bottom = text('p', '', 'analysis-study-side');
         const stage = text('div', '', 'analysis-study-stage');
@@ -251,7 +264,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         const latest = button(words.latest, () => void seek((state.preview ?? state).total), '»');
         const hint = button(words.hint, () => void request('hint'), '💡');
         const replay = button(words.preview, async () => {
-            if ((await request('preview'))?.preview) back.focus();
+            if ((await request('preview'))?.preview) backButton.focus();
         });
         const feedback = text('div', '', 'analysis-study-feedback');
         feedback.append(score, replay);
@@ -303,7 +316,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         root.classList.add('analysis-study');
         root.setAttribute('aria-label', words.title);
         root.replaceChildren(header, stage, status, feedback, announcement, error, variants, navigation, replayDetails, promotion, saveDialog);
-        return { title, back, reset, menu, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score, feedback,
+        return { title, back: backButton, reset, menu, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score, feedback,
             announcement, error, replay, replayDetails, variants, evidence, history, previous, next, latest, hint, playback,
             promotion, promotionChoices, saveDialog,
             promptContinuation };
@@ -452,8 +465,15 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
                 session = analysisStudySession({ call, render, failed, storage });
             }
             controls.error.hidden = true;
+            state = undefined;
+            if (entry) controls.back.focus({ preventScroll: true });
             return session.open(entry);
         },
+        restore() {
+            state = undefined;
+            return session.restore();
+        },
+        back,
         seek(index) { return request('seek', { index }); },
         async continueAt(index) {
             if (await request('seek', { index })) controls.promptContinuation();

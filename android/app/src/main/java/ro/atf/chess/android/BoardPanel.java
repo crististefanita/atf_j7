@@ -10,16 +10,22 @@ final class BoardPanel extends ViewGroup {
     private final BoardView board;
     private final View bottomLabel;
     private final EvaluationBar evaluation;
+    private final boolean reserveEvaluationSpace;
     private final int barWidth;
     private final int gutter;
     private BoardPanelLayout placement;
 
     BoardPanel(Context context, View topLabel, BoardView board, View bottomLabel, EvaluationBar evaluation) {
+        this(context, topLabel, board, bottomLabel, evaluation, false);
+    }
+
+    BoardPanel(Context context, View topLabel, BoardView board, View bottomLabel, EvaluationBar evaluation, boolean reserveEvaluationSpace) {
         super(context);
         this.topLabel = topLabel;
         this.board = board;
         this.bottomLabel = bottomLabel;
         this.evaluation = evaluation;
+        this.reserveEvaluationSpace = reserveEvaluationSpace;
         float density = context.getResources().getDisplayMetrics().density;
         barWidth = Math.round(8 * density);
         gutter = evaluation == null ? 0 : barWidth + Math.round(5 * density);
@@ -33,8 +39,7 @@ final class BoardPanel extends ViewGroup {
         int width = MeasureSpec.getSize(widthSpec);
         int height = MeasureSpec.getSize(heightSpec);
         measureLabels(width);
-        placement = BoardPanelLayout.fit(width, height, heightOf(topLabel), heightOf(bottomLabel),
-                evaluationVisible() ? gutter : 0);
+        placement = BoardPanelLayout.fit(width, height, heightOf(topLabel), heightOf(bottomLabel), leadingGutter());
         int boardSize = MeasureSpec.makeMeasureSpec(placement.side(), MeasureSpec.EXACTLY);
         board.measure(boardSize, boardSize);
         if (evaluationVisible()) evaluation.measure(MeasureSpec.makeMeasureSpec(Math.min(width, barWidth), MeasureSpec.EXACTLY), boardSize);
@@ -64,6 +69,8 @@ final class BoardPanel extends ViewGroup {
     }
 
     private boolean evaluationVisible() { return evaluation != null && evaluation.getVisibility() != View.GONE; }
+
+    int leadingGutter() { return reserveEvaluationSpace || evaluationVisible() ? gutter : 0; }
 
     private void placeLabel(View label, int top) {
         if (label == null) return;

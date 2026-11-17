@@ -22,6 +22,7 @@ final class BoardView extends ViewGroup {
     private static final int HINT_OUTLINE = 0xff173b31;
     private static final int DANGER_MARK = 0xffffa86b;
     private static final int DANGER_OUTLINE = 0xff562621;
+    private final boolean hintContourOnly;
     private final Paint arrowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path arrow = new Path();
     private Cell hintOrigin;
@@ -29,7 +30,12 @@ final class BoardView extends ViewGroup {
     private Cell dangerCell;
 
     BoardView(Context context, IntConsumer select) {
+        this(context, select, false);
+    }
+
+    BoardView(Context context, IntConsumer select, boolean hintContourOnly) {
         super(context);
+        this.hintContourOnly = hintContourOnly;
         for (int index = 0; index < 64; index++) {
             Cell cell = new Cell(context);
             cell.setId(View.generateViewId());
@@ -55,7 +61,8 @@ final class BoardView extends ViewGroup {
             cell.square = square;
             cell.piece = position.pieceAt(square);
             cell.light = BoardSquare.isLight(square);
-            cell.highlight = selected == square || last != null && (last.from() == square || last.to() == square);
+            boolean selectedFill = selected == square && !(hintContourOnly && cell == hintOrigin);
+            cell.highlight = selectedFill || last != null && (last.from() == square || last.to() == square);
             cell.destination = moves.stream().anyMatch(move -> move.to() == square);
             cell.hinted = cell == hintOrigin;
             cell.rankLabel = column == 0;

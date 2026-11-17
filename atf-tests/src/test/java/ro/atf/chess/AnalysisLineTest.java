@@ -1,6 +1,8 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +13,32 @@ import ro.atf.chess.ChessPosition.Side;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class AnalysisLineTest {
+    private record ContextCase(String id, String checkpoint, int ply, boolean blackBelow, String side,
+                               String sourceResult, String studyResult, String lastMove, String branchMove, List<String> branchHistory) { }
+
+    @Test void contextualStudyUsesTheSelectedSourceWithoutChangingIt(Checks check) throws IOException {
+        try (var fixture = AnalysisLineTest.class.getResourceAsStream("/contextual-analysis.json")) {
+            for (var example : new ObjectMapper().readValue(fixture, ContextCase[].class)) {
+                var entry = AnalysisEntry.restore(example.checkpoint(), example.ply(), example.blackBelow());
+                var line = entry.line();
+                check.same(example.id() + " opens the selected ply, side and orientation",
+                        List.of(example.ply(), example.side(), example.blackBelow(), example.lastMove()),
+                        List.of(line.ply(), line.position().turn().name(), entry.blackBelow(), line.lastMove().uci()));
+                check.same(example.id() + " retains the source result", example.sourceResult(), entry.source().result().name());
+                check.same(example.id() + " preserves the study result at the selected cursor", example.studyResult(), line.result().name());
+                if (example.branchMove() == null) {
+                    check.rejects(example.id() + " cannot continue from mate", IllegalStateException.class, () -> line.resumeMatch(true));
+                } else {
+                    var branch = line.play(Move.fromUci(example.branchMove()));
+                    check.same(example.id() + " edits only the independent study suffix", example.branchHistory(), moves(branch.line()));
+                }
+                check.same(example.id() + " keeps every original move and decision", example.checkpoint(), entry.source().checkpoint());
+                check.rejects(example.id() + " rejects an out-of-range entry cursor", IllegalArgumentException.class,
+                        () -> AnalysisEntry.restore(example.checkpoint(), entry.source().ply() + 1, example.blackBelow()));
+            }
+        }
+    }
+
     @Test void exploresBothColorsFromHistoryAndPreservesTheOriginalCheckpoint(Checks check) {
         var saved = play("e2e4", "e7e5", "g1f3", "b8c6");
         String checkpoint = saved.checkpoint();

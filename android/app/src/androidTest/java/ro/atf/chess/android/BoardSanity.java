@@ -1545,9 +1545,11 @@ public final class BoardSanity extends Instrumentation {
                 cell(board, "e2").getContentDescription().toString().contains(lesson.getString(R.string.hint_origin, ""))
                         && "e4".contentEquals(cell(board, "e4").getContentDescription()));
         tap(hint);
-        captureFrame("opening-hint", "The opening lesson draws its arrow and explains the move",
+        var openingOrigin = cell(board, "e2");
+        captureFrame("opening-hint", "The opening draws its arrow and leaves the outlined source square light",
                 image -> hasColor(image, cell(board, "e3"), HINT_TINT, 12) && fullyVisible(explanation)
-                        && cell(board, "e2").isSelected());
+                        && openingOrigin.isSelected() && hasColor(image, openingOrigin, HINT_TINT, 12)
+                        && hasColor(image, openingOrigin, 0xffedf0d5, 12) && !hasColor(image, openingOrigin, 0xfff4ef86, 12));
         tap(cell(board, "e4"));
         awaitOpeningPly(status, 2);
         compare("Tapping only the hinted destination plays e4 and the configured e5 reply once", List.of(true, initial, true),

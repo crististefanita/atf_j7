@@ -129,7 +129,7 @@ Pentru auditarea unei publicări istorice, folosiți verificatorul din commitul 
 După publicare, rulați verificarea cu autentificarea GitHub existentă în Git Credential Manager. Directorul de ieșire este nou și rămâne în TMP.
 
 ```powershell
-./scripts/verify-authenticated-download.ps1 -Repository crististefanita/atf_j7 `
+./scripts/verify-authenticated-download.ps1 -Repository crististefanita/chess `
   -Version <versiune> -CandidateCommit <sha> -QualifiedApk <apk-calificat> `
   -Classes <copia-TMP>/atf-tests/target/classes -OutputDirectory <director-TMP-nou>
 ```

@@ -20,7 +20,6 @@ import ro.atf.chess.WebEvidencePublication.Scenario;
 @Tag("web-evidence")
 class ChessWebLedgerPublication {
     private static final String SCOPE = "match-ledger";
-    private static final String PLAY_URL = "https://crististefanita.github.io/atf_j7/#ai";
     private static final String LEGACY_LOCAL = "1|f2f3 e7e5 g2g4";
     private static final String LEGACY_AI = "ai|3|WHITE|ADVANCED|0|d2d4 e7e5";
     private static final List<String> OBSERVATIONS = List.of("legacy-migration", "saved-only-active", "mate-archived",
@@ -57,7 +56,7 @@ class ChessWebLedgerPublication {
                 new ReportField("New game checkpoint", forkCheckpoint),
                 new ReportField("Browser origin", publicUrl.isEmpty() ? "Loopback" : publicUrl));
         var inputs = new ArrayList<>(List.of(same("Evidence belongs to the ledger flow", SCOPE, receipt.path("scope").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
                 same("The migrated manual game preserves its original three plies", LEGACY_LOCAL,
                         receipt.path("legacyLocalCheckpoint").asText()),
                 same("The migrated AI game preserves its checkpoint and mode", LEGACY_AI, receipt.path("legacyAiCheckpoint").asText()),

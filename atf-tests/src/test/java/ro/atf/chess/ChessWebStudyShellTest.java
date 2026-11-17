@@ -31,6 +31,13 @@ class ChessWebStudyShellTest {
 
     @Test
     @EnabledIfSystemProperty(named = "chess.study.bundle", matches = ".+")
+    void packagedWorkerSharesTheContextualAnalysisCasesWithTheJvm(Checks check) throws IOException, InterruptedException {
+        verify(check, "contextual-analysis-worker.mjs", List.of(), List.of(System.getProperty("chess.study.bundle")), "PASS ", List.of(
+                "active-ai-history", "archived-resignation-history", "archived-terminal-position"));
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "chess.study.bundle", matches = ".+")
     void packagedWorkerKeepsTheThreeStudyFlowsIndependent(Checks check) throws IOException, InterruptedException {
         String site = System.getProperty("chess.study.bundle");
         verify(check, "study-worker.mjs", List.of(), List.of(site), "PASS ", List.of(

@@ -305,9 +305,23 @@ Pe API 28, un profil de probă salvat de 0.9.0 a păstrat după upgrade 105 ID-u
 
 Verificați și un capitol de mat completat anterior. `mate-129`, `mate2-024nn` și `mate3-02YEp` rămân ultimele în capitolele lor, iar toate pozițiile noi din aceste capitole sunt înaintea lor. În APK-ul 0.10.0 publicat, Mat în 1 afișa `500/500` cu `102/500` rezolvate și **Următoarea** dezactivată. **Precedentă** deschidea problema de la `499/500`.
 
+## Tabla de analiză dintr-o partidă
+
+`AnalysisLineTest` și workerul TeaVM citesc `contextual-analysis.json`. Cazurile fixează checkpointul, semimutarea vizibilă și orientarea pentru o partidă cu AI, o arhivă după abandon și o poziție de mat. Ele verifică ramificarea, respingerea unui cursor invalid și păstrarea sursei. Componenta cu mock-uri verifică revenirea la partidă și la declanșator, păstrarea marcajului studiului independent și ignorarea răspunsurilor întârziate după ieșire. [Contractele APK–Web](../../web/parity.md#contracte-și-probe)
+
+Rulați din copia din TMP, cu `$site` din buildul Web.
+
+```powershell
+mvn -B -ntp -pl atf-tests -am test '-Dtest=AnalysisLineTest,ChessWebAnalysisStudyTest,ChessWebStudyShellTest#packagedWorkerSharesTheContextualAnalysisCasesWithTheJvm' '-Dsurefire.failIfNoSpecifiedTests=false' "-Dchess.study.bundle=$site" "-Dchess.extent=$report"
+```
+
+În sanity, deschideți o partidă la o mutare din istoric, deschideți tabla de analiză și reveniți. Verificați cursorul, orientarea și focusul. Cazurile de legalitate și persistență rămân în componente. [Tabla de analiză pe Web](../../web/README.md#studiu)
+
 ## Deschideri
 
 `OpeningCatalogTest` verifică parcurgerea pentru ambele culori, pozițiile finale distincte și recunoașterea noilor linii în indexul ECO. `OpeningLessonTest` verifică o singură semimutare la fiecare apăsare, pauza replicii și rejucarea din istoric. `MatchAiGovernanceTest` verifică pozițiile de comparație cu Stockfish pentru fiecare lecție. În Engleză și Nimzo-indiană, pozițiile noi măsoară răspunsul negrului înainte de retragerea calului, respectiv de schimbul de pe c3. În Catalană și Alapin, comparația pornește cu albul la mutare după ultima replică din lecție.
+
+Pentru paritatea vizuală APK–Web, `OpeningLessonTest` verifică latura tablei, pragul pentru două coloane și încadrarea după măsurarea etichetelor. `ChessWebOpeningStudyTest` verifică treptele indiciului și contractul de afișare fără browser. În sanity, deschideți Italiana C54 cu albele la `0 / 12`, apoi dezvăluiți `e2–e4`. Repetați la font 1,3× pe profilul compact de 360 × 640 unități logice și pe cel orizontal de 1280 × 900. Laturile țintă sunt 288 și 592 de unități. Comparați poziția tablei înainte și după indiciu, conturul lui `e2`, textul complet și comenzile de minimum 48 de unități. În Extent consemnați densitatea și zona utilă de pe Android, viewportul Web și capturile pereche. [Lecțiile](../board/openings.md) · [Probele Studiu](../../web/README.md#studiu)
 
 Pe Android, rulați sanity cu `-OpeningsOnly`. Proba joacă destinația indicată în Italiană și sugestia AI compatibilă cu lecția. Verifică mesajul pentru varianta spaniolă sugerată de AI, navigarea în ambele sensuri, rejucarea dintr-o poziție anterioară și tabla orientată pentru negru.
 
