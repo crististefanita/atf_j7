@@ -162,9 +162,15 @@ class ChessWebMatchAnalysisPublication {
     private static boolean publishCheckpoint(Phase phase, Path evidence, String prefix, JsonNode checkpoint, int slot,
                                              JsonNode matchBoard, String language, Position historical, Position live, List<String> replay, double dpr) {
         String id = checkpoint.path("id").asText();
-        report(phase, "Observed " + id, List.of(new ReportField("Game checkpoint", checkpoint.path("checkpoint").asText()),
+        var geometry = new ArrayList<>(List.of(new ReportField("Game checkpoint", checkpoint.path("checkpoint").asText()),
                 new ReportField("Displayed position", checkpoint.path("fen").asText()),
                 new ReportField("Board geometry", checkpoint.path("board").toString())));
+        if (!"preview".equals(id)) {
+            geometry.add(new ReportField("Evaluation bar geometry", checkpoint.path("meter").toString()));
+            geometry.add(new ReportField("Bulb touch target", checkpoint.path("bulb").toString()));
+        }
+        if ("history".equals(id)) geometry.add(new ReportField("History arrow geometry", checkpoint.path("arrows").toString()));
+        report(phase, "Observed " + id, geometry);
         boolean passed = assertions(phase, "Verify " + id, validateCheckpoint(checkpoint, slot, matchBoard, language, historical, live, replay));
         try {
             var capture = ChessWebStudyPublication.capture(evidence, prefix + "-" + id, checkpoint.path("captureSha256").asText(),
@@ -203,11 +209,20 @@ class ChessWebMatchAnalysisPublication {
             Position expected = resumed ? live : historical;
             assertions.add(same("Selection, return and reopen keep the match board in place",
                     true, sameRect(matchBoard, checkpoint.path("board"))));
+            if ("history".equals(id)) {
+                var arrows = checkpoint.path("arrows");
+                assertions.add(same("Live, forward and backward keep the same board rectangle", true,
+                        List.of("live", "forward", "backward").stream().allMatch(step -> sameRect(matchBoard, arrows.path(step)))));
+            }
             assertions.add(same("The evaluation belongs to the visible position",
                     List.of(expected.meter(), expected.score(language)),
                     List.of(checkpoint.path("meterValue").asInt(-1), checkpoint.path("score").asText())));
             assertions.add(same("The evaluation bar is visible along the full left edge of the board",
                     true, leftBar(checkpoint.path("board"), checkpoint.path("meter"))));
+            assertions.add(same("The compact board and its 8px meter with a 2px gap fill the viewport width",
+                    true, fillsCompactWidth(checkpoint.path("board"), checkpoint.path("meter"))));
+            assertions.add(same("The bulb's 48px touch target stays fully visible",
+                    true, bulbFits(checkpoint.path("bulb"))));
             assertions.add(same("The bulb is pressed only while a hint is shown",
                     true, checkpoint.path("bulbPressed").isBoolean() && checkpoint.path("bulbPressed").asBoolean() != resumed));
             assertions.add(same(resumed ? "Reopen hides the previously revealed hint" : "The bulb marks the expected move",
@@ -226,6 +241,24 @@ class ChessWebMatchAnalysisPublication {
         return x >= 0 && width > 2 && x + width <= board.path("x").asDouble(Double.NaN) + 0.5
                 && Math.abs(meter.path("y").asDouble(Double.NaN) - board.path("y").asDouble(Double.NaN)) <= 0.5
                 && Math.abs(meter.path("height").asDouble(Double.NaN) - board.path("height").asDouble(Double.NaN)) <= 0.5;
+    }
+
+    private static boolean fillsCompactWidth(JsonNode board, JsonNode meter) {
+        double boardLeft = board.path("x").asDouble(Double.NaN);
+        double boardRight = boardLeft + board.path("width").asDouble(Double.NaN);
+        return Math.abs(meter.path("x").asDouble(Double.NaN)) <= 0.5
+                && Math.abs(meter.path("width").asDouble(Double.NaN) - 8) <= 0.5
+                && Math.abs(boardLeft - 10) <= 0.5
+                && Math.abs(boardRight - PROFILE.width()) <= 0.5;
+    }
+
+    private static boolean bulbFits(JsonNode bulb) {
+        double x = bulb.path("x").asDouble(Double.NaN);
+        double y = bulb.path("y").asDouble(Double.NaN);
+        double width = bulb.path("width").asDouble(Double.NaN);
+        double height = bulb.path("height").asDouble(Double.NaN);
+        return x >= 0 && y >= 0 && width >= 48 && height >= 48
+                && x + width <= PROFILE.width() + 0.5 && y + height <= PROFILE.height() + 0.5;
     }
 
     private static boolean sameRect(JsonNode left, JsonNode right) {

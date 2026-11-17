@@ -302,11 +302,11 @@ function Invoke-CompactMatchAnalysisSanity([string]$Directory) {
         foreach ($locale in 'ro','en') {
             $prepare = "analysis-compact-prepare-$locale"
             $restore = "analysis-compact-restore-$locale"
-            Invoke-IncludedSanity $Directory $prepare 7 $runId
+            Invoke-IncludedSanity $Directory $prepare 10 $runId
             Invoke-Device @('shell','am','force-stop',$app)
             $restoreDirectory = Join-Path $Directory $restore
             $null = New-Item -ItemType Directory $restoreDirectory
-            Invoke-FocusedSanity $restoreDirectory $restore 4 $runId
+            Invoke-FocusedSanity $restoreDirectory $restore 6 $runId
         }
     } finally {
         Set-DisplayProfile $original

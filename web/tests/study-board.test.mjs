@@ -232,3 +232,17 @@ test('Puzzle and match boards share the viewport budget and keep controls in vie
     assert.match(matchMarkup, /<section id="match"[^]*?<div id="match-board"[^>]*><\/div>[^]*?<nav id="match-history"[^]*?<div class="movement match-actions">/);
     assert.match(puzzleMarkup, /<section id="quest-study-game"[^]*?<div id="quest-study-board"[^>]*><\/div>[^]*?<div id="quest-study-description"[^]*?<div class="quest-study-footer">/);
 });
+
+
+test('Compact AI board spends the available width only on the rail, gap and square', async () => {
+    const css = await readFile(new URL('../src/main/web/game-review.css', import.meta.url), 'utf8');
+    const rule = css.match(/\.match\[data-mode="AI"\] > \.match-board-frame\s*\{([^}]+)\}/)?.[1];
+    assert.ok(rule, 'the compact rule applies to the AI match board');
+    assert.match(rule, /--match-meter-width:\s*8px;/);
+    assert.match(rule, /--match-meter-gap:\s*2px;/);
+    assert.match(rule, /grid-template-columns:\s*var\(--match-meter-width\)\s+minmax\(0,\s*1fr\)/);
+    assert.match(rule, /inline-size:\s*min\(100%,\s*calc\(var\(--play-board-limit\)\s*\+\s*var\(--match-meter-width\)\s*\+\s*var\(--match-meter-gap\)\)\)/);
+    assert.match(css, /match-board-frame:has\(\.match-inline-meter\[hidden\]\)\s*\{[^}]*--match-meter-width:\s*0px;[^}]*--match-meter-gap:\s*0px;/);
+    assert.match(css, /:root:has\(main > \.match\[data-mode="AI"\]:not\(\[hidden\]\)\)\s*\{[^}]*scrollbar-width:\s*none;/);
+    assert.match(css, /\.match\[data-mode="AI"\]\s+#match-board\s*\{[^}]*grid-column:\s*2;[^}]*inline-size:\s*100%;/);
+});

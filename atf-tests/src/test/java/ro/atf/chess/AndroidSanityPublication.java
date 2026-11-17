@@ -510,30 +510,46 @@ class AndroidSanityPublication {
         publishNativeRuns("match-analysis", "Explore a recommendation and reopen the saved game", receipt, List.of(prepare, restore), null);
     }
 
+    private static final String COMPACT_GEOMETRY = "INSTRUMENTATION_RESULT: compactAiLayoutVersion=";
+    private static final String COMPACT_MAX_BOARD = "The compact game uses the largest available square with the meter and history controls visible";
+    private static final String COMPACT_ARROWS = "Back and Next preserve the board, evaluation bar and bulb while selecting the correct move";
+    private static final String COMPACT_OPPONENT = "The opponent name and level are fully visible before any captures";
+
     @Test void publishCompactMatchAnalysisSanity() throws Exception {
         Path romanianReceipt = Path.of(System.getProperty("chess.android.receipt")).toAbsolutePath();
         Path root = romanianReceipt.getParent().getParent();
+        var geometryVersion = markerValues(Files.readAllLines(romanianReceipt), COMPACT_GEOMETRY);
         var runs = new ArrayList<BoundRun>();
         for (String locale : List.of("ro", "en")) {
             String prepare = "analysis-compact-prepare-" + locale;
             String restore = "analysis-compact-restore-" + locale;
-            runs.add(compactMatchAnalysisRun(root.resolve(prepare).resolve(prepare + ".txt"), prepare, locale, false));
-            runs.add(compactMatchAnalysisRun(root.resolve(restore).resolve(restore + ".txt"), restore, locale, true));
+            var prepared = compactMatchAnalysisRun(root.resolve(prepare).resolve(prepare + ".txt"), prepare, locale, null, geometryVersion);
+            runs.add(prepared);
+            runs.add(compactMatchAnalysisRun(root.resolve(restore).resolve(restore + ".txt"), restore, locale, prepared, geometryVersion));
         }
         publishNativeRuns("analysis-compact", "Replay the historical recommendation and resume the live game in RO and EN",
                 root.resolve("android-analysis-compact.html"), runs, null, true);
     }
 
-    private static BoundRun compactMatchAnalysisRun(Path receipt, String scope, String locale, boolean restore) throws Exception {
+    private static BoundRun compactMatchAnalysisRun(Path receipt, String scope, String locale, BoundRun prepared,
+                                                    List<String> geometryVersion) throws Exception {
+        boolean restore = prepared != null;
+        boolean measuresOpponent = geometryVersion.equals(List.of("2"));
+        boolean measuresGeometry = measuresOpponent || geometryVersion.equals(List.of("1"));
         String display = "Compact replay uses the requested locale and enlarged Android display profile";
         String analysis = "The localized score, left evaluation bar and bulb are rendered at the displayed position";
         String stage = restore ? "Restart at the live position with the hint hidden" : "Open and step the historical recommendation";
-        var required = restore
+        var required = new ArrayList<>(restore
                 ? List.of(display, "The enabled setting and two moves survive a process restart",
                         "The reopened match analyzes its live position with the hint hidden", analysis)
                 : List.of(display, "The saved game opens analysis at the selected historical position",
                         "The historical hint marks its own legal recommendation", analysis, PREVIEW_REPLY, PREVIEW_FRAME,
-                        "Returning to history preserves the selected move and the saved game");
+                        "Returning to history preserves the selected move and the saved game"));
+        if (measuresGeometry) {
+            required.add(COMPACT_MAX_BOARD);
+            if (!restore) required.add(COMPACT_ARROWS);
+        }
+        if (measuresOpponent) required.add(COMPACT_OPPONENT);
         var frames = restore ? List.of(new Frame("match-restored.png", "Restored live board and hidden bulb"))
                 : List.of(new Frame("match-history-analysis.png", "Historical board, score, meter and bulb"),
                         new Frame("match-analysis.png", "Calculated variation from the historical position"));
@@ -549,17 +565,58 @@ class AndroidSanityPublication {
         boolean match = observed.equals(expected) && cursor.equals(List.of(expectedPly))
                 && checkpoint.equals(List.of("2|analysis|e2e4 e7e5"));
         var rows = new ArrayList<>(run.evidence().rows());
+        var versions = markerValues(markers, COMPACT_GEOMETRY);
+        boolean schema = (geometryVersion.isEmpty() || measuresGeometry) && versions.equals(geometryVersion);
+        rows.add(new AtfAssertion("Match analysis measurement format", geometryVersion.toString(), versions.toString(), schema));
+        boolean geometry = schema && (!measuresGeometry || appendCompactMatchGeometry(rows, markers, prepared));
+        if (measuresOpponent) {
+            String expectedName = (restore ? "" : "●  ") + "Alex · AI Basic";
+            var expectedLabel = List.of(expectedName, "0");
+            var observedLabel = List.of(compactMarker(markers, "compactOpponentText"), compactMarker(markers, "compactOpponentEllipsis"));
+            boolean label = expectedLabel.equals(observedLabel);
+            rows.add(new AtfAssertion("Opponent label without ellipsis", expectedLabel.toString(), observedLabel.toString(), label));
+            geometry &= label;
+        }
         rows.add(new AtfAssertion("Native display and cursor",
                 "720×1280 · 320 dpi · font 1.3 · " + locale + " · ply " + expectedPly + " · e2e4 e7e5",
                 observed + " · ply " + cursor + " · " + checkpoint, match));
         var identity = new ArrayList<>(run.identity());
         for (String field : List.of("matchScore", "evaluationCp", "evaluationWhiteShare", "hintMove", "previewLine",
-                "matchBoardBounds", "evaluationBarBounds", "bulbBounds", "previewBoardBounds")) {
+                "matchBoardBounds", "evaluationBarBounds", "bulbBounds", "previewBoardBounds",
+                "compactBoardBudgetPx", "compactBoardSquarePx", "compactArrowGeometry", "compactOpponentText", "compactOpponentEllipsis")) {
             var values = markerValues(markers, "INSTRUMENTATION_RESULT: " + field + "=");
             if (values.size() == 1) identity.add(new ReportField(field, values.getFirst()));
         }
-        var evidence = new PhaseEvidence(run.evidence().pid(), rows, run.evidence().passed() && match);
+        var evidence = new PhaseEvidence(run.evidence().pid(), rows, run.evidence().passed() && match && geometry);
         return new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), identity, run.frames(), markers);
+    }
+
+    private static boolean appendCompactMatchGeometry(List<AtfAssertion> rows, List<String> markers, BoundRun prepared) {
+        var budget = compactMarker(markers, "compactBoardBudgetPx");
+        var board = compactMarker(markers, "compactBoardSquarePx");
+        var bounds = compactMarker(markers, "compactMatchGeometry");
+        var available = budget.split(" ");
+        boolean square = budget.matches("[0-9]{1,4} [0-9]{1,4}") && board.matches("[0-9]{1,4}")
+                && Integer.parseInt(board) > 524
+                && Integer.parseInt(board) == Math.min(Integer.parseInt(available[0]), Integer.parseInt(available[1]));
+        rows.add(new AtfAssertion("Board fits the limiting measured dimension",
+                "Square equals min(usable width, usable height) and exceeds 524 px", board + " px within " + budget, square));
+        boolean same;
+        if (prepared == null) {
+            var steps = compactMarker(markers, "compactArrowGeometry");
+            same = !bounds.isBlank() && steps.equals(String.join(" / ", bounds, bounds, bounds));
+            rows.add(new AtfAssertion("Board, meter and controls at Back, Next, Back", bounds, steps, same));
+        } else {
+            var before = compactMarker(prepared.nativeMarkers(), "compactMatchGeometry");
+            same = !before.isBlank() && before.equals(bounds);
+            rows.add(new AtfAssertion("Board, meter and controls retain their coordinates after restart", before, bounds, same));
+        }
+        return square && same;
+    }
+
+    private static String compactMarker(List<String> markers, String name) {
+        var values = markerValues(markers, "INSTRUMENTATION_RESULT: " + name + "=");
+        return values.size() == 1 ? values.getFirst() : "";
     }
 
     private static BoundRun matchPreparation(Path receipt) throws Exception {

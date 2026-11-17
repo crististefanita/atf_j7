@@ -43,13 +43,34 @@ class ChessWebMatchAnalysisEvidenceTest {
     @Test void rejectsTheWrongPositionAndMovementThatWouldStretchTheReplay(Checks check) throws IOException {
         var historical = (ObjectNode) JSON.readTree("""
                 {"id":"history","slot":1,"cursor":1,"fen":"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
-                 "board":{"x":16,"y":70,"width":328,"height":328},"meter":{"x":9,"y":70,"width":5,"height":328},
-                 "meterValue":48,"score":"−0,32 · Negru","hint":"e7e5","bulbPressed":true}
+                 "board":{"x":10,"y":70,"width":350,"height":350},"meter":{"x":0,"y":70,"width":8,"height":350},
+                 "bulb":{"x":294,"y":570,"width":48,"height":48},"meterValue":48,"score":"−0,32 · Negru","hint":"e7e5","bulbPressed":true}
                 """);
         historical.put("checkpoint", "ai|" + FIXTURE);
         JsonNode matchBoard = historical.path("board").deepCopy();
+        var arrows = historical.putObject("arrows");
+        for (String step : List.of("live", "forward", "backward")) arrows.set(step, matchBoard.deepCopy());
         check.same("The historical slot, position, score and recommended move pass",
                 0L, failures(validateCheckpoint(historical, 1, matchBoard, "ro", HISTORY, LIVE, REPLY)));
+        var inset = historical.deepCopy();
+        ((ObjectNode) inset.path("board")).put("x", 16).put("width", 328).put("height", 328);
+        ((ObjectNode) inset.path("meter")).put("x", 6).put("height", 328);
+        for (String step : List.of("live", "forward", "backward")) {
+            ((ObjectNode) inset.path("arrows")).set(step, inset.path("board").deepCopy());
+        }
+        check.same("A fixed square with wide side insets fails the full-width contract",
+                1L, failures(validateCheckpoint(inset, 1, inset.path("board"), "ro", HISTORY, LIVE, REPLY)));
+
+        var clipped = historical.deepCopy();
+        ((ObjectNode) clipped.path("bulb")).put("y", 610);
+        check.same("A clipped bulb fails even if the hint has been recorded",
+                1L, failures(validateCheckpoint(clipped, 1, matchBoard, "ro", HISTORY, LIVE, REPLY)));
+
+        var shifted = historical.deepCopy();
+        ((ObjectNode) shifted.path("arrows").path("forward")).put("y", 71);
+        check.same("A board shift on the forward arrow fails even if it returns on the backward arrow",
+                1L, failures(validateCheckpoint(shifted, 1, matchBoard, "ro", HISTORY, LIVE, REPLY)));
+
         historical.put("cursor", 2).put("hint", "g1f3").put("score", "+0,32 · Alb");
         check.same("The live cursor, hint and score cannot stand in for historical ones",
                 3L, failures(validateCheckpoint(historical, 1, matchBoard, "ro", HISTORY, LIVE, REPLY)));

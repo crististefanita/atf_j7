@@ -80,7 +80,16 @@ ieșirea din partidă invalidează rezultatul anterior.
 
 ### Tabla din Probleme și din partidă
 
-Problemele și partidele cu AI folosesc același pătrat pentru aceeași fereastră și mărime a textului. Dimensiunea pornește de la spațiul disponibil în Probleme și rezervă loc pentru comenzi și istoric. Pe ferestre foarte scunde, pagina poate derula pentru a păstra tabla și comenzile utilizabile. [Verificarea dimensiunilor](../docs/testing/README.md#paritatea-web-a-motorului)
+În partida cu AI, pe mobil, ansamblul format din tablă și bara de evaluare
+folosește întreaga lățime utilă când aceasta limitează latura pătratului.
+Când analiza este activă, bara și intervalul ei ocupă o fâșie în stânga.
+Într-o fereastră mai scundă, înălțimea disponibilă lasă loc scorului,
+istoricului și becului. Navigarea
+prin istoric și redeschiderea slotului păstrează dreptunghiul tablei.
+[Proba compactă RO/EN](../docs/testing/README.md#analiza-în-partida-cu-ai)
+
+Problemele își calculează tabla din spațiul disponibil după rezervarea locului
+pentru comenzi și explicație. [Verificarea dimensiunilor](../docs/testing/README.md#paritatea-web-a-motorului)
 
 ## Partide salvate și încheiate
 

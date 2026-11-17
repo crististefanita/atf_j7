@@ -2295,7 +2295,12 @@ public final class BoardSanity extends Instrumentation {
             var saved = store.matches().readMatch();
             compare("The enabled setting and two moves survive a process restart", true, saved != null && saved.analysisEnabled() && MATCH_ANALYSIS_FIXTURE.equals(saved.checkpoint()));
             compare("The reopened match analyzes its live position with the hint hidden", true, awaitHiddenAnalysis(activity, 2));
-            if (compact) captureMatchAnalysis(activity, findBoard(viewsOf(activity)), saved, 2, "match-restored", false);
+            if (compact) {
+                var board = findBoard(viewsOf(activity));
+                checkCompactMatchBoard(activity, board);
+                checkCompactOpponent(activity, board, false);
+                captureMatchAnalysis(activity, board, saved, 2, "match-restored", false);
+            }
             return;
         }
         if (!"analysis-prepare".equals(phase) && !phase.startsWith("analysis-compact-prepare-")) {
@@ -2312,10 +2317,15 @@ public final class BoardSanity extends Instrumentation {
         var activity = launch();
         if (compact) checkCompactDisplay(activity, locale);
         var board = findBoard(viewsOf(activity));
+        var liveGeometry = compact ? checkCompactMatchBoard(activity, board) : null;
         tap(activity.findViewById(R.id.match_history_previous));
         var bounds = screenBounds(board);
         compare("The saved game opens analysis at the selected historical position", true,
                 awaitHiddenAnalysis(activity, 1) && hasPawn(activity, board, "e4") && !hasPawn(activity, board, "e5"));
+        if (compact) {
+            checkCompactMatchNavigation(activity, board, liveGeometry);
+            checkCompactOpponent(activity, board, true);
+        }
         var hint = saved.hintAt(1);
         hint.revealNext();
         tap(activity.findViewById(R.id.match_hint));
@@ -2331,6 +2341,77 @@ public final class BoardSanity extends Instrumentation {
         compare("Returning to history preserves the selected move and the saved game", true,
                 bounds.equals(screenBounds(board)) && hintShown(activity, board, hint)
                         && saved.checkpoint().equals(store.matches().readMatch().checkpoint()));
+    }
+
+    private record MatchGeometry(Rect board, Rect bar, Rect bulb, Rect back, Rect next) {
+        String coordinates() {
+            return String.join(" | ", board.flattenToString(), bar.flattenToString(), bulb.flattenToString(),
+                    back.flattenToString(), next.flattenToString());
+        }
+    }
+
+    private static MatchGeometry matchGeometry(Activity activity, BoardView board) {
+        return new MatchGeometry(screenBounds(board), screenBounds(activity.findViewById(R.id.match_evaluation_bar)),
+                screenBounds(activity.findViewById(R.id.match_hint)), screenBounds(activity.findViewById(R.id.match_history_previous)),
+                screenBounds(activity.findViewById(R.id.match_history_next)));
+    }
+
+    private MatchGeometry checkCompactMatchBoard(Activity activity, BoardView board) {
+        var geometry = matchGeometry(activity, board);
+        var panel = (ViewGroup) board.getParent();
+        var body = screenBounds(panel);
+        var content = screenBounds(activity.findViewById(android.R.id.content));
+        int labels = panel.getChildAt(0).getHeight() + panel.getChildAt(2).getHeight();
+        int gap = geometry.board().left - geometry.bar().right;
+        int availableWidth = body.width() - geometry.bar().width() - gap;
+        int availableHeight = body.height() - labels;
+        float density = activity.getResources().getDisplayMetrics().density;
+        int touch = Math.round(48 * density);
+        boolean actionsFit = List.of(geometry.bulb(), geometry.back(), geometry.next()).stream().allMatch(
+                control -> content.contains(control) && control.top >= geometry.board().bottom
+                        && control.width() >= touch && control.height() >= touch);
+        receipt.putString("compactAiLayoutVersion", "2");
+        receipt.putString("compactBoardBudgetPx", availableWidth + " " + availableHeight);
+        receipt.putString("compactBoardSquarePx", Integer.toString(geometry.board().width()));
+        receipt.putString("compactMatchGeometry", geometry.coordinates());
+        compare("The compact game uses the largest available square with the meter and history controls visible", true,
+                gap >= 0 && gap <= Math.round(5 * density) && body.contains(geometry.board()) && body.contains(geometry.bar())
+                        && geometry.board().width() == geometry.board().height()
+                        && geometry.board().width() == Math.min(availableWidth, availableHeight)
+                        && geometry.board().width() > Math.round(262 * density)
+                        && geometry.bar().top == geometry.board().top && geometry.bar().bottom == geometry.board().bottom
+                        && geometry.bar().width() == Math.round(8 * density) && actionsFit);
+        return geometry;
+    }
+
+    private void checkCompactMatchNavigation(Activity activity, BoardView board, MatchGeometry live) {
+        var history = matchGeometry(activity, board);
+        tap(activity.findViewById(R.id.match_history_next));
+        var forward = matchGeometry(activity, board);
+        boolean atLive = hasPawn(activity, board, "e5");
+        tap(activity.findViewById(R.id.match_history_previous));
+        boolean atHistory = awaitHiddenAnalysis(activity, 1) && !hasPawn(activity, board, "e5");
+        var backward = matchGeometry(activity, board);
+        receipt.putString("compactArrowGeometry", String.join(" / ", history.coordinates(), forward.coordinates(), backward.coordinates()));
+        compare("Back and Next preserve the board, evaluation bar and bulb while selecting the correct move", true,
+                live.equals(history) && live.equals(forward) && live.equals(backward) && atLive && atHistory);
+    }
+
+    private void checkCompactOpponent(Activity activity, BoardView board, boolean active) {
+        var topSeat = (ViewGroup) ((ViewGroup) board.getParent()).getChildAt(0);
+        var name = (TextView) topSeat.getChildAt(0);
+        var observed = new String[1];
+        var ellipsis = new int[1];
+        runOnMainSync(() -> {
+            observed[0] = name.getText().toString();
+            var layout = name.getLayout();
+            ellipsis[0] = layout != null && layout.getLineCount() == 1 && fullyVisible(name)
+                    ? layout.getEllipsisCount(0) : -1;
+        });
+        String expected = (active ? "●  " : "") + activity.getString(R.string.match_bot_label, "Alex", activity.getString(R.string.match_basic));
+        receipt.putString("compactOpponentText", observed[0]);
+        receipt.putString("compactOpponentEllipsis", Integer.toString(ellipsis[0]));
+        compare("The opponent name and level are fully visible before any captures", List.of(expected, 0), List.of(observed[0], ellipsis[0]));
     }
 
     private void captureMatchAnalysis(Activity activity, BoardView board, ChessMatch saved, int ply, String frame, boolean revealed)

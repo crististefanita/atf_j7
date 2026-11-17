@@ -111,10 +111,19 @@ Publicatorul Web primește directorul recepțiilor prin
 nou prin `-Dchess.web.match.extent`. Testele negative verifică recepțiile
 substituite, coordonatele deformate și abaterea de la linia comună.
 
-În profilul verificat, tabla rămâne fixă la săgeți și reluare. Web are
-324 CSS px pe latură, iar APK-ul izolat are 262 dp în zona sa utilă.
-Bara ocupă întreaga latură stângă la ambele. În Web, **Mat în 1**
-păstrează dreptunghiul și după rezolvare, Next și Back.
+Comparați tabla înainte și după săgeți, la întoarcerea din previzualizare și
+după redeschiderea slotului. În APK, verificați pătratul maxim după ce măsurați
+zona utilă fără barele de sistem și rezervați loc pentru jucători și comenzi.
+Profilul Android măsurat lasă un dreptunghi de 694 × 665 px pentru tablă,
+după rezervarea barei de evaluare și a intervalului. Latura de 665 px
+(332,5 dp) atinge limita de înălțime. În Web, la 360 × 640 CSS px, tabla
+de 350 px, bara de 8 px și intervalul de
+2 px ocupă toată lățimea utilă. Bara rămâne vizibilă pe toată înălțimea, în stânga
+tablei, iar becul păstrează o țintă vizibilă de cel puțin 48 de unități în
+fiecare adaptor. La 320 × 568 CSS px și text 130%, înălțimea limitează
+tabla Web la 279,6 CSS px. Verificați că săgețile păstrează coordonatele,
+iar becul încape fără derulare. În Web, **Mat în 1** păstrează dreptunghiul
+și după rezolvare, Next și Back.
 
 ### Actualizarea pachetului Web
 

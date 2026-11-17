@@ -35,13 +35,6 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 **Tabla de analiză · intrare contextuală.** Adaptoarele deschid sursa la semimutarea vizibilă, cu orientarea partidei. Studiul Web contextual este temporar și păstrează marcajul studiului independent. Proba comună acoperă partida cu AI, arhiva, poziția terminală și cursorul invalid. [Contractul și verificarea](../testing/README.md#tabla-de-analiză-dintr-o-partidă)
 
-**P2 · Suprafața tablei pe compact.** La text 1,3×, tabla partidei are latura
-de 324 CSS px pe Web și 262 dp în APK. Măsurați cât spațiu ocupă barele
-sistemului și rândurile jucătorilor în zona utilă a fiecărui adaptor.
-Orice ajustare păstrează dreptunghiul fix la săgeți și reluare, bara pe
-toată înălțimea și comenzile de minimum 48 de unități.
-[Proba pereche](../testing/README.md#analiza-în-partida-cu-ai)
-
 **P1 · Responsabili J7 pentru șah și J4 pentru extracțiile comune.** Componentele existente `BoardPanelLayout`, `GameReviewLayout`, `GameReviewTimeline` și `OpeningReplay` oferă punctele de plecare. Android aplică dreptunghiurile și efectele în `View` și dialoguri. Web aplică aceleași decizii în DOM/CSS, citește zona utilă și traduce clickul, atingerea și tastatura în aceleași intenții. [Ghidul tablei](../board/README.md) · [Game Review](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 
 - Definiți un contract măsurabil pentru tabla pătrată, orientare, ordinea panourilor, zonele tactile, comenzile rezervate, explicația derulabilă, focalizarea și marcajele. Măsurați fereastra utilă a APK-ului după bare și insets și contrapartea Web după zoom și bara browserului. Porniți de la proba J7 de 720 × 1280, 320 dpi și font 1,3× în RO/EN. Comparați unități logice, poziția relativă, textul complet și pragurile de acces. Analizați separat diferențele de rasterizare. [Proba compactă J7](../testing/README.md#redare-comună-pe-ecran-compact) · [Măsurarea viewportului Web](https://www.w3.org/TR/cssom-view-1/)
