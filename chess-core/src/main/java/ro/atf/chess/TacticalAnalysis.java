@@ -60,9 +60,15 @@ public final class TacticalAnalysis {
         return analyze(position, POLICY.questReplyPlies, replies, Objective.MATERIAL);
     }
 
-    record SearchReport(Result result, int depth, int extraNodes, List<Move> horizonLeaders) {
-        SearchReport(Result result, int depth, int extraNodes) { this(result, depth, extraNodes, List.of()); }
-        SearchReport { horizonLeaders = List.copyOf(horizonLeaders); }
+    record SearchReport(Result result, int depth, int extraNodes, List<Move> horizonLeaders,
+                        Map<Move, Integer> scoreCredits, Set<Move> excludedRoots, Set<Move> nonEquivalentRoots) {
+        SearchReport(Result result, int depth, int extraNodes) { this(result, depth, extraNodes, List.of(), Map.of(), Set.of(), Set.of()); }
+        SearchReport(Result result, int depth, int extraNodes, List<Move> leaders) { this(result, depth, extraNodes, leaders, Map.of(), Set.of(), Set.of()); }
+        SearchReport { horizonLeaders = List.copyOf(horizonLeaders); scoreCredits = Map.copyOf(scoreCredits); excludedRoots = Set.copyOf(excludedRoots); nonEquivalentRoots = Set.copyOf(nonEquivalentRoots); }
+        Variation rawLine(Variation line) {
+            int credit = line.ending() == Ending.HORIZON ? scoreCredits.getOrDefault(line.move(), 0) : 0;
+            return credit == 0 ? line : new Variation(line.line(), line.score() - credit, line.materialChange(), line.ending());
+        }
     }
 
     record ReviewSearch(Variation best, Variation played, int alternativeScore, int depth, boolean onlyProvedMate) { }
@@ -190,13 +196,30 @@ public final class TacticalAnalysis {
         int before = budget.remaining;
         Result best = new Result(List.of());
         Map<Move, Integer> shallowScores = Map.of();
+        Map<Move, Integer> retainedCredits = Map.of();
+        Set<Move> excludedRoots = Set.of();
+        Set<Move> nonEquivalentRoots = Set.of();
         var horizonLeaders = new ArrayList<Move>();
         int completed = 0;
         // The seed, every completed horizon and frontier exchange share one charged budget.
         for (int depth = 1; depth <= policy.search().maxPlies(); depth++) {
             try {
                 var confirmation = depth == MatchAiPolicy.BASE_PLIES + 1 ? shallowScores : Map.<Move, Integer>of();
-                var candidate = deepen(root, moves, depth, budget, policy.maxLossCp(), confirmation);
+                var evidence = confirmation.isEmpty() ? null : new HashMap<Move, Line>();
+                var candidate = deepen(root, moves, depth, budget, policy.maxLossCp(), confirmation, evidence);
+                var outsideRawWindow = outsideRawHintWindow(evidence, policy.maxLossCp());
+                var excluded = excludedHintRoots(position, candidate, outsideRawWindow, confirmation);
+                if (!excluded.isEmpty()) candidate = new Result(candidate.ranked().stream()
+                        .filter(line -> !excluded.contains(line.move())).toList());
+                if (candidate.ranked().isEmpty()) {
+                    // The credited window may have hidden the exact alternative that disproved the offer.
+                    var replacement = evidence.entrySet().stream().filter(entry -> entry.getValue().exact() && !excluded.contains(entry.getKey()))
+                            .max(Comparator.comparingInt(entry -> entry.getValue().score())).orElseThrow();
+                    var line = replacement.getValue();
+                    int credit = line.ending() == Ending.HORIZON ? confirmation.getOrDefault(replacement.getKey(), 0) : 0;
+                    candidate = new Result(List.of(new Variation(line.moves(), line.score() + credit,
+                            line.balance() - material(position), line.ending())));
+                }
                 horizonLeaders.add(candidate.ranked().get(0).move());
                 // A changed odd-horizon leader needs an equal-turn confirmation before replacing the completed ranking.
                 if (depth > MatchAiPolicy.BASE_PLIES && depth % 2 == 1 && completed == depth - 1
@@ -204,6 +227,9 @@ public final class TacticalAnalysis {
                         && !candidate.ranked().get(0).move().equals(best.ranked().get(0).move())) continue;
                 best = candidate;
                 completed = depth;
+                retainedCredits = confirmation;
+                excludedRoots = excluded;
+                nonEquivalentRoots = outsideRawWindow;
                 if (depth == MatchAiPolicy.BASE_PLIES && material(position) == 0) shallowScores = boundedShallowScores(position, candidate);
                 if (candidate.ranked().get(0).signedMatePlies() > 0) break;
                 var ordered = new ArrayList<>(moves);
@@ -215,7 +241,29 @@ public final class TacticalAnalysis {
                 break;
             }
         }
-        return new SearchReport(new Result(coachingOrder(position, best)), completed, before - budget.remaining, horizonLeaders);
+        return new SearchReport(new Result(coachingOrder(position, best)), completed, before - budget.remaining,
+                horizonLeaders, retainedCredits, excludedRoots, nonEquivalentRoots);
+    }
+
+    private static Set<Move> outsideRawHintWindow(Map<Move, Line> evidence, int gap) {
+        if (evidence == null) return Set.of();
+        int bestExact = evidence.values().stream().filter(Line::exact).mapToInt(Line::score).max().orElse(-LIMIT);
+        if (bestExact == -LIMIT) return Set.of();
+        // An unbounded lower child window makes a non-exact root value an upper bound.
+        return evidence.entrySet().stream().filter(entry -> entry.getValue().score() < bestExact - gap)
+                .map(Map.Entry::getKey).collect(Collectors.toSet());
+    }
+
+    private static Set<Move> excludedHintRoots(ChessPosition position, Result candidate, Set<Move> outsideRawWindow,
+                                               Map<Move, Integer> credits) {
+        // Historical credit cannot justify an immediate material offer already outside the raw window.
+        // Balanced exchanges and uncertain historical challengers still need free comparison.
+        var incumbent = candidate.ranked().get(0);
+        return credits.getOrDefault(incumbent.move(), 0) > 0
+                && incumbent.ending() == Ending.HORIZON
+                && offeredMaterial(position, incumbent) > 0
+                && outsideRawWindow.contains(incumbent.move())
+                ? Set.of(incumbent.move()) : Set.of();
     }
 
     private static List<Variation> coachingOrder(ChessPosition position, Result result) {
@@ -257,18 +305,22 @@ public final class TacticalAnalysis {
         var seed = hintAnalysis(position, repertoire, policy, budget);
         budget.reserve = Math.max(0, budget.remaining - verificationLimit);
         var ranked = seed.result().ranked();
-        var lines = hintLines(seed.result(), policy);
+        var offered = hintLines(seed.result(), policy);
+        var lines = offered.stream().filter(line -> line == offered.get(0) || !seed.nonEquivalentRoots().contains(line.move()))
+                .map(seed::rawLine).toList();
         var legal = position.legalMoves();
         if (legal.size() < 2 || lines.isEmpty()) return hintSearch(lines, null, seed.extraNodes(), seed);
 
         var eligibleRoots = lines.get(0).signedMatePlies() == 0 ? ranked : lines;
-        var roots = hintVerificationRoots(eligibleRoots, seed.horizonLeaders());
+        var roots = hintVerificationRoots(eligibleRoots, seed.horizonLeaders(), seed.excludedRoots());
         int verificationNodes = budget.remaining;
         int shortlistNodes = 0;
         if (roots.size() == 1 && lines.get(0).signedMatePlies() == 0) {
             var shortlist = budget;
             var alternatives = new ArrayList<>(legal);
             alternatives.remove(roots.get(0));
+            alternatives.removeAll(seed.excludedRoots());
+            if (alternatives.isEmpty()) return hintSearch(lines, null, seed.extraNodes(), seed);
             try {
                 var shallow = hintRootLines(position, alternatives, 2, Collections.nCopies(alternatives.size(), shortlist));
                 var next = coachingOrder(position, new Result(shallow));
@@ -288,13 +340,13 @@ public final class TacticalAnalysis {
 
     private record HintVerification(SearchReport search, List<Variation> balancedLines) { }
 
-    private static ArrayList<Move> hintVerificationRoots(List<Variation> ranked, List<Move> horizonLeaders) {
+    private static ArrayList<Move> hintVerificationRoots(List<Variation> ranked, List<Move> horizonLeaders, Set<Move> excluded) {
         var roots = new ArrayList<Move>();
         roots.add(ranked.get(0).move());
         // A close challenger from another completed horizon is more informative than a third tied static line.
         for (int index = horizonLeaders.size() - 1; index >= 0 && roots.size() < HINT_ROOT_LIMIT; index--) {
             var move = horizonLeaders.get(index);
-            if (!roots.contains(move)) roots.add(move);
+            if (!roots.contains(move) && !excluded.contains(move)) roots.add(move);
         }
         for (var line : ranked) {
             if (roots.size() == HINT_ROOT_LIMIT) break;
@@ -326,7 +378,8 @@ public final class TacticalAnalysis {
         }
         // A shorter comparison can corroborate a deeper replay when it follows the same moves.
         if (comparison.depth() < seed.depth() && !extendsLine(original, best)) return hintSearch(lines, null, used, seed);
-        var eligible = hintLines(comparison.result(), policy);
+        var eligible = hintLines(comparison.result(), policy).stream()
+                .filter(line -> line.move().equals(best.move()) || !seed.nonEquivalentRoots().contains(line.move())).toList();
         var replays = eligible.stream().map(line -> lines.stream().filter(saved -> extendsLine(saved, line))
                 .findFirst().orElse(line)).collect(Collectors.toList());
         int comparisonSize = best.signedMatePlies() == 0 ? Math.min(ranked.size(), Math.max(2, eligible.size())) : eligible.size();
@@ -693,6 +746,11 @@ public final class TacticalAnalysis {
 
     private static Result deepen(RootSearch root, List<Move> moves, int plies, SearchBudget budget, int gap,
                                  Map<Move, Integer> shallowScores) {
+        return deepen(root, moves, plies, budget, gap, shallowScores, null);
+    }
+
+    private static Result deepen(RootSearch root, List<Move> moves, int plies, SearchBudget budget, int gap,
+                                 Map<Move, Integer> shallowScores, Map<Move, Line> evidence) {
         var best = new ArrayList<Variation>();
         int top = -LIMIT;
         int startingBalance = material(root.position());
@@ -702,6 +760,7 @@ public final class TacticalAnalysis {
             // Allow for the bonus before pruning and keep the boundary inclusive. Endings use the unadjusted score.
             int beta = Math.min(LIMIT, 1 - cutoff + Math.max(0, offset));
             var line = root.line(move, plies, beta, budget, Objective.POSITION, startingBalance);
+            if (evidence != null) evidence.put(move, line);
             int score = line.ending() == Ending.HORIZON ? line.score() + offset : line.score();
             if (score < cutoff) continue;
             top = Math.max(top, score);
