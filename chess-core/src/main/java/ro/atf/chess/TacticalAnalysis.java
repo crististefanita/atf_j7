@@ -210,7 +210,7 @@ public final class TacticalAnalysis {
                 var outsideRawWindow = outsideRawHintWindow(evidence, policy.maxLossCp());
                 var excluded = excludedHintRoots(position, candidate, outsideRawWindow, confirmation);
                 if (!excluded.isEmpty()) candidate = new Result(candidate.ranked().stream()
-                        .filter(line -> !excluded.contains(line.move())).toList());
+                        .filter(line -> !excluded.contains(line.move())).collect(Collectors.toList()));
                 if (candidate.ranked().isEmpty()) {
                     // The credited window may have hidden the exact alternative that disproved the offer.
                     var replacement = evidence.entrySet().stream().filter(entry -> entry.getValue().exact() && !excluded.contains(entry.getKey()))
@@ -306,8 +306,9 @@ public final class TacticalAnalysis {
         budget.reserve = Math.max(0, budget.remaining - verificationLimit);
         var ranked = seed.result().ranked();
         var offered = hintLines(seed.result(), policy);
-        var lines = offered.stream().filter(line -> line == offered.get(0) || !seed.nonEquivalentRoots().contains(line.move()))
-                .map(seed::rawLine).toList();
+        var lines = Collections.unmodifiableList(offered.stream()
+                .filter(line -> line == offered.get(0) || !seed.nonEquivalentRoots().contains(line.move()))
+                .map(seed::rawLine).collect(Collectors.toList()));
         var legal = position.legalMoves();
         if (legal.size() < 2 || lines.isEmpty()) return hintSearch(lines, null, seed.extraNodes(), seed);
 
@@ -379,7 +380,7 @@ public final class TacticalAnalysis {
         // A shorter comparison can corroborate a deeper replay when it follows the same moves.
         if (comparison.depth() < seed.depth() && !extendsLine(original, best)) return hintSearch(lines, null, used, seed);
         var eligible = hintLines(comparison.result(), policy).stream()
-                .filter(line -> line.move().equals(best.move()) || !seed.nonEquivalentRoots().contains(line.move())).toList();
+                .filter(line -> line.move().equals(best.move()) || !seed.nonEquivalentRoots().contains(line.move())).collect(Collectors.toList());
         var replays = eligible.stream().map(line -> lines.stream().filter(saved -> extendsLine(saved, line))
                 .findFirst().orElse(line)).collect(Collectors.toList());
         int comparisonSize = best.signedMatePlies() == 0 ? Math.min(ranked.size(), Math.max(2, eligible.size())) : eligible.size();
