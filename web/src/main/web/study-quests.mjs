@@ -1,3 +1,5 @@
+import { attachOptionsMenu } from './options-menu.mjs';
+
 const progressKey = 'chesslab.puzzle-progress.v1';
 const defenseDelay = 650;
 const pieceKinds = { p: 'PAWN', n: 'KNIGHT', b: 'BISHOP', r: 'ROOK', q: 'QUEEN', k: 'KING' };
@@ -287,9 +289,15 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         </section>
         <section id="quest-study-game" hidden>
           <header class="quest-study-head">
-            <button id="quest-study-option-title" type="button" aria-haspopup="dialog" aria-controls="quest-study-options" aria-expanded="false">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4,6h16 M4,12h16 M4,18h16"/></svg>
-            </button>
+            <div id="quest-study-options-anchor" class="options-anchor">
+              <button id="quest-study-option-title" type="button" aria-controls="quest-study-options" aria-expanded="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4,6h16 M4,12h16 M4,18h16"/></svg>
+              </button>
+              <div id="quest-study-options" class="options-panel" role="group" hidden>
+                <button id="quest-study-flip" type="button"></button>
+                <button id="quest-study-game-home" type="button"></button>
+              </div>
+            </div>
             <h2 id="quest-study-chapter"></h2><span id="quest-study-rank"></span>
           </header>
           <div class="quest-study-score"><strong id="quest-study-score"></strong>
@@ -323,10 +331,6 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
             <p id="quest-study-hint-label" aria-hidden="true"></p>
           </div>
         </section>
-        <dialog id="quest-study-options">
-          <button id="quest-study-flip" type="button"></button>
-          <button id="quest-study-game-home" type="button"></button>
-        </dialog>
         <dialog id="quest-study-promotion" aria-labelledby="quest-study-promote-title"><div class="quest-study-dialog">
           <h3 id="quest-study-promote-title"></h3><div id="quest-study-promote-choices"></div>
           <button id="quest-study-promote-close" type="button"></button>
@@ -357,6 +361,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     const boardView = board(at('board'), chooseSquare);
     const replayView = board(at('replay-board'), () => {});
     const controller = createQuestController({ call, storage, onChange, onError });
+    const options = attachOptionsMenu(at('option-title'), at('options'));
     const mark = square => ({ square, kind: 'danger' });
     const displayMaterial = cp => cp === 0 ? words.materialEqual
         : (cp > 0 ? words.materialGain : words.materialLoss)(decimal.format(Math.abs(cp) / 100));
@@ -392,7 +397,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     }
 
     async function goHome() {
-        if (at('options').open) at('options').close();
+        options.close();
         if (puzzle && !await command('leave')) return;
         close();
         home();
@@ -675,7 +680,8 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         replay = null;
         milestoneAnnouncement = '';
         at('menu').hidden = at('game').hidden = true;
-        for (const id of ['options', 'promotion', 'explanation']) if (at(id).open) at(id).close();
+        options.close();
+        for (const id of ['promotion', 'explanation']) if (at(id).open) at(id).close();
     }
 
     handler('previous', () => void command('previous'));
@@ -695,26 +701,14 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     handler('home', () => void goHome());
     handler('game-home', () => void goHome());
     handler('error-home', () => void goHome());
-    handler('option-title', () => {
-        present(at('options'));
-        at('option-title').setAttribute('aria-expanded', 'true');
-        at('flip').focus();
-    });
-    at('options').addEventListener('close', () => {
-        at('option-title').setAttribute('aria-expanded', 'false');
-        if (!at('game').hidden) at('option-title').focus();
-    });
-    handler('options', event => {
-        if (event.target === at('options')) at('options').close();
-    });
     root.addEventListener('keydown', event => {
-        if (event.key !== 'Escape' || !puzzle || ['options', 'promotion', 'explanation'].some(id => at(id).open)) return;
+        if (event.key !== 'Escape' || !puzzle || options.isOpen() || at('promotion').open || at('explanation').open) return;
         event.preventDefault();
         void showMenu();
     });
     handler('flip', () => {
         blackBelow = !blackBelow;
-        at('options').close();
+        options.close(true);
         renderPuzzle();
     });
     handler('retry', () => {

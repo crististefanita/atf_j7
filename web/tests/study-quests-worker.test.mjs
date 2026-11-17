@@ -115,3 +115,40 @@ test('Built Web engine solves one real puzzle in each of the six native chapters
     assert.equal(result.overall.points, 60);
     assert.deepEqual(result.chapters.map(chapter => [chapter.totals.solved, chapter.totals.points]), Array.from({ length: 6 }, () => [1, 10]));
 });
+
+test('Mate chapters restore their own cursor and solved credit from one saved snapshot', { skip: !site }, async () => {
+    const { studyCommand } = await import(pathToFileURL(resolve(site, 'chess-engine.mjs')));
+    let saved = '';
+    const call = (action, value = '', index = 0, hint = '') => {
+        const response = JSON.parse(studyCommand('quests', action, value, index, saved, hint));
+        saved = response.saved ?? saved;
+        return response.data ?? response;
+    };
+    const chapters = ['mate-one', 'mate-two', 'mate-three'];
+    const first = chapters.map(chapter => call('open', chapter));
+    assert.deepEqual(first.map(puzzle => puzzle.playerMoves), [1, 2, 3]);
+    assert.ok(first.every(puzzle => puzzle.objective === 'MATE' && puzzle.next === false));
+    for (const initial of first) {
+        let puzzle = call('open', initial.chapter);
+        for (let stage = 0; stage < initial.playerMoves; stage++) {
+            assert.equal(puzzle.stage, stage);
+            const piece = call('hint');
+            const full = call('hint', '', 0, piece.hint);
+            assert.equal(full.hint, 'SOLUTION');
+            puzzle = call('play', full.suggestion, 0, full.hint);
+            if (puzzle.pending) {
+                const pending = puzzle;
+                call('open', first.find(entry => entry.chapter !== initial.chapter).chapter);
+                puzzle = call('open', initial.chapter);
+                assert.deepEqual([puzzle.id, puzzle.ply, puzzle.board, puzzle.pending], [pending.id, pending.ply, pending.board, true]);
+                puzzle = call('defense', pending.id, pending.ply);
+                assert.equal(call('defense', pending.id, pending.ply).ply, puzzle.ply);
+            }
+        }
+        const reloaded = call('view');
+        assert.deepEqual([reloaded.id, reloaded.board, reloaded.solved, reloaded.earned], [initial.id, puzzle.board, true, 0]);
+        assert.notEqual(call('next').id, initial.id);
+    }
+    assert.deepEqual(call('menu').chapters.slice(0, 3).map(({ totals }) => [totals.solved, totals.points]), [[1, 10], [1, 10], [1, 10]]);
+    for (const initial of first) assert.notEqual(call('open', initial.chapter).id, initial.id);
+});

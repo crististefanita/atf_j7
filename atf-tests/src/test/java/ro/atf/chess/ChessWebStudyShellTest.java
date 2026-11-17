@@ -51,7 +51,8 @@ class ChessWebStudyShellTest {
         verify(check, "study-quests-worker.test.mjs", List.of("--test", "--test-reporter=tap"), List.of(), "ok ", List.of(
                 "Built Web engine accepts APK puzzle stages, restores a pending defense and awards a solution once",
                 "Built Web engine opens all material chapters with the authored replay and no solved credit",
-                "Built Web engine solves one real puzzle in each of the six native chapters"));
+                "Built Web engine solves one real puzzle in each of the six native chapters",
+                "Mate chapters restore their own cursor and solved credit from one saved snapshot"));
         verify(check, "study-openings-worker.mjs", List.of(), List.of(site, "--analysis"), "Opening study worker: ", List.of(
                 "bilingual catalog, legal/off-line outcomes, hints, pause, resume, review and both seats passed."));
         verify(check, "study-analysis-worker.mjs", List.of(), List.of(site), "Manual analysis worker: ", List.of(

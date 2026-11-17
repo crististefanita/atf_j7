@@ -158,10 +158,11 @@ async function mountPuzzle(state, call, locale = 'ro') {
         showModal() { this.open = true; }
         close() { this.open = false; this.events.get('close')?.(); }
         focus() { focused = this.id; }
+        contains(element) { return this === element || this.children.some(child => child.contains(element)); }
     }
     const elements = new Map();
     const root = new Element();
-    root.ownerDocument = { createElement: () => new Element() };
+    root.ownerDocument = Object.assign(new Element(), { createElement: () => new Element() });
     Object.defineProperty(root, 'innerHTML', {
         set: html => {
             markup = html;
@@ -171,6 +172,17 @@ async function mountPuzzle(state, call, locale = 'ro') {
                 for (const [, key, value] of tag.matchAll(/\s([a-z-]+)="([^"]+)"/g)) item.setAttribute(key, value);
                 elements.set('#' + id, item);
             }
+            const anchor = elements.get('#quest-study-options-anchor');
+            const trigger = elements.get('#quest-study-option-title');
+            const panel = elements.get('#quest-study-options');
+            const flip = elements.get('#quest-study-flip');
+            const home = elements.get('#quest-study-game-home');
+            anchor.ownerDocument = root.ownerDocument;
+            anchor.append(trigger, panel);
+            trigger.parentElement = anchor;
+            panel.hidden = true;
+            panel.append(flip, home);
+            panel.querySelector = () => flip;
         },
     });
     root.querySelector = selector => elements.get(selector);
@@ -282,14 +294,23 @@ test('Puzzle options match the APK and Escape returns focus to the chapters', as
         leaves++;
         return { ...menu, chapters: [{ key: tacticsState.chapter, totals: tacticsState.totals }] };
     });
-    const options = markup.match(/<dialog id="quest-study-options">([^]*?)<\/dialog>/)[1];
+    const options = markup.match(/<div id="quest-study-options"[^>]*>([^]*?)<\/div>/)[1];
     assert.deepEqual([...options.matchAll(/<button id="quest-study-([^"]+)"/g)].map(match => match[1]), ['flip', 'game-home']);
     assert.equal(focused(), 'quest-study-chapter');
     assert.equal(at('option-title').attributes.get('aria-label'), 'Opțiuni puzzle');
     at('option-title').events.get('click')();
-    assert.equal(at('options').open, true);
+    assert.equal(at('options').hidden, false);
     assert.equal(focused(), 'quest-study-flip');
     assert.equal(at('option-title').attributes.get('aria-expanded'), 'true');
+    const escape = { key: 'Escape', preventDefault() {}, stopPropagation() {} };
+    at('options-anchor').events.get('keydown')(escape);
+    assert.equal(at('options').hidden, true);
+    assert.equal(focused(), 'quest-study-option-title');
+    assert.equal(leaves, 0);
+    at('option-title').events.get('click')();
+    root.ownerDocument.events.get('pointerdown')({ target: at('hint') });
+    assert.equal(at('options').hidden, true);
+    at('option-title').events.get('click')();
     at('flip').events.get('click')();
     assert.equal(reports.at(-1).blackBelow, true);
     assert.equal(at('option-title').attributes.get('aria-expanded'), 'false');
@@ -307,7 +328,7 @@ test('Puzzle options match the APK and Escape returns focus to the chapters', as
     await setImmediate();
     assert.equal(leaves, 2);
     assert.equal(exits(), 1);
-    assert.equal(at('options').open, false);
+    assert.equal(at('options').hidden, true);
 });
 
 test('Puzzle points, streak and guidance match the native states and announce a newly reached goal once', async () => {

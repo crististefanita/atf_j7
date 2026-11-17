@@ -89,11 +89,11 @@ test('The match options expose native board actions in RO and EN', async () => {
         read('android/app/src/main/res/values/strings.xml'), read('android/app/src/main/res/values-ro/strings.xml'),
     ]);
     assert.match(toolbar, /android:contentDescription="@string\/match_actions"/);
-    assert.match(html, /id="match-options-button"[^>]+aria-haspopup="dialog" aria-controls="match-options"[^]*?<h1 id="title">/);
-    const dialog = html.match(/<dialog id="match-options" aria-labelledby="match-options-title">([^]*?)<\/dialog>/)?.[1];
-    assert.ok(dialog, 'The trigger opens a labelled native dialog');
-    assert.match(dialog, /<button id="flip-match"[^>]+autofocus>Flip board<\/button>/);
-    assert.match(dialog, /<form method="dialog">/);
+    const anchor = html.match(/<div id="match-options-anchor"[^>]*>([^]*?)<h1 id="title">/)?.[1];
+    assert.match(anchor, /id="match-options-button"[^>]+aria-controls="match-options" aria-expanded="false"/);
+    const panel = anchor.match(/<div id="match-options"[^>]* role="group"[^>]* hidden>([^]*?)<\/div>/)?.[1];
+    assert.match(panel, /<button id="flip-match"[^>]*>Flip board<\/button>/);
+    assert.match(panel, /<button id="close-match-options"[^>]*>Close<\/button>/);
     for (const [id, key] of [['match-options-title', 'match_actions'], ['flip-match', 'flip'], ['open-review', 'main_menu']]) {
         const localized = [...adapter.matchAll(new RegExp("'" + id + "': '([^']+)'", 'g'))].map(match => match[1]);
         const nativeLabels = [english, romanian].map(resources => resources.match(new RegExp('<string name="' + key + '">([^<]+)'))?.[1]);

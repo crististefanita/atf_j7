@@ -152,9 +152,11 @@ Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile 
 
 Meniul **Studiu** deschide **Probleme**, **Deschideri** și **Tablă de analiză**. Ecranele folosesc tabla comună, aceleași piese ca pe Android și comenzi RO/EN. Săgețile tastaturii parcurg pătratele în ordinea afișată. Indiciul marchează piesa la prima treaptă și adaugă săgeata la dezvăluirea destinației, în ambele orientări.
 
-- **Probleme** (`#puzzles`) folosește cele șase capitole, totalurile și punctajul din `QuestStore` și `QuestRewards`. Progresul, problema curentă și etapa de apărare se păstrează în browser. Explicația are o zonă proprie de derulare, iar meniul oferă întoarcerea tablei și revenirea la meniul principal.
+- **Probleme** (`#puzzles`) folosește catalogul APK, inclusiv Mat în 1, 2 și 3. `QuestStore` și `QuestRewards` păstrează local problema curentă pe capitol, etapa, rezultatele și punctajul. Indiciul arată întâi piesa, apoi destinația. **Următoarea** se activează după rezolvare. Explicația are propria zonă de derulare.
 - **Deschideri** (`#openings`) folosește catalogul și `OpeningLesson` pentru poziții, mutări, istoric și replica de carte. Selectați explicația lecției pentru textul complet. În analiza AI, comparația deschide mutarea decisivă când aceasta există în varianta verificată.
 - **Tablă de analiză** (`#analysis`) folosește `AnalysisLine` pentru mutări, ramificare și cursor. Bara de evaluare stă în stânga, iar selecția se păstrează la vedere în rândul cu istoricul și comenzile. Game Review revine la poziția selectată. **Continuă de aici** rezervă un loc liber și păstrează orientarea și alegerea replicilor AI.
+
+Atât în probleme, cât și în partide, meniul cu trei linii se deschide sub buton fără să deplaseze tabla. Escape închide meniul și readuce focusul la buton. Un clic în afară îl închide. Tabla din Deschideri folosește aceeași limită după dimensiunea ferestrei și rezervă spațiu pentru bara de evaluare, explicație și comenzi.
 
 Comanda **Tablă de analiză** dintr-o partidă activă sau încheiată folosește `AnalysisEntry`. Studiul pornește de la semimutarea afișată și păstrează orientarea. **Înapoi** revine la aceeași partidă, cu selecția și focusul restaurate. Studiul contextual are marcaj propriu pe durata vizitei, iar reîncărcarea adresei deschide studiul independent. [Cazurile comune JVM și Web](../docs/testing/README.md#tabla-de-analiză-dintr-o-partidă)
 
@@ -168,8 +170,8 @@ Pentru proba vizuală folosiți browserul MCP la 360 × 640 CSS px cu text la 13
 
 | Flux | Verificare în browser MCP |
 |---|---|
-| Probleme | În Mat în 2, verificați becul, săgeata și întoarcerea tablei. Deschideți **Explică**, derulați textul și închideți. Verificați revenirea focusului, punctele, poziția și traseul Înapoi al browserului. |
-| Deschideri | Deschideți o lecție cu plan lung. Verificați bara, textul complet, revenirea focusului și accesul la comenzile de sub tablă la font mărit. |
+| Probleme | Rezolvați câte o problemă din Mat în 1, 2 și 3. Verificați cele două trepte ale indiciului, reluarea după o apărare și punctele după reîncărcare. Măsurați tabla înainte și după deschiderea meniului și verificați revenirea focusului cu Escape. |
+| Deschideri | Deschideți lecția italiană. Verificați poziția tablei înainte și după indiciu, încadrarea barei și accesul la comenzi pe compact, desktop și fereastră orizontală scundă. |
 | Tablă de analiză | Jucați o linie suficient de lungă pentru derulare. Selectați un pas din istoric, verificați bara, poziția și rândul selectat, apoi deschideți Game Review și reveniți. |
 
 Testați și schimbarea adresei între cele trei destinații Studiu, apoi comenzile Înapoi și Înainte din browser. Publicatorul `ChessWebStudyPublication` atașează imaginile în Extent și verifică profilul, amprenta originalului și originea cadrelor Android. Capturile native din alte ediții sau profiluri servesc ca repere și păstrează verdictul vizual integral deschis.
