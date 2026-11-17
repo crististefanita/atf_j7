@@ -4,7 +4,7 @@ Play chess against AI, solve puzzles, and study openings.
 
 ## Jocul
 
-- [Descarcă APK Chess Lab 0.15.2](https://github.com/crististefanita/chess/releases/download/v0.15.2/ChessLab-0.15.2.apk)
+- [Descarcă APK Chess Lab 0.15.3](https://github.com/crististefanita/chess/releases/download/v0.15.3/ChessLab-0.15.3.apk)
 - [Joacă în browser](https://crististefanita.github.io/chess/)
 
 ## Arhitectura J7
@@ -49,7 +49,7 @@ flowchart LR
 
 ## Ediția publicată
 
-- [Chess Lab 0.15.2 · note de release](https://github.com/crististefanita/chess/releases/tag/v0.15.2)
+- [Chess Lab 0.15.3 · note de release](https://github.com/crististefanita/chess/releases/tag/v0.15.3)
 
 ## Puncte de intrare
 

@@ -1,0 +1,280 @@
+ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
+COVERED | .gitattributes
+COVERED | README.md
+COVERED | android/app/build.gradle
+COVERED | android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/BoardPanel.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/BoardView.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/ChessActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/OpeningWorkspace.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/PieceArt.java
+COVERED | android/app/src/main/res/values-ro/strings.xml
+COVERED | android/app/src/main/res/values/strings.xml
+COVERED | atf-tests/pom.xml
+COVERED | atf-tests/src/test/java/ro/atf/chess/AnalysisLineTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ArchivedReviewContinuationTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessGameBotSessionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessGameSessionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessPublicationRoutes.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebArchiveContinuationPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebArchiveReviewsPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebBotPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebGamePublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebLedgerPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebMatchAnalysisEvidenceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebMatchAnalysisPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebOpeningStudyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebParity.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebParityPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebQuestStudyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebReviewFocusPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebReviewGraphPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebReviewPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebRulesComponentTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebShellTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebStudyEvidenceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebStudyPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/GameReviewGraphFixture.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/GameReviewGraphParityTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/GameReviewSessionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/GameReviewSpeechEvidence.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/GameReviewSpeechEvidenceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchControlsTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchLedgerPreferencesTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchLedgerReviewTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchLedgerTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchSetupTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchStoreTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/OpeningLessonTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/TalkBackPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/WebEvidencePublication.java
+COVERED | atf-tests/src/test/resources/contextual-analysis.json
+COVERED | atf-tests/src/test/resources/match-analysis-cases.json
+COVERED | atf-tests/src/test/resources/match-automation-cases.json
+COVERED | atf-tests/src/test/resources/match-color-choices.json
+COVERED | atf-tests/src/test/resources/match-flip-cases.json
+COVERED | atf-tests/src/test/resources/review-graph-native.json
+COVERED | chess-core/src/main/java/ro/atf/chess/AnalysisEntry.java
+COVERED | chess-core/src/main/java/ro/atf/chess/ChessGameSession.java
+COVERED | chess-core/src/main/java/ro/atf/chess/ChessMatch.java
+COVERED | chess-core/src/main/java/ro/atf/chess/ChessPieceArtwork.java
+COVERED | chess-core/src/main/java/ro/atf/chess/ChessResourceLoader.java
+COVERED | chess-core/src/main/java/ro/atf/chess/ChessYaml.java
+COVERED | chess-core/src/main/java/ro/atf/chess/GameReviewBookmark.java
+COVERED | chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java
+COVERED | chess-core/src/main/java/ro/atf/chess/GameReviewGraphLayout.java
+COVERED | chess-core/src/main/java/ro/atf/chess/GameReviewSession.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchLedger.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchLedgerPreferences.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchSlots.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchStore.java
+COVERED | chess-core/src/main/java/ro/atf/chess/OpeningIndex.java
+COVERED | chess-core/src/main/java/ro/atf/chess/OpeningLessonLayout.java
+COVERED | chess-core/src/main/java/ro/atf/chess/PlayerProfile.java
+COVERED | docs/README.md
+COVERED | docs/board/README.md
+COVERED | docs/feedback/README.md
+COVERED | docs/feedback/web-parity.md
+COVERED | docs/release/README.md
+COVERED | docs/testing/README.md
+COVERED | docs/testing/test-changes.yaml
+COVERED | lib/README.md
+COVERED | pom.xml
+COVERED | release-tools/src/main/java/ro/atf/chess/release/ReleaseEvidence.java
+COVERED | release/0.15.0/README.md
+COVERED | release/0.15.0/reports/README.md
+COVERED | release/0.15.0/reports/distribution-verification.json
+COVERED | release/0.15.0/reports/game-review-execution.json
+COVERED | release/0.15.0/reports/github-release.json
+COVERED | release/0.15.0/reports/hint-analysis-execution.json
+COVERED | release/0.15.0/reports/openings-execution.json
+COVERED | release/0.15.0/reports/public-download.json
+COVERED | release/0.15.0/reports/publication-governance.json
+COVERED | release/0.15.0/reports/qualification.json
+COVERED | release/0.15.0/reports/raw-receipts.json
+COVERED | release/0.15.0/reports/stockfish-openings.html
+COVERED | release/0.15.0/reports/test-change-review-execution.json
+COVERED | release/0.15.1/reports/hint-analysis-execution.json
+COVERED | release/0.15.1/reports/test-change-review-execution.json
+COVERED | release/0.15.2/README.md
+COVERED | release/0.15.2/reports/README.md
+COVERED | release/0.15.2/reports/android-game-review.html
+COVERED | release/0.15.2/reports/android-manual-analysis.html
+COVERED | release/0.15.2/reports/android-match-analysis.html
+COVERED | release/0.15.2/reports/android-replay-compact.html
+COVERED | release/0.15.2/reports/components.html
+COVERED | release/0.15.2/reports/distribution-verification.json
+COVERED | release/0.15.2/reports/game-review-execution.json
+COVERED | release/0.15.2/reports/github-release.json
+COVERED | release/0.15.2/reports/governance.html
+COVERED | release/0.15.2/reports/hint-analysis-execution.json
+COVERED | release/0.15.2/reports/public-download.json
+COVERED | release/0.15.2/reports/publication-governance.html
+COVERED | release/0.15.2/reports/publication-governance.json
+COVERED | release/0.15.2/reports/qualification.json
+COVERED | release/0.15.2/reports/rag.txt
+COVERED | release/0.15.2/reports/raw-receipts.json
+COVERED | release/0.15.2/reports/replay-compact-execution.json
+COVERED | release/0.15.2/reports/signing-transition.json
+COVERED | release/0.15.2/reports/test-change-review-execution.json
+COVERED | release/0.15.2/reports/test-change-review.html
+COVERED | release/0.15.2/reports/test-change-review.html.proof.html
+COVERED | release/0.15.3/README.md
+COVERED | release/0.15.3/reports/README.md
+COVERED | release/README.md
+COVERED | release/index.json
+COVERED | scripts/run-android-sanity.ps1
+COVERED | scripts/verify-authenticated-download.ps1
+NEEDS_REVIEW | web/Build-ChessWeb.ps1
+NEEDS_REVIEW | web/README.md
+NEEDS_REVIEW | web/parity.md
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/ChessResourceLoader.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/ChessWebEngine.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebAnalysisStudy.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebBoardState.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebChessGame.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebGameReview.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebHintReplay.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebMatchAnalysis.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebOpeningStudy.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebQuestPreferences.java
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebQuestStudy.java
+NEEDS_REVIEW | web/src/main/web/engine-worker.mjs
+NEEDS_REVIEW | web/src/main/web/game-review.css
+NEEDS_REVIEW | web/src/main/web/game-review.mjs
+NEEDS_REVIEW | web/src/main/web/home-menu.mjs
+NEEDS_REVIEW | web/src/main/web/index.html
+NEEDS_REVIEW | web/src/main/web/match-bot-timer.mjs
+NEEDS_REVIEW | web/src/main/web/match-inline-analysis.mjs
+NEEDS_REVIEW | web/src/main/web/options-menu.mjs
+NEEDS_REVIEW | web/src/main/web/player-profile.mjs
+NEEDS_REVIEW | web/src/main/web/review-announcement.mjs
+NEEDS_REVIEW | web/src/main/web/review-focus.mjs
+NEEDS_REVIEW | web/src/main/web/review-workspace.mjs
+NEEDS_REVIEW | web/src/main/web/study-analysis.css
+NEEDS_REVIEW | web/src/main/web/study-analysis.mjs
+NEEDS_REVIEW | web/src/main/web/study-board.mjs
+NEEDS_REVIEW | web/src/main/web/study-navigation.mjs
+NEEDS_REVIEW | web/src/main/web/study-openings.css
+NEEDS_REVIEW | web/src/main/web/study-openings.mjs
+NEEDS_REVIEW | web/src/main/web/study-quests.css
+NEEDS_REVIEW | web/src/main/web/study-quests.mjs
+NEEDS_REVIEW | web/tests/analysis-study.test.mjs
+NEEDS_REVIEW | web/tests/browser-game-review.mjs
+NEEDS_REVIEW | web/tests/contextual-analysis-worker.mjs
+NEEDS_REVIEW | web/tests/home-menu.test.mjs
+NEEDS_REVIEW | web/tests/match-analysis-worker.mjs
+NEEDS_REVIEW | web/tests/match-automation-worker.mjs
+NEEDS_REVIEW | web/tests/match-color-worker.mjs
+NEEDS_REVIEW | web/tests/match-flip-worker.mjs
+NEEDS_REVIEW | web/tests/match-menu-worker.mjs
+NEEDS_REVIEW | web/tests/material-progress-previous.json
+NEEDS_REVIEW | web/tests/package-web.test.mjs
+NEEDS_REVIEW | web/tests/player-profile.test.mjs
+NEEDS_REVIEW | web/tests/review-accessibility.mjs
+NEEDS_REVIEW | web/tests/review-announcement.test.mjs
+NEEDS_REVIEW | web/tests/review-focus.mjs
+NEEDS_REVIEW | web/tests/review-focus.test.mjs
+NEEDS_REVIEW | web/tests/run-parity-worker.mjs
+NEEDS_REVIEW | web/tests/study-analysis-worker.mjs
+NEEDS_REVIEW | web/tests/study-board.test.mjs
+NEEDS_REVIEW | web/tests/study-openings-worker.mjs
+NEEDS_REVIEW | web/tests/study-openings.test.mjs
+NEEDS_REVIEW | web/tests/study-quests-worker.test.mjs
+NEEDS_REVIEW | web/tests/study-quests.test.mjs
+NEEDS_REVIEW | web/tests/study-worker.mjs
+NEEDS_REVIEW | web/tools/CompileChessWeb.java
+NEEDS_REVIEW | web/tools/GenerateChessResources.java
+NEEDS_REVIEW | web/tools/package-web.mjs
+NEEDS_REVIEW | web/tools/teavm-dependencies.xml
+docs/testing/README.md:18 ## Motor și proiecție
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify ChessComponentTest și QuestCatalogTest
+docs/board/ai-quality.md:30 ## Control la fiecare schimbare
+  SHA-256 48d8e2e3d92cc25897b6cac7477d33a27b5edbc89768cb84526cc6d78cb922a0
+  Verify HardQuestTransferBenchmarkTest, RookEndgameHistoryTest și ChessBenchmarkSuite: Stockfish și liga offline
+docs/testing/README.md:436 ## Partidă și istoric
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify ChessMatchTest și BoardSanity
+docs/testing/README.md:214 ## Progresul problemelor
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify QuestStoreTest, AndroidReceiptTest și BoardSanity la restart
+docs/testing/README.md:350 ## Sanity Android
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify BoardSanity
+docs/testing/README.md:436 ## Partidă și istoric
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest, MatchStoreTest și BoardSanity -Distribution -GameReviewOnly
+docs/testing/README.md:436 ## Partidă și istoric
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify MatchListEntryTest, MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -MatchMenusOnly
+docs/testing/README.md:496 ## Tablă de analiză
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly
+docs/testing/README.md:436 ## Partidă și istoric
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest și BoardSanity -AnalysisOnly -IncludeManualAnalysis
+docs/testing/README.md:527 ## Proba TalkBack
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify QuestHintTest, BoardSanity și proba TalkBack
+docs/testing/README.md:418 ## Deschideri
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify OpeningLessonTest și BoardSanity -IncludeOpenings
+docs/testing/README.md:300 ## Schimbarea testelor față de o bază Git
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify TestChangeReview cu baza Git explicită și ReleaseGate preflight
+docs/testing/README.md:273 ## Suite JVM
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify ChessJvmSuite și ChessGovernanceSuite
+docs/release/README.md:27 ## Excepție strictă pentru instalarea APK-ului exact
+  SHA-256 7745b0eeb6cb6ae7b797862f6d2cd8f4948ebb31ca288c2ab6ac81d5aaa4f88e
+  Verify DocumentationGovernanceTest și ReleaseGovernanceTest
+docs/release/README.md:27 ## Excepție strictă pentru instalarea APK-ului exact
+  SHA-256 7745b0eeb6cb6ae7b797862f6d2cd8f4948ebb31ca288c2ab6ac81d5aaa4f88e
+  Verify ReleaseGovernanceTest cu negative pentru commit, hash, autorizare și Extent
+docs/release/README.md:27 ## Excepție strictă pentru instalarea APK-ului exact
+  SHA-256 7745b0eeb6cb6ae7b797862f6d2cd8f4948ebb31ca288c2ab6ac81d5aaa4f88e
+  Verify ReleaseGovernanceTest și DocumentationGovernanceTest
+docs/testing/README.md:334 ## Raportare Extent
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify ExtentGovernanceTest
+docs/release/README.md:6 ## Calificare și publicare
+  SHA-256 7745b0eeb6cb6ae7b797862f6d2cd8f4948ebb31ca288c2ab6ac81d5aaa4f88e
+  Verify DocumentationGovernanceTest, ReleaseGovernanceTest și ExtentGovernanceTest
+1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
+2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului. În `release/index.json`, `currentVersion` este ediția curentă, iar `versions` conține curentul urmat de o singură ediție anterioară pentru comparație. Candidatul rămâne separat până la publicare. [Catalogul edițiilor](../../release/README.md)
+3. Actualizați notele ediției și ghidurile afectate. Mutați regulile confirmate din feedback în ghidul care le deține și păstrați criteriile încă deschise. Puneți **Jocul** imediat după orientare, cu două linkuri în ordine: **Descarcă APK** și **Joacă în browser**. Sub arhitectură, puneți linkul către notele GitHub în **Ediția publicată**. Verificatorul confruntă tagul din note cu APK-ul. [Publicarea Web](../../web/parity.md#publicarea-linkului)
+4. Creați commitul candidat în worktree-ul Git curat din TMP. Declarați SHA-ul bazei de revizuire, strămoș distinct al candidatului. Rulați DocumentationGovernanceTest, ReleaseGovernanceTest, ExtentGovernanceTest, TestChangeReview și ReleaseGate preflight înainte de semnare. Păstrați rapoartele și recepția reviziei Git. Activați probele AI când diff-ul afectează motorul sau corpusul. [Suitele JVM](../testing/README.md#suite-jvm) · [Schimbarea testelor](../testing/README.md#schimbarea-testelor-față-de-o-bază-git)
+5. Inițializați identitatea externă prin dot-sourcing `scripts/Initialize-J7Signing.ps1`. Pentru o cheie nouă după o ediție publicată, folosiți explicit `-StartNewIdentity`; scriptul refuză rotația implicită și protejează cheia cu ACL și DPAPI. Construiți APK-ul și testele Android cu Gradle, verificați semnătura, `versionCode` și compatibilitatea prin `scripts/verify-signing-continuity.ps1`. Rulați pe emulator parcursul potrivit schimbării și păstrați hash-ul APK-ului instalat și Extent-ul. Dacă semnarea s-a rotit și emulatorul păstrează ediția veche, nu dezinstalați instalarea cu date valoroase pentru a forța testul. Un APK sanity cu alt `applicationId` este suplimentar și nu califică binarul distribuibil.
+6. Rulați `ChessComponentSuite` și sanity Game Review sub același ID de calificare. Treceți APK-ul, commitul, directoarele recepțiilor brute și rapoartele Extent prin `ReleaseGate qualification`. Verificați în Extent comparațiile extensibile și capturile din pașii lor. Pentru o schimbare în Teoria deschiderilor sau **De ce?**, adăugați proba compactă la font 1,3× în RO și EN pe același APK și commit. [Redarea comună](../testing/README.md#redare-comună-pe-ecran-compact) [Criterii de audit Extent](../testing/README.md#raportare-extent)
+7. După semnare și calificare, împingeți tagul candidat fără a rescrie istoricul și publicați asset-ul GitHub. Păstrați `currentVersion`, lista de comparație și README-ul principal pe ultima ediție verificată până când asset-ul nou există. Apoi promovați candidatul în catalog și README. Păstrați în GitHub Release și local doar ediția nouă și ediția imediat anterioară; retrageți celelalte release-uri și dosare după ce noul asset și ruta din README au trecut verificarea. Nu ștergeți tagurile Git.
+8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
+docs/README.md:31 ## Verificarea documentației
+  SHA-256 a03e2dbcdfea701606f0a82323c6342b4e08282732224eb9b28cf1538fc848c1
+  Verify DocumentationGovernanceTest și ReleaseGovernanceTest
+docs/testing/README.md:18 ## Motor și proiecție
+  SHA-256 5d51ff1a5227c64a1ad4b1f64993b13e4d06fa82b6235adc2091bca4a0f1f58a
+  Verify BoardPanelLayoutTest și QuestHintTest
+docs/feedback/README.md:1 # Feedback · Chess Lab
+  SHA-256 0b87c1c4578df3018b0afaf91e47d9d7d9b9591db69c13613cb98838ff1427b4
+  Verify DocumentationGovernanceTest și revizia criteriilor deschise
+lib/README.md:6 ## Proveniență
+  SHA-256 2c073661ccffb107c8b89946f3d9fd3c0b654659b8c1ca429b9f850c58f2e97c
+  Verify ReleaseGovernanceTest
+lib/README.md:6 ## Proveniență
+  SHA-256 2c073661ccffb107c8b89946f3d9fd3c0b654659b8c1ca429b9f850c58f2e97c
+  Verify PlatformLibraryProvenanceTest
