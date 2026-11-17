@@ -243,6 +243,10 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         history.setAttribute('aria-label', words.history);
         const navigation = text('div', '', 'analysis-study-navigation analysis-study-toolbar');
         const previous = button(words.previous, () => void seek((state.preview ?? state).ply - 1), '‹');
+        const playback = text('p', '', 'analysis-study-playback');
+        playback.setAttribute('aria-live', 'polite');
+        playback.tabIndex = -1;
+        playback.hidden = true;
         const next = button(words.next, () => void seek((state.preview ?? state).ply + 1), '›');
         const latest = button(words.latest, () => void seek((state.preview ?? state).total), '»');
         const hint = button(words.hint, () => void request('hint'), '💡');
@@ -255,8 +259,9 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         const evidence = text('p', '', 'analysis-study-evidence');
         const replayDetails = text('div', '', 'analysis-study-replay-details');
         replayDetails.hidden = true;
-        replayDetails.append(variants, evidence);
-        navigation.append(previous, history, next, latest, hint);
+        replayDetails.append(evidence);
+        variants.hidden = true;
+        navigation.append(previous, playback, history, next, latest, hint);
         const promotion = document.createElement('dialog');
         promotion.setAttribute('aria-label', words.promote);
         const promotionChoices = text('div', '', 'analysis-study-navigation');
@@ -297,9 +302,10 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         saveDialog.append(text('h3', words.continue), saveMessage, autoLabel, saveActions);
         root.classList.add('analysis-study');
         root.setAttribute('aria-label', words.title);
-        root.replaceChildren(header, stage, status, feedback, announcement, error, replayDetails, navigation, promotion, saveDialog);
+        root.replaceChildren(header, stage, status, feedback, announcement, error, variants, navigation, replayDetails, promotion, saveDialog);
         return { title, back, reset, menu, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score, feedback,
-            announcement, error, replay, replayDetails, variants, evidence, history, previous, next, latest, hint, promotion, promotionChoices, saveDialog,
+            announcement, error, replay, replayDetails, variants, evidence, history, previous, next, latest, hint, playback,
+            promotion, promotionChoices, saveDialog,
             promptContinuation };
     }
 
@@ -320,8 +326,9 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         controls.toggle.checked = next.analysis;
         controls.review.disabled = !openReview || !next.analysis || next.total === 0;
         controls.saveGame.disabled = !continueGame || next.result !== 'IN_PROGRESS';
-        controls.status.textContent = preview ? words.step(frame.ply, frame.total) + (frame.lastMove ? ' · ' + notation(frame.lastMove) : '')
-            : words.position(frame.ply, frame.total) + (words.results[next.result] ? '\n' + words.results[next.result] : '');
+        controls.status.hidden = Boolean(preview);
+        controls.status.textContent = words.position(next.ply, next.total) + (words.results[next.result] ? '\n' + words.results[next.result] : '');
+        controls.playback.hidden = !preview;
         controls.feedback.hidden = !next.analysis || !!preview;
         controls.score.textContent = analysisScore(next.evaluation, locale);
         controls.meter.hidden = !next.analysis || !!preview;
@@ -353,12 +360,18 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
             controls.replay.setAttribute('aria-label', words.preview + '. ' + announcement);
         }
         root.classList.toggle('analysis-study-replay', Boolean(preview));
-        controls.replayDetails.hidden = !preview;
+        controls.variants.hidden = controls.replayDetails.hidden = !preview;
         if (preview) {
+            const move = frame.lastMove || preview.branches[preview.branch];
+            controls.playback.textContent = words.step(frame.ply, frame.total) + (move ? ' · ' + notation(move) : '');
             const key = preview.branches.join(' ');
             if (key !== controls.variants.dataset.branches) {
-                controls.variants.replaceChildren(...preview.branches.map((move, index) =>
-                    button(words.choice(index + 1) + ' · ' + notation(move), () => void request('preview-branch', { index }))));
+                controls.variants.replaceChildren(...preview.branches.map((move, index) => {
+                    const name = words.choice(index + 1);
+                    const choice = button(name + ' · ' + notation(move), () => void request('preview-branch', { index }));
+                    choice.textContent = name;
+                    return choice;
+                }));
                 controls.variants.dataset.branches = key;
             }
             for (const [index, choice] of Array.from(controls.variants.children).entries()) {
@@ -383,7 +396,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         if (preview.decisive) {
             const proof = preview.decisive;
             const label = words.proof(proof.branch + 1, proof.ply, notation(proof.move), pieceName(words, proof.piece), proof.reason === 'MATE');
-            const jump = button(label, async () => { if (await request('preview-proof')) controls.status.focus(); });
+            const jump = button(label, async () => { if (await request('preview-proof')) controls.playback.focus(); });
             jump.setAttribute('aria-label', label + ' ' + words.jump);
             controls.evidence.replaceChildren(evidence.join(' · '), jump);
             return;
