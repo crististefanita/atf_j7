@@ -12,6 +12,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
+| P1 | Italian · hint and Hard defensive replies | The audit finds the false `…Bxf2+` compensation; the actual Hard choice is also inferior. | Compare `…Bxf2+`, `…Na5` and `…Qg6` through free defenses at a common horizon and preserve sound sacrifices. |
 | P1 | Hint · independent alternative accuracy | Some alternatives remain overrated after exchange verification. | Verify ranking and every offered alternative against free replies at the same budget. |
 | P2 | Hint audit · broader transfer | The initial plan covers three short opening paths and three budgets. | Add new history-separated families and measure leader loss separately from deliberately played lower ranks. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
@@ -53,6 +54,15 @@ Add compact verification to the promotion gate for geometry changes. Reject a mi
 NVDA 2026.3.1 repeated the position and score in RO. Component checks and Edge now confirm one accessible value.
 
 Confirm speech on the corrected build in RO and EN and a return to the same move from **Why?**. [Web feedback](web-parity.md)
+
+</details>
+
+<details>
+<summary>P1 · Italian · hint and Hard defensive replies</summary>
+
+The source-bound `opening-hints-v1` collection finds `italian-ranked` decision 5 recommending `…Bxf2+`. Stockfish H19 gives −311 cp / 0‰ through `Kxf2 …Qc5+ d4`, versus −49 cp / 444‰ for `…Qg6`. The hint's raw H4 already prefers `Qg6 −59` to `Bxf2+ −90`, but the earlier-horizon credit raises the sacrifice to −41 and the shortlist drops `Qg6`. Separately, actual Hard at 100k chooses `…Na5`, evaluated at −120 cp / 155.5‰. Both are existing gaps, reproduced with the prior engine.
+
+Keep current-horizon evidence distinct from heuristic ordering, and require a relevant challenger. Verify quiet central defenses and the later knight fork. Compare the actual Hard API and the 200k hint independently, with proper bishop, queen and knight sacrifices as controls. Retain the Sicilian, Caro–Kann, Catalan and `Qxc2` gates. Preserve the immutable first collection and verify transfer before promoting a correction. [Audit protocol](../testing/hint-audit.md)
 
 </details>
 

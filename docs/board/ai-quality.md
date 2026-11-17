@@ -97,6 +97,22 @@ The Stockfish numbers compare the tested roots with opposing replies free. They 
 
 [Audit protocol and collection](../testing/hint-audit.md) · [Frontier contracts](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java)
 
+## First move-by-move collection
+
+`opening-hints-v1` retains 24 path decisions and nine matched-position budget controls from [the audited source](https://github.com/crististefanita/chess/commit/a7e71d9412323603847c20da220c8554903ae9be). Independent replay validates 539 PV plies, 233 opposing-reply facts, clocks, rights, material, SAN PGN and receipt hashes. Twelve unavailable rank requests explicitly fall back to the first offered suggestion. The data is under `C:\work\sah\colectii\hint-hard\2026-11-17-v1`.
+
+The H17/H19 audit separates the first recommendation from the deliberately played rank. It finds five leader decisions with at least 150‰ expected-score loss at H19. One deliberately selected `Bg5` loses 484.5‰ while that position's leader loses 9‰. Neither number establishes an Elo rating. The first collection remains immutable when later algorithms are evaluated.
+
+| Control | Actual API and allowance | Chosen root, SF H19 | Verified alternative, SF H19 |
+|---|---|---|---|
+| Italian decision 5 | Hint, 100k in the path; same root at 200k | `…Bxf2+`, −311 cp / 0‰ | `…Qg6`, −49 cp / 444‰ |
+| Same full position | Actual Hard, 100k additional nodes | `…Na5`, −120 cp / 155.5‰ | `…Qg6`, −49 cp / 444‰ |
+| Italian decision 3 | Hint, 200k | `…Qd6`, −379 cp / 0‰ | `…Qd8`, −197 cp / 10‰ |
+
+The Italian losses also reproduce on the prior engine. After the bishop capture, `Kxf2 …Qc5+ d4` is a real defense and the later knight fork matters. The hint's shallow credit and shortlist are distinct from the actual foreground Hard decision. In the matched White Caro–Kann grid after `…d5`, selected depths are H5/H5/H4 at 50k/100k/200k. A larger allowance therefore does not imply a deeper selected result or a stronger move. These are explicit follow-up cases, not a passed global-strength gate.
+
+[Audit protocol](../testing/hint-audit.md) · [Open algorithm feedback](../feedback/README.md)
+
 ## Checks for every change
 
 1. Run the JVM suite before making the change. Compare from the same TMP checkout, with the same Stockfish executable and evaluation YAML. Keep the Extent report from each run.
