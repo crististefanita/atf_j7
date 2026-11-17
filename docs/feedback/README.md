@@ -13,6 +13,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
 | P1 | Indiciu · precizia alternativelor independente | Unele alternative rămân supraevaluate după verificarea schimburilor. | Verifică ordonarea și fiecare alternativă oferită față de replici libere, în același buget. |
+| P2 | Audit indicii · transfer mai larg | Planul inițial acoperă trei trasee scurte de deschidere și trei bugete. | Adaugă familii cu istorii separate și măsoară pierderea liderului distinct de rangurile inferioare jucate intenționat. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
 | P2 | Android · gestul predictiv | Gestul predictiv mai cere un dispozitiv compatibil. | Verifică anularea și reluarea pe API 33+. |
 | P1 | Calibrarea profilurilor AI | Intervalele Elo încă se suprapun. | Adaugă jocuri pereche pentru a restrânge incertitudinea. |
@@ -58,9 +59,18 @@ Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceea
 <details>
 <summary>P1 · Indiciu · precizia alternativelor independente</summary>
 
-Defectul `…Nxc2+ Qxc2` și inserarea unei replici după ordonare sunt închise prin frontiera comună a schimburilor și rejucarea fără modificări. Liderul public în Siciliană este acum `…cxd4`, cu 477‰ față de 476‰ pentru rădăcina liberă Stockfish la H19. Problema rămasă privește forța și ordinea alternativelor oferite. `…Nd7` are încă 268‰, iar `…b5` din martorul anterior capturii `Nxc2` are 329‰ față de 493‰ pentru rădăcina liberă. În Catalană, `cxd5` are 485‰, iar `Nf3` are 516,5‰. În Caro–Kann, noul `…d6` are 383,5‰ față de 215,5‰ pentru vechiul `…Nf6`, în timp ce rădăcina liberă `…d5` are încă 482,5‰. [Contractul închis al schimburilor](../board/ai-quality.md#verificarea-schimburilor-din-indiciu)
+Alternativa `…Nd7` din Siciliana principală și liderul `…d6` din Caro–Kann principală sunt corectate. Diferența de transfer rămasă apare în vecinul Sicilian cu `Nc3`, unde vechiul lider `…Nd7` are 44,5‰ față de 479,5‰ pentru `…cxd4` la H19. În vecinul Caro–Kann cu `Nc3`, `…d6` are încă 400‰ față de 482‰ pentru `…d5`. Liderul martorului anterior capturii `Nxc2` rămâne `…Nf6`, iar alternativa sa `…b5` este mai slabă. `cxd5` din Catalană rămâne inferior lui `Nf3` din Stockfish. [Comparații închise](../board/ai-quality.md#comparația-selectivă-a-indiciului-și-auditul-mutărilor)
 
 Îmbunătățiți ordonarea comună în plafonul total de 200.000 de noduri pentru indiciu. Comparați toate mutările oferite la același orizont complet și verificați replicile adverse libere la H17/H19 pe familii noi. Păstrați sacrificiile corecte de damă și cal, negativele limitelor din cache și identitatea bec/comparație/rejucare. Un PASS de integritate a rejucării nu dovedește forță egală între alternative. Păstrați dovezile adâncimii complete și ale nodurilor efective. [Probe AI](../testing/README.md#partidă-și-istoric)
+
+</details>
+
+<details>
+<summary>P2 · Audit indicii · transfer mai larg</summary>
+
+Colectorul versionat păstrează identitatea sursei, istoricul complet, adâncimile efective, candidații oferiți și comparați, rangurile indisponibile și bugetele plafonate. Contractele cu mock-uri acoperă substituția, scorurile reamprentate, reluarea și ieșirea întreruptă. Traseele reale sunt partide diagnostice ale politicilor de indicii, cu mutarea teoretică a adversarului Hard normal înregistrată separat.
+
+Adăugați familii independente de deschidere și final din PGN-urile arhivate. Înghețați istoriile înainte de reglaj, verificați prima pierdere cu replici Stockfish H17/H19 libere și păstrați toate eșecurile. Comparați bugetele numai din checkpoint-uri identice. Păstrați Extent, PGN și manifestul JSONL de încredere legate de sursă și separați pierderea liderului de rangurile 2 și 3 alese intenționat. [Protocolul auditului](../testing/hint-audit.md)
 
 </details>
 

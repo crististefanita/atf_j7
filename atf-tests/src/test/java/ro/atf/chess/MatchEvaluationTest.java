@@ -17,7 +17,7 @@ class MatchEvaluationTest {
         var lines = TacticalAnalysis.recommendations(board);
         var best = lines.getFirst();
         var display = MatchEvaluation.forPosition(board, best);
-        check.same("Nf3 remains the leading recommendation", "g1f3", best.move().uci());
+        check.same("The verified Vienna continuation leads after e4 e5", "b1c3", best.move().uci());
         check.same("The White advantage after e4 e5 is smaller than one pawn", true,
                 display.whiteCentipawns() > 0 && display.whiteCentipawns() < 70);
         check.same("Computing the displayed score leaves the recommended lines and scores unchanged", lines, TacticalAnalysis.recommendations(board));

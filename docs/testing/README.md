@@ -102,6 +102,15 @@ Regulile efective rejucă fiecare cadru și întreaga continuare documentată.
 
 [Frontiera indiciului](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java) · [Contractele deschiderilor](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java) · [Paritatea rejucării Web](../../atf-tests/src/test/java/ro/atf/chess/WebHintReplayComponentTest.java)
 
+### Colecția offline de indicii
+
+`HintAuditSessionTest` validează planul versionat, reluarea întregului istoric,
+ancorele de încredere, materialul efectiv, rangurile indisponibile și protecția
+ieșirii cu mock-uri. Metoda benchmark cu etichetă separată înregistrează trasee
+scurte reale și bugete comparate din aceeași poziție, printr-un apel pe decizie.
+Raportul Extent păstrează identitatea sursei, checkpoint-urile, FEN, variantele
+oferite și comparate, replicile, adâncimile și nodurile efective. [Rulare și interpretare](hint-audit.md)
+
 ## Paritatea Web a motorului
 
 `ChessWebRulesComponentTest` verifică motorul și cataloagele pe JVM. `ChessWebParityPublication` execută aceleași cazuri în workerul TeaVM pentru toate resursele folosite. Rulați proba explicit cu pachetul din TMP. [Build și probe Web](../../web/README.md)

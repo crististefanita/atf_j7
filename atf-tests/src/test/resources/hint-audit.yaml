@@ -1,0 +1,22 @@
+schema: 1
+dataset: opening-hints-v1
+max-nodes: 200000
+runs:
+  - id: sicilian-ranked
+    family: sicilian
+    prefix: e2e4 c7c5 g1f3 d7d6 d2d4
+    decisions: 8
+    budgets: [50000, 100000, 200000]
+    ranks: [1, 2, 3]
+  - id: caro-kann-ranked
+    family: caro-kann
+    prefix: e2e4 c7c6 d2d4 d7d5
+    decisions: 8
+    budgets: [100000, 200000, 50000]
+    ranks: [2, 3, 1]
+  - id: italian-ranked
+    family: italian
+    prefix: e2e4 e7e5 g1f3 b8c6 f1c4 f8c5
+    decisions: 8
+    budgets: [200000, 50000, 100000]
+    ranks: [3, 1, 2]

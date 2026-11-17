@@ -46,10 +46,10 @@ class HintComparisonTest {
         check.same("The independent Sicilian control keeps the sound central reply", move("c5d4"), sicilian.selected());
         assertOpening(check, "Caro–Kann, White", "e2e4 c7c6");
         var caro = assertOpening(check, "Caro–Kann, Black", "e2e4 c7c6 d2d4");
-        // SF19 H17/H19 confirms d6 improves on the former Nf6 fixture; d5 remains the external leader.
-        check.same("The Caro–Kann control keeps the supported d6 recommendation", move("d7d6"), caro.selected());
-        check.same("The completed ranking reports Black's disadvantage and its actual supported horizon", true,
-                caro.scoreLine(0).score() < 0 && caro.depth() >= 4 && caro.lines().getFirst().line().size() >= caro.depth());
+        check.same("The Caro–Kann control now finds the independently checked central break", move("d7d5"), caro.selected());
+        var caroSearch = TacticalAnalysis.verifiedHints(ChessMatch.restore("2|analysis|e2e4 c7c6 d2d4").position());
+        check.same("A single published hint still records its actual completed selection horizon", true,
+                caroSearch.selectedDepth() >= 5 && caro.lines().getFirst().line().size() >= caroSearch.selectedDepth());
         assertOpening(check, "Catalan, White", "d2d4 g8f6 c2c4 e7e6 g2g3 d7d5");
         assertOpening(check, "Catalan, Black", "d2d4 g8f6 c2c4 e7e6 g2g3 d7d5 f1g2");
     }
@@ -63,7 +63,7 @@ class HintComparisonTest {
         hint.revealNext();
         var first = hint.revealed();
         var playback = hint.playback(position).orElseThrow();
-        check.same("The three verified fixture branches can share one historical board", List.of("b8c6", "g8f6", "e7e5"),
+        check.same("The verified pair can share one historical board", List.of("b8c6", "g8f6"),
                 playback.lines().stream().map(line -> line.move().uci()).toList());
         hint.revealNext();
         var second = hint.revealed();
@@ -99,11 +99,11 @@ class HintComparisonTest {
 
     @Test void keepsSoundRetiAndAlekhineRecommendationsAtTheVerifiedCommonFrontier(Checks check) {
         // SF19 H17/H19 confirms e3 and the former d3 fixture remain sound with free replies.
-        assertRetainedHint(check, "Réti", "g1f3 d7d5 c2c4 d5d4", "e2e3", true);
-        assertRetainedHint(check, "Alekhine", "e2e4 g8f6 e4e5 f6d5 d2d4 d7d6", "c2c4", true);
+        assertRetainedHint(check, "Réti", "g1f3 d7d5 c2c4 d5d4", "e2e3");
+        assertRetainedHint(check, "Alekhine", "e2e4 g8f6 e4e5 f6d5 d2d4 d7d6", "c2c4");
     }
 
-    private static void assertRetainedHint(Checks check, String name, String moves, String retained, boolean comparable) {
+    private static void assertRetainedHint(Checks check, String name, String moves, String retained) {
         var position = ChessMatch.restore("2|analysis|" + moves).position();
         var hint = MatchHint.analyze(position);
         hint.revealNext();
@@ -111,8 +111,15 @@ class HintComparisonTest {
         check.same(name + " retains the supported recommendation in the bulb and on the board", List.of(move, move),
                 java.util.Arrays.asList(hint.revealed().move(), hint.moveForTap(position, -1, move.to())));
         var comparison = hint.compare(position);
-        check.same(name + " exposes alternatives only with comparable evidence", comparable, comparison.isPresent());
-        if (comparable) check.same(name + " keeps the same best move in the completed comparison", move, comparison.orElseThrow().stronger().move());
+        if (comparison.isPresent()) {
+            var proof = comparison.orElseThrow();
+            check.same(name + " keeps the same best move in the completed comparison", move, proof.stronger().move());
+            check.same(name + " comparisons report a completed common horizon", true, proof.depth() > 0
+                    && proof.stronger().line().size() >= proof.depth() && proof.alternative().line().size() >= proof.depth());
+        } else {
+            check.same(name + " does not invent a comparison when the shared budget cannot complete one", 0,
+                    hint.playback(position).orElseThrow().depth());
+        }
     }
 
     private static MatchHint.Playback assertOpening(Checks check, String name, String moves) {

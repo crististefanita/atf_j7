@@ -6,7 +6,7 @@ opponents:
 hint:
   max-plies: 7
   extra-nodes: 200000
-  verification-nodes: 32000
+  verification-nodes: 150000
   tactical-extension-plies: 2
   max-variants: 3
   max-loss-cp: 25

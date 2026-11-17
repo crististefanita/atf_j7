@@ -158,7 +158,7 @@
 
 - Indiciul folosește nucleul de căutare Hard, independent de nivelul adversarului.
   Căutarea inițială, schimburile tactice și comparația împart plafonul de 200.000
-  de noduri. Până la 32.000 dintre ele compară alternativele la adâncime comună.
+  de noduri. Până la 150.000 dintre ele compară alternativele la adâncime comună.
   Becul parcurge cel mult trei variante aflate la maximum 0,25 pioni sub lider.
   Căutarea evaluează capturile și recapturile înaintea ordonării variantelor.
   La mat demonstrat, variantele au același rezultat și aceeași distanță.

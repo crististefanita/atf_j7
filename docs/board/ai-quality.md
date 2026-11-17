@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-- **Politica actuală.** Adversarul, indiciul și bara de evaluare au bugete separate. Hard pornește cu 100.000 de noduri suplimentare și poate continua până la 200.000 în modul adaptiv. Indiciul are un singur plafon de 200.000 de noduri, care include orizonturile inițiale, frontiera tactică și până la 32.000 de noduri pentru compararea alternativelor. [Configurația căutării](../../chess-core/src/main/resources/match-ai.yaml)
+- **Politica actuală.** Adversarul, indiciul și bara de evaluare au bugete separate. Hard pornește cu 100.000 de noduri suplimentare și poate continua până la 200.000 în modul adaptiv. Indiciul are un singur plafon de 200.000 de noduri, care include orizonturile inițiale, frontiera tactică și până la 150.000 de noduri pentru compararea alternativelor. [Configurația căutării](../../chess-core/src/main/resources/match-ai.yaml)
 - **Acceptanță.** `MatchAiGovernanceTest` și `HardAdaptivePolicyTest` verifică politicile, iar `ChessBenchmarkSuite` măsoară deciziile față de un oracol fix. Comparațiile istorice de mai jos aparțin versiunii măsurate.
 - **Elo afișat.** [Contractul analizei partidei](game-review.md) definește categoriile, precizia și estimările afișate. Aplicația citește reperele de rating din configurația ediției. [Repere de rating](../../chess-core/src/main/resources/game-review.yaml)
 
@@ -19,7 +19,7 @@ Calea de joc Hard reutilizează și liniile exacte pentru poziții transpozate. 
 
 Basic caută două semimutări în pozițiile obișnuite și trei în finalurile elementare cu turnul ori dama contra regelui. Ambele căi folosesc zero noduri suplimentare. Adâncimea obișnuită se configurează prin `standard-max-plies` în YAML. Hard încheie căutarea la primul orizont complet care dovedește un mat câștigător. [Calibrarea Basic](#calibrarea-basic-cu-adâncime-selectivă) · [Dovezi de mat](#rezolvarea-quest-urilor-cu-obiectiv-declarat)
 
-Indiciul folosește nucleul de căutare Hard independent de nivelul adversarului. Fiecare orizont complet evaluează toate mutările legale de la rădăcină prin aceeași frontieră tactică. Până la 32.000 de noduri din alocația unică de 200.000 compară alternativele selectate la același orizont. O iterație mai adâncă întreruptă păstrează ultimul rezultat complet. Un lider schimbat la orizont impar cere confirmare la un orizont cu ture egale înainte de a înlocui rezultatul susținut. Lista arată cel mult trei prime mutări distincte, la maximum 25 cp sub lider. La mat rămân doar variantele cu același rezultat și aceeași distanță. Rejucarea folosește continuarea evaluată, fără o căutare nouă sau o replică adăugată fără evaluare. Estimarea statică explică tabla afișată și nu reordonează rezultatul căutării. [Citirea diferenței](README.md)
+Indiciul folosește nucleul de căutare Hard independent de nivelul adversarului. Fiecare orizont complet evaluează toate mutările legale de la rădăcină prin aceeași frontieră tactică. Până la 150.000 de noduri din alocația unică de 200.000 verifică liderul și un candidat de la alt orizont complet. Ambele faze împart cache-ul exact și ordonarea. Replicile verificate cu o singură rădăcină păstrează o alocație inițială mai mare. O iterație mai adâncă întreruptă păstrează ultimul rezultat complet. Un lider schimbat la orizont impar cere confirmare la un orizont cu ture egale înainte de a înlocui rezultatul susținut. Lista arată cel mult trei prime mutări distincte, la maximum 25 cp sub lider. La mat rămân doar variantele cu același rezultat și aceeași distanță. Rejucarea folosește continuarea evaluată, fără o căutare nouă sau o replică adăugată fără evaluare. Estimarea statică explică tabla afișată și nu reordonează rezultatul căutării. [Citirea diferenței](README.md)
 
 La Hard, într-o poziție cu material egal, clasamentul disponibil după patru semimutări folosește și scorul aceleiași mutări la trei. Contribuția liniei mai scurte este limitată. Pentru o mutare liniștită, creditul scade când linia provizorie sugerează un câștig de peste un pion. Maturile și remizele evaluate păstrează scorul terminal. Dacă bugetul împiedică încheierea adâncimii șase sau liderul se schimbă la acea adâncime, motorul păstrează ultima căutare completă. Căutările explicite și comparațiile pentru îndrumare folosesc bugetele declarate.
 
@@ -83,6 +83,21 @@ Martorii includ sacrificiul damei `Qxc8+`, urmat de mat în trei, și sacrificiu
 
 [Contractele indiciului](../../atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java) · [Rejucarea fără modificări](../../atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java) · [Profilurile deschiderilor](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java)
 
+## Comparația selectivă a indiciului și auditul mutărilor
+
+Indiciul păstrează liderul și un candidat observat la alt orizont complet. Ambele faze reutilizează aceleași intrări exacte și aceeași ordonare în bugetul unic al deciziei. O tăiere rămâne limită. O valoare din fereastra completă, aflată în interiorul ferestrei originale, poate fi exactă chiar dacă ramurile secundare eliminate au produs limite. Martorii cu cache încălzit, rece, dezactivat și căutare întreruptă verifică distincția.
+
+O schimbare la H6 cere dovezi anterioare H4. H5 folosește H4, iar H7 folosește H6. Tabelul orizontului par curent nu se poate confirma singur. O schimbare nesusținută păstrează adâncimea inițială efectivă și nu publică o comparație acceptată. Adâncimile căutării și comparației rămân distincte de numărul semimutărilor rejucate.
+
+| Poziție | Comparație J7 la orizont comun | Rezultat public la 200k | Scor așteptat Stockfish 19 H19 |
+|---|---|---|---|
+| `e4 c5 Nf3 d6 d4` | H6, `…cxd4 −48` față de `…Nd7 −82 cp` | Păstrează `…cxd4`; exclude `…Nd7` dintre sugestiile echivalente | 477‰ față de 268‰ |
+| `e4 c6 d4` | H5, `…d5 +1` față de `…d6 −33 cp` | Înlocuiește `…d6` cu `…d5` | 468‰ față de 383,5‰ |
+
+Numerele Stockfish compară rădăcinile testate cu replicile adverse libere. Nu sunt centipioni J7 sau Elo. Pe martorii pereche la 200k, 13 dintre cei 14 lideri existenți au rămas identici, iar liderul Caro–Kann principal s-a îmbunătățit. Primul candidat a produs regresii în Catalană și în martorul anterior capturii `Nxc2` și a fost respins. Corectarea autoconfirmării a păstrat ambii lideri anteriori. Lotul inițial sigilat de patru poziții a păstrat liderii. După inspectare devine dovadă de regresie, fără a stabili o creștere generală de forță. Un martor adăugat separat după `e4 e5` schimbă `Nf3` cu `Nc3`: Stockfish H19 dă +27 față de +4 cp, respectiv 523‰ față de 503‰. Alternativa teoretică echilibrată pierde măsurat 20‰ și este raportată separat de cei 14 martori pereche.
+
+[Protocolul și colecția de audit](../testing/hint-audit.md) · [Contractele frontierei](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java)
+
 ## Control la fiecare schimbare
 
 1. Rulați suita JVM înainte de schimbare. Comparați din aceeași copie TMP, cu același executabil Stockfish și același YAML de evaluare. Păstrați raportul Extent din fiecare rulare.
@@ -105,7 +120,7 @@ mvn test '-Dtest=ChessBenchmarkSuite' "-Dchess.stockfish=$stockfish" '-Dchess.ex
 | Basic | 3 | 0 |
 | Advanced | 4 | 10.000 |
 | Hard în prim-plan | 6, cu lider stabil | 100.000 bază, până la 200.000 adaptiv |
-| Indiciu | Până la 7, plus o frontieră tactică limitată la două semimutări | 200.000 în total, inclusiv până la 32.000 pentru compararea alternativelor |
+| Indiciu | Până la 7, plus o frontieră tactică limitată la două semimutări | 200.000 în total, inclusiv până la 150.000 pentru compararea alternativelor |
 
 - Guvernanța cere creșterea strictă a adâncimii și bugetului între profilurile adversarilor. Indiciul are cel puțin adâncimea Hard configurată și propria alocație plafonată. În finalurile cu turn sau damă și regi, toate nivelurile, indiciul și bara folosesc aceeași evaluare a distanței dintre regi și a spațiului regelui apărat. Testele verifică transformarea avantajului în mat cu ambele culori și conservarea perspectivei albului în afișaj.
 
