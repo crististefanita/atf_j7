@@ -219,6 +219,16 @@ test('Puzzle and match boards share the viewport budget and keep controls in vie
     assert.match(puzzleCss, /\.quest-study-board-and-details\s*\{[^}]*min-block-size:[^;]*var\(--play-board-limit\)[^;]*\+\s*2lh/);
     assert.match(puzzleCss, /\.quest-study-details,[^}]*overflow:\s*auto;/);
 
+    assert.match(puzzleCss, /#quest-study-turn\s*\{[^}]*block-size:\s*calc\(1lh \+ 2 \* var\(--quest-turn-padding\)\)/,
+        'the turn row has the same height with and without text');
+    assert.match(css, /#match-inline-preview button:not\(\.square\)\s*\{\s*min-block-size:\s*var\(--play-action-size\)/,
+        'preview squares follow the board grid while the controls retain their touch target');
+    assert.doesNotMatch(css, /#match-inline-preview button\s*\{[^}]*min-block-size/,
+        'a 48px minimum on every square clips the eighth row on compact screens');
+    assert.match(css, /\.match-inline-preview-details\s*\{[^}]*overflow:\s*auto/,
+        'only the evidence scrolls within the preview');
+    assert.match(matchMarkup, /<dialog id="match-inline-preview"[^]*?<div id="match-inline-preview-board"[^]*?class="match-inline-preview-navigation"[^]*?class="match-inline-preview-details"/);
+
     assert.match(matchMarkup, /<section id="match"[^]*?<div id="match-board"[^>]*><\/div>[^]*?<nav id="match-history"[^]*?<div class="movement match-actions">/);
     assert.match(puzzleMarkup, /<section id="quest-study-game"[^]*?<div id="quest-study-board"[^>]*><\/div>[^]*?<div id="quest-study-description"[^]*?<div class="quest-study-footer">/);
 });

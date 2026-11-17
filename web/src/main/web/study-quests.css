@@ -126,7 +126,12 @@
   padding: .2rem .5rem;
   min-block-size: 1.4em;
 }
-.quest-study #quest-study-turn { color: var(--quest-accent); }
+.quest-study #quest-study-turn {
+  --quest-turn-padding: .2rem;
+  block-size: calc(1lh + 2 * var(--quest-turn-padding));
+  padding-block: var(--quest-turn-padding);
+  color: var(--quest-accent);
+}
 .quest-study #quest-study-status { text-align: center; white-space: pre-line; }
 .quest-study .quest-study-board-and-details,
 .quest-study #quest-study-explanation[data-replay] .quest-study-replay-body {
@@ -250,7 +255,7 @@
     --quest-action-size: 48px;
   }
   .quest-study .quest-study-score { margin-block: .08rem .15rem; min-block-size: 0; }
-  .quest-study #quest-study-turn { padding-block: .125rem; }
+  .quest-study #quest-study-turn { --quest-turn-padding: .125rem; }
   .quest-study #quest-study-hint-label { max-inline-size: none; padding-inline: .5rem; }
   .quest-study #quest-study-explanation[data-replay] .quest-study-dialog { padding-inline: 0; }
   .quest-study #quest-study-explanation[data-replay] .quest-study-dialog-head { padding-inline: .5rem; }

@@ -234,16 +234,42 @@ dialog::backdrop { background: #121613a8; }
 #match-inline-hint[aria-pressed="true"] { color: #57e0b4; }
 #match-inline-preview {
   inline-size: min(35rem, calc(100% - 1rem));
-  max-block-size: calc(100dvh - 1rem);
-  overflow: auto;
+  max-inline-size: none;
+  block-size: min(42rem, calc(100dvh - 1rem));
+  max-block-size: none;
+  padding: .65rem;
+  container-type: size;
+  overflow: hidden;
 }
+#match-inline-preview[open] {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: .35rem;
+}
+#match-inline-preview > header {
+  flex-wrap: nowrap;
+  gap: .35rem;
+}
+#match-inline-preview-title { min-inline-size: 0; }
 #match-inline-preview-board.board {
-  inline-size: min(100%, max(10rem, calc(100dvh - 13rem)));
-  margin: .35rem auto 0;
+  inline-size: min(100%, max(8rem, calc(100cqb - 9.5rem)));
+  margin-inline: auto;
 }
-#match-inline-preview button { min-block-size: var(--play-action-size); }
+#match-inline-preview button:not(.square) { min-block-size: var(--play-action-size); }
 #match-inline-close { display: grid; place-items: center; min-inline-size: var(--play-action-size); padding: 0; }
-#match-inline-branches:not(:empty) { margin-block: .35rem; }
+.match-inline-preview-navigation {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  text-align: center;
+  gap: .35rem;
+}
+.match-inline-preview-navigation button { min-inline-size: var(--play-action-size); }
+.match-inline-preview-details {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+#match-inline-branches:not(:empty) { margin-block-end: .35rem; }
 .square {
   display: grid;
   place-items: center;
@@ -313,13 +339,14 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
     --play-action-size: 48px;
     --play-puzzle-text: 8.25rem;
   }
+  main:has(> .match:not([hidden])) > header h1 { font-size: .9375rem; }
   main:has(> .match:not([hidden])) > header .header-actions button { padding-inline: .35rem; font-size: .875rem; }
   .match-automatic { max-inline-size: 7rem; padding-inline: .4rem; }
   .match-actions button { flex: 1 1 min-content; padding-inline: .25rem; overflow-wrap: normal; }
   #match-history { flex-wrap: nowrap; }
   #match-history :is(#match-previous, #match-next) { min-inline-size: var(--play-action-size); }
   #match-ply, #continue-match { min-inline-size: 0; }
-  #continue-match { padding-inline: .35rem; }
+  #continue-match { padding: .2rem .35rem; font-size: .8rem; line-height: 1.1; }
 }
 @media (max-width: 43rem) {
   .review { grid-template-columns: minmax(0, 1fr); gap: .65rem; }
