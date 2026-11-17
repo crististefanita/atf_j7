@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -134,7 +133,7 @@ public final class TacticalAnalysis {
     static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers,
                                     List<ChessPosition> repetitionHistory) {
         boolean hard = level == MatchSetup.Level.HARD;
-        var repertoire = gap == 0 ? OpeningRepertoire.CURRENT.reply(position, level) : null;
+        var repertoire = gap == 0 ? OpeningRepertoire.CURRENT.playReply(position, level) : null;
         var root = new RootSearch(position, repetitionOffers);
         var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
         int depth = level == MatchSetup.Level.BASIC && !bareKingMateEndgame(position)
@@ -171,20 +170,38 @@ public final class TacticalAnalysis {
 
     private static SearchReport hintAnalysis(ChessPosition position, Move repertoire, MatchAiPolicy.Hint policy, int nodes) {
         var root = new RootSearch(position, Set.of());
-        if (repertoire != null) {
-            var base = analyze(position, MatchAiPolicy.BASE_PLIES, List.of(repertoire), Objective.POSITION);
-            var search = new MatchAiPolicy.Search(policy.search().maxPlies(), nodes);
-            return matchSearch(root, search, 0, policy.tacticalExtensionPlies(), false, false, base);
+        var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
+        if (moves.isEmpty()) return new SearchReport(new Result(List.of()), 0, 0);
+        var budget = new SearchBudget(nodes, policy.tacticalExtensionPlies(),
+                MatchAiPolicy.CURRENT.hardTranspositions.entryLimit(nodes));
+        budget.checkOrderBonus = MatchAiPolicy.CURRENT.hardOrdering.checkBonus();
+        budget.quietMoveOrdering = new QuietMoveOrdering();
+        Result best = new Result(List.of());
+        Map<Move, Integer> shallowScores = Map.of();
+        int completed = 0;
+        // The seed, every completed horizon and frontier exchange share one charged budget.
+        for (int depth = 1; depth <= policy.search().maxPlies(); depth++) {
+            try {
+                var confirmation = depth == MatchAiPolicy.BASE_PLIES + 1 ? shallowScores : Map.<Move, Integer>of();
+                var candidate = deepen(root, moves, depth, budget, policy.maxLossCp(), confirmation);
+                // A changed odd-horizon leader needs an equal-turn confirmation before replacing the completed ranking.
+                if (depth > MatchAiPolicy.BASE_PLIES && depth % 2 == 1 && completed == depth - 1
+                        && candidate.ranked().get(0).signedMatePlies() == 0
+                        && !candidate.ranked().get(0).move().equals(best.ranked().get(0).move())) continue;
+                best = candidate;
+                completed = depth;
+                if (depth == MatchAiPolicy.BASE_PLIES && material(position) == 0) shallowScores = boundedShallowScores(position, candidate);
+                if (candidate.ranked().get(0).signedMatePlies() > 0) break;
+                var ordered = new ArrayList<>(moves);
+                var leader = candidate.ranked().get(0).move();
+                ordered.remove(leader);
+                ordered.add(0, leader);
+                moves = ordered;
+            } catch (BudgetExhausted exhausted) {
+                break;
+            }
         }
-        var hardPolicy = MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD);
-        var base = openingSearch(position);
-        var hard = matchSearch(root, hardPolicy, 0, 0, true, false, base);
-        int available = nodes - hard.extraNodes();
-        var tacticalPolicy = new MatchAiPolicy.Search(policy.search().maxPlies(), available - policy.verificationNodes());
-        var tactical = matchSearch(root, tacticalPolicy, policy.maxLossCp(), policy.tacticalExtensionPlies(), false, false, base);
-        var verified = chooseCoachingSearch(position, base, hard, tactical, policy);
-        return new SearchReport(new Result(coachingOrder(position, verified.result())),
-                verified.depth(), hard.extraNodes() + tactical.extraNodes() + verified.extraNodes());
+        return new SearchReport(new Result(coachingOrder(position, best)), completed, nodes - budget.remaining);
     }
 
     private static List<Variation> coachingOrder(ChessPosition position, Result result) {
@@ -193,45 +210,6 @@ public final class TacticalAnalysis {
                 .thenComparing(Comparator.comparingInt((Variation line) -> ChessMatch.activity(position, line.move())).reversed())
                 .thenComparing(line -> line.move().uci()));
         return ranked;
-    }
-
-    private static SearchReport chooseCoachingSearch(ChessPosition position, Result base, SearchReport hard, SearchReport tactical,
-                                                      MatchAiPolicy.Hint policy) {
-        if (base.ranked().isEmpty()) return new SearchReport(base, hard.depth(), 0);
-        var hardBest = coachingOrder(position, hard.result()).get(0);
-        var tacticalBest = coachingOrder(position, tactical.result()).get(0);
-        int hardMate = hardBest.signedMatePlies();
-        int tacticalMate = tacticalBest.signedMatePlies();
-        if (hardMate != 0 || tacticalMate != 0) {
-            var proof = hardMate == 0 || tacticalMate != 0 && tacticalBest.score() > hardBest.score() ? tactical : hard;
-            return new SearchReport(proof.result(), proof.depth(), 0);
-        }
-        if (hardBest.move().equals(tacticalBest.move())) return new SearchReport(tactical.result(), tactical.depth(), 0);
-        if (hard.depth() == MatchAiPolicy.BASE_PLIES) return new SearchReport(base, hard.depth(), 0);
-
-        // Compare alternatives with the completed Hard horizon before displaying their score differences.
-        var candidates = new LinkedHashSet<Move>();
-        hard.result().ranked().forEach(line -> candidates.add(line.move()));
-        tactical.result().ranked().forEach(line -> candidates.add(line.move()));
-        var budget = new SearchBudget(policy.verificationNodes(), 0);
-        var confirmation = hard.depth() == MatchAiPolicy.BASE_PLIES + 1 && material(position) == 0
-                ? boundedShallowScores(position, base) : Map.<Move, Integer>of();
-        Result result = hard.result();
-        try {
-            result = deepen(new RootSearch(position, Set.of()), List.copyOf(candidates), hard.depth(), budget, policy.maxLossCp(), confirmation);
-        } catch (BudgetExhausted exhausted) {
-            // The completed Hard result remains available if the alternatives cannot all be compared.
-        }
-        return new SearchReport(result, hard.depth(), policy.verificationNodes() - budget.remaining);
-    }
-
-    private static Result openingSearch(ChessPosition position) {
-        return analyze(position, MatchAiPolicy.BASE_PLIES, position.legalMoves(), Objective.POSITION);
-    }
-
-    static Move bestImmediateDefense(ChessPosition position) {
-        var replies = analyze(position, 1, position.legalMoves(), Objective.POSITION).ranked();
-        return replies.isEmpty() ? null : replies.get(0).move();
     }
 
     static int positionValue(ChessPosition position, Side perspective) {
@@ -253,7 +231,7 @@ public final class TacticalAnalysis {
         var policy = MatchAiPolicy.CURRENT.hint;
         int totalNodes = policy.search().extraNodes();
         var repertoire = OpeningRepertoire.CURRENT.reply(position);
-        int seedNodes = repertoire == null ? totalNodes : totalNodes - policy.verificationNodes();
+        int seedNodes = totalNodes - policy.verificationNodes();
         var seed = hintAnalysis(position, repertoire, policy, seedNodes);
         var ranked = seed.result().ranked();
         var lines = hintLines(seed.result(), policy);
@@ -266,7 +244,7 @@ public final class TacticalAnalysis {
         int verificationNodes = Math.min(policy.verificationNodes(), totalNodes - seed.extraNodes());
         int shortlistNodes = 0;
         if (roots.size() == 1 && lines.get(0).signedMatePlies() == 0) {
-            var shortlist = new SearchBudget(verificationNodes, 0);
+            var shortlist = new SearchBudget(verificationNodes, policy.tacticalExtensionPlies());
             var alternatives = new ArrayList<>(legal);
             alternatives.remove(roots.get(0));
             try {
@@ -338,20 +316,23 @@ public final class TacticalAnalysis {
                 || alternative != null && (!legal.contains(alternative) || alternative.equals(preferred))) {
             return java.util.Optional.empty();
         }
-        if (alternative == null) {
-            alternative = analyze(position, 2, legal, Objective.POSITION).ranked().stream().map(Variation::move)
-                    .filter(move -> !move.equals(preferred)).findFirst().orElseThrow();
-        }
         var policy = MatchAiPolicy.CURRENT.hint;
-        var comparison = verifyHintRoots(position, List.of(preferred, alternative), policy.verificationNodes(), policy.search().maxPlies()).search();
+        var roots = alternative == null ? legal : List.of(preferred, alternative);
+        var comparison = verifyHintRoots(position, roots, policy.verificationNodes(), policy.search().maxPlies()).search();
         var lines = comparison.result().ranked();
+        if (alternative == null && !lines.isEmpty()) {
+            var selected = lines.stream().filter(line -> line.move().equals(preferred)).findFirst().orElseThrow();
+            var other = lines.stream().filter(line -> !line.move().equals(preferred)).findFirst().orElseThrow();
+            lines = new ArrayList<>(List.of(selected, other));
+            lines.sort(RANK);
+        }
         return lines.isEmpty() ? java.util.Optional.empty()
                 : java.util.Optional.of(HintComparison.of(position, lines.get(0), lines.get(1), comparison.depth()));
     }
 
     private static HintVerification verifyHintRoots(ChessPosition position, List<Move> moves, int nodes, int maxPlies) {
         var policy = MatchAiPolicy.CURRENT;
-        var budget = new SearchBudget(nodes, 0, policy.hardTranspositions.entryLimit(nodes));
+        var budget = new SearchBudget(nodes, policy.hint.tacticalExtensionPlies(), policy.hardTranspositions.entryLimit(nodes));
         budget.checkOrderBonus = policy.hardOrdering.checkBonus();
         budget.quietMoveOrdering = new QuietMoveOrdering();
         var budgets = Collections.nCopies(moves.size(), budget);
@@ -389,7 +370,9 @@ public final class TacticalAnalysis {
         try {
             // Start with equal turns for both sides, then admit bounded evidence from the next ply.
             var even = search(position, 2, 0, -LIMIT, LIMIT, budget, Objective.POSITION);
-            if (even.ending() != Ending.HORIZON) return estimate;
+            if (even.ending() != Ending.HORIZON) {
+                return estimate;
+            }
             estimate = even.score();
             var odd = search(position, 3, 0, -LIMIT, LIMIT, budget, Objective.POSITION);
             if (odd.ending() == Ending.HORIZON) {
@@ -855,19 +838,25 @@ public final class TacticalAnalysis {
         } else {
             if (!position.hasLegalMove()) return leaf(position, distance, false, Objective.POSITION);
             best = leaf(position, distance, true, Objective.POSITION);
-            if (best.score() >= beta) return best;
+            if (best.score() >= beta) return best.withExact(false);
             alpha = Math.max(alpha, best.score());
             moves.addAll(position.legalCapturesAndPromotions());
         }
         moves.sort(Comparator.comparingInt((Move move) -> captureOrder(position, move)).reversed());
+        boolean exact = true;
+        boolean cutoff = false;
         for (Move move : moves) {
             budget.visit();
             var child = settle(position.playGenerated(move), left - 1, distance + 1, -beta, -alpha, budget).prepend(move);
+            exact &= child.exact();
             if (best == null || child.score() > best.score()) best = child;
             alpha = Math.max(alpha, child.score());
-            if (alpha >= beta) break;
+            if (alpha >= beta) {
+                cutoff = true;
+                break;
+            }
         }
-        return best;
+        return best.withExact(exact && !cutoff);
     }
 
     private static int captureOrder(ChessPosition position, Move move) {

@@ -12,7 +12,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
-| P1 | Indiciu · apărare la orizont | Indiciul sicilian ratează o apărare mai bună. | Compară replicile la același orizont și buget. |
+| P1 | Indiciu · precizia alternativelor independente | Unele alternative rămân supraevaluate după verificarea schimburilor. | Verifică ordonarea și fiecare alternativă oferită față de replici libere, în același buget. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
 | P2 | Android · gestul predictiv | Gestul predictiv mai cere un dispozitiv compatibil. | Verifică anularea și reluarea pe API 33+. |
 | P1 | Calibrarea profilurilor AI | Intervalele Elo încă se suprapun. | Adaugă jocuri pereche pentru a restrânge incertitudinea. |
@@ -20,7 +20,6 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Învățarea Hard din PGN-uri | Modelul de ordonare antrenat pe pierderi păstrează toate mutările finale în 36 de familii noi. | Adaugă mutări bune păstrate și sacrificii, apoi verifică ordonarea și deciziile complete. |
 | P1 | Căutarea Hard · generalizare | Recaptura selectivă pierde pe deschideri independente. | Cere progres independent la bugetul fix. |
 | P1 | Hard · conversia după captura de pion | Avantajul după captură poate fi pierdut ulterior. | Verifică păstrarea avantajului pe poziții și replici noi. |
-| P1 | Indiciu · Catalana pe lotul independent | Indiciul catalan pierde mai mult pe lotul independent. | Compară cei trei candidați până după recaptură. |
 | P1 | Transferul tactică → partidă | Hard ratează tactici fără obiectiv declarat. | Măsoară detectarea și păstrează contractul solverului. |
 | P2 | Progres · upgrade Android | Upgrade-ul semnat mai cere o probă de progres. | Păstrează ID-urile, rezolvările și punctele după upgrade și restart. |
 | P2 | Calitatea AI · evaluare material | Scorul material diferă de Stockfish. | Redu abaterea la aceleași bugete. |
@@ -57,11 +56,11 @@ Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceea
 </details>
 
 <details>
-<summary>P1 · Indiciu · apărare la orizont</summary>
+<summary>P1 · Indiciu · precizia alternativelor independente</summary>
 
-În Siciliană, linia calculată cu `…Qxf2+ Kxf2` afișează `−764 cp` pentru negru față de start. Din poziția anterioară, comparația exactă la două semimutări găsește `…Qb4 Nd2`, cu `−30 cp` față de start.
+Defectul `…Nxc2+ Qxc2` și inserarea unei replici după ordonare sunt închise prin frontiera comună a schimburilor și rejucarea fără modificări. Liderul public în Siciliană este acum `…cxd4`, cu 477‰ față de 476‰ pentru rădăcina liberă Stockfish la H19. Problema rămasă privește forța și ordinea alternativelor oferite. `…Nd7` are încă 268‰, iar `…b5` din martorul anterior capturii `Nxc2` are 329‰ față de 493‰ pentru rădăcina liberă. În Catalană, `cxd5` are 485‰, iar `Nf3` are 516,5‰. În Caro–Kann, noul `…d6` are 383,5‰ față de 215,5‰ pentru vechiul `…Nf6`, în timp ce rădăcina liberă `…d5` are încă 482,5‰. [Contractul închis al schimburilor](../board/ai-quality.md#verificarea-schimburilor-din-indiciu)
 
-Integrați reanaliza ramurii cu ambele părți în același buget. Confirmați întreaga continuare și păstrați acoperirea în Catalană, Siciliană și Alehină. [Probe AI](../testing/README.md#partidă-și-istoric)
+Îmbunătățiți ordonarea comună în plafonul total de 200.000 de noduri pentru indiciu. Comparați toate mutările oferite la același orizont complet și verificați replicile adverse libere la H17/H19 pe familii noi. Păstrați sacrificiile corecte de damă și cal, negativele limitelor din cache și identitatea bec/comparație/rejucare. Un PASS de integritate a rejucării nu dovedește forță egală între alternative. Păstrați dovezile adâncimii complete și ale nodurilor efective. [Probe AI](../testing/README.md#partidă-și-istoric)
 
 </details>
 
@@ -107,15 +106,6 @@ Recaptura selectivă îmbunătățește Tactica, dar pierderea medie pe deschide
 Hard găsește acum `Nxe5` în Siciliana cu `…h6` și în poziții vecine, la 44.000 de noduri. În continuarea cu `…Nc6 Nxc6`, împingerea `e5` pierde 211‰ față de `d3` la adâncimea 17. În lotul tematic final, B a încheiat cu 3 victorii, iar A cu 5.
 
 Verificați alegerea `d3` pe poziții noi și după replici adverse distincte, apoi urmăriți păstrarea avantajului în jocuri pereche cu același buget. Păstrați testele de captură și martorii cu pion apărat. [Dovezi](../board/ai-quality.md#verificarea-schimburilor-după-o-captură-de-pion)
-
-</details>
-
-<details>
-<summary>P1 · Indiciu · Catalana pe lotul independent</summary>
-
-Benchmarkul măsoară mutarea afișată. Stockfish 19 confirmă pierderi cumulate de 281‰ pentru indiciu și 257‰ pentru Hard. În Catalană, `cxd5` pierde 49‰, iar `Nc3` pierde 25‰. La 32.000 de noduri, adăugarea lui `Nc3` în comparație încheie numai patru semimutări și păstrează `cxd5`.
-
-Comparați `cxd5`, `Nc3` și `Nf3` la același orizont, până după recaptură. Cereți o pierdere cumulată cel mult egală cu Hard și păstrați martorii Réti și Alehină cu aceleași bugete. [Raportul comparativ](../board/ai-quality.md#captura-imediată-de-pion-în-căutarea-hard)
 
 </details>
 

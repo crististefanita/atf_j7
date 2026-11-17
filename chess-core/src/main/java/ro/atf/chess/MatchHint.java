@@ -63,33 +63,12 @@ public final class MatchHint {
 
     public static MatchHint analyze(ChessPosition position) {
         var search = TacticalAnalysis.verifiedHints(position);
-        return new MatchHint(position, defendedChoices(position, search.lines()), search.comparison());
+        return new MatchHint(position, search.lines(), search.comparison());
     }
 
     static MatchHint study(ChessPosition position) {
         var choices = OpeningTheory.CURRENT.choices(position);
         return choices.isEmpty() ? analyze(position) : new MatchHint(position, List.of(), null, choices);
-    }
-
-    static List<TacticalAnalysis.Variation> defendedChoices(ChessPosition position, List<TacticalAnalysis.Variation> ranked) {
-        if (ranked.size() < 2) return ranked;
-        var leader = ranked.get(0);
-        var lead = HintPreview.openDefended(position, leader).orElseThrow();
-        int limit = MatchAiPolicy.CURRENT.hint.maxVariants();
-        if (lead.evidence().reason() == HintPreview.Reason.CHECKMATE) return ranked.subList(0, Math.min(ranked.size(), limit));
-        int gain = lead.estimate().map(HintPreview.Estimate::changeCp).orElse(0);
-        if (gain <= 0) return List.of(leader);
-
-        var shown = new ArrayList<TacticalAnalysis.Variation>();
-        shown.add(leader);
-        int gap = MatchAiPolicy.CURRENT.hint.maxLossCp();
-        for (int index = 1; index < ranked.size() && shown.size() < limit; index++) {
-            var candidate = ranked.get(index);
-            int afterDefense = HintPreview.openDefended(position, candidate).flatMap(HintPreview::estimate)
-                    .map(HintPreview.Estimate::changeCp).orElse(0);
-            if (afterDefense > 0 && gain - afterDefense <= gap) shown.add(candidate);
-        }
-        return shown;
     }
 
     List<TacticalAnalysis.Variation> lines() { return lines; }

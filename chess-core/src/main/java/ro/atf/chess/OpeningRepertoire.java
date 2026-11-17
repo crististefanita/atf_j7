@@ -8,7 +8,7 @@ import java.util.Set;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.MatchSetup.Level;
 
-/** Verified replies at exact opening positions. All subsequent moves come from search. */
+/** Verified opening overrides and documented theory shared by live opponent profiles. */
 final class OpeningRepertoire {
     static final OpeningRepertoire CURRENT = read(ChessYaml.resource("ai-repertoire.yaml"));
 
@@ -24,6 +24,16 @@ final class OpeningRepertoire {
 
     Move reply(ChessPosition position, Level level) {
         return reply(position, level, false);
+    }
+
+    /** Live play follows documented theory; coaching still compares positions through search. */
+    Move playReply(ChessPosition position, Level level) {
+        var verified = reply(position, level);
+        if (verified != null) return verified;
+        if (entries.stream().anyMatch(entry -> entry.reviewOnly() && entry.levels().contains(level)
+                && entry.position().sameForRepetition(position))) return null;
+        var paths = OpeningTheory.CURRENT.choices(position);
+        return paths.isEmpty() ? null : paths.get(0).move();
     }
 
     Move reviewReply(ChessPosition position) {

@@ -82,6 +82,26 @@ efective, adâncimile complete, nodurile și timpul CPU înainte de interpretare
 estimării Elo. Liga ordonării învățate folosește propria sursă și politică
 înghețate. Estimarea ei Elo aparține acelui comparator exact.
 
+### Integritatea indiciului și deschiderile comune
+
+`HintFrontierTest` compară `…Nxc2+` până după `Qxc2`, recaptura nebunului din
+debut și două sacrificii de mat corecte, cu mutarea sprijinului ca contraexemplu.
+Cache-ul încălzit, rece și dezactivat trebuie să coincidă după o tăiere cu fereastră
+îngustă. YAML respinge peste 200.000 de noduri, iar deciziile publice taxează
+orizonturile inițiale, frontiera tactică și comparația la adâncime comună din plafon.
+
+`MatchHintTest`, `HintComparisonTest` și `HintPreviewTest` cer ca becul,
+comparația, atingerea destinației și rejucarea să păstreze aceleași mutări evaluate.
+Rejucarea conservă checkpoint-ul și nu adaugă un răspuns neevaluat. Aserțiunile
+comparării disting orizontul nominal complet de frontiera sa limitată.
+
+`OpeningPlayTest` acoperă Basic, Advanced și Hard după deschideri umane diferite,
+schimbarea ramurii, transpozițiile exacte, pierderea rocadei și ieșirea reală
+din teorie. Replicile pe profil și cele rezervate analizei își păstrează domeniul.
+Regulile efective rejucă fiecare cadru și întreaga continuare documentată.
+
+[Frontiera indiciului](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java) · [Contractele deschiderilor](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java) · [Paritatea rejucării Web](../../atf-tests/src/test/java/ro/atf/chess/WebHintReplayComponentTest.java)
+
 ## Paritatea Web a motorului
 
 `ChessWebRulesComponentTest` verifică motorul și cataloagele pe JVM. `ChessWebParityPublication` execută aceleași cazuri în workerul TeaVM pentru toate resursele folosite. Rulați proba explicit cu pachetul din TMP. [Build și probe Web](../../web/README.md)

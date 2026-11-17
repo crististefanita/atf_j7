@@ -47,7 +47,7 @@ class MatchAiGovernanceTest {
     }
 
     @Test void hardCheckOrderingIsBoundedAndGovernedByYaml(Checks check) {
-        check.same("Only the game Hard profile uses the configured check-order bonus", 10_000,
+        check.same("Hard and the strongest hint share the configured check-order bonus", 10_000,
                 MatchAiPolicy.CURRENT.hardOrdering.checkBonus());
         var root = new HashMap<Object, Object>(ChessYaml.resource("match-ai.yaml"));
         var ordering = new HashMap<Object, Object>(ChessYaml.map(root, "hard-ordering"));

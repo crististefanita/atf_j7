@@ -156,18 +156,18 @@
 
 - Apasă becul din bara de sub tablă pentru cea mai bine evaluată linie și săgeata primei mutări. Când controlezi culoarea la mutare, atinge destinația indicată ca să joci prima mutare. În istoric poți consulta varianta și alege **Continuă de aici** pentru a juca din poziția afișată. În tura AI-ului poți aștepta replica sau debifa **Lasă AI-ul să mute** pentru a juca acea mutare.
 
-- Indiciul pornește de la căutarea Hard, independent de nivelul adversarului.
-  Comparația la adâncime comună folosește cel mult 32.000 de noduri din plafonul
-  de 220.000 de noduri suplimentare. Becul parcurge cel mult trei variante.
-  Alternativele apar când diferența estimată după apărare este pozitivă și
-  rămâne la cel mult 0,25 pioni sub prima variantă. Dacă liderul nu arată o
-  îmbunătățire, apare singur, cu estimarea disponibilă. La mat demonstrat,
-  variantele au același rezultat și aceeași distanță. [Evaluarea AI](ai-quality.md)
+- Indiciul folosește nucleul de căutare Hard, independent de nivelul adversarului.
+  Căutarea inițială, schimburile tactice și comparația împart plafonul de 200.000
+  de noduri. Până la 32.000 dintre ele compară alternativele la adâncime comună.
+  Becul parcurge cel mult trei variante aflate la maximum 0,25 pioni sub lider.
+  Căutarea evaluează capturile și recapturile înaintea ordonării variantelor.
+  La mat demonstrat, variantele au același rezultat și aceeași distanță.
+  [Evaluarea AI](ai-quality.md)
 
 - După bec, **Vezi linia** deschide tabla la poziția consultată. Prima săgeată
-  înainte joacă recomandarea și a doua arată replica. Când linia se încheie
-  înaintea răspunsului adversarului, motorul compară toate răspunsurile legale
-  imediate și îl adaugă pe cel mai bine evaluat. Sub tablă apar scorul inițial,
+  înainte joacă recomandarea și a doua arată replica. Rejucarea urmează exact
+  continuarea evaluată, inclusiv schimburile verificate, fără o mutare adăugată
+  după ordonare. Sub tablă apar scorul inițial,
   scorul final și diferența, din perspectiva culorii care muta la început.
   Avantajul poate veni din evaluarea poziției, iar matul și patul au rezultat
   propriu. Săgețile parcurg toate semimutările disponibile.

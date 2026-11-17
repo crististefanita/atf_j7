@@ -22,8 +22,10 @@ class HintComparisonTest {
         check.same("The verified leader supplies the bulb and the dialog", hint.revealed(), pair.stronger());
         check.same("The first two certified alternatives share the dialog score window", true,
                 pair.stronger().score() - pair.alternative().score() <= MatchAiPolicy.CURRENT.hint.maxLossCp());
-        check.same("Both complete lines use the same horizon", List.of(pair.depth(), pair.depth()),
-                List.of(pair.stronger().line().size(), pair.alternative().line().size()));
+        int extension = MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies();
+        check.same("Both complete lines use the same nominal horizon and bounded tactical frontier", true,
+                List.of(pair.stronger(), pair.alternative()).stream()
+                        .allMatch(line -> line.line().size() >= pair.depth() && line.line().size() <= pair.depth() + extension));
         check.same("The recommended label follows the verified score", true, pair.stronger().score() >= pair.alternative().score());
         for (var branch : List.of(pair.stronger(), pair.alternative())) {
             var playback = HintPreview.open(start, branch).orElseThrow();
@@ -44,9 +46,10 @@ class HintComparisonTest {
         check.same("The independent Sicilian control keeps the sound central reply", move("c5d4"), sicilian.selected());
         assertOpening(check, "Caro–Kann, White", "e2e4 c7c6");
         var caro = assertOpening(check, "Caro–Kann, Black", "e2e4 c7c6 d2d4");
-        check.same("The Caro–Kann control keeps Nf6", move("g8f6"), caro.selected());
-        check.same("Nf6 retains its positive score and five completed plies", true,
-                caro.scoreLine(0).score() > 0 && caro.lines().getFirst().line().size() >= 5);
+        // SF19 H17/H19 confirms d6 improves on the former Nf6 fixture; d5 remains the external leader.
+        check.same("The Caro–Kann control keeps the supported d6 recommendation", move("d7d6"), caro.selected());
+        check.same("The completed ranking reports Black's disadvantage and its actual supported horizon", true,
+                caro.scoreLine(0).score() < 0 && caro.depth() >= 4 && caro.lines().getFirst().line().size() >= caro.depth());
         assertOpening(check, "Catalan, White", "d2d4 g8f6 c2c4 e7e6 g2g3 d7d5");
         assertOpening(check, "Catalan, Black", "d2d4 g8f6 c2c4 e7e6 g2g3 d7d5 f1g2");
     }
@@ -87,15 +90,17 @@ class HintComparisonTest {
         check.same("The deeper Sicilian repertoire line keeps its pawn capture", move("f3e5"), hint.revealed().move());
         check.same("A shallower reversal is not published as a competing best line", true, hint.compare(position).isEmpty());
         var replay = hint.preview(position).orElseThrow();
-        check.same("A shallower comparison cannot truncate the verified seven-ply line", 7, replay.length());
+        check.same("A shallower comparison cannot truncate the complete scored continuation", hint.first().line().size(), replay.length());
+        check.same("The verified line reaches beyond the immediate recapture", true, replay.length() >= 5);
         replay.next();
         check.same("Playback and tapping still use the proved line's first move", List.of(move("f3e5"), move("f3e5")),
                 List.of(replay.lastMove(), hint.moveForTap(position, -1, BoardSquare.parse("e5"))));
     }
 
-    @Test void rejectsUnconfirmedReversalsInRetiAndAlekhine(Checks check) {
-        assertRetainedHint(check, "Réti", "g1f3 d7d5 c2c4 d5d4", "d2d3", true);
-        assertRetainedHint(check, "Alekhine", "e2e4 g8f6 e4e5 f6d5 d2d4 d7d6", "c2c4", false);
+    @Test void keepsSoundRetiAndAlekhineRecommendationsAtTheVerifiedCommonFrontier(Checks check) {
+        // SF19 H17/H19 confirms e3 and the former d3 fixture remain sound with free replies.
+        assertRetainedHint(check, "Réti", "g1f3 d7d5 c2c4 d5d4", "e2e3", true);
+        assertRetainedHint(check, "Alekhine", "e2e4 g8f6 e4e5 f6d5 d2d4 d7d6", "c2c4", true);
     }
 
     private static void assertRetainedHint(Checks check, String name, String moves, String retained, boolean comparable) {
@@ -104,7 +109,7 @@ class HintComparisonTest {
         hint.revealNext();
         var move = move(retained);
         check.same(name + " retains the supported recommendation in the bulb and on the board", List.of(move, move),
-                List.of(hint.revealed().move(), hint.moveForTap(position, -1, move.to())));
+                java.util.Arrays.asList(hint.revealed().move(), hint.moveForTap(position, -1, move.to())));
         var comparison = hint.compare(position);
         check.same(name + " exposes alternatives only with comparable evidence", comparable, comparison.isPresent());
         if (comparable) check.same(name + " keeps the same best move in the completed comparison", move, comparison.orElseThrow().stronger().move());
@@ -122,8 +127,10 @@ class HintComparisonTest {
         check.same(name + " shares the recommendation across dialog, preview and destination tap", List.of(expected, expected, expected),
                 java.util.Arrays.asList(playback.selected(), preview.lastMove(), hint.moveForTap(position, -1, expected.to())));
         if (playback.lines().size() > 1) {
-            check.same(name + " uses a completed common horizon for all displayed scores", true,
-                    playback.scoredLines().stream().allMatch(line -> line.line().size() == playback.depth()));
+            int extension = MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies();
+            check.same(name + " uses a completed common horizon and the same tactical frontier for all displayed scores", true,
+                    playback.scoredLines().stream().allMatch(line -> line.line().size() >= playback.depth()
+                            && line.line().size() <= playback.depth() + extension));
         }
         var search = TacticalAnalysis.verifiedHints(position);
         int limit = MatchAiPolicy.CURRENT.hint.search().extraNodes();

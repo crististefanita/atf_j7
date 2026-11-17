@@ -706,6 +706,38 @@ testChanges:
     nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
     nativeProbe: "Graph and arrow navigation synchronize the selected move, hide the opening and keep the board anchored"
 
+  - id: CHESS-EN-DOCUMENTATION-ROUTES
+    base: "019d979ccf7e0ea0f5e30a900f8017d5a52c08ce"
+    from: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeKeepsAnArchitectureMapAndDirectRoutes
+    contract: "Preserve documentation ownership and release, testing, and feedback routes under the English headings"
+    allowDelete: false
+
+  - id: CHESS-EN-DIAGRAM-LEGEND
+    base: "019d979ccf7e0ea0f5e30a900f8017d5a52c08ce"
+    from: atf-tests/src/test/java/ro/atf/chess/MarkdownVisualContract.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#authoredGuidesKeepPortableMarkdownAndExplainedDiagrams
+    contract: "Keep labeled diagrams and their adjacent collapsed legends after translation"
+    allowDelete: false
+
+  - id: CHESS-EN-RELEASE-README
+    base: "019d979ccf7e0ea0f5e30a900f8017d5a52c08ce"
+    from: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+    test: ro.atf.chess.ReleaseGovernanceTest#readmeKeepsTheDownloadSectionFirstAndRejectsOtherApkRoutes
+    contract: "Verify the same canonical APK and Web routes in English and archived Romanian READMEs"
+    allowDelete: false
+
+  - id: CHESS-EN-GIT-REVIEW-ROUTE
+    base: "019d979ccf7e0ea0f5e30a900f8017d5a52c08ce"
+    from: atf-tests/src/test/java/ro/atf/chess/TestChangePolicyTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/TestChangePolicyTest.java
+    test: ro.atf.chess.TestChangePolicyTest#ragCitesTheReviewProcessForCoverageChanges
+    contract: "Keep the RAG route to the explicit Git review and preflight under the English heading"
+    allowDelete: false
+
   - id: J7-UI-PARITY-SHELL-EN
     base: "71d122d833406381aab6d1d08ddd09407edb9b12"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebShellTest.java
@@ -736,4 +768,100 @@ testChanges:
     replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
     test: ro.atf.chess.ChessWebAnalysisStudyTest#analysisStudyUsesMockWorkersWithoutABrowser
     contract: "Retain all analysis, hint, theory, replay and recovery cases, adding anchored menu and focus coverage"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-COMPARISON-EN
+    base: "b00045273fc8a70577973685cf5ea8c55c8f4858"
+    from: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    test: ro.atf.chess.HintComparisonTest#usesOneVerifiedOrderForTheBulbDialogAndTapInThreeOpenings
+    contract: "Preserve the scored recommendation across bulb, comparison, preview and destination tap, at one nominal horizon with a bounded tactical frontier and Stockfish-supported opening snapshots"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-REPLAY-EN
+    base: "b00045273fc8a70577973685cf5ea8c55c8f4858"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
+    test: ro.atf.chess.HintPreviewTest#replaysTheScoredSicilianRecaptureWithoutAddingAnUnscoredMove
+    contract: "Keep the Sicilian queen recapture and its negative Black-perspective estimate in the complete scored line, without adding an unscored replay move"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-ORDERING-EN
+    base: "b00045273fc8a70577973685cf5ea8c55c8f4858"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    test: ro.atf.chess.MatchAiGovernanceTest#hardCheckOrderingIsBoundedAndGovernedByYaml
+    contract: "Retain the exact YAML ordering bonus and rejection of invalid ordering settings while the strongest hint shares Hard ordering"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-ALTERNATIVES-EN
+    base: "b00045273fc8a70577973685cf5ea8c55c8f4858"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    test: ro.atf.chess.MatchHintTest#preservesTheRecalculatedAlternativesWithoutSacrificingAMinorPieceAfterE4
+    contract: "Replace the formerly accepted losing e4 projection with fully recalculated material-preserving alternatives, retaining hidden evaluation, ordered reveal and exact legal tap semantics"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-THEORY-EN
+    base: "b00045273fc8a70577973685cf5ea8c55c8f4858"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchSetupTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchSetupTest.java
+    test: ro.atf.chess.MatchSetupTest#hardFollowsDocumentedTheoryAndKeepsItsIndependentSearchControl
+    contract: "Follow documented French and Scandinavian continuations while retaining the independent searched move, completed confirmation and configured node ceiling when theory is bypassed"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-SHARED-FIXTURE-EN
+    base: "b00045273fc8a70577973685cf5ea8c55c8f4858"
+    from: atf-tests/src/test/resources/match-analysis-cases.json
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java
+    test: ro.atf.chess.MatchAnalysisParityTest#nativeModelProjectsTheDisplayedMatchFrame
+    contract: "Update the shared Nc3 replay and off-book recommendation snapshots with Stockfish evidence, retaining JVM-worker setup, history, small White advantage, manual-board parity, mate and stored-checkpoint contracts"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-COMPARISON-RO
+    base: "8a90947be9e57135221216c183b060fb3b0a8285"
+    from: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    test: ro.atf.chess.HintComparisonTest#usesOneVerifiedOrderForTheBulbDialogAndTapInThreeOpenings
+    contract: "Preserve the scored recommendation across bulb, comparison, preview and destination tap, at one nominal horizon with a bounded tactical frontier and Stockfish-supported opening snapshots"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-REPLAY-RO
+    base: "8a90947be9e57135221216c183b060fb3b0a8285"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
+    test: ro.atf.chess.HintPreviewTest#replaysTheScoredSicilianRecaptureWithoutAddingAnUnscoredMove
+    contract: "Keep the Sicilian queen recapture and its negative Black-perspective estimate in the complete scored line, without adding an unscored replay move"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-ORDERING-RO
+    base: "8a90947be9e57135221216c183b060fb3b0a8285"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    test: ro.atf.chess.MatchAiGovernanceTest#hardCheckOrderingIsBoundedAndGovernedByYaml
+    contract: "Retain the exact YAML ordering bonus and rejection of invalid ordering settings while the strongest hint shares Hard ordering"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-ALTERNATIVES-RO
+    base: "8a90947be9e57135221216c183b060fb3b0a8285"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    test: ro.atf.chess.MatchHintTest#preservesTheRecalculatedAlternativesWithoutSacrificingAMinorPieceAfterE4
+    contract: "Replace the formerly accepted losing e4 projection with fully recalculated material-preserving alternatives, retaining hidden evaluation, ordered reveal and exact legal tap semantics"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-THEORY-RO
+    base: "8a90947be9e57135221216c183b060fb3b0a8285"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchSetupTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchSetupTest.java
+    test: ro.atf.chess.MatchSetupTest#hardFollowsDocumentedTheoryAndKeepsItsIndependentSearchControl
+    contract: "Follow documented French and Scandinavian continuations while retaining the independent searched move, completed confirmation and configured node ceiling when theory is bypassed"
+    allowDelete: false
+
+  - id: J7-HINT-SCORED-SHARED-FIXTURE-RO
+    base: "8a90947be9e57135221216c183b060fb3b0a8285"
+    from: atf-tests/src/test/resources/match-analysis-cases.json
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java
+    test: ro.atf.chess.MatchAnalysisParityTest#nativeModelProjectsTheDisplayedMatchFrame
+    contract: "Update the shared Nc3 replay and off-book recommendation snapshots with Stockfish evidence, retaining JVM-worker setup, history, small White advantage, manual-board parity, mate and stored-checkpoint contracts"
     allowDelete: false
