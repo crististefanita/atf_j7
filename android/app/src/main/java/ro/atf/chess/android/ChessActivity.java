@@ -612,7 +612,7 @@ public final class ChessActivity extends BackNavigableActivity {
             captures.setMinHeight(captures.getLineHeight());
             captures.setMaxLines(1);
             captures.setPadding(dp(4), 0, dp(8), 0);
-            seat.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
+            seat.addView(name, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, -2, 1));
         } else {
             seat.setOrientation(LinearLayout.VERTICAL);
             name.setPadding(dp(14), dp(4), dp(14), 0);
