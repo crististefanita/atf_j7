@@ -15,10 +15,11 @@
   <main>
     <header>
       <button id="close-why" class="review-icon" type="button" aria-label="Close explanation" aria-describedby="review-why-context" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
+      <button id="match-options-button" class="match-options-button review-icon" type="button" aria-label="Game options" aria-haspopup="dialog" aria-controls="match-options" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
       <h1 id="title">Chess Lab</h1>
       <div class="header-actions">
-        <button id="open-review" type="button" hidden>Main menu</button>
-        <button id="open-profile" type="button" hidden>Profile</button>
         <button id="return-menu" type="button" hidden>Back</button>
         <button id="archive-review-back" type="button" hidden>Close</button>
         <button id="review-close" type="button" hidden>Close</button>
@@ -123,6 +124,13 @@
         <progress id="progress"></progress>
       </div>
     </section>
+    <dialog id="match-options" aria-labelledby="match-options-title">
+      <h2 id="match-options-title">Game options</h2>
+      <button id="flip-match" type="button" autofocus>Flip board</button>
+      <button id="open-review" type="button">Main menu</button>
+      <button id="open-profile" type="button" hidden>Profile</button>
+      <form method="dialog"><button id="close-match-options">Close</button></form>
+    </dialog>
     <dialog id="profile-dialog" aria-labelledby="profile-title">
       <form id="profile-form">
         <h2 id="profile-title">Profile</h2>
