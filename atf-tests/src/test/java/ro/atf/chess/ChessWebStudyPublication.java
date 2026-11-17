@@ -225,6 +225,10 @@ class ChessWebStudyPublication {
     }
 
     static Capture capture(Path directory, String id, String expectedHash, int width, int height) throws IOException {
+        return capture(directory, id, expectedHash, width, height, 1);
+    }
+
+    static Capture capture(Path directory, String id, String expectedHash, int width, int height, double dpr) throws IOException {
         if (!id.matches("[a-z0-9-]+")) throw new IOException("Invalid capture ID: " + id);
         var candidates = List.of(directory.resolve(id + ".jpg"), directory.resolve(id + ".png")).stream()
                 .filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)).toList();
@@ -240,8 +244,16 @@ class ChessWebStudyPublication {
                 reader.setInput(stream);
                 String format = reader.getFormatName().toUpperCase(Locale.ROOT);
                 String expectedType = candidates.getFirst().toString().endsWith(".png") ? "PNG" : "JPEG";
-                if (!expectedType.equals(format) || reader.getWidth(0) != width || reader.getHeight(0) != height) {
-                    throw new IOException("Expected a " + width + "x" + height + " " + expectedType + " capture for " + id);
+                int capturedWidth = reader.getWidth(0);
+                int capturedHeight = reader.getHeight(0);
+                long physicalWidth = Math.round(width * dpr);
+                long physicalHeight = Math.round(height * dpr);
+                boolean cssSize = capturedWidth == width && capturedHeight == height;
+                boolean physicalSize = capturedWidth == physicalWidth && capturedHeight == physicalHeight;
+                if (!expectedType.equals(format) || !cssSize && !physicalSize) {
+                    throw new IOException("Expected " + expectedType + " at " + width + "x" + height + " CSS or "
+                            + physicalWidth + "x" + physicalHeight + " physical px for " + id
+                            + ", observed " + capturedWidth + "x" + capturedHeight);
                 }
                 var image = reader.read(0);
                 if ("PNG".equals(format)) return new Capture(format, hash, original);
@@ -254,7 +266,7 @@ class ChessWebStudyPublication {
         }
     }
 
-    private static void attach(Phase phase, String title, Capture capture) {
+    static void attach(Phase phase, String title, Capture capture) {
         try (var action = phase.startRequest("Evidence capture", "UI", title)) {
             action.detail("Original " + capture.format() + " SHA-256", capture.originalHash());
             action.detail("Embedded PNG SHA-256", sha256(capture.png()));
@@ -263,7 +275,7 @@ class ChessWebStudyPublication {
         }
     }
 
-    private static boolean assertions(Phase phase, String title, List<AtfAssertion> rows) {
+    static boolean assertions(Phase phase, String title, List<AtfAssertion> rows) {
         boolean passed = rows.stream().allMatch(AtfAssertion::passed);
         try (var step = phase.startAssertionStep(title)) {
             step.assertions(rows);
@@ -272,11 +284,11 @@ class ChessWebStudyPublication {
         return passed;
     }
 
-    private static void report(Phase phase, String title, List<ReportField> fields) {
+    static void report(Phase phase, String title, List<ReportField> fields) {
         phase.observation(new ReportObservation(title, fields, List.of(), List.of()));
     }
 
-    private static AtfReportStatus status(boolean passed) { return passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL; }
+    static AtfReportStatus status(boolean passed) { return passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL; }
 
     private static String title(String route) {
         return switch (route) {

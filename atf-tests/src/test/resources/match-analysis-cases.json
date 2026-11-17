@@ -26,6 +26,23 @@
     "recommendation": "g1f3"
   },
   {
+    "id": "active-historical-replay",
+    "humanSide": "WHITE",
+    "level": "BASIC",
+    "analysis": true,
+    "moves": "e2e4 e7e5",
+    "checkpoint": "2|analysis|e2e4 e7e5",
+    "displayedPly": 1,
+    "sideToMove": "BLACK",
+    "result": "IN_PROGRESS",
+    "ending": "HORIZON",
+    "recommendation": "b8c6",
+    "historyReplay": {
+      "reply": "f1b5",
+      "resumeRecommendation": "g1f3"
+    }
+  },
+  {
     "id": "out-of-book-engine",
     "humanSide": "WHITE",
     "level": "BASIC",

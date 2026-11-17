@@ -177,7 +177,7 @@ final class WebEvidencePublication {
         }
     }
 
-    private static String bundleSha256(Path bundle) throws IOException {
+    static String bundleSha256(Path bundle) throws IOException {
         try (var paths = Files.walk(bundle)) {
             var files = paths.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
                     .sorted(Comparator.comparing(path -> relative(bundle, path))).toList();

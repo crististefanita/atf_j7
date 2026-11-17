@@ -510,6 +510,58 @@ class AndroidSanityPublication {
         publishNativeRuns("match-analysis", "Explore a recommendation and reopen the saved game", receipt, List.of(prepare, restore), null);
     }
 
+    @Test void publishCompactMatchAnalysisSanity() throws Exception {
+        Path romanianReceipt = Path.of(System.getProperty("chess.android.receipt")).toAbsolutePath();
+        Path root = romanianReceipt.getParent().getParent();
+        var runs = new ArrayList<BoundRun>();
+        for (String locale : List.of("ro", "en")) {
+            String prepare = "analysis-compact-prepare-" + locale;
+            String restore = "analysis-compact-restore-" + locale;
+            runs.add(compactMatchAnalysisRun(root.resolve(prepare).resolve(prepare + ".txt"), prepare, locale, false));
+            runs.add(compactMatchAnalysisRun(root.resolve(restore).resolve(restore + ".txt"), restore, locale, true));
+        }
+        publishNativeRuns("analysis-compact", "Replay the historical recommendation and resume the live game in RO and EN",
+                root.resolve("android-analysis-compact.html"), runs, null, true);
+    }
+
+    private static BoundRun compactMatchAnalysisRun(Path receipt, String scope, String locale, boolean restore) throws Exception {
+        String display = "Compact replay uses the requested locale and enlarged Android display profile";
+        String analysis = "The localized score, left evaluation bar and bulb are rendered at the displayed position";
+        String stage = restore ? "Restart at the live position with the hint hidden" : "Open and step the historical recommendation";
+        var required = restore
+                ? List.of(display, "The enabled setting and two moves survive a process restart",
+                        "The reopened match analyzes its live position with the hint hidden", analysis)
+                : List.of(display, "The saved game opens analysis at the selected historical position",
+                        "The historical hint marks its own legal recommendation", analysis, PREVIEW_REPLY, PREVIEW_FRAME,
+                        "Returning to history preserves the selected move and the saved game");
+        var frames = restore ? List.of(new Frame("match-restored.png", "Restored live board and hidden bulb"))
+                : List.of(new Frame("match-history-analysis.png", "Historical board, score, meter and bulb"),
+                        new Frame("match-analysis.png", "Calculated variation from the historical position"));
+        var run = boundRun(scope, locale.toUpperCase(java.util.Locale.ROOT) + " · " + stage, receipt, required.size(),
+                required, "compact match analysis", frames);
+        var markers = run.nativeMarkers();
+        var observed = List.of(replayValues(markers, "Locale"), replayValues(markers, "FontScale"), replayValues(markers, "Width"),
+                replayValues(markers, "Height"), replayValues(markers, "DensityDpi"));
+        var expected = List.of(List.of(locale), List.of("1.3"), List.of("720"), List.of("1280"), List.of("320"));
+        var cursor = markerValues(markers, "INSTRUMENTATION_RESULT: matchPly=");
+        var checkpoint = markerValues(markers, "INSTRUMENTATION_RESULT: matchCheckpoint=");
+        String expectedPly = restore ? "2" : "1";
+        boolean match = observed.equals(expected) && cursor.equals(List.of(expectedPly))
+                && checkpoint.equals(List.of("2|analysis|e2e4 e7e5"));
+        var rows = new ArrayList<>(run.evidence().rows());
+        rows.add(new AtfAssertion("Native display and cursor",
+                "720×1280 · 320 dpi · font 1.3 · " + locale + " · ply " + expectedPly + " · e2e4 e7e5",
+                observed + " · ply " + cursor + " · " + checkpoint, match));
+        var identity = new ArrayList<>(run.identity());
+        for (String field : List.of("matchScore", "evaluationCp", "evaluationWhiteShare", "hintMove", "previewLine",
+                "matchBoardBounds", "evaluationBarBounds", "bulbBounds", "previewBoardBounds")) {
+            var values = markerValues(markers, "INSTRUMENTATION_RESULT: " + field + "=");
+            if (values.size() == 1) identity.add(new ReportField(field, values.getFirst()));
+        }
+        var evidence = new PhaseEvidence(run.evidence().pid(), rows, run.evidence().passed() && match);
+        return new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), identity, run.frames(), markers);
+    }
+
     private static BoundRun matchPreparation(Path receipt) throws Exception {
         return boundRun("analysis-prepare", "GIVEN a saved game, explore the recommendation from history", receipt, 5,
                 List.of(PREVIEW_REPLY, PREVIEW_FRAME, "Returning to history preserves the selected move and the saved game"),

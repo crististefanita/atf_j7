@@ -8,6 +8,7 @@ param(
     [int]$AdbPort = 5037,
     [switch]$Distribution,
     [switch]$AnalysisOnly,
+    [switch]$CompactMatchAnalysisOnly,
     [switch]$OpeningsOnly,
     [switch]$GameReviewOnly,
     [switch]$ReplayCompactOnly,
@@ -42,6 +43,7 @@ if ($Distribution -and $SourceCommit -cnotmatch '^[a-f0-9]{40}$') { throw 'Distr
 if ($QualificationRunId -and !($Distribution -and ($GameReviewOnly -or $IncludeGameReview))) {
     throw 'A qualification run ID applies to signed Game Review evidence.'
 }
+if ($CompactMatchAnalysisOnly -and !$AnalysisOnly) { throw 'CompactMatchAnalysisOnly requires AnalysisOnly.' }
 if ($ReplayCompactOnly -and (!$Distribution -or $AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or
         $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or $MatchMenusOnly -or
         $TacticsExplanationOnly -or $TrainingFinishOnly -or $PuzzleMateReplayOnly -or $PuzzleDangerOnly -or $PuzzleUxOnly -or
@@ -213,6 +215,8 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
     switch ($Phase) {
         'analysis-prepare' { $frames = @('match-analysis') }
         'analysis-restore' { $frames = @() }
+        { $_ -like 'analysis-compact-prepare-*' } { $frames = @('match-history-analysis', 'match-analysis') }
+        { $_ -like 'analysis-compact-restore-*' } { $frames = @('match-restored') }
         { $_ -in 'replay-compact-ro', 'replay-compact-en' } { $frames = @('opening-theory', 'review-why') }
         'match-slots' { $frames += 'saved-games' }
         'match-archive' { $frames += 'finished-games' }
@@ -234,7 +238,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         Receive-Frame $frame $Directory
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
-        if ($Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux',
+        if ($Phase -like 'analysis-compact-*' -or $Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux',
                 'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
@@ -285,6 +289,25 @@ function Invoke-ReplayCompactSanity([string]$Directory) {
             $observed[0]
         }
         if ($pids[0] -ceq $pids[1]) { throw 'Romanian and English compact probes require distinct Android processes.' }
+    } finally {
+        Set-DisplayProfile $original
+    }
+}
+
+function Invoke-CompactMatchAnalysisSanity([string]$Directory) {
+    $runId = [guid]::NewGuid().ToString('N')
+    $original = Read-DisplayProfile
+    try {
+        Set-DisplayProfile @{size='720x1280'; density='320'; font='1.3'}
+        foreach ($locale in 'ro','en') {
+            $prepare = "analysis-compact-prepare-$locale"
+            $restore = "analysis-compact-restore-$locale"
+            Invoke-IncludedSanity $Directory $prepare 7 $runId
+            Invoke-Device @('shell','am','force-stop',$app)
+            $restoreDirectory = Join-Path $Directory $restore
+            $null = New-Item -ItemType Directory $restoreDirectory
+            Invoke-FocusedSanity $restoreDirectory $restore 4 $runId
+        }
     } finally {
         Set-DisplayProfile $original
     }
@@ -405,6 +428,10 @@ try {
         return
     }
     if ($AnalysisOnly) {
+        if ($CompactMatchAnalysisOnly) {
+            Invoke-CompactMatchAnalysisSanity $run
+            return
+        }
         $analysisRunId = [guid]::NewGuid().ToString('N')
         $restoreDirectory = Join-Path $run 'analysis-restore'
         $null = New-Item -ItemType Directory $restoreDirectory

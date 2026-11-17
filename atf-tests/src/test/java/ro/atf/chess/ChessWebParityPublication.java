@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
@@ -149,21 +150,42 @@ class ChessWebParityPublication {
         Path root = ProjectRoot.locate();
         Path worker = packagedWorker(configured);
         Path fixture = root.resolve("atf-tests/src/test/resources/match-analysis-cases.json");
-        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-analysis-worker.mjs", worker, fixture).strip());
         var cases = MatchAnalysisParityTest.fixture();
+        var observations = new StringBuilder();
+        for (var example : cases) {
+            observations.append(runWorker(root, "match-analysis-worker.mjs", worker, fixture, example.id()).strip()).append('\n');
+            if (example.historyReplay() != null) {
+                observations.append(runWorker(root, "match-analysis-worker.mjs", worker, fixture, example.id(), "restored").strip()).append('\n');
+            }
+        }
+        var rows = ChessWebRulesComponentTest.rows(observations.toString().strip());
         int revisionChecks = 0;
         int manualChecks = 0;
+        int historyChecks = 0;
         for (var example : cases) {
             String id = example.id();
             check.same(id + " preserves the opt-in and checkpoint in the same AI match",
                     "AI/" + example.enabled() + "/" + example.checkpoint() + "/" + example.result(), rows.get(id + ":saved"));
-            var nativeFrame = MatchAnalysisParityTest.frame(ChessMatch.restore(example.checkpoint()), example.displayedPly());
+            var match = ChessMatch.restore(example.checkpoint());
+            var nativeFrame = MatchAnalysisParityTest.frame(match, example.displayedPly());
             check.same(id + " matches the native evaluation, hint and replay of the displayed position",
                     nativeFrame.audit(), rows.get(id + ":frame"));
             if (example.compareManualBoard()) {
                 check.same(id + " keeps the same White evaluation and engine recommendation on the manual board",
                         nativeFrame.audit(), rows.get(id + ":manual"));
                 manualChecks++;
+            }
+            if (example.historyReplay() != null) {
+                check.same("Historical Next and Previous restore the authored branch and its starting board",
+                        example.recommendation() + "/" + example.historyReplay().reply() + "/" + example.recommendation() + "/0",
+                        rows.get(id + ":replay"));
+                var liveFrame = MatchAnalysisParityTest.frame(match, match.ply());
+                check.same("Reopening the same slot restores the latest move without rewriting its checkpoint",
+                        match.ply() + "/" + example.checkpoint(), rows.get(id + ":resume"));
+                check.same("The reopened meter and hint use the live position and reject an old replay command",
+                        "STALE/" + liveFrame.centipawns() + "/" + liveFrame.whiteShare() + "/" + liveFrame.recommendation(),
+                        rows.get(id + ":resume-frame"));
+                historyChecks += 3;
             }
             check.same(id + " leaves the durable ledger untouched across evaluation and replay", "true", rows.get(id + ":read-only"));
             if (example.recommendation() != null) {
@@ -178,7 +200,7 @@ class ChessWebParityPublication {
                 "UNAVAILABLE/TypeError: Invalid chess worker request/TypeError: Invalid chess worker request/true",
                 rows.get("input-guards"));
         check.same("The packaged worker reports every inline and manual analysis observation",
-                3 * cases.length + revisionChecks + manualChecks + 2, rows.size());
+                3 * cases.length + revisionChecks + manualChecks + historyChecks + 2, rows.size());
     }
 
     private static Path packagedWorker(String configured) throws IOException {
@@ -218,18 +240,20 @@ class ChessWebParityPublication {
         return sha256(manifest.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    private String runWorker(Path root, String script, Path worker, Path input) throws IOException, InterruptedException {
+    private String runWorker(Path root, String script, Path worker, Path input, String... selection) throws IOException, InterruptedException {
         var stdout = evidence.resolve("worker-result.txt");
         var stderr = evidence.resolve("worker-error.txt");
-        var process = new ProcessBuilder(System.getProperty("chess.web.node", "node"),
-                root.resolve("web/tests").resolve(script).toString(), worker.toString(), input.toString())
-                .redirectOutput(stdout.toFile()).redirectError(stderr.toFile()).start();
+        var command = new ArrayList<>(List.of(System.getProperty("chess.web.node", "node"),
+                root.resolve("web/tests").resolve(script).toString(), worker.toString(), input.toString()));
+        command.addAll(List.of(selection));
+        String scope = selection.length == 0 ? script : script + " " + String.join(" ", selection);
+        var process = new ProcessBuilder(command).redirectOutput(stdout.toFile()).redirectError(stderr.toFile()).start();
         try {
             if (!process.waitFor(55, TimeUnit.SECONDS)) {
-                throw new IOException("Timed out waiting for the TeaVM worker");
+                throw new IOException("Timed out waiting for the TeaVM worker: " + scope);
             }
             if (process.exitValue() != 0) {
-                throw new IOException("TeaVM worker exited " + process.exitValue() + ": " + Files.readString(stderr).strip());
+                throw new IOException("TeaVM worker " + scope + " exited " + process.exitValue() + ": " + Files.readString(stderr).strip());
             }
             return Files.readString(stdout, StandardCharsets.UTF_8);
         } finally {

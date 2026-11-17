@@ -68,7 +68,10 @@ rezultatul partidei.
 
 Becul eliberează selecția curentă și arată mutarea recomandată. Butonul
 sugestiei deschide linia pe tabla de previzualizare, unde săgețile parcurg
-mutările fără să modifice partida. Tabla de analiză oferă și teoria deschiderilor. La
+mutările fără să modifice partida. În previzualizare, tabla își păstrează
+poziția și pătratele egale. Comenzile rămân la vedere, iar explicația se
+derulează separat. Închiderea revine la semimutarea din istoric, iar
+redeschiderea slotului revine la capătul partidei cu indiciul ascuns. Tabla de analiză oferă și teoria deschiderilor. La
 poziția curentă, atingerea destinației marcate joacă indiciul legal când
 selecția tablei este liberă.
 Browserul calculează analiza într-un worker separat. Schimbarea poziției sau

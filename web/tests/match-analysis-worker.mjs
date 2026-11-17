@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-const [worker, fixture] = process.argv.slice(2);
+const [worker, fixture, selectedId, scope = 'history'] = process.argv.slice(2);
 assert.ok(worker && fixture, 'Supply the packaged worker and the shared match-analysis fixture');
 const cases = JSON.parse(readFileSync(fixture, 'utf8'));
+const selected = selectedId === undefined ? cases : cases.filter(example => example.id === selectedId);
+assert.ok(selected.length > 0, 'No shared match-analysis case named ' + selectedId);
 let nextId = 0;
 let reply;
 globalThis.self = { postMessage: message => reply(message) };
@@ -52,11 +54,39 @@ function boardFor(fen) {
     return fen.split(' ')[0].replaceAll('/', '').replace(/[1-8]/g, digit => ' '.repeat(Number(digit)));
 }
 
+async function verifyActiveHistoryResume(example, displayed, ledger) {
+    const oldRevision = displayed.match.revision;
+    const latest = await request('match-history', { expectedRevision: oldRevision, ply: displayed.match.ply });
+    assert.equal(latest.outcome, 'APPLIED', example.id);
+    assert.equal(latest.match.viewPly, latest.match.ply, example.id);
+    const revisit = await request('match-history', { expectedRevision: latest.match.revision, ply: example.displayedPly });
+    assert.equal(revisit.match.fen, displayed.match.fen, example.id + ' revisits the same historical board');
+
+    await request('ledger-open', { ledger });
+    const resumed = await request('match-open', { slot: displayed.match.slot });
+    assert.deepEqual([resumed.match.slot, resumed.match.viewPly, resumed.match.analysisEnabled, resumed.match.fen, resumed.ledger],
+        [displayed.match.slot, latest.match.ply, true, latest.match.fen, ledger], example.id + ' opens the same slot at the saved live position');
+    report(example.id + ':resume', resumed.match.viewPly, resumed.match.reviewCheckpoint);
+}
+
+async function verifyRestoredFrame(example, resumed) {
+    assert.equal(resumed.match.viewPly, resumed.match.ply, example.id);
+    const restored = await openFrame(example.checkpoint, resumed.match.viewPly, resumed.match.revision);
+    assert.deepEqual([restored.analysis.hint.move, restored.analysis.preview], [null, null], example.id + ' reopens without a stale suggestion');
+    const obsolete = await action(resumed.match.revision - 1, 'preview-seek', 2);
+    assert.equal(obsolete.outcome, 'STALE', example.id);
+    assert.deepEqual(obsolete.analysis, restored.analysis, example.id + ' does not attach an old replay');
+    const revealed = await action(resumed.match.revision, 'hint');
+    assert.equal(revealed.analysis.hint.move, example.historyReplay.resumeRecommendation, example.id);
+    report(example.id + ':resume-frame', obsolete.outcome, restored.analysis.evaluation.centipawns,
+        decimal(restored.analysis.evaluation.whiteShare), revealed.analysis.hint.move);
+}
+
 const beforeAnyFrame = await action(0, 'hint');
 assert.equal(beforeAnyFrame.outcome, 'UNAVAILABLE');
 assert.equal(beforeAnyFrame.analysis, null);
 
-for (const example of cases) {
+for (const example of selected) {
     const { id } = example;
     await request('ledger-open', { ledger: null });
     const setup = { mode: 'AI', humanSide: example.humanSide, level: example.level };
@@ -80,6 +110,11 @@ for (const example of cases) {
     assert.equal(resumedId, gameId, id + ' preserves the same game identity');
     assert.deepEqual([resumed.match.mode, resumed.match.analysisEnabled, resumed.match.reviewCheckpoint, resumed.match.result],
         ['AI', example.analysis === true, example.checkpoint, example.result], id);
+    if (scope === 'restored') {
+        assert.ok(example.historyReplay, id + ' has no authored resume checks');
+        await verifyRestoredFrame(example, resumed);
+        continue;
+    }
     report(id + ':saved', resumed.match.mode, resumed.match.analysisEnabled, resumed.match.reviewCheckpoint, resumed.match.result);
 
     const displayed = example.displayedPly === resumed.match.ply ? resumed
@@ -124,6 +159,17 @@ for (const example of cases) {
         assert.notEqual(step.analysis.preview.board, preview.analysis.preview.board, id);
         previewLength = step.analysis.preview.total;
         previewSide = step.analysis.preview.sideToMove;
+        if (example.historyReplay) {
+            const reply = await action(expectedRevision, 'preview-seek', 2);
+            assert.equal(reply.outcome, 'APPLIED', id);
+            assert.equal(reply.analysis.preview.lastMove, example.historyReplay.reply, id);
+            const previous = await action(expectedRevision, 'preview-seek', 1);
+            assert.deepEqual(previous.analysis.preview, step.analysis.preview, id + ' restores the first replay board');
+            const start = await action(expectedRevision, 'preview-seek', 0);
+            assert.deepEqual(start.analysis.preview, preview.analysis.preview, id + ' restores the exact historical root');
+            report(id + ':replay', step.analysis.preview.lastMove, reply.analysis.preview.lastMove,
+                previous.analysis.preview.lastMove, start.analysis.preview.ply);
+        }
         if (example.ending === 'CHECKMATE') {
             assert.equal(previewLength, 1, id);
             assert.equal(step.analysis.preview.board, boardFor(resumed.match.fen), id + ' replays the actual saved mating move');
@@ -177,22 +223,25 @@ for (const example of cases) {
         assert.deepEqual(obsolete.analysis, finalFrame.analysis, id + ' the old replay cannot reappear on the terminal position');
         report('advanced-to-terminal', finalFrame.analysis.evaluation.ending, obsolete.outcome, obsolete.analysis.preview);
     }
+    if (example.historyReplay) await verifyActiveHistoryResume(example, displayed, ledger);
     const unmodified = await request('match-open', select);
     assert.deepEqual([unmodified.ledger, unmodified.match.reviewCheckpoint, unmodified.match.result],
         [ledger, example.checkpoint, example.result], id + ' analysis never saves the branch or rewrites the ledger');
     report(id + ':read-only', unmodified.ledger === ledger);
 }
 
-const malformed = await call('match-open', {
-    setup: { mode: 'AI', humanSide: 'WHITE', level: 'BASIC', analysis: 'true' }
-});
-const invalidPly = await call('match-analysis-open', {
-    checkpoint: cases[0].checkpoint, ply: -2, expectedRevision: 2147483647
-});
-const beyondLastPly = await call('match-analysis-open', {
-    checkpoint: cases[0].checkpoint, ply: 3, expectedRevision: 2147483647
-});
-assert.match(malformed.error, /Invalid chess worker request/);
-assert.match(invalidPly.error, /Invalid chess worker request/);
-assert.match(beyondLastPly.error, /Analysis position is outside the match/);
-report('input-guards', beforeAnyFrame.outcome, malformed.error, invalidPly.error, Boolean(beyondLastPly.error));
+if (selected.includes(cases[0])) {
+    const malformed = await call('match-open', {
+        setup: { mode: 'AI', humanSide: 'WHITE', level: 'BASIC', analysis: 'true' }
+    });
+    const invalidPly = await call('match-analysis-open', {
+        checkpoint: cases[0].checkpoint, ply: -2, expectedRevision: 2147483647
+    });
+    const beyondLastPly = await call('match-analysis-open', {
+        checkpoint: cases[0].checkpoint, ply: 3, expectedRevision: 2147483647
+    });
+    assert.match(malformed.error, /Invalid chess worker request/);
+    assert.match(invalidPly.error, /Invalid chess worker request/);
+    assert.match(beyondLastPly.error, /Analysis position is outside the match/);
+    report('input-guards', beforeAnyFrame.outcome, malformed.error, invalidPly.error, Boolean(beyondLastPly.error));
+}

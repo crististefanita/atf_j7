@@ -71,6 +71,7 @@ public final class BoardSanity extends Instrumentation {
     private static final int TACTICS_SIZE = 100;
     private static final int HINT_TINT = 0xff57e0b4;
     private static final String COMPACT_REPLAY = "replay-compact-";
+    private static final String MATCH_ANALYSIS_FIXTURE = "2|analysis|e2e4 e7e5";
     private static final int MAX_REVIEW_SCROLLS = 12;
     private static final String REVIEW_MATE = "3|WHITE|ADVANCED|0|f2f3 e7e5 g2g4 d8h4";
     // Fixed 185-ply game from the offline J7 league, game 1500-11.
@@ -529,10 +530,16 @@ public final class BoardSanity extends Instrumentation {
         }
         enableReviewNodeIds();
         var home = launch();
+        checkCompactDisplay(home, locale);
+        checkCompactTheory(home);
+        checkCompactReview(home);
+    }
+
+    private void checkCompactDisplay(Activity activity, AppLanguage locale) {
         replayCapture = displayCaptureGeometry();
-        var config = home.getResources().getConfiguration();
+        var config = activity.getResources().getConfiguration();
         String language = config.getLocales().get(0).getLanguage();
-        int density = home.getResources().getDisplayMetrics().densityDpi;
+        int density = activity.getResources().getDisplayMetrics().densityDpi;
         receipt.putString("replayLocale", language);
         receipt.putString("replayFontScale", Float.toString(config.fontScale));
         receipt.putString("replayWidth", Integer.toString(replayCapture.logicalWidth()));
@@ -541,8 +548,6 @@ public final class BoardSanity extends Instrumentation {
         compare("Compact replay uses the requested locale and enlarged Android display profile",
                 List.of(locale.locale().getLanguage(), 1.3f, 720, 1280, 320),
                 List.of(language, config.fontScale, replayCapture.logicalWidth(), replayCapture.logicalHeight(), density));
-        checkCompactTheory(home);
-        checkCompactReview(home);
     }
 
     private void checkCompactTheory(Activity home) throws Exception {
@@ -2281,17 +2286,31 @@ public final class BoardSanity extends Instrumentation {
     private void checkAnalysis() throws Exception {
         enableReviewNodeIds();
         var store = new ChessProgressStore(getTargetContext());
-        if ("analysis-restore".equals(phase)) {
+        boolean compact = phase.startsWith("analysis-compact-");
+        boolean restore = "analysis-restore".equals(phase) || phase.startsWith("analysis-compact-restore-");
+        AppLanguage locale = compact ? AppLanguage.fromTag(phase.substring(phase.lastIndexOf('-') + 1)).orElseThrow() : null;
+        if (restore) {
             var activity = launch();
+            if (compact) checkCompactDisplay(activity, locale);
             var saved = store.matches().readMatch();
-            compare("The enabled setting and two moves survive a process restart", true, saved.analysisEnabled() && saved.ply() == 2);
+            compare("The enabled setting and two moves survive a process restart", true, saved != null && saved.analysisEnabled() && MATCH_ANALYSIS_FIXTURE.equals(saved.checkpoint()));
             compare("The reopened match analyzes its live position with the hint hidden", true, awaitHiddenAnalysis(activity, 2));
+            if (compact) captureMatchAnalysis(activity, findBoard(viewsOf(activity)), saved, 2, "match-restored", false);
             return;
         }
-        if (!"analysis-prepare".equals(phase)) throw new IllegalArgumentException("Unknown analysis phase: " + phase);
-        var saved = ChessMatch.restore("2|analysis|e2e4 e7e5");
+        if (!"analysis-prepare".equals(phase) && !phase.startsWith("analysis-compact-prepare-")) {
+            throw new IllegalArgumentException("Unknown analysis phase: " + phase);
+        }
+        if (compact) {
+            var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
+            if (!new AppLanguagePreference(new AndroidGamePreferences(settings)).save(locale)) {
+                throw new AssertionError("Could not select the match analysis language");
+            }
+        }
+        var saved = ChessMatch.restore(MATCH_ANALYSIS_FIXTURE);
         if (!store.matches().saveMatch(saved, false)) throw new AssertionError("Could not seed the analysis fixture");
         var activity = launch();
+        if (compact) checkCompactDisplay(activity, locale);
         var board = findBoard(viewsOf(activity));
         tap(activity.findViewById(R.id.match_history_previous));
         var bounds = screenBounds(board);
@@ -2302,15 +2321,54 @@ public final class BoardSanity extends Instrumentation {
         tap(activity.findViewById(R.id.match_hint));
         compare("The historical hint marks its own legal recommendation", true, hintShown(activity, board, hint));
         var root = saved.positionAt(1);
+        if (compact) {
+            captureMatchAnalysis(activity, board, saved, 1, "match-history-analysis", true);
+            var line = hint.revealed().line();
+            receipt.putString("hintMove", hint.revealedMove().uci());
+            receipt.putString("previewLine", line.get(0).uci() + " " + line.get(1).uci());
+        }
         checkHintPreview(activity, "match-analysis", root, hint.playback(root).orElseThrow());
         compare("Returning to history preserves the selected move and the saved game", true,
                 bounds.equals(screenBounds(board)) && hintShown(activity, board, hint)
                         && saved.checkpoint().equals(store.matches().readMatch().checkpoint()));
     }
 
+    private void captureMatchAnalysis(Activity activity, BoardView board, ChessMatch saved, int ply, String frame, boolean revealed)
+            throws IOException {
+        View bar = activity.findViewById(R.id.match_evaluation_bar);
+        View bulb = activity.findViewById(R.id.match_hint);
+        TextView panel = activity.findViewById(R.id.match_analysis);
+        var position = saved.positionAt(ply);
+        var evaluation = saved.hintAt(ply).evaluation(position);
+        var boardBounds = screenBounds(board);
+        var barBounds = screenBounds(bar);
+        var bulbBounds = screenBounds(bulb);
+        var score = panel.getText().toString().split("\\n", 2)[0];
+        receipt.putString("matchCheckpoint", saved.checkpoint());
+        receipt.putString("matchPly", Integer.toString(ply));
+        receipt.putString("matchScore", score);
+        receipt.putString("evaluationCp", Integer.toString(evaluation.whiteCentipawns()));
+        receipt.putString("evaluationWhiteShare", Double.toString(evaluation.whiteShare()));
+        receipt.putString("matchBoardBounds", boardBounds.flattenToString());
+        receipt.putString("evaluationBarBounds", barBounds.flattenToString());
+        receipt.putString("bulbBounds", bulbBounds.flattenToString());
+        int sampleX = barBounds.centerX();
+        int boundary = barBounds.bottom - 1 - (int)Math.round((barBounds.height() - 2) * evaluation.whiteShare());
+        var above = new Rect(sampleX - 1, boundary - 8, sampleX + 2, boundary - 3);
+        var below = new Rect(sampleX - 1, boundary + 3, sampleX + 2, boundary + 8);
+        captureFrame(frame, "The localized score, left evaluation bar and bulb are rendered at the displayed position",
+                image -> barBounds.top == boardBounds.top && barBounds.bottom == boardBounds.bottom
+                        && barBounds.right <= boardBounds.left && barBounds.width() > 2
+                        && fullyVisible(board) && fullyVisible(bulb) && bulbBounds.top >= boardBounds.bottom && bulb.isSelected() == revealed
+                        && bulbBounds.bottom <= replayCapture.logicalHeight()
+                        && score.startsWith(evaluation.pawnLabel(activity.getResources().getConfiguration().getLocales().get(0)))
+                        && hasColor(image, above, 0xff262522, 8) && hasColor(image, below, 0xffedeadf, 8));
+    }
+
     private void checkHintPreview(Activity activity, String frame, ChessPosition root, ro.atf.chess.MatchHint.Playback expected) throws Exception {
         tap(activity.findViewById(R.id.match_analysis));
         var previewBoard = nodeBounds(reviewNode(R.id.hint_preview_board, 4500));
+        if (phase.startsWith("analysis-compact-")) receipt.putString("previewBoardBounds", previewBoard.flattenToString());
         boolean branchesAligned = checkHintBranches(activity, root, expected, previewBoard);
         clickReviewIcon(R.id.hint_preview_next);
         clickReviewIcon(R.id.hint_preview_next);
@@ -3259,7 +3317,7 @@ public final class BoardSanity extends Instrumentation {
         try (var output = new FileOutputStream(file)) {
             if (!image.compress(Bitmap.CompressFormat.PNG, 100, output)) throw new IOException("PNG write failed");
         }
-        if ("analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
+        if (phase.startsWith("analysis-compact-") || "analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
                 || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
                 || "puzzle-ux".equals(phase) || "active-match-restore".equals(phase) || "pending-bot-restore".equals(phase)
                 || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {

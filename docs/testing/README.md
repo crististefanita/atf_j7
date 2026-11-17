@@ -93,11 +93,28 @@ semimutare în previzualizare, apoi verificați poziția și revenirea focusului
 La redeschidere, verificați bifa salvată, orientarea și încadrarea la text mărit.
 [Contractul Web](../../web/README.md#analiza-în-partida-cu-ai)
 
-Pe candidatul Web, proba MCP în română la 360 × 640 CSS px și text la 130%
-a observat o tablă de 324 × 324 px, revenirea focusului după închiderea
-previzualizării și recalcularea la o semimutare din istoric. Aplicarea
-indiciului și replica AI au păstrat geometria tablei. Cazurile JVM folosesc
-modelul comun din adaptorul Android, iar proba TeaVM execută workerul compilat.
+Pentru proba pereche RO/EN, porniți din aceeași partidă după **1.e4 e5**.
+Alegeți poziția 1/2 și verificați bara din stânga, evaluarea +0,05 pentru
+Alb și indiciul **…Nc6**. Redați pașii 0 → 1 → 2 → 1 pe tabla variantei.
+Închideți la 1/2 și redeschideți același slot la 2/2. Bara indică
++0,19 pentru Alb; pe Web am verificat și noul indiciu **Nf3**.
+
+| Adaptor | Profil compact, text 1,3× | Proba și dovada |
+|---|---|---|
+| Android | 720 × 1280, 320 dpi | `-AnalysisOnly -CompactMatchAnalysisOnly` folosește APK-ul izolat, cu pregătire și restart real. `AndroidSanityPublication#publishCompactMatchAnalysisSanity` verifică recepțiile și capturile. |
+| Web | 360 × 640 CSS px | Browser MCP măsoară tabla și salvează capturi la istoric, redare, întoarcere și reluare. `ChessWebMatchAnalysisPublication` leagă cele două limbi de rulare, revizie și runtime. |
+
+Publicatorul Web primește directorul recepțiilor prin
+`-Dchess.web.match.browser`, directorul runtime prin
+`-Dchess.web.match.runtime` și valorile execuției prin
+`-Dchess.web.match.runId` și `-Dchess.web.match.source`. Alegeți un HTML
+nou prin `-Dchess.web.match.extent`. Testele negative verifică recepțiile
+substituite, coordonatele deformate și abaterea de la linia comună.
+
+În profilul verificat, tabla rămâne fixă la săgeți și reluare. Web are
+324 CSS px pe latură, iar APK-ul izolat are 262 dp în zona sa utilă.
+Bara ocupă întreaga latură stângă la ambele. În Web, **Mat în 1**
+păstrează dreptunghiul și după rezolvare, Next și Back.
 
 ### Actualizarea pachetului Web
 
