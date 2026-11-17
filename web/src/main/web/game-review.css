@@ -348,6 +348,28 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
   #match-ply, #continue-match { min-inline-size: 0; }
   #continue-match { padding: .2rem .35rem; font-size: .8rem; line-height: 1.1; }
 }
+@media (max-width: 480px) {
+  :root:has(main > .match[data-mode="AI"]:not([hidden])) {
+    scrollbar-gutter: auto;
+    scrollbar-width: none;
+  }
+  main:has(> .match[data-mode="AI"]:not([hidden])) { padding: .15rem 0; }
+  main:has(> .match[data-mode="AI"]:not([hidden])) > header { margin-inline: .5rem; }
+  .match[data-mode="AI"] > .match-board-frame {
+    --match-meter-width: 8px;
+    --match-meter-gap: 2px;
+    display: grid;
+    grid-template-columns: var(--match-meter-width) minmax(0, 1fr);
+    column-gap: var(--match-meter-gap);
+    inline-size: min(100%, calc(var(--play-board-limit) + var(--match-meter-width) + var(--match-meter-gap)));
+  }
+  .match[data-mode="AI"] > .match-board-frame:has(.match-inline-meter[hidden]) {
+    --match-meter-width: 0px;
+    --match-meter-gap: 0px;
+  }
+  .match[data-mode="AI"] .match-inline-meter { position: relative; inset: auto; inline-size: 100%; }
+  .match[data-mode="AI"] #match-board { grid-column: 2; inline-size: 100%; }
+}
 @media (max-width: 340px) {
   main:has(> .match:not([hidden])) { padding-block: .15rem; }
   main:has(> .match:not([hidden])) > header h1 { font-size: .8rem; }

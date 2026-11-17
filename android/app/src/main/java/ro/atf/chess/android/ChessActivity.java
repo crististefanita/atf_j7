@@ -2,6 +2,7 @@ package ro.atf.chess.android;
 
 import android.app.AlertDialog;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -336,6 +337,7 @@ public final class ChessActivity extends BackNavigableActivity {
     }
 
     private LinearLayout buildMatchBoardScreen() {
+        boolean compact = compactMatchLayout();
         var screen = screen();
         var toolbar = getLayoutInflater().inflate(R.layout.match_toolbar, screen, false);
         toolbar.findViewById(R.id.match_actions).setOnClickListener(this::showMatchActions);
@@ -353,10 +355,10 @@ public final class ChessActivity extends BackNavigableActivity {
         }) : null;
         topCaptures = new MatchCapturesView(this, R.id.match_top_captures);
         bottomCaptures = new MatchCapturesView(this, R.id.match_bottom_captures);
-        var panel = new BoardPanel(this, matchSeat(topPlayer, topCaptures), board, matchSeat(bottomPlayer, bottomCaptures),
+        var panel = new BoardPanel(this, matchSeat(topPlayer, topCaptures, compact), board, matchSeat(bottomPlayer, bottomCaptures, compact),
                 matchAnalysis == null ? null : matchAnalysis.evaluationBar());
         screen.addView(panel, new LinearLayout.LayoutParams(-1, 0, 1));
-        status = boardStatus(2);
+        status = compact ? compactMatchStatus() : boardStatus(2);
         status.setId(R.id.match_status);
         screen.addView(status, new LinearLayout.LayoutParams(-1, -2));
         if (matchAnalysis != null) screen.addView(matchAnalysis);
@@ -407,6 +409,20 @@ public final class ChessActivity extends BackNavigableActivity {
         page.addView(new BoardDetails(panel, questDetails, detailsMinimum), new LinearLayout.LayoutParams(-1, 0, 1));
         puzzleChrome.addActions(previous, guidance, next, guidanceLabel, questDetails);
         return puzzleChrome;
+    }
+
+    private boolean compactMatchLayout() {
+        var configuration = getResources().getConfiguration();
+        return configuration.orientation == Configuration.ORIENTATION_PORTRAIT && configuration.screenWidthDp <= 480;
+    }
+
+    private TextView compactMatchStatus() {
+        var caption = boardStatus(2);
+        caption.setTextSize(15);
+        caption.setIncludeFontPadding(false);
+        caption.setPadding(dp(8), 0, dp(8), 0);
+        caption.setMinHeight(dp(48));
+        return caption;
     }
 
     private TextView boardStatus(int lines) {
@@ -586,11 +602,22 @@ public final class ChessActivity extends BackNavigableActivity {
         return label;
     }
 
-    private View matchSeat(TextView name, MatchCapturesView captures) {
+    private View matchSeat(TextView name, MatchCapturesView captures, boolean compact) {
         var seat = new LinearLayout(this);
-        seat.setOrientation(LinearLayout.VERTICAL);
-        name.setPadding(dp(14), dp(4), dp(14), 0);
-        seat.addView(name, new LinearLayout.LayoutParams(-2, -2));
+        if (compact) {
+            seat.setGravity(Gravity.CENTER_VERTICAL);
+            seat.setBaselineAligned(false);
+            name.setIncludeFontPadding(false);
+            name.setPadding(dp(8), 0, dp(4), 0);
+            captures.setMinHeight(captures.getLineHeight());
+            captures.setMaxLines(1);
+            captures.setPadding(dp(4), 0, dp(8), 0);
+            seat.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
+        } else {
+            seat.setOrientation(LinearLayout.VERTICAL);
+            name.setPadding(dp(14), dp(4), dp(14), 0);
+            seat.addView(name, new LinearLayout.LayoutParams(-2, -2));
+        }
         seat.addView(captures, new LinearLayout.LayoutParams(-2, -2));
         return seat;
     }
