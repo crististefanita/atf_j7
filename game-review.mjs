@@ -8,6 +8,7 @@ import { matchAnalysisNavigation, routeForHash, routeHashes, watchRouteHistory, 
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 import { createMatchBotTimer } from './match-bot-timer.mjs';
+import { attachOptionsMenu } from './options-menu.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
@@ -121,6 +122,14 @@ const board = find('board');
 const matchBoard = find('match-board');
 const matchOptions = find('match-options');
 const matchOptionsButton = find('match-options-button');
+const matchMenu = attachOptionsMenu(matchOptionsButton, matchOptions, {
+    canOpen: () => {
+        if (busy) return false;
+        find('flip-match').disabled = Boolean(analysis) || engineFailed || otherTabChanged;
+        return true;
+    },
+    onToggle: scheduleBot,
+});
 const matchAutomatic = find('match-automatic');
 const status = find('status');
 const history = find('history');
@@ -182,7 +191,7 @@ const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, 
 
 document.documentElement.lang = locale;
 for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
-    'open-match', 'open-review', 'match-options-title', 'flip-match', 'close-match-options', 'match-automatic-label',
+    'open-match', 'open-review', 'flip-match', 'close-match-options', 'match-automatic-label',
     'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'random-choice', 'start-ai', 'cancel-setup',
     'retry-bot', 'open-saved',
@@ -193,6 +202,7 @@ for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 
 for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions', 'next-key']) find(id).setAttribute('aria-label', words[id]);
 find('open-match-analysis').textContent = homeLabels[locale]['home-analysis'];
 matchOptionsButton.setAttribute('aria-label', words['match-options-title']);
+matchOptions.setAttribute('aria-label', words['match-options-title']);
 find('why-actions').setAttribute('aria-label', words['review-actions']);
 find('match-history').setAttribute('aria-label', words['match-history']);
 find('study-progress-label').textContent = words['progress-label'];
@@ -582,10 +592,10 @@ function commitReviewAction(response, archiveId) {
 function renderMatch() {
     const container = find('match');
     container.hidden = mode !== matchRoute || !match || setupVisible;
-    matchOptionsButton.hidden = container.hidden;
+    find('match-options-anchor').hidden = container.hidden;
     renderMatchAutomation();
     if (container.hidden) {
-        if (matchOptions.open) matchOptions.close();
+        matchMenu.close();
         return;
     }
     const isAi = match.mode === 'AI';
@@ -830,7 +840,7 @@ function play(move) {
 }
 
 function scheduleBot() {
-    const ready = mode === 'ai' && matchRoute === 'ai' && !setupVisible && !matchOptions.open &&
+    const ready = mode === 'ai' && matchRoute === 'ai' && !setupVisible && !matchMenu.isOpen() &&
         match?.awaitingBot && match.viewPly === match.ply &&
         failedBotRevision !== match.revision && !busy && !analysis && !engineFailed && !otherTabChanged;
     scheduleBotReply(ready ? match : undefined);
@@ -1179,15 +1189,8 @@ find('open-ai').addEventListener('click', () => {
     openAiSetup();
 });
 
-matchOptionsButton.addEventListener('click', () => {
-    if (busy || matchOptions.open) return;
-    find('flip-match').disabled = Boolean(analysis) || engineFailed || otherTabChanged;
-    matchOptions.showModal();
-    scheduleBot();
-});
-matchOptions.addEventListener('close', scheduleBot);
 matchOptions.addEventListener('click', event => {
-    if (event.target.closest('button[type="button"]')) matchOptions.close();
+    if (event.target.closest('button[type="button"]')) matchMenu.close(true);
 }, true);
 find('flip-match').addEventListener('click', () => {
     if (!match || mode !== matchRoute || setupVisible || analysis) return;

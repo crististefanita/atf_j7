@@ -3,7 +3,7 @@
   --opening-muted: #c0bfb4;
   --opening-accent: #b8d88a;
   color: var(--opening-ink);
-  max-inline-size: 60rem;
+  max-inline-size: var(--play-room);
   margin-inline: auto;
 }
 
@@ -38,17 +38,19 @@
 .opening-card strong { font-size: 1.1rem; }
 .opening-meta, .opening-navigation > :nth-child(2) { color: var(--opening-accent); }
 
-/* The lesson uses the viewport, including the space consumed by the generic study shell. */
-:root:has(body.study-active .opening-study:not([hidden]) .opening-workspace:not([hidden])) { scrollbar-gutter: auto; }
-body.study-active main:has(.opening-study:not([hidden]) .opening-workspace:not([hidden])) { max-width: none; padding: 0; }
+/* Match and puzzles share the same board limit. The lesson reserves its own meter and controls. */
 .opening-study:not([hidden]):has(.opening-workspace:not([hidden])) {
   --opening-seat-height: .9375rem;
+  --opening-meter-width: 8px;
+  --opening-meter-gap: 5px;
+  --opening-meter-gutter: calc(var(--opening-meter-width) + var(--opening-meter-gap));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  max-inline-size: none;
-  block-size: 100dvh;
-  min-block-size: 24rem;
-  margin: 0;
+  inline-size: min(100%, var(--play-room));
+  block-size: calc(100dvh - var(--play-insets));
+  min-block-size: 20rem;
+  margin-block-start: var(--play-top-gap);
+  padding-inline: var(--play-room-padding);
 }
 .opening-study:has(.opening-workspace:not([hidden])) > .opening-header,
 .opening-navigation { padding-inline: 10px; gap: 8px; }
@@ -90,20 +92,16 @@ body.study-active main:has(.opening-study:not([hidden]) .opening-workspace:not([
   container-type: inline-size;
 }
 .opening-panel {
-  --opening-meter-width: 8px;
-  --opening-meter-gap: 5px;
-  --opening-meter-gutter: calc(var(--opening-meter-width) + var(--opening-meter-gap));
   display: grid;
   align-content: start;
   justify-items: center;
-  flex: 0 1 calc(80cqw + 2 * var(--opening-seat-height));
+  flex: 0 1 calc(min(var(--play-board-limit), 100cqi - var(--opening-meter-gutter)) + 2 * var(--opening-seat-height));
   min-inline-size: 0;
   min-block-size: 0;
   container-type: size;
 }
 .opening-panel > * {
-  --opening-board-cap: 80cqw;
-  --opening-board-side: max(0px, min(var(--opening-board-cap), calc(100cqh - 2 * var(--opening-seat-height)),
+  --opening-board-side: max(0px, min(var(--play-board-limit), calc(100cqh - 2 * var(--opening-seat-height)),
     calc(100cqw - var(--opening-meter-gutter))));
 }
 .opening-seat {
@@ -227,10 +225,14 @@ body.study-active main:has(.opening-study:not([hidden]) .opening-workspace:not([
 .opening-history button { text-align: start; white-space: normal; }
 
 @media (orientation: landscape) and (min-width: 704px) {
+  body.study-active main:has(.opening-study:not([hidden]) .opening-workspace:not([hidden])) { max-width: none; }
+  .opening-study:not([hidden]):has(.opening-workspace:not([hidden])) {
+    inline-size: min(100%, 2 * var(--play-room));
+    max-inline-size: none;
+  }
   .opening-columns {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: minmax(0, 1fr);
   }
-  .opening-panel > * { --opening-board-cap: calc(100cqw - 48px); }
 }

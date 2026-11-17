@@ -104,13 +104,25 @@ main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height
 }
 .match-automatic input { flex: none; inline-size: 1rem; block-size: 1rem; margin: 0; accent-color: var(--accent); }
 .match-automatic:has(input:disabled) { color: var(--muted); }
-#match-options[open] {
+.options-anchor { position: relative; justify-self: start; }
+.options-panel {
+  position: absolute;
+  inset-block-start: calc(100% + .25rem);
+  inset-inline-start: 0;
+  z-index: 5;
   display: grid;
-  inline-size: min(16rem, calc(100% - 2rem));
-  gap: .35rem;
+  inline-size: min(15rem, calc(100vw - 2.5rem));
+  max-block-size: 65dvh;
+  overflow: auto;
+  gap: .2rem;
+  padding: .25rem;
+  border: 1px solid var(--border);
+  border-radius: .65rem;
+  background: var(--surface);
+  box-shadow: 0 .35rem .95rem #0006;
 }
-#match-options h2 { padding: .15rem .25rem; }
-#match-options button {
+.options-anchor > button[aria-expanded="true"] { border-color: var(--accent); }
+.options-panel button {
   inline-size: 100%;
   min-block-size: var(--play-action-size);
   text-align: start;

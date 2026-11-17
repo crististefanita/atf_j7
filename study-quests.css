@@ -76,18 +76,10 @@
   font-size: .75rem;
   white-space: nowrap;
 }
-.quest-study #quest-study-options[open] {
-  display: grid;
-  width: min(15rem, calc(100% - 1.5rem));
-  inset: auto auto .75rem max(.75rem, calc((100% - 35rem) / 2));
-  margin: 0;
-  gap: .2rem;
-  padding: .25rem;
-  border-radius: .75rem;
-  background: var(--quest-surface);
+.quest-study #quest-study-options {
+  --surface: var(--quest-surface);
+  --border: var(--quest-outline);
 }
-.quest-study #quest-study-options button { text-align: start; }
-.quest-study:has(#quest-study-options[open]) :is(.quest-study-footer, .quest-study-details) { visibility: hidden; }
 .quest-study .quest-study-score,
 .quest-study .quest-study-progress,
 .quest-study .quest-study-dialog-head {
