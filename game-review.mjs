@@ -36,7 +36,8 @@ const words = {
         continueActive: ply => `Continue this game from move ${ply}? Later moves will be replaced.`,
         continueArchive: ply => `Start a saved game from move ${ply}? The finished game stays in the archive.`,
         moves: count => `${count} ${count === 1 ? 'move' : 'moves'}`, active: 'In progress',
-        'white-choice': 'White', 'black-choice': 'Black', 'start-ai': 'Start game', 'cancel-setup': 'Cancel',
+        'white-choice': 'White', 'black-choice': 'Black', 'random-choice': 'Random',
+        'start-ai': 'Start game', 'cancel-setup': 'Cancel',
         'retry-bot': 'Retry AI move', botTurn: 'AI to move…', botFailure: 'The AI move could not be completed. You can retry from this position.',
         aiProfile: (level, side) => `AI · ${level} · You play ${side.toLowerCase()}`,
         analyze: 'Analyze game', 'cancel-analysis': 'Cancel analysis', 'progress-label': 'Analyzing game',
@@ -78,7 +79,8 @@ const words = {
         continueActive: ply => `Continui această partidă de la mutarea ${ply}? Mutările ulterioare vor fi înlocuite.`,
         continueArchive: ply => `Începi o partidă salvată de la mutarea ${ply}? Rezultatul inițial rămâne în arhivă.`,
         moves: count => `${count} ${count === 1 ? 'mutare' : 'mutări'}`, active: 'În desfășurare',
-        'white-choice': 'Alb', 'black-choice': 'Negru', 'start-ai': 'Începe partida', 'cancel-setup': 'Anulează',
+        'white-choice': 'Alb', 'black-choice': 'Negru', 'random-choice': 'Aleatoriu',
+        'start-ai': 'Începe partida', 'cancel-setup': 'Anulează',
         'retry-bot': 'Reîncearcă mutarea AI', botTurn: 'AI este la mutare…', botFailure: 'AI nu a terminat mutarea. Poți reîncerca din această poziție.',
         aiProfile: (level, side) => `AI · ${level} · Joci cu ${side.toLowerCase()}`,
         analyze: 'Analizează partida', 'cancel-analysis': 'Oprește analiza', 'progress-label': 'Analizăm partida',
@@ -169,10 +171,10 @@ const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, 
 }));
 
 document.documentElement.lang = locale;
-document.title = `Chess Lab · ${words.title}`;
-for (const id of ['title', 'archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
+for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
     'open-match', 'open-review', 'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
-    'side-label', 'level-label', 'white-choice', 'black-choice', 'start-ai', 'cancel-setup', 'retry-bot', 'open-saved',
+    'side-label', 'level-label', 'white-choice', 'black-choice', 'random-choice', 'start-ai', 'cancel-setup',
+    'retry-bot', 'open-saved',
     'open-finished', 'return-menu', 'new-local', 'new-ai', 'continue-match', 'continue-title', 'confirm-continue',
     'cancel-continue', 'automatic-label', 'archive-review-back', 'continue-review', 'review-close', 'reopen-review', 'review-on-board']) {
     find(id).textContent = words[id];
@@ -981,10 +983,7 @@ async function openStandaloneReview(addHistory = false) {
 function openAiSetup() {
     const previousMode = mode ?? 'home';
     setupBackMode = previousMode === 'home' || listRoutes.has(previousMode) || previousMode === 'ai' ? previousMode : undefined;
-    if (matchRoute === 'ai' && match) {
-        find('ai-side').value = match.humanSide;
-        find('ai-level').value = match.level;
-    }
+    find('ai-setup').reset();
     setupVisible = true;
     showMode('ai', true);
 }

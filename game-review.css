@@ -8,12 +8,23 @@
   --accent: #b8db8c;
   --surface: #232a25;
   scrollbar-gutter: stable;
+  --play-page-padding: clamp(.5rem, 2vw, 1.25rem);
+  --play-room-padding: clamp(.5rem, 2vw, 1rem);
+  --play-top-gap: .75rem;
+  --play-action-size: max(48px, 2.75rem);
+  --play-column: 35rem;
+  --play-room: 38rem;
+  /* Puzzle score, turn, caption and details, in addition to its two action rows. */
+  --play-puzzle-text: 10rem;
+  --play-insets: calc(2 * (var(--play-page-padding) + var(--play-room-padding)) + var(--play-top-gap));
+  --play-chrome: calc(var(--play-insets) + 2 * var(--play-action-size) + var(--play-puzzle-text));
+  --play-board-limit: min(var(--play-column), max(12rem, 100dvh - var(--play-chrome)));
 }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; }
-main { margin: auto; max-width: 70rem; padding: clamp(.5rem, 2vw, 1.25rem); }
+main { margin: auto; max-width: 70rem; padding: var(--play-page-padding); }
 body.home-active { background: #262522; color: #f5f3ec; }
 body.home-active main { max-width: 42rem; padding: 22px 20px 20px; }
 body.home-active h1 { font-size: 1.875rem; }
@@ -63,7 +74,28 @@ p { margin: .6rem 0; }
 .archive label { display: inline-grid; place-items: center; }
 .header-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
 #status, #evaluation { color: var(--muted); }
-.match { max-width: 42rem; margin: .9rem auto 0; }
+main:has(> .match:not([hidden])) > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  max-inline-size: var(--play-column);
+  min-block-size: var(--play-action-size);
+  margin-inline: auto;
+  gap: .25rem .5rem;
+}
+main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height: 1.15; overflow-wrap: anywhere; }
+.match {
+  inline-size: min(100%, var(--play-room));
+  margin: var(--play-top-gap) auto 0;
+  padding-inline: var(--play-room-padding);
+  overflow-wrap: anywhere;
+}
+.match > :not(.match-board) {
+  max-inline-size: var(--play-column);
+  margin-inline: auto;
+}
+.match .movement { margin-block-start: .25rem; }
+.match :is(.movement, .analysis-progress) button { min-block-size: var(--play-action-size); }
+.match .turn { margin-block-start: .2rem; }
 .ai-setup { max-width: 30rem; margin: .9rem auto 0; }
 .match-list { max-width: 42rem; margin: .9rem auto 0; }
 #match-rows { display: grid; gap: .4rem; list-style: none; margin: 0; padding: 0; }
@@ -97,6 +129,10 @@ dialog::backdrop { background: #121613a8; }
   container-type: inline-size;
   overflow: hidden;
   border-radius: .3rem;
+}
+:is(#match-board, #quest-study-board) {
+  inline-size: min(100%, var(--play-board-limit));
+  margin-inline: auto;
 }
 .square {
   display: grid;
@@ -160,6 +196,20 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }
 #status:empty { display: none; }
 
+@media (max-width: 480px) {
+  :root {
+    --play-room-padding: 0px;
+    --play-top-gap: 0px;
+    --play-action-size: 48px;
+    --play-puzzle-text: 8.25rem;
+  }
+  main:has(> .match:not([hidden])) > header .header-actions button { padding-inline: .35rem; font-size: .875rem; }
+  .match-actions button { flex: 1 1 min-content; padding-inline: .25rem; overflow-wrap: normal; }
+  #match-history { flex-wrap: nowrap; }
+  #match-history :is(#match-previous, #match-next) { min-inline-size: var(--play-action-size); }
+  #match-ply, #continue-match { min-inline-size: 0; }
+  #continue-match { padding-inline: .35rem; }
+}
 @media (max-width: 43rem) {
   .review { grid-template-columns: minmax(0, 1fr); gap: .65rem; }
 }
