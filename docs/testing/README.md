@@ -115,6 +115,10 @@ revizia, directorul runtime, checkpointul și capturile. O probă HTTP care
 citește fiecare fișier ocolind memoria cache verifică publicarea octeților.
 [Publicarea Web](../../web/parity.md#publicarea-linkului)
 
+Proba de migrare în același tab a redeschis slotul pe site-ul public cu
+stilurile și modulul din aceeași versiune; becul a arătat e2–e4. Proba locală
+cu cache activ a păstrat și poziția după 1.e4 Nc6 înainte de un indiciu nou.
+
 ### Orientarea tablei în partidă
 
 `MatchControlsTest` verifică disponibilitatea acțiunii în partidă și în istoric. `MatchStoreTest` și `ChessWebParityPublication#packagedWorkerPreservesTheMatchWhenFlipping` folosesc același fixture pentru păstrarea poziției, istoricului și orientării la redeschidere. Workerul respinge o replică rămasă la revizia veche. `ChessWebShellTest` folosește un ceas simulat și verifică înlocuirea programării vechi cu o singură replică la revizia curentă. [Comanda de verificare](../../web/README.md#motorul-chess-lab-în-browser)
