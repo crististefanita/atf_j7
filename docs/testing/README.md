@@ -111,6 +111,10 @@ scurte reale și bugete comparate din aceeași poziție, printr-un apel pe deciz
 Raportul Extent păstrează identitatea sursei, checkpoint-urile, FEN, variantele
 oferite și comparate, replicile, adâncimile și nodurile efective. [Rulare și interpretare](hint-audit.md)
 
+### Auditul nativ al partidelor Hard
+
+Fiecare semimutare, inclusiv replica adversarului, cere analiza efectivă Hard cu istoric. Componentele resping recepții lipsă sau străine; publicatorul benchmark rejucă dovezile înainte de Elo și Extent. [Protocol, comandă și interpretare](hard-audit.md)
+
 ## Paritatea Web a motorului
 
 `ChessWebRulesComponentTest` verifică motorul și cataloagele pe JVM. `ChessWebParityPublication` execută aceleași cazuri în workerul TeaVM pentru toate resursele folosite. Rulați proba explicit cu pachetul din TMP. [Build și probe Web](../../web/README.md)

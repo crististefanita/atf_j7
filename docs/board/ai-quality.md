@@ -112,7 +112,7 @@ Auditul H17/H19 separă prima recomandare de rangul jucat intenționat. Găseșt
 
 Pierderile italiene se reproduc și cu motorul precedent. După captura nebunului, `Kxf2 …Qc5+ d4` este o apărare reală și contează furculița ulterioară de cal. Creditul superficial și candidații indiciului sunt distincte de decizia Hard efectivă. În grila Caro–Kann cu albul după `…d5`, adâncimile selectate sunt H5/H5/H4 la 50k/100k/200k. O alocație mai mare nu implică deci un rezultat selectat mai adânc sau o mutare mai puternică. Acestea sunt cazuri explicite pentru continuare, fără a reprezenta o poartă de forță globală trecută.
 
-Toate cele trei probe algoritmice italiene ulterioare au fost respinse; corecțiile calificate din Siciliană și Caro–Kann și sursa `a7e71d9` rămân neschimbate. Verificarea independentă a Hard-ului efectiv păstrează mutarea și adâncimea pe toate cele 24 de istorice v1 față de motorul precedent. Cinci costuri în noduri diferă, inclusiv două utilizări ale rezervei de la 100k la 200k. Eșantionul nu dovedește cost identic sau câștig Elo.
+Primele trei probe italiene au fost respinse înaintea corecției de credit documentate mai jos; aceste rezultate istorice aparțin sursei `a7e71d9`. Verificarea independentă a Hard-ului efectiv păstrează mutarea și adâncimea pe toate cele 24 de istorice v1 față de motorul precedent. Cinci costuri în noduri diferă, inclusiv două utilizări ale rezervei de la 100k la 200k. Eșantionul nu dovedește cost identic sau câștig Elo.
 
 <details>
 <summary>Probe italiene respinse și contractul păstrat</summary>
@@ -123,11 +123,30 @@ Toate cele trei probe algoritmice italiene ulterioare au fost respinse; corecți
 | V2 · restabilește rezerva H3 și cea de teorie | Păstrează S7 sicilian | Produce în continuare regresie în martorul italian S1 |
 | V3 · păstrează domeniul brut eligibil înaintea eliminării după credit | Păstrează alternativa relevantă | Nu încheie H4 în cele 50k ale căutării inițiale; S5 revine la H3 și `…Bxf2+`; poarta de componente 78/79 eșuează |
 
-Următorul P1 este păstrarea alternativelor brute eligibile fără a epuiza căutarea inițială sau comparația la orizont comun în același total de 200k. Păstrează controlul Hard efectiv `…Na5` separat de indiciul S5. Greșelile capturate devin cazuri de regresie înghețate și legate de sursă, cu replici Stockfish H17/H19 libere și contraexemple de sacrificii corecte, niciodată interdicții FEN în runtime sau etichete de antrenare acceptate automat. Martorul de transfer păstrează liderul sicilian; nu pretinde că alternativa `Bg5`, încă oferită, este filtrată. [Martori de transfer înghețați](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
+Probele respinse au arătat că filtrarea largă poate epuiza căutarea inițială sau regresa alt lider. Corecția de mai jos separă oferta materială infirmată de schimbul echilibrat și păstrează candidații diagnostici. Hard efectiv `…Na5` rămâne un P1 separat. Vechile recepții și martorii de sacrificiu rămân dovezi; nu devin interdicții FEN sau etichete automate. [Martori înghețați](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
 
 </details>
 
 [Protocolul auditului](../testing/hint-audit.md) · [Feedback algoritmic deschis](../feedback/README.md)
+
+
+## Corecția creditului italian și calibrarea Hard nativ
+
+Creditul orizontului anterior nu poate susține o ofertă materială imediată infirmată de dovezile brute H4. Căutarea păstrează valorile exacte și limitele observate înaintea filtrării după credit; nu face o căutare suplimentară. Numai liderul susținut de credit care oferă material net și iese din fereastra brută este demovat. Schimbul echilibrat `…Bxb5` și candidații istorici încă incerți rămân disponibili. Sugestiile publice sunt distincte de candidații comparației. Scorul unei reveniri exclude creditul de ordonare; preferința poate folosi dovezi de la alte orizonturi, deci nu promite sortare numerică după acele scoruri brute.
+
+În S5 italian, indiciul la 200k recomandă numai `…Qg6`. Stockfish 19 rece, cu replici libere, confirmă la H19 `…Bxf2+` −311 cp / 0‰, `…Qg6` −49 cp / 444‰ și `…Nge7` −169 cp / 30,5‰. H17 păstrează aceeași ordine. În contextul Traxler distinct, același `…Bxf2+` rămâne liderul liber Stockfish la H17/H19 și este păstrat de J7; sacrificiile fără mat nu sunt interzise. Poziția italiană cu culorile inversate păstrează apărarea `Qg3`.
+
+Dintre 44 de cereri de indiciu pe poziții pereche și bugete identice, numai liderul italian S5 se schimbă. Liderii Sicilianei și Caro–Kann rămân identici; patru istorice noi își păstrează liderii și alternativele. Toate cele 24 de decizii Hard native comparate păstrează mutarea, adâncimea și nodurile. Aceste mostre nu califică toate alternativele oferite: `Bg5` sicilian rămâne deschis. [Regresii de credit](../../atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java)
+
+Calibrarea din 18 noiembrie folosește sursa `772251450f5d8cf337f8f31c18734f5601043e8d`, 50 de starturi pereche și 100 de partide contra Stockfish 19 `UCI_Elo 1500`, un fir și 6.000 de noduri solicitate. Fiecare dintre cele 12.522 de mutări jucate are analiza efectivă Hard: 1.600 în prefixe, 5.462 la mutarea Hard și 5.460 înaintea replicii Stockfish. Rejucarea independentă PGN/JSONL și publicatorul Extent verifică întregul lot.
+
+| Profil | V / R / Î / neterminate | Elo local central | Interval conservator 95% | Neterminate toate pierdute / câștigate |
+|---|---|---|---|---|
+| Hard nativ adaptiv 100k–200k | 39 / 3 / 37 / 21 | 1.507 | 1.357–1.656 | 1.433 / 1.581 |
+
+Bootstrap-ul păstrează deschiderea ca unitate, cu 20.000 de eșantioane. Plafonul este 220 de semimutări; neterminatele rămân distincte de remize. Diferența față de ancora configurată este +7 Elo, cu interval −143…+156. Nu este rating uman și nu demonstrează creștere față de Hard anterior: corecția privește indiciul, iar algoritmul deciziei native nu s-a schimbat. Ancorele aplicației rămân guvernate de dovezile lor.
+
+Prima rulare s-a oprit după 49 de partide și o partidă parțială din cauza validatorului unei repetiții legale de turn. După corecția validatorului, întregul lot a fost reluat; rularea întreruptă este păstrată separat și exclusă din estimare. Toate cele 208 clase de producție au fost identice între cele două lansări. Ulterior, trei colectări din calea indiciului au fost exprimate compatibil API 26, fără schimbarea deciziei Hard. Dovezile sunt în `C:\work\sah\studii\2026-11-17-j7-italian-calibration`; raportul calificat este `league/qualified/qualified-extent.html`. [Protocol nativ și comandă](../testing/hard-audit.md)
 
 ## Control la fiecare schimbare
 

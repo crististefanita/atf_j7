@@ -98,13 +98,9 @@ ale partidelor nu devin etichete automate de învățare, iar interdicțiile FEN
 runtime nu pot înlocui căutarea.
 [Contracte de transfer înghețate](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
 
-Toate cele trei probe algoritmice italiene au fost respinse. Recuperarea unei
-apărări liniștite nu închide problema dacă altă deschidere pierde sau căutarea
-inițială nu încheie orizontul cerut. Următoarea iterație trebuie să păstreze
-alternativele brute eligibile fără a epuiza căutarea inițială sau comparația în
-același total de 200k, să raporteze adâncimile complete efective și să conserve
-recepțiile v1 imuabile. Hard nativ și indiciul rămân API-uri măsurate separat;
-traseele diagnostice parțiale nu stabilesc o creștere Elo.
+Cele trei probe italiene inițiale au fost respinse. Corecția ulterioară păstrează dovezile brute H4 și demovează numai oferta materială susținută de credit, dar infirmată de acele dovezi. La S5 recomandă `…Qg6` și nu mai oferă `…Bxf2+` sau `…Nge7` ca echivalente. Dintre 44 de cereri pereche, numai acel lider se schimbă; patru istorice noi își păstrează liderii. Schimbul echilibrat sicilian și sacrificiul Traxler `…Bxf2+` rămân valide. Comparațiile diagnostice rămân distincte de sugestiile publice, iar scorurile de revenire exclud creditul istoric. Ordinea de preferință poate include dovezi de la orizonturi anterioare și nu promite sortare numerică după scorurile brute. [Regresii și contraexemple](../../atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java)
+
+Hard nativ și indiciul rămân API-uri distincte. [Auditul fiecărei mutări și Elo](hard-audit.md) măsoară separat partidele reale.
 
 Testele cache-ului exact disting valorile ferestrei complete de limitele tăierilor
 și compară cache-ul încălzit, rece și dezactivat. Referința originală clasifică

@@ -12,7 +12,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
-| P1 | Italiană · replicile defensive din indiciu și Hard | Toate cele trei probe au fost respinse; compensația falsă pentru `…Bxf2+` rămâne. | Păstrează alternativele brute eligibile fără a epuiza căutarea inițială sau comparația în 200k; menține martorii de transfer și sacrificiile corecte. |
+| P1 | Italiană · alegerea Hard nativă | Indiciul S5 este corectat; Hard efectiv încă alege `…Na5`. | Compară cu `…Qg6` la orizont comun, verifică replicile H17/H19 și transferul fără regresii. |
 | P1 | Indiciu · precizia alternativelor independente | Liderul sicilian corect `N1c3` încă oferă alternativa inferioară `Bg5`. | Corectează alternativele oferite fără regresia liderului, cu dovezi la orizont comun și replici libere. |
 | P2 | Audit indicii · transfer mai larg | Planul inițial acoperă trei trasee scurte de deschidere și trei bugete. | Adaugă familii cu istorii separate și măsoară pierderea liderului distinct de rangurile inferioare jucate intenționat. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
@@ -58,13 +58,11 @@ Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceea
 </details>
 
 <details>
-<summary>P1 · Italiană · replicile defensive din indiciu și Hard</summary>
+<summary>P1 · Italiană · alegerea Hard nativă</summary>
 
-Colecția `opening-hints-v1`, legată de sursă, găsește decizia 5 din `italian-ranked` recomandând `…Bxf2+`. Stockfish H19 dă −311 cp / 0‰ prin `Kxf2 …Qc5+ d4`, față de −49 cp / 444‰ pentru `…Qg6`. H4 brut al indiciului preferă deja `Qg6 −59` față de `Bxf2+ −90`, dar creditul orizontului anterior ridică sacrificiul la −41, iar selecția candidaților pierde `Qg6`. Separat, Hard efectiv la 100k alege `…Na5`, evaluat la −120 cp / 155,5‰. Ambele sunt lacune existente, reproduse cu motorul precedent.
+Indiciul S5 la 200k recomandă acum numai `…Qg6`, cu sacrificiul Traxler și martorii Sicilianei/Caro–Kann păstrați. Problema rămasă este Hard efectiv: în același istoric alege `…Na5` la 100k. Stockfish H19 dă −120 cp / 155,5‰ pentru această alegere și −49 cp / 444‰ pentru `…Qg6`. Compară apărările la același orizont, fără a importa automat selecția indiciului în jocul nativ sau a introduce excepții FEN.
 
-Trei probe italiene izolate au fost respinse; motorul calificat de producție rămâne neschimbat. Nicio corecție italiană sau creștere Elo nu a fost calificată. [Probe măsurate](../board/ai-quality.md#prima-colecție-de-audit-mutare-cu-mutare)
-
-Următorul pas păstrează alternativele brute eligibile fără a epuiza căutarea inițială sau comparația în plafonul unic de 200k. Verifică apărările centrale liniștite și furculița ulterioară de cal; măsoară orizonturile complete și alocarea efectivă a nodurilor. Compară separat Hard-ul nativ `…Na5` și indiciul S5. Menține sacrificiile corecte de nebun, damă și cal, martorii Sicilianei, Caro–Kann, Catalanei și `Qxc2`, precum și dovezile v1 imuabile. Promovează numai după transfer independent; eșecurile capturate sunt date de regresie, nu excepții FEN în runtime sau etichete de învățare automată. [Martori de transfer înghețați](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java) · [Protocolul auditului](../testing/hint-audit.md)
+Calibrarea nativă nouă are 100 de partide și 12.522 de analize: 1.507 Elo local, IC 95% 1.357–1.656. Nu dovedește o creștere față de Hard anterior. Promovarea următoare cere transfer pe familii nefolosite și duel pereche candidat–live; păstrează sacrificiile corecte și toate bugetele. [Corecție și calibrare](../board/ai-quality.md#corecția-creditului-italian-și-calibrarea-hard-nativ) · [Auditul fiecărei mutări](../testing/hard-audit.md)
 
 </details>
 
