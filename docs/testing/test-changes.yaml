@@ -865,3 +865,51 @@ testChanges:
     test: ro.atf.chess.MatchAnalysisParityTest#nativeModelProjectsTheDisplayedMatchFrame
     contract: "Update the shared Nc3 replay and off-book recommendation snapshots with Stockfish evidence, retaining JVM-worker setup, history, small White advantage, manual-board parity, mate and stored-checkpoint contracts"
     allowDelete: false
+
+  - id: J7-0160-ANDROID-VERSION-EN-LIVE
+    base: "2e4f22ddb8809e1d8eb9d79d77c7c225840b64d6"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the candidate version while preserving the documented Android and Maven build boundaries"
+    allowDelete: false
+
+  - id: J7-0160-ROOT-POM-EN-LIVE
+    base: "2e4f22ddb8809e1d8eb9d79d77c7c225840b64d6"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the candidate version while preserving the documented Android and Maven build boundaries"
+    allowDelete: false
+
+  - id: J7-0160-TESTS-POM-EN-LIVE
+    base: "2e4f22ddb8809e1d8eb9d79d77c7c225840b64d6"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the candidate version while preserving the documented Android and Maven build boundaries"
+    allowDelete: false
+
+  - id: J7-0160-ANDROID-VERSION-RO-LIVE
+    base: "19d85c4ef2bac6704269dfb01bde422af560bc3e"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the candidate version while preserving the documented Android and Maven build boundaries"
+    allowDelete: false
+
+  - id: J7-0160-ROOT-POM-RO-LIVE
+    base: "19d85c4ef2bac6704269dfb01bde422af560bc3e"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the candidate version while preserving the documented Android and Maven build boundaries"
+    allowDelete: false
+
+  - id: J7-0160-TESTS-POM-RO-LIVE
+    base: "19d85c4ef2bac6704269dfb01bde422af560bc3e"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the candidate version while preserving the documented Android and Maven build boundaries"
+    allowDelete: false
