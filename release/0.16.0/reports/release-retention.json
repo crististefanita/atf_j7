@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "sourceCommit": "55768279200be9bba0644efd28737af3c957c1b6",
+  "verifiedMainCommit": "a58e0c6b58413d7dd23b933f0d65641833128285",
+  "retainedTags": [
+    "v0.16.0",
+    "v0.15.3"
+  ],
+  "retiredReleaseTag": "v0.15.2",
+  "retiredReleaseId": 446937713,
+  "historicalGitTags": "PRESERVED",
+  "observedUtc": "2026-11-17T20:14:33.2085135Z"
+}
