@@ -1,5 +1,7 @@
 # Chess Lab Releases
 
+## Overview
+
 The catalog identifies the available release and where to verify its evidence.
 
 ## Published Release

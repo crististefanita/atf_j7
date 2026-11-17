@@ -1,5 +1,7 @@
 # Release and RAG
 
+## Overview
+
 This guide ties the commit, signed APK, Android probe, and verified download together.
 The [release catalog](../../release/README.md) identifies the available version and its evidence.
 
@@ -9,11 +11,11 @@ Check the available version in the README from `origin/main`. If the local branc
 
 1. Investigate the changes from the latest tag and run `ReleaseRag` with the modified paths. Open the cited documents and record the risks, affected suites, and acceptance criteria.
 2. Select the version from the 0.x series. A fix increments the patch, and a new feature or contract change increments the minor version. Align `versionName`, `versionCode`, the Maven version, and the APK name. In `release/index.json`, `currentVersion` is the current release, and `versions` contains the current release followed by one previous release for comparison. The candidate remains separate until publication. [Release catalog](../../release/README.md)
-3. Update the release notes and affected guides. Move confirmed rules from feedback into the guide that owns them and keep the remaining open criteria. Put **Play** immediately after the introduction with two links in order, **Download Chess Lab `<version>` APK** and **Play in your browser**. Below the architecture section, put the link to the GitHub notes in **Published Release**. The verifier checks the tag in the notes against the APK. [Web publication](../../web/parity.md#publishing-the-link)
+3. Update the notes and affected guides on both branches. Move confirmed rules from feedback into the owning guide. In `main` use **Play** and **Published Release**. In `main_RO` use **Jocul** and **Ediția publicată**. Place the APK and browser links under the play heading in that order. Place the GitHub notes below the architecture. [Bilingual documentation](#bilingual-documentation) · [Web publication](../../web/parity.md#publishing-the-link)
 4. Create the candidate commit in a clean Git worktree in TMP. Declare the SHA of the review baseline, a distinct ancestor of the candidate. Run DocumentationGovernanceTest, ReleaseGovernanceTest, ExtentGovernanceTest, TestChangeReview, and ReleaseGate preflight before signing. Keep the reports and Git review receipt. Enable the AI probes when the diff affects the engine or corpus. [JVM suites](../testing/README.md#jvm-suites) · [Test changes](../testing/README.md#test-changes-against-a-git-baseline)
 5. Initialize the external identity by dot-sourcing `scripts/Initialize-J7Signing.ps1`. For a new key after a published release, use `-StartNewIdentity` explicitly. The script rejects implicit rotation and protects the key with ACL and DPAPI. Build the APK and Android tests with Gradle, then verify the signature, `versionCode`, and compatibility through `scripts/verify-signing-continuity.ps1`. Run the flow that covers the change on the emulator and keep the installed APK hash and Extent report. If the signing identity changed and the emulator still has the old release, preserve the installation containing valuable data. A sanity APK with a different `applicationId` supplies supplementary evidence and cannot qualify the distribution binary.
 6. Run `ChessComponentSuite` and Game Review sanity under the same qualification ID. Pass the APK, commit, raw receipt directories, and Extent reports through `ReleaseGate qualification`. Check the expandable comparisons and captures for their steps in Extent. For a change to Opening theory or **Why?**, add the compact probe at a 1.3× font scale in RO and EN for the same APK and commit. [Shared replay](../testing/README.md#shared-replay-on-a-compact-screen) [Extent audit criteria](../testing/README.md#extent-reporting)
-7. After signing and qualification, push the candidate tag without rewriting history and publish the GitHub asset. Keep `currentVersion`, the comparison list, and the main README on the latest verified release until the new asset exists. Then promote the candidate in the catalog and README. Keep only the new and immediately preceding releases on GitHub Releases and locally. Retire the other releases and folders after the new asset and README route pass verification. Keep the Git tags.
+7. After signing and qualification, push the candidate tag without rewriting history and publish the GitHub asset. Keep `currentVersion`, the comparison list, and the main README on the latest verified release until the new asset exists. Then promote the catalog and README on both branches. Keep only the new and immediately preceding releases on GitHub Releases and locally. Retire the other releases and folders after the new asset and README route pass verification. Keep the Git tags.
 8. Read the README from `main` on GitHub and download the APK from the displayed URL. Use `ReleaseGate publication` to verify the tag, channel, HTTP status, byte count, SHA-256, and CRC. Save the evidence, push the reports commit, and repeat the download from the final version of the README.
 
 After publishing a draft, read the release again by tag and identify the asset by ID. GitHub may return an interim route with the “untagged” segment in the upload response. Use only the canonical route from the published release metadata in the README and verify the complete download.
@@ -24,13 +26,53 @@ Keep generated Extent HTML byte for byte, including in the Git index, so that th
 
 In the checkout, current-release governance recalculates HTML fingerprints for strict qualification and checks Android receipts against the source, APK, and total assertion count. Report and receipt paths must stay within the release folder.
 
+## Bilingual Documentation
+
+Use `main` for English and `main_RO` for Romanian. Prepare both updates in
+detached worktrees in TMP. The default branch owns publication, and version
+metadata, the APK link and evidence identify the same release in both branches.
+
+1. Start from the live `origin/main` and `origin/main_RO`. Make the Romanian
+   wording precise and translate the same change into English. Keep document
+   paths, section hierarchy, command meaning, values and evidence aligned.
+2. Review the wording and actual UI labels in both languages. Use standard SAN
+   in English chess examples. Record any localization that intentionally differs
+   in display while keeping the same move or behavior.
+3. Run `DocumentationGovernanceTest` in each candidate worktree and the pair
+   gate against the two committed candidate SHAs. Check J0's rules for
+   orientation, concise visible prose, diagram labels and adjacent legends.
+4. Push both tested commits together with an ordinary atomic fast-forward.
+   When the edition changes, verify the complete APK from the English README
+   on `main` and confirm the Romanian route points at the same release.
+
+```powershell
+java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate documentation-pair . $enCommit $roCommit
+git push --atomic origin "${enCommit}:refs/heads/main" "${roCommit}:refs/heads/main_RO"
+```
+
+The pair gate verifies the tracked Markdown inventory, ordered structure,
+corresponding links and heading destinations, and byte-identical published
+evidence. Human review verifies translation fidelity. [Testing strategy](../testing/README.md#choosing-the-test-level)
+
+GitHub Actions deploys the qualified Web asset from an immutable Git commit
+through the [Pages workflow](../../.github/workflows/chess-pages.yml).
+Permanent branches are limited to `main` and `main_RO`. Keep Git tags of
+published editions and deployed site bundles. [Web publication](../../web/parity.md#publishing-the-link)
+
 ## Strict Exception for Installing the Exact APK
 
 `ReleaseGate qualification` checks Surefire cases against the Extent assertion tables. For Android, it reads the three instrumentation receipts, metadata, and PNGs and compares them with the report. It requires the same qualification ID, exact source, and distribution APK hash. HTML without results, a phase from another run, or a probe using a different APK stops qualification.
 
+The exception requires explicit publication authorization, a confirmed signing change, and old emulator data to preserve.
+
+<details>
+<summary>Required evidence and signing steps</summary>
+
 If the signature changed, the only available emulator has the old installation and data that must be kept, and the user explicitly requested publication through the README, the release can only be published with status `PUBLISHED_WITH_INSTALL_EXCEPTION`. The release folder must contain `publication-exception.json`, a verifiable build receipt, the supplementary sanity report and receipt, signing transition, Extent with a verified hash, public and authenticated download receipts, and GitHub release metadata. The exception applies only to the exact installation. Its reason, distribution APK commit and hash, different sanity APK hash, supplementary assertion count, and `CLEAN_INSTALL_REQUIRED` are validated separately. The release omits `qualification.json` and makes no claim that the exact APK was installed. The tests, signature, asset integrity, and full-download requirements still apply. Once a clean emulator is available, run strict qualification and replace the exception with complete evidence.
 
 Dot-source the script in the build session to load `J7_SIGNING_STORE` and `J7_SIGNING_PASSWORD`. DPAPI decrypts the password locally, and the password stays hidden. For an upgrade, the certificate must match exactly. A different signature explicitly requires `CLEAN_INSTALL` mode. Android cannot update the installed version, and old app data does not migrate. Gradle builds the signed pair with `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`. The runner with `-Distribution -SourceCommit <sha>` requires an emulator without the game package and compares the installed bytes with the qualified APK before instrumentation.
+
+</details>
 
 ## Signing Identity and Clean Installation
 
@@ -127,7 +169,7 @@ receipt. Releases without this flow retain their format.
 For changes to game lists, run the signed probe for both menus. The runner keeps the same installation and resets test data between phases. Qualify both Extent reports separately against the common APK identity. Persistence checks run in `MatchStoreTest`.
 
 ```powershell
-./scripts/run-android-sanity.ps1 -Adb <adb> -Serial <serial> -LeaseFile <registru> `
+./scripts/run-android-sanity.ps1 -Adb <adb> -Serial <serial> -LeaseFile <lease-file> `
   -Distribution -MatchMenusOnly -SourceCommit <sha>
 ```
 
@@ -141,8 +183,8 @@ After publication, run verification with the existing GitHub authentication in G
 
 ```powershell
 ./scripts/verify-authenticated-download.ps1 -Repository crististefanita/chess `
-  -Version <versiune> -CandidateCommit <sha> -QualifiedApk <apk-calificat> `
-  -Classes <copia-TMP>/atf-tests/target/classes -OutputDirectory <director-TMP-nou>
+  -Version <version> -CandidateCommit <sha> -QualifiedApk <qualified-apk> `
+  -Classes <tmp-checkout>/atf-tests/target/classes -OutputDirectory <new-tmp-directory>
 ```
 
 ## Advisory Context

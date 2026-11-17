@@ -30,9 +30,11 @@ public static void verifyState(RecordedAssertions audit, String actual) {
 - The dependency atf.api:atf-test-kit uses atf.testkit.version from the project POM. Use test scope in the product. Compile scope is appropriate only for the main support code of a test module. Keep Kit outside the APK or application.
 - JUnit Jupiter API and Jackson are transitive. The runner declares the junit-jupiter-engine and its selection rules. The level annotation works alongside @Test and the consumer's extension.
 - For Extent, the adapter sends checks to AssertionAuditReport and AssertionAuditRun owns the shared session. Rendering stays with Reporting. [Reporting integration](README.Reporting.md#scope-and-integration).
-- Inject the sanitizer through AssertionValueDisplay before previewing. The comparison runs once. Stored values are bounded and serve as previews. Pure unit tests keep their own policy.
+- Inject the sanitizer through AssertionValueDisplay before previewing. The comparison runs once. Stored values are bounded and do not form a complete archive. Pure unit tests keep their own policy.
 - Scopes and resources are per invocation. Close them and preserve the original cause. A local lock alone cannot isolate global policies from outside readers.
 
 ---
 
 Verify local contracts with `PlatformLibraryProvenanceTest` and `SuiteGovernanceTest`. Keep coordinates, hashes, and integration notes aligned with `library-provenance.json`.
+
+[Verify the library integration in Chess and the examples in J0](README.md#verification)

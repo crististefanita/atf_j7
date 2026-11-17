@@ -38,8 +38,12 @@ reporting:
 
 Printing the path requires opt-in, an enabled console, and an event with a confirmed artifact. `detailsEnabled` controls detail visibility only.
 
-Console depends on Core. Kit is optional for the JUnit integration. This projection provides diagnostics. The test owns the comparison and verdict.
+Console depends on Core. Kit is optional for JUnit integration.
+
+The Console projects diagnostics. The invoking test owns the comparison and verdict.
 
 ---
 
 Before adopting a new version, check local compatibility with `PlatformLibraryProvenanceTest` and diagnostic rendering with `ExtentGovernanceTest`. Keep coordinates, hashes, and integration notes aligned with `library-provenance.json`.
+
+[Verify the library integration in Chess and the examples in J0](README.md#verification)

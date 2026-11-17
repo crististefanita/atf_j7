@@ -1,5 +1,7 @@
 # Chess Lab Documentation
 
+## Overview
+
 Start with the guide that answers your question. Verify claims about behavior against the project's sources and tests.
 
 | Question | Guide |

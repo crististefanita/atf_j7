@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.stream.Stream;
 
 /** Small local retriever. It cites tracked guidance and leaves execution to the evidence gates. */
 public final class ReleaseRag {
@@ -25,6 +26,10 @@ public final class ReleaseRag {
             citations = List.copyOf(citations);
             covered = List.copyOf(covered);
             needsReview = List.copyOf(needsReview);
+        }
+
+        public boolean documentationPairRequired() {
+            return Stream.concat(covered.stream(), needsReview.stream()).anyMatch(DocumentationPair::isMarkdown);
         }
     }
 
@@ -277,6 +282,10 @@ public final class ReleaseRag {
         var inventory = inspect(Path.of(args[0]), List.of(args).subList(1, args.length));
         var citations = inventory.citations();
         System.out.println("ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.");
+        if (inventory.documentationPairRequired()) {
+            System.out.println("DOC_PAIR | main EN / main_RO RO. See docs/release/README.md (Bilingual Documentation / Documentație bilingvă).");
+            System.out.println("  Run ReleaseGate documentation-pair <Git root> <EN ref> <RO ref> on the paired candidates, then review translated meaning.");
+        }
         if (citations.isEmpty()) System.out.println("NO_MATCH | Review the changed paths with the release owner.");
         inventory.covered().forEach(path -> System.out.println("COVERED | " + path));
         inventory.needsReview().forEach(path -> System.out.println("NEEDS_REVIEW | " + path));

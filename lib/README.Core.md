@@ -42,3 +42,5 @@ var total = body.path("total").decimalValue();
 ---
 
 Before adopting a new version, check local compatibility with `PlatformLibraryProvenanceTest` and verify the contracts used by Chess Lab. Keep coordinates, hashes, and integration notes aligned with `library-provenance.json`.
+
+[Verify the library integration in Chess and the examples in J0](README.md#verification)

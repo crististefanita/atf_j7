@@ -24,12 +24,18 @@ Play chess against AI, solve puzzles, and study openings.
 
 ```mermaid
 flowchart LR
-    Core["Java engine + YAML resources"] -->|Gradle build| Android["Android app :app"]
-    Core -->|TeaVM build| Worker["Web worker"]
-    Browser["Web UI"] <-->|commands and responses| Worker
-    Core -->|verified with Maven| Tests["JVM suites"]
-    Tests -->|publish to| Extent["Extent"]
-    Android -.->|native receipts| Tests
+    Core["Java + YAML"]
+    Android["Android :app"]
+    Worker["Web worker"]
+    Browser["Web UI"]
+    Tests["JVM suites"]
+    Extent["Extent"]
+    Core -->|Gradle| Android
+    Core -->|TeaVM| Worker
+    Browser <-->|commands| Worker
+    Core -->|Maven| Tests
+    Android -.->|receipts| Tests
+    Tests -->|reports| Extent
 ```
 
 <details>

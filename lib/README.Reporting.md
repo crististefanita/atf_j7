@@ -62,8 +62,10 @@ public static void publish(AssertionAuditRun run, String actual) {
 - Titles are published as literal text in Extent and fallback. The profile accepts the original labels, including multiline labels. `ReportArtifactProfile.visibleLabel(label)` applies the same whitespace projection as the inspector.
 - The caller owns the browser. Separate JUnit discovery diagnostics from execution, close the context before the browser, and preserve the original cause during cleanup.
 
-HTTP duration comes from `ReportResponse.duration()`. `detail(...)` preserves the caller's text as supplied.
+HTTP duration comes from `ReportResponse.duration()`. `detail(...)` preserves the caller's text separately from the measured transport duration.
 
 ---
 
 J0 [code, tests, and feedback](README.md#maintenance-and-feedback).
+
+[Verify the library integration in Chess and the examples in J0](README.md#verification)

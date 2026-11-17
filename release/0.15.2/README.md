@@ -1,5 +1,9 @@
 # Chess Lab 0.15.2
 
+## Overview
+
+Download the signed APK from **Assets**.
+
 ## Improvements
 
 - Opening Theory and **Why?** in Game Review share the same full-screen replay.
@@ -14,6 +18,6 @@
 
 ## Installation
 
-Download the signed APK from **Assets**. [Release on GitHub](https://github.com/crististefanita/chess/releases/tag/v0.15.2)
+[Release on GitHub](https://github.com/crististefanita/chess/releases/tag/v0.15.2)
 
 [Release evidence](reports/README.md)
