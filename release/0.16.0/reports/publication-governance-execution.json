@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "version": "0.16.0",
+  "sourceCommit": "55768279200be9bba0644efd28737af3c957c1b6",
+  "english": {
+    "commit": "a58e0c6b58413d7dd23b933f0d65641833128285",
+    "runId": "ae274964776c4848a1cb750054aa82a0",
+    "tests": 51,
+    "extent": "publication-governance.html",
+    "extentSha256": "34fdca47e8c3cab844678c354ca69398584125d78387ce04968c81cd97d6fc0b",
+    "surefireSha256": {
+      "TEST-ro.atf.chess.DocumentationGovernanceTest.xml": "973df9d60270a73bee1643e1c6516db55b8b8e9ea1d954ecc473d4cfe9fc4c19",
+      "TEST-ro.atf.chess.ReleaseGovernanceTest.xml": "d97735182a6212d02fa82214aa43680222be94b46ab3d53e2aa17decdc4ca545",
+      "TEST-ro.atf.chess.ExtentGovernanceTest.xml": "01d54cf3e99b583b80c8db0cc3e9754c1d68edf8411a72ba752b983f303e88e6"
+    }
+  },
+  "romanian": {
+    "commit": "fde1dc976e4aaf9e7675f589a34175d0b91db482",
+    "runId": "282da39179b04691b1e19318ce7340a8",
+    "tests": 18,
+    "extent": "publication-documentation-ro.html",
+    "extentSha256": "7655f5f2aea57e82f8d9465d4f3cec51e2e24ef8aca8340fe28b5decb68f75ad",
+    "surefireSha256": {
+      "TEST-ro.atf.chess.DocumentationGovernanceTest.xml": "aea908a463cffbdf0a0ded5aa4e8a6ac68aa9ec3df58015839abca584b0f72a6"
+    }
+  },
+  "documentationPair": {
+    "englishCommit": "a58e0c6b58413d7dd23b933f0d65641833128285",
+    "romanianCommit": "fde1dc976e4aaf9e7675f589a34175d0b91db482",
+    "receiptSha256": "5f96dcaf6cd8af6949342ce1e319ba0fb2eb904f7ebb19e8a9491ad4793f2645"
+  },
+  "evidenceVerifierSha256": "74a4828552e786997d65b77395ac8984b17baee2ef8c9321edc24ee0a4c7e613",
+  "observedUtc": "2026-11-17T20:12:21.0688060Z"
+}
