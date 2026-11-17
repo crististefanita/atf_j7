@@ -137,6 +137,7 @@ class ChessWebParityPublication {
         var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-analysis-worker.mjs", site.resolve("engine-worker.mjs"), fixture).strip());
         var cases = MatchAnalysisParityTest.fixture();
         int revisionChecks = 0;
+        int manualChecks = 0;
         for (var example : cases) {
             String id = example.id();
             check.same(id + " preserves the opt-in and checkpoint in the same AI match",
@@ -144,6 +145,11 @@ class ChessWebParityPublication {
             var nativeFrame = MatchAnalysisParityTest.frame(ChessMatch.restore(example.checkpoint()), example.displayedPly());
             check.same(id + " matches the native evaluation, hint and replay of the displayed position",
                     nativeFrame.audit(), rows.get(id + ":frame"));
+            if (example.compareManualBoard()) {
+                check.same(id + " keeps the same White evaluation and engine recommendation on the manual board",
+                        nativeFrame.audit(), rows.get(id + ":manual"));
+                manualChecks++;
+            }
             check.same(id + " leaves the durable ledger untouched across evaluation and replay", "true", rows.get(id + ":read-only"));
             if (example.recommendation() != null) {
                 check.same(id + " rejects stale commands and a different position stamped with the same revision",
@@ -156,7 +162,8 @@ class ChessWebParityPublication {
         check.same("Unopened analysis is unavailable and malformed setup or frame inputs are rejected",
                 "UNAVAILABLE/TypeError: Invalid chess worker request/TypeError: Invalid chess worker request/true",
                 rows.get("input-guards"));
-        check.same("The packaged worker reports every inline analysis observation", 3 * cases.length + revisionChecks + 2, rows.size());
+        check.same("The packaged worker reports every inline and manual analysis observation",
+                3 * cases.length + revisionChecks + manualChecks + 2, rows.size());
     }
 
     private String runWorker(Path root, String script, Path worker, Path input) throws IOException, InterruptedException {

@@ -53,7 +53,9 @@ class ChessWebShellTest {
                 .map(match -> match.group(1)).toList();
         check.same("All Android reference and Web adapter contracts execute", List.of(
                 "Inline analysis starts unchecked and shares the board frame geometry",
+                "Home keeps imported review recovery below Study and outside the title header",
                 "Inline analysis drops older frames and keeps hints on a board flip only",
+                "Inline analysis projects the score, lamp and playable theory for the displayed move",
                 "A hinted destination applies only the exact legal variation and respects selection",
                 "Web home preserves Android groups, action order and RO and EN labels",
                 "Only active saved games show the home action",

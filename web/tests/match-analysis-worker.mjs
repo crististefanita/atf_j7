@@ -42,6 +42,12 @@ function openFrame(checkpoint, ply, expectedRevision) {
     return request('match-analysis-open', { checkpoint, ply, expectedRevision });
 }
 
+async function study(action, { value = '', index = 0, option = '' } = {}) {
+    return (await request('study', {
+        feature: 'analysis', action, value, index, saved: '', option, locale: 'ro',
+    })).study;
+}
+
 function boardFor(fen) {
     return fen.split(' ')[0].replaceAll('/', '').replace(/[1-8]/g, digit => ' '.repeat(Number(digit)));
 }
@@ -133,8 +139,31 @@ for (const example of cases) {
         assert.deepEqual(reopened.analysis, close.analysis, id + ' rejects obsolete commands without resetting the visible suggestion');
         report(id + ':revision', stale.outcome, mismatched.outcome, reopened.outcome);
     }
-    report(id + ':frame', evaluation?.ending ?? null, evaluation?.centipawns ?? null, evaluation?.mate ?? null,
-        decimal(evaluation?.whiteShare ?? null), counts, recommendation, previewLength, previewSide, mateAfterFirstMove);
+    const evaluationFacts = [evaluation?.ending ?? null, evaluation?.centipawns ?? null, evaluation?.mate ?? null,
+        decimal(evaluation?.whiteShare ?? null)];
+    report(id + ':frame', ...evaluationFacts, counts, recommendation, previewLength, previewSide, mateAfterFirstMove);
+    if (example.compareManualBoard) {
+        const manual = await study('open', { value: example.checkpoint, index: example.displayedPly, option: 'black' });
+        assert.equal(manual.board, boardFor(displayed.match.fen), id + ' studies the same position with Black below');
+        assert.equal(manual.blackBelow, true, id);
+        const ready = await study('evaluate', { index: manual.revision });
+        assert.deepEqual(ready.evaluation, evaluation, id + ' uses the same White-perspective evaluation in both views');
+        assert.equal(ready.hint?.count ?? 0, counts, id);
+        if (recommendation) {
+            const hinted = await study('hint');
+            assert.deepEqual([hinted.hint.move, hinted.hint.family], [recommendation, null], id + ' uses the engine outside theory');
+            const replay = (await study('preview')).preview;
+            assert.deepEqual([replay.kind, replay.total, replay.board], ['TACTICAL', previewLength, manual.board], id);
+            const firstStep = (await study('preview-seek', { index: 1 })).preview;
+            assert.deepEqual([firstStep.lastMove, firstStep.sideToMove], [recommendation, previewSide], id);
+            await study('preview-close');
+            const played = await study('tap', { value: recommendation.slice(2, 4) });
+            assert.equal(played.lastMove, recommendation, id + ' plays the exact revealed move');
+        } else {
+            assert.equal((await study('hint')).hint, null, id + ' offers no recommendation on the terminal board');
+        }
+        report(id + ':manual', ...evaluationFacts, counts, recommendation, previewLength, previewSide, mateAfterFirstMove);
+    }
     if (ended && example.displayedPly < resumed.match.ply) {
         const latest = await request('match-history', { expectedRevision, ply: resumed.match.ply });
         assert.equal(latest.outcome, 'APPLIED', id);

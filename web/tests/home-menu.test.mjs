@@ -7,7 +7,7 @@ import { profileKey, readProfile, writeProfile } from '../src/main/web/player-pr
 import { showReviewPiece } from '../src/main/web/review-workspace.mjs';
 import { routeForHash } from '../src/main/web/study-navigation.mjs';
 import { createMatchBotTimer } from '../src/main/web/match-bot-timer.mjs';
-import { createInlineAnalysisSession, guidedMatchMove } from '../src/main/web/match-inline-analysis.mjs';
+import { bindInlineMatchAnalysis, createInlineAnalysisSession, guidedMatchMove } from '../src/main/web/match-inline-analysis.mjs';
 
 const base = new URL('../../', import.meta.url);
 const read = path => readFile(new URL(path, base), 'utf8');
@@ -21,28 +21,48 @@ test('Inline analysis starts unchecked and shares the board frame geometry', asy
     const native = layout.match(/<CheckBox android:id="@\+id\/match_analysis_option"[^>]+>/)?.[0];
     assert.ok(native);
     assert.doesNotMatch(native, /android:checked="true"/);
-    assert.match(html, /<input id="ai-analysis" type="checkbox">/);
+    const checkbox = html.match(/<input\b[^>]*\bid="ai-analysis"[^>]*>/)?.[0] ?? '';
+    assert.match(checkbox, /\btype="checkbox"/);
+    assert.doesNotMatch(checkbox, /\bchecked\b/);
+    assert.match(checkbox, /\baria-describedby="ai-analysis-help"/);
+    assert.match(html, /<small id="ai-analysis-help">[^<]+<\/small>/);
     assert.match(html, /<div id="match-inline-analysis"[^>]*hidden>/);
+    const boardFrame = html.match(/<div class="match-board-frame">([^]*?)<p id="match-turn"/)?.[1] ?? '';
+    assert.match(boardFrame, /id="match-inline-meter"[^>]*role="meter"[^>]*hidden[^]*id="match-board"/);
+    const history = html.match(/<nav id="match-history"[^>]*>([^]*?)<\/nav>/)?.[1] ?? '';
+    assert.match(history, /id="match-previous"[^]*id="match-next"[^]*id="match-inline-hint"/);
     assert.match(styles, /\.match-board-frame\s*\{[^}]*inline-size:\s*min\(100%,\s*var\(--play-board-limit\)\)/);
-    assert.match(styles, /\.match-inline-meter\s*\{[^}]*position:\s*absolute;[^}]*inset-inline-end:\s*calc\(100% \+ 2px\)/);
 });
+
+test('Home keeps imported review recovery below Study and outside the title header', async () => {
+    const html = await read('web/src/main/web/index.html');
+    const header = html.match(/<header>([^]*?)<\/header>/)?.[1];
+    const tools = html.match(/<div class="home-tools">([^]*?)<section id="study-quests"/)?.[1];
+    assert.ok(header && tools);
+    assert.doesNotMatch(header, /id="(?:reopen-review|archive)"/);
+    assert.match(tools, /id="reopen-review"[^>]*hidden/);
+    assert.match(tools, /id="archive"[^>]*type="file"/);
+});
+
+function mockWorker(list) {
+    const events = new Map();
+    const worker = {
+        messages: [],
+        addEventListener(type, listener) { events.set(type, listener); },
+        postMessage(value) { this.messages.push(value); },
+        terminate() { this.stopped = true; },
+        answer(message, data) { events.get('message')({ data: { id: message.id, ...data } }); },
+    };
+    list.push(worker);
+    return worker;
+}
 
 test('Inline analysis drops older frames and keeps hints on a board flip only', () => {
     const workers = [];
     const statuses = [];
-    const makeWorker = () => {
-        const events = new Map();
-        const worker = {
-            messages: [],
-            addEventListener(type, listener) { events.set(type, listener); },
-            postMessage(value) { this.messages.push(value); },
-            terminate() { this.stopped = true; },
-            answer(message, data) { events.get('message')({ data: { id: message.id, ...data } }); },
-        };
-        workers.push(worker);
-        return worker;
-    };
-    const session = createInlineAnalysisSession({ createWorker: makeWorker, publish: state => statuses.push(state?.state?.ply ?? null) });
+    const session = createInlineAnalysisSession({
+        createWorker: () => mockWorker(workers), publish: state => statuses.push(state?.state?.ply ?? null),
+    });
     const frame = { reviewCheckpoint: '2|e2e4 e7e5', viewPly: 2, revision: 4, blackBelow: false };
     session.show(frame, 'ai-slot-one');
     assert.equal(workers.length, 0);
@@ -68,6 +88,127 @@ test('Inline analysis drops older frames and keeps hints on a board flip only', 
     assert.equal(current.stopped, true);
     assert.equal(statuses.at(-1), null);
     assert.equal(session.revealedMove(), null);
+});
+
+test('Inline analysis projects the score, lamp and playable theory for the displayed move', () => {
+    function element() {
+        const events = new Map();
+        const attributes = new Map();
+        return {
+            children: [], dataset: {}, style: {}, textContent: '', hidden: true, open: false,
+            addEventListener: (type, handler) => events.set(type, handler),
+            setAttribute: (name, value) => attributes.set(name, String(value)),
+            getAttribute: name => attributes.get(name) ?? null,
+            removeAttribute: name => attributes.delete(name),
+            replaceChildren(...children) { this.children = children; },
+            showModal() { this.open = true; },
+            close() { this.open = false; },
+            focus() {},
+            click() { assert.ok(!this.hidden && !this.disabled); events.get('click')(); },
+            ownerDocument: { createElement: () => ({ ...element(), hidden: false }) },
+        };
+    }
+
+    const controls = new Map();
+    const find = id => {
+        if (!controls.has(id)) controls.set(id, element());
+        return controls.get(id);
+    };
+    const meter = find('match-inline-meter');
+    meter.firstElementChild = element();
+    const panel = find('match-inline-analysis');
+    const lamp = find('match-inline-hint');
+    const score = find('match-inline-score');
+    const replay = find('match-inline-replay');
+    const dialog = find('match-inline-preview');
+    const next = find('match-inline-next');
+    next.hidden = false;
+    find('match-inline-close').hidden = false;
+    const workers = [];
+    const boards = [];
+    const cues = [];
+    let selectionClears = 0;
+    const session = bindInlineMatchAnalysis({
+        find, locale: 'ro', createWorker: () => mockWorker(workers),
+        createBoard: container => {
+            assert.equal(container, find('match-inline-preview-board'));
+            return { render: board => boards.push(board) };
+        },
+        cue: (move, flipped) => cues.push([move, flipped]),
+        clearSelection: () => { selectionClears++; },
+    });
+    const initial = { reviewCheckpoint: '3|WHITE|BASIC|1|', viewPly: 0, revision: 9, blackBelow: false, sideToMove: 'WHITE' };
+    session.show(initial, 'ai-slot');
+    assert.deepEqual([meter.hidden, panel.hidden, lamp.hidden, workers.length], [true, true, true, 0]);
+
+    const enabled = { ...initial, analysisEnabled: true };
+    session.show(enabled, 'ai-slot');
+    assert.deepEqual([meter.hidden, panel.hidden, lamp.hidden, lamp.disabled], [false, false, false, true]);
+    assert.equal(score.textContent, 'Analiză AI…');
+    assert.equal(meter.getAttribute('aria-valuenow'), null);
+    assert.equal(meter.getAttribute('aria-valuetext'), null);
+    assert.equal(session.command('hint'), false);
+    assert.equal(selectionClears, 0);
+
+    const worker = workers[0];
+    const frame = {
+        revision: 9, ply: 0, evaluation: { ending: 'HORIZON', centipawns: 32, whiteShare: .58 },
+        hint: { number: 0, count: 3, move: null },
+    };
+    const answer = analysis => worker.answer(worker.messages.at(-1), { outcome: 'APPLIED', analysis });
+    answer(frame);
+    assert.deepEqual([score.textContent, meter.getAttribute('aria-valuenow'), meter.firstElementChild.style.insetBlockEnd],
+        ['+0,32 · Alb', '58', '0']);
+    assert.equal(meter.getAttribute('aria-valuetext'), '+0,32 · Alb');
+    assert.equal(lamp.getAttribute('aria-label'), 'Arată varianta AI');
+    lamp.click();
+    assert.equal(worker.messages.at(-1).action, 'hint');
+    assert.equal(selectionClears, 1);
+    lamp.click();
+    assert.equal(worker.messages.length, 2);
+    assert.equal(selectionClears, 1);
+    const name = { en: 'Italian Game', ro: 'Partida italiană' };
+    const shown = { ...frame, hint: { number: 1, count: 3, move: 'e2e4', family: name } };
+    answer(shown);
+    assert.equal(lamp.getAttribute('aria-pressed'), 'true');
+    assert.match(find('match-inline-announcement').textContent, /Varianta 1 din 3\. e2 la e4\. Partida italiană/);
+    assert.deepEqual(cues.at(-1), ['e2e4', false]);
+    assert.equal(guidedMatchMove(session.revealedMove(), undefined, 'e4', ['d2d4', 'e2e4']), 'e2e4');
+
+    session.show({ ...enabled, blackBelow: true }, 'ai-slot');
+    assert.equal(workers.length, 1);
+    assert.equal(meter.firstElementChild.style.insetBlockStart, '0');
+    assert.deepEqual(cues.at(-1), ['e2e4', true]);
+    replay.click();
+    assert.equal(worker.messages.at(-1).action, 'preview');
+    const line = { kind: 'THEORY', ply: 0, total: 6, branch: 0, branches: ['e2e4', 'd2d4'], name, eco: 'C50' };
+    answer({ ...shown, preview: line });
+    assert.equal(dialog.open, true);
+    assert.match(find('match-inline-evidence').textContent, /Partida italiană · C50/);
+    assert.equal(find('match-inline-previous').disabled, true);
+    assert.equal(boards.at(-1).locked, true);
+    assert.equal(boards.at(-1).blackBelow, true);
+    next.click();
+    assert.equal(worker.messages.at(-1).action, 'preview-seek');
+    assert.equal(worker.messages.at(-1).index, 1);
+    answer({ ...shown, preview: { ...line, ply: 1, lastMove: 'e2e4' } });
+    assert.match(find('match-inline-position').textContent, /Pasul 1 din 6 · e2–e4/);
+    find('match-inline-close').click();
+    assert.equal(worker.messages.at(-1).action, 'preview-close');
+    answer(shown);
+    assert.equal(dialog.open, false);
+    assert.equal(session.revealedMove(), 'e2e4');
+
+    session.show({ ...enabled, reviewCheckpoint: '3|WHITE|BASIC|1|d2d4', viewPly: 1, revision: 10 }, 'ai-slot');
+    assert.equal(worker.stopped, true);
+    assert.equal(lamp.disabled, true);
+    assert.equal(session.revealedMove(), null);
+    const nextWorker = workers[1];
+    nextWorker.answer(nextWorker.messages[0], { outcome: 'APPLIED', analysis: { ...shown, revision: 10, ply: 0 } });
+    assert.equal(score.textContent, 'Analiza AI este indisponibilă.');
+    assert.equal(session.revealedMove(), null);
+    session.show(null);
+    assert.deepEqual([meter.hidden, panel.hidden, lamp.hidden, dialog.open], [true, true, true, false]);
 });
 
 test('A hinted destination applies only the exact legal variation and respects selection', () => {

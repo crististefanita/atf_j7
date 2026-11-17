@@ -26,6 +26,20 @@
     "recommendation": "g1f3"
   },
   {
+    "id": "out-of-book-engine",
+    "humanSide": "WHITE",
+    "level": "BASIC",
+    "analysis": true,
+    "moves": "a2a3 h7h6 b2b3 g7g6 h2h3 c7c6 e2e4 d7d6",
+    "checkpoint": "2|analysis|a2a3 h7h6 b2b3 g7g6 h2h3 c7c6 e2e4 d7d6",
+    "displayedPly": 8,
+    "sideToMove": "WHITE",
+    "result": "IN_PROGRESS",
+    "ending": "HORIZON",
+    "recommendation": "c1b2",
+    "compareManualBoard": true
+  },
+  {
     "id": "historical-black-mate",
     "humanSide": "WHITE",
     "level": "BASIC",
@@ -49,6 +63,7 @@
     "sideToMove": "WHITE",
     "result": "BLACK_WINS",
     "ending": "FINISHED",
-    "recommendation": null
+    "recommendation": null,
+    "compareManualBoard": true
   }
 ]

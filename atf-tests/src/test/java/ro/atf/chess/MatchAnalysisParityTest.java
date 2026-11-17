@@ -15,7 +15,7 @@ import ro.atf.chess.MatchSetup.Level;
 @ExtendWith(ExtentAudit.class)
 class MatchAnalysisParityTest {
     record Case(String id, Side humanSide, Level level, Boolean analysis, String moves, String checkpoint, int displayedPly,
-                Side sideToMove, Result result, String ending, String recommendation) {
+                Side sideToMove, Result result, String ending, String recommendation, boolean compareManualBoard) {
         boolean enabled() { return Boolean.TRUE.equals(analysis); }
     }
 
@@ -57,7 +57,7 @@ class MatchAnalysisParityTest {
                 check.same(example.id() + " has no evaluation share or hint when analysis is disabled",
                         new Frame(null, null, null, null, 0, null, 0, null, false), frame);
             } else if ("HORIZON".equals(frame.ending())) {
-                check.same(example.id() + " retains a small White advantage for the opening",
+                check.same(example.id() + " retains a small White advantage",
                         true, frame.centipawns() > 0 && frame.centipawns() < 70 && frame.whiteShare() > .5);
             } else {
                 check.same(example.id() + " fills the Black side of the evaluation bar", 0.0, frame.whiteShare());
@@ -67,18 +67,26 @@ class MatchAnalysisParityTest {
                             List.of(frame.mate(), frame.previewLength(), frame.previewSide(), frame.mateAfterFirstMove()));
                 }
             }
+            if (example.compareManualBoard()) {
+                var study = new AnalysisLine(restored, example.displayedPly());
+                check.same(example.id() + " shares the meter and engine recommendation with the manual board",
+                        frame, frame(study.position(), study.hint(), study.result()));
+            }
             check.same(example.id() + " leaves the stored game unchanged", example.checkpoint(), reopened.readMatch(1).checkpoint());
         }
     }
 
     static Frame frame(ChessMatch match, int ply) {
-        var position = match.positionAt(ply);
-        var hint = match.hintAt(ply);
+        return frame(match.positionAt(ply), match.hintAt(ply),
+                match.analysisEnabled() && ply == match.ply() ? match.result() : Result.IN_PROGRESS);
+    }
+
+    private static Frame frame(ChessPosition position, MatchHint hint, Result result) {
         var evaluation = hint.evaluation(position);
         if (evaluation == null) {
-            boolean finished = match.analysisEnabled() && ply == match.ply() && match.result() != Result.IN_PROGRESS;
+            boolean finished = result != Result.IN_PROGRESS;
             return new Frame(finished ? "FINISHED" : null, null, null,
-                    finished ? MatchEvaluation.terminalWhiteShare(match.result()) : null, hint.count(), null, 0, null, false);
+                    finished ? MatchEvaluation.terminalWhiteShare(result) : null, hint.count(), null, 0, null, false);
         }
         hint.revealNext();
         var move = hint.revealedMove();

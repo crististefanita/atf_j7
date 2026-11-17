@@ -79,13 +79,18 @@ poziția istorică și starea terminală.
 [Comanda Maven](../../web/README.md) · [Datele comune](../../atf-tests/src/test/resources/match-analysis-cases.json)
 
 `ChessWebShellTest` exercită în Node schimbarea poziției în timpul calculului
-și refuzul indiciului care nu mai este legal în poziția afișată.
+și refuzul indiciului care nu mai este legal în poziția afișată. Un mock al
+workerului urmărește starea barei, eliberarea selecției o singură dată și
+redarea liniei. Poziția din afara teoriei și cazul de mat compară rezultatul
+analizei în partidă și pe Tabla de analiză.
 
-În proba de interfață, porniți întâi o partidă cu bifa debifată și verificați
-absența panoului. Porniți apoi una cu analiză, arătați un indiciu și parcurgeți
-o semimutare în previzualizare. Verificați revenirea focusului, orientarea
-barei și poziția din istoric. Redeschideți același slot și verificați opțiunea
-salvată, încadrarea tablei și accesul la comenzi la text mărit.
+În proba de interfață, deschideți meniul principal cu o analiză deja importată.
+Titlul rămâne singur în antet, iar analiza se poate deschide din zona de
+import. Începeți o partidă cu bifa oprită și verificați absența panoului.
+Porniți una cu analiză și comparați dreptunghiurile barei și tablei de la
+poziția de start. Declanșați becul din rândul istoricului și parcurgeți o
+semimutare în previzualizare, apoi verificați poziția și revenirea focusului.
+La redeschidere, verificați bifa salvată, orientarea și încadrarea la text mărit.
 [Contractul Web](../../web/README.md#analiza-în-partida-cu-ai)
 
 Pe candidatul Web, proba MCP în română la 360 × 640 CSS px și text la 130%

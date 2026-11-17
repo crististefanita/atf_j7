@@ -42,19 +42,21 @@ Tipul partidei, automatizarea curentă și marcajul pentru mutări jucate manual
 
 ### Analiza în partida cu AI
 
-Bifează **Analiză AI pentru o partidă nouă** în configurare. Bifa pornește
-debifată. Alegerea se păstrează în checkpointul slotului și se aplică la
-redeschiderea lui.
+În configurarea unei partide noi, bifează opțiunea de analiză pentru a afișa
+bara de evaluare și indiciile în joc. Inițial bifa este oprită. Alegerea aparține
+slotului și se păstrează la redeschidere. În orice partidă poți studia
+poziția separat și muta ambele culori în **Tablă de analiză** din opțiunile partidei.
 
-Bara de evaluare și becul urmăresc poziția de pe tablă, inclusiv în istoric.
-Motorul comun calculează evaluarea din perspectiva albului, iar afișajul așază
-capătul alb al barei lângă partea albă a tablei. Poziția finală arată rezultatul
-partidei. Indiciile din partidă caută variante tactice cu `ChessMatch.hintAt`.
-Pentru teoria deschiderilor, folosește tabla de analiză.
+Bara ocupă toată înălțimea laturii stângi a tablei. Scorul apare deasupra
+istoricului, iar becul stă lângă săgeți, inclusiv la poziția de start. Culoarea din bară urmează
+orientarea tablei și scorul folosește perspectiva albului. Urmărirea
+istoricului recalculează evaluarea pentru poziția afișată. Poziția finală arată
+rezultatul partidei.
 
-Becul arată o variantă și marcajul mutării recomandate. Deschide previzualizarea
-din butonul variantei și parcurge linia cu săgețile pe tabla de previzualizare.
-În poziția curentă, apăsarea destinației marcate joacă indiciul legal când
+Becul eliberează selecția curentă și arată mutarea recomandată. Butonul
+sugestiei deschide linia pe tabla de previzualizare, unde săgețile parcurg
+mutările fără să modifice partida. Tabla de analiză oferă și teoria deschiderilor. La
+poziția curentă, atingerea destinației marcate joacă indiciul legal când
 selecția tablei este liberă.
 Browserul calculează analiza într-un worker separat. Schimbarea poziției sau
 ieșirea din partidă invalidează rezultatul anterior.
@@ -165,6 +167,10 @@ Pentru proba publică, transmiteți URL-ul din README ca ultim argument și adă
 ## Meniul principal și piesele
 
 **Joacă în browser** din README deschide meniul principal **Chess Lab**, inclusiv când există partide sau o analiză salvată. Grupurile urmează ordinea din APK. **Partide salvate** apare când există partide active, iar **Partidă nouă cu calculatorul** deschide configurarea. Adresele explicite, cum sunt `#ai`, `#openings` și `#review`, deschid ecranul cerut. **Profil** validează numele prin `PlayerProfile`, iar **Setări** păstrează limba în browser. [Matricea funcțiilor](parity.md#contracte-și-probe)
+
+Analiza unei partide se redeschide din partida sau arhiva ei. **Reia ultima
+analiză** apare jos în meniul principal, lângă import, când browserul are o
+analiză independentă salvată. Antetul afișează **Chess Lab**.
 
 Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile comune din `ChessPieceArtwork`. Web primește contururile din worker și le desenează în coordonatele 48 × 48 din APK. `ChessWebShellTest` verifică ordinea și textele RO/EN față de resursele Android, persistența simulată și reutilizarea SVG. Sanity-ul Edge deschide meniul și verifică toate cele șase tipuri de piese înaintea primei mutări. [Strategia de testare](../docs/testing/README.md#partidă-și-istoric)
 

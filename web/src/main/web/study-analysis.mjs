@@ -80,15 +80,17 @@ export function analysisHintDescription(hint, locale) {
     return words.hintVariant(hint.number, hint.count) + '. ' + move + promotion + (family ? '. ' + family : '') + '.';
 }
 
-export function renderAnalysisMeter(meter, fill, evaluation, blackBelow) {
+export function renderAnalysisMeter(meter, fill, evaluation, blackBelow, locale) {
     meter.setAttribute('aria-hidden', evaluation == null);
     if (!evaluation) {
         meter.removeAttribute('aria-valuenow');
+        meter.removeAttribute('aria-valuetext');
         fill.style.height = '0%';
         return;
     }
     const share = Math.round(evaluation.whiteShare * 100);
     meter.setAttribute('aria-valuenow', share);
+    meter.setAttribute('aria-valuetext', analysisScore(evaluation, locale));
     fill.style.height = share + '%';
     fill.style.insetBlockStart = blackBelow ? '0' : 'auto';
     fill.style.insetBlockEnd = blackBelow ? 'auto' : '0';
@@ -274,7 +276,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         const panel = text('div', '', 'analysis-study-panel');
         const host = text('div', '', 'analysis-study-board');
         const widget = board(host, square => void request('tap', { value: square }));
-        const meter = text('div', '', 'analysis-study-meter');
+        const meter = text('div', '', 'analysis-study-meter chess-evaluation-meter');
         meter.setAttribute('role', 'meter');
         meter.setAttribute('aria-label', words.track);
         meter.setAttribute('aria-valuemin', '0');
@@ -387,7 +389,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         controls.feedback.hidden = !next.analysis || !!preview;
         controls.score.textContent = analysisScore(next.evaluation, locale);
         controls.meter.hidden = !next.analysis || !!preview;
-        renderAnalysisMeter(controls.meter, controls.fill, controls.meter.hidden ? null : next.evaluation, next.blackBelow);
+        renderAnalysisMeter(controls.meter, controls.fill, controls.meter.hidden ? null : next.evaluation, next.blackBelow, locale);
         controls.previous.disabled = frame.ply === 0;
         controls.next.disabled = controls.latest.disabled = frame.ply === frame.total;
         controls.latest.hidden = !!preview;
