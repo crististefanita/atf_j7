@@ -5,14 +5,28 @@ Implementarea și regresiile generice aparțin J0; J7 verifică integrarea propr
 
 ## Proveniență
 
-- [POM-ul rădăcină](../pom.xml) instalează cele cinci perechi JAR/POM în
-  depozitul Maven de build. [Proveniența](../library-provenance.json)
-  fixează identitatea fișierelor livrate.
-- [POM-ul testelor](../atf-tests/pom.xml) declară Reporting și Test Kit
-  direct, cu scope `test`. Android împachetează motorul și interfața jocului.
-- [Proba de proveniență](../atf-tests/src/test/java/ro/atf/chess/PlatformLibraryProvenanceTest.java)
-  verifică perechile. [Guvernanța Extent](../atf-tests/src/test/java/ro/atf/chess/ExtentGovernanceTest.java)
-  verifică HTML-ul produs în J7, inclusiv diagnosticul și probele negative.
+```mermaid
+flowchart LR
+    J0["Surse și publicare ATF · J0"] -->|furnizează cinci perechi JAR/POM| Lib["Chess · lib/"]
+    Lib -->|identitate fixată în manifest| Provenance["library-provenance.json"]
+    Lib -->|POM-ul rădăcină instalează perechile| Maven["Depozit Maven de build"]
+    Maven -->|rezolvă Reporting și Test Kit în scope test| Suite["Suite Chess · atf-tests"]
+    Suite -->|publică aserțiuni și dovezi| Extent["HTML Extent sau fallback"]
+```
+
+<details>
+<summary>Legendă · Cum ajung bibliotecile ATF în rapoartele Chess</summary>
+
+- [POM-ul rădăcină](../pom.xml) instalează perechile. [Manifestul de proveniență](../library-provenance.json)
+  fixează identitatea fișierelor, verificată de [testul de proveniență](../atf-tests/src/test/java/ro/atf/chess/PlatformLibraryProvenanceTest.java).
+- [POM-ul testelor](../atf-tests/pom.xml) declară Reporting și Test Kit în
+  scope `test`. [Guvernanța Extent](../atf-tests/src/test/java/ro/atf/chess/ExtentGovernanceTest.java)
+  verifică diagnosticul și probele negative din raportul produs de Chess.
+- [Buildurile de produs](../web/README.md#motor-comun-și-adaptoare-de-platformă)
+  consumă sursele `chess-core`, cu adaptoare native și Web proprii. JAR-urile
+  ATF aparțin suitei JVM care raportează probele de pe aceste platforme.
+
+</details>
 
 ## Ghiduri de utilizare
 

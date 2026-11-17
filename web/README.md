@@ -6,6 +6,39 @@ Pe JVM și Android, încărcătorul citește YAML de pe classpath. Buildul Web t
 
 În codul verificat, folosirea SnakeYAML în browser bloca inițializarea regulilor la `System.getLogger`. Generarea rezolvă dependența la build. Serializarea checkpointului păstrează formatul existent printr-un `StringBuilder`, care funcționează și în runtime-ul TeaVM. Aceleași cazuri verifică poziția inițială, rocada, en passant, promovarea, rezultatele partidei, restaurarea checkpointului, deschiderile și puzzle-urile.
 
+## Motor comun și adaptoare de platformă
+
+Android și Web folosesc aceleași reguli, cataloage și contracte Java de
+partidă din `chess-core`. Ecranele, tabla și navigarea aparțin adaptorului
+fiecărei platforme.
+
+```mermaid
+flowchart LR
+    Core["chess-core · Java și YAML"] -->|Gradle compilează sursele și include resursele| Native["APK · interfață Android"]
+    Core -->|generatorul produce date și TeaVM compilează Java| Bundle["Pachet Web · runtime prin manifest"]
+    Bundle -->|pagina încarcă modulul și workerul| Browser["Browser · DOM și CSS"]
+    Native -->|adaptorul scrie checkpointurile| Prefs["Android · SharedPreferences"]
+    Browser -->|adaptorul scrie checkpointurile| Local["Browser · localStorage"]
+```
+
+<details>
+<summary>Legendă · De la motor la cele două aplicații</summary>
+
+- Gradle include resursele YAML în APK. Adaptorul nativ redă prin Android
+  `View` și conectează `MatchStore` la preferințele aplicației.
+  [Gradle](../android/app/build.gradle) · [Stocarea nativă](../android/app/src/main/java/ro/atf/chess/android/AndroidGamePreferences.java)
+- Generatorul Web citește aceleași YAML-uri în timpul buildului. TeaVM
+  compilează motorul și adaptorul Java într-un modul ES, iar browserul
+  îl execută în worker. Interfața convertește intrările în comenzi și
+  salvează starea pe originea Web. [Build](Build-ChessWeb.ps1) · [Worker](src/main/web/engine-worker.mjs)
+- Cazurile portabile compară rezultatele pe JVM și în workerul împachetat.
+  Testele adaptoarelor măsoară poziția, comenzile și accesibilitatea pentru
+  fiecare interfață. [Contracte și probe](parity.md#contracte-și-probe)
+
+</details>
+
+## Build și verificare
+
 Rulați din rădăcina copiei J7 în TMP cu PowerShell 7, JDK 21, Maven și Node.js. Alegeți `$workRoot` într-un director extern copiei. Buildul lasă aici datele generate, compilarea și pachetul `site`. Pentru cache local complet, adăugați `-Offline` la build și `-o` la Maven. [Locația fișierelor de lucru](../docs/README.md#reguli-de-întreținere)
 
 ```powershell

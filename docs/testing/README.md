@@ -101,7 +101,7 @@ Alb și indiciul **…Nc6**. Redați pașii 0 → 1 → 2 → 1 pe tabla variant
 
 | Adaptor | Profil compact, text 1,3× | Proba și dovada |
 |---|---|---|
-| Android | 720 × 1280, 320 dpi | `-AnalysisOnly -CompactMatchAnalysisOnly` folosește APK-ul izolat, cu pregătire și restart real. `AndroidSanityPublication#publishCompactMatchAnalysisSanity` verifică recepțiile și capturile. |
+| Android | 720 × 1280, 320 dpi | `-AnalysisOnly -CompactMatchAnalysisOnly` verifică APK-ul izolat în dezvoltare. Pentru ediție, adăugați `-Distribution -SourceCommit <sha>` ca să verificați exact APK-ul semnat. Ambele probe fac pregătire și restart real în RO și EN. `AndroidSanityPublication#publishCompactMatchAnalysisSanity` verifică recepțiile și capturile. |
 | Web | 360 × 640 CSS px | Browser MCP măsoară tabla și salvează capturi la istoric, redare, întoarcere și reluare. `ChessWebMatchAnalysisPublication` leagă cele două limbi de rulare, revizie și runtime. |
 
 Publicatorul Web primește directorul recepțiilor prin

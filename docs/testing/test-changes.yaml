@@ -663,3 +663,45 @@ testChanges:
     test: ro.atf.chess.ChessWebStudyShellTest#sharedBoardWorksWithMockControls
     contract: "Keep board controls and cue evidence, including Study deep links and browser Back and Forward"
     allowDelete: false
+
+  - id: J7-0153-ANDROID-VERSION
+    base: "8868f129a8db9a5d6131493c34c329f92832c004"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#releaseCatalogKeepsTheCurrentAndOneComparisonVersion
+    contract: "Bind the signed app version and version code to the release catalog"
+    allowDelete: false
+
+  - id: J7-0153-MAVEN-VERSION
+    base: "8868f129a8db9a5d6131493c34c329f92832c004"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance the reactor version while retaining the documented Maven module"
+    allowDelete: false
+
+  - id: J7-0153-TESTS-VERSION
+    base: "8868f129a8db9a5d6131493c34c329f92832c004"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Use the matching parent version and retain the documented test source boundaries"
+    allowDelete: false
+
+  - id: J7-0153-WEB-COMPACT-BOARD-EVIDENCE
+    base: "8868f129a8db9a5d6131493c34c329f92832c004"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    test: ro.atf.chess.ChessWebStudyShellTest#sharedBoardWorksWithMockControls
+    contract: "Keep the exact audit inventory and include the compact AI board width observation"
+    allowDelete: false
+
+  - id: J7-0153-NATIVE-GRAPH-EVIDENCE
+    base: "8868f129a8db9a5d6131493c34c329f92832c004"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/GameReviewGraphParityTest.java
+    test: ro.atf.chess.GameReviewGraphParityTest#longGameTouchesSelectTheNativeRecordedPositionAndReviewRow
+    contract: "Keep the visible graph and real touch selection while the screen reader node exposes focus without a generic click"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "Graph and arrow navigation synchronize the selected move, hide the opening and keep the board anchored"

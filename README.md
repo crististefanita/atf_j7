@@ -24,11 +24,12 @@ Play chess against AI, solve puzzles, and study openings.
 
 ```mermaid
 flowchart LR
-    Android["Android"] -->|folosește| Core["Motor Java"]
-    Web["Browser"] -->|compilează prin TeaVM| Core
-    Tests["Suite JVM"] -->|verifică| Core
+    Core["Motor Java + resurse YAML"] -->|build Gradle| Android["Aplicație Android :app"]
+    Core -->|build TeaVM| Worker["Worker Web"]
+    Browser["Interfață Web"] <-->|comenzi și răspunsuri| Worker
+    Core -->|verificat în Maven| Tests["Suite JVM"]
     Tests -->|publică| Extent["Extent"]
-    Android -.->|recepții| Tests
+    Android -.->|recepții native| Tests
 ```
 
 <details>

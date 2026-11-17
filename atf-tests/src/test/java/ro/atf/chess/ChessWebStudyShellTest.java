@@ -28,7 +28,8 @@ class ChessWebStudyShellTest {
                 "Study descriptions distinguish the hint, destination and legal move with native RO and EN labels",
                 "Hint overlay survives board rotation and is removed when the solution is hidden",
                 "Keyboard follows displayed squares without wrapping rows or activating a locked position",
-                "Puzzle and match boards share the viewport budget and keep controls in view"));
+                "Puzzle and match boards share the viewport budget and keep controls in view",
+                "Compact AI board spends the available width only on the rail, gap and square"));
     }
 
     @Test

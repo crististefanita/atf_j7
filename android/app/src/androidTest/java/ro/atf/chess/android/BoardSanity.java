@@ -875,7 +875,8 @@ public final class BoardSanity extends Instrumentation {
         var graphNode = reviewNode(R.id.game_review_graph, 4500);
         var graphBounds = nodeBounds(graphNode);
         captureFrame("game-review", "The finished review visibly draws its interactive evaluation line",
-                image -> graphNode != null && graphNode.isClickable() && hasColor(image, graphBounds, 0xffb8d88a, 24));
+                image -> graphNode != null && graphNode.isVisibleToUser() && graphNode.isFocusable()
+                        && !graphNode.isClickable() && hasColor(image, graphBounds, 0xffb8d88a, 24));
         int scrolls = 0;
         boolean playerRatingVisible = false;
         boolean aiRatingVisible = false;

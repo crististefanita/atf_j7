@@ -1,47 +1,41 @@
 # Web · Paritate cu APK-ul Chess Lab
 
-J7 trebuie să poată juca și analiza în browser cu aceleași reguli, date și comenzi ca pe Android. Folosiți un checkout curat pentru calificarea ediției care va fi accesibilă sub linkul APK din README. Matricea inventariază funcțiile, adaptarea și dovezile necesare. [Matricea APK–Web](../../web/parity.md) · [Arhitectura J7](../../README.md#arhitectura-j7)
+Registrul urmărește diferențele rămase între APK și Web.
+[Motor și adaptoare](../../web/README.md#motor-comun-și-adaptoare-de-platformă) ·
+[Matricea APK–Web](../../web/parity.md)
 
 ## Ce preluăm din J4
 
-| Observație la revizia J4 `f3568e8` | Decizie pentru J7 |
-|---|---|
-| Același motor Java este folosit printr-un server JVM local și, pe GitHub Pages, printr-un modul compilat cu TeaVM care rulează într-un Web Worker. Workerul servește comenzi fără API de joc după încărcare. | Folosiți aceeași separare între motor, transport și afișaj. Pentru ediția Web autonomă, proba trebuie să cuprindă motorul J7 compilat, datele și stocarea lui, cu rețeaua oprită după încărcare. |
-| Card Table Browser 0.2.0 publică serverul Java, contractele și DOM-ul mesei. J5 și J6 folosesc același binar, fixat prin SHA-256. `BrowserServer` servește `BrowserGame`, iar reviziile și starea sunt legate de `BrowserSession` pentru cărți, licitații și levate. | J7 păstrează contractele, regulile și proiecția de șah. Candidatul pentru reutilizare este transportul versionat, cu tipuri independente de masa de cărți. |
-| JAR-ul de teste 0.2.0 exercită HTTP, profil mobil, comenzi și revizii. Driverul selectează elemente ale mesei de cărți. | Comparați fixture-urile și dovezile. Evaluați reutilizarea pornirii browserului și a capturilor când acestea au o intrare independentă de DOM-ul Whist. |
-| J4 a publicat jocul în browser și are probe separate pentru motorul compilat și pentru browser. Comparația de afișaj și interacțiune cu APK-ul pe același telefon rămâne deschisă în feedback. | Folosiți J4 ca dovadă de fezabilitate și ca reper pentru publicare. Calificați compoziția, accesibilitatea și rezultatele J7 pe ambele suprafețe înainte de a declara paritatea. |
-
-O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 CSS px. După oprirea rețelei, a pornit o partidă românească și a acceptat prima licitație prin atingere. Aceasta acoperă continuitatea după încărcare. Pornirea offline dintr-un profil gol și echivalența cu APK-ul cer probe proprii. [Whist online](https://crististefanita.github.io/atf_j4/)
-
-[Pachetele Card Table Browser 0.2.0](https://github.com/crististefanita/atf_j4/tree/3d2b7b11eedd6aadd48a82fd7858ef195e21f12e/atf-ui-browser/lib) · [Contractul `BrowserGame`](https://github.com/crististefanita/atf_j4/blob/3d2b7b11eedd6aadd48a82fd7858ef195e21f12e/atf-ui-browser/src/main/java/ro/cardtable/browser/BrowserGame.java)
+Card Table Browser 0.2.0 și JAR-ul său de teste oferă contracte pentru
+masa de cărți. O extracție J4/J7 are sens pentru un utilitar independent
+de joc, dacă proba identifică un consumator în fiecare proiect, un API
+stabil și codul duplicat care poate fi eliminat. Candidații sunt
+transportul cu revizii și colectarea dovezilor din browser.
+[Pachetele Card Table Browser 0.2.0](https://github.com/crististefanita/atf_j4/tree/3d2b7b11eedd6aadd48a82fd7858ef195e21f12e/atf-ui-browser/lib)
 
 ## WEB-01 · Motor și contract de aplicație
 
-**P1 · Responsabil J7.** Web și Android folosesc același `MatchStore`. Din istoricul analizei arhivate, Web pornește o partidă separată la semimutarea selectată și păstrează analiza și poziția de reluare ale arhivei. [Build și probe Web](../../web/README.md)
+**P1 · Responsabil Chess.** Extrageți treptat tranzițiile de sesiune
+care necesită decizii echivalente în `ChessActivity`, `AnalysisActivity`
+și adaptorul Web. Începeți cu reluarea, anularea și primirea unei replici
+AI întârziate. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
 
-1. Declarați un modul Java `chess-core` cu publicare reproductibilă, resursele catalogului, dependențele tranzitive și proveniența lor. Nucleul compilează ca Java 17. Calificați și API-urile folosite la execuție pe Android cu `minSdk 26`. Verificați consumul din Gradle și din testele JVM, inventarul de resurse și SHA-ul intrării compilatorului Web.
-2. Extrageți gradual deciziile încă orchestrate de `ChessActivity` și `AnalysisActivity`. Același contract trebuie să accepte intenții tipizate precum mutare, promovare, pas prin istoric, alegere de linie și reluare. Returnați poziția, cursorul, acțiunile disponibile, starea marcajelor, rezultatul comenzii și versiunea stării. Proiecția conține doar datele necesare afișării, cu chei de localizare stabile și parametri tipizați.
-3. Măsurați separat încărcarea workerului și timpul până la prima semimutare a analizei. Includeți o pornire la rece pe profil mobil, anularea calculelor și schimbarea jocului în timpul căutării. [Restricțiile TeaVM](https://teavm.org/docs/intro/overview.html)
-
-**Criteriu de închidere.** Același caz J7 pornește din JAR-ul JVM, trece prin intrarea Android și prin motorul compilat pentru browser, apoi produce aceeași succesiune de stări și aceeași restaurare. Măsurați mărimea pachetului, pornirea la rece, timpul căutării la buget identic și întreruperea pe profil mobil înainte de alegerea pragurilor de livrare. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
+**Criteriu de închidere.** Același caz cu ceas și stocare simulate
+verifică poziția, revizia, acțiunile permise și ignorarea replicii
+expirate pe JVM și în worker. Sanity-ul nativ verifică o singură
+reluare și ordinea afișată. Măsurați separat pornirea la rece a workerului
+și timpul până la prima semimutare de analiză, cu același buget, pe profil
+mobil. Verificați anularea și schimbarea slotului în timpul calculului.
 
 **Game Review · Web.** NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului în ediția anterioară. Graficul folosește acum o singură valoare accesibilă, cu poziție și scor. Componenta acoperă actualizările repetate, iar Extent respinge o recepție Web cu descrierea duplicată. Confirmați vorbirea pe build-ul corectat în RO și EN. Păstrați focusul pe grafic între două semimutări cu scoruri diferite și verificați revenirea la declanșator după **De ce?**. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-game-review)
 
 ## WEB-02 · Adaptoare și afișaj comun
 
-**Teorie confirmată pe GitHub Pages.** Browserul MCP a extras `study-analysis.css` din pagina publică, iar fișierul coincide octet cu octet cu `5567c43`. După `e4`, cele trei variante, săgețile și explicația încap fără suprapuneri la 360 × 640 și 1280 × 900, cu text standard. Linia 3 redă `c7–c6`, iar revenirea la Linia 1 arată pasul 0 și `e7–e5`. Proba la text 130% folosește pachetul Web verificat în profilul local compact. [Publicarea GitHub Pages](https://github.com/crististefanita/atf_j7/actions/runs/44027124870) · [Pașii Studiu](../../web/README.md#studiu)
-
-**Deschideri · paritate verificată pe candidat.** Lecția italiană, Giuoco Pianissimo (C54), păstrează tabla fixă la ambele trepte ale indiciului. Comenzile sunt verzi și rotunjite, iar `e2` păstrează fundalul câmpului și conturul turcoaz. La font 1,3×, latura tablei este 288 de unități pe compact și 592 în fereastra mare. Butoanele au 162 × 48, respectiv 302 × 48 de unități. După scăderea barelor Android, ancorele măsurate coincid în limita unei unități logice. Cele patru capturi din Extent păstrează poziția `0 / 12`, explicația și marcajele `e2–e4`, `e3` și `e4`. [Strategia și profilurile de test](../testing/README.md#deschideri) · [Matricea APK–Web](../../web/parity.md)
-
-**Tabla de analiză · intrare contextuală.** Adaptoarele deschid sursa la semimutarea vizibilă, cu orientarea partidei. Studiul Web contextual este temporar și păstrează marcajul studiului independent. Proba comună acoperă partida cu AI, arhiva, poziția terminală și cursorul invalid. [Contractul și verificarea](../testing/README.md#tabla-de-analiză-dintr-o-partidă)
-
 **P1 · Responsabili J7 pentru șah și J4 pentru extracțiile comune.** Componentele existente `BoardPanelLayout`, `GameReviewLayout`, `GameReviewTimeline` și `OpeningReplay` oferă punctele de plecare. Android aplică dreptunghiurile și efectele în `View` și dialoguri. Web aplică aceleași decizii în DOM/CSS, citește zona utilă și traduce clickul, atingerea și tastatura în aceleași intenții. [Ghidul tablei](../board/README.md) · [Game Review](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 
 - Definiți un contract măsurabil pentru tabla pătrată, orientare, ordinea panourilor, zonele tactile, comenzile rezervate, explicația derulabilă, focalizarea și marcajele. Măsurați fereastra utilă a APK-ului după bare și insets și contrapartea Web după zoom și bara browserului. Porniți de la proba J7 de 720 × 1280, 320 dpi și font 1,3× în RO/EN. Comparați unități logice, poziția relativă, textul complet și pragurile de acces. Analizați separat diferențele de rasterizare. [Proba compactă J7](../testing/README.md#redare-comună-pe-ecran-compact) · [Măsurarea viewportului Web](https://www.w3.org/TR/cssom-view-1/)
 - Pe desktop, folosiți un cadru centrat potrivit tablei și conținutului de șah. Pe mobil, redimensionarea, barele browserului sau mărirea textului trebuie să păstreze caseta selectată, pasul și accesul la comenzi. Verificați tastatura, ordinea de focus, închiderea dialogului și revenirea focusului. Pe Android verificați separat atingerea, Înapoi și etichetele citite de TalkBack.
-- Faceți proba de extracție J4/J7 cu un singur utilitar generic, de exemplu transportul versionat sau pornirea browserului cu colectarea probelor. Cereți doi consumatori, API explicit, teste de contract și dependențe independente de tipurile jocului și de Android. Pentru un JAR publicat, fixați commitul de build, inventarul API și al resurselor, SHA-256 și un test pe binarul exact.
-
-**Criteriu de închidere.** Primul flux verificabil este aceeași redare pe tabla de analiză și în Game Review. Demonstrați tabla fixă, comenzi lizibile în RO/EN, explicația accesibilă și revenirea în aceeași stare pe APK și Web. Adăugați un JAR comun separat când proba arată ce cod elimină efectiv din ambii consumatori. [Alegerea nivelului de testare](../testing/README.md#alegerea-nivelului)
+**Criteriu de închidere.** Pentru aceeași linie în tabla de analiză și în Game Review, verificați tabla fixă, comenzi lizibile în RO/EN, explicația accesibilă și revenirea în aceeași stare pe APK și Web. [Alegerea nivelului de testare](../testing/README.md#alegerea-nivelului)
 
 ## WEB-03 · Componente și E2E pe contractul comun
 
@@ -60,10 +54,11 @@ Primii martori sunt `1.e4 c5 2.c3 h5`, cu revenire din istoric la traseul Alapin
 
 ## WEB-04 · Calificare și publicare
 
-**Intrarea Web.** Linkul din README deschide meniul **Chess Lab**, ca pe APK. Verificați pe adresa publică meniul, deschiderea unei secțiuni și revenirea. Analiza salvată rămâne accesibilă din comandă sau de la adresa sa explicită. [Contractul meniului](../../web/README.md#meniul-principal-și-piesele)
-
 **P2 · Calificarea ediției.** Legați în RAG commitul, cataloagele și amprentele APK și Web de recepțiile aceleiași ediții. [Criteriul de actualizare](../testing/README.md#actualizarea-pachetului-web)
 
-Schimbarea limbii din **Setări** păstrează meniul principal. Componenta verifică reîncărcarea cu o analiză și partide deja salvate, folosind stocare și istoric simulate. Sanity-ul candidatului Web confirmă schimbarea EN → RO → EN în același meniu. [Setările Web](../../web/README.md#partida-cu-ai)
-
-**Criteriu de închidere.** Proba pornește din **Joacă în browser**, sub APK în README, și confirmă accesul la joc și pachetul corect. În Web, proba de upgrade acoperă poziții și puncte reale din cele trei capitole tactice. Extindeți verificarea la biblioteca de partide și la analizele arhivate. Legătura dintre APK, pachetul Web și dovezile aceleiași ediții rămâne de verificat. [Explicațiile și progresul](../../web/README.md#explicațiile-și-progresul-la-actualizare) · [Procesul de release](../release/README.md#calificare-și-publicare)
+**Criteriu de închidere.** Porniți proba din **Joacă în browser**, sub
+APK în README, și confirmați manifestul pachetului servit. Verificați
+la upgrade biblioteca de partide, o analiză arhivată și semimutarea de
+reluare, inclusiv după reîncărcare și într-o filă deja deschisă.
+[Upgrade Web](../../web/README.md#explicațiile-și-progresul-la-actualizare) ·
+[Procesul de release](../release/README.md#calificare-și-publicare)

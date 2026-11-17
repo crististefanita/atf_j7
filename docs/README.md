@@ -4,7 +4,7 @@ Porniți de la ghidul care răspunde întrebării. Verificați afirmațiile desp
 
 | Întrebare | Ghid |
 |---|---|
-| Cum se leagă motorul, aplicația și testele? | [Arhitectura J7](../README.md#arhitectura-j7) · [Bibliotecile ATF](../lib/README.md) |
+| Cum se leagă motorul, aplicația și testele? | [Arhitectura J7](../README.md#arhitectura-j7) · [Motor și adaptoare](../web/README.md#motor-comun-și-adaptoare-de-platformă) · [Bibliotecile ATF](../lib/README.md) |
 | Cum se joacă și cum se configurează problemele? | [Tabla și jocul](board/README.md) · [Catalogul](board/quest-curation.md) |
 | Cum se măsoară adversarii AI și cum se interpretează analiza unei partide? | [Protocolul AI](board/ai-quality.md#control-la-fiecare-schimbare) · [Analiza partidei](board/game-review.md) |
 | Ce trebuie verificat înaintea unei schimbări? | [Alegerea nivelului de testare](testing/README.md#alegerea-nivelului) · [Raportare Extent](testing/README.md#raportare-extent) |
