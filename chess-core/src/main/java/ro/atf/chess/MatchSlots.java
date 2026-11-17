@@ -38,6 +38,10 @@ public final class MatchSlots {
         return !manualAi && match.awaitingBot();
     }
 
+    public static boolean manualAiMoveUsed(ChessMatch before, boolean manualAi, boolean alreadyUsed) {
+        return alreadyUsed || manualAi && before.awaitingBot();
+    }
+
     public static boolean canMove(ChessMatch match, boolean manualAi, boolean reviewing) {
         return !reviewing && match.result() == ChessMatch.Result.IN_PROGRESS && !needsBot(match, manualAi);
     }

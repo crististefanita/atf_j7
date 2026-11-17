@@ -98,6 +98,36 @@ class ChessWebParityPublication {
         check.same("The packaged worker reports every orientation, archive fork and rejection case", cases.size() + 4, rows.size());
     }
 
+    @Test void packagedWorkerKeepsAiIdentityThroughManualControl(Checks check) throws Exception {
+        String configured = System.getProperty("chess.web.bundle", "");
+        check.same("The packaged worker is supplied for the manual automation cases", true, !configured.isBlank());
+        Path root = ProjectRoot.locate();
+        Path site = Path.of(configured).toAbsolutePath().normalize();
+        Path fixture = root.resolve("atf-tests/src/test/resources/match-automation-cases.json");
+        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-automation-worker.mjs", site.resolve("engine-worker.mjs"), fixture).strip());
+        var cases = new ObjectMapper().readTree(fixture.toFile());
+        for (var example : cases) {
+            String id = example.get("id").asText();
+            String assisted = example.get("manualUsed").asText();
+            check.same(id + " rejects stale replies and toggle commands without overwriting the saved game",
+                    "APPLIED/STALE/STALE/UNAVAILABLE/UNAVAILABLE", rows.get(id + ":guards"));
+            check.same(id + " reopens the same AI slot and keeps its manual-use status after re-enabling",
+                    "AI/false/false/AI/true/" + assisted + "/UNAVAILABLE", rows.get(id + ":restore"));
+            String archive = String.join("/", "AI", example.get("expectedFinalCheckpoint").asText(), "BLACK_WINS",
+                    assisted, example.get("rated").asText(), "UNAVAILABLE", "d8h4", "STALE");
+            check.same(id + " records one legal reply and preserves the correct archive rating", archive, rows.get(id + ":archive"));
+            if (example.hasNonNull("continuationCheckpoint")) {
+                check.same(id + " can resume the AI in a new slot and keeps the original archive and assistance history",
+                        "AI/true/true/false/true/" + example.get("continuationCheckpoint").asText(), rows.get("assisted-archive-continuation"));
+            }
+        }
+        check.same("Cached review of an assisted AI game displays no Elo but can resume an automatic, unrated fork",
+                "OPENED/REVIEW_MANUAL/true/null/null/APPLIED/true/false", rows.get("assisted-cached-review"));
+        check.same("Local and archived games disallow the switch and the worker rejects non-boolean input",
+                "UNAVAILABLE/UNAVAILABLE/TypeError: Invalid chess worker request", rows.get("unavailable"));
+        check.same("The packaged worker reports every automation observation", 3 * cases.size() + 3, rows.size());
+    }
+
     private String runWorker(Path root, String script, Path worker, Path input) throws IOException, InterruptedException {
         var stdout = evidence.resolve("worker-result.txt");
         var stderr = evidence.resolve("worker-error.txt");

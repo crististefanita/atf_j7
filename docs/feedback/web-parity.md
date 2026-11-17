@@ -29,8 +29,6 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 **Analiza la pornirea partidei · Web.** Aliniați opțiunea din APK și bara de evaluare a poziției afișate. Verificați starea implicită, opțiunea salvată, actualizarea la schimbarea semimutării și ignorarea calculelor vechi după reluare. [Matricea APK–Web](../../web/parity.md#contracte-și-probe)
 
-**Controlul manual în partida cu AI · Web.** Web folosește modul manual pentru a decide și dacă partida este locală sau cu AI. Păstrați identitatea partidei și starea automatizării separat. Verificați comutarea și redeschiderea aceluiași slot, respingerea unei replici rămase în așteptare și eligibilitatea pentru evaluare după o mutare manuală de partea AI. [Probele partidei](../testing/README.md#partidă-și-istoric)
-
 ## WEB-02 · Adaptoare și afișaj comun
 
 **Teorie confirmată pe GitHub Pages.** Browserul MCP a extras `study-analysis.css` din pagina publică, iar fișierul coincide octet cu octet cu `5567c43`. După `e4`, cele trei variante, săgețile și explicația încap fără suprapuneri la 360 × 640 și 1280 × 900, cu text standard. Linia 3 redă `c7–c6`, iar revenirea la Linia 1 arată pasul 0 și `e7–e5`. Proba la text 130% folosește pachetul Web verificat în profilul local compact. [Publicarea GitHub Pages](https://github.com/crististefanita/atf_j7/actions/runs/44027124870) · [Pașii Studiu](../../web/README.md#studiu)

@@ -263,6 +263,7 @@ try {
         const match = document.querySelector('#match');
         if (match.hidden || match.getAttribute('aria-busy') !== 'false') return null;
         const board = document.querySelector('#match-board');
+        const automation = document.querySelector('#match-automatic');
         const rect = board.getBoundingClientRect();
         return { ply: Number(match.dataset.ply), viewPly: Number(match.dataset.viewPly), turn: board.dataset.turn, last: board.dataset.lastMove,
             result: match.dataset.result, fen: board.dataset.fen, cells: board.children.length, width: rect.width, height: rect.height,
@@ -272,7 +273,7 @@ try {
             lowerRight: board.lastElementChild.dataset.square, profile: document.querySelector('#match-profile').textContent,
             announcing: document.querySelector('#match-turn').textContent, urlPath: location.pathname,
             analyzing: !document.querySelector('#analysis-progress').hidden, analyzeDisabled: document.querySelector('#analyze').disabled,
-            checkpoint: match.dataset.checkpoint };
+            checkpoint: match.dataset.checkpoint, route: location.hash, automatic: automation.checked, automaticVisible: !automation.parentElement.hidden };
     })()`);
     const waitActive = (label, predicate) => until(async () => {
         const state = await activeState();
@@ -700,15 +701,18 @@ try {
         const fork = await waitActive('separate active game from the exact review cursor', game => !game.readOnly && game.ply === selectedPly);
         const forkId = fork.id;
         check('forked-exact-position', true, Boolean(forkId) && forkId !== originArchiveId && fork.slot > 0 &&
-            fork.mode === 'LOCAL' && fork.checkpoint === forkStartCheckpoint && fork.fen === origin.fen && fork.orientation === origin.orientation && !fork.awaitingBot);
+            fork.mode === 'AI' && fork.route === '#ai' && fork.checkpoint === 'ai|' + forkStartCheckpoint &&
+            fork.automaticVisible && !fork.automatic && fork.fen === origin.fen && fork.orientation === origin.orientation && !fork.awaitingBot);
         const diverged = await move('d7', 'd5', 2);
         await pause(725);
         const held = await activeState();
-        check('manual-branch', true, diverged.checkpoint === forkCheckpoint && diverged.turn === 'WHITE' &&
-            held?.checkpoint === diverged.checkpoint && !held.awaitingBot && held.id === forkId);
+        check('manual-branch', true, diverged.checkpoint === 'ai|' + forkCheckpoint && diverged.turn === 'WHITE' &&
+            held?.checkpoint === diverged.checkpoint && !held.awaitingBot && !held.automatic && held.id === forkId);
         await reload();
         const restored = await waitActive('same branched game after real reload', game => game.id === forkId && game.ply === 2);
-        check('fork-reloaded', true, restored.checkpoint === diverged.checkpoint && restored.fen === diverged.fen && restored.slot === fork.slot && !restored.awaitingBot);
+        check('fork-reloaded', true, restored.mode === 'AI' && restored.route === '#ai' &&
+            restored.checkpoint === diverged.checkpoint && restored.fen === diverged.fen && restored.slot === fork.slot &&
+            restored.automaticVisible && !restored.automatic && !restored.awaitingBot);
         await capture('review-continued-game.png');
 
         await touchMatchOption('#open-review');
@@ -723,8 +727,9 @@ try {
             original.branch === origin.branch && original.step === origin.step && original.why === origin.why && original.fen === origin.fen &&
             (await evaluate('window.chessWebAudit.requests')).length === 0 && Boolean(ledgerAfter) && ledgerAfter !== ledgerBefore);
         await capture('review-origin-restored.png');
-        return { scope: 'review-continue', publicUrl, originArchiveId, forkId, archiveCheckpoint, forkStartCheckpoint,
-            forkCheckpoint, selectedPly, ledgerBefore, ledgerAfter };
+        return { scope: 'review-continue', publicUrl, originArchiveId, forkId, archiveCheckpoint,
+            forkStartCheckpoint: fork.checkpoint.slice('ai|'.length), forkCheckpoint: restored.checkpoint.slice('ai|'.length),
+            selectedPly, ledgerBefore, ledgerAfter };
     }
 
     async function openMigratedReview(total) {

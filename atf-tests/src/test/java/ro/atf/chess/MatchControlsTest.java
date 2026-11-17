@@ -1,6 +1,8 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,5 +54,38 @@ class MatchControlsTest {
         check.same("A finished game hides automation regardless of how the archive restores it",
                 List.of(false, false), List.of(MatchControls.automation(finished, false, true).visible(),
                         MatchControls.automation(finished, true, false).visible()));
+    }
+
+    @Test void manualControlUsesTheSameMoveOwnershipAsTheWebWorker(Checks check) throws IOException {
+        var fixture = ProjectRoot.locate().resolve("atf-tests/src/test/resources/match-automation-cases.json");
+        var cases = new ObjectMapper().readTree(fixture.toFile());
+        for (var example : cases) {
+            var id = example.get("id").asText();
+            var initial = ChessMatch.restore(example.get("initialCheckpoint").asText());
+            var manualMove = ChessPosition.Move.fromUci(example.get("manualMove").asText());
+            var assisted = example.get("manualUsed").asBoolean();
+            check.same(id + " is at the expected turn", example.get("manualSide").asText(), initial.position().turn().name());
+            check.same(id + " expects an automatic reply only on the AI turn", assisted, MatchSlots.needsBot(initial, false));
+            check.same(id + " permits manual input at the live position", true, MatchSlots.canMove(initial, true, false));
+            check.same(id + " disables the same input in history", false, MatchSlots.canMove(initial, true, true));
+            check.same(id + " cannot apply an already scheduled automatic reply in manual mode", false,
+                    new MatchSlots.BotTurn(1, 1, initial).isCurrent(1, 1, initial, true));
+
+            var manual = new ChessGameSession(initial, false);
+            check.same(id + " accepts the fixture's legal manual move", ChessGameSession.Outcome.APPLIED, manual.play(0, manualMove));
+            boolean usedManualAiMove = MatchSlots.manualAiMoveUsed(initial, true, false);
+            check.same(id + " only marks actual input for the AI side", assisted, usedManualAiMove);
+
+            var resumed = new ChessGameSession(ChessMatch.restore(manual.match().checkpoint()), true);
+            for (var move : example.get("humanMovesAfterReopen")) {
+                check.same(id + " applies the next human move with automation enabled", ChessGameSession.Outcome.APPLIED,
+                        resumed.play(resumed.revision(), ChessPosition.Move.fromUci(move.asText())));
+            }
+            check.same(id + " preserves the manual-use verdict when re-enabling", assisted,
+                    MatchSlots.manualAiMoveUsed(resumed.match(), false, usedManualAiMove));
+            check.same(id + " applies an automatic mating reply", ChessGameSession.Outcome.APPLIED, resumed.playBot(resumed.revision()));
+            check.same(id + " records the independently specified legal result", example.get("expectedFinalCheckpoint").asText(),
+                    resumed.match().checkpoint());
+        }
     }
 }

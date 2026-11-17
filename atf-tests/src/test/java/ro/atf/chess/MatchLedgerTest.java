@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ro.atf.chess.ChessPosition.Move;
+import ro.atf.chess.MatchStore.GameOrigin;
 
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
@@ -93,6 +94,40 @@ class MatchLedgerTest {
         check.same("The archived result stays complete while the new game can continue", List.of(MATE, ChessMatch.Result.BLACK_WINS, true),
                 List.of(store.readArchivedMatch(original).match().checkpoint(), store.readArchivedMatch(original).match().result(),
                         store.readSavedMatch(free).position().legalMoves().contains(Move.fromUci("d2d4"))));
+    }
+
+    @Test void preservesKindsFromTheOldSnapshotAndKeepsManualHistoryAcrossAContinuation(Checks check) {
+        var first = open(null, null, null, new AtomicInteger());
+        var legacy = first.matches();
+        var checkpoint = ChessMatch.restore(ACTIVE);
+        legacy.startMatch(1, checkpoint, false, true, true);
+        legacy.startMatch(2, checkpoint, true, false, false);
+        legacy.startMatch(3, ChessMatch.restore(MATE), false, true, true);
+        legacy.startMatch(4, ChessMatch.restore(MATE), true, false, false);
+
+        var restored = open(first.snapshot(), null, null, new AtomicInteger(4));
+        var store = restored.matches();
+        String localId = store.archivedId(3);
+        String aiId = store.archivedId(4);
+        check.same("The old active and finished formats classify otherwise identical checkpoints",
+                List.of(GameOrigin.LOCAL, GameOrigin.AI, GameOrigin.LOCAL, GameOrigin.AI),
+                List.of(store.matchOrigin(1), store.matchOrigin(2), store.archiveOrigin(store.readArchivedMatch(localId)),
+                        store.archiveOrigin(store.readArchivedMatch(aiId))));
+        check.same("The first manual save remembers an older AI game's origin before changing automation", true,
+                store.saveMatch(2, checkpoint, true, store.matchOrigin(2), true, true));
+        String original = store.archivedId(2);
+        check.same("Continuing with automation reuses the AI slot", 2,
+                restored.continueGame(2, null, 1, true, true));
+        check.same("Restoring automation retains manual participation and the same AI game",
+                List.of(original, GameOrigin.AI, false, true, "1|f2f3"),
+                List.of(store.archivedId(2), store.matchOrigin(2), store.matchManualAi(2),
+                        store.matchManualUsed(2), store.readSavedMatch(2).checkpoint()));
+
+        int newSlot = restored.continueGame(0, aiId, 2, false, true);
+        check.same("Selecting manual control for an archived AI continuation keeps its origin and leaves it eligible",
+                List.of(true, GameOrigin.AI, true, false, GameOrigin.AI),
+                List.of(!aiId.equals(store.archivedId(newSlot)), store.matchOrigin(newSlot),
+                        store.matchManualAi(newSlot), store.matchManualUsed(newSlot), store.archiveOrigin(store.readArchivedMatch(aiId))));
     }
 
     private static MatchLedger open(String snapshot, String local, String ai, AtomicInteger ids) {

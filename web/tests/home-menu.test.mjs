@@ -101,6 +101,23 @@ test('The match options expose native board actions in RO and EN', async () => {
     }
 });
 
+test('The automatic AI control has the native RO and EN labels', async () => {
+    const [html, adapter, toolbar, en, ro, css] = await Promise.all([
+        read('web/src/main/web/index.html'), read('web/src/main/web/game-review.mjs'),
+        read('android/app/src/main/res/layout/match_toolbar.xml'),
+        read('android/app/src/main/res/values/strings.xml'), read('android/app/src/main/res/values-ro/strings.xml'),
+        read('web/src/main/web/game-review.css'),
+    ]);
+    assert.match(toolbar, /<CheckBox[^]*android:minHeight="48dp"[^]*android:text="@string\/match_automatic_ai"/);
+    assert.match(html, /<label id="match-automatic-option"[^>]*hidden>\s*<input id="match-automatic" type="checkbox">/);
+    assert.match(css, /\.match-automatic\s*\{[^}]*min-block-size:\s*var\(--play-action-size\);/);
+    for (const [key, id] of [["'match-automatic-label'", 'match_automatic_ai'], ['manualAiTurn', 'match_manual_ai_turn']]) {
+        const actual = [...adapter.matchAll(new RegExp(key + ": '([^']+)'", 'g'))].map(match => match[1]);
+        const native = [en, ro].map(resources => resources.match(new RegExp('<string name="' + id + '">([^<]+)'))?.[1]);
+        assert.deepEqual(actual, native, id);
+    }
+});
+
 test('A new board revision replaces the scheduled AI reply exactly once', () => {
     const pending = new Map();
     const applied = [];
@@ -126,6 +143,34 @@ test('A new board revision replaces the scheduled AI reply exactly once', () => 
     replacement();
     replacement();
     assert.deepEqual(applied, [12]);
+});
+
+test('Disabling automation aborts a running calculation and discards its result', async () => {
+    const jobs = new Map();
+    const sent = [];
+    const computations = [];
+    let next = 0;
+    const clock = {
+        setTimeout(action) { jobs.set(++next, action); return next; },
+        clearTimeout(id) { jobs.delete(id); },
+    };
+    const schedule = createMatchBotTimer(clock, 650, async (turn, signal) => {
+        const result = await new Promise(resolve => computations.push({ resolve, signal }));
+        if (!signal.aborted) sent.push([turn.revision, result]);
+    });
+    const current = { revision: 7 };
+    schedule(current);
+    const oldReply = jobs.get(1)();
+    schedule(current);
+    assert.equal(computations.length, 1);
+    schedule(undefined);
+    assert.equal(computations[0].signal.aborted, true);
+    schedule({ revision: 9 });
+    const nextReply = jobs.get(2)();
+    computations[0].resolve('e7e5');
+    computations[1].resolve('c7c5');
+    await Promise.all([oldReply, nextReply]);
+    assert.deepEqual(sent, [[9, 'c7c5']]);
 });
 
 test('Profile persistence respects the native validator and write failures', async () => {

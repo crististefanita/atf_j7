@@ -37,12 +37,14 @@ public final class MatchStore {
     private static final String MATCH_BLACK_BELOW = "match-black-below";
     private static final String MATCH_MANUAL_AI = "match-manual-ai";
     private static final String MATCH_MANUAL_USED = "match-manual-used";
+    private static final String MATCH_USES_AI = "match-uses-ai";
     private static final String ACTIVE_MATCH_SLOT = "active-match-slot";
     private static final String MATCH_ID = "match-id";
     private static final String MATCH_CREATION = "match-creation";
     private static final String MATCH_CREATION_SEQUENCE = "match-creation-sequence";
     private static final String MATCH_ARCHIVED = "match-archived";
     private static final String ARCHIVE_ORDER = "match-archive-order";
+    private static final String ARCHIVE_USES_AI = "uses-ai";
     private static final String REVIEW_BOOKMARK = "review-bookmark";
 
     private final Preferences preferences;
@@ -113,6 +115,19 @@ public final class MatchStore {
     public boolean matchManualUsed(int slot) { return preferences.getBoolean(MatchSlots.key(MATCH_MANUAL_USED, slot), false); }
     public boolean leaveMatch() { return preferences.edit().remove(RESUME_MATCH).commit(); }
 
+    enum GameOrigin { AI, LOCAL }
+
+    // Older Web snapshots used the active control and archived participation flags to classify games.
+    GameOrigin matchOrigin(int slot) {
+        return gameOrigin(preferences.getBoolean(MatchSlots.key(MATCH_USES_AI, slot), !matchManualAi(slot)));
+    }
+
+    GameOrigin archiveOrigin(ArchivedMatch match) {
+        return gameOrigin(preferences.getBoolean(archiveKey(match.id(), ARCHIVE_USES_AI), !match.manualUsed()));
+    }
+
+    private static GameOrigin gameOrigin(boolean usesAi) { return usesAi ? GameOrigin.AI : GameOrigin.LOCAL; }
+
     public boolean saveMatch(ChessMatch match, boolean blackBelow) {
         int slot = activeMatchSlot();
         return saveMatch(slot, match, blackBelow, matchManualAi(slot));
@@ -123,14 +138,29 @@ public final class MatchStore {
     }
 
     public boolean saveMatch(int slot, ChessMatch match, boolean blackBelow, boolean manualAi, boolean manualUsed) {
-        return saveMatch(slot, match, blackBelow, manualAi, manualUsed, false);
+        return saveMatch(slot, match, blackBelow, null, manualAi, manualUsed, false);
     }
 
     public boolean startMatch(int slot, ChessMatch match, boolean blackBelow, boolean manualAi, boolean manualUsed) {
-        return saveMatch(slot, match, blackBelow, manualAi, manualUsed, true);
+        return saveMatch(slot, match, blackBelow, null, manualAi, manualUsed, true);
     }
 
-    private boolean saveMatch(int slot, ChessMatch match, boolean blackBelow, boolean manualAi, boolean manualUsed, boolean fresh) {
+    boolean saveMatch(int slot, ChessMatch match, boolean blackBelow, GameOrigin origin, boolean manualAi, boolean manualUsed) {
+        return saveMatch(slot, match, blackBelow, origin, manualAi, manualUsed, false);
+    }
+
+    boolean startMatch(int slot, ChessMatch match, boolean blackBelow, GameOrigin origin, boolean manualAi, boolean manualUsed) {
+        return saveMatch(slot, match, blackBelow, origin, manualAi, manualUsed, true);
+    }
+
+    private boolean saveMatch(int slot, ChessMatch match, boolean blackBelow, GameOrigin origin,
+                              boolean manualAi, boolean manualUsed, boolean fresh) {
+        String originKey = MatchSlots.key(MATCH_USES_AI, slot);
+        GameOrigin savedOrigin = fresh ? null : recordedOrigin(originKey);
+        if (origin != null && savedOrigin != null && origin != savedOrigin) return false;
+        GameOrigin effectiveOrigin = origin == null ? savedOrigin : origin;
+        if (effectiveOrigin == GameOrigin.LOCAL && !manualAi) return false;
+        boolean recordedManualUse = manualUsed || !fresh && effectiveOrigin == GameOrigin.AI && matchManualUsed(slot);
         String idKey = MatchSlots.key(MATCH_ID, slot);
         String archivedKey = MatchSlots.key(MATCH_ARCHIVED, slot);
         String id = fresh ? null : preferences.getString(idKey, null);
@@ -140,16 +170,22 @@ public final class MatchStore {
         long recordedAt = fresh || newlyFinished ? now.getAsLong() : 0;
         var edit = preferences.edit().putString(idKey, id).putString(MatchSlots.key(MATCH, slot), match.checkpoint())
                 .putBoolean(MatchSlots.key(MATCH_BLACK_BELOW, slot), blackBelow)
-                .putBoolean(MatchSlots.key(MATCH_MANUAL_USED, slot), manualUsed)
+                .putBoolean(MatchSlots.key(MATCH_MANUAL_USED, slot), recordedManualUse)
                 .putBoolean(MatchSlots.key(MATCH_MANUAL_AI, slot), manualAi).putInt(ACTIVE_MATCH_SLOT, slot)
                 .putBoolean(RESUME_MATCH, true).remove(RESUME_CHAPTER);
         if (fresh) {
             long creation = preferences.getLong(MATCH_CREATION_SEQUENCE, MatchSlots.LIMIT) + 1;
             edit.putLong(MATCH_CREATION_SEQUENCE, creation).putLong(MatchSlots.key(MATCH_CREATION, slot), creation)
                     .putLong(MatchSlots.key(MATCH_STARTED_AT, slot), recordedAt);
+            if (effectiveOrigin == null) edit.remove(originKey);
         }
-        if (newlyFinished) recordArchive(edit, id, match, blackBelow, manualUsed, recordedAt);
+        if (effectiveOrigin != null) edit.putBoolean(originKey, effectiveOrigin == GameOrigin.AI);
+        if (newlyFinished) recordArchive(edit, id, match, blackBelow, effectiveOrigin, recordedManualUse, recordedAt);
         return edit.putBoolean(archivedKey, archived || newlyFinished).commit();
+    }
+
+    private GameOrigin recordedOrigin(String key) {
+        return preferences.contains(key) ? gameOrigin(preferences.getBoolean(key, false)) : null;
     }
 
     public record ArchivedMatch(String id, ChessMatch match, boolean blackBelow, boolean manualUsed, boolean reviewed, long finishedAt) { }
@@ -161,14 +197,16 @@ public final class MatchStore {
 
     private String archiveKey(String id, String field) { return "match-archive-" + id + "-" + field; }
 
-    private void recordArchive(Editor edit, String id, ChessMatch match, boolean flipped, boolean manualUsed, long finishedAt) {
+    private void recordArchive(Editor edit, String id, ChessMatch match, boolean flipped, GameOrigin origin,
+                               boolean manualUsed, long finishedAt) {
         var retention = MatchArchive.retain(archiveOrder(), id);
         edit.putString(ARCHIVE_ORDER, String.join(",", retention.kept()))
                 .putString(archiveKey(id, "checkpoint"), match.checkpoint())
                 .putBoolean(archiveKey(id, "black-below"), flipped)
                 .putBoolean(archiveKey(id, "manual-used"), manualUsed).putLong(archiveKey(id, "finished-at"), finishedAt);
+        if (origin != null) edit.putBoolean(archiveKey(id, ARCHIVE_USES_AI), origin == GameOrigin.AI);
         for (var previous : retention.evicted()) {
-            for (var field : List.of("checkpoint", "black-below", "manual-used", "finished-at", "review", REVIEW_BOOKMARK)) {
+            for (var field : List.of("checkpoint", "black-below", "manual-used", ARCHIVE_USES_AI, "finished-at", "review", REVIEW_BOOKMARK)) {
                 edit.remove(archiveKey(previous, field));
             }
         }
@@ -188,7 +226,8 @@ public final class MatchStore {
             var edit = preferences.edit().putString(MatchSlots.key(MATCH_ID, slot), id);
             if (saved.result() != ChessMatch.Result.IN_PROGRESS) {
                 edit.putBoolean(MatchSlots.key(MATCH_ARCHIVED, slot), true);
-                recordArchive(edit, id, saved, matchBlackBelow(slot), matchManualUsed(slot), 0);
+                recordArchive(edit, id, saved, matchBlackBelow(slot), recordedOrigin(MatchSlots.key(MATCH_USES_AI, slot)),
+                        matchManualUsed(slot), 0);
             }
             edit.commit();
         } catch (IllegalArgumentException | IllegalStateException | ClassCastException invalid) {

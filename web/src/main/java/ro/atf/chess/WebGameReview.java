@@ -17,12 +17,12 @@ final class WebGameReview {
     private int revision;
 
     String open(String id, ChessMatch match, String review, String bookmark, String digest, boolean stored, boolean blackBelow,
-                boolean automaticContinuation) {
+                boolean automaticContinuation, boolean rated) {
         if (!id.matches("[a-zA-Z0-9_.-]{1,100}")) throw new IllegalArgumentException("Invalid review archive ID");
         var cached = GameReviewCodec.decodeLine(match, review, digest);
         var snapshot = GameReviewBookmark.decode(id, match, bookmark, digest);
         var candidate = new Archive(id, match, digest, new GameReviewSession(match, cached, snapshot), stored, blackBelow,
-                automaticContinuation, report(match, cached));
+                automaticContinuation, rated, report(match, cached));
         String view = view(candidate, revision + 1);
         archive = candidate;
         revision++;
@@ -150,12 +150,12 @@ final class WebGameReview {
     }
 
     private static String mode(Archive archive) {
-        if (archive.stored()) return archive.automaticContinuation() ? "REVIEW_MATCH" : "REVIEW_MANUAL";
+        if (archive.stored()) return archive.rated() ? "REVIEW_MATCH" : "REVIEW_MANUAL";
         return archive.match().result() == ChessMatch.Result.IN_PROGRESS ? "REVIEW_LIVE" : "REVIEW_STUDY";
     }
 
     private static String square(int square) { return square < 0 ? "null" : quote(BoardSquare.name(square)); }
 
     private record Archive(String id, ChessMatch match, String digest, GameReviewSession session,
-                           boolean stored, boolean blackBelow, boolean automaticContinuation, String report) { }
+                           boolean stored, boolean blackBelow, boolean automaticContinuation, boolean rated, String report) { }
 }

@@ -90,6 +90,20 @@ main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height
   min-block-size: var(--play-action-size);
   padding: 0;
 }
+.match-automatic {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-block-size: var(--play-action-size);
+  padding-inline: .55rem;
+  border: 1px solid var(--border);
+  border-radius: .45rem;
+  background: var(--surface);
+  font-size: .8rem;
+  line-height: 1.2;
+}
+.match-automatic input { flex: none; inline-size: 1rem; block-size: 1rem; margin: 0; accent-color: var(--accent); }
+.match-automatic:has(input:disabled) { color: var(--muted); }
 #match-options[open] {
   display: grid;
   inline-size: min(16rem, calc(100% - 2rem));
@@ -222,6 +236,7 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
     --play-puzzle-text: 8.25rem;
   }
   main:has(> .match:not([hidden])) > header .header-actions button { padding-inline: .35rem; font-size: .875rem; }
+  .match-automatic { max-inline-size: 7rem; padding-inline: .4rem; }
   .match-actions button { flex: 1 1 min-content; padding-inline: .25rem; overflow-wrap: normal; }
   #match-history { flex-wrap: nowrap; }
   #match-history :is(#match-previous, #match-next) { min-inline-size: var(--play-action-size); }

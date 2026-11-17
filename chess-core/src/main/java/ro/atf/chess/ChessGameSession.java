@@ -20,21 +20,32 @@ public final class ChessGameSession {
 
     public ChessMatch match() { return match; }
     public long revision() { return revision; }
+    public boolean automatic() { return automatic; }
     public boolean awaitingBot() { return MatchSlots.needsBot(match, !automatic); }
 
     public Outcome play(long expectedRevision, Move move) {
         if (expectedRevision != revision) return Outcome.STALE;
-        if (move == null || awaitingBot() || match.result() != ChessMatch.Result.IN_PROGRESS) return Outcome.UNAVAILABLE;
-        try {
-            return apply(move);
-        } catch (IllegalArgumentException illegal) {
-            return Outcome.UNAVAILABLE;
-        }
+        if (awaitingBot() || match.result() != ChessMatch.Result.IN_PROGRESS) return Outcome.UNAVAILABLE;
+        return applyLegal(move);
     }
 
     public Outcome playBot(long expectedRevision) {
         if (expectedRevision != revision) return Outcome.STALE;
         return awaitingBot() ? apply(match.chooseBotMove()) : Outcome.UNAVAILABLE;
+    }
+
+    public Outcome playBot(long expectedRevision, Move move) {
+        if (expectedRevision != revision) return Outcome.STALE;
+        return awaitingBot() ? applyLegal(move) : Outcome.UNAVAILABLE;
+    }
+
+    private Outcome applyLegal(Move move) {
+        if (move == null) return Outcome.UNAVAILABLE;
+        try {
+            return apply(move);
+        } catch (IllegalArgumentException illegal) {
+            return Outcome.UNAVAILABLE;
+        }
     }
 
     private Outcome apply(Move move) {

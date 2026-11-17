@@ -4,6 +4,7 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import ro.atf.chess.GameReviewTimeline.Branch;
 import ro.atf.chess.GameReviewTimeline.Snapshot;
+import ro.atf.chess.MatchStore.GameOrigin;
 
 /** Reuses the native match store for a portable library and its one-time migration. */
 final class MatchLedger {
@@ -51,7 +52,7 @@ final class MatchLedger {
                 || !canContinueArchiveReview(source, cursor)) {
             return new Continuation(ContinuationOutcome.UNAVAILABLE);
         }
-        return continueArchived(entry.match(), cursor.ply(), entry.blackBelow(), automatic && !entry.manualUsed(), entry.manualUsed());
+        return continueArchived(entry, cursor.ply(), entry.blackBelow(), automatic);
     }
 
     int continueGame(int slot, String archiveId, int ply, boolean automatic, boolean blackBelow) {
@@ -60,16 +61,20 @@ final class MatchLedger {
         var source = entry == null ? matches.readSavedMatch(slot) : entry.match();
         if (source == null || ply < 0 || ply >= source.ply()) return 0;
         if (entry != null) {
-            return continueArchived(source, ply, blackBelow, automatic, !automatic).slot();
+            return continueArchived(entry, ply, blackBelow, automatic).slot();
         }
-        return matches.saveMatch(slot, source.continueFrom(ply), blackBelow, !automatic, !automatic) ? slot : 0;
+        GameOrigin origin = matches.matchOrigin(slot);
+        boolean manual = !automatic || origin == GameOrigin.LOCAL;
+        return matches.saveMatch(slot, source.continueFrom(ply), blackBelow, origin, manual, matches.matchManualUsed(slot)) ? slot : 0;
     }
 
-    private Continuation continueArchived(ChessMatch source, int ply, boolean blackBelow, boolean automatic, boolean manualUsed) {
+    private Continuation continueArchived(MatchStore.ArchivedMatch entry, int ply, boolean blackBelow, boolean automatic) {
         int slot = matches.freeMatchSlot();
         if (slot == 0) return new Continuation(ContinuationOutcome.NO_FREE_SLOT);
-        var prefix = source.continueFrom(ply);
-        if (!matches.startMatch(slot, prefix, blackBelow, !automatic, manualUsed)) {
+        var prefix = entry.match().continueFrom(ply);
+        GameOrigin origin = matches.archiveOrigin(entry);
+        boolean manual = !automatic || origin == GameOrigin.LOCAL;
+        if (!matches.startMatch(slot, prefix, blackBelow, origin, manual, entry.manualUsed())) {
             return new Continuation(ContinuationOutcome.SAVE_FAILED);
         }
         return new Continuation(ContinuationOutcome.APPLIED, slot);
@@ -84,7 +89,8 @@ final class MatchLedger {
             return;
         }
         int slot = MatchSlots.firstFree(matches::hasMatch);
-        if (!matches.startMatch(slot, match, match.setup().humanSide() == ChessPosition.Side.BLACK, !automatic, !automatic)) {
+        GameOrigin origin = automatic ? GameOrigin.AI : GameOrigin.LOCAL;
+        if (!matches.startMatch(slot, match, match.setup().humanSide() == ChessPosition.Side.BLACK, origin, !automatic, !automatic)) {
             throw new IllegalStateException("Could not migrate the saved match");
         }
     }

@@ -63,6 +63,12 @@ Pentru culoarea inițială, `MatchSetupTest` și `ChessWebParityPublication#pack
 
 Proba MCP a măsurat aceeași latură în ambele ecrane, 324 px pe compact în RO și 469,8 px pe desktop în EN. La 320 × 480 în RO, ambele table păstrează o latură de 249,6 px și pot derula vertical pentru a păstra accesul la comenzi.
 
+### Controlul replicilor AI
+
+Selectați `ChessWebParityPublication#packagedWorkerKeepsAiIdentityThroughManualControl` în comanda Maven pentru pachetul TeaVM. `MatchControlsTest` și workerul citesc același fixture pentru comutarea fără mutare manuală și pentru mutarea legală jucată de partea AI. Proba workerului cere același ID, slot și checkpoint după redeschidere, respinge replica de la o revizie expirată și verifică efectul mutării manuale asupra estimării Elo. `MatchLedgerTest` verifică și clasificarea la încărcarea salvărilor vechi. [Comanda Maven](../../web/README.md) · [Datele comune](../../atf-tests/src/test/resources/match-automation-cases.json)
+
+`MatchControlsTest` verifică disponibilitatea comutatorului la poziția curentă, în istoric și după încheiere. `ChessWebShellTest` verifică etichetele RO și EN cu resursele Android. Un ceas și un calcul simulate verifică anularea prin `AbortSignal` și ignorarea unui rezultat livrat după anulare. În sanity-ul de interfață, treceți în modul manual în tura AI, efectuați o mutare legală și redeschideți același slot. Reactivați automatizarea în tura AI și observați o singură replică. [Contractul partidei](../../web/README.md#controlul-replicilor-ai)
+
 ### Orientarea tablei în partidă
 
 `MatchControlsTest` verifică disponibilitatea acțiunii în partidă și în istoric. `MatchStoreTest` și `ChessWebParityPublication#packagedWorkerPreservesTheMatchWhenFlipping` folosesc același fixture pentru păstrarea poziției, istoricului și orientării la redeschidere. Workerul respinge o replică rămasă la revizia veche. `ChessWebShellTest` folosește un ceas simulat și verifică înlocuirea programării vechi cu o singură replică la revizia curentă. [Comanda de verificare](../../web/README.md#motorul-chess-lab-în-browser)

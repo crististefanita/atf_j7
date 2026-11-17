@@ -47,7 +47,7 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String openReview(String id, String checkpoint, String review, String bookmark, String digest) {
-        return REVIEW.open(id, ChessMatch.restore(checkpoint), review, bookmark, digest, false, false, false);
+        return REVIEW.open(id, ChessMatch.restore(checkpoint), review, bookmark, digest, false, false, false, false);
     }
 
     @JSExport
@@ -55,7 +55,7 @@ public final class ChessWebEngine {
         var match = ChessMatch.restore(checkpoint);
         String bookmark = GameReviewBookmark.encode(id, match,
                 new GameReviewTimeline.Snapshot(ply < 0 ? match.ply() : ply, GameReviewTimeline.Branch.HISTORY, 0), digest);
-        return STUDY_REVIEW.open(id, match, review, bookmark, digest, false, blackBelow, false);
+        return STUDY_REVIEW.open(id, match, review, bookmark, digest, false, blackBelow, false, false);
     }
 
     @JSExport
@@ -75,7 +75,8 @@ public final class ChessWebEngine {
 
     @JSExport
     public static boolean archiveReviewRated(String id) {
-        return !archivedMatch(id).manualUsed();
+        var entry = archivedMatch(id);
+        return GAME.matches().archiveOrigin(entry) == MatchStore.GameOrigin.AI && !entry.manualUsed();
     }
 
     @JSExport
@@ -84,7 +85,9 @@ public final class ChessWebEngine {
         var record = GAME.matches().readReviewRecord(id);
         if (record.review() == null) return null;
         try {
-            return REVIEW.open(id, entry.match(), record.review(), record.bookmark(), digest, true, entry.blackBelow(), !entry.manualUsed());
+            boolean usesAi = GAME.matches().archiveOrigin(entry) == MatchStore.GameOrigin.AI;
+            return REVIEW.open(id, entry.match(), record.review(), record.bookmark(), digest, true, entry.blackBelow(),
+                    usesAi, usesAi && !entry.manualUsed());
         } catch (IllegalArgumentException invalidCache) {
             return null;
         }
@@ -145,6 +148,15 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String playBot(int revision) { return GAME.playBot(revision); }
+
+    @JSExport
+    public static String computeBotMove(String checkpoint) { return ChessMatch.restore(checkpoint).chooseBotMove().uci(); }
+
+    @JSExport
+    public static String applyBotMove(int revision, String move) { return GAME.applyBot(revision, move); }
+
+    @JSExport
+    public static String matchAutomation(int revision, boolean automatic) { return GAME.changeAutomation(revision, automatic); }
 
     @JSExport
     public static String matchHistory(int revision, int ply) { return GAME.history(revision, ply); }

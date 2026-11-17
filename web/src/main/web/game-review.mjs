@@ -24,6 +24,8 @@ const words = {
         title: 'Game review', 'archive-label': 'Open a review',
         'open-match': 'Local game', 'open-review': 'Main menu', 'new-match': 'New game',
         'match-options-title': 'Game options', 'flip-match': 'Flip board', 'close-match-options': 'Close',
+        'match-automatic-label': 'Let AI play its moves', manualAiTurn: 'Your move for the AI side',
+        automationSaveFailed: 'The browser could not save the AI setting.',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
         'open-saved': 'Saved games', 'open-finished': 'Finished games', 'return-menu': 'Back',
         'archive-review-back': 'Close', 'review-close': 'Close', 'reopen-review': 'Open analysis', openCached: 'Open analysis', reviewed: 'Analysis saved',
@@ -67,6 +69,8 @@ const words = {
         title: 'Analiza partidei', 'archive-label': 'Deschide o analiză',
         'open-match': 'Partidă locală', 'open-review': 'Meniu principal', 'new-match': 'Partidă nouă',
         'match-options-title': 'Opțiunile partidei', 'flip-match': 'Întoarce tabla', 'close-match-options': 'Închide',
+        'match-automatic-label': 'Lasă AI-ul să mute', manualAiTurn: 'Mută pentru culoarea AI-ului',
+        automationSaveFailed: 'Browserul nu a putut salva setarea AI.',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
         'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate', 'return-menu': 'Înapoi',
         'archive-review-back': 'Închide', 'review-close': 'Închide', 'reopen-review': 'Deschide analiza', openCached: 'Deschide analiza', reviewed: 'Analiză salvată',
@@ -117,6 +121,7 @@ const board = find('board');
 const matchBoard = find('match-board');
 const matchOptions = find('match-options');
 const matchOptionsButton = find('match-options-button');
+const matchAutomatic = find('match-automatic');
 const status = find('status');
 const history = find('history');
 const reviewWorkspace = createReviewWorkspace(locale, (x, width) => reviewCommand('review-graph-select', { x, width }, 'history'));
@@ -177,7 +182,7 @@ const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, 
 
 document.documentElement.lang = locale;
 for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
-    'open-match', 'open-review', 'match-options-title', 'flip-match', 'close-match-options',
+    'open-match', 'open-review', 'match-options-title', 'flip-match', 'close-match-options', 'match-automatic-label',
     'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'random-choice', 'start-ai', 'cancel-setup',
     'retry-bot', 'open-saved',
@@ -217,6 +222,7 @@ function stopWorker() {
     worker.terminate();
     for (const request of pending.values()) request.reject(new Error(words.engineFailed));
     pending.clear();
+    renderMatchAutomation();
     setStatus(words.engineFailed);
 }
 
@@ -458,6 +464,7 @@ function normalizeArchive(value) {
 async function exclusive(work, failure) {
     if (busy || otherTabChanged || engineFailed) return;
     busy = true;
+    renderMatchAutomation();
     scheduleBot();
     find('review').setAttribute('aria-busy', 'true');
     find('match').setAttribute('aria-busy', 'true');
@@ -468,6 +475,7 @@ async function exclusive(work, failure) {
         setStatus(otherTabChanged ? words.changed : engineFailed ? words.engineFailed : failure);
     } finally {
         busy = false;
+        renderMatchAutomation();
         find('review').setAttribute('aria-busy', 'false');
         find('match').setAttribute('aria-busy', 'false');
         scheduleBot();
@@ -575,6 +583,7 @@ function renderMatch() {
     const container = find('match');
     container.hidden = mode !== matchRoute || !match || setupVisible;
     matchOptionsButton.hidden = container.hidden;
+    renderMatchAutomation();
     if (container.hidden) {
         if (matchOptions.open) matchOptions.close();
         return;
@@ -596,7 +605,8 @@ function renderMatch() {
     orientBoard(matchBoard, matchSquares, match.blackBelow);
     drawBoard(matchBoard, matchSquares, match);
     const result = browsing || match.result === 'IN_PROGRESS' ? words[match.sideToMove] : words[match.result] ?? words.DRAW;
-    find('match-turn').textContent = match.awaitingBot && failedBotRevision !== match.revision ? words.botTurn : result;
+    find('match-turn').textContent = match.manualAiTurn ? words.manualAiTurn
+        : match.awaitingBot && failedBotRevision !== match.revision ? words.botTurn : result;
     find('match-profile').hidden = !isAi;
     if (isAi) {
         const summary = words.aiProfile(levels[match.level], words[`${match.humanSide.toLowerCase()}-choice`]);
@@ -619,6 +629,14 @@ function renderMatch() {
     renderAnalysis();
 }
 
+function renderMatchAutomation() {
+    const option = match?.automation;
+    find('match-automatic-option').hidden = find('match').hidden || !option?.visible;
+    matchAutomatic.checked = option?.checked === true;
+    matchAutomatic.disabled = !option?.enabled || Boolean(analysis) || otherTabChanged || engineFailed;
+    matchAutomatic.setAttribute('aria-disabled', String(matchAutomatic.disabled || busy));
+}
+
 function renderAnalysis() {
     const running = Boolean(analysis);
     find('analysis-progress').hidden = !running;
@@ -628,6 +646,7 @@ function renderAnalysis() {
     const reviewed = match?.archiveId && finishedMatches.some(entry => entry.id === match.archiveId && entry.reviewed);
     find('analyze').textContent = reviewed ? words.openCached : words.analyze;
     find('new-match').disabled = running || Boolean(match?.awaitingBot);
+    renderMatchAutomation();
 }
 
 function renderMatchList() {
@@ -817,11 +836,21 @@ function scheduleBot() {
     scheduleBotReply(ready ? match : undefined);
 }
 
-function runBotTurn(waiting) {
-    if (mode !== 'ai' || match !== waiting) return;
-    void exclusive(async () => {
+async function runBotTurn(waiting, signal) {
+    let move;
+    try {
+        move = await computeBotTurn(waiting.reviewCheckpoint, signal);
+    } catch {
+        if (signal.aborted || match !== waiting) return;
+        failedBotRevision = waiting.revision;
+        setStatus(words.botFailure);
+        renderMatch();
+        return;
+    }
+    if (signal.aborted || mode !== 'ai' || match !== waiting) return;
+    await exclusive(async () => {
         try {
-            const response = await call('match-bot', { expectedRevision: waiting.revision });
+            const response = await call('match-bot-apply', { expectedRevision: waiting.revision, move });
             if (response.outcome !== 'APPLIED') throw new Error('Bot move unavailable at this revision');
             if (await commitPlayedMatch(response, 'ai')) return;
         } catch {
@@ -831,6 +860,29 @@ function runBotTurn(waiting) {
         failedBotRevision = match?.revision;
         renderMatch();
     }, words.botFailure);
+}
+
+async function computeBotTurn(checkpoint, signal) {
+    const job = new Worker(new URL('./engine-worker.mjs', import.meta.url), { type: 'module' });
+    let cancel;
+    try {
+        return await new Promise((resolve, reject) => {
+            const fail = () => reject(new Error(words.botFailure));
+            cancel = () => resolve(undefined);
+            signal.addEventListener('abort', cancel, { once: true });
+            job.addEventListener('error', fail);
+            job.addEventListener('messageerror', fail);
+            job.addEventListener('message', ({ data }) => {
+                if (data?.id !== 'bot-turn') return;
+                if (data.error || typeof data.move !== 'string') fail();
+                else resolve(data.move);
+            });
+            job.postMessage({ id: 'bot-turn', type: 'match-bot-compute', checkpoint });
+        });
+    } finally {
+        if (cancel) signal.removeEventListener('abort', cancel);
+        job.terminate();
+    }
 }
 
 function canPlayMatch() {
@@ -1150,6 +1202,20 @@ find('flip-match').addEventListener('click', () => {
         } else if (response.outcome === 'STALE') await restoreMatchDurable(words.matchFailure);
         else setStatus(response.outcome === 'SAVE_FAILED' ? words.matchSaveFailed : words.matchFailure);
     }, words.matchFailure);
+});
+
+matchAutomatic.addEventListener('change', () => {
+    if (busy || analysis || otherTabChanged || engineFailed || !match?.automation.enabled || mode !== matchRoute) {
+        renderMatchAutomation();
+        return;
+    }
+    const automatic = matchAutomatic.checked;
+    void exclusive(async () => {
+        const response = await call('match-automation', { expectedRevision: match.revision, automatic });
+        if (response.outcome === 'APPLIED') await commitMatch(response, words.automationSaveFailed);
+        else if (response.outcome === 'STALE') await restoreMatchDurable(words.automationSaveFailed);
+        else if (response.outcome === 'SAVE_FAILED') setStatus(words.automationSaveFailed);
+    }, words.automationSaveFailed);
 });
 
 find('open-review').addEventListener('click', () => { if (!busy) showMainMenu(); });

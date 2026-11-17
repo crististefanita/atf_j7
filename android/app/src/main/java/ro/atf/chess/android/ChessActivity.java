@@ -881,7 +881,7 @@ public final class ChessActivity extends BackNavigableActivity {
 
     private boolean saveMatchMove(Move move) {
         var nextMatch = match.play(move);
-        boolean manualUsed = store.matches().matchManualUsed(matchSlot) || manualAi && match.awaitingBot();
+        boolean manualUsed = MatchSlots.manualAiMoveUsed(match, manualAi, store.matches().matchManualUsed(matchSlot));
         if (!store.matches().saveMatch(matchSlot, nextMatch, blackBelow, manualAi, manualUsed)) {
             showSaveError();
             return false;

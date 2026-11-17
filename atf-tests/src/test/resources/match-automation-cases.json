@@ -1,0 +1,23 @@
+[
+  {
+    "id": "manual-on-own-side",
+    "initialCheckpoint": "1|f2f3 e7e5",
+    "manualSide": "WHITE",
+    "manualMove": "g2g4",
+    "humanMovesAfterReopen": [],
+    "manualUsed": false,
+    "rated": true,
+    "expectedFinalCheckpoint": "1|f2f3 e7e5 g2g4 d8h4"
+  },
+  {
+    "id": "manual-on-ai-side",
+    "initialCheckpoint": "1|f2f3",
+    "manualSide": "BLACK",
+    "manualMove": "e7e5",
+    "humanMovesAfterReopen": ["g2g4"],
+    "manualUsed": true,
+    "rated": false,
+    "expectedFinalCheckpoint": "1|f2f3 e7e5 g2g4 d8h4",
+    "continuationCheckpoint": "1|f2f3 e7e5 g2g4"
+  }
+]

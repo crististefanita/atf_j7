@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ro.atf.chess.GameReviewTimeline.Branch;
 import ro.atf.chess.GameReviewTimeline.Snapshot;
+import ro.atf.chess.MatchStore.GameOrigin;
 
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
@@ -94,6 +95,56 @@ class MatchStoreTest {
                         && reopened.startedAt(slot) == START.toEpochMilli() && reopened.matchBlackBelow(slot) && reopened.matchManualUsed(slot)));
         check.same("Persisted order starts with the replacement and selects the second oldest next",
                 List.of(List.of(1, 10, 9, 8, 7, 6, 5, 4, 3, 2), 2), List.of(reopened.savedMatchSlots(), reopened.slotForNewMatch()));
+    }
+
+    @Test void persistsGameOriginWithManualControlThroughCompletionAndSlotReuse(Checks check) {
+        var disk = new MemoryPreferences();
+        var first = store(disk, START);
+        var beforeMove = ChessMatch.restore("1|f2f3");
+        check.same("A new AI game saves automatic control", true,
+                first.startMatch(1, beforeMove, true, GameOrigin.AI, false, false));
+        String aiId = first.archivedId(1);
+
+        check.same("Entering manual control commits without moving or replacing the game", true,
+                first.saveMatch(1, beforeMove, true, GameOrigin.AI, true, false));
+        var reopened = store(disk, FINISH);
+        check.same("Reload restores the original game and current mode without recording a manual move",
+                List.of(aiId, beforeMove.checkpoint(), GameOrigin.AI, true, false, START.toEpochMilli()),
+                List.of(reopened.archivedId(1), reopened.readSavedMatch(1).checkpoint(), reopened.matchOrigin(1),
+                        reopened.matchManualAi(1), reopened.matchManualUsed(1), reopened.startedAt(1)));
+
+        Map<String, Object> durable = Map.copyOf(disk.data);
+        check.same("An existing AI game cannot be relabeled as local in place", false,
+                reopened.saveMatch(1, beforeMove, true, GameOrigin.LOCAL, true, false));
+        disk.rejectCommit = true;
+        check.same("A failed save reports failure when returning to automatic control", false,
+                reopened.saveMatch(1, beforeMove, true, GameOrigin.AI, false, false));
+        check.same("A rejected change keeps the prior slot data", durable, disk.data);
+
+        disk.rejectCommit = false;
+        var afterManualMove = beforeMove.play(ChessPosition.Move.fromUci("e7e5"));
+        check.same("A manual AI move records participation", true,
+                reopened.saveMatch(1, afterManualMove, true, GameOrigin.AI, true, true));
+        check.same("The archived result retains the recorded participation when automation is enabled", true,
+                reopened.saveMatch(1, ChessMatch.restore(MATE), true, GameOrigin.AI, false, false));
+        var archived = reopened.readArchivedMatch(aiId);
+        check.same("Finished keeps the original AI identity, exact game and manual participation",
+                List.of(aiId, MATE, GameOrigin.AI, true),
+                List.of(archived.id(), archived.match().checkpoint(), reopened.archiveOrigin(archived), archived.manualUsed()));
+
+        check.same("A newly used slot may hold a local game with the same checkpoint", true,
+                reopened.startMatch(1, beforeMove, false, GameOrigin.LOCAL, true, true));
+        var local = store(disk, FINISH);
+        check.same("The new slot identity and archived AI origin stay independent",
+                List.of(true, GameOrigin.LOCAL, GameOrigin.AI),
+                List.of(!aiId.equals(local.archivedId(1)), local.matchOrigin(1), local.archiveOrigin(local.readArchivedMatch(aiId))));
+
+        for (int index = 0; index < MatchArchive.LIMIT; index++) {
+            check.same("Completing another local game records its origin", true,
+                    local.startMatch(2, ChessMatch.restore(MATE), false, GameOrigin.LOCAL, true, true));
+        }
+        check.same("Eviction removes both the old archive and its origin metadata", List.of(false, false),
+                List.of(local.hasArchived(aiId), disk.data.containsKey("match-archive-" + aiId + "-uses-ai")));
     }
 
     @Test void evictsTheOldestFinishedGameOnlyWhenTheReplacementFinishes(Checks check) {

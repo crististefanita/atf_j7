@@ -33,7 +33,7 @@ class ChessWebArchiveContinuationPublication {
             "Continue from an archived Game Review without changing the archive", SCOPE, "web-review-continuation.html",
             "Verify recorded history, confirmation, continuation and reload", List.of(
                     new Frame("review-selected-history.png", "An earlier recorded move is selected in Game Review"),
-                    new Frame("review-continue-confirmation.png", "Confirmation selects manual play for the fork"),
+                    new Frame("review-continue-confirmation.png", "Confirmation selects manual control for the AI fork"),
                     new Frame("review-continued-game.png", "The separate game starts at the selected historical position"),
                     new Frame("review-origin-restored.png", "The original archived analysis and cursor are still available")));
 
@@ -82,6 +82,11 @@ class ChessWebArchiveContinuationPublication {
             checks.add(same("Original result and archive metadata stay identical", result(beforeArchive), result(afterArchive)));
             checks.add(same("Original archived result remains the expected outcome and position",
                     List.of(SOURCE, ChessMatch.Result.BLACK_WINS, true, false, true), result(afterArchive).stream().limit(5).toList()));
+            if (beforeArchive != null && afterArchive != null) {
+                checks.add(same("The original archive retains its AI origin",
+                        List.of(MatchStore.GameOrigin.AI, MatchStore.GameOrigin.AI),
+                        List.of(prior.archiveOrigin(beforeArchive), loaded.archiveOrigin(afterArchive))));
+            }
             checks.add(same("The original cached analysis and bookmark exist before and after the fork", true,
                     beforeReview != null && beforeReview.review() != null && beforeReview.bookmark() != null && afterReview != null));
             checks.add(same("The original encoded analysis and bookmark remain byte-identical", beforeReview, afterReview));
@@ -100,9 +105,10 @@ class ChessWebArchiveContinuationPublication {
             checks.add(same("Exactly one saved slot owns the new game identity", 1, forkMatches.size()));
             if (forkMatches.size() == 1) {
                 int slot = forkMatches.getFirst();
-                checks.add(same("Reload restored a playable Advanced fork with manual input selected",
-                        List.of(expected.checkpoint(), expected.setup(), true), List.of(loaded.readSavedMatch(slot).checkpoint(),
-                                loaded.readSavedMatch(slot).setup(), loaded.matchManualAi(slot))));
+                checks.add(same("Reload restores the Advanced AI fork in manual mode without marking a move on its own side as assistance",
+                        List.of(expected.checkpoint(), expected.setup(), MatchStore.GameOrigin.AI, true, false),
+                        List.of(loaded.readSavedMatch(slot).checkpoint(), loaded.readSavedMatch(slot).setup(),
+                                loaded.matchOrigin(slot), loaded.matchManualAi(slot), loaded.matchManualUsed(slot))));
                 checks.add(same("No archived analysis is erroneously attached to the active fork", null, loaded.readReviewRecord(fork)));
             }
         } catch (IllegalArgumentException invalid) {
@@ -123,7 +129,7 @@ class ChessWebArchiveContinuationPublication {
     private static List<List<Object>> savedFacts(MatchStore store, String excluded) {
         return store.savedMatchSlots().stream().filter(slot -> !excluded.equals(store.archivedId(slot)))
                 .map(slot -> List.<Object>of(store.archivedId(slot), store.readSavedMatch(slot).checkpoint(), store.matchManualAi(slot),
-                        store.startedAt(slot))).toList();
+                        store.matchOrigin(slot), store.matchManualUsed(slot), store.startedAt(slot))).toList();
     }
 
     private static String digest(String encoded) { return WebEvidencePublication.sha256(encoded.getBytes(StandardCharsets.UTF_8)); }

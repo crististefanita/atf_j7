@@ -1,5 +1,6 @@
-import { analyzeRatedReview, analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, flipMatchBoard, matchHistory, normalizePlayerName, openLedger, openMatch, openReview,
-  archiveReviewCheckpoint, archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, pieceArtwork, playBot, playMatch, reviewAction, reviewGraphSelect,
+import { analyzeRatedReview, analyzeReview, applyBotMove, canonicalCheckpoint, computeBotMove, continueArchiveReview, continueMatch,
+  flipMatchBoard, matchAutomation, matchHistory, normalizePlayerName, openLedger, openMatch, openReview, archiveReviewCheckpoint,
+  archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, pieceArtwork, playBot, playMatch, reviewAction, reviewGraphSelect,
   saveArchiveReview, snapshot, continueStudyMatch, openStudyReview, studyCommand, studyReviewAction, studyReviewGraphSelect } from "./chess-engine.mjs";
 
 let pending = Promise.resolve();
@@ -62,6 +63,12 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       self.postMessage({ id, ...JSON.parse(playMatch(expectedRevision, move)) });
     } else if (type === "match-bot" && validRevision(expectedRevision)) {
       self.postMessage({ id, ...JSON.parse(playBot(expectedRevision)) });
+    } else if (type === "match-bot-compute" && typeof checkpoint === "string") {
+      self.postMessage({ id, move: computeBotMove(checkpoint) });
+    } else if (type === "match-bot-apply" && validRevision(expectedRevision) && typeof move === "string") {
+      self.postMessage({ id, ...JSON.parse(applyBotMove(expectedRevision, move)) });
+    } else if (type === "match-automation" && validRevision(expectedRevision) && typeof automatic === "boolean") {
+      self.postMessage({ id, ...JSON.parse(matchAutomation(expectedRevision, automatic)) });
     } else if (type === "match-history" && validRevision(expectedRevision) && validRevision(ply)) {
       self.postMessage({ id, ...JSON.parse(matchHistory(expectedRevision, ply)) });
     } else if (type === "match-flip" && validRevision(expectedRevision)) {

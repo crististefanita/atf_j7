@@ -18,7 +18,7 @@ Proba explicită cere pachetul compilat și compară rezultatele efective din JV
 
 ## Partida cu AI
 
-**Partidă cu AI** deschide aceleași alegeri ca pe Android, Alb, Negru sau Aleatoriu, și nivelurile Basic, Advanced și Hard. Workerul alege culoarea aleatorie o singură dată la crearea jocului și păstrează culoarea rezultată și nivelul în checkpoint. Browserul salvează tura curentă înainte de a afișa mutarea și programează căutarea după pauza de 650 ms. După reîncărcare, poziția decide dacă mai este rândul AI. Workerul respinge reviziile expirate, iar o replică deja salvată lasă jucătorul la mutare.
+**Partidă cu AI** deschide aceleași alegeri ca pe Android, Alb, Negru sau Aleatoriu, și nivelurile Basic, Advanced și Hard. Workerul alege culoarea aleatorie o singură dată la crearea jocului și păstrează culoarea rezultată și nivelul în checkpoint. Browserul salvează tura curentă înainte de a afișa mutarea și programează căutarea după pauza de 650 ms când replicile automate sunt active. După reîncărcare, poziția și automatizarea salvată decid dacă urmează o replică AI. Workerul respinge reviziile expirate, iar o replică deja salvată lasă jucătorul la mutare.
 
 Din **Opțiunile partidei**, **Întoarce tabla** (**Flip board**) schimbă perspectiva la aceeași poziție, inclusiv în istoric. O partidă în desfășurare păstrează orientarea în slotul ei și o restabilește la redeschidere. În previzualizarea unei partide arhivate, **Continuă de aici** transmite orientarea afișată noului slot. Arhiva își păstrează orientarea salvată. [Verificarea orientării](../docs/testing/README.md#orientarea-tablei-în-partidă)
 
@@ -33,6 +33,12 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 ```
 
 Proba pornește browserul sub `/chess/`, reîncarcă în tura calculatorului și verifică mutarea cu JVM. Schimbă apoi numele și limba, reîncarcă și confirmă că partida are același checkpoint. Raportul încorporează capturile. Pentru verificarea destinației publice, treceți URL-ul din README ca ultim argument al comenzii Node și adăugați `-Dchess.web.bot.public=true` la publicarea Extent. Driverul verifică fișierele servite înaintea probei Edge. [Proba Android](../docs/testing/README.md#partidă-și-istoric)
+
+### Controlul replicilor AI
+
+La poziția curentă a unei partide cu AI, debifează **Lasă AI-ul să mute** ca să poți juca și pentru culoarea calculatorului. Bifa este inactivă la navigarea în istoric. Alegerea se salvează în același slot și se aplică la redeschidere. Browserul calculează replica separat de salvarea ei. Dezactivarea anulează replica programată sau calculul aflat în curs. Reactivarea la tura AI cere o singură replică, salvată numai la revizia curentă.
+
+Tipul partidei, automatizarea curentă și marcajul pentru mutări jucate manual de partea AI sunt câmpuri distincte. O mutare legală jucată pentru calculator marchează partida ca neeligibilă pentru estimarea Elo. Comutarea și reluarea automatizării păstrează identitatea și eligibilitatea. Game Review poate analiza partida și permite o continuare cu replici automate din arhiva unei partide cu AI, păstrând marcajul folosit pentru estimarea Elo. Bibliotecile vechi păstrează clasificarea folosită de versiunea care le-a salvat. [Probele comune JVM și TeaVM](../docs/testing/README.md#controlul-replicilor-ai)
 
 ### Tabla din Probleme și din partidă
 
