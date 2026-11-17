@@ -13,6 +13,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
 | P1 | Hint · independent alternative accuracy | Some alternatives remain overrated after exchange verification. | Verify ranking and every offered alternative against free replies at the same budget. |
+| P2 | Hint audit · broader transfer | The initial plan covers three short opening paths and three budgets. | Add new history-separated families and measure leader loss separately from deliberately played lower ranks. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
 | P1 | AI profile calibration | The Elo intervals still overlap. | Add paired games to narrow the rating uncertainty. |
@@ -58,9 +59,18 @@ Confirm speech on the corrected build in RO and EN and a return to the same move
 <details>
 <summary>P1 · Hint · independent alternative accuracy</summary>
 
-The `…Nxc2+ Qxc2` defect and post-ranking response insertion are closed by the shared exchange frontier and read-only replay. The public Sicilian leader is now `…cxd4`, at 477‰ against Stockfish's free-root 476‰ at H19. The remaining issue is the strength and order of offered alternatives. `…Nd7` still scores 268‰, and `…b5` in the pre-`Nxc2` control scores 329‰ against a free-root 493‰. In the Catalan, `cxd5` gives 485‰ while `Nf3` gives 516.5‰. In the Caro–Kann, the new `…d6` gives 383.5‰ against 215.5‰ for the old `…Nf6`, while the free-root `…d5` still gives 482.5‰. [Completed exchange contract](../board/ai-quality.md#hint-exchange-verification)
+The primary Sicilian `…Nd7` alternative and Caro–Kann `…d6` leader are corrected. The remaining transfer gap is visible in the Sicilian neighbor with `Nc3`, where the existing `…Nd7` leader gives 44.5‰ versus 479.5‰ for `…cxd4` at H19. In the Caro–Kann `Nc3` neighbor, `…d6` still gives 400‰ versus 482‰ for `…d5`. The critical pre-`Nxc2` leader remains `…Nf6`, while its offered `…b5` is weaker. Catalan `cxd5` remains inferior to Stockfish's `Nf3`. [Completed comparisons](../board/ai-quality.md#selective-hint-comparison-and-move-by-move-audit)
 
 Improve the shared ranking within the total 200,000-node hint ceiling. Compare all offered moves at a common completed horizon and check free opposing replies at H17/H19 on new families. Keep the sound queen and knight sacrifices, exact-cache bound negatives, and bulb/comparison/replay identity. A replay-integrity PASS does not establish that the alternatives are equally strong. Preserve completed-depth and actual-node evidence. [AI checks](../testing/README.md#game-and-history)
+
+</details>
+
+<details>
+<summary>P2 · Hint audit · broader transfer</summary>
+
+The versioned collector preserves source identity, full history, actual search depths, offered and compared candidates, unavailable ranks, and bounded budgets. The mocked contracts cover substitution, rehashed scores, resumption and interrupted output. Actual paths are diagnostic hint self-play, with the normal Hard theory move recorded separately.
+
+Add independent opening and endgame families from archived PGNs. Freeze their histories before tuning, verify the first loss with free Stockfish H17/H19 replies, and retain all failures. Compare budgets only at identical checkpoints. Preserve the source-bound Extent, PGN and trusted JSONL manifest and keep leader loss separate from intentionally selected ranks 2 and 3. [Audit protocol](../testing/hint-audit.md)
 
 </details>
 

@@ -444,6 +444,7 @@ testChanges:
     test: ro.atf.chess.AndroidReceiptTest#compactReplayRequiresBothLocalesAndNativeCaptures
     contract: "Retain the distribution identity and exercise both locales at the exact compact profile"
     allowDelete: false
+
   - id: J7-WEB-PARITY-SUITE-ENTRY
     base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
@@ -451,6 +452,7 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Keep browser publications explicit and component suites independent"
     allowDelete: false
+
   - id: J7-WEB-README-LINK
     base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
     from: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
@@ -458,6 +460,7 @@ testChanges:
     test: ro.atf.chess.ReleaseGovernanceTest#onlinePlayFollowsTheApkAndKeepsTheCanonicalDownloadPair
     contract: "Verify online play follows the qualified APK and belongs to the same repository"
     allowDelete: false
+
   - id: J7-BOT-ANDROID-PROBE
     base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
     from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
@@ -465,6 +468,7 @@ testChanges:
     test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
     contract: "Retain a native restart proof for a pending bot turn"
     allowDelete: false
+
   - id: J7-BOT-ANDROID-RUNNER
     base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
     from: scripts/run-android-sanity.ps1
@@ -472,6 +476,7 @@ testChanges:
     test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
     contract: "Bind the pending-bot phases to the same APK and separate processes"
     allowDelete: false
+
   - id: J7-BOT-ANDROID-PUBLICATION
     base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
     from: atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
@@ -479,6 +484,7 @@ testChanges:
     test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
     contract: "Require the exact history and one-reply assertions in Extent"
     allowDelete: false
+
   - id: J7-BOT-ANDROID-RECEIPT
     base: "9d3454f7eb9f512ed7cd39f8408a052be498abd4"
     from: atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java
@@ -486,6 +492,7 @@ testChanges:
     test: ro.atf.chess.AndroidReceiptTest#pendingBotReportRequiresTheExactHistoryAssertion
     contract: "Reject substituted or incomplete pending-bot evidence"
     allowDelete: false
+
   - id: J7-LEDGER-BROWSER-SUITE
     base: "adb526b422ef6bb1c1f9eb305921d8b5a6f040f1"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
@@ -493,6 +500,7 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Keep the ledger browser evidence outside the JVM component suite"
     allowDelete: false
+
   - id: J7-LEDGER-NATIVE-STORE
     base: "adb526b422ef6bb1c1f9eb305921d8b5a6f040f1"
     from: atf-tests/src/test/java/ro/atf/chess/MatchStoreTest.java
@@ -500,6 +508,7 @@ testChanges:
     test: ro.atf.chess.MatchStoreTest#migratesMixedLegacySlotsOnceWhileKeepingDamagedEntriesOutOfBothMenus
     contract: "Keep mixed legacy migration and list separation covered in both adapters"
     allowDelete: false
+
   - id: J7-ARCHIVE-REVIEW-BROWSER-SUITE
     base: "25a8114d7345b7c845066cc603449859675d213a"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
@@ -507,6 +516,7 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Run browser archive receipts separately while covering ownership and restoration in the component suite"
     allowDelete: false
+
   - id: J7-ARCHIVE-REVIEW-CONTINUATION-SUITE
     base: "5b60e75ae5c34fba61083ba6ba2b5bc561aaaaa7"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
@@ -514,6 +524,7 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Run Edge continuation evidence separately from deterministic continuation component tests"
     allowDelete: false
+
   - id: J7-WEB-GRAPH-SUITE
     base: "ecc2ff0ffd5cfe5a586243b2554661e1bf14a49b"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
@@ -521,6 +532,7 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Keep graph browser evidence outside deterministic component discovery"
     allowDelete: false
+
   - id: J7-WEB-GRAPH-FRAME
     base: "ecc2ff0ffd5cfe5a586243b2554661e1bf14a49b"
     from: atf-tests/src/test/java/ro/atf/chess/WebEvidencePublication.java
@@ -528,6 +540,7 @@ testChanges:
     test: ro.atf.chess.GameReviewGraphParityTest#browserEvidenceRequiresTheDimensionsDeclaredForEachImage
     contract: "Require exact compact and tablet screenshot dimensions without launching a device"
     allowDelete: false
+
   - id: J7-WEB-GRAPH-RATING
     base: "ecc2ff0ffd5cfe5a586243b2554661e1bf14a49b"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebArchiveReviewsPublication.java
@@ -535,6 +548,7 @@ testChanges:
     test: ro.atf.chess.GameReviewGraphParityTest#playbackAndRatedReviewKeepTheSameAnalysisCurve
     contract: "Preserve the common evaluation curve and apply the native rating to an eligible finished AI game"
     allowDelete: false
+
   - id: J7-WEB-FOCUS-SUITES
     base: "03f43eda1c610cd6d59ada3f01390bdeaf5175c2"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
@@ -542,6 +556,7 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Discover offline Web focus components and real browser evidence at their explicit entry points"
     allowDelete: false
+
   - id: J7-WEB-PLAY-LINK
     base: "03f43eda1c610cd6d59ada3f01390bdeaf5175c2"
     from: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
@@ -549,6 +564,7 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#mainReadmeShowsOneDirectPlayLinkBelowTheApk
     contract: "Show the single canonical online play link with the approved label"
     allowDelete: false
+
   - id: J7-WEB-FOCUS-FIXTURE
     base: "03f43eda1c610cd6d59ada3f01390bdeaf5175c2"
     from: atf-tests/src/test/java/ro/atf/chess/GameReviewSessionTest.java
@@ -556,6 +572,7 @@ testChanges:
     test: ro.atf.chess.GameReviewSessionTest#archivedExplanationResumesTheExactBranchAndReturnsToTheOriginalMove
     contract: "Preserve history and branch restoration while exporting the native-position browser focus fixture"
     allowDelete: false
+
   - id: J7-REVIEW-A11Y-SUITES
     base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
@@ -563,6 +580,7 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Keep browser accessibility evidence outside the offline and native suite selections"
     allowDelete: false
+
   - id: J7-REVIEW-A11Y-NODE
     base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewFocusComponents.java
@@ -570,6 +588,7 @@ testChanges:
     test: ro.atf.chess.ChessWebReviewAccessibilityTest#announcementPolicyRunsWithoutABrowserOrEmulator
     contract: "Check localized text and one announcement channel per committed review action offline"
     allowDelete: true
+
   - id: J7-REVIEW-A11Y-ANDROID
     base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
     from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
@@ -577,6 +596,7 @@ testChanges:
     test: ro.atf.chess.GameReviewSessionTest#archivedExplanationResumesTheExactBranchAndReturnsToTheOriginalMove
     contract: "Keep recorded position and branch restoration covered offline alongside the native focus and speech entry"
     allowDelete: false
+
   - id: J7-REVIEW-A11Y-FOCUS-EVIDENCE
     base: "e1b3edcb159c7f0e3fb9345dca17a88b7ee6c5c5"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewFocusPublication.java
@@ -600,6 +620,7 @@ testChanges:
     test: ro.atf.chess.GameReviewGraphLayoutTest#selectedPointKeepsThePositionAndWhiteScoreTogether
     contract: "Keep the position and the White score verifiable offline while Android observes focus and speech"
     allowDelete: false
+
   - id: J7-REVIEW-GRAPH-SELECTION
     base: "df3509a36403d850f14aa7a24ec938ac6c4bab6e"
     from: atf-tests/src/test/java/ro/atf/chess/GameReviewGraphLayoutTest.java
@@ -607,6 +628,7 @@ testChanges:
     test: ro.atf.chess.GameReviewGraphLayoutTest#selectedPointKeepsThePositionAndWhiteScoreTogether
     contract: "Preserve graph geometry coverage and prove the same clamped point supplies the localized score"
     allowDelete: false
+
   - id: J7-REVIEW-WEB-SPEECH-PROJECTION
     base: "df3509a36403d850f14aa7a24ec938ac6c4bab6e"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityTest.java
@@ -614,6 +636,7 @@ testChanges:
     test: ro.atf.chess.ChessWebReviewAccessibilityTest#announcementPolicyRunsWithoutABrowserOrEmulator
     contract: "Prove a single localized native range value for each committed position with mocked controls"
     allowDelete: false
+
   - id: J7-REVIEW-WEB-SPEECH-RECEIPT
     base: "df3509a36403d850f14aa7a24ec938ac6c4bab6e"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebReviewAccessibilityPublication.java
@@ -621,6 +644,7 @@ testChanges:
     test: ro.atf.chess.ChessWebReviewAccessibilityTest#announcementPolicyRunsWithoutABrowserOrEmulator
     contract: "Verify single-value semantics in components while the browser publisher preserves real focus and range events"
     allowDelete: false
+
   - id: J7-STUDY-WEB-ARROW
     base: "4d186cdf43101d14aefc1902d9eebbc12e5956b3"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
@@ -628,6 +652,7 @@ testChanges:
     test: ro.atf.chess.ChessWebStudyShellTest#sharedBoardWorksWithMockControls
     contract: "Keep board and keyboard contracts and verify native cue geometry and labels in both orientations"
     allowDelete: false
+
   - id: J7-STUDY-WEB-PUZZLE-CONTROLS
     base: "4d186cdf43101d14aefc1902d9eebbc12e5956b3"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebQuestStudyTest.java
@@ -635,6 +660,7 @@ testChanges:
     test: ro.atf.chess.ChessWebQuestStudyTest#puzzleUiUsesNativeChaptersAndPersistsScriptedReplies
     contract: "Keep progress and reply coverage and verify menu focus, guidance, scoring and replay controls"
     allowDelete: false
+
   - id: J7-STUDY-WEB-OPENING-CAPTION
     base: "4d186cdf43101d14aefc1902d9eebbc12e5956b3"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebOpeningStudyTest.java
@@ -642,6 +668,7 @@ testChanges:
     test: ro.atf.chess.ChessWebOpeningStudyTest#openingControllerPreservesLessonAndReplySemanticsWithoutABrowser
     contract: "Keep lesson and reply coverage and verify full captions, focus restoration and the leading evaluation meter"
     allowDelete: false
+
   - id: J7-STUDY-WEB-ANALYSIS-HISTORY
     base: "4d186cdf43101d14aefc1902d9eebbc12e5956b3"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
@@ -649,6 +676,7 @@ testChanges:
     test: ro.atf.chess.ChessWebAnalysisStudyTest#analysisStudyUsesMockWorkersWithoutABrowser
     contract: "Keep position and evaluation coverage and verify native toolbar order and scrolling to the chosen move"
     allowDelete: false
+
   - id: J7-STUDY-MCP-EVIDENCE-SUITE
     base: "24783b56f61390a05e01c6c8b961c9328b59c734"
     from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
@@ -656,6 +684,7 @@ testChanges:
     test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
     contract: "Discover Study screenshots only in the explicit browser publisher and keep offline component evidence in the primary suites"
     allowDelete: false
+
   - id: J7-STUDY-MCP-ROUTE-HISTORY
     base: "24783b56f61390a05e01c6c8b961c9328b59c734"
     from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
@@ -912,4 +941,84 @@ testChanges:
     replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
     test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
     contract: "Advance the candidate version while preserving the documented Android and Maven build boundaries"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-FRONTIER-EN
+    base: "a58e0c6b58413d7dd23b933f0d65641833128285"
+    from: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+    test: ro.atf.chess.HintFrontierTest#closeOpeningChallengersReceiveACompletedCommonHorizon
+    contract: "Require the Sicilian and Caro central moves to exclude inferior roots at one completed comparison horizon within 200,000 total nodes, retaining sacrifice, cache-bound, previous-even-horizon and verification-cap controls"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-COMPARISON-EN
+    base: "a58e0c6b58413d7dd23b933f0d65641833128285"
+    from: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    test: ro.atf.chess.HintComparisonTest#usesOneVerifiedOrderForTheBulbDialogAndTapInThreeOpenings
+    contract: "Keep bulb, dialog, scored replay and destination tap on the same verified move, accept the repaired Caro central break and report the actual completed selection horizon"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-MATERIAL-EN
+    base: "a58e0c6b58413d7dd23b933f0d65641833128285"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    test: ro.atf.chess.MatchHintTest#preservesTheRecalculatedAlternativesWithoutSacrificingAMinorPieceAfterE4
+    contract: "Verify reported material against the exact legal capture and recapture sequence while preserving ordered reveal, hidden evaluation, legal destination taps and the exclusion of the refuted Nc2 sacrifice"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-FRONTIER-RO
+    base: "fde1dc976e4aaf9e7675f589a34175d0b91db482"
+    from: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+    test: ro.atf.chess.HintFrontierTest#closeOpeningChallengersReceiveACompletedCommonHorizon
+    contract: "Require the Sicilian and Caro central moves to exclude inferior roots at one completed comparison horizon within 200,000 total nodes, retaining sacrifice, cache-bound, previous-even-horizon and verification-cap controls"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-COMPARISON-RO
+    base: "fde1dc976e4aaf9e7675f589a34175d0b91db482"
+    from: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+    test: ro.atf.chess.HintComparisonTest#usesOneVerifiedOrderForTheBulbDialogAndTapInThreeOpenings
+    contract: "Keep bulb, dialog, scored replay and destination tap on the same verified move, accept the repaired Caro central break and report the actual completed selection horizon"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-MATERIAL-RO
+    base: "fde1dc976e4aaf9e7675f589a34175d0b91db482"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+    test: ro.atf.chess.MatchHintTest#preservesTheRecalculatedAlternativesWithoutSacrificingAMinorPieceAfterE4
+    contract: "Verify reported material against the exact legal capture and recapture sequence while preserving ordered reveal, hidden evaluation, legal destination taps and the exclusion of the refuted Nc2 sacrifice"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-EVALUATION-EN
+    base: "a58e0c6b58413d7dd23b933f0d65641833128285"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchEvaluationTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchEvaluationTest.java
+    test: ro.atf.chess.MatchEvaluationTest#positionEstimateSettlesTheOpeningWithoutChangingTheSuggestion
+    contract: "Retain the independent calibrated opening estimate and the unchanged exact hint during evaluation, updating the equivalent Nc3 snapshot only with separate Stockfish support"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-PARITY-EN
+    base: "a58e0c6b58413d7dd23b933f0d65641833128285"
+    from: atf-tests/src/test/resources/match-analysis-cases.json
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java
+    test: ro.atf.chess.MatchAnalysisParityTest#nativeModelProjectsTheDisplayedMatchFrame
+    contract: "Update the sound Nc3 opening snapshot while preserving the exact scored continuation, small White advantage, displayed historical board and native-worker/manual-board parity"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-EVALUATION-RO
+    base: "fde1dc976e4aaf9e7675f589a34175d0b91db482"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchEvaluationTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchEvaluationTest.java
+    test: ro.atf.chess.MatchEvaluationTest#positionEstimateSettlesTheOpeningWithoutChangingTheSuggestion
+    contract: "Retain the independent calibrated opening estimate and the unchanged exact hint during evaluation, updating the equivalent Nc3 snapshot only with separate Stockfish support"
+    allowDelete: false
+
+  - id: J7-HINT-AUDIT-PARITY-RO
+    base: "fde1dc976e4aaf9e7675f589a34175d0b91db482"
+    from: atf-tests/src/test/resources/match-analysis-cases.json
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java
+    test: ro.atf.chess.MatchAnalysisParityTest#nativeModelProjectsTheDisplayedMatchFrame
+    contract: "Update the sound Nc3 opening snapshot while preserving the exact scored continuation, small White advantage, displayed historical board and native-worker/manual-board parity"
     allowDelete: false

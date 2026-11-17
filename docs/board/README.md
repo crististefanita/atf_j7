@@ -158,7 +158,7 @@
 
 - The hint uses the Hard search kernel, regardless of the opponent's level.
   Initial search, tactical exchanges, and comparison share a ceiling of 200,000
-  nodes. Up to 32,000 of those nodes compare alternatives at a common depth.
+  nodes. Up to 150,000 of those nodes compare alternatives at a common depth.
   The lightbulb cycles through up to three lines within 0.25 pawns of the leader.
   The search evaluates captures and recaptures before ranking these lines.
   For a proved mate, the lines have the same result and distance.

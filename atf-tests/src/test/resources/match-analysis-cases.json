@@ -23,7 +23,7 @@
     "sideToMove": "WHITE",
     "result": "IN_PROGRESS",
     "ending": "HORIZON",
-    "recommendation": "g1f3"
+    "recommendation": "b1c3"
   },
   {
     "id": "active-historical-replay",
@@ -39,7 +39,7 @@
     "recommendation": "b8c6",
     "historyReplay": {
       "reply": "b1c3",
-      "resumeRecommendation": "g1f3"
+      "resumeRecommendation": "b1c3"
     }
   },
   {

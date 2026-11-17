@@ -102,6 +102,15 @@ frame and whole documented continuation is replayed by the actual rules.
 
 [Hint frontier](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java) · [Opening contracts](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java) · [Web replay parity](../../atf-tests/src/test/java/ro/atf/chess/WebHintReplayComponentTest.java)
 
+### Offline hint collection
+
+`HintAuditSessionTest` validates the versioned plan, full-history resumption,
+trusted receipt anchors, actual material, unavailable ranks, and protected output
+with mocks. Its separately tagged benchmark records real short paths and
+same-position budget comparisons through one engine call per decision.
+The Extent report preserves source identity, checkpoints, FEN, offered and
+compared variants, reply facts, actual depths and nodes. [Run and interpretation](hint-audit.md)
+
 ## Web engine parity
 
 `ChessWebRulesComponentTest` checks the engine and catalogs on the JVM. `ChessWebParityPublication` executes the same cases in the TeaVM worker for all resources used. Run the probe explicitly with the bundle from TMP. [Web build and probes](../../web/README.md)

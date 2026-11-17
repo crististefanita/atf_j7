@@ -37,7 +37,8 @@ class MatchHintTest {
         var hint = match.hintAt(match.ply());
         check.same("After e4 equivalent complete replies remain available", true, lines.size() > 1);
         for (var line : lines) {
-            check.same("The complete line retains material for " + line.move().uci(), 0, line.materialChange());
+            check.same("The complete line accounts for every capture and recapture for " + line.move().uci(),
+                    captureLedger(match.position(), line), line.materialChange());
             check.same("The unsound Nc2 sacrifice is absent from " + line.move().uci(), false,
                     line.line().contains(ChessPosition.Move.fromUci("d4c2")));
         }
@@ -52,6 +53,22 @@ class MatchHintTest {
         hint.revealNext();
         check.same("One more press wraps to the first line", lines.getFirst(), hint.revealed());
         check.same("Showing a line leaves the match checkpoint untouched", checkpoint, match.checkpoint());
+    }
+
+    private static int captureLedger(ChessPosition root, TacticalAnalysis.Variation line) {
+        var values = ChessYaml.map(ChessYaml.resource("tactical-analysis.yaml"), "material");
+        var board = root;
+        int balance = 0;
+        for (var move : line.line()) {
+            var piece = board.pieceAt(move.from());
+            int sign = piece.side() == root.turn() ? 1 : -1;
+            var victim = MatchMaterial.victim(board, move);
+            if (victim != null) balance += sign * ChessYaml.number(values, victim.kind().name());
+            if (move.promotion() != null) balance += sign * (ChessYaml.number(values, move.promotion().name())
+                    - ChessYaml.number(values, ChessPosition.Kind.PAWN.name()));
+            board = board.play(move);
+        }
+        return balance;
     }
 
     @Test void stopsAtTheConfiguredLossAndKeepsOnlyEquivalentForcedMates(Checks check) {

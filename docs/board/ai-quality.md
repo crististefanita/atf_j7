@@ -2,7 +2,7 @@
 
 ## Overview
 
-- **Current policy.** The opponent, hint, and evaluation bar have separate budgets. Hard foreground search starts with 100,000 additional nodes and can use an adaptive reserve up to 200,000. The hint has one 200,000-node ceiling, including the initial horizons, tactical frontier, and up to 32,000 nodes for comparing alternatives. [Search configuration](../../chess-core/src/main/resources/match-ai.yaml)
+- **Current policy.** The opponent, hint, and evaluation bar have separate budgets. Hard foreground search starts with 100,000 additional nodes and can use an adaptive reserve up to 200,000. The hint has one 200,000-node ceiling, including the initial horizons, tactical frontier, and up to 150,000 nodes for comparing alternatives. [Search configuration](../../chess-core/src/main/resources/match-ai.yaml)
 - **Acceptance.** `MatchAiGovernanceTest` and `HardAdaptivePolicyTest` check the policies and `ChessBenchmarkSuite` measures decisions against a fixed oracle. Historical comparisons below belong to the measured version.
 - **Displayed Elo.** The [Game Review contract](game-review.md) defines grades, accuracy, and the displayed estimates. The app reads its rating anchors from the release configuration. [Rating anchors](../../chess-core/src/main/resources/game-review.yaml)
 
@@ -19,7 +19,7 @@ Hard's game search also reuses exact lines for transposed positions. Incomplete 
 
 Basic searches two plies in ordinary positions and three in elementary rook or queen endgames against a king. Both paths use zero additional nodes. Configure ordinary depth with `standard-max-plies` in YAML. Hard ends the search at the first complete horizon that proves a winning mate. [Basic calibration](#calibrating-basic-with-selective-depth) · [Mate proofs](#solving-puzzles-with-a-declared-objective)
 
-The hint uses the Hard search kernel independently of the opponent's level. Each completed horizon scores all legal roots through the same tactical frontier. Up to 32,000 nodes from the single 200,000-node allowance compare the shortlisted alternatives at a common horizon. If a deeper iteration stops, the last complete result remains available. A changed odd-horizon leader needs confirmation at an equal-turn horizon before replacing the supported result. The list displays at most three distinct first moves within 25 cp of the leader. In a mating position, only variations with the same result and distance remain. Playback uses the scored continuation without searching again or appending an unscored reply. Its static position estimate explains the displayed board and does not rerank the search result. [Reading the difference](README.md)
+The hint uses the Hard search kernel independently of the opponent's level. Each completed horizon scores all legal roots through the same tactical frontier. Up to 150,000 nodes from the single 200,000-node allowance verify the incumbent and a challenger from another completed horizon. Both phases share the exact transposition table and ordering. Existing single-root coaching overrides retain a larger seed allocation. If a deeper iteration stops, the last complete result remains available. A changed odd-horizon leader needs confirmation at an equal-turn horizon before replacing the supported result. The list displays at most three distinct first moves within 25 cp of the leader. In a mating position, only variations with the same result and distance remain. Playback uses the scored continuation without searching again or appending an unscored reply. Its static position estimate explains the displayed board and does not rerank the search result. [Reading the difference](README.md)
 
 In Hard, in positions with equal material, the ranking available after four plies also uses the score of the same move at three. The shorter line's contribution is capped. For a quiet move, the credit falls when the provisional line suggests a gain of more than one pawn. Evaluated mates and draws retain their terminal scores. If the budget prevents depth six from completing or the leader changes at that depth, the engine keeps the last complete search. Explicit searches and coaching comparisons keep their declared budgets.
 
@@ -82,6 +82,21 @@ The controls include the queen sacrifice `Qxc8+` leading to mate in three and th
 
 [Hint contracts](../../atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java) · [Read-only replay](../../atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java) · [Opening profiles](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java)
 
+## Selective hint comparison and move-by-move audit
+
+The hint retains the incumbent and a challenger observed at another completed horizon. Both phases reuse the same exact-cache entries and ordering within one decision budget. A cutoff remains a bound. A full-window value inside its original window can be exact even when discarded child branches produced bounds. Warm, cold, disabled-cache, and interrupted-search controls verify this distinction.
+
+An H6 reversal must use earlier H4 evidence. H5 uses H4 and H7 uses H6. The current even-horizon table cannot corroborate itself. An unsupported reversal retains the actual seed depth and publishes no accepted comparison. Search and comparison depths remain distinct from the number of replayed plies.
+
+| Position | J7 common-horizon comparison | Published result at 200k | Stockfish 19 H19 expected score |
+|---|---|---|---|
+| `e4 c5 Nf3 d6 d4` | H6, `…cxd4 −48` versus `…Nd7 −82 cp` | Keep `…cxd4`; exclude `…Nd7` from equivalent suggestions | 477‰ versus 268‰ |
+| `e4 c6 d4` | H5, `…d5 +1` versus `…d6 −33 cp` | Replace `…d6` with `…d5` | 468‰ versus 383.5‰ |
+
+The Stockfish numbers compare the tested roots with opposing replies free. They are not J7 centipawns or Elo. On the matched 200k controls, 13 of 14 existing leaders stayed the same and the main Caro–Kann leader improved. A first candidate regressed the Catalan and the pre-`Nxc2` control and was rejected. Correcting self-corroboration preserved both incumbents. The initially sealed four-position transfer sample retained its leaders. After inspection it becomes regression evidence, without establishing a general strength gain. A separately added control after `e4 e5` changes `Nf3` to `Nc3`: Stockfish H19 gives +27 versus +4 cp, or 523‰ versus 503‰. This balanced theoretical alternative has a measured 20‰ loss and is reported separately from the 14 matched controls.
+
+[Audit protocol and collection](../testing/hint-audit.md) · [Frontier contracts](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java)
+
 ## Checks for every change
 
 1. Run the JVM suite before making the change. Compare from the same TMP checkout, with the same Stockfish executable and evaluation YAML. Keep the Extent report from each run.
@@ -104,7 +119,7 @@ mvn test '-Dtest=ChessBenchmarkSuite' "-Dchess.stockfish=$stockfish" '-Dchess.ex
 | Basic | 3 | 0 |
 | Advanced | 4 | 10,000 |
 | Hard foreground | 6, with a stable leader | 100,000 base, up to 200,000 adaptively |
-| Hint | Up to 7, plus a bounded two-ply tactical frontier | 200,000 total, including up to 32,000 to compare alternatives |
+| Hint | Up to 7, plus a bounded two-ply tactical frontier | 200,000 total, including up to 150,000 to compare alternatives |
 
 - Governance requires strictly increasing depth and budget across opponent profiles. The hint uses at least Hard's configured depth and its own bounded allowance. In king-and-rook or king-and-queen endgames, all levels, the hint, and the bar use the same evaluation of the distance between the kings and the defending king's space. Tests verify conversion of the advantage into checkmate with both colors and preservation of White's perspective on the display.
 
