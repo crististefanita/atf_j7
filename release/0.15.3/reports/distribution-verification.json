@@ -1,10 +1,10 @@
 {
   "status": "PASS",
-  "observedUtc": "2026-11-17T13:45:06.1816107Z",
+  "observedUtc": "2026-11-17T13:48:43.8197132Z",
   "channel": "GitHub API authenticated",
   "repository": "crististefanita/chess",
-  "readmeSource": "staged",
-  "readmeCommit": "45a812c8a61b9ea9141b3522f5d5dafea25f0579",
+  "readmeSource": "main",
+  "readmeCommit": "4a58cfcea6514aac780c87a25b38ec6afe697d09",
   "readmeBlob": "cca5a018f38b13d98deccb9d8a8b22fc559f101e",
   "tag": "v0.15.3",
   "targetCommit": "0d1be247b6e1e075d23c87cbe49ca27b9909f743",
