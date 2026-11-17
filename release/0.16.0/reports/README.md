@@ -22,6 +22,8 @@ Calificarea leagă commitul sursă, APK-ul semnat, suita de componente și obser
 - [Proveniența recepțiilor brute](raw-receipts.json)
 - [Continuitatea semnăturii](signing-transition.json)
 - [Identitatea APK-ului publicat](github-release.json)
+- [Descărcarea completă din README](public-download.json)
+- [Descărcarea completă autentificată](distribution-verification.json)
 - [Contextul consultativ RAG](rag.txt)
 
 [Procesul de calificare și publicare](../../../docs/release/README.md#calificare-și-publicare) · [Alegerea nivelului de testare](../../../docs/testing/README.md#alegerea-nivelului)
