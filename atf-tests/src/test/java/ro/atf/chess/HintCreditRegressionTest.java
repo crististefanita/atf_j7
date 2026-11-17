@@ -29,6 +29,24 @@ class HintCreditRegressionTest {
         check.same("Analysing the defense preserves the entire saved game", original, match.checkpoint());
     }
 
+    @Test void theSameBishopMoveRemainsAvailableWhenItsTraxlerContextIsSound(Checks check) {
+        var board = ChessMatch.restore("2|analysis|e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 f3g5 f8c5 g5f7").position();
+        var search = TacticalAnalysis.verifiedHints(board, 200_000);
+        check.same("Stockfish H17/H19 keeps the bishop offer in the distinct Traxler context", Move.fromUci("c5f2"), search.lines().getFirst().move());
+        check.same("A non-mating sacrifice is not rejected merely for losing material", true,
+                search.lines().getFirst().ending() == TacticalAnalysis.Ending.HORIZON
+                        && search.lines().getFirst().materialChange() < 0);
+        check.same("The sound-sacrifice control keeps the original ceiling", true, search.extraNodes() <= 200_000);
+    }
+
+    @Test void theItalianDefenseAlsoSurvivesTheColorInvertedPosition(Checks check) {
+        var board = ChessPosition.fromFen("r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2NQ4/PPPP1PPP/R1B1K1NR w KQkq - 9 6");
+        var search = TacticalAnalysis.verifiedHints(board, 200_000);
+        check.same("The raw-evidence rule is independent of piece color", List.of("d3g3"),
+                search.lines().stream().map(line -> line.move().uci()).toList());
+        check.same("The color inversion retains the same node ceiling", true, search.extraNodes() <= 200_000);
+    }
+
     @Test void anImmediateBalancedExchangeIsNotMistakenForAnUnbackedSacrifice(Checks check) {
         var board = ChessMatch.restore("2|analysis|e2e4 c7c5 g1f3 d7d6 d2d4 c5d4 f1b5 c8d7 f3d4").position();
         var search = TacticalAnalysis.verifiedHints(board, 100_000);
