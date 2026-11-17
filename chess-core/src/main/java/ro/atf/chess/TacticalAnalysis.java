@@ -141,13 +141,15 @@ public final class TacticalAnalysis {
                 ? MatchAiPolicy.CURRENT.basicPlies : MatchAiPolicy.BASE_PLIES;
         var base = analyze(root, depth, moves, Objective.POSITION);
         if (depth < MatchAiPolicy.BASE_PLIES) return new SearchReport(base, depth, 0);
+        var adaptive = hard && repertoire == null ? HardAdaptivePolicy.CURRENT : null;
+        var searchPolicy = adaptive == null ? MatchAiPolicy.CURRENT.opponent(level) : adaptive.search();
         if (hard && repertoire == null && rookEndgame(position)) {
             var policy = MatchAiPolicy.CURRENT.rookEndgame;
-            return rookEndgameSearch(root, MatchAiPolicy.CURRENT.opponent(level),
-                    Math.max(gap, policy.candidateGapCp()), base, repetitionHistory, policy);
+            return rookEndgameSearch(root, searchPolicy,
+                    Math.max(gap, policy.candidateGapCp()), base, repetitionHistory, policy, adaptive);
         }
-        return matchSearch(root, MatchAiPolicy.CURRENT.opponent(level), gap, 0, hard && repertoire == null,
-                hard && repertoire == null, base);
+        return matchSearch(root, searchPolicy, gap, 0, hard && repertoire == null,
+                hard && repertoire == null, base, adaptive);
     }
 
     private static boolean bareKingMateEndgame(ChessPosition position) {
@@ -422,6 +424,12 @@ public final class TacticalAnalysis {
 
     private static SearchReport matchSearch(RootSearch root, MatchAiPolicy.Search policy, int gap, int tacticalExtension,
                                             boolean confirmAcrossHorizons, boolean prioritizeChecks, Result base) {
+        return matchSearch(root, policy, gap, tacticalExtension, confirmAcrossHorizons, prioritizeChecks, base, null);
+    }
+
+    private static SearchReport matchSearch(RootSearch root, MatchAiPolicy.Search policy, int gap, int tacticalExtension,
+                                            boolean confirmAcrossHorizons, boolean prioritizeChecks, Result base,
+                                            HardAdaptivePolicy adaptive) {
         int completed = MatchAiPolicy.BASE_PLIES;
         Result best = base;
         if (policy.maxPlies() == completed || best.ranked().isEmpty() || best.ranked().get(0).signedMatePlies() == 1) {
@@ -436,6 +444,7 @@ public final class TacticalAnalysis {
         int transpositionLimit = prioritizeChecks
                 ? MatchAiPolicy.CURRENT.hardTranspositions.entryLimit(policy.extraNodes()) : 0;
         var budget = new SearchBudget(policy.extraNodes(), tacticalExtension, transpositionLimit);
+        budget.adaptive = adaptive == null ? null : adaptive.budget(root.position());
         budget.checkOrderBonus = prioritizeChecks ? MatchAiPolicy.CURRENT.hardOrdering.checkBonus() : 0;
         budget.quietMoveOrdering = prioritizeChecks ? new QuietMoveOrdering() : null;
         int exchangeLimit = MatchAiPolicy.CURRENT.pawnExchangeNodes;
@@ -451,6 +460,7 @@ public final class TacticalAnalysis {
                     budget.reserve = Math.min(exchangeNodes, budget.remaining);
                 }
                 var candidate = deepen(root, moves, depth, budget, gap, confirmation);
+                if (budget.adaptive != null) budget.adaptive.completed(depth);
                 if (prioritizeChecks && candidate.ranked().get(0).signedMatePlies() > 0) {
                     // The earlier horizons already had a chance to prove a shorter mate.
                     return new SearchReport(candidate, depth, policy.extraNodes() - budget.remaining);
@@ -462,8 +472,27 @@ public final class TacticalAnalysis {
                         && completed == depth - 1 && defersPawnCapture(root.position(), best.ranked().get(0), candidate.ranked().get(0), depth)) {
                     continue;
                 }
+                if (budget.adaptive != null && gap == 0 && depth == MatchAiPolicy.BASE_PLIES + 2
+                        && exchangeNodes > 0 && candidate.ranked().get(0).ending() == Ending.HORIZON
+                        && !candidate.ranked().get(0).move().equals(pawnCandidate)) {
+                    int available = budget.remaining;
+                    var verification = new SearchBudget(available, 2);
+                    verification.adaptive = budget.adaptive;
+                    verification.adaptiveOffset = policy.extraNodes() - budget.remaining;
+                    budget.adaptive.exchangeProof(true);
+                    Variation capture;
+                    try {
+                        capture = verifyPawnExchange(root, candidate.ranked().get(0).move(), pawnCandidate,
+                                depth, verification);
+                    } finally {
+                        budget.adaptive.exchangeProof(false);
+                    }
+                    budget.remaining -= available - verification.remaining;
+                    if (capture != null) candidate = new Result(List.of(capture));
+                }
                 best = candidate;
                 completed = depth;
+                if (budget.adaptive != null) budget.adaptive.completed(completed);
                 budget.reserve = 0;
                 var leader = best.ranked().get(0).move();
                 moves.remove(leader);
@@ -530,18 +559,21 @@ public final class TacticalAnalysis {
     }
 
     private static SearchReport rookEndgameSearch(RootSearch root, MatchAiPolicy.Search policy, int gap, Result base,
-                                                 List<ChessPosition> repetitionHistory, MatchAiPolicy.RookEndgame endgamePolicy) {
+                                                 List<ChessPosition> repetitionHistory, MatchAiPolicy.RookEndgame endgamePolicy,
+                                                 HardAdaptivePolicy adaptive) {
         int completed = MatchAiPolicy.BASE_PLIES;
         Result best = base;
         if (policy.maxPlies() == completed || best.ranked().isEmpty()) return new SearchReport(best, completed, 0);
         var moves = best.ranked().stream().map(Variation::move).collect(Collectors.toCollection(ArrayList::new));
         var budget = new RookSearchBudget(policy.extraNodes(), repetitionHistory, root.position());
+        budget.adaptive = adaptive == null ? null : adaptive.budget(root.position());
         for (int depth = completed + 1; depth <= policy.maxPlies() + endgamePolicy.extensionPlies(); depth++) {
             try {
                 var previousScores = new HashMap<Move, Integer>();
                 best.ranked().forEach(line -> previousScores.put(line.move(), line.score()));
                 best = deepenRookEndgame(root, moves, depth, budget, endgamePolicy.candidateGapCp(), previousScores);
                 completed = depth;
+                if (budget.adaptive != null) budget.adaptive.completed(completed);
                 var nextMoves = best.ranked().stream().map(Variation::move).collect(Collectors.toCollection(ArrayList::new));
                 boolean closeCandidates = best.ranked().size() > 1
                         && best.ranked().get(0).ending() == Ending.HORIZON
@@ -696,6 +728,7 @@ public final class TacticalAnalysis {
                 ? new SearchTranspositionKey(position.searchKey(), left, distance, objective, budget.tacticalExtension) : null;
         if (key != null) {
             var cached = budget.transpositions.get(key);
+            if (budget.adaptive != null) budget.adaptive.lookup(cached != null);
             if (cached != null) return cached;
         }
         if (left == 0) {
@@ -761,6 +794,7 @@ public final class TacticalAnalysis {
         }
         var key = new RookTranspositionKey(positionKey, left, budget.repetitions.path());
         var cached = budget.transpositions.get(key);
+        if (budget.adaptive != null) budget.adaptive.lookup(cached != null);
         if (cached != null) return cached;
         if (left == 0) {
             Line result = leaf(position, distance, position.hasLegalMove(), Objective.POSITION);
@@ -857,6 +891,8 @@ public final class TacticalAnalysis {
     private record RookTranspositionKey(ChessPosition.SearchKey position, int plies, RookSearchPath path) { }
 
     private static final class RookSearchBudget {
+        private final int allocated;
+        private HardAdaptivePolicy.Budget adaptive;
         private int remaining;
         private final int transpositionLimit;
         private final Map<RookTranspositionKey, Line> transpositions = new HashMap<>();
@@ -866,6 +902,7 @@ public final class TacticalAnalysis {
         private final RookRepetitionContext repetitions;
 
         RookSearchBudget(int remaining, List<ChessPosition> history, ChessPosition root) {
+            this.allocated = remaining;
             this.remaining = remaining;
             transpositionLimit = Math.min(50_000, Math.max(1, remaining / 2));
             repetitions = new RookRepetitionContext(history, root);
@@ -929,6 +966,7 @@ public final class TacticalAnalysis {
 
         void visit() {
             checkInterrupted();
+            if (adaptive != null && !adaptive.allow(allocated - remaining)) throw new BudgetExhausted();
             if (remaining == 0) throw new BudgetExhausted();
             remaining--;
         }
@@ -953,6 +991,9 @@ public final class TacticalAnalysis {
     }
 
     private static final class SearchBudget {
+        private final int allocated;
+        private HardAdaptivePolicy.Budget adaptive;
+        private int adaptiveOffset;
         private int remaining;
         private int reserve;
         private final int tacticalExtension;
@@ -966,6 +1007,7 @@ public final class TacticalAnalysis {
         }
 
         SearchBudget(int remaining, int tacticalExtension, int transpositionLimit) {
+            this.allocated = remaining;
             this.remaining = remaining;
             this.tacticalExtension = tacticalExtension;
             this.transpositionLimit = transpositionLimit;
@@ -978,6 +1020,7 @@ public final class TacticalAnalysis {
 
         void visit() {
             checkInterrupted();
+            if (adaptive != null && !adaptive.allow(adaptiveOffset + allocated - remaining, reserve)) throw new BudgetExhausted();
             if (remaining == reserve) throw new BudgetExhausted();
             remaining--;
         }

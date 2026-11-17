@@ -1,0 +1,8 @@
+schema: 1
+enabled: true
+base-extra-nodes: 100000
+max-extra-nodes: 200000
+max-plies: 6
+minimum-completed-plies: 5
+cache-observations: 4096
+cold-cache-per-mille: 10

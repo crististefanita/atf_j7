@@ -61,6 +61,27 @@ node scripts/verify-mate-in-three.cjs $chessJs chess-core/src/main/resources/mat
 
 </details>
 
+### Adaptive Hard budget
+
+`HardAdaptivePolicyTest` checks typed YAML keys, the base and maximum boundary,
+minimum complete depth, measured cache reuse, king-file risk, and isolation between
+decisions. A reserved exchange verification counts toward the same allowance.
+An actual nested proof test checks the final base nodes and the final maximum
+nodes, with and without the unresolved-exchange signal.
+`AiOpeningRegressionTest` retains the exposed-pawn capture and defended-pawn
+controls after a fifth ply completes. `MatchSetupTest` and
+`RookEndgameHistoryTest` check the configured maximum and legal results.
+The history probe replays a frozen sequence, so changing the search allowance
+does not generate a different fixture before the assertion.
+
+Use the current `hard-adaptive.yaml` when comparing fixed 100,000, fixed 200,000,
+and adaptive search. Compare every move from the same source and keep the full
+history. A higher budget can change the preferred move, so check the opposing
+reply and the resulting WDL with Stockfish. Report actual decisions, completed
+depths, nodes, and CPU time before interpreting the Elo estimate.
+The learned-ordering league uses its own frozen source and policy. Its Elo
+estimate belongs to that exact comparator.
+
 ## Web engine parity
 
 `ChessWebRulesComponentTest` checks the engine and catalogs on the JVM. `ChessWebParityPublication` executes the same cases in the TeaVM worker for all resources used. Run the probe explicitly with the bundle from TMP. [Web build and probes](../../web/README.md)

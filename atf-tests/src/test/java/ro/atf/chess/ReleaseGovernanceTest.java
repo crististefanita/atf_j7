@@ -459,6 +459,19 @@ class ReleaseGovernanceTest {
                 ReleaseRag.retrieve(root, List.of("README.md")).stream().map(ReleaseRag.Citation::path).toList());
     }
 
+    @Test void ragRoutesAdaptiveSearchCodeAndYamlToTheirComponentChecks(Checks check) throws IOException {
+        var root = ProjectRoot.locate();
+        for (String path : List.of("chess-core/src/main/resources/hard-adaptive.yaml",
+                "chess-core/src/main/java/ro/atf/chess/HardAdaptivePolicy.java")) {
+            var result = ReleaseRag.retrieve(root, List.of(path));
+            check.same(path + " cites the adaptive budget contract", true,
+                    result.stream().anyMatch(citation -> citation.path().equals("docs/testing/README.md")
+                            && citation.check().equals("HardAdaptivePolicyTest, AiOpeningRegressionTest, MatchSetupTest and RookEndgameHistoryTest")));
+            check.same(path + " also requires external strength checks", true,
+                    result.stream().anyMatch(citation -> citation.path().equals("docs/board/ai-quality.md")));
+        }
+    }
+
     @Test void ragRoutesHintSearchPublisherAndArchiveIndependently(Checks check) throws IOException {
         var root = ProjectRoot.locate();
         for (String path : List.of("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java",

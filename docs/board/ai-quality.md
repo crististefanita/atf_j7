@@ -2,18 +2,18 @@
 
 ## Overview
 
-- **Current policy.** The opponent, hint, and evaluation bar have separate budgets. Hard uses at most 44,000 additional nodes. The hint can use 220,000, including up to 32,000 to compare alternatives. [Search configuration](../../chess-core/src/main/resources/match-ai.yaml)
-- **Acceptance.** `MatchAiGovernanceTest` checks the policy and `ChessBenchmarkSuite` measures decisions against a fixed oracle. Historical comparisons below belong to the measured version.
+- **Current policy.** The opponent, hint, and evaluation bar have separate budgets. Hard foreground search starts with 100,000 additional nodes and can use an adaptive reserve up to 200,000. The hint can use 220,000, including up to 32,000 to compare alternatives. [Search configuration](../../chess-core/src/main/resources/match-ai.yaml)
+- **Acceptance.** `MatchAiGovernanceTest` and `HardAdaptivePolicyTest` check the policies and `ChessBenchmarkSuite` measures decisions against a fixed oracle. Historical comparisons below belong to the measured version.
 - **Displayed Elo.** The [Game Review contract](game-review.md) defines grades, accuracy, and the displayed estimates. The app reads its rating anchors from the release configuration. [Rating anchors](../../chess-core/src/main/resources/game-review.yaml)
 
 <details>
 <summary>Current search policies and bounds</summary>
 
-The opponent levels and hint have separately configured depths and budgets. A search keeps the last depth it evaluated completely. Hard can attempt six plies under the existing 44,000-node cap. It accepts the final horizon's result only if it keeps the same leading move as the previous depth. If the leader changes, the engine stays with the last complete, stable search. The hint attempts six plies, with one additional ply for captures, promotions, or escaping check at the search horizon. In games and lessons, evaluation accounts for piece development, the center, king position, and the bishop pair in addition to material. The weights change according to the remaining material so an active king becomes useful in the endgame. The search checks captures, promotions, and moves that activate pieces first. Tactical tests keep their explicit material or checkmate objective. [Search policy](../../chess-core/src/main/resources/match-ai.yaml)
+The opponent levels and hint have separately configured depths and budgets. A search keeps the last depth it evaluated completely. Hard's foreground game search starts with 100,000 additional nodes and can continue to 200,000 with the adaptive policy below. It accepts the final horizon's result only if it keeps the same leading move as the previous depth. If the leader changes, the engine stays with the last complete, stable search. The hint attempts six plies, with one additional ply for captures, promotions, or escaping check at the search horizon. In games and lessons, evaluation accounts for piece development, the center, king position, and the bishop pair in addition to material. The weights change according to the remaining material so an active king becomes useful in the endgame. The search checks captures, promotions, and moves that activate pieces first. Tactical tests keep their explicit material or checkmate objective. [Search policy](../../chess-core/src/main/resources/match-ai.yaml) · [Adaptive policy](../../chess-core/src/main/resources/hard-adaptive.yaml)
 
-In rook endgames, Hard uses the full history to evaluate repetitions throughout the tree, including at the root. It can extend the search by one ply beyond the profile depth, up to depth 7, under the same 44,000-node cap. The extension and the 50 cp window for root candidates are set under `rook-endgame` in YAML. Governance rejects extensions or windows outside the validated limits.
+In rook endgames, Hard uses the full history to evaluate repetitions throughout the tree, including at the root. It can extend the search by one ply beyond the profile depth, up to depth 7, within the configured adaptive allowance. The extension and the 50 cp window for root candidates are set under `rook-endgame` in YAML. Governance rejects extensions or windows outside the validated limits.
 
-In Hard games outside the repertoire and the special rook endgame, checking moves get priority in search order only. The 10,000 bonus is configurable and capped under `hard-ordering`. It does not contribute to position evaluation or raise the 44,000-node limit. Basic, Advanced, the hint, and the bar evaluation retain their previous ordering.
+In Hard games outside the repertoire and the special rook endgame, checking moves get priority in search order only. The 10,000 bonus is configurable and capped under `hard-ordering`. It does not contribute to position evaluation or change the node allowance. Basic, Advanced, the hint, and the bar evaluation retain their previous ordering.
 
 Hard's game search also reuses exact lines for transposed positions. Incomplete entries and alpha-beta bounds are excluded from reuse. Capacity is derived from the budget and capped in `hard-transpositions`. [Exact-cache evaluation](#exact-cache-for-hard)
 
@@ -21,7 +21,7 @@ Basic searches two plies in ordinary positions and three in elementary rook or q
 
 The hint starts from the Hard search and checks mates and tactical replies separately. If the first moves differ and neither proves mate, the engine compares alternatives at the depth Hard already completed. If verification exhausts its budget, the hint uses the complete Hard result. The list displays at most three distinct first moves. Alternatives stay within 25 cp of the first move after the defense and retain an estimated positive improvement. In a mating position, only variations with the same result and distance remain. On equal scores, move activity and UCI order determine the order. [Reading the difference](README.md)
 
-In Hard, in positions with equal material, the ranking available after four plies also uses the score of the same move at three. The shorter line's contribution is capped. For a quiet move, the credit falls when the provisional line suggests a gain of more than one pawn. Evaluated mates and draws retain their terminal scores. If the budget prevents depth six from completing or the leader changes at that depth, the engine keeps the last complete search. Hard retains its budget of 44,000 additional nodes.
+In Hard, in positions with equal material, the ranking available after four plies also uses the score of the same move at three. The shorter line's contribution is capped. For a quiet move, the credit falls when the provisional line suggests a gain of more than one pawn. Evaluated mates and draws retain their terminal scores. If the budget prevents depth six from completing or the leader changes at that depth, the engine keeps the last complete search. Explicit searches and coaching comparisons keep their declared budgets.
 
 In the Pirc and Benoni, Hard and the hint each use a reply checked with Stockfish 19 at depth 13. The repertoire applies to the same legal position, including through transposition, and the continuation is searched within the profile budget. After the reply or in neighboring positions, the full search is used. Loading checks legality, duplicate positions, and mates in one. [YAML repertoire](../../chess-core/src/main/resources/ai-repertoire.yaml)
 
@@ -32,6 +32,45 @@ The third occurrence is a signal for move choice. The game ends automatically on
 The bar and first line of text use a separate estimate for the current position. The engine evaluates two plies, one for each side, and applies a fraction of the difference obtained at three. Both searches check exchanges at the horizon. The correction is capped at 25 cp within the display's own budget. Pressing the lightbulb preserves the displayed estimate and cycles through the lines in hint-search order.
 
 </details>
+
+## Adaptive foreground budget
+
+`hard-adaptive.yaml` configures a base allowance of 100,000 and a maximum of
+200,000 additional nodes for normal Hard game decisions. At the base boundary,
+the same search can use the reserve if it has not completed five plies, the
+current king is in check or exposed to a heavy piece on a central file, or exact
+cache reuse is below 1% after at least 4,096 observations. An unresolved pawn
+exchange identified by the existing candidate check is also a tactical reason
+to continue its verification. The current defaults
+target six plies. Both bounds, depth, observation count, and cache threshold are
+typed configuration values.
+
+Continuation retains the current recursive stack, move ordering, and the
+transposition table of that decision. The search does not replay the root after
+requesting the reserve. A new game decision starts with its own evidence.
+Stopping preserves the last complete result. A known exchange verification can
+still spend its reserved nodes. When the fifth ply finishes, both exchange
+alternatives are compared at that same depth with the tactical extension. That
+verification shares the adaptive controller and a global spent-node offset. It
+requests the reserve only when an actual visit crosses the base boundary. The
+older exhaustion path keeps its separately reserved allowance.
+
+Disabling the adaptive policy restores the profile declared in `match-ai.yaml`.
+The fallback is also used by explicit comparison paths. Hint, evaluation bar,
+Basic, and Advanced keep their own budgets and entry points. Elo evidence must
+name the exact source and active policy. The experimental learned-ordering
+league is a separate source-qualified comparison.
+
+[Component and regression checks](../testing/README.md#adaptive-hard-budget)
+
+On the main-source comparison, fixed 100,000 completed at least five plies on
+39/44 positions; fixed 200,000 and adaptive completed them on 43/44. Adaptive
+retained all 44 choices of fixed 200,000 while using 124,062 additional nodes per
+decision on average, compared with 187,184 for fixed 200,000. The reserve was used
+on 12 positions. It recovered `…Ng4` in the early queen sortie and kept the queen
+recapture in the king-shield control. All three modes still chose `…Bh3` in
+`fresh-030`. This sample measures decision transfer and cost on that source.
+The adaptive profile's game-strength estimate requires its own paired league.
 
 ## Checks for every change
 
@@ -54,8 +93,8 @@ mvn test '-Dtest=ChessBenchmarkSuite' "-Dchess.stockfish=$stockfish" '-Dchess.ex
 |---|---:|---:|
 | Basic | 3 | 0 |
 | Advanced | 4 | 10,000 |
-| Hard | 6, with a stable leader | 44,000 |
-| Hint | 6, plus one tactical extension | 220,000, including Hard and up to 32,000 to compare alternatives |
+| Hard foreground | 6, with a stable leader | 100,000 base, up to 200,000 adaptively |
+| Hint | 6, plus one tactical extension | 220,000 total, including up to 32,000 to compare alternatives |
 
 - Governance requires strictly increasing depth and budget across opponents. The hint uses at least Hard's depth and its own larger budget. In king-and-rook or king-and-queen endgames, all levels, the hint, and the bar use the same evaluation of the distance between the kings and the defending king's space. Tests verify conversion of the advantage into checkmate with both colors and preservation of White's perspective on the display.
 
