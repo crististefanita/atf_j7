@@ -204,7 +204,7 @@ const tacticsState = { type: 'puzzle', chapter: 'tactics', id: 'tactic-006', ran
     totals: { solved: 5, total: 100, points: 50 }, milestone: { next: 15, reached: true } };
 
 test('Wrong material check stays in the current puzzle and keeps the Web controls usable', async () => {
-    const { at, tap, reports } = await mountPuzzle(tacticsState, (action, args) => {
+    const { at, tap, reports, focused } = await mountPuzzle(tacticsState, (action, args) => {
         assert.deepEqual([action, args.value], ['play', 'd1e2']);
         return { saved: 'attempted', data: { ...tacticsState, attempt: { outcome: 'CHECK', move: 'd1e2' } } };
     });
@@ -222,6 +222,9 @@ test('Wrong material check stays in the current puzzle and keeps the Web control
     assert.equal(at('explain-text').textContent, at('status').textContent);
     assert.equal(at('replay').hidden, true);
     assert.equal(at('lesson-actions').hidden, true);
+    at('explain-close').events.get('click')();
+    assert.equal(at('explanation').open, false);
+    assert.equal(focused(), 'quest-study-details');
     assert.equal(reports.at(-1).locked, false);
     assert.equal(at('hint').disabled, false);
     assert.equal(at('next').disabled, true);
@@ -372,4 +375,9 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     assert.doesNotMatch(css, /\.quest-study button\s*\{/);
     assert.match(css, /\.quest-study button:not\(\.square\)\s*\{\s*min-block-size:/);
     assert.match(css, /\[data-replay\]\[open\]\s*\{[^}]*height:\s*100dvh/);
+    const compact = css.slice(css.indexOf('@media (max-width: 480px)'), css.indexOf('@media (max-width: 20rem)'));
+    assert.match(compact, /:has\(#quest-study-game:not\(\[hidden\]\)\)[^}]*--study-top-gap:\s*0px;[^}]*--quest-room-padding:\s*0px;[^}]*--quest-action-size:\s*48px;/);
+    assert.match(compact, /#quest-study-hint-label\s*\{[^}]*min-block-size:\s*1lh;[^}]*max-inline-size:\s*none;/);
+    assert.match(compact, /\[data-replay\] \.quest-study-dialog\s*\{\s*padding-inline:\s*0;/);
+    assert.match(css, /\.quest-study-board-and-details,[^}]*grid-template-rows:\s*auto minmax\(2lh, 1fr\);/);
 });

@@ -82,7 +82,7 @@ class SuiteGovernanceTest {
                         ChessWebBotPublication.class.getName(), ChessWebLedgerPublication.class.getName(),
                         ChessWebArchiveReviewsPublication.class.getName(), ChessWebArchiveContinuationPublication.class.getName(),
                         ChessWebReviewGraphPublication.class.getName(), ChessWebReviewFocusPublication.class.getName(),
-                        ChessWebReviewAccessibilityPublication.class.getName()), browserPublishers);
+                        ChessWebReviewAccessibilityPublication.class.getName(), ChessWebStudyPublication.class.getName()), browserPublishers);
         check.same("The discovered component inventory is nonempty", true, !expected.isEmpty());
         check.same("All JVM methods have a valid test layer", Set.of(), wronglyTagged);
         check.same("All JVM methods attach the Extent audit", Set.of(), unaudited);

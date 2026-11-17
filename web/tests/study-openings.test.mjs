@@ -238,4 +238,8 @@ test('The board and leading evaluation meter share one row before and after enab
   assert.match(css, /\.opening-board-row\s*\{[^}]*grid-template-columns:[^}]*minmax\(0, 1fr\)/s);
   assert.match(css, /\.opening-evaluation-bar\s*\{[^}]*align-self: stretch/s);
   assert.match(css, /\.opening-message-text\s*\{[^}]*block-size: 3lh[^}]*overflow: hidden/s);
+  const compact = css.slice(css.indexOf('@media (orientation: portrait) and (max-width: 500px)'));
+  assert.match(compact, /\.opening-study button:not\(\.square\)\s*\{[^}]*min-block-size: 48px/s);
+  assert.match(compact, /\.opening-workspace \.opening-navigation\s*\{[^}]*margin-block: 0/s);
+  assert.match(compact, /\.opening-workspace \.opening-assessment\s*\{[^}]*min-block-size: calc\(2lh/s);
 });

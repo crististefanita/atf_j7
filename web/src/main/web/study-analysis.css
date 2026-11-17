@@ -148,3 +148,29 @@
 .analysis-study dialog { max-inline-size: min(30rem, calc(100vw - 2rem)); }
 .analysis-study dialog h3 { margin-block-start: 0; }
 .analysis-study dialog .analysis-study-navigation { margin-block: .5rem; }
+
+@media (orientation: portrait) and (max-width: 500px) {
+  .analysis-study-header { gap: .2rem; }
+  .analysis-study-header h2 { font-size: 1rem; }
+  body.study-active main:has(.analysis-study-replay) { padding-inline: 0; }
+  .analysis-study-replay {
+    --study-top-gap: 0px;
+    block-size: calc(100dvh - 2 * var(--analysis-page-padding));
+  }
+  .analysis-study-replay .analysis-study-stage {
+    flex: 0 1 auto;
+    min-block-size: 0;
+    container-type: inline-size;
+  }
+  .analysis-study-replay .analysis-study-stack {
+    inline-size: min(100%, max(8rem, calc(100dvh - 12rem)));
+  }
+  .analysis-study-replay-details {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    padding-inline: .5rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .analysis-study-replay .analysis-study-toolbar { flex: none; }
+}

@@ -5,10 +5,12 @@
   --quest-muted: #b7c5b4;
   --quest-accent: #d4eaa7;
   --quest-outline: #3c4a3d;
-  --quest-insets: calc(2 * (clamp(.5rem, 2vw, 1rem) + clamp(.5rem, 2vw, 1.25rem)) + var(--study-top-gap));
+  --quest-room-padding: clamp(.5rem, 2vw, 1rem);
+  --quest-action-size: max(48px, 2.75rem);
+  --quest-insets: calc(2 * (var(--quest-room-padding) + clamp(.5rem, 2vw, 1.25rem)) + var(--study-top-gap));
   width: min(100%, 38rem);
   margin-inline: auto;
-  padding: clamp(.5rem, 2vw, 1rem);
+  padding: var(--quest-room-padding);
   color: var(--quest-text);
 }
 .quest-study #quest-study-menu,
@@ -58,7 +60,7 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  min-block-size: max(48px, 2.75rem);
+  min-block-size: var(--quest-action-size);
   gap: .35rem;
   padding-inline: .35rem .65rem;
 }
@@ -168,12 +170,12 @@
   gap: .5rem;
 }
 .quest-study button:not(.square) {
-  min-block-size: max(48px, 2.75rem);
+  min-block-size: var(--quest-action-size);
 }
 .quest-study :is(.quest-study-actions, .quest-study-head) button {
   display: grid;
   place-items: center;
-  min-inline-size: max(48px, 2.75rem);
+  min-inline-size: var(--quest-action-size);
   padding: .25rem;
   border-color: var(--quest-outline);
   background: var(--quest-surface);
@@ -238,6 +240,18 @@
 }
 .quest-study #quest-study-error {
   color: #ffb99d;
+}
+@media (max-width: 480px) {
+  .quest-study:has(#quest-study-game:not([hidden])) {
+    --study-top-gap: 0px;
+    --quest-room-padding: 0px;
+    --quest-action-size: 48px;
+  }
+  .quest-study .quest-study-score { margin-block: .08rem .15rem; min-block-size: 0; }
+  .quest-study #quest-study-turn { padding-block: .125rem; }
+  .quest-study #quest-study-hint-label { min-block-size: 1lh; max-inline-size: none; padding-inline: .5rem; }
+  .quest-study #quest-study-explanation[data-replay] .quest-study-dialog { padding-inline: 0; }
+  .quest-study #quest-study-explanation[data-replay] .quest-study-dialog-head { padding-inline: .5rem; }
 }
 @media (max-width: 20rem) {
   .quest-study .quest-study-score {

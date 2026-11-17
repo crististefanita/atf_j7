@@ -138,6 +138,18 @@ test('Analysis places evaluation to the left and all history controls in APK ord
         ['Previous move', 'Move history', 'Next move', 'Jump to latest move', 'Show AI variation']);
     assert.equal(toolbar.children[1].tag, 'nav');
     assert.equal(toolbar.children[1].children[1].attributes.get('aria-current'), 'step');
+
+    const { root: replay } = await mountAnalysis(frame(1, 1, { history: ['e2e4'], promotions: [], preview: {
+        kind: 'THEORY', sideToMove: 'BLACK', ply: 0, total: 4, branch: 0,
+        branches: ['e7e5', 'c7c5'], name: { en: 'Italian Game' }, eco: 'C54', idea: { en: 'Control the center' },
+    } }));
+    const details = replay.children.find(item => item.className === 'analysis-study-replay-details');
+    const replayToolbar = replay.children.find(item => item.className?.includes('analysis-study-toolbar'));
+    assert.equal(details.hidden, false);
+    assert.equal(details.children[0].children.length, 2);
+    assert.match(details.children[1].textContent, /Control the center/);
+    assert.equal(details.children.includes(replayToolbar), false);
+    assert.equal(replayToolbar.children[1].hidden, true);
 });
 
 test('Selecting an offscreen analysis move scrolls only the strip in either direction', async () => {

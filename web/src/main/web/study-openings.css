@@ -122,6 +122,37 @@
 .opening-history { display: grid; }
 .opening-history button { text-align: start; white-space: normal; }
 
+@media (orientation: portrait) and (max-width: 500px) {
+  body.study-active main:has(.opening-study .opening-workspace:not([hidden])) { padding-block-end: 0; }
+  .opening-study:has(.opening-workspace:not([hidden])) { --study-top-gap: 0px; }
+  .opening-study button:not(.square) { min-block-size: 48px; }
+  .opening-study .opening-header h2 { font-size: 1.12rem; }
+  .opening-workspace .opening-navigation { margin-block: 0; }
+  .opening-workspace .opening-navigation > button:nth-child(2) {
+    min-block-size: 48px;
+    padding-block: .1rem;
+    font-size: .8rem;
+    line-height: 1.2;
+  }
+  .opening-workspace .opening-columns { gap: .1rem; }
+  .opening-workspace .opening-panel { inline-size: calc(100% - 16px); }
+  .opening-workspace .opening-seat { margin-block: .1rem; line-height: 1.15; }
+  .opening-workspace .opening-controls { gap: .15rem; }
+  .opening-workspace .opening-message {
+    padding: .1rem .3rem;
+    font-size: .85rem;
+    line-height: 1.2;
+  }
+  .opening-study .opening-workspace .opening-assessment {
+    min-block-size: calc(2lh + .2rem + 2px);
+    padding: .1rem .3rem;
+    font-size: .75rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .opening-workspace .opening-actions button { padding: .1rem .3rem; font-size: .78rem; line-height: 1.2; }
+}
+
 @media (orientation: landscape) and (min-width: 44rem) {
   .opening-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .opening-controls { text-align: start; }

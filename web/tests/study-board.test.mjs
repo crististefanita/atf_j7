@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { bindBoardSelection, boardKeyIndex, boardPlacement, mountStudyArrow, studyArrow, studyMarkers, studySquareDescription } from '../src/main/web/study-board.mjs';
+import { studyHashes, studyRouteForHash, watchStudyHistory, writeModeHash } from '../src/main/web/study-navigation.mjs';
 
 test('Each study route has an enabled home entry and a distinct panel', async () => {
     const html = await readFile(new URL('../src/main/web/index.html', import.meta.url), 'utf8');
@@ -12,6 +13,77 @@ test('Each study route has an enabled home entry and a distinct panel', async ()
         assert.doesNotMatch(button[0], /\bdisabled\b/);
         assert.match(html, new RegExp('<section id="study-' + route + '" class="study-surface" hidden>'));
     }
+});
+
+test('Study links, Back and Forward reopen the route represented by the address', () => {
+    const origin = 'http://127.0.0.1/atf_j7/?lang=ro';
+    const entries = [new URL(origin)];
+    let index = 0;
+    let onHashChange;
+    const browser = {
+        get location() { return entries[index]; },
+        history: {
+            pushState(_state, _title, url) {
+                entries.splice(index + 1, entries.length, new URL(url, browser.location));
+                index++;
+            },
+            replaceState(_state, _title, url) {
+                entries[index] = new URL(url, browser.location);
+            },
+        },
+        addEventListener(type, listener) {
+            assert.equal(type, 'hashchange');
+            onHashChange = listener;
+        },
+    };
+    function traverse(offset) {
+        const previousHash = browser.location.hash;
+        index += offset;
+        if (browser.location.hash !== previousHash) onHashChange();
+    }
+    const visible = [];
+    let current;
+    watchStudyHistory(browser, () => current, hash => {
+        current = studyRouteForHash(hash);
+        visible.push(current ?? 'menu');
+        writeModeHash(browser, hash || undefined, false);
+    });
+    writeModeHash(browser, studyHashes.quests, true);
+    current = 'quests';
+    writeModeHash(browser, studyHashes.quests, true);
+    assert.equal(entries.length, 2, 'an unchanged hash does not create a duplicate entry');
+    browser.history.pushState(null, '', studyHashes.openings);
+    onHashChange();
+    assert.equal(current, 'openings');
+    traverse(-1);
+    assert.equal(current, 'quests');
+    traverse(-1);
+    assert.equal(browser.location.href, origin);
+    traverse(1);
+    traverse(1);
+    assert.deepEqual(visible, ['openings', 'quests', 'menu', 'quests', 'openings']);
+    assert.equal(browser.location.search, '?lang=ro');
+});
+
+test('Study hash routing leaves unrelated route changes alone', () => {
+    let current;
+    let onHashChange;
+    const navigated = [];
+    const browser = {
+        location: { hash: '#saved' },
+        addEventListener(_type, listener) { onHashChange = listener; },
+    };
+    watchStudyHistory(browser, () => current, hash => navigated.push(hash));
+    onHashChange();
+    assert.deepEqual(navigated, []);
+    browser.location.hash = '#analysis';
+    onHashChange();
+    current = 'analysis';
+    onHashChange();
+    assert.deepEqual(navigated, ['#analysis']);
+    browser.location.hash = '#saved';
+    onHashChange();
+    assert.deepEqual(navigated, ['#analysis', '#saved']);
 });
 
 test('Study accepts native square order and placement without moving any piece', () => {

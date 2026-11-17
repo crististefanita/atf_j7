@@ -649,3 +649,17 @@ testChanges:
     test: ro.atf.chess.ChessWebAnalysisStudyTest#analysisStudyUsesMockWorkersWithoutABrowser
     contract: "Keep position and evaluation coverage and verify native toolbar order and scrolling to the chosen move"
     allowDelete: false
+  - id: J7-STUDY-MCP-EVIDENCE-SUITE
+    base: "24783b56f61390a05e01c6c8b961c9328b59c734"
+    from: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/SuiteGovernanceTest.java
+    test: ro.atf.chess.SuiteGovernanceTest#everyJvmTestHasExactlyOnePrimarySuiteAndAnExtentAudit
+    contract: "Discover Study screenshots only in the explicit browser publisher and keep offline component evidence in the primary suites"
+    allowDelete: false
+  - id: J7-STUDY-MCP-ROUTE-HISTORY
+    base: "24783b56f61390a05e01c6c8b961c9328b59c734"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    test: ro.atf.chess.ChessWebStudyShellTest#sharedBoardWorksWithMockControls
+    contract: "Keep board controls and cue evidence, including Study deep links and browser Back and Forward"
+    allowDelete: false

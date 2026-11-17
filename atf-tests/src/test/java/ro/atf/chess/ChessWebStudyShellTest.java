@@ -20,6 +20,8 @@ class ChessWebStudyShellTest {
     @Test void sharedBoardWorksWithMockControls(Checks check) throws IOException, InterruptedException {
         verify(check, "study-board.test.mjs", List.of("--test", "--test-reporter=tap"), List.of(), "ok ", List.of(
                 "Each study route has an enabled home entry and a distinct panel",
+                "Study links, Back and Forward reopen the route represented by the address",
+                "Study hash routing leaves unrelated route changes alone",
                 "Study accepts native square order and placement without moving any piece",
                 "Study draws the native origin and destination cue in both board orientations",
                 "Study descriptions distinguish the hint, destination and legal move with native RO and EN labels",

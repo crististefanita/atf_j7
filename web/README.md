@@ -158,6 +158,12 @@ Pentru proba vizuală folosiți browserul MCP la 360 × 640 CSS px cu text la 13
 | Deschideri | Deschideți o lecție cu plan lung. Verificați bara, textul complet, revenirea focusului și accesul la comenzile de sub tablă la font mărit. |
 | Tablă de analiză | Jucați o linie suficient de lungă pentru derulare. Selectați un pas din istoric, verificați bara, poziția și rândul selectat, apoi deschideți Game Review și reveniți. |
 
+Testați și schimbarea adresei între cele trei destinații Studiu, apoi comenzile Înapoi și Înainte din browser. Publicatorul `ChessWebStudyPublication` atașează imaginile în Extent și verifică profilul, amprenta originalului și originea cadrelor Android. Capturile native din alte ediții sau profiluri servesc ca repere și păstrează verdictul vizual integral deschis.
+
+```powershell
+mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebStudyPublication' "-Dchess.web.study.browser=$browserReceipts" "-Dchess.web.study.native=$nativeReferences" "-Dchess.web.study.source=$sourceCommit" "-Dchess.web.study.extent=$report"
+```
+
 [Matricea de paritate](parity.md#contracte-și-probe) · [Dovezile APK-ului 0.15.2](../release/0.15.2/reports/README.md)
 
 ## Partida locală și o analiză nouă
