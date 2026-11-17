@@ -81,7 +81,8 @@ class MatchSetupTest {
             var match = ChessMatch.fromPosition(position, new MatchSetup(Side.WHITE, Level.HARD, false));
             var decision = match.botDecision();
             check.same(id + " Hard decision rejects the premature queen move", french ? "c5d4" : "g8f6", decision.move().uci());
-            check.same(id + " uses at most the Hard budget", true, decision.extraNodes() <= MatchAiPolicy.CURRENT.opponent(Level.HARD).extraNodes());
+            check.same(id + " uses at most the Hard budget", true,
+                    decision.extraNodes() <= HardAdaptivePolicy.CURRENT.search().extraNodes());
         }
     }
 }

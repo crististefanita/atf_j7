@@ -2,18 +2,18 @@
 
 ## Pe scurt
 
-- **Politica actuală.** Adversarul, indiciul și bara de evaluare au bugete separate. Hard folosește cel mult 44.000 de noduri suplimentare. Indiciul poate folosi 220.000, dintre care până la 32.000 pentru compararea alternativelor. [Configurația căutării](../../chess-core/src/main/resources/match-ai.yaml)
-- **Acceptanță.** `MatchAiGovernanceTest` verifică politica, iar `ChessBenchmarkSuite` măsoară deciziile față de un oracol fix. Comparațiile istorice de mai jos aparțin versiunii măsurate.
+- **Politica actuală.** Adversarul, indiciul și bara de evaluare au bugete separate. Hard pornește cu 100.000 de noduri suplimentare și poate continua până la 200.000 în modul adaptiv. Indiciul poate folosi 220.000, dintre care până la 32.000 pentru compararea alternativelor. [Configurația căutării](../../chess-core/src/main/resources/match-ai.yaml)
+- **Acceptanță.** `MatchAiGovernanceTest` și `HardAdaptivePolicyTest` verifică politicile, iar `ChessBenchmarkSuite` măsoară deciziile față de un oracol fix. Comparațiile istorice de mai jos aparțin versiunii măsurate.
 - **Elo afișat.** [Contractul analizei partidei](game-review.md) definește categoriile, precizia și estimările afișate. Aplicația citește reperele de rating din configurația ediției. [Repere de rating](../../chess-core/src/main/resources/game-review.yaml)
 
 <details>
 <summary>Politici și limite ale căutării curente</summary>
 
-Nivelul adversarului și indiciul au adâncimi și bugete configurate separat. O căutare păstrează ultima adâncime evaluată complet. Hard poate încerca șase semimutări în plafonul existent de 44.000 de noduri; acceptă rezultatul de la ultimul orizont numai dacă păstrează aceeași mutare lider ca adâncimea precedentă. În caz de schimbare a liderului, rămâne la ultima căutare completă și stabilă. Indiciul încearcă șase semimutări, cu o semimutare suplimentară pentru capturi, promovări sau ieșirea din șah la capătul căutării. În partide și lecții, evaluarea adaugă la material dezvoltarea pieselor, centrul, poziția regelui și perechea de nebuni. Ponderea termenilor se schimbă odată cu materialul rămas, astfel încât un rege activ să fie util în final. Căutarea verifică întâi capturile, promovările și mutările care activează piesele. Testele de tactică păstrează obiectivul lor explicit de material sau mat. [Politica de căutare](../../chess-core/src/main/resources/match-ai.yaml)
+Nivelul adversarului și indiciul au adâncimi și bugete configurate separat. O căutare păstrează ultima adâncime evaluată complet. Căutarea Hard pentru mutarea curentă pornește cu 100.000 de noduri suplimentare și poate continua până la 200.000 prin politica adaptivă de mai jos. Acceptă rezultatul de la ultimul orizont numai dacă păstrează aceeași mutare lider ca adâncimea precedentă. În caz de schimbare a liderului, rămâne la ultima căutare completă și stabilă. Indiciul încearcă șase semimutări, cu o semimutare suplimentară pentru capturi, promovări sau ieșirea din șah la capătul căutării. În partide și lecții, evaluarea adaugă la material dezvoltarea pieselor, centrul, poziția regelui și perechea de nebuni. Ponderea termenilor se schimbă odată cu materialul rămas, astfel încât un rege activ să fie util în final. Căutarea verifică întâi capturile, promovările și mutările care activează piesele. Testele de tactică păstrează obiectivul lor explicit de material sau mat. [Politica de căutare](../../chess-core/src/main/resources/match-ai.yaml) · [Politica adaptivă](../../chess-core/src/main/resources/hard-adaptive.yaml)
 
-În finalul de turnuri, Hard folosește istoricul integral pentru a evalua repetițiile în arbore, nu doar la rădăcină. Poate extinde căutarea cu o semimutare peste adâncimea profilului, până la adâncimea 7, în același plafon de 44.000 de noduri. Extensia și fereastra de 50 cp pentru candidații rădăcină sunt fixate în `rook-endgame` din YAML; guvernanța respinge extensii sau ferestre în afara limitelor validate.
+În finalul de turnuri, Hard folosește istoricul integral pentru a evalua repetițiile în arbore, inclusiv la rădăcină. Poate extinde căutarea cu o semimutare peste adâncimea profilului, până la adâncimea 7, în alocația adaptivă configurată. Extensia și fereastra de 50 cp pentru candidații rădăcină sunt fixate în `rook-endgame` din YAML. Guvernanța respinge extensii sau ferestre în afara limitelor validate.
 
-În jocurile Hard din afara repertoriului și a finalului special de turnuri, mutările care dau șah primesc prioritate numai în ordinea de căutare. Bonusul de 10.000 este configurabil și plafonat în `hard-ordering`; nu se adună la evaluarea poziției și nu crește limita de 44.000 de noduri. Basic, Advanced, indiciul și evaluarea barei păstrează ordonarea anterioară.
+În jocurile Hard din afara repertoriului și a finalului special de turnuri, mutările care dau șah primesc prioritate numai în ordinea de căutare. Bonusul de 10.000 este configurabil și plafonat în `hard-ordering`. El nu se adună la evaluarea poziției și nu modifică alocația de noduri. Basic, Advanced, indiciul și evaluarea barei păstrează ordonarea anterioară.
 
 Calea de joc Hard reutilizează și liniile exacte pentru poziții transpozate. Intrările incomplete sau limitele alpha-beta nu sunt refolosite. Capacitatea este derivată și plafonată din buget în `hard-transpositions`. [Evaluarea cache-ului exact](#cache-exact-pentru-hard)
 
@@ -21,7 +21,7 @@ Basic caută două semimutări în pozițiile obișnuite și trei în finalurile
 
 Indiciul pornește de la căutarea Hard și verifică separat maturile și răspunsurile tactice. Dacă primele mutări diferă fără un mat dovedit, motorul compară alternativele la adâncimea Hard deja încheiată. Dacă verificarea își consumă bugetul, indiciul folosește rezultatul complet Hard. Lista arată cel mult trei prime mutări distincte. Alternativele rămân în limita de 25 cp sub prima și după apărare, cu o îmbunătățire estimată pozitivă. La mat rămân doar variantele cu același rezultat și aceeași distanță. La scor egal, activitatea mutării și ordinea UCI stabilesc ordinea. [Citirea diferenței](README.md)
 
-La Hard, într-o poziție cu material egal, clasamentul disponibil după patru semimutări folosește și scorul aceleiași mutări la trei. Contribuția liniei mai scurte este limitată. Pentru o mutare liniștită, creditul scade când linia provizorie sugerează un câștig de peste un pion. Maturile și remizele evaluate păstrează scorul terminal. Dacă bugetul împiedică încheierea adâncimii șase sau liderul se schimbă la acea adâncime, motorul păstrează ultima căutare completă. Bugetul Hard rămâne de 44.000 de noduri suplimentare.
+La Hard, într-o poziție cu material egal, clasamentul disponibil după patru semimutări folosește și scorul aceleiași mutări la trei. Contribuția liniei mai scurte este limitată. Pentru o mutare liniștită, creditul scade când linia provizorie sugerează un câștig de peste un pion. Maturile și remizele evaluate păstrează scorul terminal. Dacă bugetul împiedică încheierea adâncimii șase sau liderul se schimbă la acea adâncime, motorul păstrează ultima căutare completă. Căutările explicite și comparațiile pentru îndrumare folosesc bugetele declarate.
 
 În Pirc și Benoni, Hard și indiciul folosesc câte o replică verificată cu Stockfish 19 la adâncimea 13. Repertoriul se aplică la aceeași poziție legală, inclusiv prin transpoziție, iar continuarea este căutată în bugetul profilului. După replică sau în poziții vecine se folosește căutarea integrală. Încărcarea verifică legalitatea, pozițiile duplicate și maturile într-o mutare. [Repertoriu YAML](../../chess-core/src/main/resources/ai-repertoire.yaml)
 
@@ -32,6 +32,46 @@ A treia apariție este un semnal pentru alegerea mutării. Partida se încheie a
 Bara și prima linie de text folosesc o estimare separată pentru poziția curentă. Motorul evaluează două semimutări, câte una pentru fiecare parte, și aplică o parte din diferența obținută la trei. Ambele căutări verifică schimburile la orizont. Corecția este limitată la 25 cp, în bugetul propriu al afișajului. Apăsarea becului păstrează estimarea afișată și parcurge variantele în ordinea căutării de indicii.
 
 </details>
+
+## Buget adaptiv în prim-plan
+
+`hard-adaptive.yaml` configurează o alocație de bază de 100.000 și un maxim de
+200.000 de noduri suplimentare pentru deciziile normale de joc Hard. La pragul
+de bază, aceeași căutare poate folosi rezerva dacă nu a încheiat cinci semimutări,
+regele curent este în șah ori expus unei piese grele pe o coloană centrală, sau
+reutilizarea exactă a cache-ului este sub 1% după cel puțin 4.096 de observații.
+Un schimb de pion încă nerezolvat, identificat prin verificarea candidatului
+existent, este și el un motiv tactic pentru continuarea verificării. Valorile
+implicite curente țintesc șase semimutări. Ambele limite, adâncimea, numărul
+de observații și pragul cache-ului sunt valori configurate cu tip verificat.
+
+Continuarea păstrează stiva recursivă, ordinea mutărilor și tabelul de transpoziții
+ale aceleiași decizii. Căutarea nu reia rădăcina după solicitarea rezervei.
+O nouă decizie de joc pornește cu propriile observații.
+Oprirea păstrează ultimul rezultat complet. Verificarea unui schimb cunoscut
+poate consuma în continuare nodurile rezervate. Când se încheie a cincea
+semimutare, ambele alternative ale schimbului sunt comparate la aceeași
+adâncime, cu extensia tactică. Verificarea folosește același controller adaptiv
+și costul cumulat al nodurilor. Solicită rezerva numai când o vizită efectivă
+depășește pragul de bază. Calea veche de epuizare păstrează alocația sa rezervată.
+
+Dezactivarea politicii adaptive restabilește profilul declarat în `match-ai.yaml`.
+Acesta este folosit și de căile de comparație explicită. Indiciul, bara de evaluare,
+Basic și Advanced își păstrează bugetele și punctele de intrare. Dovezile Elo
+trebuie să identifice sursa exactă și politica activă. Liga experimentală de
+ordonare învățată are propria comparație cu sursa identificată.
+
+[Verificări de componentă și regresie](../testing/README.md#buget-adaptiv-hard)
+
+În comparația pe sursa main, plafonul fix de 100.000 a încheiat cel puțin cinci
+semimutări în 39/44 de poziții. Plafonul fix de 200.000 și cel adaptiv le-au
+încheiat în 43/44. Adaptivul a păstrat toate cele 44 de alegeri de la 200.000 fix,
+cu o medie de 124.062 de noduri suplimentare pe decizie, față de 187.184 pentru
+200.000 fix. Rezerva a fost folosită în 12 poziții. A recuperat `…Ng4` după
+ieșirea timpurie a damei și a păstrat recaptura cu dama în controlul apărării
+regelui. Toate cele trei moduri au ales în continuare `…Bh3` în `fresh-030`.
+Acest eșantion măsoară transferul deciziei și costul pe acea sursă. Estimarea
+forței de joc a profilului adaptiv cere propria ligă de partide pereche.
 
 ## Control la fiecare schimbare
 
@@ -54,8 +94,8 @@ mvn test '-Dtest=ChessBenchmarkSuite' "-Dchess.stockfish=$stockfish" '-Dchess.ex
 |---|---:|---:|
 | Basic | 3 | 0 |
 | Advanced | 4 | 10.000 |
-| Hard | 6, cu lider stabil | 44.000 |
-| Indiciu | 6, plus o extensie tactică | 220.000, inclusiv Hard și până la 32.000 pentru compararea alternativelor |
+| Hard în prim-plan | 6, cu lider stabil | 100.000 bază, până la 200.000 adaptiv |
+| Indiciu | 6, plus o extensie tactică | 220.000 în total, inclusiv până la 32.000 pentru compararea alternativelor |
 
 - Guvernanța cere creșterea strictă a adâncimii și bugetului între adversari. Indiciul are cel puțin adâncimea Hard și propriul buget mai mare. În finalurile cu turn sau damă și regi, toate nivelurile, indiciul și bara folosesc aceeași evaluare a distanței dintre regi și a spațiului regelui apărat. Testele verifică transformarea avantajului în mat cu ambele culori și conservarea perspectivei albului în afișaj.
 

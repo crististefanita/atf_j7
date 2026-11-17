@@ -39,6 +39,10 @@ public final class ReleaseRag {
             new Route("chess-core/", "docs/testing/README.md", "## Motor și proiecție", "ChessComponentTest și QuestCatalogTest"),
             ai("chess-core/src/main/resources/ai-repertoire.yaml"),
             ai("chess-core/src/main/resources/match-ai.yaml"),
+            ai("chess-core/src/main/resources/hard-adaptive.yaml"),
+            adaptive("chess-core/src/main/resources/hard-adaptive.yaml"),
+            ai("chess-core/src/main/java/ro/atf/chess/HardAdaptivePolicy.java"),
+            adaptive("chess-core/src/main/java/ro/atf/chess/HardAdaptivePolicy.java"),
             ai("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java"),
             matchHints("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java"),
             new Route("chess-core/src/main/java/ro/atf/chess/ForcedMateSearch.java", "docs/board/ai-quality.md", "## Rezolvarea quest-urilor cu obiectiv declarat",
@@ -201,6 +205,11 @@ public final class ReleaseRag {
     private static Route ai(String path) {
         return new Route(path, "docs/board/ai-quality.md", "## Control la fiecare schimbare",
                 "HardQuestTransferBenchmarkTest, RookEndgameHistoryTest și ChessBenchmarkSuite: Stockfish și liga offline");
+    }
+
+    private static Route adaptive(String path) {
+        return new Route(path, "docs/testing/README.md", "### Buget adaptiv Hard",
+                "HardAdaptivePolicyTest, AiOpeningRegressionTest, MatchSetupTest și RookEndgameHistoryTest");
     }
 
     private static Route openings(String path) {

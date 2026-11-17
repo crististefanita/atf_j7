@@ -2,7 +2,6 @@ package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,34 +11,33 @@ import ro.atf.chess.ChessPosition.Move;
 @ExtendWith(ExtentAudit.class)
 class RookEndgameHistoryTest {
     private static final String CONTINUATION = "f5f6 g7f6 g1f1 a7a5 a1b1 b7b5 b1b5 e8d8 e2c3 d8c8 c3e2 a5a4 b5f5 c8c2 f2f4 c2a2 e2c1 a2d2 f1e1 d2g2 c1d3 f8g7 f5a5 h8e8";
+    // Frozen original-main continuation. A generated fixture would change with each search improvement.
+    private static final String HISTORICAL_FOLLOWUP = "e1f1 e8e2 a5a4 g7f8 a4a8 f8f7 a8a7 f7g8 a7a8 g8f7 a8a7 f7g8 h2h4 e2d2 f4f5 g2g3";
 
     @Test void reportsHistoricalRookDecisions(Checks check) throws Exception {
         String prefix = ChessYaml.string(ChessYaml.resource("alekhine-conversion.yaml"), "moves") + " " + CONTINUATION;
-        var moves = new ArrayList<>(List.of(prefix.split(" ")));
-        var match = ChessMatch.restore("3|BLACK|HARD|0|" + prefix);
+        var history = List.of((prefix + " " + HISTORICAL_FOLLOWUP).split(" "));
         int majorLoss = ChessYaml.number(ChessYaml.resource("match-ai-benchmark.yaml"), "major-loss-permille");
-        check.same("Reconstructed history reaches the documented 96-ply position", 96, match.ply());
+        check.same("Reconstructed history reaches the documented 96-ply position", 96,
+                ChessMatch.restore("3|BLACK|HARD|0|" + prefix).ply());
         String binary = System.getProperty("chess.stockfish");
         try (var engine = binary == null ? null : new StockfishUci(Path.of(binary))) {
             for (int target : List.of(96, 108, 112)) {
-                while (match.ply() < target) {
-                    var side = match.position().turn();
-                    var level = side == ChessPosition.Side.WHITE ? MatchSetup.Level.HARD : MatchSetup.Level.ADVANCED;
-                    var reply = match.botDecision(level);
-                    moves.add(reply.move().uci());
-                    match = match.play(reply.move());
-                }
+                var moves = history.subList(0, target);
+                var match = ChessMatch.restore("3|BLACK|HARD|0|" + String.join(" ", moves));
                 var side = match.position().turn();
                 var level = side == ChessPosition.Side.WHITE ? MatchSetup.Level.HARD : MatchSetup.Level.ADVANCED;
                 var decision = match.botDecision(level);
+                var searchPolicy = level == MatchSetup.Level.HARD ? HardAdaptivePolicy.CURRENT.search()
+                        : MatchAiPolicy.CURRENT.opponent(level);
                 String position = "startpos moves " + String.join(" ", moves);
                 String result = "ROOK_PROBE ply=" + target + " side=" + side + " pick=" + decision.move().uci()
                         + " depth=" + decision.depth() + " nodes=" + decision.extraNodes();
                 check.same("Ply " + target + " decision is legal", true, match.position().legalMoves().contains(decision.move()));
                 check.same("Ply " + target + " respects configured node budget", true,
-                        decision.extraNodes() <= MatchAiPolicy.CURRENT.opponent(level).extraNodes());
+                        decision.extraNodes() <= searchPolicy.extraNodes());
                 check.same("Ply " + target + " stays within one documented endgame extension", true,
-                        decision.depth() <= MatchAiPolicy.CURRENT.opponent(level).maxPlies()
+                        decision.depth() <= searchPolicy.maxPlies()
                                 + MatchAiPolicy.CURRENT.rookEndgame.extensionPlies());
                 if (target == 108) {
                     var atTarget = match;
@@ -72,8 +70,6 @@ class RookEndgameHistoryTest {
                     }
                 }
                 System.out.println(result);
-                moves.add(decision.move().uci());
-                match = match.play(decision.move());
             }
         }
     }

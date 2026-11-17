@@ -61,6 +61,27 @@ node scripts/verify-mate-in-three.cjs $chessJs chess-core/src/main/resources/mat
 
 </details>
 
+### Buget adaptiv Hard
+
+`HardAdaptivePolicyTest` verifică tipurile cheilor YAML, limita de bază și
+limita maximă, adâncimea minimă completă, reutilizarea măsurată a cache-ului,
+riscul pe coloana regelui și izolarea deciziilor. Verificarea rezervată a schimbului
+este inclusă în aceeași alocație. O probă efectivă de verificare imbricată acoperă
+ultimele noduri până la bază și până la maxim, cu și fără semnalul de schimb nerezolvat.
+`AiOpeningRegressionTest` păstrează controalele capturii de pion expus și ale
+pionului apărat după încheierea celei de-a cincea semimutări. `MatchSetupTest`
+și `RookEndgameHistoryTest` verifică maximul configurat și rezultatele legale.
+Proba de istoric rejucă o secvență înghețată, astfel încât schimbarea alocației
+de căutare să nu genereze alt fixture înaintea aserțiunii.
+
+Folosiți `hard-adaptive.yaml` curent când comparați 100.000 fix, 200.000 fix
+și căutarea adaptivă. Comparați fiecare mutare pe aceeași sursă și păstrați
+istoricul complet. Un buget mai mare poate schimba mutarea preferată, deci
+verificați replica adversă și WDL-ul rezultat cu Stockfish. Raportați deciziile
+efective, adâncimile complete, nodurile și timpul CPU înainte de interpretarea
+estimării Elo. Liga ordonării învățate folosește propria sursă și politică
+înghețate. Estimarea ei Elo aparține acelui comparator exact.
+
 ## Paritatea Web a motorului
 
 `ChessWebRulesComponentTest` verifică motorul și cataloagele pe JVM. `ChessWebParityPublication` execută aceleași cazuri în workerul TeaVM pentru toate resursele folosite. Rulați proba explicit cu pachetul din TMP. [Build și probe Web](../../web/README.md)

@@ -50,9 +50,9 @@ class AiOpeningRegressionTest {
             check.same("Hard must search this position: " + moves, null, OpeningRepertoire.CURRENT.reply(game.position()));
             var decision = game.botDecision();
             check.same("Hard takes the pawn immediately", "f3e5", decision.move().uci());
-            check.same("The completed reply horizon is preserved", 4, decision.depth());
+            check.same("The completed reply horizon is preserved", true, decision.depth() >= 4);
             check.same("The extra search respects the Hard cap", true,
-                    decision.extraNodes() <= MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD).extraNodes());
+                    decision.extraNodes() <= HardAdaptivePolicy.CURRENT.search().extraNodes());
         }
     }
 
@@ -63,7 +63,8 @@ class AiOpeningRegressionTest {
             check.same("The position has no Hard repertoire entry: " + moves, null, OpeningRepertoire.CURRENT.reply(game.position()));
             var decision = game.botDecision();
             check.same("Hard takes the exposed pawn on e5", "f3e5", decision.move().uci());
-            check.same("Main search and exchange verification share the Hard cap", true, decision.extraNodes() <= 44_000);
+            check.same("Main search and exchange verification share the Hard cap", true,
+                    decision.extraNodes() <= HardAdaptivePolicy.CURRENT.search().extraNodes());
         }
     }
 
@@ -84,7 +85,8 @@ class AiOpeningRegressionTest {
         var decision = game.botDecision();
         check.same("Black takes the pawn on e4 immediately", "f6e4", decision.move().uci());
         check.same("The search retains the opponent reply at the completed horizon", 4, decision.depth());
-        check.same("Black also uses the governed node cap", 44_000, decision.extraNodes());
+        check.same("Black uses the configured base allowance on this complete-frontier witness",
+                HardAdaptivePolicy.CURRENT.baseNodes(), decision.extraNodes());
     }
 
     @Test void hardDoesNotForceThePawnCaptureWhenThePositionDoesNotSupportIt(Checks check) {
