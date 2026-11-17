@@ -18,13 +18,13 @@ Check the available version in the README from `origin/main`. If the local branc
 7. After signing and qualification, push the candidate tag without rewriting history and publish the GitHub asset. Keep `currentVersion`, the comparison list, and the main README on the latest verified release until the new asset exists. Then promote the catalog and README on both branches. Keep only the new and immediately preceding releases on GitHub Releases and locally. Retire the other releases and folders after the new asset and README route pass verification. Keep the Git tags.
 8. Read the README from `main` on GitHub and download the APK from the displayed URL. Use `ReleaseGate publication` to verify the tag, channel, HTTP status, byte count, SHA-256, and CRC. Save the evidence, push the reports commit, and repeat the download from the final version of the README.
 
-After publishing a draft, read the release again by tag and identify the asset by ID. GitHub may return an interim route with the “untagged” segment in the upload response. Use only the canonical route from the published release metadata in the README and verify the complete download.
+- After publishing a draft, read the release again by tag and identify the asset by ID. GitHub may return an interim route with the “untagged” segment in the upload response. Use only the canonical route from the published release metadata in the README and verify the complete download.
 
-Send the notes from the UTF-8 file. For REST, send the UTF-8 bytes of the JSON and reread the published release body by tag. Compare the text with the source and check that the evidence link opens the release folder.
+- Send the notes from the UTF-8 file. For REST, send the UTF-8 bytes of the JSON and reread the published release body by tag. Compare the text with the source and check that the evidence link opens the release folder.
 
-Keep generated Extent HTML byte for byte, including in the Git index, so that the qualification hashes remain valid. Apply the formatting check to manually edited files.
+- Keep generated Extent HTML byte for byte, including in the Git index, so that the qualification hashes remain valid. Apply the formatting check to manually edited files.
 
-In the checkout, current-release governance recalculates HTML fingerprints for strict qualification and checks Android receipts against the source, APK, and total assertion count. Report and receipt paths must stay within the release folder.
+- In the checkout, current-release governance recalculates HTML fingerprints for strict qualification and checks Android receipts against the source, APK, and total assertion count. Report and receipt paths must stay within the release folder.
 
 ## Bilingual Documentation
 
@@ -61,7 +61,8 @@ published editions and deployed site bundles. [Web publication](../../web/parity
 
 ## Strict Exception for Installing the Exact APK
 
-`ReleaseGate qualification` checks Surefire cases against the Extent assertion tables. For Android, it reads the three instrumentation receipts, metadata, and PNGs and compares them with the report. It requires the same qualification ID, exact source, and distribution APK hash. HTML without results, a phase from another run, or a probe using a different APK stops qualification.
+- `ReleaseGate qualification` compares Surefire cases with Extent assertion tables and the three Android receipts, metadata and PNGs.
+- Qualification requires one run ID, the exact source and distribution APK hash. Missing results, another run or another APK stop the gate.
 
 The exception requires explicit publication authorization, a confirmed signing change, and old emulator data to preserve.
 
@@ -76,24 +77,24 @@ Dot-source the script in the build session to load `J7_SIGNING_STORE` and `J7_SI
 
 ## Signing Identity and Clean Installation
 
-Identify the current release certificate in the [catalog](../../release/README.md).
-Strict qualification keeps it in the qualification receipt, and a release
-published with an exception keeps it in the build receipt. If the current
-key is missing, recover it or explicitly choose a clean installation with a
-new identity. Android cannot migrate local saves across different signatures.
+- Identify the current release certificate in the [catalog](../../release/README.md).
+  Strict qualification keeps it in the qualification receipt, and a release
+  published with an exception keeps it in the build receipt. If the current
+  key is missing, recover it or explicitly choose a clean installation with a
+  new identity. Android cannot migrate local saves across different signatures.
 
-`Initialize-J7Signing.ps1` rejects partial records and stores the key,
-certificate, and DPAPI-protected password in `infrastructure/signing` under
-`-DataRoot`, outside the source and TMP. For deliberate rotation, use
-`-StartNewIdentity`. The `signing-continuity` gate rejects a mismatch in
-`UPGRADE` mode. Only `CLEAN_INSTALL` records it as an incompatibility.
-[Negative tests](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
-verify the gate.
+- `Initialize-J7Signing.ps1` rejects partial records and stores the key,
+  certificate, and DPAPI-protected password in `infrastructure/signing` under
+  `-DataRoot`, outside the source and TMP. For deliberate rotation, use
+  `-StartNewIdentity`. The `signing-continuity` gate rejects a mismatch in
+  `UPGRADE` mode. Only `CLEAN_INSTALL` records it as an incompatibility.
+  [Negative tests](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
+  verify the gate.
 
-Without an explicit baseline, `verify-signing-continuity.ps1` looks for
-certificate evidence in the current release folder. When recovering a missing
-key, initialization also reads the catalog and stops rotation if current-release
-evidence is missing.
+- Without an explicit baseline, `verify-signing-continuity.ps1` looks for
+  certificate evidence in the current release folder. When recovering a missing
+  key, initialization also reads the catalog and stops rotation if current-release
+  evidence is missing.
 
 In the TMP copy, before signing:
 
@@ -109,12 +110,9 @@ mvn test "-Dtest=TestChangeReview" "-Dchess.testChanges.base=$reviewBase" "-Dche
 java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate preflight atf-tests/target/surefire-reports . $reviewBase
 ```
 
-Run the suites from the same TMP checkout. Use a fresh Surefire directory for
-the component run and save it before the Android publisher writes other XML
-files there. Use fresh report paths. Build the Web bundle from the candidate
-commit in TMP and provide it through `chess.study.bundle`. Without the bundle,
-three worker probes are skipped, and `ReleaseGate qualification` rejects any
-skipped case in the suite. [Web build](../../web/README.md#build-and-verification)
+- Run the suites from the same TMP checkout and choose fresh report paths.
+- Save the fresh component Surefire directory before the Android publisher writes other XML files there.
+- Build the Web bundle from the candidate commit in TMP and pass it through `chess.study.bundle`. Without it, three worker probes are skipped and `ReleaseGate qualification` rejects the suite. [Web build](../../web/README.md#build-and-verification)
 
 ```powershell
 $runId = [guid]::NewGuid().ToString('N')
@@ -123,8 +121,8 @@ $site = ./web/Build-ChessWeb.ps1 -WorkRoot (Join-Path $env:TEMP "chess-web-quali
 mvn -pl atf-tests -am test "-Dtest=ChessComponentSuite" "-Dsurefire.failIfNoSpecifiedTests=false" `
   "-Dchess.study.bundle=$site" `
   "-Dchess.extent=$componentExtent" "-Dchess.qualification.commit=$commit" "-Dchess.qualification.runId=$runId"
-# Move the suite's Surefire receipts to $componentReceipts before Android publication.
-# Run signed sanity with -SourceCommit $commit -QualificationRunId $runId.
+  # Move the suite's Surefire receipts to $componentReceipts before Android publication.
+  # Run signed sanity with -SourceCommit $commit -QualificationRunId $runId.
 java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate qualification `
   $version $commit $apk $componentReceipts $componentExtent $nativeRun $nativeExtent
 ```
@@ -134,12 +132,20 @@ and the `why` and `why-restore` subdirectories. Archive the HTML files and
 receipt fingerprints in the release directory. Keep raw XML and the captures
 already embedded in reports in TMP.
 
+<details>
+<summary>Puzzle board and danger marker</summary>
+
 For changes to the board or danger marker in Puzzles, run
 `-Distribution -PuzzleDangerOnly -SourceCommit <sha>` on the signed APK.
 For layout changes, also run `-Distribution -PuzzleMateReplayOnly -SourceCommit <sha>`
 on 720 × 1280 at 320 dpi and native 1080 × 1920, both at a 1.3× font scale.
 Publish Extent from both receipts and compare the commit and APK hash.
 [Puzzle probes](../testing/README.md#puzzle-progress)
+
+</details>
+
+<details>
+<summary>Puzzle header, scoring and controls</summary>
 
 For changes to the Puzzles header, scoring, or shared controls, run
 `-Distribution -PuzzleUxOnly -SourceCommit <sha>` with `-PuzzleLanguage ro` on
@@ -149,15 +155,45 @@ the compact profile and `-PuzzleLanguage en` on the physical profile, both at a
 fingerprints for all six captures on each profile.
 [Six-chapter contract](../testing/README.md#puzzle-progress)
 
+</details>
+
+<details>
+<summary>Openings</summary>
+
 For changes to Openings, add `-IncludeOpenings` to signed sanity. The runner executes the probe on the same APK after checking game resumption. Publish Extent from the `openings/openings.txt` receipt and use the same commit and APK hash to qualify both reports. [Openings probe](../testing/README.md#openings)
+
+</details>
+
+<details>
+<summary>Compact AI game geometry</summary>
 
 For geometry changes in the AI game, run `-Distribution -AnalysisOnly -CompactMatchAnalysisOnly -SourceCommit <sha>` on the same signed APK. Publish Extent from `analysis-compact-prepare-ro/analysis-compact-prepare-ro.txt`. Verify a common ID for preparation and resumption in RO and EN, and keep the report, aggregate receipt, and six capture fingerprints under `additionalAndroidChecks.analysis-compact` in the qualification. [Geometry and the compact probe](../testing/README.md#game-and-history)
 
+</details>
+
+<details>
+<summary>Game Review</summary>
+
 For a change limited to Game Review, use `-Distribution -GameReviewOnly -SourceCommit <sha> -QualificationRunId <id>`. Publish Extent from `game-review.txt`. If the diff also affects the base flows, run them with `-IncludeGameReview`. The review receipt is then in the `game-review` subdirectory. [Resumption and review probe](../testing/README.md#game-and-history)
+
+</details>
+
+<details>
+<summary>Analysis board and Elo references</summary>
 
 For changes to the Analysis board, use `-ManualAnalysisOnly` during development and `-IncludeManualAnalysis` for signed sanity. Publish Extent from `manual-analysis/manual-analysis.txt` and verify APK identity through `manual-analysis/execution.json`. For changes to the Elo references, keep the three report and TSV replay pairs and verify the calculation with `GameReviewGovernanceTest`. [Analysis board](../testing/README.md#analysis-board) · [Anchor protocol](../board/ai-quality.md#external-anchor-results)
 
+</details>
+
+<details>
+<summary>Shared hints</summary>
+
 For shared hints, run `-Distribution -AnalysisOnly -IncludeManualAnalysis -SourceCommit <sha>`. Publish both Extent reports while the raw directories retain the structure produced by the runner. The three phases share one ID, and the publishers compare the source, APK, and instrumentation fingerprints. Keep these reports as evidence for the affected flows alongside Game Review qualification. [Game and history](../testing/README.md#game-and-history)
+
+</details>
+
+<details>
+<summary>Archived hint evidence</summary>
 
 The hint archive contains the two HTML files and `hint-analysis-execution.json`.
 In `qualification.json`, record the final receipt SHA-256 under
@@ -166,7 +202,14 @@ run and APK identity with the Extent tables, and recalculates fingerprints for
 the HTML and embedded PNG files. Releases 0.13.5 and 0.13.6 use the existing
 receipt. Releases without this flow retain their format.
 
+</details>
+
+<details>
+<summary>Saved and finished game menus</summary>
+
 For changes to game lists, run the signed probe for both menus. The runner keeps the same installation and resets test data between phases. Qualify both Extent reports separately against the common APK identity. Persistence checks run in `MatchStoreTest`.
+
+</details>
 
 ```powershell
 ./scripts/run-android-sanity.ps1 -Adb <adb> -Serial <serial> -LeaseFile <lease-file> `
@@ -175,11 +218,11 @@ For changes to game lists, run the signed probe for both menus. The runner keeps
 
 If the release also changes the board or hints, run the analysis flow with `-AnalysisOnly -IncludeManualAnalysis -IncludeMatchSlots -IncludeMatchArchive`.
 
-`ReleaseGate` exposes Java qualification and publication checks. For a private release, read the README on `main` with an authenticated account, reconcile the link with the tagged asset's `browser_download_url`, and download through the authenticated API. Record the route, status, commit, hash, and CRC result in the release directory. The README link remains the browser route for signed-in users. [GitHub release assets API](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
+- `ReleaseGate` exposes Java qualification and publication checks. For a private release, read the README on `main` with an authenticated account, reconcile the link with the tagged asset's `browser_download_url`, and download through the authenticated API. Record the route, status, commit, hash, and CRC result in the release directory. The README link remains the browser route for signed-in users. [GitHub release assets API](https://docs.github.com/en/rest/releases/assets#get-a-release-asset)
 
-To audit a historical publication, use the verifier from the release's qualified commit and the README identified in the publication receipt. New releases use the current **Play** section format.
+- To audit a historical publication, use the verifier from the release's qualified commit and the README identified in the publication receipt. New releases use the current **Play** section format.
 
-After publication, run verification with the existing GitHub authentication in Git Credential Manager. The output directory is fresh and stays in TMP.
+- After publication, run verification with the existing GitHub authentication in Git Credential Manager. The output directory is fresh and stays in TMP.
 
 ```powershell
 ./scripts/verify-authenticated-download.ps1 -Repository crististefanita/chess `
@@ -200,4 +243,6 @@ $paths = @(git -C $checkout diff --name-only $previousTag $candidateCommit)
 java -cp "$scratch/atf-tests/target/classes" ro.atf.chess.release.ReleaseRag $scratch @paths
 ```
 
-Get the list from the Git checkout and pass it to the command in the TMP copy. RAG reports each path as `COVERED` or `NEEDS_REVIEW`, including when the list contains both kinds. Each citation identifies the document, anchor, line, hash, and appropriate check. When it cites **Qualification and Publication**, RAG also displays the steps in order. Keep the output in the release directory. Qualification and publication checks run separately.
+- Pass the paths from the Git checkout to the command in TMP. RAG reports each as `COVERED` or `NEEDS_REVIEW`, including mixed lists.
+- Each citation identifies its document, anchor, line, hash and check. **Qualification and Publication** citations also print the steps in order.
+- Keep the output in the release directory. Run qualification and publication checks separately.

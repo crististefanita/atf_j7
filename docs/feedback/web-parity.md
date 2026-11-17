@@ -22,12 +22,13 @@ equivalent decisions in `ChessActivity`, `AnalysisActivity`, and the Web
 adapter. Start with resuming, canceling, and receiving a delayed AI reply.
 [Engine and projection](../testing/README.md#engine-and-projection)
 
-**Closure criterion.** The same case with a simulated clock and storage
-checks the position, revision, allowed actions, and rejection of stale replies
-on the JVM and in the worker. Native sanity verifies one resumption and
-the displayed order. Measure cold worker startup and time to the first
-analysis ply separately on mobile, at the same budget.
-Verify cancellation and slot changes during calculation.
+**Closure checks**
+
+- On the JVM and in the worker, use the same case with a simulated clock and
+  storage. Check position, revision, allowed actions, and stale reply rejection.
+- In native sanity, verify one resumption and the displayed order.
+- On mobile, measure cold worker startup and time to the first analysis ply
+  separately at the same budget. Test cancellation and slot changes during calculation.
 
 <details>
 <summary>Screen reader speech and focus</summary>

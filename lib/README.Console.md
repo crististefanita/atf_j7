@@ -36,11 +36,9 @@ reporting:
 | Print the final report path in the console | Constructor with `reportPathEnabled: true` and the `REPORT_PUBLISHED` event |
 | JUnit policy per class | The Console JUnit adapter and Test Kit annotations. Declare Kit explicitly. |
 
-Printing the path requires opt-in, an enabled console, and an event with a confirmed artifact. `detailsEnabled` controls detail visibility only.
-
-Console depends on Core. Kit is optional for JUnit integration.
-
-The Console projects diagnostics. The invoking test owns the comparison and verdict.
+- Printing the path requires opt-in, an enabled console, and a confirmed artifact event. `detailsEnabled` controls detail visibility only.
+- Console depends on Core. The JUnit adapter uses Kit when declared.
+- Console renders diagnostics. The invoking test owns the comparison and verdict.
 
 ---
 
