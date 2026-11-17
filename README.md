@@ -4,7 +4,7 @@ Joacă șah cu AI, rezolvă probleme și studiază deschiderile.
 
 ## Jocul
 
-- [Descarcă APK Chess Lab 0.15.3](https://github.com/crististefanita/chess/releases/download/v0.15.3/ChessLab-0.15.3.apk)
+- [Descarcă APK Chess Lab 0.16.0](https://github.com/crististefanita/chess/releases/download/v0.16.0/ChessLab-0.16.0.apk)
 - [Joacă în browser](https://crististefanita.github.io/chess/)
 
 ## Arhitectura J7
@@ -46,7 +46,7 @@ flowchart LR
   `release-tools` ca surse adăugate.
 - Linia punctată arată recepțiile produse de instrumentarea Android. Testele
   de componentă rulează în JVM; publicarea recepțiilor completează proba nativă.
-- Browserul trimite mutările către worker. Probele Edge compară reluarea și
+- Browserul trimite mutările către worker. Testele contractului comun de worker compară reluarea și
   rezultatele cu motorul JVM.
 - Extent folosește ATF Reporting din `lib`. Numele versiunii, APK-ul și dovada
   de publicare se reconciliază în [catalogul edițiilor](release/README.md).
@@ -55,7 +55,7 @@ flowchart LR
 
 ## Ediția publicată
 
-- [Chess Lab 0.15.3 · note de release](https://github.com/crististefanita/chess/releases/tag/v0.15.3)
+- [Chess Lab 0.16.0 · note de release](https://github.com/crististefanita/chess/releases/tag/v0.16.0)
 
 ## Puncte de intrare
 

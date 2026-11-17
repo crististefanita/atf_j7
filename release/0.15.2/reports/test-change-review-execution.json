@@ -1,9 +1,0 @@
-{
-  "status": "PASS",
-  "reviewBase": "d3975b2bd40627df22669e2485e8c1b6e6fb9c06",
-  "sourceCommit": "246fc744a61101b99b1dd4def433fe1288e9d254",
-  "receiptSha256": "e0e52c1740d674085d75a1b3073e122da14db03678923bcdce6a9cb749ed2d98",
-  "extentSha256": "3678be5e86c13e972bb4d9ec748fb0d8b37fec2a6b1ed36a3103ee6a948f9451",
-  "replacementExtentSha256": "70709cb1e523bc4d32e6b82e5e5a54e104d02eaef242cbfc6dab8d48252cc9e4",
-  "governanceExtentSha256": "c3d41b0a72da443f6fd6c61c66e46fa8630ab5dc2dbca0f1bc360428d1ab57c1"
-}

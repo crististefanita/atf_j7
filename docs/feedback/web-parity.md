@@ -109,14 +109,3 @@ Folosiți MCP pentru Probleme, Tablă de analiză și Game Review, inclusiv De c
 la 360 × 640 și 1280 × 900, cu text RO/EN la 130%. Deschideți lângă buton,
 atingeți ultima opțiune, închideți și verificați focusul. Sesiunea curentă
 nu oferă browserul MCP, astfel că verdictul randării rămâne în așteptare.
-
-## WEB-06 · Afișarea indiciului pe Android
-
-**P2 · Randare nativă în așteptare.** Indiciile calculate folosesc acum aceeași
-suprafață pe tot ecranul ca teoria deschiderilor. Matricea de componentă verifică
-dimensiunile fixe, cursoarele independente și checkpoint-ul inițial. Buildul
-Android release și lint trec. [Contractul indiciului](../board/README.md#analiza-partidei-și-indiciile)
-
-Verificați buildul Android curent pe compact și mare, în RO/EN la 130%.
-Schimbați toate liniile disponibile, parcurgeți săgețile și închideți la poziția
-inițială din istoric. Confirmați încadrarea tablei, comenzilor și explicației derulabile.
