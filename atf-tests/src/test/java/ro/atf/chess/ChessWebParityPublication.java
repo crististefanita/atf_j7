@@ -72,6 +72,32 @@ class ChessWebParityPublication {
                 cases.size() + 2, rows.size());
     }
 
+    @Test void packagedWorkerPreservesTheMatchWhenFlipping(Checks check) throws Exception {
+        var configured = System.getProperty("chess.web.bundle", "");
+        check.same("The bundled worker is supplied for the board orientation cases", true, !configured.isBlank());
+        var root = ProjectRoot.locate();
+        var worker = Path.of(configured).toAbsolutePath().normalize().resolve("engine-worker.mjs");
+        var fixture = root.resolve("atf-tests/src/test/resources/match-flip-cases.json");
+        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-flip-worker.mjs", worker, fixture).strip());
+        var cases = new ObjectMapper().readTree(fixture.toFile());
+        for (var example : cases) {
+            String id = example.get("id").asText();
+            String expected = String.join("/", "APPLIED", example.get("flippedBlackBelow").asText(), example.get("viewPly").asText(),
+                    example.get("sideToMove").asText(), "STALE", example.get("reopenedBlackBelow").asText());
+            check.same(id + " flips at the same position, rejects stale commands and restores the expected orientation", expected, rows.get(id));
+            if (example.hasNonNull("continuationCheckpoint")) {
+                String fork = String.join("/", "APPLIED", example.get("continuationCheckpoint").asText(),
+                        example.get("flippedBlackBelow").asText(), example.get("reopenedBlackBelow").asText());
+                check.same("A new game inherits the preview's orientation and the archived source retains its original board",
+                        fork, rows.get("archive-continuation"));
+            }
+        }
+        check.same("The old bot revision cannot publish a reply after flipping", "STALE/4/true", rows.get("old-bot-revision"));
+        check.same("The worker rejects malformed revision input", "TypeError: Invalid chess worker request", rows.get("invalid-revision"));
+        check.same("A flip without a selected board is unavailable", "UNAVAILABLE", rows.get("missing-board"));
+        check.same("The packaged worker reports every orientation, archive fork and rejection case", cases.size() + 4, rows.size());
+    }
+
     private String runWorker(Path root, String script, Path worker, Path input) throws IOException, InterruptedException {
         var stdout = evidence.resolve("worker-result.txt");
         var stderr = evidence.resolve("worker-error.txt");

@@ -20,6 +20,8 @@ Proba explicită cere pachetul compilat și compară rezultatele efective din JV
 
 **Partidă cu AI** deschide aceleași alegeri ca pe Android, Alb, Negru sau Aleatoriu, și nivelurile Basic, Advanced și Hard. Workerul alege culoarea aleatorie o singură dată la crearea jocului și păstrează culoarea rezultată și nivelul în checkpoint. Browserul salvează tura curentă înainte de a afișa mutarea și programează căutarea după pauza de 650 ms. După reîncărcare, poziția decide dacă mai este rândul AI. Workerul respinge reviziile expirate, iar o replică deja salvată lasă jucătorul la mutare.
 
+Din **Opțiunile partidei**, **Întoarce tabla** (**Flip board**) schimbă perspectiva la aceeași poziție, inclusiv în istoric. O partidă în desfășurare păstrează orientarea în slotul ei și o restabilește la redeschidere. În previzualizarea unei partide arhivate, **Continuă de aici** transmite orientarea afișată noului slot. Arhiva își păstrează orientarea salvată. [Verificarea orientării](../docs/testing/README.md#orientarea-tablei-în-partidă)
+
 Din meniul principal, schimbă limba în **Setări** și numele afișat în **Nume**. După salvarea limbii se redeschide același meniu, inclusiv când browserul păstrează o analiză. **Profil** este disponibil din partida cu AI și păstrează ruta partidei după schimbare. Browserul salvează profilul local, separat de partide. Limba implicită este engleza, iar un nume gol afișează **You** sau **Tu**, în funcție de limbă. `ChessWebShellTest` verifică reîncărcarea cu stocare, istoric și adresă simulate. [Strategia de testare](../docs/testing/README.md)
 
 Cu `$site`, `$edge` și un dosar `$evidence` nou în TMP:

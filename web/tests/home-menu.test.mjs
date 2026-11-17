@@ -6,6 +6,7 @@ import { createHomeMenu, hasSavedHomeGames, homeLabels, homeLocale, reloadProfil
 import { profileKey, readProfile, writeProfile } from '../src/main/web/player-profile.mjs';
 import { showReviewPiece } from '../src/main/web/review-workspace.mjs';
 import { routeForHash } from '../src/main/web/study-navigation.mjs';
+import { createMatchBotTimer } from '../src/main/web/match-bot-timer.mjs';
 
 const base = new URL('../../', import.meta.url);
 const read = path => readFile(new URL(path, base), 'utf8');
@@ -79,6 +80,52 @@ test('AI color choices preserve Android order and RO and EN labels', async () =>
         const localized = [...adapter.matchAll(new RegExp("'" + id + "': '([^']+)'", 'g'))].map(match => match[1]);
         assert.deepEqual(localized, [label, nativeLabel(romanian, nativeIds[index])], id);
     }
+});
+
+test('The match options expose native board actions in RO and EN', async () => {
+    const [html, adapter, toolbar, english, romanian] = await Promise.all([
+        read('web/src/main/web/index.html'), read('web/src/main/web/game-review.mjs'),
+        read('android/app/src/main/res/layout/match_toolbar.xml'),
+        read('android/app/src/main/res/values/strings.xml'), read('android/app/src/main/res/values-ro/strings.xml'),
+    ]);
+    assert.match(toolbar, /android:contentDescription="@string\/match_actions"/);
+    assert.match(html, /id="match-options-button"[^>]+aria-haspopup="dialog" aria-controls="match-options"[^]*?<h1 id="title">/);
+    const dialog = html.match(/<dialog id="match-options" aria-labelledby="match-options-title">([^]*?)<\/dialog>/)?.[1];
+    assert.ok(dialog, 'The trigger opens a labelled native dialog');
+    assert.match(dialog, /<button id="flip-match"[^>]+autofocus>Flip board<\/button>/);
+    assert.match(dialog, /<form method="dialog">/);
+    for (const [id, key] of [['match-options-title', 'match_actions'], ['flip-match', 'flip'], ['open-review', 'main_menu']]) {
+        const localized = [...adapter.matchAll(new RegExp("'" + id + "': '([^']+)'", 'g'))].map(match => match[1]);
+        const nativeLabels = [english, romanian].map(resources => resources.match(new RegExp('<string name="' + key + '">([^<]+)'))?.[1]);
+        assert.deepEqual(localized, nativeLabels, id);
+    }
+});
+
+test('A new board revision replaces the scheduled AI reply exactly once', () => {
+    const pending = new Map();
+    const applied = [];
+    let next = 0;
+    const clock = {
+        setTimeout(action, delay) { assert.equal(delay, 650); pending.set(++next, action); return next; },
+        clearTimeout(id) { pending.delete(id); },
+    };
+    const schedule = createMatchBotTimer(clock, 650, turn => applied.push(turn.revision));
+    const before = { revision: 11 };
+    schedule(before);
+    schedule(before);
+    assert.equal(pending.size, 1);
+    const staleCallback = pending.get(1);
+    schedule(undefined);
+    assert.equal(pending.size, 0);
+    schedule({ revision: 12 });
+    assert.deepEqual([...pending.keys()], [2]);
+    staleCallback();
+    assert.deepEqual(applied, []);
+    const replacement = pending.get(2);
+    pending.delete(2);
+    replacement();
+    replacement();
+    assert.deepEqual(applied, [12]);
 });
 
 test('Profile persistence respects the native validator and write failures', async () => {

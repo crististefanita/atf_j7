@@ -76,13 +76,31 @@ p { margin: .6rem 0; }
 #status, #evaluation { color: var(--muted); }
 main:has(> .match:not([hidden])) > header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   max-inline-size: var(--play-column);
   min-block-size: var(--play-action-size);
   margin-inline: auto;
   gap: .25rem .5rem;
 }
 main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height: 1.15; overflow-wrap: anywhere; }
+.match-options-button {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: var(--play-action-size);
+  min-block-size: var(--play-action-size);
+  padding: 0;
+}
+#match-options[open] {
+  display: grid;
+  inline-size: min(16rem, calc(100% - 2rem));
+  gap: .35rem;
+}
+#match-options h2 { padding: .15rem .25rem; }
+#match-options button {
+  inline-size: 100%;
+  min-block-size: var(--play-action-size);
+  text-align: start;
+}
 .match {
   inline-size: min(100%, var(--play-room));
   margin: var(--play-top-gap) auto 0;

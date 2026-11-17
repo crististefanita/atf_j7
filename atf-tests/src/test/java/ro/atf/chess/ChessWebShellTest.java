@@ -35,6 +35,8 @@ class ChessWebShellTest {
                 "Web home preserves Android groups, action order and RO and EN labels",
                 "Only active saved games show the home action",
                 "AI color choices preserve Android order and RO and EN labels",
+                "The match options expose native board actions in RO and EN",
+                "A new board revision replaces the scheduled AI reply exactly once",
                 "Profile persistence respects the native validator and write failures",
                 "Board piece renderer reuses the same Staunton SVG on a move and clears it on capture",
                 "Home name, settings and AI profile share the existing dialog and stored profile",

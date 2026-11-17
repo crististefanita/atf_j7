@@ -63,6 +63,12 @@ Pentru culoarea inițială, `MatchSetupTest` și `ChessWebParityPublication#pack
 
 Proba MCP a măsurat aceeași latură în ambele ecrane, 324 px pe compact în RO și 469,8 px pe desktop în EN. La 320 × 480 în RO, ambele table păstrează o latură de 249,6 px și pot derula vertical pentru a păstra accesul la comenzi.
 
+### Orientarea tablei în partidă
+
+`MatchControlsTest` verifică disponibilitatea acțiunii în partidă și în istoric. `MatchStoreTest` și `ChessWebParityPublication#packagedWorkerPreservesTheMatchWhenFlipping` folosesc același fixture pentru păstrarea poziției, istoricului și orientării la redeschidere. Workerul respinge o replică rămasă la revizia veche. `ChessWebShellTest` folosește un ceas simulat și verifică înlocuirea programării vechi cu o singură replică la revizia curentă. [Comanda de verificare](../../web/README.md#motorul-chess-lab-în-browser)
+
+În proba de interfață, deschideți o partidă, reveniți la o semimutare din istoric și alegeți **Întoarce tabla**. Comparați colțurile, tura, semimutarea și dreptunghiul tablei. Verificați revenirea focusului la butonul din antet și orientarea după redeschidere. Fixture-ul de arhivă verifică orientarea noului slot la continuare și perspectiva originală la redeschiderea arhivei. [Comportamentul partidei](../../web/README.md#partida-cu-ai)
+
 ### Partide salvate, arhivă și continuare
 
 `MatchStoreTest`, `MatchLedgerTest` și `MatchLedgerPreferencesTest` verifică migrarea, ordinea, retenția și selecția slotului. Cazurile acoperă rescrierea slotului activ, o continuare separată din arhivă și refuzul când toate sloturile sunt ocupate. `ChessWebLedgerPublication` verifică biblioteca după reîncărcare, checkpointurile și capturile din Edge. [Probe Web](../../web/README.md#partide-salvate-și-încheiate)

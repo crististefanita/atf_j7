@@ -51,25 +51,25 @@ final class MatchLedger {
                 || !canContinueArchiveReview(source, cursor)) {
             return new Continuation(ContinuationOutcome.UNAVAILABLE);
         }
-        return continueArchived(entry, cursor.ply(), automatic && !entry.manualUsed(), entry.manualUsed());
+        return continueArchived(entry.match(), cursor.ply(), entry.blackBelow(), automatic && !entry.manualUsed(), entry.manualUsed());
     }
 
-    int continueGame(int slot, String archiveId, int ply, boolean automatic) {
+    int continueGame(int slot, String archiveId, int ply, boolean automatic, boolean blackBelow) {
         var entry = archiveId == null ? null : matches.readArchivedMatch(archiveId);
         if (archiveId != null && entry == null) return 0;
         var source = entry == null ? matches.readSavedMatch(slot) : entry.match();
         if (source == null || ply < 0 || ply >= source.ply()) return 0;
         if (entry != null) {
-            return continueArchived(entry, ply, automatic, !automatic).slot();
+            return continueArchived(source, ply, blackBelow, automatic, !automatic).slot();
         }
-        return matches.saveMatch(slot, source.continueFrom(ply), matches.matchBlackBelow(slot), !automatic, !automatic) ? slot : 0;
+        return matches.saveMatch(slot, source.continueFrom(ply), blackBelow, !automatic, !automatic) ? slot : 0;
     }
 
-    private Continuation continueArchived(MatchStore.ArchivedMatch entry, int ply, boolean automatic, boolean manualUsed) {
+    private Continuation continueArchived(ChessMatch source, int ply, boolean blackBelow, boolean automatic, boolean manualUsed) {
         int slot = matches.freeMatchSlot();
         if (slot == 0) return new Continuation(ContinuationOutcome.NO_FREE_SLOT);
-        var prefix = entry.match().continueFrom(ply);
-        if (!matches.startMatch(slot, prefix, entry.blackBelow(), !automatic, manualUsed)) {
+        var prefix = source.continueFrom(ply);
+        if (!matches.startMatch(slot, prefix, blackBelow, !automatic, manualUsed)) {
             return new Continuation(ContinuationOutcome.SAVE_FAILED);
         }
         return new Continuation(ContinuationOutcome.APPLIED, slot);

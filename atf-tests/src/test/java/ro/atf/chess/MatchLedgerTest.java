@@ -57,15 +57,17 @@ class MatchLedgerTest {
         var store = ledger.matches();
         String activeId = store.archivedId(1);
         long stamp = store.startedAt(1);
-        check.same("Continuing a saved game reuses that slot", 1, ledger.continueGame(1, null, 2, false));
+        check.same("Continuing a saved game reuses that slot", 1, ledger.continueGame(1, null, 2, false, true));
         check.same("Continuing a saved game truncates only its own history and keeps its identity, age and rank",
                 List.of("1|f2f3 e7e5", activeId, stamp, List.of(2, 1), OTHER),
                 List.of(store.readSavedMatch(1).checkpoint(), store.archivedId(1), store.startedAt(1),
                         store.savedMatchSlots(), store.readSavedMatch(2).checkpoint()));
 
+        check.same("The active branch uses the displayed orientation",
+                true, store.matchBlackBelow(1));
         String saved = ledger.snapshot();
         check.same("A missing slot and a forward-only seek cannot change saved games", List.of(0, 0),
-                List.of(ledger.continueGame(3, null, 1, false), ledger.continueGame(1, null, 3, false)));
+                List.of(ledger.continueGame(3, null, 1, false, true), ledger.continueGame(1, null, 3, false, false)));
         check.same("Rejected continuation leaves the saved collection unchanged", saved, ledger.snapshot());
     }
 
@@ -77,14 +79,17 @@ class MatchLedgerTest {
             store.startMatch(store.slotForNewMatch(), ChessMatch.restore(ACTIVE), false, true, false);
         }
         String full = ledger.snapshot();
-        check.same("An archived game cannot displace one of ten active games", 0, ledger.continueGame(0, original, 2, false));
+        check.same("An archived game cannot displace one of ten active games", 0, ledger.continueGame(0, original, 2, false, true));
         check.same("Refusing a fork from a full collection preserves its exact state", full, ledger.snapshot());
 
         store.saveMatch(6, ChessMatch.restore(MATE), false, true, true);
-        int free = ledger.continueGame(0, original, 2, false);
+        int free = ledger.continueGame(0, original, 2, false, true);
         check.same("Forking an archived game reuses the available slot", 6, free);
         check.same("It creates a fresh active game at the exact historical position", List.of(true, "1|f2f3 e7e5"),
                 List.of(!original.equals(store.archivedId(free)), store.readSavedMatch(free).checkpoint()));
+        check.same("The fork stores the preview orientation and manual mode while the archive keeps its orientation",
+                List.of(true, true, true, false), List.of(store.matchBlackBelow(free), store.matchManualAi(free),
+                        store.matchManualUsed(free), store.readArchivedMatch(original).blackBelow()));
         check.same("The archived result stays complete while the new game can continue", List.of(MATE, ChessMatch.Result.BLACK_WINS, true),
                 List.of(store.readArchivedMatch(original).match().checkpoint(), store.readArchivedMatch(original).match().result(),
                         store.readSavedMatch(free).position().legalMoves().contains(Move.fromUci("d2d4"))));

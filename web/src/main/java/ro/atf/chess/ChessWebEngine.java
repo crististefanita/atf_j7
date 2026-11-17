@@ -150,6 +150,9 @@ public final class ChessWebEngine {
     public static String matchHistory(int revision, int ply) { return GAME.history(revision, ply); }
 
     @JSExport
+    public static String flipMatchBoard(int revision) { return GAME.flipBoard(revision); }
+
+    @JSExport
     public static String continueMatch(int revision, boolean automatic) { return GAME.continueGame(revision, automatic); }
 
     @JSExport

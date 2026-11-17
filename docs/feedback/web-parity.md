@@ -27,7 +27,9 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 **Game Review · Web.** NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului în ediția anterioară. Graficul folosește acum o singură valoare accesibilă, cu poziție și scor. Componenta acoperă actualizările repetate, iar Extent respinge o recepție Web cu descrierea duplicată. Confirmați vorbirea pe build-ul corectat în RO și EN. Păstrați focusul pe grafic între două semimutări cu scoruri diferite și verificați revenirea la declanșator după **De ce?**. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-game-review)
 
-**Partida cu AI · Web.** Android permite activarea analizei la pornirea partidei. Aliniați opțiunea Web și testați separat preferința salvată, momentul apariției barei și comportamentul după reluare. Urmăriți și trecerea între replica automată și controlul manual la aceeași poziție. [Matricea APK–Web](../../web/parity.md#contracte-și-probe)
+**Analiza la pornirea partidei · Web.** Aliniați opțiunea din APK și bara de evaluare a poziției afișate. Verificați starea implicită, opțiunea salvată, actualizarea la schimbarea semimutării și ignorarea calculelor vechi după reluare. [Matricea APK–Web](../../web/parity.md#contracte-și-probe)
+
+**Controlul manual în partida cu AI · Web.** Web folosește modul manual pentru a decide și dacă partida este locală sau cu AI. Păstrați identitatea partidei și starea automatizării separat. Verificați comutarea și redeschiderea aceluiași slot, respingerea unei replici rămase în așteptare și eligibilitatea pentru evaluare după o mutare manuală de partea AI. [Probele partidei](../testing/README.md#partidă-și-istoric)
 
 ## WEB-02 · Adaptoare și afișaj comun
 

@@ -1,4 +1,4 @@
-import { analyzeRatedReview, analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, matchHistory, normalizePlayerName, openLedger, openMatch, openReview,
+import { analyzeRatedReview, analyzeReview, canonicalCheckpoint, continueArchiveReview, continueMatch, flipMatchBoard, matchHistory, normalizePlayerName, openLedger, openMatch, openReview,
   archiveReviewCheckpoint, archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, pieceArtwork, playBot, playMatch, reviewAction, reviewGraphSelect,
   saveArchiveReview, snapshot, continueStudyMatch, openStudyReview, studyCommand, studyReviewAction, studyReviewGraphSelect } from "./chess-engine.mjs";
 
@@ -64,6 +64,8 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       self.postMessage({ id, ...JSON.parse(playBot(expectedRevision)) });
     } else if (type === "match-history" && validRevision(expectedRevision) && validRevision(ply)) {
       self.postMessage({ id, ...JSON.parse(matchHistory(expectedRevision, ply)) });
+    } else if (type === "match-flip" && validRevision(expectedRevision)) {
+      self.postMessage({ id, ...JSON.parse(flipMatchBoard(expectedRevision)) });
     } else if (type === "match-continue" && validRevision(expectedRevision) && typeof automatic === "boolean") {
       self.postMessage({ id, ...JSON.parse(continueMatch(expectedRevision, automatic)) });
     } else if (type === "study-match-continue" && typeof checkpoint === "string" && typeof automatic === "boolean" && typeof blackBelow === "boolean") {

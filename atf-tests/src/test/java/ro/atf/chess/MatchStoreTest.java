@@ -1,6 +1,8 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -19,6 +21,53 @@ class MatchStoreTest {
     private static final String MATE = "1|f2f3 e7e5 g2g4 d8h4";
     private static final Instant START = Instant.parse("2026-11-11T18:30:00Z");
     private static final Instant FINISH = START.plusSeconds(125);
+
+    private record FlipCase(String id, String mode, String checkpoint, ChessMatch.Result result, int ply, int viewPly,
+                            ChessPosition.Side sideToMove, String lastMove, boolean blackBelow, boolean flippedBlackBelow,
+                            boolean reopenedBlackBelow, String continuationCheckpoint) { }
+
+    @Test void flipsTheStoredBoardAndPreservesTheOriginalGame(Checks check) throws IOException {
+        FlipCase[] cases;
+        try (var fixture = MatchStoreTest.class.getResourceAsStream("/match-flip-cases.json")) {
+            cases = new ObjectMapper().readValue(fixture, FlipCase[].class);
+        }
+        check.same("The shared fixture covers a current board, history and a finished preview",
+                List.of("local-current", "ai-history", "finished-preview"), java.util.Arrays.stream(cases).map(FlipCase::id).toList());
+        for (var example : cases) {
+            var match = ChessMatch.restore(example.checkpoint());
+            check.same(example.id() + " fixes the checkpoint, result, cursor move and turn",
+                    List.of(example.checkpoint(), example.result(), example.ply(), example.lastMove(), example.sideToMove()),
+                    List.of(match.checkpoint(), match.result(), match.ply(), match.moveAt(example.viewPly()).uci(), match.positionAt(example.viewPly()).turn()));
+
+            var disk = new MemoryPreferences();
+            var initial = store(disk, START);
+            boolean manual = example.mode().equals("LOCAL");
+            check.same(example.id() + " saves the original board", true,
+                    initial.startMatch(1, match, example.blackBelow(), manual, manual));
+            String identity = initial.archivedId(1);
+            if (match.result() != ChessMatch.Result.IN_PROGRESS) {
+                var preserved = store(disk, FINISH).readArchivedMatch(identity);
+                check.same(example.id() + " retains its original orientation and source when reopened",
+                        List.of(example.reopenedBlackBelow(), example.checkpoint(), identity),
+                        List.of(preserved.blackBelow(), preserved.match().checkpoint(), preserved.id()));
+                continue;
+            }
+            var expectedDisk = new HashMap<>(disk.data);
+            expectedDisk.put("match-black-below", example.flippedBlackBelow());
+            check.same(example.id() + " writes the orientation using the Android save path", true,
+                    initial.saveMatch(1, initial.readMatch(1), example.flippedBlackBelow(), initial.matchManualAi(1)));
+            check.same(example.id() + " writes only the orientation and preserves slot metadata", expectedDisk, disk.data);
+            var reopened = store(disk, FINISH);
+            check.same(example.id() + " restores the orientation, same checkpoint and same identity",
+                    List.of(example.reopenedBlackBelow(), example.checkpoint(), identity),
+                    List.of(reopened.matchBlackBelow(1), reopened.readSavedMatch(1).checkpoint(), reopened.archivedId(1)));
+
+            disk.rejectCommit = true;
+            check.same(example.id() + " reports a failed orientation save", false,
+                    reopened.saveMatch(1, reopened.readMatch(1), example.blackBelow(), reopened.matchManualAi(1)));
+            check.same(example.id() + " keeps the prior orientation after the failed save", expectedDisk, disk.data);
+        }
+    }
 
     @Test void savesTenGamesAndKeepsCreationOrderWhenTheOldestIsReopened(Checks check) {
         var disk = new MemoryPreferences();

@@ -240,6 +240,11 @@ try {
         captures.push({ file, sha256: sha256(bytes) });
     }
 
+    async function touchMatchOption(selector) {
+        await touch('#match-options-button');
+        await touch(selector);
+    }
+
     async function pressKey(key, shift = false) {
         const codes = { Tab: 9, Enter: 13, Escape: 27, End: 35, Home: 36, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
         const event = { key, code: key, windowsVirtualKeyCode: codes[key], modifiers: shift ? 8 : 0 };
@@ -319,7 +324,7 @@ try {
         assert.deepEqual([...new Set(shapes)].sort(), ['b', 'k', 'n', 'p', 'q', 'r']);
         const manual = await move('d2', 'd4', 1);
         assert.equal(manual.checkpoint, '1|d2d4');
-        await touch('#open-review');
+        await touchMatchOption('#open-review');
         await touch('#open-ai');
         await until(() => evaluate(visible('#ai-setup')), 'native AI setup');
         const choices = await evaluate(`[...document.querySelector('#ai-level').options].map(option => option.value).join(',')`);
@@ -355,10 +360,10 @@ try {
         check('bot-applied-once', true, settled?.checkpoint === replied.checkpoint && settled.ply === 1 && settled.last === replied.last &&
             settled.turn === 'BLACK' && !settled.awaitingBot);
 
-        await touch('#open-review');
+        await touchMatchOption('#open-review');
         await touch('#open-match');
         const manualRestored = await waitActive('original manual game', value => value.mode === 'LOCAL' && value.ply === 1);
-        await touch('#open-review');
+        await touchMatchOption('#open-review');
         await touch('#open-saved');
         await touch('.match-row[data-mode="AI"]');
         const aiRestored = await waitActive('AI game remains independently saved', value => value.mode === 'AI' && value.ply === 1);
@@ -366,7 +371,7 @@ try {
             aiRestored.checkpoint === replied.checkpoint);
         const language = publicUrl ? 'ro' : 'en';
         const ledgerBefore = await evaluate("localStorage.getItem('chesslab.match-ledger.v1')");
-        await touch('#open-profile');
+        await touchMatchOption('#open-profile');
         await evaluate("document.querySelector('#profile-name').value = 'Ștefan'; void 0");
         await evaluate(`document.querySelector('#profile-language').value = '${language}'; void 0`);
         await touch('#save-profile');
@@ -460,7 +465,7 @@ try {
             await waitActive('migrated AI match from the explicit deep link', value => value.mode === 'AI' && value.ply === 2);
             assert.equal(await evaluate('location.href'), aiUrl);
             assert.equal(await evaluate('document.documentElement.lang'), 'en');
-            await touch('#open-review');
+            await touchMatchOption('#open-review');
         }
         await touch('#open-saved');
         const migrated = await waitRows('two migrated saved matches', 2);
@@ -487,7 +492,7 @@ try {
         if (completed.readOnly) {
             await touch('#return-menu');
             await touch('#return-menu');
-        } else await touch('#open-review');
+        } else await touchMatchOption('#open-review');
         await touch('#open-saved');
         const remaining = await waitRows('finished game removed from saved matches', 1);
         assert.equal(remaining[0].id, legacyAiId);
@@ -523,14 +528,14 @@ try {
         check('fork-reloaded', true, restored.checkpoint === playedBranch.checkpoint && restored.fen === recommendedFen && restored.slot === branch.slot);
         await capture('resumed-fork.png');
 
-        await touch('#open-review');
+        await touchMatchOption('#open-review');
         await touch('#open-saved');
         const savedAfterIds = (await waitRows('branch and original AI match', 2)).map(row => row.id);
         assert.deepEqual(savedAfterIds, [forkId, legacyAiId]);
         await touch(`.match-row[data-id="${legacyAiId}"]`);
         const separateAi = await waitActive('separate AI match preserved', value => value.id === legacyAiId && value.mode === 'AI');
         assert.equal(separateAi.checkpoint, legacyAiCheckpoint);
-        await touch('#open-review');
+        await touchMatchOption('#open-review');
         await touch('#open-finished');
         const finishedAfterIds = (await waitRows('original archive after forking', 1)).map(row => row.id);
         await touch(`.match-row[data-id="${archiveId}"]`);
@@ -706,7 +711,7 @@ try {
         check('fork-reloaded', true, restored.checkpoint === diverged.checkpoint && restored.fen === diverged.fen && restored.slot === fork.slot && !restored.awaitingBot);
         await capture('review-continued-game.png');
 
-        await touch('#open-review');
+        await touchMatchOption('#open-review');
         if (await displayed('#review-close')) await touch('#review-close');
         await touch('#open-finished');
         await touch(`.match-row[data-id="${originArchiveId}"]`);

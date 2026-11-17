@@ -1,0 +1,42 @@
+[
+  {
+    "id": "local-current",
+    "mode": "LOCAL",
+    "checkpoint": "1|e2e4 e7e5",
+    "result": "IN_PROGRESS",
+    "ply": 2,
+    "viewPly": 2,
+    "sideToMove": "WHITE",
+    "lastMove": "e7e5",
+    "blackBelow": false,
+    "flippedBlackBelow": true,
+    "reopenedBlackBelow": true
+  },
+  {
+    "id": "ai-history",
+    "mode": "AI",
+    "checkpoint": "3|BLACK|ADVANCED|0|e2e4 e7e5 g1f3 b8c6",
+    "result": "IN_PROGRESS",
+    "ply": 4,
+    "viewPly": 1,
+    "sideToMove": "BLACK",
+    "lastMove": "e2e4",
+    "blackBelow": true,
+    "flippedBlackBelow": false,
+    "reopenedBlackBelow": false
+  },
+  {
+    "id": "finished-preview",
+    "mode": "LOCAL",
+    "checkpoint": "1|f2f3 e7e5 g2g4 d8h4",
+    "result": "BLACK_WINS",
+    "ply": 4,
+    "viewPly": 3,
+    "sideToMove": "BLACK",
+    "lastMove": "g2g4",
+    "blackBelow": false,
+    "flippedBlackBelow": true,
+    "reopenedBlackBelow": false,
+    "continuationCheckpoint": "1|f2f3 e7e5 g2g4"
+  }
+]

@@ -121,10 +121,23 @@ final class WebChessGame {
         return state("APPLIED");
     }
 
+    String flipBoard(int expectedRevision) {
+        if (expectedRevision != revision) return state("STALE");
+        if (session == null) return state("UNAVAILABLE");
+        boolean flipped = !blackBelow;
+        if (archiveId == null) {
+            var matches = matches();
+            if (!matches.saveMatch(slot, session.match(), flipped, matches.matchManualAi(slot))) return state("SAVE_FAILED");
+        }
+        blackBelow = flipped;
+        revision++;
+        return state("APPLIED");
+    }
+
     String continueGame(int expectedRevision, boolean automatic) {
         if (expectedRevision != revision) return state("STALE");
         if (session == null || viewPly >= session.match().ply()) return state("UNAVAILABLE");
-        int next = ledger.continueGame(slot, archiveId, viewPly, automatic);
+        int next = ledger.continueGame(slot, archiveId, viewPly, automatic, blackBelow);
         if (next == 0) return state(archiveId == null ? "UNAVAILABLE" : "NO_FREE_SLOT");
         return openContinuation(next);
     }
