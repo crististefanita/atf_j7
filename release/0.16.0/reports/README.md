@@ -24,6 +24,13 @@ Qualification ties the source commit, signed APK, component suite and Android ob
 - [Published APK identity](github-release.json)
 - [Complete download from the README](public-download.json)
 - [Authenticated complete download](distribution-verification.json)
+- [Publication and documentation governance](publication-governance.html)
+- [Romanian documentation governance from its own compiled sources](publication-documentation-ro.html)
+- [Publication-governance execution receipt](publication-governance-execution.json)
+- [Published-main governance verdict](publication-governance.json)
+- [Exact English–Romanian documentation pair](documentation-pair.txt)
+- [Pinned Web deployment and 124 served assets — rendering remains unverified](web-publication.json)
+- [Current and previous published release retention](release-retention.json)
 - [Advisory RAG context](rag.txt)
 
 [Qualification and publication process](../../../docs/release/README.md#qualification-and-publication) · [Choosing the test level](../../../docs/testing/README.md#choosing-the-test-level)

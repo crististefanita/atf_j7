@@ -1,0 +1,778 @@
+{
+  "status": "PASS_SERVED_BYTES_ONLY",
+  "sourceCommit": "55768279200be9bba0644efd28737af3c957c1b6",
+  "mainCommit": "a58e0c6b58413d7dd23b933f0d65641833128285",
+  "siteCommit": "e0651472291296a467e5bff887544872e91b591b",
+  "runtimeDirectory": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b",
+  "manifestSha256": "7d434e3061ed248b3ba67a0e5cc6966cc4be5eff96ac2c2dd2988172d5c398bc",
+  "workflow": "https://github.com/crististefanita/chess/actions/runs/44167271245",
+  "builtAssetCount": 22,
+  "preservedAssetCount": 102,
+  "assets": [
+    {
+      "file": "index.html",
+      "bytes": 16299,
+      "sha256": "6d96abf1cf597b8b0c65b53abf7ff53e558a9208e4fe19f5af3efae3922be16a",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/chess-engine.mjs",
+      "bytes": 1760990,
+      "sha256": "984ef176003095eebd2914f4b3b3f5594eeee23841d05d1de63cf3efeb75e0a1",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/engine-worker.mjs",
+      "bytes": 10334,
+      "sha256": "bb31a62198530a50c308add28fc126e6096848ab8f036ae8d3332cbb178c9614",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/game-review.css",
+      "bytes": 22970,
+      "sha256": "7fb239a791d05a240b17ce59d45aa031992887207fe95dfba371c50698802ecb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/game-review.mjs",
+      "bytes": 77689,
+      "sha256": "a60713793f67a23ce3562af326c5ae2b19a31a4ea0cff527870e5f3c59964a1c",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/home-menu.mjs",
+      "bytes": 5980,
+      "sha256": "5b00bfad09cd74619611fee226ff55b02cbb1fc91d78b4b9ee79b327b0068270",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/match-bot-timer.mjs",
+      "bytes": 926,
+      "sha256": "b93822b55dad538b27d8efcc764149046097516e7ebb87bd30e43bbd0472e2fb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/match-inline-analysis.mjs",
+      "bytes": 8439,
+      "sha256": "74e7d83546bcb8f006807ce39000ed6de417f99e0e1a564e261de9dd5cda4120",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/options-menu.mjs",
+      "bytes": 4852,
+      "sha256": "56c716890f84080775d7b7dedb45ee851e95df27116d7da13bf46e154e1ffcc3",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/player-profile.mjs",
+      "bytes": 846,
+      "sha256": "1cd7dd603ff911f1f0e612a398a3a1da60fdb75855ca1c03a7fccdc33c524445",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/review-announcement.mjs",
+      "bytes": 2277,
+      "sha256": "3149bda4c8360ea6792507f12461034d2280783c8e156140968663255eee3f78",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/review-focus.mjs",
+      "bytes": 1424,
+      "sha256": "7b9837924b9c746fd6bfb2893afe56e21e521f4672413fceeb1ae6b8aeab0342",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/review-import.mjs",
+      "bytes": 726,
+      "sha256": "8596da86a325260f458a85089b716a1182abf0ab8fcdc25eaf46e9b750413ed8",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/review-workspace.mjs",
+      "bytes": 16870,
+      "sha256": "f08ff9d1134352bb5957aadbcdd898fce52df5801decf596ba644e7eef7cb68f",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-analysis.css",
+      "bytes": 5412,
+      "sha256": "12c47081e8add42492a57242c8c88b57c6c670a0ed4548501e6eebd4fb0c64c4",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-analysis.mjs",
+      "bytes": 27926,
+      "sha256": "989e8770c10dda3636f89d2791047009156fbebff5517485ba9ae26702c1e3ec",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-board.mjs",
+      "bytes": 4165,
+      "sha256": "9a5e000969d5a243e81efd65704d37cbd2fc669385d122798916c34190ead1b5",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-navigation.mjs",
+      "bytes": 2484,
+      "sha256": "6ed6cc8ba9621fed6ee11fd8079d1aab12afe98c2ba178fa010efb00ef8acedb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-openings.css",
+      "bytes": 7522,
+      "sha256": "1a6ad2f4d4f94bb903aab3e8c208bc7faffe150bfee5bfe988c2f1cfd6910464",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-openings.mjs",
+      "bytes": 27599,
+      "sha256": "b37bf3720f107c8184332eb6f7e01d5e6855bc441ba98416d3dbd41f060c88ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-quests.css",
+      "bytes": 7845,
+      "sha256": "120b91a850579db6815ef261591f1e79d8dd8861b1cf263ff918013c49adc7ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-quests.mjs",
+      "bytes": 43059,
+      "sha256": "470424ca7733efcf84207f3ad13c74ce8cf9d0375ced2d09c8fc0301d1f8f667",
+      "httpStatus": 200
+    },
+    {
+      "file": ".nojekyll",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "httpStatus": 200
+    },
+    {
+      "file": "chess-engine.mjs",
+      "bytes": 1758045,
+      "sha256": "67c378bd609849efd8be550b08acb348a7bd471408741c3dca209e66e00b5943",
+      "httpStatus": 200
+    },
+    {
+      "file": "engine-worker.mjs",
+      "bytes": 10334,
+      "sha256": "bb31a62198530a50c308add28fc126e6096848ab8f036ae8d3332cbb178c9614",
+      "httpStatus": 200
+    },
+    {
+      "file": "game-review.css",
+      "bytes": 20976,
+      "sha256": "2387ea09e85b5aa03c8f8b6c5ad7c3680511fba4316e2c694434fc4cf9bcbcc4",
+      "httpStatus": 200
+    },
+    {
+      "file": "game-review.mjs",
+      "bytes": 77945,
+      "sha256": "305e77f754ab09e855aba35dcfe6bd1988b91ed3da5c601dac59ee53f67361ee",
+      "httpStatus": 200
+    },
+    {
+      "file": "home-menu.mjs",
+      "bytes": 6105,
+      "sha256": "645400734073582fd5f8ddadb3a48c9b36395603e474f293287487e58d300d0d",
+      "httpStatus": 200
+    },
+    {
+      "file": "match-bot-timer.mjs",
+      "bytes": 926,
+      "sha256": "b93822b55dad538b27d8efcc764149046097516e7ebb87bd30e43bbd0472e2fb",
+      "httpStatus": 200
+    },
+    {
+      "file": "match-inline-analysis.mjs",
+      "bytes": 8439,
+      "sha256": "74e7d83546bcb8f006807ce39000ed6de417f99e0e1a564e261de9dd5cda4120",
+      "httpStatus": 200
+    },
+    {
+      "file": "options-menu.mjs",
+      "bytes": 1340,
+      "sha256": "981d8fe2dff5f148df4d4bea94ceae7f11218a66e768f9ab994b8129843e8f5b",
+      "httpStatus": 200
+    },
+    {
+      "file": "player-profile.mjs",
+      "bytes": 846,
+      "sha256": "1cd7dd603ff911f1f0e612a398a3a1da60fdb75855ca1c03a7fccdc33c524445",
+      "httpStatus": 200
+    },
+    {
+      "file": "review-announcement.mjs",
+      "bytes": 2277,
+      "sha256": "3149bda4c8360ea6792507f12461034d2280783c8e156140968663255eee3f78",
+      "httpStatus": 200
+    },
+    {
+      "file": "review-focus.mjs",
+      "bytes": 1424,
+      "sha256": "7b9837924b9c746fd6bfb2893afe56e21e521f4672413fceeb1ae6b8aeab0342",
+      "httpStatus": 200
+    },
+    {
+      "file": "review-workspace.mjs",
+      "bytes": 16870,
+      "sha256": "f08ff9d1134352bb5957aadbcdd898fce52df5801decf596ba644e7eef7cb68f",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/chess-engine.mjs",
+      "bytes": 1758045,
+      "sha256": "67c378bd609849efd8be550b08acb348a7bd471408741c3dca209e66e00b5943",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/engine-worker.mjs",
+      "bytes": 10334,
+      "sha256": "bb31a62198530a50c308add28fc126e6096848ab8f036ae8d3332cbb178c9614",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/game-review.css",
+      "bytes": 20976,
+      "sha256": "2387ea09e85b5aa03c8f8b6c5ad7c3680511fba4316e2c694434fc4cf9bcbcc4",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/game-review.mjs",
+      "bytes": 77945,
+      "sha256": "305e77f754ab09e855aba35dcfe6bd1988b91ed3da5c601dac59ee53f67361ee",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/home-menu.mjs",
+      "bytes": 6105,
+      "sha256": "645400734073582fd5f8ddadb3a48c9b36395603e474f293287487e58d300d0d",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/match-bot-timer.mjs",
+      "bytes": 926,
+      "sha256": "b93822b55dad538b27d8efcc764149046097516e7ebb87bd30e43bbd0472e2fb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/match-inline-analysis.mjs",
+      "bytes": 8439,
+      "sha256": "74e7d83546bcb8f006807ce39000ed6de417f99e0e1a564e261de9dd5cda4120",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/options-menu.mjs",
+      "bytes": 1340,
+      "sha256": "981d8fe2dff5f148df4d4bea94ceae7f11218a66e768f9ab994b8129843e8f5b",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/player-profile.mjs",
+      "bytes": 846,
+      "sha256": "1cd7dd603ff911f1f0e612a398a3a1da60fdb75855ca1c03a7fccdc33c524445",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/review-announcement.mjs",
+      "bytes": 2277,
+      "sha256": "3149bda4c8360ea6792507f12461034d2280783c8e156140968663255eee3f78",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/review-focus.mjs",
+      "bytes": 1424,
+      "sha256": "7b9837924b9c746fd6bfb2893afe56e21e521f4672413fceeb1ae6b8aeab0342",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/review-workspace.mjs",
+      "bytes": 16870,
+      "sha256": "f08ff9d1134352bb5957aadbcdd898fce52df5801decf596ba644e7eef7cb68f",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-analysis.css",
+      "bytes": 5681,
+      "sha256": "83a3d537ede5b0e8011eeeb99e59ca22b1a9e98a258cddcf3c566190d80f955e",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-analysis.mjs",
+      "bytes": 27323,
+      "sha256": "d8b8ebd0a4e9881274fc09714f8c7fedbea9fdd4aaa2f37f1ac5a17da1eaffdf",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-board.mjs",
+      "bytes": 4165,
+      "sha256": "9a5e000969d5a243e81efd65704d37cbd2fc669385d122798916c34190ead1b5",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-navigation.mjs",
+      "bytes": 2484,
+      "sha256": "6ed6cc8ba9621fed6ee11fd8079d1aab12afe98c2ba178fa010efb00ef8acedb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-openings.css",
+      "bytes": 7522,
+      "sha256": "1a6ad2f4d4f94bb903aab3e8c208bc7faffe150bfee5bfe988c2f1cfd6910464",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-openings.mjs",
+      "bytes": 27599,
+      "sha256": "b37bf3720f107c8184332eb6f7e01d5e6855bc441ba98416d3dbd41f060c88ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-quests.css",
+      "bytes": 7704,
+      "sha256": "ac8c997a8765331872b17c614d259883369828b8566ee1219538d0ff0eac271f",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-quests.mjs",
+      "bytes": 43059,
+      "sha256": "470424ca7733efcf84207f3ad13c74ce8cf9d0375ced2d09c8fc0301d1f8f667",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/chess-engine.mjs",
+      "bytes": 1758045,
+      "sha256": "67c378bd609849efd8be550b08acb348a7bd471408741c3dca209e66e00b5943",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/engine-worker.mjs",
+      "bytes": 10334,
+      "sha256": "bb31a62198530a50c308add28fc126e6096848ab8f036ae8d3332cbb178c9614",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/game-review.css",
+      "bytes": 22004,
+      "sha256": "23f498ce12c910f18cef26184f99813decd6c1e1bc73a9080bbad94a2b6deeb2",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/game-review.mjs",
+      "bytes": 77945,
+      "sha256": "305e77f754ab09e855aba35dcfe6bd1988b91ed3da5c601dac59ee53f67361ee",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/home-menu.mjs",
+      "bytes": 6105,
+      "sha256": "645400734073582fd5f8ddadb3a48c9b36395603e474f293287487e58d300d0d",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/match-bot-timer.mjs",
+      "bytes": 926,
+      "sha256": "b93822b55dad538b27d8efcc764149046097516e7ebb87bd30e43bbd0472e2fb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/match-inline-analysis.mjs",
+      "bytes": 8439,
+      "sha256": "74e7d83546bcb8f006807ce39000ed6de417f99e0e1a564e261de9dd5cda4120",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/options-menu.mjs",
+      "bytes": 1340,
+      "sha256": "981d8fe2dff5f148df4d4bea94ceae7f11218a66e768f9ab994b8129843e8f5b",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/player-profile.mjs",
+      "bytes": 846,
+      "sha256": "1cd7dd603ff911f1f0e612a398a3a1da60fdb75855ca1c03a7fccdc33c524445",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/review-announcement.mjs",
+      "bytes": 2277,
+      "sha256": "3149bda4c8360ea6792507f12461034d2280783c8e156140968663255eee3f78",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/review-focus.mjs",
+      "bytes": 1424,
+      "sha256": "7b9837924b9c746fd6bfb2893afe56e21e521f4672413fceeb1ae6b8aeab0342",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/review-workspace.mjs",
+      "bytes": 16870,
+      "sha256": "f08ff9d1134352bb5957aadbcdd898fce52df5801decf596ba644e7eef7cb68f",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-analysis.css",
+      "bytes": 5681,
+      "sha256": "83a3d537ede5b0e8011eeeb99e59ca22b1a9e98a258cddcf3c566190d80f955e",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-analysis.mjs",
+      "bytes": 27323,
+      "sha256": "d8b8ebd0a4e9881274fc09714f8c7fedbea9fdd4aaa2f37f1ac5a17da1eaffdf",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-board.mjs",
+      "bytes": 4165,
+      "sha256": "9a5e000969d5a243e81efd65704d37cbd2fc669385d122798916c34190ead1b5",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-navigation.mjs",
+      "bytes": 2484,
+      "sha256": "6ed6cc8ba9621fed6ee11fd8079d1aab12afe98c2ba178fa010efb00ef8acedb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-openings.css",
+      "bytes": 7522,
+      "sha256": "1a6ad2f4d4f94bb903aab3e8c208bc7faffe150bfee5bfe988c2f1cfd6910464",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-openings.mjs",
+      "bytes": 27599,
+      "sha256": "b37bf3720f107c8184332eb6f7e01d5e6855bc441ba98416d3dbd41f060c88ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-quests.css",
+      "bytes": 7845,
+      "sha256": "120b91a850579db6815ef261591f1e79d8dd8861b1cf263ff918013c49adc7ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-quests.mjs",
+      "bytes": 43059,
+      "sha256": "470424ca7733efcf84207f3ad13c74ce8cf9d0375ced2d09c8fc0301d1f8f667",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/chess-engine.mjs",
+      "bytes": 1758045,
+      "sha256": "67c378bd609849efd8be550b08acb348a7bd471408741c3dca209e66e00b5943",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/engine-worker.mjs",
+      "bytes": 10334,
+      "sha256": "bb31a62198530a50c308add28fc126e6096848ab8f036ae8d3332cbb178c9614",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/game-review.css",
+      "bytes": 22981,
+      "sha256": "8336cfeaebad44687fe0145136d263ab144c4052bcf5116c9c368a853969531b",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/game-review.mjs",
+      "bytes": 77945,
+      "sha256": "305e77f754ab09e855aba35dcfe6bd1988b91ed3da5c601dac59ee53f67361ee",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/home-menu.mjs",
+      "bytes": 6105,
+      "sha256": "645400734073582fd5f8ddadb3a48c9b36395603e474f293287487e58d300d0d",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/match-bot-timer.mjs",
+      "bytes": 926,
+      "sha256": "b93822b55dad538b27d8efcc764149046097516e7ebb87bd30e43bbd0472e2fb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/match-inline-analysis.mjs",
+      "bytes": 8439,
+      "sha256": "74e7d83546bcb8f006807ce39000ed6de417f99e0e1a564e261de9dd5cda4120",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/options-menu.mjs",
+      "bytes": 1340,
+      "sha256": "981d8fe2dff5f148df4d4bea94ceae7f11218a66e768f9ab994b8129843e8f5b",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/player-profile.mjs",
+      "bytes": 846,
+      "sha256": "1cd7dd603ff911f1f0e612a398a3a1da60fdb75855ca1c03a7fccdc33c524445",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/review-announcement.mjs",
+      "bytes": 2277,
+      "sha256": "3149bda4c8360ea6792507f12461034d2280783c8e156140968663255eee3f78",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/review-focus.mjs",
+      "bytes": 1424,
+      "sha256": "7b9837924b9c746fd6bfb2893afe56e21e521f4672413fceeb1ae6b8aeab0342",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/review-workspace.mjs",
+      "bytes": 16870,
+      "sha256": "f08ff9d1134352bb5957aadbcdd898fce52df5801decf596ba644e7eef7cb68f",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/study-analysis.css",
+      "bytes": 5681,
+      "sha256": "83a3d537ede5b0e8011eeeb99e59ca22b1a9e98a258cddcf3c566190d80f955e",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/study-analysis.mjs",
+      "bytes": 27323,
+      "sha256": "d8b8ebd0a4e9881274fc09714f8c7fedbea9fdd4aaa2f37f1ac5a17da1eaffdf",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/study-board.mjs",
+      "bytes": 4165,
+      "sha256": "9a5e000969d5a243e81efd65704d37cbd2fc669385d122798916c34190ead1b5",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/study-navigation.mjs",
+      "bytes": 2484,
+      "sha256": "6ed6cc8ba9621fed6ee11fd8079d1aab12afe98c2ba178fa010efb00ef8acedb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/study-openings.css",
+      "bytes": 7522,
+      "sha256": "1a6ad2f4d4f94bb903aab3e8c208bc7faffe150bfee5bfe988c2f1cfd6910464",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/study-openings.mjs",
+      "bytes": 27599,
+      "sha256": "b37bf3720f107c8184332eb6f7e01d5e6855bc441ba98416d3dbd41f060c88ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/study-quests.css",
+      "bytes": 7845,
+      "sha256": "120b91a850579db6815ef261591f1e79d8dd8861b1cf263ff918013c49adc7ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/5bd497c9a66ea3ffe9061afda8a6b5100d0d1e1d421aebdd3ea322c5a55d335b/study-quests.mjs",
+      "bytes": 43059,
+      "sha256": "470424ca7733efcf84207f3ad13c74ce8cf9d0375ced2d09c8fc0301d1f8f667",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/chess-engine.mjs",
+      "bytes": 1762164,
+      "sha256": "11af7a925da8dbf70d8e5c1394fa53111e46e8e5ce12aedd9ebce7e520b66b64",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/engine-worker.mjs",
+      "bytes": 10334,
+      "sha256": "bb31a62198530a50c308add28fc126e6096848ab8f036ae8d3332cbb178c9614",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/game-review.css",
+      "bytes": 22970,
+      "sha256": "7fb239a791d05a240b17ce59d45aa031992887207fe95dfba371c50698802ecb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/game-review.mjs",
+      "bytes": 77689,
+      "sha256": "a60713793f67a23ce3562af326c5ae2b19a31a4ea0cff527870e5f3c59964a1c",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/home-menu.mjs",
+      "bytes": 5980,
+      "sha256": "5b00bfad09cd74619611fee226ff55b02cbb1fc91d78b4b9ee79b327b0068270",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/match-bot-timer.mjs",
+      "bytes": 926,
+      "sha256": "b93822b55dad538b27d8efcc764149046097516e7ebb87bd30e43bbd0472e2fb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/match-inline-analysis.mjs",
+      "bytes": 8439,
+      "sha256": "74e7d83546bcb8f006807ce39000ed6de417f99e0e1a564e261de9dd5cda4120",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/options-menu.mjs",
+      "bytes": 4852,
+      "sha256": "56c716890f84080775d7b7dedb45ee851e95df27116d7da13bf46e154e1ffcc3",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/player-profile.mjs",
+      "bytes": 846,
+      "sha256": "1cd7dd603ff911f1f0e612a398a3a1da60fdb75855ca1c03a7fccdc33c524445",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/review-announcement.mjs",
+      "bytes": 2277,
+      "sha256": "3149bda4c8360ea6792507f12461034d2280783c8e156140968663255eee3f78",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/review-focus.mjs",
+      "bytes": 1424,
+      "sha256": "7b9837924b9c746fd6bfb2893afe56e21e521f4672413fceeb1ae6b8aeab0342",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/review-import.mjs",
+      "bytes": 726,
+      "sha256": "8596da86a325260f458a85089b716a1182abf0ab8fcdc25eaf46e9b750413ed8",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/review-workspace.mjs",
+      "bytes": 16870,
+      "sha256": "f08ff9d1134352bb5957aadbcdd898fce52df5801decf596ba644e7eef7cb68f",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/study-analysis.css",
+      "bytes": 5412,
+      "sha256": "12c47081e8add42492a57242c8c88b57c6c670a0ed4548501e6eebd4fb0c64c4",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/study-analysis.mjs",
+      "bytes": 27926,
+      "sha256": "989e8770c10dda3636f89d2791047009156fbebff5517485ba9ae26702c1e3ec",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/study-board.mjs",
+      "bytes": 4165,
+      "sha256": "9a5e000969d5a243e81efd65704d37cbd2fc669385d122798916c34190ead1b5",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/study-navigation.mjs",
+      "bytes": 2484,
+      "sha256": "6ed6cc8ba9621fed6ee11fd8079d1aab12afe98c2ba178fa010efb00ef8acedb",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/study-openings.css",
+      "bytes": 7522,
+      "sha256": "1a6ad2f4d4f94bb903aab3e8c208bc7faffe150bfee5bfe988c2f1cfd6910464",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/study-openings.mjs",
+      "bytes": 27599,
+      "sha256": "b37bf3720f107c8184332eb6f7e01d5e6855bc441ba98416d3dbd41f060c88ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/study-quests.css",
+      "bytes": 7845,
+      "sha256": "120b91a850579db6815ef261591f1e79d8dd8861b1cf263ff918013c49adc7ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "runtime/9e34de91c3b6d1cabd8a00e4668d5fe59545f36b98da2bd958384121c833dd49/study-quests.mjs",
+      "bytes": 43059,
+      "sha256": "470424ca7733efcf84207f3ad13c74ce8cf9d0375ced2d09c8fc0301d1f8f667",
+      "httpStatus": 200
+    },
+    {
+      "file": "study-analysis.css",
+      "bytes": 5681,
+      "sha256": "83a3d537ede5b0e8011eeeb99e59ca22b1a9e98a258cddcf3c566190d80f955e",
+      "httpStatus": 200
+    },
+    {
+      "file": "study-analysis.mjs",
+      "bytes": 27323,
+      "sha256": "d8b8ebd0a4e9881274fc09714f8c7fedbea9fdd4aaa2f37f1ac5a17da1eaffdf",
+      "httpStatus": 200
+    },
+    {
+      "file": "study-board.mjs",
+      "bytes": 4165,
+      "sha256": "9a5e000969d5a243e81efd65704d37cbd2fc669385d122798916c34190ead1b5",
+      "httpStatus": 200
+    },
+    {
+      "file": "study-navigation.mjs",
+      "bytes": 2484,
+      "sha256": "6ed6cc8ba9621fed6ee11fd8079d1aab12afe98c2ba178fa010efb00ef8acedb",
+      "httpStatus": 200
+    },
+    {
+      "file": "study-openings.css",
+      "bytes": 7522,
+      "sha256": "1a6ad2f4d4f94bb903aab3e8c208bc7faffe150bfee5bfe988c2f1cfd6910464",
+      "httpStatus": 200
+    },
+    {
+      "file": "study-openings.mjs",
+      "bytes": 27599,
+      "sha256": "b37bf3720f107c8184332eb6f7e01d5e6855bc441ba98416d3dbd41f060c88ea",
+      "httpStatus": 200
+    },
+    {
+      "file": "study-quests.css",
+      "bytes": 7704,
+      "sha256": "ac8c997a8765331872b17c614d259883369828b8566ee1219538d0ff0eac271f",
+      "httpStatus": 200
+    },
+    {
+      "file": "study-quests.mjs",
+      "bytes": 43059,
+      "sha256": "470424ca7733efcf84207f3ad13c74ce8cf9d0375ced2d09c8fc0301d1f8f667",
+      "httpStatus": 200
+    }
+  ],
+  "visualMcp": "NOT_RUN",
+  "visualParity": "NOT_VALIDATED",
+  "observedUtc": "2026-11-17T20:15:31.944Z",
+  "deployedMainCommit": "a58e0c6b58413d7dd23b933f0d65641833128285",
+  "servedAssetCount": 124,
+  "deployment": {
+    "sourceCommit": "55768279200be9bba0644efd28737af3c957c1b6",
+    "mainCommit": "a58e0c6b58413d7dd23b933f0d65641833128285",
+    "siteCommit": "e0651472291296a467e5bff887544872e91b591b",
+    "runtimeDirectory": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b",
+    "manifestSha256": "7d434e3061ed248b3ba67a0e5cc6966cc4be5eff96ac2c2dd2988172d5c398bc",
+    "workflowBlob": "73cb7b8a366cb92d03efd4d5f6e95fb030fb91c5",
+    "workflowSha256": "f849ddfa3855eefbf86480b2d4e4f4643f4c6adf041c06be2d6a1f7fe2e45e19",
+    "runId": 44167271245,
+    "url": "https://github.com/crististefanita/chess/actions/runs/44167271245",
+    "status": "completed",
+    "conclusion": "success",
+    "visualMcp": "NOT_RUN",
+    "observedUtc": "2026-11-17T20:15:20.9017633Z"
+  },
+  "sourceTreeManifestSha256": "338fcc88a60afa7dfa959801eb3e2aee3008c8dd3a117c82f31ee240c2d5fd76"
+}
