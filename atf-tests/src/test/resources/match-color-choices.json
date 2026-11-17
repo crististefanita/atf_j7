@@ -1,0 +1,6 @@
+[
+  {"id":"explicit-white","choice":"WHITE","randomBlack":true,"side":"WHITE","draws":0,"blackBelow":false,"awaitingBot":false,"level":"BASIC"},
+  {"id":"explicit-black","choice":"BLACK","randomBlack":false,"side":"BLACK","draws":0,"blackBelow":true,"awaitingBot":true,"level":"HARD"},
+  {"id":"random-white","choice":"RANDOM","randomBlack":false,"side":"WHITE","draws":1,"blackBelow":false,"awaitingBot":false,"level":"ADVANCED"},
+  {"id":"random-black","choice":"RANDOM","randomBlack":true,"side":"BLACK","draws":1,"blackBelow":true,"awaitingBot":true,"level":"BASIC"}
+]

@@ -57,6 +57,12 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 `ChessWebShellTest` compară titlul și grupurile din Web cu resursele APK. Componentele de navigare simulează istoricul browserului, accesul direct la o secțiune și revenirea la meniu. Guvernanța verifică adresa publică din README, iar sanity-ul pornește din acel link într-un profil nou. [Contractul meniului](../../web/README.md#meniul-principal-și-piesele)
 
+Pentru culoarea inițială, `MatchSetupTest` și `ChessWebParityPublication#packagedWorkerResolvesAndSavesTheSharedColorChoices` folosesc același fixture cu rezultate explicite pentru Alb, Negru și ambele rezultate aleatorii. Raportul verifică numărul de extrageri, orientarea, tura și păstrarea culorii după redeschidere. Adaptorul de test verifică și respingerea unei replici AI cu revizie expirată. `ChessWebShellTest` compară ordinea și textele RO/EN ale opțiunilor cu resursele Android.
+
+`ChessWebStudyShellTest` verifică fără browser că tablele din Probleme și Partide folosesc aceeași regulă CSS și păstrează comenzile în structura de joc. În proba de browser, măsurați dreptunghiurile tablei și ale comenzilor vizibile în ambele ecrane, la 360 × 640 și 1280 × 900 CSS px cu text la 130%. După prima mutare, verificați că tabla rămâne fixă, istoricul încape și documentul nu cere derulare în aceste profiluri. [Regula de dimensionare](../../web/README.md#tabla-din-probleme-și-din-partidă)
+
+Proba MCP a măsurat aceeași latură în ambele ecrane, 324 px pe compact în RO și 469,8 px pe desktop în EN. La 320 × 480 în RO, ambele table păstrează o latură de 249,6 px și pot derula vertical pentru a păstra accesul la comenzi.
+
 ### Partide salvate, arhivă și continuare
 
 `MatchStoreTest`, `MatchLedgerTest` și `MatchLedgerPreferencesTest` verifică migrarea, ordinea, retenția și selecția slotului. Cazurile acoperă rescrierea slotului activ, o continuare separată din arhivă și refuzul când toate sloturile sunt ocupate. `ChessWebLedgerPublication` verifică biblioteca după reîncărcare, checkpointurile și capturile din Edge. [Probe Web](../../web/README.md#partide-salvate-și-încheiate)

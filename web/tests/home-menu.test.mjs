@@ -58,6 +58,29 @@ test('Only active saved games show the home action', () => {
     assert.equal(hasSavedHomeGames([{ result: 'IN_PROGRESS' }]), true);
 });
 
+test('AI color choices preserve Android order and RO and EN labels', async () => {
+    const [html, adapter, arrays, english, romanian] = await Promise.all([
+        read('web/src/main/web/index.html'),
+        read('web/src/main/web/game-review.mjs'),
+        read('android/app/src/main/res/values/match_arrays.xml'),
+        read('android/app/src/main/res/values/strings.xml'),
+        read('android/app/src/main/res/values-ro/strings.xml'),
+    ]);
+    const colorArray = arrays.match(/<string-array name="match_colors">([^]*?)<\/string-array>/)?.[1] ?? '';
+    const nativeIds = [...colorArray.matchAll(/<item>@string\/(\w+)<\/item>/g)].map(match => match[1]);
+    const colorSelect = html.match(/<select id="ai-side">([^]*?)<\/select>/)?.[1] ?? '';
+    const labels = [...colorSelect.matchAll(/<option id="([^"]+)" value="([^"]+)">([^<]+)<\/option>/g)];
+    const resourceFor = { WHITE: 'white', BLACK: 'black', RANDOM: 'match_random_color' };
+    assert.deepEqual(labels.map(([, , value]) => resourceFor[value]), nativeIds);
+    assert.deepEqual(nativeIds, ['white', 'black', 'match_random_color']);
+    const nativeLabel = (resources, id) => resources.match(new RegExp('<string name="' + id + '">([^<]+)'))?.[1];
+    for (const [index, [, id, , label]] of labels.entries()) {
+        assert.equal(label, nativeLabel(english, nativeIds[index]), id);
+        const localized = [...adapter.matchAll(new RegExp("'" + id + "': '([^']+)'", 'g'))].map(match => match[1]);
+        assert.deepEqual(localized, [label, nativeLabel(romanian, nativeIds[index])], id);
+    }
+});
+
 test('Profile persistence respects the native validator and write failures', async () => {
     const entries = new Map();
     const storage = { getItem: key => entries.get(key), setItem: (key, value) => entries.set(key, value) };

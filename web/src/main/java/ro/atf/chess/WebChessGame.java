@@ -5,6 +5,7 @@ import org.teavm.jso.JSBody;
 import ro.atf.chess.ChessGameSession.Outcome;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
+import ro.atf.chess.MatchSetup.ColorChoice;
 import ro.atf.chess.MatchSetup.Level;
 import static ro.atf.chess.WebBoardState.move;
 import static ro.atf.chess.WebBoardState.placement;
@@ -27,7 +28,7 @@ final class WebChessGame {
         return select(null, null, false, 0, null);
     }
 
-    String open(String route, int selectedSlot, String selectedArchive, String newMode, String humanSide, String level) {
+    String open(String route, int selectedSlot, String selectedArchive, String newMode, String colorChoice, String level) {
         var matches = matches();
         if (selectedArchive != null) {
             var archived = matches.readArchivedMatch(selectedArchive);
@@ -37,7 +38,8 @@ final class WebChessGame {
         if (newMode != null) {
             Mode choice = Mode.valueOf(newMode);
             var match = choice == Mode.LOCAL ? ChessMatch.start()
-                    : ChessMatch.start(new MatchSetup(Side.valueOf(humanSide), Level.valueOf(level), false));
+                    : ChessMatch.start(new MatchSetup(ColorChoice.valueOf(colorChoice).resolve(WebChessGame::randomBlack),
+                            Level.valueOf(level), false));
             return startMatch(match, choice);
         }
         if (route != null) return resumeMode(Mode.valueOf(route));
@@ -230,4 +232,7 @@ final class WebChessGame {
 
     @JSBody(script = "return crypto.randomUUID();")
     private static native String newId();
+
+    @JSBody(script = "return Math.random() < 0.5;")
+    private static native boolean randomBlack();
 }

@@ -34,6 +34,7 @@ class ChessWebShellTest {
         check.same("All Android reference and Web adapter contracts execute", List.of(
                 "Web home preserves Android groups, action order and RO and EN labels",
                 "Only active saved games show the home action",
+                "AI color choices preserve Android order and RO and EN labels",
                 "Profile persistence respects the native validator and write failures",
                 "Board piece renderer reuses the same Staunton SVG on a move and clears it on capture",
                 "Home name, settings and AI profile share the existing dialog and stored profile",

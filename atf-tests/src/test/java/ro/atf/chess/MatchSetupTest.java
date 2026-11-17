@@ -1,7 +1,10 @@
 package ro.atf.chess;
 
 import atf.testkit.AtfComponentTest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ro.atf.chess.ChessPosition.Side;
@@ -12,15 +15,44 @@ import ro.atf.chess.MatchSetup.Level;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class MatchSetupTest {
-    @Test void savesTheResolvedSeatAndTheWhiteOpeningForABlackPlayer(Checks check) {
-        check.same("The explicit seats ignore the random source", List.of(Side.WHITE, Side.BLACK),
-                List.of(ColorChoice.WHITE.resolve(() -> true), ColorChoice.BLACK.resolve(() -> false)));
-        check.same("Random can resolve to either seat", List.of(Side.WHITE, Side.BLACK),
-                List.of(ColorChoice.RANDOM.resolve(() -> false), ColorChoice.RANDOM.resolve(() -> true)));
-        var setup = new MatchSetup(ColorChoice.RANDOM.resolve(() -> true), Level.HARD, true);
+    private record ColorCase(String id, ColorChoice choice, boolean randomBlack, Side side, int draws,
+                             boolean blackBelow, boolean awaitingBot, Level level) { }
+
+    @Test void sharedColorChoicesKeepTheResolvedBoardAndOpeningTurn(Checks check) throws IOException {
+        ColorCase[] cases;
+        try (var fixture = MatchSetupTest.class.getResourceAsStream("/match-color-choices.json")) {
+            cases = new ObjectMapper().readValue(fixture, ColorCase[].class);
+        }
+        check.same("The shared fixture covers both fixed colors and both random outcomes", 4, cases.length);
+        for (var example : cases) {
+            var draws = new AtomicInteger();
+            var side = example.choice().resolve(() -> {
+                draws.incrementAndGet();
+                return example.randomBlack();
+            });
+            var match = ChessMatch.start(new MatchSetup(side, example.level(), true));
+            var preferences = new MemoryPreferences();
+            var setupStore = store(preferences);
+            check.same(example.id() + " writes the new match", true,
+                    setupStore.startMatch(1, match, side == Side.BLACK, false, false));
+            var reopened = store(preferences);
+            var restored = reopened.readMatch(1);
+            check.same(example.id() + " keeps the resolved color, level and orientation",
+                    List.of(new MatchSetup(example.side(), example.level(), true), example.blackBelow()),
+                    List.of(restored.setup(), reopened.matchBlackBelow(1)));
+            check.same(example.id() + " keeps the opening turn and expected draw count",
+                    List.of(0, Side.WHITE, example.awaitingBot(), example.draws()),
+                    List.of(restored.ply(), restored.position().turn(), restored.awaitingBot(), draws.get()));
+        }
+    }
+
+    private static MatchStore store(MemoryPreferences preferences) {
+        return new MatchStore(preferences, () -> 1L, () -> "00000000-0000-4000-8000-000000000000");
+    }
+
+    @Test void resumesAfterTheComputersWhiteOpeningForABlackPlayer(Checks check) {
+        var setup = new MatchSetup(Side.BLACK, Level.HARD, true);
         var before = ChessMatch.restore(ChessMatch.start(setup).checkpoint());
-        check.same("The resolved settings survive before any move", setup, before.setup());
-        check.same("The computer opens for White when the human is Black", true, before.awaitingBot());
         var opening = before.chooseBotMove();
         check.same("The White opening is legal", true, before.position().legalMoves().contains(opening));
         var resumed = ChessMatch.restore(before.play(opening).checkpoint());

@@ -1,5 +1,6 @@
 package ro.atf.chess;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -36,7 +37,7 @@ class ChessWebParityPublication {
         var inventory = String.join("\n", resources);
         var inventoryFile = Files.writeString(evidence.resolve("yaml-files.txt"), inventory);
         var jvm = ChessWebRulesComponentTest.rows(ChessWebParity.snapshot(inventory));
-        var web = ChessWebRulesComponentTest.rows(runWorker(root, worker, inventoryFile));
+        var web = ChessWebRulesComponentTest.rows(runWorker(root, "run-parity-worker.mjs", worker, inventoryFile));
 
         check.same("Worker exercised every source YAML resource", resources, ChessWebRulesComponentTest.resourceRows(web));
         check.same("Worker executes precisely the same fixture cases as JVM", jvm.keySet(), web.keySet());
@@ -49,11 +50,33 @@ class ChessWebParityPublication {
                 workerHash, sha256(Files.readAllBytes(worker)));
     }
 
-    private String runWorker(Path root, Path worker, Path inventory) throws IOException, InterruptedException {
+    @Test void packagedWorkerResolvesAndSavesTheSharedColorChoices(Checks check) throws Exception {
+        var configured = System.getProperty("chess.web.bundle", "");
+        check.same("The packaged worker is supplied for the color case", true, !configured.isBlank());
+        var root = ProjectRoot.locate();
+        var fixture = root.resolve("atf-tests/src/test/resources/match-color-choices.json");
+        var worker = Path.of(configured).toAbsolutePath().normalize().resolve("engine-worker.mjs");
+        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-color-worker.mjs", worker, fixture).strip());
+        var cases = new ObjectMapper().readTree(fixture.toFile());
+        for (var color : cases) {
+            String id = color.get("id").asText();
+            String expected = String.join("/", color.get("side").asText(), color.get("level").asText(),
+                    color.get("blackBelow").asText(), color.get("awaitingBot").asText(), color.get("draws").asText());
+            check.same(id + " resolves color, level, orientation, opening turn and draw count across reload", expected, rows.get(id));
+        }
+        check.same("A restored Black game applies one opening reply and rejects replay at the old revision",
+                "APPLIED/1/BLACK/STALE/1/1", rows.get("random-black-single-reply"));
+        check.same("An unsupported color is rejected without changing the saved game",
+                "TypeError: Invalid chess worker request", rows.get("invalid-choice"));
+        check.same("The packaged worker reports every shared case and both negative or replay observations",
+                cases.size() + 2, rows.size());
+    }
+
+    private String runWorker(Path root, String script, Path worker, Path input) throws IOException, InterruptedException {
         var stdout = evidence.resolve("worker-result.txt");
         var stderr = evidence.resolve("worker-error.txt");
-        var process = new ProcessBuilder("node", root.resolve("web/tests/run-parity-worker.mjs").toString(),
-                worker.toString(), inventory.toString())
+        var process = new ProcessBuilder(System.getProperty("chess.web.node", "node"),
+                root.resolve("web/tests").resolve(script).toString(), worker.toString(), input.toString())
                 .redirectOutput(stdout.toFile()).redirectError(stderr.toFile()).start();
         try {
             if (!process.waitFor(55, TimeUnit.SECONDS)) {

@@ -27,7 +27,8 @@ class ChessWebStudyShellTest {
                 "Study draws the native origin and destination cue in both board orientations",
                 "Study descriptions distinguish the hint, destination and legal move with native RO and EN labels",
                 "Hint overlay survives board rotation and is removed when the solution is hidden",
-                "Keyboard follows displayed squares without wrapping rows or activating a locked position"));
+                "Keyboard follows displayed squares without wrapping rows or activating a locked position",
+                "Puzzle and match boards share the viewport budget and keep controls in view"));
     }
 
     @Test

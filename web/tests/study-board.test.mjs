@@ -196,3 +196,29 @@ test('Keyboard follows displayed squares without wrapping rows or activating a l
     assert.equal(children[8].tabIndex, -1);
     assert.equal(children[9].tabIndex, 0);
 });
+
+test('Puzzle and match boards share the viewport budget and keep controls in view', async () => {
+    const source = name => readFile(new URL(`../src/main/web/${name}`, import.meta.url), 'utf8');
+    const [css, puzzleCss, matchMarkup, puzzleMarkup] = await Promise.all([
+        source('game-review.css'), source('study-quests.css'), source('index.html'), source('study-quests.mjs'),
+    ]);
+    const sharedBoard = css.match(/:is\(\s*#match-board\s*,\s*#quest-study-board\s*\)\s*\{([^}]+)\}/)?.[1];
+    assert.ok(sharedBoard, 'both boards use one sizing rule');
+    assert.match(sharedBoard, /inline-size:\s*min\(100%,\s*var\(--play-board-limit\)\);/);
+    assert.match(sharedBoard, /margin-inline:\s*auto;/);
+    assert.match(css, /\.board\s*\{[^}]*aspect-ratio:\s*1\s*;/);
+    assert.match(css, /--play-board-limit:[^;]*var\(--play-column\)[^;]*100dvh\s*-\s*var\(--play-chrome\)/);
+    const chromeBudget = css.match(/--play-chrome:\s*([^;]+);/)?.[1];
+    assert.ok(chromeBudget, 'the shared budget names the space around the board');
+    for (const token of ['--play-insets', '--play-action-size', '--play-puzzle-text']) {
+        assert.ok(chromeBudget.includes(`var(${token})`), `the board reserves ${token}`);
+    }
+    assert.match(css, /\.match-actions button\s*\{[^}]*flex:[^;]*min-content;[^}]*overflow-wrap:\s*normal;/);
+    assert.match(css, /#match-history\s*\{[^}]*flex-wrap:\s*nowrap;/);
+    assert.match(css, /#match-history :is\(#match-previous, #match-next\)\s*\{[^}]*min-inline-size:\s*var\(--play-action-size\);/);
+    assert.match(puzzleCss, /\.quest-study-board-and-details\s*\{[^}]*min-block-size:[^;]*var\(--play-board-limit\)[^;]*\+\s*2lh/);
+    assert.match(puzzleCss, /\.quest-study-details,[^}]*overflow:\s*auto;/);
+
+    assert.match(matchMarkup, /<section id="match"[^]*?<div id="match-board"[^>]*><\/div>[^]*?<nav id="match-history"[^]*?<div class="movement match-actions">/);
+    assert.match(puzzleMarkup, /<section id="quest-study-game"[^]*?<div id="quest-study-board"[^>]*><\/div>[^]*?<div id="quest-study-description"[^]*?<div class="quest-study-footer">/);
+});

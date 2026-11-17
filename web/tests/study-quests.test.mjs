@@ -377,7 +377,8 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     assert.match(css, /\[data-replay\]\[open\]\s*\{[^}]*height:\s*100dvh/);
     const compact = css.slice(css.indexOf('@media (max-width: 480px)'), css.indexOf('@media (max-width: 20rem)'));
     assert.match(compact, /:has\(#quest-study-game:not\(\[hidden\]\)\)[^}]*--study-top-gap:\s*0px;[^}]*--quest-room-padding:\s*0px;[^}]*--quest-action-size:\s*48px;/);
-    assert.match(compact, /#quest-study-hint-label\s*\{[^}]*min-block-size:\s*1lh;[^}]*max-inline-size:\s*none;/);
+    assert.match(css, /#quest-study-hint-label\s*\{[^}]*min-block-size:\s*1lh;/);
+    assert.match(compact, /#quest-study-hint-label\s*\{[^}]*max-inline-size:\s*none;/);
     assert.match(compact, /\[data-replay\] \.quest-study-dialog\s*\{\s*padding-inline:\s*0;/);
     assert.match(css, /\.quest-study-board-and-details,[^}]*grid-template-rows:\s*auto minmax\(2lh, 1fr\);/);
 });

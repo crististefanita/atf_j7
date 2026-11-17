@@ -106,7 +106,7 @@ function validMatchOpen(route, slot, archiveId, setup) {
   if (route != null) return ["LOCAL", "AI"].includes(route);
   if (slot != null) return Number.isInteger(slot) && slot >= 1 && slot <= 10;
   if (archiveId != null) return validArchiveId(archiveId);
-  return setup.mode === "LOCAL" || (setup.mode === "AI" && ["WHITE", "BLACK"].includes(setup.humanSide)
+  return setup.mode === "LOCAL" || (setup.mode === "AI" && ["WHITE", "BLACK", "RANDOM"].includes(setup.humanSide)
     && ["BASIC", "ADVANCED", "HARD"].includes(setup.level));
 }
 

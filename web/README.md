@@ -18,7 +18,7 @@ Proba explicită cere pachetul compilat și compară rezultatele efective din JV
 
 ## Partida cu AI
 
-**Partidă cu AI** deschide alegerea culorii și a profilului Basic, Advanced sau Hard. Workerul folosește aceeași căutare ca motorul Android pentru o replică fără lucru pregătit în fundal. Culoarea și nivelul se păstrează în checkpoint. Browserul salvează tura curentă înainte de a afișa mutarea și programează căutarea după pauza de 650 ms. După reîncărcare, poziția decide dacă mai este rândul AI. Workerul respinge reviziile expirate, iar o replică deja salvată lasă jucătorul la mutare.
+**Partidă cu AI** deschide aceleași alegeri ca pe Android, Alb, Negru sau Aleatoriu, și nivelurile Basic, Advanced și Hard. Workerul alege culoarea aleatorie o singură dată la crearea jocului și păstrează culoarea rezultată și nivelul în checkpoint. Browserul salvează tura curentă înainte de a afișa mutarea și programează căutarea după pauza de 650 ms. După reîncărcare, poziția decide dacă mai este rândul AI. Workerul respinge reviziile expirate, iar o replică deja salvată lasă jucătorul la mutare.
 
 Din meniul principal, schimbă limba în **Setări** și numele afișat în **Nume**. După salvarea limbii se redeschide același meniu, inclusiv când browserul păstrează o analiză. **Profil** este disponibil din partida cu AI și păstrează ruta partidei după schimbare. Browserul salvează profilul local, separat de partide. Limba implicită este engleza, iar un nume gol afișează **You** sau **Tu**, în funcție de limbă. `ChessWebShellTest` verifică reîncărcarea cu stocare, istoric și adresă simulate. [Strategia de testare](../docs/testing/README.md)
 
@@ -31,6 +31,10 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 ```
 
 Proba pornește browserul sub `/chess/`, reîncarcă în tura calculatorului și verifică mutarea cu JVM. Schimbă apoi numele și limba, reîncarcă și confirmă că partida are același checkpoint. Raportul încorporează capturile. Pentru verificarea destinației publice, treceți URL-ul din README ca ultim argument al comenzii Node și adăugați `-Dchess.web.bot.public=true` la publicarea Extent. Driverul verifică fișierele servite înaintea probei Edge. [Proba Android](../docs/testing/README.md#partidă-și-istoric)
+
+### Tabla din Probleme și din partidă
+
+Problemele și partidele cu AI folosesc același pătrat pentru aceeași fereastră și mărime a textului. Dimensiunea pornește de la spațiul disponibil în Probleme și rezervă loc pentru comenzi și istoric. Pe ferestre foarte scunde, pagina poate derula pentru a păstra tabla și comenzile utilizabile. [Verificarea dimensiunilor](../docs/testing/README.md#paritatea-web-a-motorului)
 
 ## Partide salvate și încheiate
 

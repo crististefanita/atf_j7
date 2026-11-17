@@ -293,11 +293,13 @@ try {
         await until(async () => (await evaluate('performance.timeOrigin')) !== previousPage, 'new page after a real reload');
     }
 
-    async function chooseLastOption(selector, value) {
+    async function chooseOption(selector, value) {
+        const index = await evaluate(`Array.from(document.querySelector(${JSON.stringify(selector)}).options)
+            .findIndex(option => option.value === ${JSON.stringify(value)})`);
+        assert.ok(index >= 0, `Option ${value} exists in ${selector}`);
         await evaluate(`document.querySelector(${JSON.stringify(selector)}).focus()`);
-        const key = { key: 'End', code: 'End', windowsVirtualKeyCode: 35 };
-        await send('Input.dispatchKeyEvent', { ...key, type: 'rawKeyDown' });
-        await send('Input.dispatchKeyEvent', { ...key, type: 'keyUp' });
+        await pressKey('Home');
+        for (let step = 0; step < index; step++) await pressKey('ArrowDown');
         await until(async () => await evaluate(`document.querySelector(${JSON.stringify(selector)}).value`) === value, `chosen option ${value}`);
     }
 
@@ -322,8 +324,8 @@ try {
         await until(() => evaluate(visible('#ai-setup')), 'native AI setup');
         const choices = await evaluate(`[...document.querySelector('#ai-level').options].map(option => option.value).join(',')`);
         assert.equal(choices, 'BASIC,ADVANCED,HARD');
-        await chooseLastOption('#ai-side', 'BLACK');
-        await chooseLastOption('#ai-level', 'HARD');
+        await chooseOption('#ai-side', 'BLACK');
+        await chooseOption('#ai-level', 'HARD');
         await touch('#start-ai');
         const pending = await waitActive('black player before first AI reply', value => value.ply === 0 && value.awaitingBot);
         const pendingMatchCheckpoint = '3|BLACK|HARD|0|';

@@ -136,8 +136,8 @@ public final class ChessWebEngine {
     }
 
     @JSExport
-    public static String openMatch(String route, int slot, String archiveId, String mode, String humanSide, String level) {
-        return GAME.open(route, slot, archiveId, mode, humanSide, level);
+    public static String openMatch(String route, int slot, String archiveId, String mode, String colorChoice, String level) {
+        return GAME.open(route, slot, archiveId, mode, colorChoice, level);
     }
 
     @JSExport

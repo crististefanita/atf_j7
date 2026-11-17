@@ -27,6 +27,8 @@ O probă independentă a deschis ediția publică Whist în Edge la 414 × 896 C
 
 **Game Review · Web.** NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului în ediția anterioară. Graficul folosește acum o singură valoare accesibilă, cu poziție și scor. Componenta acoperă actualizările repetate, iar Extent respinge o recepție Web cu descrierea duplicată. Confirmați vorbirea pe build-ul corectat în RO și EN. Păstrați focusul pe grafic între două semimutări cu scoruri diferite și verificați revenirea la declanșator după **De ce?**. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-game-review)
 
+**Partida cu AI · Web.** Android permite activarea analizei la pornirea partidei. Aliniați opțiunea Web și testați separat preferința salvată, momentul apariției barei și comportamentul după reluare. Urmăriți și trecerea între replica automată și controlul manual la aceeași poziție. [Matricea APK–Web](../../web/parity.md#contracte-și-probe)
+
 ## WEB-02 · Adaptoare și afișaj comun
 
 **Teorie confirmată pe GitHub Pages.** Browserul MCP a extras `study-analysis.css` din pagina publică, iar fișierul coincide octet cu octet cu `5567c43`. După `e4`, cele trei variante, săgețile și explicația încap fără suprapuneri la 360 × 640 și 1280 × 900, cu text standard. Linia 3 redă `c7–c6`, iar revenirea la Linia 1 arată pasul 0 și `e7–e5`. Proba la text 130% folosește pachetul Web verificat în profilul local compact. [Publicarea GitHub Pages](https://github.com/crististefanita/atf_j7/actions/runs/44027124870) · [Pașii Studiu](../../web/README.md#studiu)
