@@ -113,14 +113,14 @@ class HintPreviewTest {
         check.same("An empty engine continuation cannot be opened", true, HintPreview.open(board, line(Ending.HORIZON)).isEmpty());
     }
 
-    @Test void extendsTheSicilianCaptureThroughTheBestImmediateDefence(Checks check) {
+    @Test void replaysTheScoredSicilianRecaptureWithoutAddingAnUnscoredMove(Checks check) {
         var root = ChessMatch.restore("2|analysis|e2e4 c7c5 g1f3 d7d6 d2d4").position();
-        var variation = line(Ending.HORIZON, "c5d4", "f3d4", "d8b6", "d4e2", "b6f2");
+        var variation = line(Ending.HORIZON, "c5d4", "f3d4", "d8b6", "d4e2", "b6f2", "e1f2");
         var preview = HintPreview.openDefended(root, variation).orElseThrow();
         preview.seek(5);
         int beforeReply = TacticalAnalysis.positionValue(preview.position(), Side.BLACK);
         preview.next();
-        check.same("The sixth ply exposes the reply that wins Black's queen", List.of(true, 6, "e1f2", Side.BLACK),
+        check.same("The scored sixth ply exposes the reply that wins Black's queen", List.of(false, 6, "e1f2", Side.BLACK),
                 List.of(preview.addedDefense(), preview.length(), preview.lastMove().uci(), preview.position().turn()));
         var estimate = preview.estimate().orElseThrow();
         check.same("The same Black perspective turns an apparent gain into a loss", List.of(-68, -832, -764, true),

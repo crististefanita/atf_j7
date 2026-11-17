@@ -76,6 +76,7 @@ final class MatchAiPolicy {
         var row = ChessYaml.map(root, "hint");
         requireKeys(row, "max-plies", "extra-nodes", "max-variants", "max-loss-cp", "tactical-extension-plies", "verification-nodes");
         Search search = search(row);
+        if (search.extraNodes() > 200_000) throw new IllegalArgumentException("Hint search exceeds 200,000 total nodes");
         int verification = bounded(row, "verification-nodes", 1_000, 60_000);
         if (search.maxPlies() < previous.maxPlies() || search.extraNodes() <= previous.extraNodes() + verification) {
             throw new IllegalArgumentException("Hint search needs at least the Hard depth and a larger budget");

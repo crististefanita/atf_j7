@@ -72,7 +72,7 @@ class MatchSetupTest {
         check.same("Hard completes the new sixth horizon on this position", 6, depths.get(2));
     }
 
-    @Test void hardConfirmsUnstableOpeningMovesWithinTheExistingBudget(Checks check) {
+    @Test void hardFollowsDocumentedTheoryAndKeepsItsIndependentSearchControl(Checks check) {
         var catalog = OpeningCatalog.load();
         for (String id : List.of("french", "scandinavian")) {
             var lesson = catalog.stream().filter(item -> item.id().equals(id)).findFirst().orElseThrow();
@@ -80,9 +80,17 @@ class MatchSetupTest {
             var position = lesson.positionAt(french ? 9 : 7);
             var match = ChessMatch.fromPosition(position, new MatchSetup(Side.WHITE, Level.HARD, false));
             var decision = match.botDecision();
-            check.same(id + " Hard decision rejects the premature queen move", french ? "c5d4" : "g8f6", decision.move().uci());
+            check.same(id + " follows its documented opening continuation", french ? "d8b6" : "g8f6", decision.move().uci());
+            check.same(id + " theory agrees with the actual position", true,
+                    OpeningTheory.CURRENT.choices(position).stream().anyMatch(path -> path.move().equals(decision.move())));
             check.same(id + " uses at most the Hard budget", true,
                     decision.extraNodes() <= HardAdaptivePolicy.CURRENT.search().extraNodes());
+            // An explicit nonzero comparison gap bypasses the book and preserves the independent search witness.
+            var searched = TacticalAnalysis.botAnalysis(position, Level.HARD, 1);
+            check.same(id + " retains the off-book horizon confirmation", french ? "c5d4" : "g8f6",
+                    searched.result().ranked().getFirst().move().uci());
+            check.same(id + " independent search keeps the configured ceiling", true,
+                    searched.extraNodes() <= HardAdaptivePolicy.CURRENT.search().extraNodes());
         }
     }
 }

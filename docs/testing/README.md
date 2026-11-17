@@ -82,6 +82,26 @@ depths, nodes, and CPU time before interpreting the Elo estimate.
 The learned-ordering league uses its own frozen source and policy. Its Elo
 estimate belongs to that exact comparator.
 
+### Hint integrity and shared opening play
+
+`HintFrontierTest` compares `…Nxc2+` through `Qxc2`, the initial bishop recapture,
+and two sound mating sacrifices with displaced-support counterexamples. Warm,
+cold, and disabled caches must agree after a narrow-window cutoff. YAML rejects
+more than 200,000 hint nodes, and actual public decisions count the initial
+horizons, tactical frontier, and common-depth comparison within that ceiling.
+
+`MatchHintTest`, `HintComparisonTest`, and `HintPreviewTest` require the bulb,
+comparison, destination tap, and replay to retain the same scored moves.
+Playback preserves the checkpoint and adds no unscored response. Comparison
+assertions distinguish the nominal completed horizon from its bounded frontier.
+
+`OpeningPlayTest` covers Basic, Advanced, and Hard from different human openings,
+rebranching, exact transpositions, lost castling rights, and the real exit from
+theory. Profile and review-only overrides keep their scopes. Every authored
+frame and whole documented continuation is replayed by the actual rules.
+
+[Hint frontier](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java) · [Opening contracts](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java) · [Web replay parity](../../atf-tests/src/test/java/ro/atf/chess/WebHintReplayComponentTest.java)
+
 ## Web engine parity
 
 `ChessWebRulesComponentTest` checks the engine and catalogs on the JVM. `ChessWebParityPublication` executes the same cases in the TeaVM worker for all resources used. Run the probe explicitly with the bundle from TMP. [Web build and probes](../../web/README.md)

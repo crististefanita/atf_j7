@@ -12,7 +12,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
-| P1 | Hint · defense at the horizon | The Sicilian hint misses a stronger defense. | Compare both replies at the same horizon and budget. |
+| P1 | Hint · independent alternative accuracy | Some alternatives remain overrated after exchange verification. | Verify ranking and every offered alternative against free replies at the same budget. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
 | P1 | AI profile calibration | The Elo intervals still overlap. | Add paired games to narrow the rating uncertainty. |
@@ -20,7 +20,6 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Hard learning from PGNs | The loss-trained ordering model keeps all final moves in 36 new families. | Add preserved moves and sacrifices, then verify ranking and complete decisions. |
 | P1 | Hard search · generalization | Selective recapture regresses on independent openings. | Require independent gains at the fixed budget. |
 | P1 | Hard · conversion after a pawn capture | The pawn capture can lose its advantage later. | Verify conversion on new positions and distinct replies. |
-| P1 | Hint · Catalan on the independent set | The Catalan hint loses more on the independent set. | Compare the three candidates through the recapture. |
 | P1 | Transfer from tactics to games | Hard misses tactics without a declared objective. | Measure discovery and preserve the solver contract. |
 | P2 | Progress · Android upgrade | A signed upgrade still needs a progress probe. | Keep IDs, solutions and points across upgrade and restart. |
 | P2 | AI quality · material evaluation | The material score differs from Stockfish. | Reduce the discrepancy with fixed search budgets. |
@@ -57,11 +56,11 @@ Confirm speech on the corrected build in RO and EN and a return to the same move
 </details>
 
 <details>
-<summary>P1 · Hint · defense at the horizon</summary>
+<summary>P1 · Hint · independent alternative accuracy</summary>
 
-In the Sicilian, the calculated line with `…Qxf2+ Kxf2` shows `−764 cp` for Black relative to the starting position. From the previous position, an exact two-ply comparison finds `…Qb4 Nd2`, at `−30 cp` relative to the start.
+The `…Nxc2+ Qxc2` defect and post-ranking response insertion are closed by the shared exchange frontier and read-only replay. The public Sicilian leader is now `…cxd4`, at 477‰ against Stockfish's free-root 476‰ at H19. The remaining issue is the strength and order of offered alternatives. `…Nd7` still scores 268‰, and `…b5` in the pre-`Nxc2` control scores 329‰ against a free-root 493‰. In the Catalan, `cxd5` gives 485‰ while `Nf3` gives 516.5‰. In the Caro–Kann, the new `…d6` gives 383.5‰ against 215.5‰ for the old `…Nf6`, while the free-root `…d5` still gives 482.5‰. [Completed exchange contract](../board/ai-quality.md#hint-exchange-verification)
 
-Reanalyze the branch for both sides within the same budget. Confirm the full continuation and keep coverage for the Catalan, Sicilian, and Alekhine. [AI checks](../testing/README.md#game-and-history)
+Improve the shared ranking within the total 200,000-node hint ceiling. Compare all offered moves at a common completed horizon and check free opposing replies at H17/H19 on new families. Keep the sound queen and knight sacrifices, exact-cache bound negatives, and bulb/comparison/replay identity. A replay-integrity PASS does not establish that the alternatives are equally strong. Preserve completed-depth and actual-node evidence. [AI checks](../testing/README.md#game-and-history)
 
 </details>
 
@@ -107,15 +106,6 @@ In the Hard benchmark, include the Scandinavian after `4.d4` and the Classical S
 Hard now finds `Nxe5` in the Sicilian with `…h6` and neighboring positions at 44,000 nodes. In the continuation with `…Nc6 Nxc6`, pushing `e5` loses 211‰ relative to `d3` at depth 17. In the final thematic set, B finished with 3 wins and A with 5.
 
 Check the choice of `d3` on new positions and after different opposing replies. Track whether the advantage holds in paired games at the same budget. Keep the capture tests and the defended-pawn controls. [Evidence](../board/ai-quality.md#checking-exchanges-after-a-pawn-capture)
-
-</details>
-
-<details>
-<summary>P1 · Hint · Catalan on the independent set</summary>
-
-The benchmark measures the move shown to the user. Stockfish 19 confirms cumulative losses of 281‰ for the hint and 257‰ for Hard. In the Catalan, `cxd5` loses 49‰ and `Nc3` loses 25‰. At 32,000 nodes, adding `Nc3` to the comparison completes only four plies and retains `cxd5`.
-
-Compare `cxd5`, `Nc3`, and `Nf3` at the same horizon, through the recapture. Require cumulative loss no greater than Hard's, and keep the Réti and Alekhine controls at the same budgets. [Comparison report](../board/ai-quality.md#immediate-pawn-captures-in-hard-search)
 
 </details>
 

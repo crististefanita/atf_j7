@@ -2,28 +2,28 @@
 
 ## Overview
 
-- **Current policy.** The opponent, hint, and evaluation bar have separate budgets. Hard foreground search starts with 100,000 additional nodes and can use an adaptive reserve up to 200,000. The hint can use 220,000, including up to 32,000 to compare alternatives. [Search configuration](../../chess-core/src/main/resources/match-ai.yaml)
+- **Current policy.** The opponent, hint, and evaluation bar have separate budgets. Hard foreground search starts with 100,000 additional nodes and can use an adaptive reserve up to 200,000. The hint has one 200,000-node ceiling, including the initial horizons, tactical frontier, and up to 32,000 nodes for comparing alternatives. [Search configuration](../../chess-core/src/main/resources/match-ai.yaml)
 - **Acceptance.** `MatchAiGovernanceTest` and `HardAdaptivePolicyTest` check the policies and `ChessBenchmarkSuite` measures decisions against a fixed oracle. Historical comparisons below belong to the measured version.
 - **Displayed Elo.** The [Game Review contract](game-review.md) defines grades, accuracy, and the displayed estimates. The app reads its rating anchors from the release configuration. [Rating anchors](../../chess-core/src/main/resources/game-review.yaml)
 
 <details>
 <summary>Current search policies and bounds</summary>
 
-The opponent levels and hint have separately configured depths and budgets. A search keeps the last depth it evaluated completely. Hard's foreground game search starts with 100,000 additional nodes and can continue to 200,000 with the adaptive policy below. It accepts the final horizon's result only if it keeps the same leading move as the previous depth. If the leader changes, the engine stays with the last complete, stable search. The hint attempts six plies, with one additional ply for captures, promotions, or escaping check at the search horizon. In games and lessons, evaluation accounts for piece development, the center, king position, and the bishop pair in addition to material. The weights change according to the remaining material so an active king becomes useful in the endgame. The search checks captures, promotions, and moves that activate pieces first. Tactical tests keep their explicit material or checkmate objective. [Search policy](../../chess-core/src/main/resources/match-ai.yaml) · [Adaptive policy](../../chess-core/src/main/resources/hard-adaptive.yaml)
+The opponent levels and hint have separately configured depths and budgets. A search keeps the last depth it evaluated completely. Hard's foreground game search starts with 100,000 additional nodes and can continue to 200,000 with the adaptive policy below. It accepts the final horizon's result only if it keeps the same leading move as the previous depth. If the leader changes, the engine stays with the last complete, stable search. The hint attempts up to seven plies, with a bounded two-ply frontier for captures, promotions, or escaping check. Its completed depth and actual nodes describe the search achieved. In games and lessons, evaluation accounts for piece development, the center, king position, and the bishop pair in addition to material. The weights change according to the remaining material so an active king becomes useful in the endgame. The search checks captures, promotions, and moves that activate pieces first. Tactical tests keep their explicit material or checkmate objective. [Search policy](../../chess-core/src/main/resources/match-ai.yaml) · [Adaptive policy](../../chess-core/src/main/resources/hard-adaptive.yaml)
 
 In rook endgames, Hard uses the full history to evaluate repetitions throughout the tree, including at the root. It can extend the search by one ply beyond the profile depth, up to depth 7, within the configured adaptive allowance. The extension and the 50 cp window for root candidates are set under `rook-endgame` in YAML. Governance rejects extensions or windows outside the validated limits.
 
-In Hard games outside the repertoire and the special rook endgame, checking moves get priority in search order only. The 10,000 bonus is configurable and capped under `hard-ordering`. It does not contribute to position evaluation or change the node allowance. Basic, Advanced, the hint, and the bar evaluation retain their previous ordering.
+In Hard games outside the repertoire and the special rook endgame, checking moves get priority in search order only. The 10,000 bonus is configurable and capped under `hard-ordering`. It does not contribute to position evaluation or change the node allowance. The hint shares this Hard ordering and its exact transposition machinery within its own allowance. Basic, Advanced, and the bar evaluation retain their existing ordering.
 
 Hard's game search also reuses exact lines for transposed positions. Incomplete entries and alpha-beta bounds are excluded from reuse. Capacity is derived from the budget and capped in `hard-transpositions`. [Exact-cache evaluation](#exact-cache-for-hard)
 
 Basic searches two plies in ordinary positions and three in elementary rook or queen endgames against a king. Both paths use zero additional nodes. Configure ordinary depth with `standard-max-plies` in YAML. Hard ends the search at the first complete horizon that proves a winning mate. [Basic calibration](#calibrating-basic-with-selective-depth) · [Mate proofs](#solving-puzzles-with-a-declared-objective)
 
-The hint starts from the Hard search and checks mates and tactical replies separately. If the first moves differ and neither proves mate, the engine compares alternatives at the depth Hard already completed. If verification exhausts its budget, the hint uses the complete Hard result. The list displays at most three distinct first moves. Alternatives stay within 25 cp of the first move after the defense and retain an estimated positive improvement. In a mating position, only variations with the same result and distance remain. On equal scores, move activity and UCI order determine the order. [Reading the difference](README.md)
+The hint uses the Hard search kernel independently of the opponent's level. Each completed horizon scores all legal roots through the same tactical frontier. Up to 32,000 nodes from the single 200,000-node allowance compare the shortlisted alternatives at a common horizon. If a deeper iteration stops, the last complete result remains available. A changed odd-horizon leader needs confirmation at an equal-turn horizon before replacing the supported result. The list displays at most three distinct first moves within 25 cp of the leader. In a mating position, only variations with the same result and distance remain. Playback uses the scored continuation without searching again or appending an unscored reply. Its static position estimate explains the displayed board and does not rerank the search result. [Reading the difference](README.md)
 
 In Hard, in positions with equal material, the ranking available after four plies also uses the score of the same move at three. The shorter line's contribution is capped. For a quiet move, the credit falls when the provisional line suggests a gain of more than one pawn. Evaluated mates and draws retain their terminal scores. If the budget prevents depth six from completing or the leader changes at that depth, the engine keeps the last complete search. Explicit searches and coaching comparisons keep their declared budgets.
 
-In the Pirc and Benoni, Hard and the hint each use a reply checked with Stockfish 19 at depth 13. The repertoire applies to the same legal position, including through transposition, and the continuation is searched within the profile budget. After the reply or in neighboring positions, the full search is used. Loading checks legality, duplicate positions, and mates in one. [YAML repertoire](../../chess-core/src/main/resources/ai-repertoire.yaml)
+Basic, Advanced, and Hard share the documented opening catalogue. A profile-specific verified override takes priority, followed by the first documented continuation of the exact current position. Castling and en passant rights remain part of the identity. A different human reply selects its corresponding branch, and a real exit from theory restores the profile's normal search. Selection is deterministic. Review-only exclusions keep their scope. The live theory fallback is excluded from hint generation; verified coaching overrides and searched continuations retain their scopes. Loading checks legality, duplicate positions, and mates in one. [YAML repertoire](../../chess-core/src/main/resources/ai-repertoire.yaml)
 
 In a cycle, Hard uses history before discarding alternatives. If the current position has already appeared twice, a move that would produce a third or later occurrence receives 0 cp at the search root. The engine compares alternatives within the same budget at the last completed depth. Among lines that remain favorable, Hard may choose a less-visited position if it retains an advantage of at least 100 cp and gives up at most 50 cp relative to the first line.
 
@@ -72,6 +72,16 @@ recapture in the king-shield control. All three modes still chose `…Bh3` in
 `fresh-030`. This sample measures decision transfer and cost on that source.
 The adaptive profile's game-strength estimate requires its own paired league.
 
+## Hint exchange verification
+
+After `1.e4`, the old hint ended at `…Nc6 Bb5 …Nd4 Bc4 …Nxc2+` before `Qxc2`. The preview appended that recapture after ranking, while the public selector retained the losing leader. The initial-board variation had the same defect with `Bxd7+`. Both failures are search regressions with legal moves.
+
+The hint now charges the initial horizons, exchange frontier, and root comparison to one 200,000-node allowance. Capture and recapture use the same frontier when ranking alternatives. Alpha-beta cutoffs are bounds and cannot enter the exact-result cache. Playback preserves the scored line and the source checkpoint. A static replay estimate cannot silently replace that ranking.
+
+The controls include the queen sacrifice `Qxc8+` leading to mate in three and the knight sacrifice `Ng6+ hxg6 Rh4#`. A negative material balance alone cannot reject a sacrifice. Stockfish 19 checks the critical roots at depths 17 and 19 with the opponent's replies free. Cold-engine receipts, public replay, and the Extent reports are retained in `C:\work\sah\studii\2026-11-17-j7-hint-repair`. This correction does not establish a new Elo rating or guarantee optimal play in every position.
+
+[Hint contracts](../../atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java) · [Read-only replay](../../atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java) · [Opening profiles](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java)
+
 ## Checks for every change
 
 1. Run the JVM suite before making the change. Compare from the same TMP checkout, with the same Stockfish executable and evaluation YAML. Keep the Extent report from each run.
@@ -94,9 +104,9 @@ mvn test '-Dtest=ChessBenchmarkSuite' "-Dchess.stockfish=$stockfish" '-Dchess.ex
 | Basic | 3 | 0 |
 | Advanced | 4 | 10,000 |
 | Hard foreground | 6, with a stable leader | 100,000 base, up to 200,000 adaptively |
-| Hint | 6, plus one tactical extension | 220,000 total, including up to 32,000 to compare alternatives |
+| Hint | Up to 7, plus a bounded two-ply tactical frontier | 200,000 total, including up to 32,000 to compare alternatives |
 
-- Governance requires strictly increasing depth and budget across opponents. The hint uses at least Hard's depth and its own larger budget. In king-and-rook or king-and-queen endgames, all levels, the hint, and the bar use the same evaluation of the distance between the kings and the defending king's space. Tests verify conversion of the advantage into checkmate with both colors and preservation of White's perspective on the display.
+- Governance requires strictly increasing depth and budget across opponent profiles. The hint uses at least Hard's configured depth and its own bounded allowance. In king-and-rook or king-and-queen endgames, all levels, the hint, and the bar use the same evaluation of the distance between the kings and the defending king's space. Tests verify conversion of the advantage into checkmate with both colors and preservation of White's perspective on the display.
 
 - The league protocol uses the same openings with both colors and the same
   budgets. An unfinished game contributes an interval, and relative Elo is

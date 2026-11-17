@@ -36,6 +36,7 @@ public final class HintPreview {
         return open(root, line, false);
     }
 
+    /** Replays the already scored defence without appending an unscored search result. */
     public static Optional<HintPreview> openDefended(ChessPosition root, TacticalAnalysis.Variation line) {
         return open(root, line, true);
     }
@@ -52,14 +53,6 @@ public final class HintPreview {
                 return Optional.empty();
             }
         }
-        boolean addedDefense = false;
-        if (defend && board.turn() != root.turn()) {
-            var reply = TacticalAnalysis.bestImmediateDefense(board);
-            if (reply != null) {
-                board = append(frames, board, reply);
-                addedDefense = true;
-            }
-        }
         var ending = line.ending();
         if (defend) {
             ending = TacticalAnalysis.Ending.HORIZON;
@@ -68,7 +61,7 @@ public final class HintPreview {
         var estimate = defend && ending == TacticalAnalysis.Ending.HORIZON
                 ? Optional.of(new Estimate(TacticalAnalysis.positionValue(root, root.turn()), TacticalAnalysis.positionValue(board, root.turn())))
                 : Optional.<Estimate>empty();
-        return Optional.of(new HintPreview(frames, evidence(root, board, frames, ending), estimate, addedDefense));
+        return Optional.of(new HintPreview(frames, evidence(root, board, frames, ending), estimate, false));
     }
 
     private static ChessPosition append(List<Frame> frames, ChessPosition board, Move move) {

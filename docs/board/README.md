@@ -156,18 +156,18 @@
 
 - Tap the lightbulb in the toolbar below the board for the highest-evaluated line and the first move's arrow. When you control the side to move, tap the indicated destination to play the first move. In history you can consult the line and choose **Continue from here** to play from the displayed position. On the AI's turn you can wait for its reply or clear **Let AI play its moves** to play that move.
 
-- The hint starts from the Hard search, regardless of the opponent's level.
-  Comparison at a common depth uses at most 32,000 nodes from the additional
-  220,000-node budget. The lightbulb cycles through up to three lines.
-  Alternatives appear when the estimated improvement after the defense is
-  positive and within 0.25 pawns of the first line. If the leading line shows
-  no improvement, it is shown on its own with the available estimate. For a proved
-  mate, the lines have the same result and distance. [AI evaluation](ai-quality.md)
+- The hint uses the Hard search kernel, regardless of the opponent's level.
+  Initial search, tactical exchanges, and comparison share a ceiling of 200,000
+  nodes. Up to 32,000 of those nodes compare alternatives at a common depth.
+  The lightbulb cycles through up to three lines within 0.25 pawns of the leader.
+  The search evaluates captures and recaptures before ranking these lines.
+  For a proved mate, the lines have the same result and distance.
+  [AI evaluation](ai-quality.md)
 
 - After using the lightbulb, **View line** opens the board at the position you
   were viewing. The first forward arrow plays the recommendation and the second
-  shows the reply. When the line ends before the opponent responds, the engine
-  compares all immediate legal replies and adds the highest-evaluated one.
+  shows the reply. Playback follows the exact continuation that was evaluated,
+  including its verified exchanges, and does not add a move after ranking.
   The starting score, final score, and difference appear below the board from
   the perspective of the side originally to move. An advantage can come from
   positional evaluation, and checkmate and stalemate have their own results.

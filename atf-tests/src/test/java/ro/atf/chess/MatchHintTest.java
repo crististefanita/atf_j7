@@ -30,14 +30,17 @@ class MatchHintTest {
                 hint.moveForTap(position.play(ChessPosition.Move.fromUci("h1g1")), -1, queen.to()));
     }
 
-    @Test void keepsOneRecommendationWhenTheRepliesLeaveNoDefendedGain(Checks check) {
+    @Test void preservesTheRecalculatedAlternativesWithoutSacrificingAMinorPieceAfterE4(Checks check) {
         String checkpoint = "2|analysis|e2e4";
         var match = ChessMatch.restore(checkpoint);
         var lines = match.bestLinesAt(match.ply());
         var hint = match.hintAt(match.ply());
-        check.same("After e4 the verified shortlist offers just the leading reply", 1, lines.size());
-        var projection = HintPreview.openDefended(match.position(), lines.getFirst()).orElseThrow().estimate().orElseThrow();
-        check.same("The leader's projection does not report a gain after the reply", true, projection.changeCp() < 0);
+        check.same("After e4 equivalent complete replies remain available", true, lines.size() > 1);
+        for (var line : lines) {
+            check.same("The complete line retains material for " + line.move().uci(), 0, line.materialChange());
+            check.same("The unsound Nc2 sacrifice is absent from " + line.move().uci(), false,
+                    line.line().contains(ChessPosition.Move.fromUci("d4c2")));
+        }
         check.same("Evaluation is available while its hint is still hidden", true, hint.first() != null && hint.revealed() == null);
         var seen = new HashSet<ChessPosition.Move>();
         for (int index = 0; index < lines.size(); index++) {
@@ -73,20 +76,18 @@ class MatchHintTest {
                 TacticalAnalysis.hintLines(new TacticalAnalysis.Result(mates), policy));
     }
 
-    @Test void fillsOnlyTheSlotsEarnedByTheDefendedPosition(Checks check) {
-        var position = ChessPosition.fromFen("6k1/8/3p4/8/1p1R1p2/8/8/6K1 w - - 0 1");
-        var candidates = List.of("d4b4", "d4f4", "d4d6", "d4d1").stream()
-                .map(ChessPosition.Move::fromUci)
-                .map(move -> new TacticalAnalysis.Variation(List.of(move), 0, 0, TacticalAnalysis.Ending.HORIZON)).toList();
-        check.same("All three close gains remain available after the opponent's reply", candidates.subList(0, 3),
-                MatchHint.defendedChoices(position, candidates.subList(0, 3)));
-        var withRetreat = List.of(candidates.get(0), candidates.get(1), candidates.get(3));
-        check.same("An equally ranked retreat that loses after defence leaves only two alternatives", candidates.subList(0, 2),
-                MatchHint.defendedChoices(position, withRetreat));
-        var withKnights = ChessPosition.fromFen("6k1/8/3p4/8/1n1R1n2/8/8/6K1 w - - 0 1");
-        var ranked = List.of(candidates.get(1), candidates.get(0), candidates.get(2));
-        check.same("The pawn capture also drops out when it gains less than the two knight captures", ranked.subList(0, 2),
-                MatchHint.defendedChoices(withKnights, ranked));
+    @Test void publishesTheScoredAlternativesWithoutANewStaticProjectionOrSearch(Checks check) {
+        var position = ChessMatch.restore("2|analysis|e2e4").position();
+        var search = TacticalAnalysis.verifiedHints(position);
+        var hint = MatchHint.analyze(position);
+        check.same("The public hint keeps every eligible fully scored alternative", search.lines(), hint.lines());
+        for (var line : hint.lines()) {
+            var preview = HintPreview.openDefended(position, line).orElseThrow();
+            check.same("Replay does not add an unscored reply for " + line.move().uci(), List.of(false, line.line().size()),
+                    List.of(preview.addedDefense(), preview.length()));
+            preview.seek(preview.length());
+            check.same("The final scored move is the final replayed move", line.line().getLast(), preview.lastMove());
+        }
     }
 
     @Test void basicGetsTheSameFivePlyForcedMateHintAsHard(Checks check) {
