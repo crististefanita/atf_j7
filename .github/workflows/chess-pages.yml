@@ -1,0 +1,71 @@
+name: Publish Chess Web
+
+on:
+  workflow_dispatch:
+    inputs:
+      site_commit:
+        description: Exact Git commit of the qualified static site
+        required: true
+        type: string
+      manifest_sha256:
+        description: SHA-256 of the qualified site's Git tree listing
+        required: true
+        type: string
+
+permissions: {}
+concurrency:
+  group: chess-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check the requested identity
+        shell: bash
+        env:
+          SITE_COMMIT: ${{ inputs.site_commit }}
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$SITE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+      - name: Download the qualified site tree
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.site_commit }}
+          persist-credentials: false
+          path: site-source
+      - name: Verify and extract the site
+        shell: bash
+        env:
+          SITE_COMMIT: ${{ inputs.site_commit }}
+          MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+        run: |
+          set -euo pipefail
+          test "$(git -C site-source rev-parse HEAD)" = "$SITE_COMMIT"
+          actual=$(git -C site-source ls-tree -r --full-tree "$SITE_COMMIT" | sha256sum)
+          test "${actual%% *}" = "$MANIFEST_SHA256"
+          git -C site-source ls-tree -r --full-tree "$SITE_COMMIT" |
+            awk '$1 != "100644" && $1 != "100755" { invalid = 1 } END { exit invalid }'
+          mkdir "$RUNNER_TEMP/chess-site"
+          git -C site-source archive "$SITE_COMMIT" | tar -x -C "$RUNNER_TEMP/chess-site"
+          test -s "$RUNNER_TEMP/chess-site/index.html"
+          test -d "$RUNNER_TEMP/chess-site/runtime"
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+      - name: Upload the verified site
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: ${{ runner.temp }}/chess-site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
