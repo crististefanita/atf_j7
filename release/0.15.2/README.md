@@ -1,19 +1,19 @@
 # Chess Lab 0.15.2
 
-## Îmbunătățiri
+## Improvements
 
-- Teoria deschiderilor și **De ce?** din Game Review folosesc aceeași redare pe
-  tot ecranul. Tabla și săgețile rămân fixe când schimbi traseul ori semimutarea,
-  iar explicația se poate derula separat.
-- În Game Review, compară **După mutare** cu **Recomandată** din aceeași poziție.
-  Înapoi păstrează mutarea analizată și locul din listă. După repornire, redarea
-  revine la pasul salvat din analiză.
-- Becul recalculează traseele când schimbi poziția, chiar dacă mutarea aleasă nu
-  figura între sugestii. După ultima continuare documentată, indiciul vine de
-  la motor.
+- Opening Theory and **Why?** in Game Review share the same full-screen replay.
+  The board and arrows stay fixed when you change the line or ply, and the
+  explanation scrolls independently.
+- In Game Review, compare **After move** with **Recommended** from the same
+  position. Back preserves the reviewed move and its place in the list. After
+  restarting, the replay returns to the saved analysis step.
+- The hint bulb recalculates lines whenever you change the position, even if the
+  chosen move was outside the suggestions. The engine provides the hint after
+  the last documented continuation.
 
-## Instalare
+## Installation
 
-Descarcă APK-ul semnat din **Assets**. [Ediția pe GitHub](https://github.com/crististefanita/chess/releases/tag/v0.15.2)
+Download the signed APK from **Assets**. [Release on GitHub](https://github.com/crististefanita/chess/releases/tag/v0.15.2)
 
-[Dovezile ediției](reports/README.md)
+[Release evidence](reports/README.md)

@@ -1,12 +1,12 @@
-# Dovezile ediției 0.15.3
+# Evidence for Release 0.15.3
 
-- [Componente · Extent](components.html), [calificare](qualification.json) și [amprentele recepțiilor brute](raw-receipts.json).
-- [Game Review · Extent](android-game-review.html) și [recepția Android](game-review-execution.json).
-- [Partidă cu AI · Extent RO/EN](android-analysis-compact.html) și [recepțiile native și amprentele capturilor](analysis-compact-execution.json).
-- [Guvernanță JVM · Extent](governance.html), [revizuire Git](test-change-review.html), [dovezi pentru testele înlocuitoare](test-change-review.html.proof.html) și [recepția revizuirii](test-change-review-execution.json).
-- [Continuitatea semnăturii](signing-transition.json) și [contextul RAG](rag.txt).
-- [Asset GitHub](github-release.json), [descărcare directă](public-download.json) și [descărcare autentificată](distribution-verification.json).
+- [Components · Extent](components.html), [qualification](qualification.json), and [raw receipt hashes](raw-receipts.json).
+- [Game Review · Extent](android-game-review.html) and the [Android receipt](game-review-execution.json).
+- [Game against AI · Extent RO/EN](android-analysis-compact.html) and the [native receipts and screenshot hashes](analysis-compact-execution.json).
+- [JVM governance · Extent](governance.html), [Git review](test-change-review.html), [evidence for replacement tests](test-change-review.html.proof.html), and the [review receipt](test-change-review-execution.json).
+- [Signing continuity](signing-transition.json) and [RAG context](rag.txt).
+- [GitHub asset](github-release.json), [direct download](public-download.json), and [authenticated download](distribution-verification.json).
 
-Proba partidei cu AI folosește APK-ul semnat la 720 × 1280, 320 dpi și font 1,3×. În RO și EN, ea verifică tabla maximă, săgețile, bara, becul și reluarea după restart. Cele șase capturi sunt incluse în Extent.
+The AI game check uses the signed APK at 720 × 1280, 320 dpi, and 1.3× font scaling. In RO and EN, it checks board size, arrows, the evaluation bar, the hint bulb, and resumption after restart. The six screenshots are embedded in Extent.
 
-[Procesul de calificare și publicare](../../../docs/release/README.md#calificare-și-publicare)
+[Qualification and publication process](../../../docs/release/README.md#qualification-and-publication)

@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 final class MarkdownVisualContract {
     private static final Pattern FENCE = Pattern.compile("^(`{3,}|~{3,})(.*)$");
     private static final Pattern LANGUAGE = Pattern.compile("[A-Za-z][A-Za-z0-9_-]*");
+    private static final Pattern LEGEND = Pattern.compile("^<summary>(?:Legendă|Legend)(?=$|[\\s·—:<])");
     private static final Pattern PRESENTATION = Pattern.compile("(?i)<(?:font|h[1-6]|span|div)\\b|\\bstyle\\s*=");
     private static final Pattern RELATION = Pattern.compile("-->|-\\.->");
     private static final Pattern LABELLED = Pattern.compile("(?:-->|-\\.->)\\s*\\|[^|]+\\|");
@@ -52,7 +53,7 @@ final class MarkdownVisualContract {
                     > LABELLED.matcher(line).results().count())) failures.add((opening + 1) + " diagram edge needs a label");
         }
         var next = lines.subList(closing + 1, lines.size()).stream().map(String::strip).filter(line -> !line.isBlank()).limit(2).toList();
-        if (next.size() != 2 || !next.getFirst().equals("<details>") || !next.get(1).startsWith("<summary>Legendă")) {
+        if (next.size() != 2 || !next.getFirst().equals("<details>") || !LEGEND.matcher(next.get(1)).find()) {
             failures.add((closing + 1) + " diagram needs an adjacent collapsed legend");
         }
     }

@@ -705,3 +705,35 @@ testChanges:
     allowDelete: false
     nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
     nativeProbe: "Graph and arrow navigation synchronize the selected move, hide the opening and keep the board anchored"
+
+  - id: CHESS-EN-DOCUMENTATION-ROUTES
+    base: "019d979ccf7e0ea0f5e30a900f8017d5a52c08ce"
+    from: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeKeepsAnArchitectureMapAndDirectRoutes
+    contract: "Preserve documentation ownership and release, testing, and feedback routes under the English headings"
+    allowDelete: false
+
+  - id: CHESS-EN-DIAGRAM-LEGEND
+    base: "019d979ccf7e0ea0f5e30a900f8017d5a52c08ce"
+    from: atf-tests/src/test/java/ro/atf/chess/MarkdownVisualContract.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#authoredGuidesKeepPortableMarkdownAndExplainedDiagrams
+    contract: "Keep labeled diagrams and their adjacent collapsed legends after translation"
+    allowDelete: false
+
+  - id: CHESS-EN-RELEASE-README
+    base: "019d979ccf7e0ea0f5e30a900f8017d5a52c08ce"
+    from: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+    test: ro.atf.chess.ReleaseGovernanceTest#readmeKeepsTheDownloadSectionFirstAndRejectsOtherApkRoutes
+    contract: "Verify the same canonical APK and Web routes in English and archived Romanian READMEs"
+    allowDelete: false
+
+  - id: CHESS-EN-GIT-REVIEW-ROUTE
+    base: "019d979ccf7e0ea0f5e30a900f8017d5a52c08ce"
+    from: atf-tests/src/test/java/ro/atf/chess/TestChangePolicyTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/TestChangePolicyTest.java
+    test: ro.atf.chess.TestChangePolicyTest#ragCitesTheReviewProcessForCoverageChanges
+    contract: "Keep the RAG route to the explicit Git review and preflight under the English heading"
+    allowDelete: false

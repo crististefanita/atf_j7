@@ -126,8 +126,8 @@ class TestChangePolicyTest {
         var citations = ReleaseRag.retrieve(ProjectRoot.locate(), List.of(TestChangePolicy.REGISTER,
                 "release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java"));
         check.same("RAG identifies the explicit Git review and the release preflight",
-                List.of("TestChangeReview cu baza Git explicită și ReleaseGate preflight"),
-                citations.stream().filter(item -> item.heading().equals("## Schimbarea testelor față de o bază Git"))
+                List.of("TestChangeReview with the explicit Git baseline and ReleaseGate preflight"),
+                citations.stream().filter(item -> item.heading().equals("## Test changes against a Git baseline"))
                         .map(ReleaseRag.Citation::check).toList());
     }
 

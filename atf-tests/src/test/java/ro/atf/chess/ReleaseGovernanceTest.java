@@ -38,7 +38,7 @@ class ReleaseGovernanceTest {
         var root = ProjectRoot.locate();
         var pom = ReleaseRag.inspect(root, List.of("pom.xml"));
         check.same("The root Maven configuration has release guidance", List.of("pom.xml"), pom.covered());
-        check.same("The POM cites the qualification workflow", List.of("## Calificare și publicare"),
+        check.same("The POM cites the qualification workflow", List.of("## Qualification and Publication"),
                 pom.citations().stream().map(ReleaseRag.Citation::heading).toList());
         String board = "android/app/src/main/java/ro/atf/chess/android/BoardView.java";
         var mixed = ReleaseRag.inspect(root, List.of("pom.xml", "misc/new-tool", board.replace('/', '\\'), board));
@@ -324,23 +324,28 @@ class ReleaseGovernanceTest {
     }
 
     @Test void readmeKeepsTheDownloadSectionFirstAndRejectsOtherApkRoutes(Checks check) throws IOException {
-        check.same("The APK, browser game and separate release notes qualify", "accepted",
+        check.same("The Romanian archive format qualifies with the APK, browser game, and separate release notes", "accepted",
                 decision(() -> publish(SOURCE, README.replace("\n", "\r\n"), 200, apk)));
-        check.same("An introductory section cannot precede the download", "Jocul must be the first section",
+        String english = README.replace("## Jocul", "## Play").replace("## Ediția publicată", "## Published Release");
+        check.same("The English main README qualifies with the same routes", "accepted",
+                decision(() -> publish(SOURCE, english, 200, apk)));
+        check.same("Two download sections in different languages are rejected", "Duplicate Play section",
+                decision(() -> ReleaseEvidence.gameLinks(english + "\n## Jocul\n")));
+        check.same("An introductory section cannot precede the download", "Play must be the first section",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("Șah și studiu.", "## Introducere\n\nȘah și studiu."))));
-        check.same("Prose appended to a link is rejected", "Jocul must contain only the APK and browser links",
+        check.same("Prose appended to a link is rejected", "Play must contain only the APK and browser links",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace(URL + ")", URL + ") — APK Android semnat."))));
         check.same("A label cannot carry integrity metadata", "Integrity metadata belongs in the release evidence",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("[APK]", "[APK SHA-256]"))));
-        check.same("A paragraph between game links is rejected", "Jocul must contain only the APK and browser links",
+        check.same("A paragraph between game links is rejected", "Play must contain only the APK and browser links",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("- [APK]", "Descarcă aici.\n\n- [APK]"))));
-        check.same("A duplicate download section is rejected", "Duplicate Jocul section",
+        check.same("A duplicate download section is rejected", "Duplicate Play section",
                 decision(() -> ReleaseEvidence.gameLinks(README + "\n## Jocul\n")));
-        check.same("A repeated canonical APK link in the introduction is rejected", "APK route outside Jocul",
+        check.same("A repeated canonical APK link in the introduction is rejected", "APK route outside the Play section",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("Șah și studiu.", "[Alt traseu](" + URL + ")"))));
         for (String route : List.of("[copie](dist/ChessLab.apk)", "[copie]: https://example.org/ChessLab%2EAPK?dl=1",
                 "<https://example.org/ChessLab.apk#download>", "<a href=\"https://example.org/ChessLab.apk\">Copie</a>")) {
-            check.same("An APK route outside Jocul is rejected · " + route, "APK route outside Jocul",
+            check.same("An APK route outside the Play section is rejected · " + route, "APK route outside the Play section",
                     decision(() -> ReleaseEvidence.gameLinks(README + "\n" + route + "\n")));
         }
     }
@@ -354,13 +359,13 @@ class ReleaseGovernanceTest {
                     "The online game must open the repository's main menu on GitHub Pages",
                     decision(() -> ReleaseEvidence.gameLinks(README.replace(PAGES_HOME, route))));
         }
-        check.same("The APK link must be first", "Jocul must start with the canonical APK link",
+        check.same("The APK link must be first", "Play must start with the canonical APK link",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("- [APK](" + URL + ")\n" + PLAY, PLAY + "\n- [APK](" + URL + ")"))));
-        check.same("A third link in Jocul is rejected", "Jocul must contain only the APK and browser links",
+        check.same("A third link in the Play section is rejected", "Play must contain only the APK and browser links",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace(PLAY, PLAY + "\n" + EDITION))));
         check.same("The edition notes cannot point at another release", "The published edition must match the APK",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("/tag/v0.1.0", "/tag/v0.0.9"))));
-        check.same("The edition notes require their own section", "Missing published edition section below Jocul",
+        check.same("The edition notes require their own section", "Missing published release section below Play",
                 decision(() -> ReleaseEvidence.gameLinks(README.replace("## Ediția publicată", "## Note"))));
     }
 
@@ -386,40 +391,40 @@ class ReleaseGovernanceTest {
     @Test void ragRetrievesOnlyAffectedGuidanceAndVerifiesTheAnchor(Checks check) throws IOException {
         Path root = ProjectRoot.locate();
         var citations = ReleaseRag.retrieve(root, List.of("android/app/src/main/AndroidManifest.xml", "README.md"));
-        check.same("Two affected contracts cited", List.of("## Sanity Android", "## Calificare și publicare"), citations.stream().map(ReleaseRag.Citation::heading).toList());
+        check.same("Two affected contracts cited", List.of("## Android Sanity", "## Qualification and Publication"), citations.stream().map(ReleaseRag.Citation::heading).toList());
         Path cited = root.resolve(citations.getFirst().path());
         Path canonical = folder.resolve("canonical.md");
         Files.writeString(canonical, Files.readString(cited).replace("\r\n", "\n"));
         check.same("The cited document hash uses UTF-8 with LF line endings", ReleaseEvidence.digest(canonical), citations.getFirst().sha256());
         var chapter = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/mate-in-three.yaml", "docs/feedback/README.md"));
-        check.same("A chapter release cites its independent oracle and open feedback", List.of("## Motor și proiecție", "## Mat în trei mutări", "# Feedback · Chess Lab"),
+        check.same("A chapter release cites its independent oracle and open feedback", List.of("## Engine and projection", "## Mate in three moves", "# Feedback · Chess Lab"),
                 chapter.stream().map(ReleaseRag.Citation::heading).toList());
         var board = ReleaseRag.retrieve(root, List.of("android/app/src/main/java/ro/atf/chess/android/BoardView.java"));
-        check.same("Board changes cite native sanity and TalkBack evidence", List.of("## Sanity Android", "## Proba TalkBack"),
+        check.same("Board changes cite native sanity and TalkBack evidence", List.of("## Android Sanity", "## TalkBack probe"),
                 board.stream().map(ReleaseRag.Citation::heading).toList());
         var history = ReleaseRag.retrieve(root, List.of("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "README.md"));
         check.same("History changes cite both consumers and the release workflow",
-                List.of("## Sanity Android", "## Partidă și istoric", "## Tablă de analiză", "## Calificare și publicare"),
+                List.of("## Android Sanity", "## Game and History", "## Analysis Board", "## Qualification and Publication"),
                 history.stream().map(ReleaseRag.Citation::heading).toList());
         var hints = ReleaseRag.retrieve(root, List.of("chess-core/src/main/java/ro/atf/chess/MatchHint.java",
                 "android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java"));
         check.same("Shared hints cite both signed Android journeys once",
-                List.of("MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest și BoardSanity -AnalysisOnly -IncludeManualAnalysis"),
-                hints.stream().filter(item -> item.heading().equals("## Partidă și istoric")).map(ReleaseRag.Citation::check).toList());
+                List.of("MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest and BoardSanity -AnalysisOnly -IncludeManualAnalysis"),
+                hints.stream().filter(item -> item.heading().equals("## Game and History")).map(ReleaseRag.Citation::check).toList());
         var tactics = ReleaseRag.retrieve(root, List.of("chess-core/src/main/resources/tactics.yaml",
                 "chess-core/src/main/java/ro/atf/chess/QuestRewards.java"));
         check.same("The new catalog and reward policy cite their specific verification",
-                List.of("TacticsCatalogTest și verify-tactics.cjs", "QuestRewardsTest și MainMenuLayoutTest"),
-                tactics.stream().filter(item -> item.heading().equals("## Tactică și punctaj")).map(ReleaseRag.Citation::check).toList());
+                List.of("TacticsCatalogTest and verify-tactics.cjs", "QuestRewardsTest and MainMenuLayoutTest"),
+                tactics.stream().filter(item -> item.heading().equals("## Tactics and scoring")).map(ReleaseRag.Citation::check).toList());
         var steps = ReleaseRag.workflow(root);
         check.same("The release workflow follows the eight required steps", List.of(1, 2, 3, 4, 5, 6, 7, 8),
                 steps.stream().map(line -> Integer.parseInt(line.substring(0, line.indexOf('.')))).toList());
         check.same("The last step verifies the download again after pushing the evidence", true,
-                steps.getLast().contains("repetați descărcarea"));
+                steps.getLast().contains("repeat the download"));
         check.same("A path outside the route table has no citation", List.of(), ReleaseRag.retrieve(root, List.of("unknown/foo")));
         Path missing = Files.createDirectories(folder.resolve("docs/testing")).resolve("README.md");
         Files.writeString(missing, "# No known anchor");
-        check.same("A missing anchor fails with the source", "Missing citation anchor: docs/testing/README.md ## Sanity Android",
+        check.same("A missing anchor fails with the source", "Missing citation anchor: docs/testing/README.md ## Android Sanity",
                 decision(() -> ReleaseRag.retrieve(folder, List.of("android/app/build.gradle"))));
     }
 
@@ -429,7 +434,7 @@ class ReleaseGovernanceTest {
                 "docs/feedback/README.md", "scripts/run-android-sanity.ps1"));
         check.same("All affected documents and Android runner are routed", List.of(), citations.needsReview());
         check.same("Native evidence cites the audit contract", List.of("ExtentGovernanceTest"),
-                citations.citations().stream().filter(item -> item.heading().equals("## Raportare Extent"))
+                citations.citations().stream().filter(item -> item.heading().equals("## Extent Reporting"))
                         .map(ReleaseRag.Citation::check).toList());
         var steps = ReleaseRag.workflow(root);
         check.same("The pre-build step requires all three governance checks", true,
@@ -445,7 +450,7 @@ class ReleaseGovernanceTest {
             var citations = ReleaseRag.retrieve(root, List.of(source));
             var ai = citations.stream().filter(citation -> citation.path().equals("docs/board/ai-quality.md")).toList();
             check.same(source + " cites Hard-transfer, history and external AI controls",
-                    List.of("HardQuestTransferBenchmarkTest, RookEndgameHistoryTest și ChessBenchmarkSuite: Stockfish și liga offline"),
+                    List.of("HardQuestTransferBenchmarkTest, RookEndgameHistoryTest and ChessBenchmarkSuite: Stockfish and the offline league"),
                     ai.stream().map(ReleaseRag.Citation::check).toList());
         }
         check.same("A multi-file AI diff cites the protocol once", 1L,
@@ -461,22 +466,22 @@ class ReleaseGovernanceTest {
                 "atf-tests/src/test/java/ro/atf/chess/ArchivedReleaseEvidence.java")) {
             var citations = ReleaseRag.retrieve(root, List.of(path));
             check.same(path + " cites the hint comparison and native receipts", true, citations.stream().anyMatch(citation ->
-                    citation.heading().equals("## Partidă și istoric") && citation.check().contains("HintComparisonTest")
+                    citation.heading().equals("## Game and History") && citation.check().contains("HintComparisonTest")
                             && citation.check().contains("AndroidReceiptTest")));
         }
         check.same("The Android publisher still cites the general Extent contract", true,
                 ReleaseRag.retrieve(root, List.of("atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java"))
-                        .stream().anyMatch(citation -> citation.heading().equals("## Raportare Extent")));
+                        .stream().anyMatch(citation -> citation.heading().equals("## Extent Reporting")));
     }
 
     @Test void ragCitationsSurviveCheckoutLineEndingsAndDetectContentChanges(Checks check) throws IOException {
         Path guide = Files.createDirectories(folder.resolve("docs/release")).resolve("README.md");
-        String source = "# Release\n\n## Calificare și publicare\n\nRegula ediției.\n";
+        String source = "# Release\n\n## Qualification and Publication\n\nThe release rule.\n";
         Files.writeString(guide, source);
         var lf = ReleaseRag.retrieve(folder, List.of("README.md"));
         Files.writeString(guide, source.replace("\n", "\r\n"));
         check.same("LF and CRLF cite the same heading, line, and digest", lf, ReleaseRag.retrieve(folder, List.of("README.md")));
-        Files.writeString(guide, source.replace("Regula", "Dovada"));
+        Files.writeString(guide, source.replace("rule", "evidence"));
         var changed = ReleaseRag.retrieve(folder, List.of("README.md")).getFirst();
         check.same("A prose edit changes the digest even when the anchor stays in place", true,
                 changed.line() == lf.getFirst().line() && !changed.sha256().equals(lf.getFirst().sha256()));
@@ -486,9 +491,9 @@ class ReleaseGovernanceTest {
         var paths = List.of("chess-core/src/main/java/ro/atf/chess/OpeningLesson.java",
                 "android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java", "docs/board/openings.md");
         var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths).stream()
-                .filter(citation -> citation.heading().equals("## Deschideri")).toList();
+                .filter(citation -> citation.heading().equals("## Openings")).toList();
         check.same("Opening changes cite the component and Android release tests once",
-                List.of("OpeningLessonTest și BoardSanity -IncludeOpenings"),
+                List.of("OpeningLessonTest and BoardSanity -IncludeOpenings"),
                 citations.stream().map(ReleaseRag.Citation::check).toList());
     }
 
@@ -510,7 +515,7 @@ class ReleaseGovernanceTest {
                 "android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java", nativeHarness);
         var root = ProjectRoot.locate();
         String reviewCheck = "GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, "
-                + "GameReviewGovernanceTest, MatchStoreTest și BoardSanity -Distribution -GameReviewOnly";
+                + "GameReviewGovernanceTest, MatchStoreTest and BoardSanity -Distribution -GameReviewOnly";
         for (var path : paths) {
             check.same(path + " reaches the Game Review verification by itself", 1L,
                     ReleaseRag.retrieve(root, List.of(path)).stream()
@@ -523,7 +528,7 @@ class ReleaseGovernanceTest {
                 citations.stream().map(ReleaseRag.Citation::check).toList());
         check.same("The shared Android harness retains its general sanity guidance",
                 List.of("BoardSanity"), ReleaseRag.retrieve(root, List.of(nativeHarness)).stream()
-                        .filter(citation -> citation.heading().equals("## Sanity Android"))
+                        .filter(citation -> citation.heading().equals("## Android Sanity"))
                         .map(ReleaseRag.Citation::check).toList());
     }
 
@@ -532,16 +537,16 @@ class ReleaseGovernanceTest {
         var inventory = ReleaseRag.inspect(ProjectRoot.locate(), List.of(replay));
         check.same("A change confined to the shared replay is covered", List.of(replay), inventory.covered());
         check.same("The shared replay cites testing guidance for both entry points", true,
-                inventory.citations().stream().anyMatch(citation -> citation.heading().equals("## Partidă și istoric")
+                inventory.citations().stream().anyMatch(citation -> citation.heading().equals("## Game and History")
                         && citation.check().contains("GameReviewTimelineTest, GameReviewLayoutTest")
                         && citation.check().contains("BoardSanity -Distribution -GameReviewOnly")));
         check.same("The analysis-board route names theory, geometry and the signed manual probe",
-                List.of("OpeningTheoryTest, GameReviewLayoutTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
-                inventory.citations().stream().filter(citation -> citation.heading().equals("## Tablă de analiză"))
+                List.of("OpeningTheoryTest, GameReviewLayoutTest and BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
+                inventory.citations().stream().filter(citation -> citation.heading().equals("## Analysis Board"))
                         .map(ReleaseRag.Citation::check).toList());
         check.same("The shared surface also requires the signed compact language probe",
-                List.of("GameReviewLayoutTest și BoardSanity -Distribution -ReplayCompactOnly"),
-                inventory.citations().stream().filter(citation -> citation.heading().equals("## Redare comună pe ecran compact"))
+                List.of("GameReviewLayoutTest and BoardSanity -Distribution -ReplayCompactOnly"),
+                inventory.citations().stream().filter(citation -> citation.heading().equals("## Shared replay on a compact screen"))
                         .map(ReleaseRag.Citation::check).toList());
     }
 
@@ -552,15 +557,15 @@ class ReleaseGovernanceTest {
         for (var path : paths) {
             var citations = ReleaseRag.retrieve(root, List.of(path));
             check.same(path + " cites the independent tactical corpus owner and tests",
-                    List.of("QuestCatalogTest, TacticsCatalogTest și HardQuestTransferBenchmarkTest"),
+                    List.of("QuestCatalogTest, TacticsCatalogTest and HardQuestTransferBenchmarkTest"),
                     citations.stream().filter(citation -> citation.path().equals("docs/board/quest-curation.md")
-                            && citation.heading().equals("## Antrenament tactic și lot de verificare"))
+                            && citation.heading().equals("## Tactical Training and verification set"))
                             .map(ReleaseRag.Citation::check).toList());
         }
         check.same("Changing both files cites the independent checks once", 1L,
                 ReleaseRag.retrieve(root, paths).stream()
                         .filter(citation -> citation.path().equals("docs/board/quest-curation.md")).count());
-        check.same("An unrelated sibling retains the general JVM route", List.of("## Suite JVM"),
+        check.same("An unrelated sibling retains the general JVM route", List.of("## JVM suites"),
                 ReleaseRag.retrieve(root, List.of("atf-tests/src/test/resources/tactical-transfer-holdout.notes")).stream()
                         .map(ReleaseRag.Citation::heading).toList());
     }
@@ -571,8 +576,8 @@ class ReleaseGovernanceTest {
         var result = ReleaseRag.inspect(ProjectRoot.locate(), paths);
         check.same("Both storage layers have release guidance", paths, result.covered());
         check.same("The progress contract selects the component, receipt and restart probes",
-                List.of("QuestStoreTest, AndroidReceiptTest și BoardSanity la restart"),
-                result.citations().stream().filter(citation -> citation.heading().equals("## Progresul problemelor"))
+                List.of("QuestStoreTest, AndroidReceiptTest and BoardSanity after restart"),
+                result.citations().stream().filter(citation -> citation.heading().equals("## Puzzle progress"))
                         .map(ReleaseRag.Citation::check).toList());
     }
 
@@ -584,14 +589,14 @@ class ReleaseGovernanceTest {
                 "atf-tests/src/test/resources/ai-anchor.yaml", "atf-tests/src/test/resources/ai-anchor-observations.yaml");
         var citations = ReleaseRag.retrieve(ProjectRoot.locate(), paths);
         check.same("Manual board changes require the native and component checks once",
-                List.of("AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly"),
-                citations.stream().filter(item -> item.heading().equals("## Tablă de analiză")).map(ReleaseRag.Citation::check).toList());
+                List.of("AnalysisLineTest, MainMenuLayoutTest and BoardSanity -ManualAnalysisOnly"),
+                citations.stream().filter(item -> item.heading().equals("## Analysis Board")).map(ReleaseRag.Citation::check).toList());
         check.same("Anchor observations and protocol changes cite the same independent calibration",
-                List.of("AiAnchorBenchmarkTest și GameReviewGovernanceTest"),
-                citations.stream().filter(item -> item.heading().equals("### Rezultatele ancorei externe")).map(ReleaseRag.Citation::check).toList());
+                List.of("AiAnchorBenchmarkTest and GameReviewGovernanceTest"),
+                citations.stream().filter(item -> item.heading().equals("### External anchor results")).map(ReleaseRag.Citation::check).toList());
         check.same("Progress changes cite their component and native restart evidence",
-                List.of("QuestStoreTest, AndroidReceiptTest și BoardSanity la restart"),
-                citations.stream().filter(item -> item.heading().equals("## Progresul problemelor")).map(ReleaseRag.Citation::check).toList());
+                List.of("QuestStoreTest, AndroidReceiptTest and BoardSanity after restart"),
+                citations.stream().filter(item -> item.heading().equals("## Puzzle progress")).map(ReleaseRag.Citation::check).toList());
     }
 
     private record QualificationFixture(Path components, Path componentExtent, Path nativeRun, Path nativeExtent) { }

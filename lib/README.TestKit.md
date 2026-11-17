@@ -1,21 +1,21 @@
-# Test Kit — clasificare și audit JUnit
+# Test Kit — JUnit Classification and Auditing
 
-## Pe scurt
+## Overview
 
-Kit oferă adnotări, comparații evaluate și lifecycle neutru. JAR-ul nu pornește browser, broker ori ADB și nu publică singur Extent.
+Kit provides annotations, evaluated comparisons, and a neutral lifecycle. The JAR leaves browser, broker, and ADB startup and Extent publication to its consumers.
 
-| Nevoie | API și limită |
+| Need | API and Boundary |
 |---|---|
-| Nivelul testului | @AtfUnitTest, @AtfComponentTest, @AtfIntegrationTest, @AtfE2eTest; clasificare, fără lansare automată. |
-| Comparații auditabile | RecordedAssertions; verdictul JUnit precede preview-ul 240, care păstrează perechile Unicode complete. |
-| Aserțiuni JUnit existente | AuditedAssertions în scope-ul adaptorului; diagnostic lazy, identitate și cauză originale. Apelurile JUnit directe nu devin automat auditabile. |
-| Valori integrale | AssertionValueDisplay poate primi un observer Projection cu rol expected/actual și text redactat, înainte de preview; consumerul deține retenția. |
-| Faze și cleanup | ComponentAuditExtension / ComponentAuditAdapter, TestRunInitialization, FailureAwareCleanup. |
-| Politici și resurse | Resolverele Atf*Policy; readResourceUtf8 pentru classpath/JAR, requiredPath pentru fișier real. |
+| Test level | @AtfUnitTest, @AtfComponentTest, @AtfIntegrationTest, @AtfE2eTest classify tests without launching them automatically. |
+| Auditable comparisons | RecordedAssertions. The JUnit verdict precedes the 240-character preview, which keeps Unicode pairs intact. |
+| Existing JUnit assertions | AuditedAssertions in the adapter scope. Diagnostics are lazy, and identity and cause are preserved. Direct JUnit calls need explicit auditing. |
+| Full values | AssertionValueDisplay can pass redacted text and its expected or actual role to a Projection observer before previewing. The consumer owns retention. |
+| Phases and cleanup | ComponentAuditExtension / ComponentAuditAdapter, TestRunInitialization, FailureAwareCleanup. |
+| Policies and resources | Atf*Policy resolvers. Use readResourceUtf8 for classpath or JAR resources and requiredPath for a real file. |
 
-## Exemplu minim
+## Minimal Example
 
-Adaptorul deține recorderul și publică rezultatul; o nepotrivire păstrează excepția JUnit originală:
+The adapter owns the recorder and publishes the result. A mismatch preserves the original JUnit exception.
 
 ```java
 import atf.testkit.assertions.RecordedAssertions;
@@ -25,14 +25,14 @@ public static void verifyState(RecordedAssertions audit, String actual) {
 }
 ```
 
-## Scope și integrare
+## Scope and Integration
 
-- Dependență atf.api:atf-test-kit cu versiunea atf.testkit.version din POM-ul proiectului. Folosiți test scope în produs; compile este justificat numai pentru suportul main al unui modul de test. Nu includeți Kit în APK/aplicație.
-- JUnit Jupiter API și Jackson sunt tranzitive. Runnerul declară motorul junit-jupiter-engine și selecția sa; adnotarea de nivel nu înlocuiește @Test ori extensia consumerului.
-- Pentru Extent: adaptorul trimite checks către AssertionAuditReport; AssertionAuditRun deține sesiunea comună. Kit nu copiază rendererul. [Integrare Reporting](README.Reporting.md#scope-și-integrare).
-- Sanitizer-ul se injectează prin AssertionValueDisplay înainte de preview. Comparația rulează o dată; valorile stocate sunt limitate și nu constituie arhivă integrală. Unitățile pure își păstrează politica proprie.
-- Scope-urile și resursele sunt per invocare; închideți-le și păstrați cauza inițială. Politicile globale nu devin izolate între cititori externi printr-un lock local.
+- The dependency atf.api:atf-test-kit uses atf.testkit.version from the project POM. Use test scope in the product. Compile scope is appropriate only for the main support code of a test module. Keep Kit outside the APK or application.
+- JUnit Jupiter API and Jackson are transitive. The runner declares the junit-jupiter-engine and its selection rules. The level annotation works alongside @Test and the consumer's extension.
+- For Extent, the adapter sends checks to AssertionAuditReport and AssertionAuditRun owns the shared session. Rendering stays with Reporting. [Reporting integration](README.Reporting.md#scope-and-integration).
+- Inject the sanitizer through AssertionValueDisplay before previewing. The comparison runs once. Stored values are bounded and serve as previews. Pure unit tests keep their own policy.
+- Scopes and resources are per invocation. Close them and preserve the original cause. A local lock alone cannot isolate global policies from outside readers.
 
 ---
 
-Verificați contractele locale cu `PlatformLibraryProvenanceTest` și `SuiteGovernanceTest`. Păstrați coordonatele, hash-urile și notele de integrare sincronizate cu `library-provenance.json`.
+Verify local contracts with `PlatformLibraryProvenanceTest` and `SuiteGovernanceTest`. Keep coordinates, hashes, and integration notes aligned with `library-provenance.json`.

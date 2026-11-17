@@ -2,58 +2,58 @@
 
 Play chess against AI, solve puzzles, and study openings.
 
-## Jocul
+## Play
 
-- [Descarcă APK Chess Lab 0.15.3](https://github.com/crististefanita/chess/releases/download/v0.15.3/ChessLab-0.15.3.apk)
-- [Joacă în browser](https://crististefanita.github.io/chess/)
+- [Download Chess Lab 0.15.3 APK](https://github.com/crististefanita/chess/releases/download/v0.15.3/ChessLab-0.15.3.apk)
+- [Play in your browser](https://crististefanita.github.io/chess/)
 
-## Arhitectura J7
+## J7 Architecture
 
-| Zonă | Ce deține | Unde aprofundezi |
+| Area | What it owns | Where to learn more |
 |---|---|---|
-| [`chess-core`](chess-core/src/main) | Reguli, poziții și partide, căutare AI, catalog YAML și progres prin ID-uri stabile. | [Reguli și catalog](docs/board/README.md#reguli-și-probleme) · [Evaluare AI](docs/board/ai-quality.md) |
-| [`android`](android/app/src/main) | Meniuri, tablă, accesibilitate și adaptorul pentru salvările locale. Gradle împachetează interfața, motorul și resursele lui în APK. | [Tabla și jocul](docs/board/README.md) |
-| [`web`](web) | Interfața de browser, salvarea locală și workerul TeaVM care execută motorul de șah. | [Build și paritate APK–Web](web/README.md) |
-| [`atf-tests`](atf-tests) | Suite JVM pentru motor și guvernanță; recepțiile instrumentării Android intră în Extent cu aserțiuni și capturi. | [Strategia de testare](docs/testing/README.md) |
-| [`release-tools`](release-tools/src/main) | RAG indică documentele și probele afectate. `ReleaseGate` verifică proveniența, calificarea și descărcarea. | [Procesul de release](docs/release/README.md) |
-| [`lib`](lib/README.md) | Perechile JAR/POM ATF și contractul lor de consum. Maven le folosește pe traseul JVM. | [Proveniența bibliotecilor](lib/README.md#proveniență) |
+| [`chess-core`](chess-core/src/main) | Rules, positions and games, AI search, the YAML catalog, and progress tracked by stable IDs. | [Rules and catalog](docs/board/README.md#rules-and-puzzles) · [AI evaluation](docs/board/ai-quality.md) |
+| [`android`](android/app/src/main) | Menus, board, accessibility, and the adapter for local saves. Gradle packages the UI, engine, and engine resources in the APK. | [Board and gameplay](docs/board/README.md) |
+| [`web`](web) | Browser UI, local storage, and the TeaVM worker that runs the chess engine. | [Build and APK–Web parity](web/README.md) |
+| [`atf-tests`](atf-tests) | JVM suites for the engine and governance. Android instrumentation receipts are published in Extent with assertions and screenshots. | [Testing strategy](docs/testing/README.md) |
+| [`release-tools`](release-tools/src/main) | RAG identifies affected documents and checks. `ReleaseGate` verifies provenance, qualification, and download. | [Release process](docs/release/README.md) |
+| [`lib`](lib/README.md) | The ATF JAR/POM pairs and their consumption contract. Maven uses them for the JVM suites. | [Library provenance](lib/README.md#provenance) |
 
-- **Gradle** declară `:app` și include `chess-core/src/main/java` și `chess-core/src/main/resources` în build-ul Android.
-- **Maven** declară `atf-tests` ca singur modul al reactorului. Acesta compilează `chess-core/src/main/java` și `release-tools/src/main/java` și încarcă `chess-core/src/main/resources`.
-- **Biblioteci ATF** în JVM. `atf-reporting` și `atf-test-kit` sunt dependențe Maven cu scope `test`.
+- **Gradle** declares `:app` and includes `chess-core/src/main/java` and `chess-core/src/main/resources` in the Android build.
+- **Maven** declares `atf-tests` as its only reactor module. It compiles `chess-core/src/main/java` and `release-tools/src/main/java` and loads `chess-core/src/main/resources`.
+- **ATF libraries** on the JVM. `atf-reporting` and `atf-test-kit` are Maven dependencies with `test` scope.
 
 ```mermaid
 flowchart LR
-    Core["Motor Java + resurse YAML"] -->|build Gradle| Android["Aplicație Android :app"]
-    Core -->|build TeaVM| Worker["Worker Web"]
-    Browser["Interfață Web"] <-->|comenzi și răspunsuri| Worker
-    Core -->|verificat în Maven| Tests["Suite JVM"]
-    Tests -->|publică| Extent["Extent"]
-    Android -.->|recepții native| Tests
+    Core["Java engine + YAML resources"] -->|Gradle build| Android["Android app :app"]
+    Core -->|TeaVM build| Worker["Web worker"]
+    Browser["Web UI"] <-->|commands and responses| Worker
+    Core -->|verified with Maven| Tests["JVM suites"]
+    Tests -->|publish to| Extent["Extent"]
+    Android -.->|native receipts| Tests
 ```
 
 <details>
-<summary>Legendă — codul jocului și traseul dovezilor</summary>
+<summary>Legend — game code and evidence flow</summary>
 
-- Gradle declară aplicația `:app`. Atât aplicația, cât și reactorul Maven citesc
-  sursele din `chess-core`. Maven declară `atf-tests` ca modul și compilează
-  `release-tools` ca surse adăugate.
-- Linia punctată arată recepțiile produse de instrumentarea Android. Testele
-  de componentă rulează în JVM; publicarea recepțiilor completează proba nativă.
-- Browserul trimite mutările către worker. Probele Edge compară reluarea și
-  rezultatele cu motorul JVM.
-- Extent folosește ATF Reporting din `lib`. Numele versiunii, APK-ul și dovada
-  de publicare se reconciliază în [catalogul edițiilor](release/README.md).
+- Gradle declares the `:app` application. Both the application and the Maven
+  reactor read the sources in `chess-core`. Maven declares `atf-tests` as a
+  module and compiles `release-tools` as an additional source directory.
+- The dotted line shows the receipts produced by Android instrumentation. Component
+  tests run on the JVM. Publishing the receipts completes the native evidence.
+- The browser sends moves to the worker. The Edge checks compare resumption and
+  results with the JVM engine.
+- Extent uses ATF Reporting from `lib`. The version name, APK, and publication
+  evidence are reconciled in the [release catalog](release/README.md).
 
 </details>
 
-## Ediția publicată
+## Published Release
 
-- [Chess Lab 0.15.3 · note de release](https://github.com/crististefanita/chess/releases/tag/v0.15.3)
+- [Chess Lab 0.15.3 · release notes](https://github.com/crististefanita/chess/releases/tag/v0.15.3)
 
-## Puncte de intrare
+## Entry Points
 
-- [Documentația proiectului](docs/README.md) — alege ghidul după zona schimbată.
-- [Strategia de testare](docs/testing/README.md#alegerea-nivelului) — alege componentă, guvernanță sau sanity Android.
-- [Procesul de release](docs/release/README.md#calificare-și-publicare) — construiește și califică ediția în TMP.
-- [Feedback activ](docs/feedback/README.md) — urmărește lacunele și criteriile de închidere.
+- [Project documentation](docs/README.md) — find the guide for the area you changed.
+- [Testing strategy](docs/testing/README.md#choosing-the-test-level) — choose component testing, governance, or Android sanity.
+- [Release process](docs/release/README.md#qualification-and-publication) — build and qualify the release in TMP.
+- [Active feedback](docs/feedback/README.md) — track gaps and closure criteria.

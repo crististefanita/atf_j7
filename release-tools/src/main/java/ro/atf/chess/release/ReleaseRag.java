@@ -28,46 +28,46 @@ public final class ReleaseRag {
         }
     }
 
-    private static final Route RELEASE = new Route("release-tools/", "docs/release/README.md", "## Calificare și publicare",
-            "DocumentationGovernanceTest, ReleaseGovernanceTest și ExtentGovernanceTest");
+    private static final Route RELEASE = new Route("release-tools/", "docs/release/README.md", "## Qualification and Publication",
+            "DocumentationGovernanceTest, ReleaseGovernanceTest and ExtentGovernanceTest");
     private static final List<Route> ROUTES = List.of(
-            new Route("chess-core/", "docs/testing/README.md", "## Motor și proiecție", "ChessComponentTest și QuestCatalogTest"),
+            new Route("chess-core/", "docs/testing/README.md", "## Engine and projection", "ChessComponentTest and QuestCatalogTest"),
             ai("chess-core/src/main/resources/ai-repertoire.yaml"),
             ai("chess-core/src/main/resources/match-ai.yaml"),
             ai("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java"),
             matchHints("chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java"),
-            new Route("chess-core/src/main/java/ro/atf/chess/ForcedMateSearch.java", "docs/board/ai-quality.md", "## Rezolvarea quest-urilor cu obiectiv declarat",
-                    "TacticalAnalysisTest și HardQuestTransferBenchmarkTest"),
-            new Route("chess-core/src/main/java/ro/atf/chess/HardQuestSolver.java", "docs/board/ai-quality.md", "## Rezolvarea quest-urilor cu obiectiv declarat",
-                    "TacticalAnalysisTest și HardQuestTransferBenchmarkTest"),
+            new Route("chess-core/src/main/java/ro/atf/chess/ForcedMateSearch.java", "docs/board/ai-quality.md", "## Solving puzzles with a declared objective",
+                    "TacticalAnalysisTest and HardQuestTransferBenchmarkTest"),
+            new Route("chess-core/src/main/java/ro/atf/chess/HardQuestSolver.java", "docs/board/ai-quality.md", "## Solving puzzles with a declared objective",
+                    "TacticalAnalysisTest and HardQuestTransferBenchmarkTest"),
             tacticalHoldout("atf-tests/src/test/resources/tactical-transfer-holdout.yaml"),
             tacticalHoldout("atf-tests/src/test/resources/tactical-transfer-holdout.sha256"),
             ai("chess-core/src/main/java/ro/atf/chess/ChessMatch.java"),
-            new Route("chess-core/src/main/java/ro/atf/chess/ChessMatch.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
-            new Route("chess-core/src/main/resources/mate-in-three.yaml", "docs/board/quest-curation.md", "## Mat în trei mutări", "MateInThreeCatalogTest și verify-mate-in-three.cjs"),
-            new Route("chess-core/src/main/resources/mate-in-two.yaml", "docs/board/quest-curation.md", "## Mat în două mutări", "MateInTwoCatalogTest și verify-mate-in-two.cjs"),
-            new Route("chess-core/src/main/resources/quests.yaml", "docs/board/quest-curation.md", "## Configurarea capitolelor",
-                    "QuestCatalogTest și update-mate-one-order.ps1"),
-            new Route("chess-core/src/main/resources/training.yaml", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
-                    "QuestCatalogTest și verify-tactics.cjs"),
-            new Route("chess-core/src/main/resources/training.sha256", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
-                    "QuestCatalogTest și verify-tactics.cjs"),
-            new Route("chess-core/src/main/resources/intermezzo.yaml", "docs/board/quest-curation.md", "## Mutarea intermediară",
-                    "QuestCatalogTest și verify-tactics.cjs"),
-            new Route("chess-core/src/main/resources/intermezzo.sha256", "docs/board/quest-curation.md", "## Mutarea intermediară",
-                    "QuestCatalogTest și verify-tactics.cjs"),
-            new Route("chess-core/src/main/java/ro/atf/chess/QuestCatalog.java", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
+            new Route("chess-core/src/main/java/ro/atf/chess/ChessMatch.java", "docs/testing/README.md", "## Game and History", "ChessMatchTest and BoardSanity"),
+            new Route("chess-core/src/main/resources/mate-in-three.yaml", "docs/board/quest-curation.md", "## Mate in three moves", "MateInThreeCatalogTest and verify-mate-in-three.cjs"),
+            new Route("chess-core/src/main/resources/mate-in-two.yaml", "docs/board/quest-curation.md", "## Mate in two moves", "MateInTwoCatalogTest and verify-mate-in-two.cjs"),
+            new Route("chess-core/src/main/resources/quests.yaml", "docs/board/quest-curation.md", "## Configuring the chapters",
+                    "QuestCatalogTest and update-mate-one-order.ps1"),
+            new Route("chess-core/src/main/resources/training.yaml", "docs/board/quest-curation.md", "## Tactical Training and verification set",
+                    "QuestCatalogTest and verify-tactics.cjs"),
+            new Route("chess-core/src/main/resources/training.sha256", "docs/board/quest-curation.md", "## Tactical Training and verification set",
+                    "QuestCatalogTest and verify-tactics.cjs"),
+            new Route("chess-core/src/main/resources/intermezzo.yaml", "docs/board/quest-curation.md", "## Intermediate Move",
+                    "QuestCatalogTest and verify-tactics.cjs"),
+            new Route("chess-core/src/main/resources/intermezzo.sha256", "docs/board/quest-curation.md", "## Intermediate Move",
+                    "QuestCatalogTest and verify-tactics.cjs"),
+            new Route("chess-core/src/main/java/ro/atf/chess/QuestCatalog.java", "docs/board/quest-curation.md", "## Tactical Training and verification set",
                     "QuestCatalogTest"),
-            new Route("chess-core/src/main/resources/tactics.yaml", "docs/testing/README.md", "## Tactică și punctaj", "TacticsCatalogTest și verify-tactics.cjs"),
-            new Route("chess-core/src/main/java/ro/atf/chess/QuestRewards.java", "docs/testing/README.md", "## Tactică și punctaj", "QuestRewardsTest și MainMenuLayoutTest"),
+            new Route("chess-core/src/main/resources/tactics.yaml", "docs/testing/README.md", "## Tactics and scoring", "TacticsCatalogTest and verify-tactics.cjs"),
+            new Route("chess-core/src/main/java/ro/atf/chess/QuestRewards.java", "docs/testing/README.md", "## Tactics and scoring", "QuestRewardsTest and MainMenuLayoutTest"),
             questProgress("chess-core/src/main/java/ro/atf/chess/QuestProgress.java"),
             questProgress("chess-core/src/main/java/ro/atf/chess/QuestStore.java"),
             questProgress("android/app/src/main/java/ro/atf/chess/android/ChessProgressStore.java"),
             questProgress("android/app/src/main/java/ro/atf/chess/android/AndroidGamePreferences.java"),
             questProgress("atf-tests/src/test/java/ro/atf/chess/QuestStoreTest.java"),
             questProgress("atf-tests/src/test/java/ro/atf/chess/AndroidReceiptTest.java"),
-            new Route("android/", "docs/testing/README.md", "## Sanity Android", "BoardSanity"),
-            new Route("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "docs/testing/README.md", "## Partidă și istoric", "ChessMatchTest și BoardSanity"),
+            new Route("android/", "docs/testing/README.md", "## Android Sanity", "BoardSanity"),
+            new Route("android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java", "docs/testing/README.md", "## Game and History", "ChessMatchTest and BoardSanity"),
             review("chess-core/src/main/java/ro/atf/chess/GameReview.java"),
             review("chess-core/src/main/java/ro/atf/chess/GameReviewTimeline.java"),
             review("chess-core/src/main/java/ro/atf/chess/GameReviewExplanation.java"),
@@ -88,11 +88,11 @@ public final class ReleaseRag {
             review("android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java"),
             review("android/app/src/main/java/ro/atf/chess/android/AnalysisReplayDialog.java"),
             new Route("android/app/src/main/java/ro/atf/chess/android/AnalysisReplayDialog.java",
-                    "docs/testing/README.md", "## Tablă de analiză",
-                    "OpeningTheoryTest, GameReviewLayoutTest și BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
+                    "docs/testing/README.md", "## Analysis Board",
+                    "OpeningTheoryTest, GameReviewLayoutTest and BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis"),
             new Route("android/app/src/main/java/ro/atf/chess/android/AnalysisReplayDialog.java",
-                    "docs/testing/README.md", "## Redare comună pe ecran compact",
-                    "GameReviewLayoutTest și BoardSanity -Distribution -ReplayCompactOnly"),
+                    "docs/testing/README.md", "## Shared replay on a compact screen",
+                    "GameReviewLayoutTest and BoardSanity -Distribution -ReplayCompactOnly"),
             review("android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java"),
             games("chess-core/src/main/java/ro/atf/chess/MatchArchive.java"),
             games("chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java"),
@@ -128,7 +128,7 @@ public final class ReleaseRag {
             anchor("atf-tests/src/test/resources/ai-anchor.yaml"),
             anchor("atf-tests/src/test/resources/ai-anchor-observations.yaml"),
             anchor("atf-tests/src/test/java/ro/atf/chess/PairedElo.java"),
-            new Route("android/app/src/main/java/ro/atf/chess/android/BoardView.java", "docs/testing/README.md", "## Proba TalkBack", "QuestHintTest, BoardSanity și proba TalkBack"),
+            new Route("android/app/src/main/java/ro/atf/chess/android/BoardView.java", "docs/testing/README.md", "## TalkBack probe", "QuestHintTest, BoardSanity and the TalkBack probe"),
             openings("chess-core/src/main/java/ro/atf/chess/OpeningLesson.java"),
             openings("android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java"),
             openings("docs/board/openings.md"),
@@ -140,15 +140,15 @@ public final class ReleaseRag {
             testChanges("release-tools/src/main/java/ro/atf/chess/release/GitTestChanges.java"),
             testChanges("release-tools/src/main/java/ro/atf/chess/release/TestChangeReceipt.java"),
             testChanges("release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java"),
-            new Route("atf-tests/", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
+            new Route("atf-tests/", "docs/testing/README.md", "## JVM suites", "ChessJvmSuite and ChessGovernanceSuite"),
             new Route("atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java", "docs/release/README.md",
-                    "## Excepție strictă pentru instalarea APK-ului exact", "DocumentationGovernanceTest și ReleaseGovernanceTest"),
+                    "## Strict Exception for Installing the Exact APK", "DocumentationGovernanceTest and ReleaseGovernanceTest"),
             new Route("atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java", "docs/release/README.md",
-                    "## Excepție strictă pentru instalarea APK-ului exact", "ReleaseGovernanceTest cu negative pentru commit, hash, autorizare și Extent"),
+                    "## Strict Exception for Installing the Exact APK", "ReleaseGovernanceTest with negative cases for commit, hash, authorization, and Extent"),
             new Route("release-tools/src/main/java/ro/atf/chess/release/ReleaseEvidence.java", "docs/release/README.md",
-                    "## Excepție strictă pentru instalarea APK-ului exact", "ReleaseGovernanceTest și DocumentationGovernanceTest"),
+                    "## Strict Exception for Installing the Exact APK", "ReleaseGovernanceTest and DocumentationGovernanceTest"),
             new Route("docs/release/README.md", "docs/release/README.md",
-                    "## Excepție strictă pentru instalarea APK-ului exact", "DocumentationGovernanceTest și ReleaseGovernanceTest"),
+                    "## Strict Exception for Installing the Exact APK", "DocumentationGovernanceTest and ReleaseGovernanceTest"),
             audit("atf-tests/src/test/java/ro/atf/chess/ExtentAudit.java"),
             audit("atf-tests/src/test/java/ro/atf/chess/ExtentGovernanceTest.java"),
             audit("atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java"),
@@ -157,79 +157,79 @@ public final class ReleaseRag {
             audit("scripts/run-android-sanity.ps1"),
             audit("docs/testing/README.md"),
             new Route("atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
-            new Route("docs/testing/README.md", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
-            new Route("docs/README.md", "docs/README.md", "## Verificarea documentației", "DocumentationGovernanceTest și ReleaseGovernanceTest"),
-            new Route("docs/board/", "docs/testing/README.md", "## Motor și proiecție", "BoardPanelLayoutTest și QuestHintTest"),
+            new Route("docs/testing/README.md", "docs/testing/README.md", "## JVM suites", "ChessJvmSuite and ChessGovernanceSuite"),
+            new Route("docs/README.md", "docs/README.md", "## Documentation Checks", "DocumentationGovernanceTest and ReleaseGovernanceTest"),
+            new Route("docs/board/", "docs/testing/README.md", "## Engine and projection", "BoardPanelLayoutTest and QuestHintTest"),
             new Route("docs/feedback/", "docs/feedback/README.md", "# Feedback · Chess Lab",
-                    "DocumentationGovernanceTest și revizia criteriilor deschise"),
-            new Route("lib/", "lib/README.md", "## Proveniență", "ReleaseGovernanceTest"),
-            new Route(".gitattributes", "lib/README.md", "## Proveniență", "PlatformLibraryProvenanceTest"),
-            new Route("library-provenance.json", "lib/README.md", "## Proveniență", "PlatformLibraryProvenanceTest"),
+                    "DocumentationGovernanceTest and review of open criteria"),
+            new Route("lib/", "lib/README.md", "## Provenance", "ReleaseGovernanceTest"),
+            new Route(".gitattributes", "lib/README.md", "## Provenance", "PlatformLibraryProvenanceTest"),
+            new Route("library-provenance.json", "lib/README.md", "## Provenance", "PlatformLibraryProvenanceTest"),
             new Route("docs/release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("release/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("scripts/", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
-            new Route("scripts/Initialize-J7Signing.ps1", "docs/release/README.md", "## Identitatea de semnare și instalare curată",
-                    "ReleaseGovernanceTest și ReleaseGate signing-continuity"),
-            new Route("scripts/verify-signing-continuity.ps1", "docs/release/README.md", "## Identitatea de semnare și instalare curată",
-                    "ReleaseGovernanceTest și ReleaseGate signing-continuity"),
-            new Route("scripts/verify-tactics.cjs", "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
-                    "verify-tactics.cjs și chess.js 1.4.0"),
+            new Route("scripts/Initialize-J7Signing.ps1", "docs/release/README.md", "## Signing Identity and Clean Installation",
+                    "ReleaseGovernanceTest and ReleaseGate signing-continuity"),
+            new Route("scripts/verify-signing-continuity.ps1", "docs/release/README.md", "## Signing Identity and Clean Installation",
+                    "ReleaseGovernanceTest and ReleaseGate signing-continuity"),
+            new Route("scripts/verify-tactics.cjs", "docs/board/quest-curation.md", "## Tactical Training and verification set",
+                    "verify-tactics.cjs and chess.js 1.4.0"),
             new Route("pom.xml", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("README.md", RELEASE.document(), RELEASE.heading(), RELEASE.check()), RELEASE);
 
     private ReleaseRag() { }
 
     private static Route testChanges(String path) {
-        return new Route(path, "docs/testing/README.md", "## Schimbarea testelor față de o bază Git",
-                "TestChangeReview cu baza Git explicită și ReleaseGate preflight");
+        return new Route(path, "docs/testing/README.md", "## Test changes against a Git baseline",
+                "TestChangeReview with the explicit Git baseline and ReleaseGate preflight");
     }
 
     private static Route questProgress(String path) {
-        return new Route(path, "docs/testing/README.md", "## Progresul problemelor",
-                "QuestStoreTest, AndroidReceiptTest și BoardSanity la restart");
+        return new Route(path, "docs/testing/README.md", "## Puzzle progress",
+                "QuestStoreTest, AndroidReceiptTest and BoardSanity after restart");
     }
 
     private static Route audit(String path) {
-        return new Route(path, "docs/testing/README.md", "## Raportare Extent", "ExtentGovernanceTest");
+        return new Route(path, "docs/testing/README.md", "## Extent Reporting", "ExtentGovernanceTest");
     }
 
     private static Route ai(String path) {
-        return new Route(path, "docs/board/ai-quality.md", "## Control la fiecare schimbare",
-                "HardQuestTransferBenchmarkTest, RookEndgameHistoryTest și ChessBenchmarkSuite: Stockfish și liga offline");
+        return new Route(path, "docs/board/ai-quality.md", "## Checks for every change",
+                "HardQuestTransferBenchmarkTest, RookEndgameHistoryTest and ChessBenchmarkSuite: Stockfish and the offline league");
     }
 
     private static Route openings(String path) {
-        return new Route(path, "docs/testing/README.md", "## Deschideri", "OpeningLessonTest și BoardSanity -IncludeOpenings");
+        return new Route(path, "docs/testing/README.md", "## Openings", "OpeningLessonTest and BoardSanity -IncludeOpenings");
     }
 
     private static Route tacticalHoldout(String path) {
-        return new Route(path, "docs/board/quest-curation.md", "## Antrenament tactic și lot de verificare",
-                "QuestCatalogTest, TacticsCatalogTest și HardQuestTransferBenchmarkTest");
+        return new Route(path, "docs/board/quest-curation.md", "## Tactical Training and verification set",
+                "QuestCatalogTest, TacticsCatalogTest and HardQuestTransferBenchmarkTest");
     }
 
     private static Route review(String path) {
-        return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest, MatchStoreTest și BoardSanity -Distribution -GameReviewOnly");
+        return new Route(path, "docs/testing/README.md", "## Game and History",
+                "GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest, MatchStoreTest and BoardSanity -Distribution -GameReviewOnly");
     }
 
     private static Route manualAnalysis(String path) {
-        return new Route(path, "docs/testing/README.md", "## Tablă de analiză",
-                "AnalysisLineTest, MainMenuLayoutTest și BoardSanity -ManualAnalysisOnly");
+        return new Route(path, "docs/testing/README.md", "## Analysis Board",
+                "AnalysisLineTest, MainMenuLayoutTest and BoardSanity -ManualAnalysisOnly");
     }
 
     private static Route matchHints(String path) {
-        return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest și BoardSanity -AnalysisOnly -IncludeManualAnalysis");
+        return new Route(path, "docs/testing/README.md", "## Game and History",
+                "MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest and BoardSanity -AnalysisOnly -IncludeManualAnalysis");
     }
 
     private static Route anchor(String path) {
-        return new Route(path, "docs/board/ai-quality.md", "### Rezultatele ancorei externe",
-                "AiAnchorBenchmarkTest și GameReviewGovernanceTest");
+        return new Route(path, "docs/board/ai-quality.md", "### External anchor results",
+                "AiAnchorBenchmarkTest and GameReviewGovernanceTest");
     }
 
     private static Route games(String path) {
-        return new Route(path, "docs/testing/README.md", "## Partidă și istoric",
-                "MatchListEntryTest, MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest și BoardSanity -MatchMenusOnly");
+        return new Route(path, "docs/testing/README.md", "## Game and History",
+                "MatchListEntryTest, MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest and BoardSanity -MatchMenusOnly");
     }
 
     public static List<Citation> retrieve(Path root, List<String> changedPaths) throws IOException {

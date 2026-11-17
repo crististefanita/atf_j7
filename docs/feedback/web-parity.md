@@ -1,71 +1,71 @@
-# Web · Paritate cu APK-ul Chess Lab
+# Web · Parity with the Chess Lab APK
 
-Registrul urmărește diferențele rămase între APK și Web.
-[Motor și adaptoare](../../web/README.md#motor-comun-și-adaptoare-de-platformă) ·
-[Matricea APK–Web](../../web/parity.md)
+The register tracks the remaining differences between APK and Web.
+[Engine and adapters](../../web/README.md#shared-engine-and-platform-adapters) ·
+[APK–Web matrix](../../web/parity.md)
 
-## Ce preluăm din J4
+## What We Reuse from J4
 
-Card Table Browser 0.2.0 și JAR-ul său de teste oferă contracte pentru
-masa de cărți. O extracție J4/J7 are sens pentru un utilitar independent
-de joc, dacă proba identifică un consumator în fiecare proiect, un API
-stabil și codul duplicat care poate fi eliminat. Candidații sunt
-transportul cu revizii și colectarea dovezilor din browser.
-[Pachetele Card Table Browser 0.2.0](https://github.com/crististefanita/atf_j4/tree/3d2b7b11eedd6aadd48a82fd7858ef195e21f12e/atf-ui-browser/lib)
+Card Table Browser 0.2.0 and its test JAR provide card table contracts.
+Extracting a game-independent utility into shared J4/J7 code makes sense when
+the evidence identifies a consumer in each project, a stable API, and duplicate
+code that can be removed. The candidates are revision-based transport and
+browser evidence collection.
+[Card Table Browser 0.2.0 packages](https://github.com/crististefanita/atf_j4/tree/3d2b7b11eedd6aadd48a82fd7858ef195e21f12e/atf-ui-browser/lib)
 
-## WEB-01 · Motor și contract de aplicație
+## WEB-01 · Engine and Application Contract
 
-**P1 · Responsabil Chess.** Extrageți treptat tranzițiile de sesiune
-care necesită decizii echivalente în `ChessActivity`, `AnalysisActivity`
-și adaptorul Web. Începeți cu reluarea, anularea și primirea unei replici
-AI întârziate. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
+**P1 · Chess owner.** Gradually extract session transitions that require
+equivalent decisions in `ChessActivity`, `AnalysisActivity`, and the Web
+adapter. Start with resuming, canceling, and receiving a delayed AI reply.
+[Engine and projection](../testing/README.md#engine-and-projection)
 
-**Criteriu de închidere.** Același caz cu ceas și stocare simulate
-verifică poziția, revizia, acțiunile permise și ignorarea replicii
-expirate pe JVM și în worker. Sanity-ul nativ verifică o singură
-reluare și ordinea afișată. Măsurați separat pornirea la rece a workerului
-și timpul până la prima semimutare de analiză, cu același buget, pe profil
-mobil. Verificați anularea și schimbarea slotului în timpul calculului.
+**Closure criterion.** The same case with a simulated clock and storage
+checks the position, revision, allowed actions, and rejection of stale replies
+on the JVM and in the worker. Native sanity verifies one resumption and
+the displayed order. Measure cold worker startup and time to the first
+analysis ply separately on mobile, at the same budget.
+Verify cancellation and slot changes during calculation.
 
-**Game Review · Web.** NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului în ediția anterioară. Graficul folosește acum o singură valoare accesibilă, cu poziție și scor. Componenta acoperă actualizările repetate, iar Extent respinge o recepție Web cu descrierea duplicată. Confirmați vorbirea pe build-ul corectat în RO și EN. Păstrați focusul pe grafic între două semimutări cu scoruri diferite și verificați revenirea la declanșator după **De ce?**. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-game-review)
+**Game Review · Web.** NVDA 2026.3.1 repeated the position and score in RO in the previous release. The graph now uses one accessible value with position and score. The component covers repeated updates, and Extent rejects a Web receipt with a duplicate description. Confirm speech on the corrected build in RO and EN. Keep focus on the graph between two plies with different scores and verify it returns to the trigger after **Why?**. [Screen reader](../../web/README.md#screen-readers-in-game-review)
 
-## WEB-02 · Adaptoare și afișaj comun
+## WEB-02 · Adapters and Shared Layout
 
-**P1 · Responsabili J7 pentru șah și J4 pentru extracțiile comune.** Componentele existente `BoardPanelLayout`, `GameReviewLayout`, `GameReviewTimeline` și `OpeningReplay` oferă punctele de plecare. Android aplică dreptunghiurile și efectele în `View` și dialoguri. Web aplică aceleași decizii în DOM/CSS, citește zona utilă și traduce clickul, atingerea și tastatura în aceleași intenții. [Ghidul tablei](../board/README.md) · [Game Review](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
+**P1 · J7 owns chess and J4 owns shared extractions.** The existing `BoardPanelLayout`, `GameReviewLayout`, `GameReviewTimeline`, and `OpeningReplay` provide starting points. Android applies the bounds and effects in `View` and dialogs. Web applies the same decisions in DOM/CSS, reads the usable area, and translates clicks, touches, and keyboard input into the same intents. [Board guide](../board/README.md) · [Game Review](../board/game-review.md#review-navigation-and-recommended-lines)
 
-- Definiți un contract măsurabil pentru tabla pătrată, orientare, ordinea panourilor, zonele tactile, comenzile rezervate, explicația derulabilă, focalizarea și marcajele. Măsurați fereastra utilă a APK-ului după bare și insets și contrapartea Web după zoom și bara browserului. Porniți de la proba J7 de 720 × 1280, 320 dpi și font 1,3× în RO/EN. Comparați unități logice, poziția relativă, textul complet și pragurile de acces. Analizați separat diferențele de rasterizare. [Proba compactă J7](../testing/README.md#redare-comună-pe-ecran-compact) · [Măsurarea viewportului Web](https://www.w3.org/TR/cssom-view-1/)
-- Pe desktop, folosiți un cadru centrat potrivit tablei și conținutului de șah. Pe mobil, redimensionarea, barele browserului sau mărirea textului trebuie să păstreze caseta selectată, pasul și accesul la comenzi. Verificați tastatura, ordinea de focus, închiderea dialogului și revenirea focusului. Pe Android verificați separat atingerea, Înapoi și etichetele citite de TalkBack.
-**Criteriu de închidere.** Pentru aceeași linie în tabla de analiză și în Game Review, verificați tabla fixă, comenzi lizibile în RO/EN, explicația accesibilă și revenirea în aceeași stare pe APK și Web. [Alegerea nivelului de testare](../testing/README.md#alegerea-nivelului)
+- Define a measurable contract for the square board, orientation, panel order, touch areas, reserved controls, scrollable explanation, focus, and markers. Measure the APK's usable window after bars and insets and its Web counterpart after zoom and browser chrome. Start with J7's 720 × 1280, 320 dpi, and 1.3× font check in RO/EN. Compare logical units, relative position, full text, and access thresholds. Analyze rasterization differences independently. [J7 compact check](../testing/README.md#shared-replay-on-a-compact-screen) · [Measuring the Web viewport](https://www.w3.org/TR/cssom-view-1/)
+- On desktop, center a frame sized for the board and chess content. On mobile, resizing, browser chrome, or larger text must preserve the selected square, step, and access to controls. Verify keyboard input, focus order, dialog dismissal, and focus return. On Android, separately verify touch, Back, and labels read by TalkBack.
+**Closure criterion.** For the same line on the analysis board and in Game Review, verify a fixed board, legible controls in RO/EN, an accessible explanation, and a return to the same state on APK and Web. [Choosing a test level](../testing/README.md#choosing-the-test-level)
 
-## WEB-03 · Componente și E2E pe contractul comun
+## WEB-03 · Component and E2E Tests for the Shared Contract
 
-**P1 · Responsabili J7 și ATF.** Folosiți aceleași fișiere de caz cu ID, poziție inițială FEN, mutări UCI, setări, intrări ordonate și rezultate așteptate după fiecare pas. Pentru repetare, rocada, en passant și reluare, fixture-ul include istoricul sau checkpointul necesar. Folosiți un buget în noduri și alegeri reproductibile pentru oracolul motorului. Măsurați separat latența reală. Comparați fiecare observație Android și Web cu așteptarea fixată din reguli și rezultate verificate. Pentru suite și dovezi, refolosiți `atf-test-kit` și `atf-reporting`, deja folosite în J7. [Bibliotecile ATF](../../lib/README.md)
+**P1 · J7 and ATF owners.** Use the same case files with an ID, initial FEN position, UCI moves, settings, ordered inputs, and expected outcomes after each step. For repetition, castling, en passant, and resumption, include the required history or checkpoint in the fixture. Use a node budget and reproducible choices for the engine oracle. Measure real latency separately. Compare each Android and Web observation against expectations pinned to the rules and verified outcomes. Reuse `atf-test-kit` and `atf-reporting`, already used by J7, for suites and evidence. [ATF libraries](../../lib/README.md)
 
-| Nivel | Probă și verdict |
+| Level | Check and Verdict |
 |---|---|
-| Componentă JVM | Folosiți același contract pentru poziții, mutări legale, promovare, rezultate, salvare și refuzul unei revizii expirate. Exercitați erorile de stocare, checkpointul deteriorat, răspunsul workerului după navigare și progresul creditat o singură dată. |
-| Contract pe artefactul Web | Rulați fixture-urile și prin workerul din pachetul generat. Comparați codurile de rezultat și starea după fiecare comandă cu așteptările JVM. Rulați aceeași probă fără rețea după încărcare. |
-| Componente de afișaj | Partajați matricea de dimensiuni, reguli și nume accesibile. Proba locală a fiecărui adaptor verifică dreptunghiuri și comportament. Includeți atingere, tastatură, font mărit, rotație, explicație lungă și cazuri fără linie disponibilă. |
-| E2E pe APK și browser | Refolosiți parcursul de produs cu drivere proprii pe APK-ul semnat și pe buildul Web real. Prima pereche verifică intrarea și ieșirea din Teorie, apoi redarea și redeschiderea lui **De ce?**. Extindeți cu salvare și reluare după repornirea aplicației sau reîncărcarea browserului și cu o probă Web pe telefon. |
+| JVM component | Use the same contract for positions, legal moves, promotion, outcomes, saving, and rejecting a stale revision. Exercise storage errors, a corrupted checkpoint, a worker reply after navigation, and progress awarded once. |
+| Contract on the Web artifact | Run the fixtures through the worker in the generated bundle. Compare result codes and state after each command against the JVM expectations. Run the same check offline after loading. |
+| Layout components | Share the matrix of dimensions, rules, and accessible names. Each adapter's local check verifies bounds and behavior. Include touch, keyboard, large fonts, rotation, long explanations, and cases without a line. |
+| E2E on APK and browser | Reuse the product journey with platform drivers on the signed APK and the real Web build. The first pair checks opening and closing Theory, then replaying and reopening **Why?**. Extend it with saving and resuming after an app restart or browser reload, and a Web check on a phone. |
 
-Primii martori sunt `1.e4 c5 2.c3 h5`, cu revenire din istoric la traseul Alapin, și `1.f3 e5 2.g4 Qh4#`, cu ambele variante pornite din aceeași poziție în Game Review. Înregistrați semimutarea exactă, poziția, motivul, acțiunile legale și starea reluată. Pentru completarea parității, matricea acoperă Jocul cu AI, problemele pe capitole, lecțiile, istoricul, importurile acceptate de produs, preferințele și recuperarea datelor. Un rezultat Node sau HTTP poate închide proba de contract. Verdictul pentru browser cere click, atingere sau tastatură prin driver și un rezultat observabil. [Teoria](../board/openings.md#indicii-de-teorie-pe-tabla-de-analiză) · [Raportare Extent](../testing/README.md#raportare-extent) · [Emularea în Playwright](https://playwright.dev/docs/emulation)
+The first controls are `1.e4 c5 2.c3 h5`, returning from history to the Alapin line, and `1.f3 e5 2.g4 Qh4#`, with both lines starting from the same Game Review position. Record the exact ply, position, explanation, legal actions, and resumed state. The remaining parity matrix covers AI games, puzzles by chapter, lessons, history, imports accepted by the product, preferences, and data recovery. A Node or HTTP result can complete the contract check. The browser verdict requires a click, touch, or keyboard action through the driver and an observable outcome. [Theory](../board/openings.md#opening-theory-hints-on-the-analysis-board) · [Extent reporting](../testing/README.md#extent-reporting) · [Playwright emulation](https://playwright.dev/docs/emulation)
 
-**Criteriu de închidere.** Perechea APK/Web rulează aceleași cazuri și anexează în Extent ID-ul cazului, așteptarea, observațiile pe fiecare adaptor, commitul, identitatea artefactului, limba, geometria și capturile. Când o platformă lipsește, cazul ei rămâne necalificat. Refolosiți proba Android semnată pentru pragurile native și exercitați cel puțin un profil de desktop și unul mobil în browser.
+**Closure criterion.** The APK and Web pair runs the same cases and attaches the case ID, expected result, observations per adapter, commit, artifact identity, language, geometry, and screenshots in Extent. If a platform is missing, its case stays unqualified. Reuse the signed Android check for native thresholds and exercise at least one desktop and one mobile browser profile.
 
-## WEB-04 · Calificare și publicare
+## WEB-04 · Qualification and Publication
 
-**P2 · Calificarea ediției.** Legați în RAG commitul, cataloagele și amprentele APK și Web de recepțiile aceleiași ediții. [Criteriul de actualizare](../testing/README.md#actualizarea-pachetului-web)
+**P2 · Release qualification.** In RAG, tie the commit, catalogs, and APK and Web hashes to receipts from the same release. [Update criterion](../testing/README.md#updating-the-web-bundle)
 
-Adăugați o rută RAG explicită pentru geometria și analiza partidei când diff-ul atinge
+Add an explicit RAG route for game geometry and analysis when a diff touches
 [BoardPanel.java](../../android/app/src/main/java/ro/atf/chess/android/BoardPanel.java),
-[study-board.mjs](../../web/src/main/web/study-board.mjs) sau [match-inline-analysis.mjs](../../web/src/main/web/match-inline-analysis.mjs).
-Pentru fiecare fișier, un test de rutare trebuie să ceară citarea [MatchAnalysisParityTest](../../atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java)
-și a dovezilor de interfață: sanity compact RO/EN la 130% pe APK-ul semnat și proba
-Web în browser MCP pe pachetul servit. [Probele de analiză](../testing/README.md#analiza-în-partida-cu-ai)
+[study-board.mjs](../../web/src/main/web/study-board.mjs), or [match-inline-analysis.mjs](../../web/src/main/web/match-inline-analysis.mjs).
+For each file, a routing test should require a citation to [MatchAnalysisParityTest](../../atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java)
+and to the UI evidence for compact RO/EN sanity at 130% on the signed APK and the
+MCP browser check on the served Web bundle. [Analysis checks](../testing/README.md#analysis-in-the-ai-game)
 
-**Criteriu de închidere.** Porniți proba din **Joacă în browser**, sub
-APK în README, și confirmați manifestul pachetului servit. Verificați
-la upgrade biblioteca de partide, o analiză arhivată și semimutarea de
-reluare, inclusiv după reîncărcare și într-o filă deja deschisă.
-[Upgrade Web](../../web/README.md#explicațiile-și-progresul-la-actualizare) ·
-[Procesul de release](../release/README.md#calificare-și-publicare)
+**Closure criterion.** Start the check from **Play in your browser**, below
+the APK in the README, and confirm the manifest of the served bundle. On
+upgrade, verify the game library, an archived review, and the resumed ply,
+including after a reload and in an already open tab.
+[Web upgrade](../../web/README.md#explanations-and-upgrade-progress) ·
+[Release process](../release/README.md#qualification-and-publication)

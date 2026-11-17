@@ -1,45 +1,45 @@
-# Motorul Chess Lab în browser
+# The Chess Lab engine in the browser
 
-Buildul Web compilează motorul Java 17 cu TeaVM 0.15.0 într-un modul ES. Workerul execută regulile, cataloagele, partida locală și comenzile pentru analiză. [Matricea APK–Web](parity.md) · [Feedback pentru fluxurile Web–Android](../docs/feedback/web-parity.md)
+The Web build compiles the Java 17 engine with TeaVM 0.15.0 into an ES module. The worker runs the rules, catalogs, local match, and analysis commands. [APK–Web parity matrix](parity.md) · [Feedback on Web–Android flows](../docs/feedback/web-parity.md)
 
-Pe JVM și Android, încărcătorul citește YAML de pe classpath. Buildul Web trece aceleași resurse prin SnakeYAML 2.2 în etapa de generare, cu respingerea cheilor duplicate și a aliasurilor de colecții. Datele generate păstrează tipurile, ordinea și textul. Indexul ECO păstrează octeții originali. Compilatorul Web primește încărcătorul portabil și clasele motorului. SnakeYAML rămâne în etapa de generare. [Încărcătorul Web](src/main/java/ro/atf/chess/ChessResourceLoader.java) · [Generatorul](tools/GenerateChessResources.java)
+On the JVM and Android, the loader reads YAML from the classpath. The Web build passes the same resources through SnakeYAML 2.2 during generation, rejecting duplicate keys and collection aliases. The generated data preserves types, order, and text. The ECO index retains the original bytes. The Web compiler receives the portable loader and engine classes. SnakeYAML stays in the generation step. [Web loader](src/main/java/ro/atf/chess/ChessResourceLoader.java) · [Generator](tools/GenerateChessResources.java)
 
-În codul verificat, folosirea SnakeYAML în browser bloca inițializarea regulilor la `System.getLogger`. Generarea rezolvă dependența la build. Serializarea checkpointului păstrează formatul existent printr-un `StringBuilder`, care funcționează și în runtime-ul TeaVM. Aceleași cazuri verifică poziția inițială, rocada, en passant, promovarea, rezultatele partidei, restaurarea checkpointului, deschiderile și puzzle-urile.
+In the code under test, using SnakeYAML in the browser prevented rule initialization at `System.getLogger`. Generation resolves the dependency at build time. Checkpoint serialization retains the existing format through a `StringBuilder` that also works in the TeaVM runtime. The same cases verify the starting position, castling, en passant, promotion, game results, checkpoint restoration, openings, and puzzles.
 
-## Motor comun și adaptoare de platformă
+## Shared engine and platform adapters
 
-Android și Web folosesc aceleași reguli, cataloage și contracte Java de
-partidă din `chess-core`. Ecranele, tabla și navigarea aparțin adaptorului
-fiecărei platforme.
+Android and Web use the same rules, catalogs, and Java match contracts from
+`chess-core`. Each platform adapter owns its own screens, board, and
+navigation.
 
 ```mermaid
 flowchart LR
-    Core["chess-core · Java și YAML"] -->|Gradle compilează sursele și include resursele| Native["APK · interfață Android"]
-    Core -->|generatorul produce date și TeaVM compilează Java| Bundle["Pachet Web · runtime prin manifest"]
-    Bundle -->|pagina încarcă modulul și workerul| Browser["Browser · DOM și CSS"]
-    Native -->|adaptorul scrie checkpointurile| Prefs["Android · SharedPreferences"]
-    Browser -->|adaptorul scrie checkpointurile| Local["Browser · localStorage"]
+    Core["chess-core · Java and YAML"] -->|Gradle compiles sources and bundles resources| Native["APK · Android UI"]
+    Core -->|generator produces data and TeaVM compiles Java| Bundle["Web bundle · manifest-based runtime"]
+    Bundle -->|page loads the module and worker| Browser["Browser · DOM and CSS"]
+    Native -->|adapter writes checkpoints| Prefs["Android · SharedPreferences"]
+    Browser -->|adapter writes checkpoints| Local["Browser · localStorage"]
 ```
 
 <details>
-<summary>Legendă · De la motor la cele două aplicații</summary>
+<summary>Legend · From the engine to both applications</summary>
 
-- Gradle include resursele YAML în APK. Adaptorul nativ redă prin Android
-  `View` și conectează `MatchStore` la preferințele aplicației.
-  [Gradle](../android/app/build.gradle) · [Stocarea nativă](../android/app/src/main/java/ro/atf/chess/android/AndroidGamePreferences.java)
-- Generatorul Web citește aceleași YAML-uri în timpul buildului. TeaVM
-  compilează motorul și adaptorul Java într-un modul ES, iar browserul
-  îl execută în worker. Interfața convertește intrările în comenzi și
-  salvează starea pe originea Web. [Build](Build-ChessWeb.ps1) · [Worker](src/main/web/engine-worker.mjs)
-- Cazurile portabile compară rezultatele pe JVM și în workerul împachetat.
-  Testele adaptoarelor măsoară poziția, comenzile și accesibilitatea pentru
-  fiecare interfață. [Contracte și probe](parity.md#contracte-și-probe)
+- Gradle bundles the YAML resources in the APK. The native adapter renders
+  through Android `View` and wires `MatchStore` to app preferences.
+  [Gradle](../android/app/build.gradle) · [Native storage](../android/app/src/main/java/ro/atf/chess/android/AndroidGamePreferences.java)
+- The Web generator reads the same YAML files at build time. TeaVM compiles
+  the engine and Java adapter into an ES module, and the browser runs it
+  in the worker. The UI converts input to commands and saves state for the
+  Web origin. [Build](Build-ChessWeb.ps1) · [Worker](src/main/web/engine-worker.mjs)
+- Portable cases compare results on the JVM and in the bundled worker.
+  Adapter tests measure position, controls, and accessibility for each
+  UI. [Contracts and checks](parity.md#contracts-and-checks)
 
 </details>
 
-## Build și verificare
+## Build and verification
 
-Rulați din rădăcina copiei J7 în TMP cu PowerShell 7, JDK 21, Maven și Node.js. Alegeți `$workRoot` într-un director extern copiei. Buildul lasă aici datele generate, compilarea și pachetul `site`. Pentru cache local complet, adăugați `-Offline` la build și `-o` la Maven. [Locația fișierelor de lucru](../docs/README.md#reguli-de-întreținere)
+Run from the root of the J7 checkout in TMP using PowerShell 7, JDK 21, Maven, and Node.js. Choose `$workRoot` in a directory outside the checkout. The build writes generated data, compiled output, and the `site` bundle there. For a complete local cache, add `-Offline` to the build and `-o` to Maven. [Working-file location](../docs/README.md#maintenance-rules)
 
 ```powershell
 $site = ./web/Build-ChessWeb.ps1 -WorkRoot $workRoot
@@ -47,30 +47,30 @@ $report = Join-Path (Split-Path -Parent $site) 'web-parity.html'
 mvn -B -ntp -pl atf-tests -am test '-Dtest=ChessWebRulesComponentTest,ChessWebParityPublication,SuiteGovernanceTest' '-Dsurefire.failIfNoSpecifiedTests=false' "-Dchess.web.bundle=$site" "-Dchess.extent=$report"
 ```
 
-Proba explicită cere pachetul compilat și compară rezultatele efective din JVM și worker pentru aceleași resurse și poziții. Raportul indică fiecare grup de date și de reguli. Verificarea JVM rămâne în suita componentelor. [Paritatea Web](../docs/testing/README.md#paritatea-web-a-motorului)
+The explicit check requires the compiled bundle and compares actual JVM and worker results for the same resources and positions. The report identifies each data and rules group. The JVM check remains in the component suite. [Web parity](../docs/testing/README.md#web-engine-parity)
 
-### Identitatea pachetului Web
+### Web bundle identity
 
-Pagina `index.html` încarcă stilurile și modulul de intrare din
-`runtime/<SHA-256>/`. Identificatorul complet provine din manifestul ordonat
-al fișierelor runtime. Fiecare intrare din manifest leagă calea relativă de
-amprenta conținutului. CSS, modulele JavaScript, workerul și motorul TeaVM
-aparțin aceluiași director. Importurile relative și lansarea workerului
-rămân în acel director, inclusiv după navigare în aplicație.
+The `index.html` page loads styles and the entry module from
+`runtime/<SHA-256>/`. The full identifier comes from the sorted manifest of
+runtime files. Every manifest entry binds a relative path to a content hash.
+CSS, JavaScript modules, the worker, and the TeaVM engine belong to the same
+directory. Relative imports and worker startup stay in that directory,
+including after in-app navigation.
 
-Un build cu același manifest folosește același director. O schimbare a
-fișierelor runtime produce o adresă nouă. Adresa jocului rămâne aceeași.
-[Publicarea și păstrarea versiunilor](parity.md#publicarea-linkului)
+A build with the same manifest uses the same directory. A runtime file
+change produces a new URL. The game URL stays the same.
+[Publishing and retaining versions](parity.md#publishing-the-link)
 
-## Partida cu AI
+## AI match
 
-**Partidă cu AI** deschide aceleași alegeri ca pe Android, Alb, Negru sau Aleatoriu, și nivelurile Basic, Advanced și Hard. Workerul alege culoarea aleatorie o singură dată la crearea jocului și păstrează culoarea rezultată și nivelul în checkpoint. Browserul salvează tura curentă înainte de a afișa mutarea și programează căutarea după pauza de 650 ms când replicile automate sunt active. După reîncărcare, poziția și automatizarea salvată decid dacă urmează o replică AI. Workerul respinge reviziile expirate, iar o replică deja salvată lasă jucătorul la mutare.
+**AI game** opens the same choices as Android, with White, Black, or Random and the Basic, Advanced, and Hard levels. The worker chooses a random color once at game creation and stores the result and level in the checkpoint. The browser saves the current turn before displaying the move and schedules a search after the 650 ms pause when automatic replies are enabled. After reload, the position and saved automation determine whether an AI reply follows. The worker rejects stale revisions, and an already saved reply leaves the player to move.
 
-Din **Opțiunile partidei**, **Întoarce tabla** (**Flip board**) schimbă perspectiva la aceeași poziție, inclusiv în istoric. O partidă în desfășurare păstrează orientarea în slotul ei și o restabilește la redeschidere. În previzualizarea unei partide arhivate, **Continuă de aici** transmite orientarea afișată noului slot. Arhiva își păstrează orientarea salvată. [Verificarea orientării](../docs/testing/README.md#orientarea-tablei-în-partidă)
+Under **Game options**, **Flip board** changes perspective at the same position, including in history. An active match stores orientation in its slot and restores it on reopening. When previewing an archived match, **Continue from here** passes the displayed orientation to the new slot. The archive keeps its saved orientation. [Orientation verification](../docs/testing/README.md#board-orientation-in-a-game)
 
-Din meniul principal, schimbă limba în **Setări** și numele afișat în **Nume**. După salvarea limbii se redeschide același meniu, inclusiv când browserul păstrează o analiză. **Profil** este disponibil din partida cu AI și păstrează ruta partidei după schimbare. Browserul salvează profilul local, separat de partide. Limba implicită este engleza, iar un nume gol afișează **You** sau **Tu**, în funcție de limbă. `ChessWebShellTest` verifică reîncărcarea cu stocare, istoric și adresă simulate. [Strategia de testare](../docs/testing/README.md)
+From the main menu, change the language in **Settings** and the display name in **Name**. Saving the language reopens the same menu, including when the browser stores a review. **Profile** is available from the AI match and retains the match route after a change. The browser saves the profile locally, separately from matches. The default language is English, and a blank name shows **You** or **Tu** depending on the language. `ChessWebShellTest` verifies reload with mocked storage, history, and URL. [Test strategy](../docs/testing/README.md)
 
-Cu `$site`, `$edge` și un dosar `$evidence` nou în TMP:
+Use `$site`, `$edge`, and a fresh `$evidence` directory in TMP.
 
 ```powershell
 node ./web/tests/browser-game-review.mjs $site --ai $evidence $edge
@@ -78,61 +78,61 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bundle=$site" "-Dchess.web.bot.receipt=$receipt"
 ```
 
-Proba pornește browserul sub `/chess/`, reîncarcă în tura calculatorului și verifică mutarea cu JVM. Schimbă apoi numele și limba, reîncarcă și confirmă că partida are același checkpoint. Raportul încorporează capturile. Pentru verificarea destinației publice, treceți URL-ul din README ca ultim argument al comenzii Node și adăugați `-Dchess.web.bot.public=true` la publicarea Extent. Driverul verifică fișierele servite înaintea probei Edge. [Proba Android](../docs/testing/README.md#partidă-și-istoric)
+The check starts the browser under `/chess/`, reloads on the computer's turn, and verifies the move with the JVM. It then changes the name and language, reloads, and confirms the match has the same checkpoint. The report embeds the screenshots. To check the public destination, pass the README URL as the last Node argument and add `-Dchess.web.bot.public=true` when publishing to Extent. The driver verifies the served files before the Edge check. [Android check](../docs/testing/README.md#game-and-history)
 
-### Controlul replicilor AI
+### AI reply control
 
-La poziția curentă a unei partide cu AI, debifează **Lasă AI-ul să mute** ca să poți juca și pentru culoarea calculatorului. Bifa este inactivă la navigarea în istoric. Alegerea se salvează în același slot și se aplică la redeschidere. Browserul calculează replica separat de salvarea ei. Dezactivarea anulează replica programată sau calculul aflat în curs. Reactivarea la tura AI cere o singură replică, salvată numai la revizia curentă.
+At the current position of an AI match, clear **Let AI play its moves** to play for the computer's side as well. The checkbox is inactive while navigating history. The choice is saved in the same slot and applies on reopening. The browser computes the reply separately from saving it. Disabling replies cancels the scheduled reply or calculation in flight. Re-enabling them on the AI's turn requests exactly one reply, saved only at the current revision.
 
-Tipul partidei, automatizarea curentă și marcajul pentru mutări jucate manual de partea AI sunt câmpuri distincte. O mutare legală jucată pentru calculator marchează partida ca neeligibilă pentru estimarea Elo. Comutarea și reluarea automatizării păstrează identitatea și eligibilitatea. Game Review poate analiza partida și permite o continuare cu replici automate din arhiva unei partide cu AI, păstrând marcajul folosit pentru estimarea Elo. Bibliotecile vechi păstrează clasificarea folosită de versiunea care le-a salvat. [Probele comune JVM și TeaVM](../docs/testing/README.md#controlul-replicilor-ai)
+Match type, current automation, and the marker for manually played AI-side moves are distinct fields. Playing a legal move for the computer makes the match ineligible for the Elo estimate. Switching and resuming automation retain identity and eligibility. Game Review can analyze the match and continue an archived AI match with automatic replies, retaining the marker used for the Elo estimate. Older libraries retain the classification used by the version that saved them. [Shared JVM and TeaVM checks](../docs/testing/README.md#controlling-ai-replies)
 
-### Analiza în partida cu AI
+### Analysis in an AI match
 
-În configurarea unei partide noi, bifează opțiunea de analiză pentru a afișa
-bara de evaluare și indiciile în joc. Inițial bifa este oprită. Alegerea aparține
-slotului și se păstrează la redeschidere. În orice partidă poți studia
-poziția separat și muta ambele culori în **Tablă de analiză** din opțiunile partidei.
+When setting up a new match, enable analysis to display the evaluation bar
+and in-game hints. The checkbox starts cleared. The choice belongs to the
+slot and is retained on reopening. In any match, study the position
+separately and play both sides through **Analysis board** in game options.
 
-Bara ocupă toată înălțimea laturii stângi a tablei. Scorul apare deasupra
-istoricului, iar becul stă lângă săgeți, inclusiv la poziția de start. Culoarea din bară urmează
-orientarea tablei și scorul folosește perspectiva albului. Urmărirea
-istoricului recalculează evaluarea pentru poziția afișată. Poziția finală arată
-rezultatul partidei.
+The bar spans the full height of the board's left edge. The score appears
+above history, and the lightbulb sits beside the arrows, including at the
+starting position. Bar color follows board orientation, and the score uses
+White's perspective. Navigating history recalculates the evaluation for the
+displayed position. The final position shows the match result.
 
-Becul eliberează selecția curentă și arată mutarea recomandată. Butonul
-sugestiei deschide linia pe tabla de previzualizare, unde săgețile parcurg
-mutările fără să modifice partida. În previzualizare, tabla își păstrează
-poziția și pătratele egale. Comenzile rămân la vedere, iar explicația se
-derulează separat. Închiderea revine la semimutarea din istoric, iar
-redeschiderea slotului revine la capătul partidei cu indiciul ascuns. Tabla de analiză oferă și teoria deschiderilor. La
-poziția curentă, atingerea destinației marcate joacă indiciul legal când
-selecția tablei este liberă.
-Browserul calculează analiza într-un worker separat. Schimbarea poziției sau
-ieșirea din partidă invalidează rezultatul anterior.
-[Probele de componentă și interfață](../docs/testing/README.md#analiza-în-partida-cu-ai)
+The lightbulb clears the current selection and shows the recommended move.
+The suggestion button opens the line on the preview board, where arrows
+step through the moves without changing the match. The board keeps its
+position and equal squares in preview. The controls remain visible, and
+the explanation scrolls separately. Closing returns to the history ply,
+and reopening the slot resumes at the end of the match with the hint hidden.
+The analysis board also offers opening theory. At the current position,
+tapping the marked destination plays the legal hint when there is no board
+selection.
+The browser calculates analysis in a separate worker. Changing the position
+or leaving the match invalidates the previous result.
+[Component and UI checks](../docs/testing/README.md#analysis-in-the-ai-game)
 
-### Tabla din Probleme și din partidă
+### The board in puzzles and matches
 
-În partida cu AI, pe mobil, ansamblul format din tablă și bara de evaluare
-folosește întreaga lățime utilă când aceasta limitează latura pătratului.
-Când analiza este activă, bara și intervalul ei ocupă o fâșie în stânga.
-Într-o fereastră mai scundă, înălțimea disponibilă lasă loc scorului,
-istoricului și becului. Navigarea
-prin istoric și redeschiderea slotului păstrează dreptunghiul tablei.
-[Proba compactă RO/EN](../docs/testing/README.md#analiza-în-partida-cu-ai)
+In a mobile AI match, the board and evaluation bar together use the full
+usable width when width limits the square's side. When analysis is enabled,
+the bar and its gap occupy a strip on the left. In a shorter window, the
+available height leaves room for the score, history, and lightbulb.
+Navigating history and reopening the slot retain the board rectangle.
+[Compact RO/EN check](../docs/testing/README.md#analysis-in-the-ai-game)
 
-Problemele își calculează tabla din spațiul disponibil după rezervarea locului
-pentru comenzi și explicație. [Verificarea dimensiunilor](../docs/testing/README.md#paritatea-web-a-motorului)
+Puzzles size the board from the available space after reserving room for
+controls and the explanation. [Size verification](../docs/testing/README.md#web-engine-parity)
 
-## Partide salvate și încheiate
+## Saved and finished matches
 
-**Partide salvate** arată numai partidele în desfășurare. **Partide încheiate** arată numai rezultatele arhivate. Ambele liste folosesc `MatchStore` și păstrează cel mult zece intrări fiecare, ordonate de la cea mai nouă. Interfața afișează data, numărul de semimutări și profilul. La o partidă cu AI, rezultatul este din perspectiva jucătorului.
+**Saved games** shows only active matches. **Finished games** shows only archived results. Both lists use `MatchStore` and keep at most ten entries each, newest first. The UI displays the date, ply count, and profile. In an AI match, the result is from the player's perspective.
 
-Săgețile tablei schimbă poziția afișată. **Continuă de aici** cere confirmarea și păstrează mutările până la poziția selectată. Pentru o partidă activă rescrie slotul curent. Din arhivă pornește o partidă separată într-un slot liber sau reutilizabil, cu sursa păstrată. Dacă toate sloturile sunt active, utilizatorul rămâne la poziția selectată. Într-o partidă cu AI, confirmarea poate lăsa replica automată activă sau poate trece la control manual.
+The board arrows change the displayed position. **Continue from here** asks for confirmation and keeps moves through the selected position. For an active match, it rewrites the current slot. From the archive, it starts a separate match in a free or reusable slot and keeps the source. When all slots are active, the user stays at the selected position. In an AI match, confirmation can keep automatic replies enabled or switch to manual control.
 
-Browserul păstrează biblioteca într-o singură înregistrare locală versionată. La prima deschidere, salvează împreună partidele locale și AI din versiunea Web anterioară. La deschiderile ulterioare citește biblioteca salvată. Schimbarea partidei sau a poziției din istoric invalidează comenzile din revizia precedentă. [Matricea APK–Web](parity.md#contracte-și-probe)
+The browser stores the library as one versioned local record. On first opening, it saves local and AI matches from the previous Web version together. On later openings, it reads the saved library. Changing the match or the history position invalidates commands from the previous revision. [APK–Web parity matrix](parity.md#contracts-and-checks)
 
-Cu `$site`, `$edge` și un dosar `$evidence` nou în TMP:
+Use `$site`, `$edge`, and a fresh `$evidence` directory in TMP.
 
 ```powershell
 node ./web/tests/browser-game-review.mjs $site --ledger $evidence $edge
@@ -140,13 +140,13 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebLedgerPublication' "-Dchess.web.bundle=$site" "-Dchess.web.ledger.receipt=$receipt"
 ```
 
-Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.ledger.public=true` la publicarea Extent.
+For the public destination, pass the URL from the README as the last Node argument and add `-Dchess.web.ledger.public=true` when publishing to Extent.
 
-### Reluarea analizei unei partide arhivate
+### Resuming an archived match review
 
-Din **Partide încheiate**, deschideți partida și alegeți **Analizează partida**. Prima deschidere salvează analiza sub ID-ul partidei și checkpointul ei. **Deschide analiza** păstrează mutarea, ramura, pasul și starea **De ce?**, inclusiv după reîncărcarea paginii. Ștergerea intrării la limita de zece partide elimină și analiza asociată. O analiză din formatul anterior se atașează automat o singură dată, când checkpointul identifică exact o intrare. Analizele independente rămân disponibile din Game Review. [Probe de componentă](../docs/testing/README.md#reluarea-game-review-pe-android-și-web)
+From **Finished games**, open the match and choose **Analyze game**. The first opening saves the analysis under the match ID and checkpoint. **Open analysis** preserves the move, branch, step, and **Why?** state, including after page reload. Removing the entry at the ten-match limit also removes its analysis. An analysis in the previous format is attached automatically once when the checkpoint identifies exactly one entry. Standalone analyses remain available from Game Review. [Component checks](../docs/testing/README.md#resuming-game-review-on-android-and-the-web)
 
-Proba Edge calculează două analize distincte cu workerul real și verifică ambele poziții după reîncărcare. Folosiți un director nou pentru dovezi, inclusiv când validați destinația publică.
+The Edge check computes two distinct analyses with the real worker and verifies both positions after reload. Use a fresh evidence directory when checking the public destination as well.
 
 ```powershell
 node ./web/tests/browser-game-review.mjs $site --archives $evidence $edge
@@ -154,13 +154,13 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveReviewsPublication' "-Dchess.web.bundle=$site" "-Dchess.web.archive.reviews.receipt=$receipt"
 ```
 
-Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.archive.reviews.public=true` la publicarea Extent.
+For the public destination, pass the URL from the README as the last Node argument and add `-Dchess.web.archive.reviews.public=true` when publishing to Extent.
 
-### Continuarea din Game Review
+### Continuing from Game Review
 
-În analiza unei partide încheiate, selectați o poziție din istoricul jucat și confirmați **Continuă de aici**. Partida pornește exact după semimutarea selectată, într-un slot liber sau reutilizabil, cu analiza și poziția de reluare originale păstrate. Când **De ce?** sau o variantă este deschisă, reveniți în istoric. Poziția finală nu oferă continuarea. Pentru partidele cu AI, confirmarea permite păstrarea răspunsurilor automate. Dacă toate cele zece sloturi sunt active, analiza rămâne deschisă.
+In the review of a finished match, select a position from the played history and confirm **Continue from here**. The match starts immediately after the selected ply in a free or reusable slot, with the original analysis and resume position preserved. When **Why?** or a line is open, return to history. The final position offers no continuation. For AI matches, confirmation can retain automatic replies. When all ten slots are active, the review stays open.
 
-Proba verifică în Edge fluxul, salvarea partidei noi și arhiva originală după reîncărcare. Folosiți un director nou pentru dovezi.
+The Edge check verifies the flow, the new match's save, and the original archive after reload. Use a fresh evidence directory.
 
 ```powershell
 node ./web/tests/browser-game-review.mjs $site --review-continue $evidence $edge
@@ -168,13 +168,13 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveContinuationPublication' "-Dchess.web.bundle=$site" "-Dchess.web.archive.continuation.receipt=$receipt"
 ```
 
-Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.archive.continuation.public=true` la publicarea Extent. [Probe de componentă și sanity](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
+For the public destination, pass the URL from the README as the last Node argument and add `-Dchess.web.archive.continuation.public=true` when publishing to Extent. [Component and sanity checks](../docs/testing/README.md#saved-games-archive-and-continuation)
 
-### Graficul din Game Review
+### Game Review graph
 
-Tabla și comenzile rămân fixe, iar raportul se derulează separat, ca în APK. Graficul folosește scorul albului, o axă neutră, un marcaj pentru poziția selectată și același calcul pentru atingere ca Android. O atingere selectează aceeași semimutare pe tablă, în lista mutărilor și în marcajul arhivei. Web și Android desenează piesele din aceleași contururi Staunton. Analizele noi ale partidelor eligibile cu AI folosesc și estimarea Elo din APK.
+The board and controls stay fixed, and the report scrolls separately, as in the APK. The graph uses White's score, a neutral axis, a marker for the selected position, and the same touch calculation as Android. A touch selects the same ply on the board, in the move list, and in the archive bookmark. Web and Android draw the pieces from the same Staunton outlines. New reviews of eligible AI matches also use the APK's Elo estimate.
 
-Generați în TMP fixture-ul de 185 de semimutări. Driverul verifică atingerea la două lățimi, inclusiv punctul 184, apoi reîncarcă pagina și verifică poziția și analiza păstrate.
+Generate the 185-ply fixture in TMP. The driver verifies touch at two widths, including point 184, then reloads the page and verifies the retained position and review.
 
 ```powershell
 $cpFile = Join-Path $workRoot 'graph-classpath.txt'
@@ -188,13 +188,13 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewGraphPublication' "-Dchess.web.bundle=$site" "-Dchess.web.graph.fixture=$fixture" "-Dchess.web.graph.receipt=$receipt"
 ```
 
-Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.graph.public=true` la publicarea Extent. [Probe de componentă și sanity](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
+For the public destination, pass the URL from the README as the last Node argument and add `-Dchess.web.graph.public=true` when publishing to Extent. [Component and sanity checks](../docs/testing/README.md#saved-games-archive-and-continuation)
 
-### Tastatura în Game Review
+### Keyboard navigation in Game Review
 
-Tab trece prin tablă, comenzile disponibile, grafic și rândul selectat. Săgețile graficului păstrează focusul pe grafic și sincronizează tabla și istoricul. În listă, săgețile sus/jos, Home și End schimbă poziția și duc focusul la rândul rezultat. **De ce?** deschide redarea cu focus pe **Înapoi**. La închidere, focusul revine la **De ce?**, cu semimutarea și poziția din raport păstrate.
+Tab moves through the board, available controls, graph, and selected row. The graph arrows keep focus on the graph and synchronize the board and history. In the list, Up and Down, Home, and End change the position and move focus to the resulting row. **Why?** opens replay with focus on **Back**. Closing it restores focus to **Why?** and keeps the ply and report position.
 
-Rulați componentele de focus cu Node prin Maven. Extent consemnează fiecare contract așteptat. Proba Edge folosește tastatura la font 1,3× pe aceeași poziție de mat în patru semimutări folosită la calificarea APK. [Strategia de testare](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
+Run the focus component tests with Node through Maven. Extent records each expected contract. The Edge check uses the keyboard at 1.3× text scale on the same four-ply mate position used for APK qualification. [Test strategy](../docs/testing/README.md#saved-games-archive-and-continuation)
 
 ```powershell
 $componentReport = Join-Path $workRoot 'review-focus-components.html'
@@ -206,13 +206,13 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewFocusPublication' "-Dchess.web.bundle=$site" "-Dchess.web.focus.fixture=$focusFixture" "-Dchess.web.focus.receipt=$receipt"
 ```
 
-Folosiți classpath-ul din proba graficului și un director nou pentru dovezi. Pentru difuzarea publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.focus.public=true`.
+Use the classpath from the graph check and a fresh evidence directory. For a public deployment, pass the URL from the README as the last Node argument and add `-Dchess.web.focus.public=true`.
 
-### Cititorul de ecran în Game Review
+### Screen readers in Game Review
 
-Graficul expune poziția, mutarea înregistrată și scorul albului. Rândul curent anunță mutarea și poziția. **Înapoi** din **De ce?** readuce focusul pe declanșator și păstrează semimutarea. Proiecția în RO și EN și alegerea canalului de anunț se verifică în `ChessWebReviewAccessibilityTest`. Folosiți o singură sursă pentru mesajul fiecărei acțiuni, prin valoarea controlului, focus sau zona de stare.
+The graph exposes the position, recorded move, and White's score. The current row announces the move and position. **Back** from **Why?** returns focus to the trigger and preserves the ply. `ChessWebReviewAccessibilityTest` checks the RO and EN mapping and the choice of announcement channel. Use one source for each action's message through the control's value, focus, or status region.
 
-Proba Edge păstrează valorile și schimbările de focus din arborele de accesibilitate al browserului. Folosiți fixture-ul de la proba tastaturii și câte un director nou pentru fiecare limbă.
+The Edge check records values and focus changes from the browser accessibility tree. Use the keyboard check fixture and a fresh directory for each language.
 
 ```powershell
 node ./web/tests/browser-game-review.mjs --accessibility $site $focusFixture $evidence $edge
@@ -220,69 +220,69 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewAccessibilityPublication' "-Dchess.web.bundle=$site" "-Dchess.web.accessibility.fixture=$focusFixture" "-Dchess.web.accessibility.receipt=$receipt"
 ```
 
-Pentru proba publică, transmiteți URL-ul din README ca ultim argument și adăugați `-Dchess.web.accessibility.public=true`. Într-o probă de vorbire înregistrați cititorul, limba și mesajele efectiv trimise sintetizatorului. [Strategia de testare](../docs/testing/README.md#proba-talkback)
+For the public check, pass the URL from the README as the last argument and add `-Dchess.web.accessibility.public=true`. For a speech check, record the reader, language, and messages actually sent to the synthesizer. [Test strategy](../docs/testing/README.md#talkback-probe)
 
-## Meniul principal și piesele
+## Main menu and pieces
 
-**Joacă în browser** din README deschide meniul principal **Chess Lab**, inclusiv când există partide sau o analiză salvată. Grupurile urmează ordinea din APK. **Partide salvate** apare când există partide active, iar **Partidă nouă cu calculatorul** deschide configurarea. Adresele explicite, cum sunt `#ai`, `#openings` și `#review`, deschid ecranul cerut. **Profil** validează numele prin `PlayerProfile`, iar **Setări** păstrează limba în browser. [Matricea funcțiilor](parity.md#contracte-și-probe)
+**Play in browser** in the README opens the **Chess Lab** main menu, including when matches or a review have been saved. Groups follow the APK order. **Saved games** appears when there are active matches, and **New game against the computer** opens setup. Explicit URLs such as `#ai`, `#openings`, and `#review` open the requested screen. **Profile** validates the name through `PlayerProfile`, and **Settings** stores the language in the browser. [Feature matrix](parity.md#contracts-and-checks)
 
-Analiza unei partide se redeschide din partida sau arhiva ei. **Reia ultima
-analiză** apare jos în meniul principal, lângă import, când browserul are o
-analiză independentă salvată. Antetul afișează **Chess Lab**.
+An existing match review reopens from its match or archive. **Resume last
+analysis** appears at the bottom of the main menu, next to import, when
+the browser has a saved standalone analysis. The header shows **Chess Lab**.
 
-Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile comune din `ChessPieceArtwork`. Web primește contururile din worker și le desenează în coordonatele 48 × 48 din APK. `ChessWebShellTest` verifică ordinea și textele RO/EN față de resursele Android, persistența simulată și reutilizarea SVG. Sanity-ul Edge deschide meniul și verifică toate cele șase tipuri de piese înaintea primei mutări. [Strategia de testare](../docs/testing/README.md#partidă-și-istoric)
+The local match, AI match, and Game Review use the shared silhouettes and details in `ChessPieceArtwork`. Web receives the outlines from the worker and draws them in the APK's 48 × 48 coordinate space. `ChessWebShellTest` verifies order and RO/EN text against Android resources, mocked persistence, and SVG reuse. The Edge sanity check opens the menu and verifies all six piece types before the first move. [Test strategy](../docs/testing/README.md#game-and-history)
 
-## Studiu
+## Study
 
-Meniul **Studiu** deschide **Probleme**, **Deschideri** și **Tablă de analiză**. Ecranele folosesc tabla comună, aceleași piese ca pe Android și comenzi RO/EN. Săgețile tastaturii parcurg pătratele în ordinea afișată. Indiciul marchează piesa la prima treaptă și adaugă săgeata la dezvăluirea destinației, în ambele orientări.
+The **Study** menu opens **Puzzles**, **Openings**, and **Analysis board**. These screens use the shared board, the same pieces as Android, and RO/EN controls. Keyboard arrows move through squares in display order. The first hint stage marks the piece, and revealing the destination adds the arrow in both orientations.
 
-- **Probleme** (`#puzzles`) folosește catalogul APK, inclusiv Mat în 1, 2 și 3. `QuestStore` și `QuestRewards` păstrează local problema curentă pe capitol, etapa, rezultatele și punctajul. Indiciul arată întâi piesa, apoi destinația. **Următoarea** se activează după rezolvare. Explicația are propria zonă de derulare.
-- **Deschideri** (`#openings`) folosește catalogul și `OpeningLesson` pentru poziții, mutări, istoric și replica de carte. Selectați explicația lecției pentru textul complet. În analiza AI, comparația deschide mutarea decisivă când aceasta există în varianta verificată.
-- **Tablă de analiză** (`#analysis`) folosește `AnalysisLine` pentru mutări, ramificare și cursor. Bara de evaluare stă în stânga, iar selecția se păstrează la vedere în rândul cu istoricul și comenzile. Game Review revine la poziția selectată. **Continuă de aici** rezervă un loc liber și păstrează orientarea și alegerea replicilor AI.
+- **Puzzles** (`#puzzles`) uses the APK catalog, including Mate in 1, 2, and 3. `QuestStore` and `QuestRewards` store the current puzzle by chapter, the stage, results, and points locally. The hint first shows the piece, then the destination. **Next** is enabled after solving. The explanation has its own scroll area.
+- **Openings** (`#openings`) uses the catalog and `OpeningLesson` for positions, moves, history, and the book reply. Select the lesson explanation to see the full text. In AI analysis, the comparison opens the decisive move when it appears in the verified line.
+- **Analysis board** (`#analysis`) uses `AnalysisLine` for moves, branching, and the cursor. The evaluation bar sits on the left, and the selection stays visible in the history and controls row. Game Review returns to the selected position. **Continue as a saved game** reserves a free slot and keeps the orientation and AI reply setting.
 
-Atât în probleme, cât și în partide, meniul cu trei linii se deschide sub buton fără să deplaseze tabla. Escape închide meniul și readuce focusul la buton. Un clic în afară îl închide. Tabla din Deschideri folosește aceeași limită după dimensiunea ferestrei și rezervă spațiu pentru bara de evaluare, explicație și comenzi.
+In puzzles and matches, the three-line menu opens below its button without moving the board. Escape closes the menu and returns focus to the button. Clicking outside closes it. The Openings board uses the same limit based on window size and reserves space for the evaluation bar, explanation, and controls.
 
-### Explicațiile și progresul la actualizare
+### Explanations and upgrade progress
 
-**Tactică**, **Antrenament tactic** și **Mutarea intermediară** folosesc aceeași linie `QuestPayoff` ca APK-ul. Redarea arată mutarea, captura, bilanțul material și, când există, lecția sau studiul apărării. **Pericol** marchează câmpul verificat și anunță motivul separat. Săgețile schimbă pasul redării fără să schimbe rezolvarea sau punctajul.
+**Tactics**, **Tactical Training**, and **Intermediate Move** use the same `QuestPayoff` line as the APK. Replay shows the move, capture, material balance, and the lesson or defense study when available. **Danger** marks the verified square and announces the reason separately. The arrows move through replay without changing the solved status or score.
 
-Proba de actualizare pornește de la pachetul public și rezolvă câte o problemă din Tactică și Mutarea intermediară. Lasă Antrenamentul după prima replică a adversarului, apoi servește candidatul la aceeași adresă. Reîncărcarea trebuie să păstreze poziția exactă, cele două rezolvări și cele 20 de puncte. Rezolvarea rămasă trebuie să ducă totalul la 30. În componentă, `material-progress-previous.json` conține o salvare produsă de pachetul de pe `gh-pages`, cu revizia sursă și pozițiile de control.
+The upgrade check starts from the public bundle and solves one puzzle each in Tactics and Intermediate Move. It leaves Tactical Training after the opponent's first reply, then serves the candidate at the same URL. Reload must preserve the exact position, the two solved puzzles, and the 20 points. Solving the remaining puzzle must raise the total to 30. In the component, `material-progress-previous.json` contains a save produced by the bundle on `gh-pages`, with the source revision and reference positions.
 
-### Opțiunile partidei cu AI
+### AI match options
 
-Meniul urmează `MatchControls` din APK. **Tablă de analiză** pornește la poziția afișată, iar **Analiza partidei** este disponibilă la încheiere și în timpul jocului dacă opțiunea **Analiză AI pentru o partidă nouă** a fost bifată și există mutări. În istoric rămân acțiunile de navigare. Remiza acceptată și renunțarea confirmată păstrează același ID în arhivă. Dacă AI-ul refuză oferta, partida continuă din aceeași poziție.
+The menu follows the APK's `MatchControls`. **Analysis board** opens at the displayed position. **Game review** is available at the end and during play when **AI analysis for a new game** was enabled and the game has moves. History retains navigation actions. An accepted draw and a confirmed resignation keep the same ID in the archive. If the AI declines an offer, the match continues from the same position.
 
-Comanda **Tablă de analiză** dintr-o partidă activă sau încheiată folosește `AnalysisEntry`. Studiul pornește de la semimutarea afișată și păstrează orientarea. **Înapoi** revine la aceeași partidă, cu selecția și focusul restaurate. Studiul contextual are marcaj propriu pe durata vizitei, iar reîncărcarea adresei deschide studiul independent. [Cazurile comune JVM și Web](../docs/testing/README.md#tabla-de-analiză-dintr-o-partidă)
+The **Analysis board** command from an active or finished match uses `AnalysisEntry`. Study starts at the displayed ply and retains orientation. **Back** returns to the same match with selection and focus restored. Contextual study has its own bookmark for the visit, and reloading the URL opens standalone study. [Shared JVM and Web cases](../docs/testing/README.md#analysis-board-from-a-game)
 
-Testele cu stocare și controale simulate rulează în copia TMP. Pentru proba integrată, transmiteți pachetul TeaVM. Testul parcurge comenzile workerului prin Node.js.
+Tests with mocked storage and controls run in the TMP checkout. For the integrated check, pass the TeaVM bundle. The test runs the worker commands through Node.js.
 
 ```powershell
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebStudyShellTest,ChessWebQuestStudyTest,ChessWebOpeningStudyTest,ChessWebAnalysisStudyTest' "-Dchess.study.bundle=$site" "-Dchess.extent=$report"
 ```
 
-Pentru proba vizuală folosiți browserul MCP la 360 × 640 CSS px cu text la 130%, apoi la 1280 × 900 CSS px cu text la 100%. Reperul nativ compact este APK-ul 0.15.2 la 720 × 1280, 320 dpi și font 1,3×. Consemnați dimensiunea ferestrei utile și păstrați aceeași poziție și limbă în capturile pereche.
+For the visual check, use the MCP browser at 360 × 640 CSS px with text at 130%, then at 1280 × 900 CSS px with text at 100%. The native compact reference is APK 0.15.2 at 720 × 1280, 320 dpi, and 1.3× text scale. Record the usable window size and keep the same position and language in both screenshots.
 
-| Flux | Verificare în browser MCP |
+| Flow | MCP browser verification |
 |---|---|
-| Probleme | Rezolvați câte o problemă din Mat în 1, 2 și 3. Verificați cele două trepte ale indiciului, reluarea după o apărare și punctele după reîncărcare. Măsurați tabla înainte și după deschiderea meniului și verificați revenirea focusului cu Escape. |
-| Deschideri | Deschideți lecția italiană. Verificați poziția tablei înainte și după indiciu, încadrarea barei și accesul la comenzi pe compact, desktop și fereastră orizontală scundă. |
-| Tablă de analiză | Jucați o linie suficient de lungă pentru derulare. Selectați un pas din istoric, verificați bara, poziția și rândul selectat, apoi deschideți Game Review și reveniți. |
+| Puzzles | Solve one puzzle each in Mate in 1, 2, and 3. Verify both hint stages, resume after a defense, and points after reload. Measure the board before and after opening the menu, then check that Escape restores focus. |
+| Openings | Open the Italian lesson. Verify the board position before and after a hint, the bar fit, and access to controls on compact, desktop, and short landscape windows. |
+| Analysis board | Play a line long enough to require scrolling. Select a step in history, verify the bar, position, and selected row, then open Game Review and return. |
 
-Testați și schimbarea adresei între cele trei destinații Studiu, apoi comenzile Înapoi și Înainte din browser. Publicatorul `ChessWebStudyPublication` atașează imaginile în Extent și verifică profilul, amprenta originalului și originea cadrelor Android. Capturile native din alte ediții sau profiluri servesc ca repere și păstrează verdictul vizual integral deschis.
+Also test changing the URL among the three Study destinations, then using the browser's Back and Forward controls. `ChessWebStudyPublication` embeds images in Extent and verifies the profile, original hash, and provenance of the Android frames. Native screenshots from other releases or profiles serve as references and leave the full visual verdict open.
 
 ```powershell
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebStudyPublication' "-Dchess.web.study.browser=$browserReceipts" "-Dchess.web.study.native=$nativeReferences" "-Dchess.web.study.source=$sourceCommit" "-Dchess.web.study.extent=$report"
 ```
 
-[Matricea de paritate](parity.md#contracte-și-probe) · [Dovezile edițiilor publicate](../release/README.md)
+[Parity matrix](parity.md#contracts-and-checks) · [Published release evidence](../release/README.md)
 
-## Partida locală și o analiză nouă
+## Local match and fresh analysis
 
-**Partidă locală** permite mutările ambelor culori și oferă alegerea piesei la promovare. Workerul validează fiecare mutare. Pagina salvează checkpointul canonic înainte de a afișa poziția rezultată. Reîncărcarea pornește un worker nou și reface istoricul, culoarea la mutare și mutările legale din checkpoint. [Matricea funcțiilor](parity.md#contracte-și-probe)
+**Local game** accepts moves from both sides and offers a choice of promotion piece. The worker validates every move. The page saves the canonical checkpoint before displaying the resulting position. Reload starts a new worker and restores the history, side to move, and legal moves from the checkpoint. [Feature matrix](parity.md#contracts-and-checks)
 
-**Analizează partida** capturează checkpointul confirmat și calculează raportul cu `GameReview.analyzeLine`, la bugetul din `game-review.yaml`. Un worker dedicat emite progresul pe semimutare. **Anulează** oprește workerul de calcul, iar partida se poate continua din același checkpoint. Pagina acceptă analiza completă când partida corespunde încă instantaneului analizat. Raportul pentru jocul local rămâne fără estimare Elo. [Politica analizei](../docs/board/game-review.md#evaluarea-unei-semimutări)
+**Analyze game** captures the confirmed checkpoint and calculates the report with `GameReview.analyzeLine` at the budget from `game-review.yaml`. A dedicated worker reports progress by ply. **Cancel analysis** stops the calculation worker, and the match can continue from the same checkpoint. The page accepts the finished review when the match still matches the analyzed snapshot. The local game report has no Elo estimate. [Analysis policy](../docs/board/game-review.md#evaluating-a-ply)
 
-Cu `$site` din build, `$edge` la executabilul Edge și un dosar `$evidence` nou în TMP, rulați partida prin interfață și publicați recepția. Extent verifică reluarea, analiza nouă și capturile legate de pachetul testat. [Probe comune și native](../docs/testing/README.md#reluarea-game-review-pe-android-și-web)
+With the build's `$site`, `$edge` pointing to the Edge executable, and a fresh `$evidence` directory in TMP, play the match through the UI and publish the receipt. Extent verifies resume, the fresh review, and screenshots bound to the tested bundle. [Shared and native checks](../docs/testing/README.md#resuming-game-review-on-android-and-the-web)
 
 ```powershell
 node ./web/tests/browser-game-review.mjs $site --active $evidence $edge
@@ -292,13 +292,13 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebGamePublication' "-Dchess.web.bun
 
 ## Game Review
 
-Serviți directorul `site` prin HTTPS sau pe `localhost`, unde Web Crypto poate calcula SHA-256. Deschideți Game Review și încărcați o arhivă JSON cu `id`, `checkpoint`, `review` și, opțional, `bookmark`. `review` este cache-ul produs de `GameReviewCodec` pentru aceeași partidă încheiată. Testele generează o arhivă reproductibilă cu `GameReviewArchiveFixture`.
+Serve the `site` directory over HTTPS or on `localhost`, where Web Crypto can calculate SHA-256. Open Game Review and load a JSON archive with `id`, `checkpoint`, `review`, and optionally `bookmark`. `review` is the cache that `GameReviewCodec` produced for the same finished match. The tests generate a reproducible archive with `GameReviewArchiveFixture`.
 
-`GameReviewSession` folosește `GameReviewTimeline` pe Android și în worker. Comenzile selectează semimutarea, deschid **De ce?**, schimbă ramura și derulează linia. O comandă cu revizie expirată păstrează starea curentă. Închiderea explicației revine la mutarea selectată. Fiecare platformă păstrează progresul local. Browserul păstrează analizele importate și analizele partidelor active în spațiul Game Review, iar analizele partidelor încheiate în intrările bibliotecii. [Contractul de navigare](../docs/board/game-review.md#navigarea-în-review-și-variantele-recomandate)
+`GameReviewSession` uses `GameReviewTimeline` on Android and in the worker. Commands select the ply, open **Why?**, switch branches, and step through the line. A command with a stale revision preserves the current state. Closing the explanation returns to the selected move. Each platform stores its progress locally. The browser keeps imported reviews and active-match reviews in the Game Review space. It keeps reviews of finished matches in the library entries. [Navigation contract](../docs/board/game-review.md#review-navigation-and-recommended-lines)
 
-Rulați întâi testele de componentă, apoi proba din Edge pe buildul real și publicatorul Extent. Pe Android, `-GameReviewOnly` păstrează gesturile și restartul de proces. [Strategia și dovezile Game Review](../docs/testing/README.md#reluarea-game-review-pe-android-și-web)
+Run the component tests first, then the Edge check on the real build and the Extent publisher. On Android, `-GameReviewOnly` retains gesture and process-restart coverage. [Game Review strategy and evidence](../docs/testing/README.md#resuming-game-review-on-android-and-the-web)
 
-După rularea testelor de mai sus, alegeți `$fixture` și un `$evidence` nou în TMP. Setați `$edge` la executabilul Edge.
+After running the tests above, choose `$fixture` and a fresh `$evidence` directory in TMP. Set `$edge` to the Edge executable.
 
 ```powershell
 $cpFile = Join-Path $workRoot 'game-review-classpath.txt'

@@ -1,20 +1,20 @@
-# Core — contracte și mecanisme comune
+# Core — Common Contracts and Mechanisms
 
-## Pe scurt
+## Overview
 
-`atf-core` oferă vocabularul și mecanismele reutilizabile ale ATF. Folosiți-l pentru a compune adaptoare și execuții, păstrând regulile aplicației în consumer.
+`atf-core` provides the vocabulary and reusable mechanisms of ATF. Use it to compose adapters and executions while keeping application rules in the consumer.
 
-| Aveți nevoie de | API de pornire |
+| What you need | Starting API |
 |---|---|
-| Cereri, răspunsuri și execuție HTTP | `ApiRequest`, `ApiResponse`, `ApiTransport`, `ApiExecutor` |
-| Configurație capturată pentru o rulare | `AtfConfiguration`, `ApiSettingsSnapshot`, `AtfRuntimeSnapshot` |
-| JSON strict și redactarea datelor sensibile | `JsonDocuments`, `SensitiveDataRedactor` |
-| Eliberarea resurselor în ordine inversă | `CleanupRegistry` |
-| Sincronizare selectivă cu verificarea baseline-ului | `AtfPromotionManifest`, `AtfPromotionGuard` |
+| HTTP requests, responses, and execution | `ApiRequest`, `ApiResponse`, `ApiTransport`, `ApiExecutor` |
+| Configuration captured for a run | `AtfConfiguration`, `ApiSettingsSnapshot`, `AtfRuntimeSnapshot` |
+| Strict JSON and sensitive data redaction | `JsonDocuments`, `SensitiveDataRedactor` |
+| Resource release in reverse order | `CleanupRegistry` |
+| Selective synchronization with baseline verification | `AtfPromotionManifest`, `AtfPromotionGuard` |
 
-## Exemplu minim
+## Minimal Example
 
-Fragment într-o metodă care poate propaga `IOException`; construiește datele fără a trimite un request:
+This method fragment can propagate `IOException` and builds the data without sending a request.
 
 ```java
 import atf.core.http.request.ApiRequest;
@@ -29,16 +29,16 @@ var body = JsonDocuments.read("{\"total\":19.90}");
 var total = body.path("total").decimalValue();
 ```
 
-`url` este `https://example.test/api/orders/42`. `JsonDocuments` respinge cheile duplicate și conținutul rămas după document; numerele zecimale nu trec prin `double`.
+`url` is `https://example.test/api/orders/42`. `JsonDocuments` rejects duplicate keys and trailing content. Decimal numbers bypass `double` conversion.
 
-## Utilizare în ATF
+## Using Core in ATF
 
-- Injectați un `ApiTransport` în `ApiExecutor`; transportul real sau mock se alege explicit la compoziție.
-- `HttpClientTransport` și `UrlConnectionTransport` propagă anularea către operația deținută; fallback-ul include body-ul în deadline. Anularea nu dovedește rollback și nu autorizează replay.
-- Reutilizați snapshot-ul de configurație al rulării; oracolul, aserțiunile și verdictul de business aparțin consumerului.
-- Păstrați modelul original pentru comparație; redactarea și preview-ul se aplică la publicarea diagnosticului.
-- Core expune porturi neutre; [Console](README.Console.md), [Mock](README.Mock.md) și [Reporting](README.Reporting.md) au roluri distincte.
+- Inject an `ApiTransport` into `ApiExecutor` and choose the real or mock transport explicitly at composition time.
+- `HttpClientTransport` and `UrlConnectionTransport` propagate cancellation to the owned operation. The fallback includes the body in the deadline. Cancellation alone provides no rollback or replay authorization.
+- Reuse the run's configuration snapshot. The consumer owns the oracle, assertions, and business verdict.
+- Keep the original model for comparison. Apply redaction and previews when publishing diagnostics.
+- Core exposes neutral ports. [Console](README.Console.md), [Mock](README.Mock.md), and [Reporting](README.Reporting.md) have distinct roles.
 
 ---
 
-Înainte de o versiune nouă, verificați compatibilitatea locală cu `PlatformLibraryProvenanceTest` și contractele folosite de Chess Lab. Păstrați coordonatele, hash-urile și notele de integrare sincronizate cu `library-provenance.json`.
+Before adopting a new version, check local compatibility with `PlatformLibraryProvenanceTest` and verify the contracts used by Chess Lab. Keep coordinates, hashes, and integration notes aligned with `library-provenance.json`.

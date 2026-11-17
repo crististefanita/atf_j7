@@ -1,28 +1,28 @@
-# Edițiile Chess Lab
+# Chess Lab Releases
 
-Catalogul indică ediția disponibilă și locul unde pot fi verificate dovezile ei.
+The catalog identifies the available release and where to verify its evidence.
 
-## Ediția publicată
+## Published Release
 
-[`index.json`](index.json) identifică versiunea curentă și păstrează imediat după ea o singură ediție anterioară pentru comparație. README-ul principal indică numai ediția curentă.
+[`index.json`](index.json) identifies the current release and retains the immediately preceding release for comparison. The main README points only to the current release.
 
-| Rol | Versiune | Dovezi |
+| Role | Version | Evidence |
 |---|---|---|
-| Curentă | 0.15.3 | [Note și recepțiile APK-ului](0.15.3/README.md) |
-| Precedentă | 0.15.2 | [Ediția de comparație](0.15.2/README.md) |
+| Current | 0.15.3 | [APK notes and receipts](0.15.3/README.md) |
+| Previous | 0.15.2 | [Comparison release](0.15.2/README.md) |
 
-## Dovezi și arhivare
+## Evidence and Archiving
 
-- Release-ul GitHub distribuie APK-ul. Dosarul ediției păstrează notele,
-  rapoartele Extent, recepțiile și contextul RAG.
-- Pentru edițiile retrase, consultați commiturile și tagurile Git.
-- După promovare, verificați descărcarea din README-ul de pe `main` și
-  păstrați dovada lângă ediție.
+- The GitHub Release distributes the APK. The release directory holds the
+  notes, Extent reports, receipts, and RAG context.
+- Find retired releases in Git commits and tags.
+- After promotion, verify the download from the `main` README and save
+  the evidence alongside the release.
 
-## Candidat
+## Candidate
 
-Calificați candidatul și publicați asset-ul înainte de a actualiza
-`currentVersion` și linkurile din README. Proba din README-ul publicat
-închide procesul. [Ordinea operațiilor](../docs/release/README.md#calificare-și-publicare)
+Qualify the candidate and publish the asset before updating
+`currentVersion` and the README links. Verification from the published README
+closes the process. [Order of operations](../docs/release/README.md#qualification-and-publication)
 
-[Procesul de release](../docs/release/README.md) · [Dovezile ediției publicate](0.15.3/reports/README.md) · [Comparația anterioară](0.15.2/reports/README.md)
+[Release process](../docs/release/README.md) · [Published release evidence](0.15.3/reports/README.md) · [Previous comparison](0.15.2/reports/README.md)

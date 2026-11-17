@@ -315,9 +315,9 @@ class DocumentationGovernanceTest {
         boolean candidate = !catalogVersion.isBlank() && !catalogVersion.equals(current);
         List<String> expectedVersions = List.of(current, previous);
         var releaseIndex = prose(root.resolve("release/README.md"));
-        boolean releaseReadmeMatches = releaseIndex.stream().anyMatch(line -> line.startsWith("| Curentă | " + current + " |")
+        boolean releaseReadmeMatches = releaseIndex.stream().anyMatch(line -> line.startsWith("| Current | " + current + " |")
                 && line.contains("(" + current + "/README.md)"))
-                && releaseIndex.stream().anyMatch(line -> line.startsWith("| Precedentă | " + previous + " |")
+                && releaseIndex.stream().anyMatch(line -> line.startsWith("| Previous | " + previous + " |")
                         && line.contains("(" + previous + "/README.md)"));
         boolean aligned = androidVersion.find() && androidCode.find() && current.equals(linkedTag.substring(1))
                 && versions.equals(expectedVersions)
@@ -346,14 +346,14 @@ class DocumentationGovernanceTest {
         var release = prose(root.resolve("docs/release/README.md"));
         var testing = prose(root.resolve("docs/testing/README.md"));
         check.same("Release guidance links to suite commands and audit criteria", true,
-                release.stream().anyMatch(line -> line.contains("../testing/README.md#suite-jvm"))
-                        && release.stream().anyMatch(line -> line.contains("../testing/README.md#raportare-extent")));
+                release.stream().anyMatch(line -> line.contains("../testing/README.md#jvm-suites"))
+                        && release.stream().anyMatch(line -> line.contains("../testing/README.md#extent-reporting")));
         check.same("Audit guidance links to the qualification owner", true,
-                testing.stream().anyMatch(line -> line.contains("../release/README.md#calificare-și-publicare")));
+                testing.stream().anyMatch(line -> line.contains("../release/README.md#qualification-and-publication")));
         check.same("The test strategy defines the level before the test inventory", true,
-                testing.indexOf("## Alegerea nivelului") >= 0 && testing.indexOf("## Alegerea nivelului") < testing.indexOf("## Suite JVM"));
+                testing.indexOf("## Choosing the Test Level") >= 0 && testing.indexOf("## Choosing the Test Level") < testing.indexOf("## JVM suites"));
         check.same("The catalog leads to the owner of the progress verification", true,
-                prose(root.resolve("docs/board/quest-curation.md")).stream().anyMatch(line -> line.contains("../testing/README.md#progresul-problemelor")));
+                prose(root.resolve("docs/board/quest-curation.md")).stream().anyMatch(line -> line.contains("../testing/README.md#puzzle-progress")));
     }
 
     @Test void androidVisualAssertionsMapScreenCoordinatesToCapturePixels(Checks check) throws IOException {
@@ -365,8 +365,8 @@ class DocumentationGovernanceTest {
                 && sanity.contains("(double) image.getHeight() / display.heightPixels");
         check.same("Android pixel checks map real screen bounds to both captured bitmap axes", true, scalesBothAxes);
         check.same("The test strategy records why raster and display dimensions can differ", true,
-                testing.stream().anyMatch(line -> line.contains("Captura UI Automation")
-                        && line.contains("dimensiuni raster") && line.contains("bitmapului")));
+                testing.stream().anyMatch(line -> line.contains("UI Automation capture")
+                        && line.contains("raster dimensions") && line.contains("bitmap coordinates")));
     }
 
     @Test void documentationStartsFromTheLocalOwnersAndTheirVerification(Checks check) throws IOException {
@@ -374,12 +374,12 @@ class DocumentationGovernanceTest {
         check.same("The project README links to its documentation index", true,
                 prose(root.resolve("README.md")).stream().anyMatch(line -> line.contains("](docs/README.md)")));
         var index = prose(root.resolve("docs/README.md"));
-        var targets = new ArrayList<>(List.of("board/README.md", "board/quest-curation.md", "testing/README.md#alegerea-nivelului",
-                "testing/README.md#raportare-extent", "release/README.md#calificare-și-publicare", "feedback/README.md"));
+        var targets = new ArrayList<>(List.of("board/README.md", "board/quest-curation.md", "testing/README.md#choosing-the-test-level",
+                "testing/README.md#extent-reporting", "release/README.md#qualification-and-publication", "feedback/README.md"));
         WEB_GUIDES.forEach(guide -> targets.add("../" + guide));
         check.same("The index routes readers to each local owner", List.of(), targets.stream()
                 .filter(target -> index.stream().noneMatch(line -> line.contains("](" + target + ")"))).toList());
-        check.same("The document verification has a stable section", true, anchors(root.resolve("docs/README.md")).contains("verificarea-documentației"));
+        check.same("The document verification has a stable section", true, anchors(root.resolve("docs/README.md")).contains("documentation-checks"));
     }
 
     @Test void projectReadmeKeepsAnArchitectureMapAndDirectRoutes(Checks check) throws IOException {
@@ -391,10 +391,10 @@ class DocumentationGovernanceTest {
     @Test void mainReadmeShowsOneDirectPlayLinkBelowTheApk(Checks check) throws IOException {
         var readme = prose(ProjectRoot.locate().resolve("README.md"));
         String address = ChessPublicationRoutes.HOME_URL;
-        var game = readme.stream().dropWhile(line -> !line.equals("## Jocul")).skip(1)
+        var game = readme.stream().dropWhile(line -> !line.equals("## Play")).skip(1)
                 .takeWhile(line -> !line.startsWith("## ")).filter(line -> !line.isBlank()).toList();
-        check.same("Jocul contains exactly two links", 2, game.size());
-        check.same("Jocul ends with the canonical browser main menu", "- [Joacă în browser](" + address + ")",
+        check.same("Play contains exactly two links", 2, game.size());
+        check.same("Play ends with the canonical browser main menu", "- [Play in your browser](" + address + ")",
                 game.isEmpty() ? "" : game.getLast());
         check.same("The canonical play address appears exactly once", 1L,
                 readme.stream().filter(line -> line.contains("](" + address + ")")).count());
@@ -410,12 +410,12 @@ class DocumentationGovernanceTest {
     }
 
     @Test void documentedArchitectureRejectsMissingSourcesExtraModulesAndScopeDrift(Checks check) throws Exception {
-        var readme = List.of("## Arhitectura J7",
-                "- **Maven** compilează `atf-tests`, `chess-core/src/main/java`, `chess-core/src/main/resources` și `release-tools/src/main/java`.",
-                "- **Gradle** construiește `:app` din `chess-core/src/main/java` și",
+        var readme = List.of("## J7 Architecture",
+                "- **Maven** compiles `atf-tests`, `chess-core/src/main/java`, `chess-core/src/main/resources` and `release-tools/src/main/java`.",
+                "- **Gradle** builds `:app` from `chess-core/src/main/java` and",
                 "  `chess-core/src/main/resources`.",
-                "- **Biblioteci ATF** folosește `atf-reporting`, `atf-test-kit`, cu scope `test`.",
-                "## Puncte de intrare");
+                "- **ATF libraries** use `atf-reporting` and `atf-test-kit` with `test` scope.",
+                "## Entry Points");
         String reactor = "<project><modules><module>atf-tests</module></modules></project>";
         String tests = """
                 <project><dependencies>
@@ -451,14 +451,14 @@ class DocumentationGovernanceTest {
         String wrongSourceSets = gradle.replace("main.java", "main.tmp").replace("main.resources", "main.java").replace("main.tmp", "main.resources");
         check.same("Swapping Gradle source sets is drift even when the paths are unchanged", List.of("Gradle"),
                 architectureDrift(readme, new BuildDeclarations(reactor, tests, settings, wrongSourceSets)));
-        check.same("A compile-scoped ATF dependency changes the documented boundary", List.of("Biblioteci ATF"), architectureDrift(readme,
+        check.same("A compile-scoped ATF dependency changes the documented boundary", List.of("ATF libraries"), architectureDrift(readme,
                 new BuildDeclarations(reactor, tests.replace("atf-test-kit</artifactId><scope>test", "atf-test-kit</artifactId><scope>compile"), settings, gradle)));
     }
 
     private record BuildDeclarations(String reactorPom, String testsPom, String gradleSettings, String gradleApp) { }
 
     private static List<String> architectureDrift(List<String> readme, BuildDeclarations declarations) throws Exception {
-        var architecture = readme.stream().dropWhile(line -> !line.equals("## Arhitectura J7")).skip(1)
+        var architecture = readme.stream().dropWhile(line -> !line.equals("## J7 Architecture")).skip(1)
                 .takeWhile(line -> !line.startsWith("## ")).toList();
         var parser = DocumentBuilderFactory.newDefaultInstance();
         parser.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -502,7 +502,7 @@ class DocumentationGovernanceTest {
         var drift = new ArrayList<String>();
         if (!maven.equals(documentedTokens(architecture, "Maven"))) drift.add("Maven");
         if (!sourceKinds.equals(Set.of("java", "resources")) || !gradle.equals(documentedTokens(architecture, "Gradle"))) drift.add("Gradle");
-        if (!scopes.equals(List.of("test", "test")) || !libraries.equals(documentedTokens(architecture, "Biblioteci ATF"))) drift.add("Biblioteci ATF");
+        if (!scopes.equals(List.of("test", "test")) || !libraries.equals(documentedTokens(architecture, "ATF libraries"))) drift.add("ATF libraries");
         return drift;
     }
 
@@ -520,26 +520,26 @@ class DocumentationGovernanceTest {
     }
 
     @Test void movingTheMotorLinkOutOfTheArchitectureMapDoesNotSatisfyTheContract(Checks check) {
-        var readme = List.of("## Arhitectura J7",
+        var readme = List.of("## J7 Architecture",
                 "| [Android](android/app/src/main) | APK |",
-                "| [Teste](atf-tests) | JVM |",
+                "| [Tests](atf-tests) | JVM |",
                 "| [Release](release-tools/src/main) | RAG |",
-                "| [Biblioteci](lib/README.md) | JAR |",
-                "## Puncte de intrare",
-                "- [Motor](chess-core/src/main)",
-                "- [Teste](docs/testing/README.md#alegerea-nivelului)",
-                "- [Release](docs/release/README.md#calificare-și-publicare)",
+                "| [Libraries](lib/README.md) | JAR |",
+                "## Entry Points",
+                "- [Engine](chess-core/src/main)",
+                "- [Tests](docs/testing/README.md#choosing-the-test-level)",
+                "- [Release](docs/release/README.md#qualification-and-publication)",
                 "- [Feedback](docs/feedback/README.md)");
-        check.same("A generic link cannot replace the motor row in the architecture section",
-                List.of("Arhitectura J7 → chess-core/src/main"), missingReadmeRoutes(readme));
+        check.same("A generic link cannot replace the engine row in the architecture section",
+                List.of("J7 Architecture → chess-core/src/main"), missingReadmeRoutes(readme));
     }
 
     private static List<String> missingReadmeRoutes(List<String> lines) {
         var missing = new ArrayList<String>();
-        var architecture = lines.stream().dropWhile(line -> !line.equals("## Arhitectura J7")).skip(1)
+        var architecture = lines.stream().dropWhile(line -> !line.equals("## J7 Architecture")).skip(1)
                 .takeWhile(line -> !line.startsWith("## ")).filter(line -> line.startsWith("|")).toList();
         for (String owner : List.of("chess-core/src/main", "android/app/src/main", "atf-tests", "release-tools/src/main", "lib/README.md")) {
-            if (!linksTo(architecture, owner)) missing.add("Arhitectura J7 → " + owner);
+            if (!linksTo(architecture, owner)) missing.add("J7 Architecture → " + owner);
         }
         for (String guide : List.of("docs/testing/README.md", "docs/release/README.md", "docs/feedback/README.md")) {
             if (!linksTo(lines, guide)) missing.add("README.md → " + guide);
@@ -556,8 +556,8 @@ class DocumentationGovernanceTest {
         Path feedback = ProjectRoot.locate().resolve("docs/feedback");
         var backlog = prose(feedback.resolve("README.md"));
         check.same("Feedback exposes the owner area, observation and closure criterion", true,
-                backlog.contains("| Prioritate | Zonă | Observație | Criteriu de închidere |"));
-        var incomplete = backlog.stream().filter(line -> line.startsWith("| P")).filter(line -> !line.startsWith("| Prioritate"))
+                backlog.contains("| Priority | Area | Observation | Closure Criterion |"));
+        var incomplete = backlog.stream().filter(line -> line.startsWith("| P")).filter(line -> !line.startsWith("| Priority"))
                 .filter(line -> !line.matches("\\| P[0-9] \\| [^|]+ \\| [^|]+ \\| [^|]+ \\|")).toList();
         check.same("Every open item has an owner area and a concrete closure criterion", List.of(), incomplete);
         try (var files = Files.walk(feedback)) {

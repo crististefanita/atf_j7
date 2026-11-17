@@ -1,13 +1,13 @@
 # Chess Lab 0.15.3
 
-## Îmbunătățiri
+## Improvements
 
-- În jocul cu AI, tabla Android folosește mai mult din zona utilă pe ecranele compacte, inclusiv la text mărit.
-- Tabla rămâne fixă la navigarea prin mutări. Bara de evaluare, becul și numele jucătorilor rămân vizibile la revenirea în partidă.
-- În browser, tabla și bara de evaluare folosesc lățimea disponibilă și păstrează comenzile aproape de tablă.
+- In games against AI, the Android board uses more of the available area on compact screens, including with enlarged text.
+- The board stays fixed when navigating moves. The evaluation bar, hint bulb, and player names remain visible when resuming the game.
+- In the browser, the board and evaluation bar use the available width and keep the controls close to the board.
 
-## Instalare
+## Installation
 
-Descarcă APK-ul semnat din **Assets**. [Ediția pe GitHub](https://github.com/crististefanita/chess/releases/tag/v0.15.3)
+Download the signed APK from **Assets**. [Release on GitHub](https://github.com/crististefanita/chess/releases/tag/v0.15.3)
 
-[Dovezile ediției](reports/README.md)
+[Release evidence](reports/README.md)

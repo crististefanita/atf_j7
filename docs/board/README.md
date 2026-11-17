@@ -1,178 +1,179 @@
-# Tabla de joc
+# The Chessboard
 
-Acest ghid explică tabla, problemele și partidele din Chess Lab. Alege
-[Probleme](#tactică-și-puncte), [Tablă de analiză](#tablă-de-analiză) sau
-[Partidă cu calculatorul](#partidă-cu-calculatorul).
+This guide explains the board, puzzles, and games in Chess Lab. Choose
+[Puzzles](#tactics-and-points), [Analysis board](#analysis-board), or
+[Game against the computer](#game-against-the-computer).
 
-## Tactică și puncte
+## Tactics and points
 
-- În **Tactică**, caută mutarea care câștigă material sau deschide o combinație. Când exercițiul are o continuare jucabilă, adversarul răspunde pe tablă și joci până la ultima mutare. **Explicația** îți arată linia, piesele capturate și schimbarea de material. La exercițiile care se încheie după cheie, **Studiul apărării** poate arăta ce urmează după replica aleasă de Stockfish.
-- În **Probleme → Antrenament tactic** găsești 114 poziții, printre care combinații de turn, mutări intermediare și promovări pregătite prin sacrificiu. Progresul și punctele se păstrează când revii în capitol. [Catalog și verificare](quest-curation.md#antrenament-tactic-și-lot-de-verificare)
-- În **Probleme → Mutarea intermediară**, caută șahul sau captura de forțare înaintea recapturii. Capitolul crește în dificultate pe trei trepte. [Catalog și punctaj](quest-curation.md#mutarea-intermediară)
-- Comanda de sub tablă arată piesa cu becul, mutarea cu săgeata și explicația cu cartea. Poți atinge pictograma sau eticheta. Ținta are 48 dp, iar în timpul replicii apare **Așteaptă**.
-- Prima rezolvare a fiecărei probleme acordă 10 puncte. O serie fără greșeli sau indicii adaugă câte 2 puncte la fiecare problemă, începând de la a doua, până la 20 de puncte pe problemă. Flacăra arată lungimea seriei și funcționează între capitole.
-- O greșeală sau cererea unui indiciu întrerupe seria. Rezolvarea acelei probleme rămâne eligibilă pentru cele 10 puncte de bază. Revizitarea și reluarea păstrează punctele deja acordate. Problemele rezolvate înainte de această schimbare primesc creditul de bază.
+- In **Tactics**, look for the move that wins material or starts a combination. When the exercise has a playable continuation, the opponent replies on the board and you play through to the last move. **Tactic explained** shows the line, captured pieces, and material change. In exercises that end after the key move, **Defense study** can show what follows the reply chosen by Stockfish.
+- In **Puzzles → Tactical training** you will find 114 positions, including rook combinations, intermediate moves, and promotions prepared by a sacrifice. Progress and points are kept when you return to the chapter. [Catalog and verification](quest-curation.md#tactical-training-and-verification-set)
+- In **Puzzles → In-between move**, look for the forcing check or capture before recapturing. The chapter increases in difficulty in three tiers. [Catalog and scoring](quest-curation.md#intermediate-move)
+- The control below the board shows the piece with a lightbulb, the move with an arrow, and the explanation with a book. You can tap the icon or the label. The target is 48 dp, and **Waiting** appears while the opponent replies.
+- The first solution to each puzzle awards 10 points. A streak without mistakes or hints adds 2 points for each puzzle, starting with the second, up to 20 points per puzzle. The flame shows the streak length and carries across chapters.
+- A mistake or a request for a hint ends the streak. Solving that puzzle still qualifies for the 10 base points. Revisiting and resuming preserve points already awarded. Puzzles solved before this change receive the base credit.
 
-Sistemul de puncte și bonusul de la a doua rezolvare urmează modelul Puzzle Points. În J7, flacăra reprezintă problemele consecutive rezolvate fără ajutor. [Chess.com Puzzle Points](https://support.chess.com/en/articles/9681952-what-are-puzzle-points-on-chess-com)
+The point system and the bonus from the second solution follow the Puzzle Points model. In J7, the flame represents consecutive puzzles solved without help. [Chess.com Puzzle Points](https://support.chess.com/en/articles/9681952-what-are-puzzle-points-on-chess-com)
 
-## Tablă și indicii
+## Board and hints
 
-- Pătratele verzi și crem încadrează piesele Staunton. Crestătura deschisă și
-  silueta mai înaltă deosebesc nebunul de pion. Coordonatele stau pe margine,
-  iar ultima mutare marchează plecarea și destinația.
-- La intrarea în capitol, orientarea pornește cu partea care trebuie să rezolve problema jos. **Precedentă** și **Următoarea** păstrează orientarea și coordonatele. Marcajul „la mutare” urmărește culoarea activă. Folosește **Întoarce tabla** pentru a schimba orientarea.
-- Etichetele și mesajele au loc rezervat. La aceeași dimensiune de fereastră și același font, tabla își păstrează poziția și dimensiunea când se schimbă problema, mutarea din istoric sau analiza. Pe ferestre scunde, tabla rămâne pătrată și se micșorează pentru a păstra locul comenzilor.
-- În puzzle-uri și în **Explică**, tabla folosește toată lățimea disponibilă când încape pe înălțime. Mesajul și progresul sunt sub tablă. Dacă spațiul este scurt, zona de detalii se poate derula, iar comenzile rămân la vedere.
-- Atingerea unei piese active arată numai destinațiile legale. O a doua atingere alege destinația. Promovarea cere o alegere explicită.
-- Fiecare pătrat poate primi focus și anunță coordonata, piesa și destinația legală când există. Bara de stare anunță cine mută și rezultatul detectat de motor.
-- O încercare greșită păstrează poziția. Dacă mutarea dă șah, aplicația arată replica adversarului și următorul răspuns, plus câștigul net de material sau finalul când linia se termină în mat ori pat. Când mai multe replici au același scor, mesajul arată câte sunt și indică o alternativă. Atinge mesajul pentru a-l citi integral. Patul direct are un mesaj propriu.
-- În Mat în 2 și Mat în 3, mutarea corectă se vede imediat. Apărarea de referință urmează după 650 ms cât timp tabla e în prim-plan. În pauză se vede culoarea adversarului la mutare, iar tabla și indiciile așteaptă răspunsul. Apoi marcajul revine la jucător și ultima mutare scoate în evidență apărarea.
-- **Indiciu** marchează discret cu turcoaz pătratul piesei și îi anunță numele și coordonata. **Arată mutarea** adaugă o săgeată subțire și textul „Mutare sugerată”, cu piesa necesară la promovare. Celulele anunță textual marcajele, iar săgeata urmează coordonatele la întoarcerea tablei. După apărare, indiciul pornește de la noua poziție.
-- Cititorul de ecran anunță culoarea și piesa la **Indiciu**, apoi include destinația la **Arată mutarea**. La atingerea unui prag, confirmarea matului include și pragul. Bara de progres păstrează pragul vizibil la revenire.
-- În **Mat în 1**, **Explică** deschide poziția de mat pe o tablă separată. În **Mat în 2** și **Mat în 3**, săgețile parcurg linia câte o semimutare. În timpul rezolvării, linia pornește de la poziția curentă. După rezolvare pornește de la început și arată finalul jucat, inclusiv un mat alternativ acceptat. La ultimul pas apar explicația șahului și câmpurile de fugă.
-- În explicație, mutarea curentă apare prima sub tabla fixă, deasupra motivului derulabil. **Pericol**, între săgeți, conturează regele aflat în mat sau câmpul piesei capturate și anunță motivul. Pentru o captură, calculează câștigul minim de material rămas după orice replică legală. Recaptura care șterge câștigul, matul advers și patul opresc marcajul. Săgețile îl sting la fiecare schimbare de poziție. Butonul **OK** din antet revine la problemă cu progresul și punctele păstrate.
+- Green and cream squares frame the Staunton pieces. The open notch and
+  taller silhouette distinguish the bishop from the pawn. Coordinates sit on
+  the edge, and the last move marks both origin and destination.
+- When you enter a chapter, the side solving the puzzle starts at the bottom. **Previous** and **Next** keep the orientation and coordinates. The side-to-move marker follows the active color. Use **Flip board** to change orientation.
+- Labels and messages have reserved space. At the same window size and font scale, the board keeps its position and size when the puzzle, history move, or analysis changes. In short windows, the board stays square and shrinks to leave room for the controls.
+- In puzzles and **Explain**, the board uses all available width when it fits vertically. The message and progress are below the board. If space is short, the details area can scroll while the controls stay visible.
+- Tapping an active piece shows only legal destinations. A second tap selects the destination. Promotion requires an explicit choice.
+- Each square can receive focus and announces its coordinate, piece, and legal destination when available. The status bar announces whose turn it is and the result detected by the engine.
+- A wrong attempt preserves the position. If the move gives check, the app shows the opponent's reply and the following response, plus the net material gain or the result when the line ends in checkmate or stalemate. When several replies have the same score, the message shows how many there are and identifies an alternative. Tap the message to read it in full. An immediate stalemate has its own message.
+- In Mate in 2 and Mate in 3, the correct move appears immediately. The reference defense follows after 650 ms while the board is in the foreground. During the pause, the marker shows the opposing color to move, and the board and hints wait for the reply. The marker then returns to the player and the last move highlights the defense.
+- **Hint** marks the piece's square with a subtle turquoise outline and announces its name and coordinate. **Show move** adds a thin arrow and the text “Suggested move,” including the required piece for promotion. The cells announce the cues in text, and the arrow follows the coordinates when the board is flipped. After the defense, the hint starts from the new position.
+- The screen reader announces the color and piece for **Hint**, then includes the destination for **Show move**. When you reach a milestone, the checkmate confirmation also announces it. The progress bar keeps the milestone visible when you return.
+- In **Mate in 1**, **Explain** opens the checkmate position on a separate board. In **Mate in 2** and **Mate in 3**, the arrows navigate the line one ply at a time. While solving, the line starts at the current position. After solving, it starts from the beginning and shows the played finish, including an accepted alternative mate. The last step explains the check and the escape squares.
+- In the explanation, the current move appears first below the fixed board, above the scrollable reason. **Danger**, between the arrows, outlines the mated king or the captured piece's square and announces the reason. For a capture, it calculates the minimum material gain that remains after any legal reply. A recapture that removes the gain, an opposing checkmate, and stalemate suppress the marker. The arrows clear it whenever the position changes. The **OK** button in the header returns to the puzzle with progress and points preserved.
 
-Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația rămâne o acțiune separată, la fel ca dezvăluirea explicită a soluției în antrenamentul Lichess. [Chess.com Daily Puzzle](https://support.chess.com/en/articles/8708990-how-does-the-daily-puzzle-work) · [Lichess Puzzle Training](https://lichess.org/training/daily)
+The two-step hint model follows Daily Puzzle. The explanation remains a separate action, as does explicitly revealing the solution in Lichess Training. [Chess.com Daily Puzzle](https://support.chess.com/en/articles/8708990-how-does-the-daily-puzzle-work) · [Lichess Puzzle Training](https://lichess.org/training/daily)
 
-## Reguli și probleme
+## Rules and puzzles
 
-[`chess-rules.yaml`](../../chess-core/src/main/resources/chess-rules.yaml) declară vectorii pieselor, deplasarea pe rază sau prin salt, sensul pionului, captura, promovarea și configurația celor două rocade. Motorul aplică blocajele, alternarea culorilor, protecția regelui și expirarea dreptului en passant. Condițiile de siguranță rămân obligatorii la încărcarea profilului standard.
+[`chess-rules.yaml`](../../chess-core/src/main/resources/chess-rules.yaml) declares piece vectors, sliding or jumping movement, pawn direction, captures, promotion, and the setup for both types of castling. The engine applies obstacles, alternating turns, king safety, and expiry of en passant rights. The safety conditions remain mandatory when loading the standard profile.
 
-[`tactical-analysis.yaml`](../../chess-core/src/main/resources/tactical-analysis.yaml) fixează orizontul la cel mult trei mutări individuale. Mesajul din joc folosește două, începând cu replica adversarului. Fiecare parte alege cea mai bună continuare pentru ea. Matul primează, patul valorează zero, iar restul pozițiilor se compară după materialul de la capătul liniei. Câștigul afișat este diferența de material față de poziția de după încercarea jucătorului. Scorurile egale la acest orizont rămân în același grup, iar ordinea UCI alege linia afișată. Repetarea, regula mutărilor fără captură sau pion și evaluarea pozițională țin de o analiză cu istoric și orizont mai lung.
+[`tactical-analysis.yaml`](../../chess-core/src/main/resources/tactical-analysis.yaml) limits the horizon to at most three plies. The in-game message uses two, starting with the opponent's reply. Each side chooses its own best continuation. Checkmate takes precedence, stalemate scores zero, and other positions are compared by material at the end of the line. The displayed gain is the material difference from the position after the player's attempt. Scores tied at this horizon stay in one group, and UCI ordering determines the displayed line. Repetition, the no-capture or pawn-move rule, and positional evaluation require an analysis with history and a longer horizon.
 
-[`quests.yaml`](../../chess-core/src/main/resources/quests.yaml) păstrează poziția FEN, soluția UCI și tema fiecărei probleme. Setul are 500 de poziții, câte 250 cu fiecare culoare la mutare. Catalogul include compoziții pentru mat prin rocadă, en passant, promovare la cal și apărare din șah.
+[`quests.yaml`](../../chess-core/src/main/resources/quests.yaml) stores the FEN position, UCI solution, and theme of each puzzle. The set has 500 positions, 250 with each color to move. The catalog includes compositions with castling mate, en passant, promotion to a knight, and defense while in check.
 
-| ID | Indiciu | Soluție |
+| ID | Hint | Solution |
 |---|---|---|
-| `mate-101` | Nebunul de pe `h6` | `Nd2#` oprește șahul turnului negru și deschide coloana h pentru dama albă. |
-| `mate-102` | Pionul de pe `h3` | `hxg4#` capturează calul care dă șah și eliberează coloana h pentru turnul alb. |
+| `mate-101` | Bishop on `h6` | `Nd2#` answers the black rook's check and opens the h-file for White's queen. |
+| `mate-102` | Pawn on `h3` | `hxg4#` captures the checking knight and clears the h-file for White's rook. |
 
-[`mate-in-two.yaml`](../../chess-core/src/main/resources/mate-in-two.yaml) are 300 de poziții cu o singură mutare inițială care forțează matul. După acea mutare, aplicația joacă apărarea de referință și acceptă orice mat legal din poziția rezultată. Indiciile urmează mutarea curentă, iar explicația arată linia completă. [Selecție și proveniență](quest-curation.md#mat-în-două-mutări)
+[`mate-in-two.yaml`](../../chess-core/src/main/resources/mate-in-two.yaml) has 300 positions with a single first move that forces mate. After that move, the app plays the reference defense and accepts any legal mate from the resulting position. Hints follow the current move, and the explanation shows the full line. [Selection and provenance](quest-curation.md#mate-in-two-moves)
 
-[`mate-in-three.yaml`](../../chess-core/src/main/resources/mate-in-three.yaml) conține 200 de poziții de mat exact în trei, cu o singură primă mutare câștigătoare. Jocul aplică cele două apărări de referință, afișează câte mutări au mai rămas după prima apărare și acceptă orice mat legal pe ultima mutare. [Selecție și proveniență](quest-curation.md#mat-în-trei-mutări)
+[`mate-in-three.yaml`](../../chess-core/src/main/resources/mate-in-three.yaml) contains 200 positions with mate in exactly three and a single winning first move. The game applies the two reference defenses, shows how many moves remain after the first defense, and accepts any legal mate on the last move. [Selection and provenance](quest-curation.md#mate-in-three-moves)
 
-[`tactics.yaml`](../../chess-core/src/main/resources/tactics.yaml) adaugă 100 de poziții cu o singură mutare care câștigă material la orizontul capitolului. Selecția include furculițe, legări, atacuri descoperite și devieri.
+[`tactics.yaml`](../../chess-core/src/main/resources/tactics.yaml) adds 100 positions with a single move that wins material within the chapter's horizon. The selection covers forks, pins, discovered attacks, and deflections.
 
-## Tablă de analiză
+## Analysis board
 
-- Din meniul principal pornești de la poziția inițială. Dintr-o partidă, lupa de lângă istoric deschide exact poziția afișată și păstrează mutările partidei disponibile pentru navigare.
-- Joci manual pentru alb și negru. Evaluarea se actualizează local după fiecare poziție, iar becul arată o continuare. Săgețile și mutările din bandă selectează poziții. O mutare diferită înlocuiește continuarea din tablă, iar **Resetează linia** readuce poziția și continuarea de la intrare.
-- Cât timp poziția are continuări de teorie, becul alege între cel mult trei trasee complete. Sub tablă vezi **Teorie**, numărul traseului și numele deschiderii. Atinge eticheta pentru redarea pe tot ecranul. Săgețile parcurg mutările ambelor culori, tabla își păstrează poziția, iar explicația fiecărui pas se poate derula separat. Două trasee pot începe prin aceeași mutare. Lecțiile YAML au prioritate, iar indexul ECO oferă continuări când lecțiile nu acoperă poziția. La o poziție fără continuări documentate, becul revine la analiza motorului. O transpoziție sau revenirea în istoric poate readuce teoria.
-- După ce afișezi o variantă, atinge direct destinația din săgeată pentru a juca prima mutare, inclusiv promovarea indicată. Dacă selectezi o piesă după afișarea indiciului, alegi mutarea în mod obișnuit. Pe o poziție istorică jucabilă, mutarea se aplică liniei de studiu.
-- După abandon sau remiză prin acord, ultima poziție rămâne jucabilă în analiză. Matul și finalurile automate rămân finale. Poți explora de la o poziție anterioară.
-- În **Opțiunile tablei de analiză**, bifa **Analiză AI** controlează bara, becul și **Analizează toate mutările**. Raportul parcurge întreaga linie curentă, chiar dacă săgețile te-au dus la o poziție anterioară. Compară albul și negrul prin grafic, categorii și precizie. Din detaliul oricărei mutări poți reveni pe tablă sau porni din poziția de dinaintea mutării.
-- Când linia păstrează mutările unei partide încheiate, aceeași comandă deschide **Analiza partidei** cu jucătorul, AI-ul, graficul, toate mutările și estimările Elo disponibile. Dacă partida are loc în arhivă, raportul se salvează acolo. O ramură editată sau o linie jucată manual rămâne un studiu pe culori, cu precizie și categorii.
-- **Continuă ca partidă salvată** păstrează istoricul până la poziția selectată și folosește un loc liber dintre cele zece. Bifează **Lasă AI-ul să mute** pentru replici automate. Debifează pentru a juca ambele culori. Partida din care ai intrat în studiu își păstrează salvarea. Dacă toate locurile sunt ocupate, tabla păstrează linia deschisă. O continuare pornită cu un prefix din studiu păstrează graficul și precizia la final, cu Elo indisponibil pentru acea linie.
+- From the main menu you start from the initial position. In a game, the magnifier next to history opens the exact displayed position and keeps the game's moves available for navigation.
+- You play both White and Black manually. Evaluation updates locally for each position, and the lightbulb shows a continuation. The arrows and moves in the strip select positions. A different move replaces the board's continuation, while **Reset line** restores the position and continuation from entry.
+- While the position has theory continuations, the lightbulb offers up to three complete lines. Below the board you can see **Theory**, the line number, and the opening name. Tap the label for full-screen replay. The arrows navigate moves by both colors, the board keeps its position, and each step's explanation scrolls separately. Two lines can start with the same move. The YAML lessons take priority, and the ECO index supplies continuations when the lessons do not cover the position. When a position has no documented continuations, the lightbulb returns to engine analysis. A transposition or going back in history may bring theory back.
+- After showing a variation, tap the arrow's destination directly to play its first move, including the indicated promotion. If you select a piece after showing the hint, you choose the move as usual. From a playable historical position, the move applies to the study line.
+- After resignation or a draw by agreement, the final position remains playable in analysis. Checkmate and automatic endings remain terminal. You can explore from an earlier position.
+- In **Analysis board options**, the **AI analysis** checkbox controls the bar, the lightbulb, and **Review all moves**. The report traverses the entire current line, even if the arrows have taken you to an earlier position. It compares White and Black using the graph, move categories, and accuracy. From any move's details you can return to the board or start from the position before the move.
+- When the line preserves the moves of a finished game, the same command opens **Game review**, with the player, AI, graph, every move, and the available Elo estimates. If the game has a place in the archive, the report is saved there. An edited branch or a manually played line remains a study by color, with accuracy and categories.
+- **Continue as a saved game** keeps the history up to the selected position and uses an empty slot out of ten. Select **Let AI play its moves** for automatic replies. Clear it to play both colors. The game you entered study from keeps its saved state. When all slots are occupied, the board keeps the line open. A continuation that starts with a study prefix retains the graph and accuracy at the end, with Elo unavailable for that line.
 
-Navigarea și mutările manuale pentru ambele culori urmează fluxul de analiză individuală. [Tabla de analiză Chess.com](https://support.chess.com/en/articles/8583825-how-do-i-use-the-analysis-board)
+Navigation and manual play for both colors follow the individual analysis flow. [Chess.com Analysis Board](https://support.chess.com/en/articles/8583825-how-do-i-use-the-analysis-board)
 
-## Partidă cu calculatorul
+## Game against the computer
 
-Meniul principal grupează **Partidă nouă**, **Partide salvate** și **Partide încheiate** în secțiunea **Partide**. Problemele, deschiderile și tabla de analiză sunt în **Studiu**, iar numele jucătorului este în **Profil**. Ambele liste de partide se deschid ca ecrane dedicate, în stilul meniului **Probleme**. **Înapoi** rămâne vizibil când derulezi și revine la ecranul de unde ai venit.
+The main menu groups **New game**, **Saved games**, and **Finished games** under **Games**. Puzzles, openings, and the analysis board are in **Study**, and the player's name is in **Profile**. Both game lists open as dedicated screens in the style of the **Puzzles** menu. **Back** stays visible while you scroll and returns to the screen you came from.
 
-**Partide încheiate** păstrează ultimele zece rezultate, în ordinea încheierii, de la cel mai recent. Poți redeschide tabla și istoricul fiecărei partide. Dacă ai lăsat analiza să se termine, lista o marchează ca salvată, iar **📊 Analiza partidei** o deschide direct. Continuarea pornită din arhivă folosește un loc liber și păstrează rezultatul original. La al unsprezecelea rezultat, cel mai vechi rezultat și analiza lui ies din arhivă.
+**Finished games** keeps the ten most recent results in order of completion, newest first. You can reopen the board and move history for any game. If you let analysis finish, the list marks it as saved, and **📊 Game review** opens it directly. A continuation from the archive uses an empty slot and preserves the original result. When the eleventh result arrives, the oldest result and its analysis leave the archive.
 
-**Partide salvate** arată doar partidele în desfășurare, până la zece, de la cea mai recent începută. La încheiere, partida trece în **Partide încheiate** în aceeași salvare. **Partidă nouă** folosește primul loc gol, apoi poate reutiliza locul unei partide arhivate. Când toate locurile sunt ocupate de partide active, configurarea anunță înlocuirea celei mai vechi salvări. Reluarea unei partide îi păstrează locul în ordine. Pentru salvările din edițiile anterioare, ordinea inițială urmează numărul locului.
+**Saved games** shows only games in progress, up to ten, newest first by start time. When a game ends, it moves to **Finished games** in the same save. **New game** uses the first empty slot and can then reuse the slot of an archived game. When all slots contain active games, setup announces that the oldest saved game will be replaced. Resuming a game keeps its place in that order. For saves from earlier editions, the initial order follows slot number.
 
-Rândul începe cu numărul partidei și numele adversarului în **Partide salvate** și cu numele adversarului în **Partide încheiate**. Sub titlu apar numărul de mutări înregistrate și starea sau rezultatul. Fiecare mutare a albului sau a negrului se numără o dată.
+The row starts with the game number and opponent's name in **Saved games**, and with the opponent's name in **Finished games**. Below the title are the number of recorded moves and the status or result. Each move by either White or Black counts once.
 
-Eticheta discretă de la baza rândului arată ziua și ora locală. În **Partide salvate** apare momentul începerii, iar în **Partide încheiate** momentul terminării. Pentru partidele vechi a căror dată lipsește, rândul afișează titlul și mutările.
+The subtle label at the bottom of the row shows the local day and time. **Saved games** shows the start time, and **Finished games** shows the finish time. For older games without a date, the row shows the title and move count.
 
-Bifa **Lasă AI-ul să mute** stă în antet, pe același rând cu meniul. Debifeaz-o
-pentru a juca mutările legale ale ambelor culori. Opțiunea se salvează separat
-pe fiecare partidă, iar bifarea în tura AI-ului pornește replica. În istoricul
-unei partide active, bifa rămâne vizibilă și dezactivată. După rezultat, antetul
-afișează doar meniul. Când schimbi partida, o
-replică aflată în calcul se anulează și poate fi recalculată la revenire. Dacă
-ai jucat pentru AI, analiza afișează precizia și categoriile pe culori, iar
-estimările Elo sunt indisponibile pentru acea partidă.
+The **Let AI play its moves** checkbox sits in the header on the menu row.
+Clear it to play legal moves for both colors. The option is saved separately
+for each game, and selecting it on the AI's turn starts the reply. In the
+history of an active game the checkbox stays visible and disabled. After the
+result, the header shows only the menu. When you switch games, a reply in
+progress is canceled and can be recalculated on return. If you played for
+the AI, analysis shows accuracy and categories for each color, and Elo
+estimates are unavailable for that game.
 
-**Analiza partidei** ocupă fereastra aplicației din timpul calculului, cu butonul **Închide** în antet. Derulează graficul, precizia, estimările Elo, tabelul și lista mutărilor în același ecran. În tabel, coloana **Jucător** este mereu prima dintre cele numerice, inclusiv când joci cu negrul. Fiecare categorie are un rând, cu zero când lipsește. [Reperul Game Review](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
+**Game review** occupies the app window while it calculates, with **Close** in the header. Scroll through the graph, accuracy, Elo estimates, table, and move list on the same screen. In the table, **Player** is always the first numeric column, including when you play Black. Each category has its own row, with zero when absent. [Game Review reference](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
 
-[Schemele și formulele analizei](game-review.md)
+[Analysis diagrams and formulas](game-review.md)
 
-Butonul cu trei linii deschide **Opțiunile partidei**. De aici întorci tabla,
-revii în **Meniu principal**, deschizi **Partide salvate** și trimiți poziția
-curentă în **Tablă de analiză**. În timpul jocului, poți oferi remiză la mutarea
-ta. AI-ul refuză când are avantaj material și acceptă în celelalte poziții.
-**Renunță la partidă** cere confirmare și salvează victoria AI-ului. Revenirea
-în meniul principal păstrează partida pentru reluare. În istoric sunt disponibile
-comenzile de navigare, orientare și studiu.
+The three-line button opens **Game options**. Here you can flip the board,
+return to the **Main menu**, open **Saved games**, and send the current
+position to the **Analysis board**. During play you can offer a draw on your
+turn. The AI declines when it has a material advantage and accepts otherwise.
+**Resign game** asks for confirmation and saves the AI's win. Returning to the
+main menu keeps the game available to resume. In history, navigation,
+orientation, and study controls are available.
 
-Din meniul principal, **Probleme** grupează capitolele și progresul. În **Profil**, atinge numele pentru a-l edita sau reseta. Numele are cel mult 10 caractere și apare la locul jucătorului, inclusiv în partida reluată.
+From the main menu, **Puzzles** groups the chapters and their progress. In **Profile**, tap the name to edit or reset it. The name is at most 10 characters and appears at the player's seat, including in a resumed game.
 
-Tot acolo, **Setări** deschide selectorul **Română / English**. Alege limba
-și apasă **Salvează**. Limba se aplică imediat și se păstrează la redeschidere.
-Până la prima alegere, aplicația folosește limba dispozitivului. Același
-profil, aceleași partide și același progres sunt disponibile în ambele limbi.
+In the same menu, **Settings** opens the **Română / English** selector. Choose
+the language and tap **Save**. The language changes immediately and is kept
+when you reopen the app. Before the first choice, the app uses the device
+language. The same profile, games, and progress are available in both languages.
 
-În **Partidă nouă**, alege culoarea Alb, Negru sau Aleatoriu și nivelul AI. Jocul rezolvă alegerea aleatorie o singură dată și așază culoarea jucătorului jos. Când joci cu negrul, calculatorul deschide cu albele. Alex joacă la Basic, Mira la Advanced și Atlas la Hard. Basic caută trei semimutări, iar Advanced patru. Hard încearcă șase în limita existentă de 44.000 de noduri și acceptă ultimul orizont numai dacă păstrează mutarea lider de la adâncimea anterioară; altfel folosește rezultatul complet stabil. În finalurile de turnuri poate extinde cu încă o semimutare, până la șapte, folosind istoricul repetițiilor și același plafon. La egalitate, motorul preferă pozițiile vizitate mai rar și mutările care dezvoltă piesele sau ocupă centrul. Replica apare după cel puțin 650 ms. [Politica și validarea Stockfish](ai-quality.md)
+In **New game**, choose White, Black, or Random and the AI level. The game resolves a random choice once and puts the player's color at the bottom. When you play Black, the computer opens as White. Alex plays at Basic, Mira at Advanced, and Atlas at Hard. Basic searches three plies and Advanced searches four. Hard attempts six within the existing 44,000-node budget and accepts the last search horizon only if it keeps the leading move from the previous depth. Otherwise, it uses the stable, fully searched result. In rook endgames it can extend by one additional ply, up to seven, using repetition history and the same cap. On equal scores, the engine favors less-visited positions and moves that develop pieces or occupy the center. The reply appears after at least 650 ms. [Policy and Stockfish validation](ai-quality.md)
 
-Jocul salvează istoricul înainte de a afișa fiecare mutare. Alegerea unei partide din **Partide salvate** și redeschiderea directă refac poziția, culoarea, nivelul, analiza și orientarea. Dacă motorul are mutarea, pauza reîncepe și urmează o singură replică. Salvările anterioare revin cu Alb și Basic.
+The game saves the history before showing each move. Choosing a game from **Saved games** and reopening it directly restore the position, color, level, analysis, and orientation. If the engine is to move, the pause starts again and a single reply follows. Earlier saves restore with White and Basic.
 
-Într-o partidă cu AI, pe mobil, tabla are latura maximă care încape după
-barele sistemului, rândurile jucătorilor și comenzi. Când analiza este
-activă, bara ocupă o fâșie în stânga, pe toată înălțimea tablei. Mutările
-din istoric schimbă poziția afișată fără să deplaseze tabla. Becul rămâne
-lângă săgeți, cu o zonă de atingere de cel puțin 48 dp.
-[Proba compactă RO/EN](../testing/README.md#analiza-în-partida-cu-ai)
+In an AI game on mobile, the board has the largest side that fits around
+the system bars, player rows, and controls. When analysis is enabled, the
+bar occupies a strip on the left, along the board's full height. History moves
+change the displayed position without moving the board. The lightbulb stays
+next to the arrows, with a touch target of at least 48 dp.
+[Compact RO/EN check](../testing/README.md#analysis-in-the-ai-game)
 
-Sub tablă, săgețile parcurg fiecare mutare, iar săgeata cu opritor revine la ultima. Lista se derulează orizontal și permite alegerea directă a oricărei poziții, inclusiv **Start**. Mutarea selectată indică poziția afișată. Controalele au zone de atingere de 48 dp. Pozițiile anterioare se afișează cu tabla blocată. Dacă botul răspunde în timp ce te uiți în urmă, mutarea nouă apare în listă și poziția consultată rămâne vizibilă. [Navigarea între mutări pe Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
+Below the board, the arrows step through every move, and the arrow with a stop returns to the latest move. The list scrolls horizontally and lets you select any position directly, including **Start**. The selected move indicates the displayed position. The controls have 48 dp touch targets. Earlier positions appear on a locked board. If the bot replies while you are looking back, the new move appears in the list and the position you are viewing stays visible. [Move navigation on Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
 
-Alege o poziție din istoric și apasă **Continuă de aici** sub tablă. Confirmarea păstrează poziția și mutările care duc la ea. Mutările de după poziția aleasă sunt eliminate din partida salvată. Bifa **Lasă AI-ul să mute** pornește replica atunci când e rândul calculatorului. Poți continua și dintr-o partidă terminată. Din arhivă, continuarea folosește un loc liber.
+Select a position in history and tap **Continue from here** below the board. Confirmation preserves the position and the moves leading to it. Moves after the selected position are removed from the saved game. The **Let AI play its moves** checkbox starts the reply when it is the computer's turn. You can also continue from a finished game. A continuation from the archive uses an empty slot.
 
-La final, deschide **Analiza partidei** din **Opțiunile partidei** sau de sub
-rezultat. Cu **Analiză AI** activată, raportul este disponibil și după prima
-mutare a unei partide în curs; replica automată așteaptă până îl închizi.
+When the game ends, open **Game review** from **Game options** or below the
+result. With **AI analysis** enabled, the report is available after the first
+move of an ongoing game. The automatic reply waits until you close it.
 
-- Alegerea unei mutări din listă sau din grafic sincronizează tabla, scorul,
-  notația și categoria. Comenzile permit navigarea și saltul la următorul moment-cheie.
-- **De ce?** explică diferența dintre mutarea aleasă și recomandare. Poți parcurge
-  ambele linii cu săgețile. Becul indică următoarea mutare din varianta recomandată.
-- O analiză arhivată se redeschide la ultima mutare, linie și pas consultat.
-  **Vezi pe tablă** revine la poziția selectată în partidă.
-- **Reîncearcă mutarea** propune reluarea din poziția anterioară. După confirmare,
-  partida din arhivă rămâne disponibilă și ramura folosește un loc separat.
-- Reperul AI și estimarea Elo apar în analiza unei partide încheiate, când
-  sunt aplicabile. [Metoda de analiză și estimare](game-review.md)
+- Selecting a move in the list or graph synchronizes the board, score, notation,
+  and category. The controls let you navigate and jump to the next key moment.
+- **Why?** explains the difference between the selected move and the recommendation.
+  You can step through both lines with the arrows. The lightbulb shows the next move in the recommended line.
+- Archived analysis reopens at the last move, line, and step you viewed.
+  **Show on board** returns to the selected position in the game.
+- **Try this move again** offers to resume from the preceding position. After confirmation,
+  the archived game remains available and the branch uses a separate slot.
+- The AI benchmark and Elo estimate appear in the analysis of a finished game when
+  applicable. [Analysis and estimation method](game-review.md)
 
-Bifează **Analiză AI** înainte de pornire. Bara verticală reflectă evaluarea poziției afișate, inclusiv în istoric. Segmentul mai lung indică partea în avantaj, iar la întoarcerea tablei segmentele își schimbă capetele. Textul arată scorul pozițional în unități de pion. `+1,25 · Alb` favorizează albul, iar `−1,25 · Negru` favorizează negrul. Bara se umple la opt unități sau la mat și se împarte egal la remiză. [Convenția de evaluare Chess.com](https://support.chess.com/en/articles/8379354-computer-evaluation-numbers-on-chess-com)
+Select **AI analysis** before starting. The vertical bar reflects the evaluation of the displayed position, including when browsing history. The longer segment indicates the side with the advantage, and flipping the board swaps the ends of the segments. The text shows the positional score in pawn units. `+1.25 · White` favors White, and `−1.25 · Black` favors Black. The bar fills at eight units or on mate and splits evenly for a draw. [Chess.com evaluation convention](https://support.chess.com/en/articles/8379354-computer-evaluation-numbers-on-chess-com)
 
-Apasă becul din bara de sub tablă pentru cea mai bine evaluată linie și săgeata primei mutări. Când controlezi culoarea la mutare, atinge destinația indicată ca să joci prima mutare. În istoric poți consulta varianta și alege **Continuă de aici** pentru a juca din poziția afișată. În tura AI-ului poți aștepta replica sau debifa **Lasă AI-ul să mute** pentru a juca acea mutare.
+Tap the lightbulb in the toolbar below the board for the highest-evaluated line and the first move's arrow. When you control the side to move, tap the indicated destination to play the first move. In history you can consult the line and choose **Continue from here** to play from the displayed position. On the AI's turn you can wait for its reply or clear **Let AI play its moves** to play that move.
 
-Indiciul pornește de la căutarea Hard, independent de nivelul adversarului.
-Comparația la adâncime comună folosește cel mult 32.000 de noduri din plafonul
-de 220.000 de noduri suplimentare. Becul parcurge cel mult trei variante.
-Alternativele apar când diferența estimată după apărare este pozitivă și
-rămâne la cel mult 0,25 pioni sub prima variantă. Dacă liderul nu arată o
-îmbunătățire, apare singur, cu estimarea disponibilă. La mat demonstrat,
-variantele au același rezultat și aceeași distanță. [Evaluarea AI](ai-quality.md)
+The hint starts from the Hard search, regardless of the opponent's level.
+Comparison at a common depth uses at most 32,000 nodes from the additional
+220,000-node budget. The lightbulb cycles through up to three lines.
+Alternatives appear when the estimated improvement after the defense is
+positive and within 0.25 pawns of the first line. If the leading line shows
+no improvement, it is shown on its own with the available estimate. For a proved
+mate, the lines have the same result and distance. [AI evaluation](ai-quality.md)
 
-După bec, **Vezi linia** deschide tabla la poziția consultată. Prima săgeată
-înainte joacă recomandarea și a doua arată replica. Când linia se încheie
-înaintea răspunsului adversarului, motorul compară toate răspunsurile legale
-imediate și îl adaugă pe cel mai bine evaluat. Sub tablă apar scorul inițial,
-scorul final și diferența, din perspectiva culorii care muta la început.
-Avantajul poate veni din evaluarea poziției, iar matul și patul au rezultat
-propriu. Săgețile parcurg toate semimutările disponibile.
+After using the lightbulb, **View line** opens the board at the position you
+were viewing. The first forward arrow plays the recommendation and the second
+shows the reply. When the line ends before the opponent responds, the engine
+compares all immediate legal replies and adds the highest-evaluated one.
+The starting score, final score, and difference appear below the board from
+the perspective of the side originally to move. An advantage can come from
+positional evaluation, and checkmate and stalemate have their own results.
+The arrows step through all available plies.
 
-Prima variantă din bec și linia recomandată coincid. Atingerea destinației
-joacă exact mutarea marcată. **Înapoi la poziție** restaurează cursorul și
-indiciul, inclusiv pe tabla manuală. Schimbarea poziției și terminarea partidei
-ascund indiciul. Opțiunea **Analiză AI** se păstrează la reluare.
+The first lightbulb variation and the recommended line agree. Tapping the
+destination plays the exact marked move. **Back to position** restores the
+cursor and hint, including on the manual board. Changing the position and
+ending the game hide the hint. The **AI analysis** option persists on resume.
 
-Sub fiecare nume apar piesele capturate, cu un număr lângă simbol când sunt mai multe de același fel. Jucătorul cu avantaj material vede `+N` în același rând. Capturile și avantajul urmează semimutarea afișată, inclusiv în istoric și după reluare. [Referința de afișare Chess.com](https://support.chess.com/en/articles/8708638-how-can-i-see-the-captured-pieces-and-material-count)
+Captured pieces appear below each name, with a number next to the symbol when several are of the same type. The player with a material advantage sees `+N` on the same row. Captures and the advantage follow the displayed ply, including in history and after resuming. [Chess.com display reference](https://support.chess.com/en/articles/8708638-how-can-i-see-the-captured-pieces-and-material-count)
 
-Motorul aplică rocada, en passant și alegerea la promovare. Partida se oprește la mat, pat, configurațiile uzuale de material insuficient, a cincea apariție a poziției sau 75 de mutări de fiecare parte fără captură ori mutare de pion. Remizele la cerere fac parte din regulile de competiție. [Regulile FIDE](https://handbook.fide.com/chapter/e012023)
+The engine applies castling, en passant, and promotion choice. The game ends at checkmate, stalemate, common insufficient-material configurations, the fifth occurrence of the position, or 75 moves by each side without a capture or pawn move. Draw claims are part of the competition rules. [FIDE Laws of Chess](https://handbook.fide.com/chapter/e012023)
 
-## Dificultate și progres
+## Difficulty and progress
 
-Mat în 1 începe cu matul nebunului și continuă în ordinea strict crescătoare a scorului intern. Profilul YAML stabilește ponderile pentru numărul de mutări legale, șahurile înșelătoare, apărările unice, mutările speciale și matul pornit din șah. Ordinea derivată se încarcă din `quest-order.yaml`. Mat în 2 și Mat în 3 urmează ratingurile din cataloage, iar Tactică urmează câmpul `difficulty`. [Profil YAML](../../chess-core/src/main/resources/quest-difficulty.yaml) · [Cum se întrețin cataloagele](quest-curation.md#configurarea-capitolelor)
+Mate in 1 starts with the bishop checkmate and continues in strictly increasing internal score order. The YAML profile sets weights for the number of legal moves, deceptive checks, unique defenses, special moves, and mate starting from check. The derived order is loaded from `quest-order.yaml`. Mate in 2 and Mate in 3 follow the ratings in their catalogs, and Tactics follows the `difficulty` field. [YAML profile](../../chess-core/src/main/resources/quest-difficulty.yaml) · [Catalog maintenance](quest-curation.md#configuring-the-chapters)
 
-Aplicația salvează ID-ul problemei curente, etapa atinsă și ID-urile rezolvate. Pentru problemele de mat, salvează și mutarea finală efectivă, astfel încât tabla și explicația să redea matul jucat. Rezolvările mai vechi fără mutare finală salvată afișează linia de referință. Reordonarea schimbă numărul afișat, iar identitatea salvată stabilește ce problemă se redeschide. Dacă problema curentă a fost retrasă, aplicația deschide prima problemă nerezolvată din același capitol. Rezolvările retrase rămân în salvare ca istoric, în afara totalului activ. ID-urile retrase rămân rezervate. [Registrul de ID-uri](../../chess-core/src/main/resources/quest-retired.yaml)
+The app saves the current puzzle ID, the stage reached, and the solved IDs. For mate puzzles, it also saves the actual finishing move so the board and explanation can replay the mate that was played. Older solutions without a saved finishing move display the reference line. Reordering changes the displayed number, and the saved identity determines which puzzle reopens. If the current puzzle was retired, the app opens the first unsolved puzzle in the same chapter. Retired solutions stay in the save as history outside the active total. Retired IDs remain reserved. [ID registry](../../chess-core/src/main/resources/quest-retired.yaml)
 
-La prima pornire se deschide meniul. După alegere, redeschiderea revine în același capitol și reia poziția unei probleme în curs. Dacă răspunsul era în așteptare, pauza începe din nou în prim-plan și apărarea se aplică o singură dată. Butonul **Meniu** revine la selecție, păstrând progresul fiecărui capitol. **Următoarea** se activează după rezolvarea problemei și rămâne în același capitol.
+On first launch, the menu opens. After you choose a chapter, reopening returns to it and restores the position of any puzzle in progress. If a reply was pending, the pause starts again in the foreground and the defense is applied once. **Menu** returns to chapter selection while preserving the progress for each chapter. **Next** becomes enabled after solving the puzzle and stays in the same chapter.
 
-Bara arată progresul în capitolul deschis. Pragurile 5, 15, 30, 50, 75 și finalul capitolului se recalculează din ID-urile rezolvate. La atingerea unui prag, ecranul confirmă realizarea și afișează următoarea țintă. Bara și textul pornesc de la același total după reluare. Ideea țintelor vizibile vine din Puzzle Journey. [Chess.com Puzzle Points](https://support.chess.com/en/articles/9681952-what-are-puzzle-points-on-chess-com)
+The bar shows progress in the open chapter. The milestones at 5, 15, 30, 50, 75, and the end of the chapter are recalculated from the solved IDs. When you reach a milestone, the screen confirms the achievement and shows the next target. The bar and text use the same total after resuming. The idea of visible targets comes from Puzzle Journey. [Chess.com Puzzle Points](https://support.chess.com/en/articles/9681952-what-are-puzzle-points-on-chess-com)
 
-[Regulile de șah și poziția inițială](https://handbook.fide.com/chapter/e012023)
+[Chess rules and starting position](https://handbook.fide.com/chapter/e012023)

@@ -1,47 +1,47 @@
-# Documentația Chess Lab
+# Chess Lab Documentation
 
-Porniți de la ghidul care răspunde întrebării. Verificați afirmațiile despre comportament în surse și în testele proiectului.
+Start with the guide that answers your question. Verify claims about behavior against the project's sources and tests.
 
-| Întrebare | Ghid |
+| Question | Guide |
 |---|---|
-| Cum se leagă motorul, aplicația și testele? | [Arhitectura J7](../README.md#arhitectura-j7) · [Motor și adaptoare](../web/README.md#motor-comun-și-adaptoare-de-platformă) · [Bibliotecile ATF](../lib/README.md) |
-| Cum se joacă și cum se configurează problemele? | [Tabla și jocul](board/README.md) · [Catalogul](board/quest-curation.md) |
-| Cum se măsoară adversarii AI și cum se interpretează analiza unei partide? | [Protocolul AI](board/ai-quality.md#control-la-fiecare-schimbare) · [Analiza partidei](board/game-review.md) |
-| Ce trebuie verificat înaintea unei schimbări? | [Alegerea nivelului de testare](testing/README.md#alegerea-nivelului) · [Raportare Extent](testing/README.md#raportare-extent) |
-| Cum se verifică o funcție pe Web și APK? | [Ghidul Web](../web/README.md) · [Matricea de paritate](../web/parity.md) |
-| Cum se califică un APK și unde sunt dovezile ediției? | [Procesul de release](release/README.md#calificare-și-publicare) · [Edițiile publicate](../release/README.md) |
-| Ce ipoteze mai cer dovezi? | [Feedback](feedback/README.md) |
+| How do the engine, app, and tests fit together? | [J7 architecture](../README.md#j7-architecture) · [Engine and adapters](../web/README.md#shared-engine-and-platform-adapters) · [ATF libraries](../lib/README.md) |
+| How do I play and configure puzzles? | [Board and gameplay](board/README.md) · [Catalog](board/quest-curation.md) |
+| How are AI opponents measured and game reviews interpreted? | [AI protocol](board/ai-quality.md#checks-for-every-change) · [Game Review](board/game-review.md) |
+| What needs checking before a change? | [Choosing a test level](testing/README.md#choosing-the-test-level) · [Extent reporting](testing/README.md#extent-reporting) |
+| How do I verify a feature on Web and APK? | [Web guide](../web/README.md) · [Parity matrix](../web/parity.md) |
+| How is an APK qualified and where is the release evidence? | [Release process](release/README.md#qualification-and-publication) · [Published releases](../release/README.md) |
+| Which assumptions still need evidence? | [Feedback](feedback/README.md) |
 
-## Reguli de întreținere
+## Maintenance Rules
 
-- **README principal:** scop, cele două linkuri ale ediției curente, harta
-  arhitecturii și intrările pentru testare, release și feedback.
-- **Ghidul zonei:** responsabilitate, intrări, rezultat și limite. Puneți
-  comanda lângă prerechizite și indicați dovada care confirmă rezultatul.
-- **Format:** un titlu, Markdown semantic și blocuri cu limbaj declarat.
-  Folosiți tabele pentru comparații și pași ordonați pentru proceduri.
-  Diagrama răspunde unei singure întrebări și are legenda imediat sub ea.
-- **Linkuri:** căi relative și ancore existente; verificați destinația după
-  mutarea documentului. În exemple, folosiți parametri pentru căi locale.
-- **Feedback:** observație, prioritate, responsabilitate, probă și criteriu de
-  închidere. Promovați regula confirmată în ghidul ei și eliminați punctul închis.
-- **Dovezi:** build-urile, capturile și rapoartele de lucru stau în TMP.
-  Dovezile promovate aparțin dosarului ediției și rămân legate de binar și commit.
+- **Main README.** Purpose, the two current release links, an architecture map,
+  and entry points for testing, releases, and feedback.
+- **Area guide.** Ownership, inputs, outcomes, and boundaries. Put commands next to
+  their prerequisites and identify the evidence that confirms the result.
+- **Format.** One title, semantic Markdown, and language tags on fenced blocks.
+  Use tables for comparisons and numbered steps for procedures.
+  Each diagram answers one question and has its legend immediately below.
+- **Links.** Use relative paths and existing anchors. Verify the destination after
+  moving a document. Use parameters for local paths in examples.
+- **Feedback.** State the observation, priority, owner, evidence, and closure criteria.
+  Move each confirmed rule into its guide and remove the closed item.
+- **Evidence.** Keep working builds, screenshots, and reports in TMP.
+  Promoted evidence belongs in the release directory and stays tied to the binary and commit.
 
-## Verificarea documentației
+## Documentation Checks
 
-Rulați din copia TMP, cu JDK 21. Dacă folosiți `-o`, depozitul Maven ales
-trebuie să conțină deja dependențele și pluginurile.
+Run from the TMP copy with JDK 21. If you use `-o`, the selected Maven repository
+must already contain the dependencies and plugins.
 
 ```powershell
 mvn test '-Dtest=DocumentationGovernanceTest,ReleaseGovernanceTest' '-Dchess.extent=target/doc-governance.html'
 ```
 
-`DocumentationGovernanceTest` verifică harta README-ului, navigarea locală,
-destinațiile ediției curente, structura feedback-ului și regulile Markdown pentru ghiduri și diagrame.
-Aceleași verificări se aplică ghidului Web și matricei de paritate.
-`ReleaseGovernanceTest` verifică regulile de publicare și traseele RAG.
+`DocumentationGovernanceTest` checks the README map, local navigation, current
+release destinations, feedback structure, and Markdown rules for guides and diagrams.
+The same checks cover the Web guide and parity matrix.
+`ReleaseGovernanceTest` checks publication rules and RAG routes.
 
-La revizie, comparați afirmațiile cu sursele și declarațiile de build.
-Verificați proprietarul informației, fidelitatea exemplelor, randarea și
-rezultatul comenzilor. [Calificare](release/README.md#calificare-și-publicare)
+During review, compare claims against sources and build declarations.
+Check information ownership, example fidelity, rendering, and command results.
+[Qualification](release/README.md#qualification-and-publication)

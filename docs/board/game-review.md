@@ -1,173 +1,173 @@
-# Cum se calculează analiza partidei
+# How Game Review is calculated
 
-**📊 Analiza partidei** este disponibilă după un rezultat final, inclusiv după remiză sau renunțare. Cu **Analiză AI** bifată, meniul poate porni și analiza mutărilor înregistrate până atunci. **Analizează toate mutările** din tabla de studiu aplică aceeași căutare liniei explorate. În studiul manual, tabelul și precizia se afișează pe alb și negru. Raportul provizoriu și studiul folosesc rezultatele poziționale, iar Elo se calculează pentru o partidă încheiată eligibilă.
+**📊 Game Review** is available after a final result, including a draw or resignation. With **AI analysis** enabled, the menu can also analyze the moves recorded so far. **Review all moves** on the study board applies the same search to the explored line. In manual study, the table and accuracy are displayed for White and Black. The interim report and study use positional results, and Elo is calculated for an eligible finished match.
 
-## De la partidă la raport
-
-```mermaid
-flowchart LR
-    A["Partidă încheiată"] -->|deschide| B["Analiza partidei"]
-    K["Partidă sau studiu"] -->|verifică| L["Analiză AI activă"]
-    L -->|pornește| E
-    B -->|caută| C{"Raport salvat?"}
-    C -->|Da| D["Afișează raportul salvat"]
-    C -->|Nu| E["Reia mutările în ordine și identifică deschiderea ECO"]
-    E -->|poziții| F["Compară mutările"]
-    F -->|scoruri| G["Grafic și precizie"]
-    E -->|"Partidă încheiată eligibilă"| H["Estimează Elo din rezultatul partidei și reperul AI"]
-    G -->|completează| I["Raport complet"]
-    H -->|adaugă Elo| I
-    I -->|persistă| J["Salvează în arhivă"]
-    I -->|afișează| D
-```
-
-<details>
-<summary>Legendă — când se calculează și se salvează raportul</summary>
-
-- Partida în curs și studiul cer analiza activă și cel puțin o mutare.
-- Raportul calculează categoriile și precizia. Elo se adaugă pentru partida
-  încheiată eligibilă, iar salvarea cere o intrare prezentă în arhivă.
-
-</details>
-
-Indexul ECO identifică ultima poziție denumită, inclusiv dacă poziția a fost atinsă prin transpoziție. Separat, marchează prefixul de mutări care urmează efectiv o linie de carte. O mutare din acel prefix primește categoria **De carte** doar dacă pierde sub 100‰ față de recomandare. [Indexul ECO](../../chess-core/src/main/java/ro/atf/chess/OpeningIndex.java)
-
-## Evaluarea unei semimutări
-
-O semimutare este mutarea unei singure culori. Înaintea fiecăreia, motorul recuperează poziția și istoricul. La rădăcina căutării identifică mutările care duc imediat la remiză automată prin material, repetiție sau numărul de semimutări fără pion ori captură. Analiza compară cea mai bună variantă găsită și mutarea jucată la aceeași adâncime finalizată. Căutarea pornește de la trei semimutări și încearcă să ajungă la șase, cu extensie tactică și un buget de 85.000 de noduri suplimentare pe poziție. Dacă o iterație depășește bugetul, rămâne rezultatul iterației precedente. [Căutarea](../../chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java) · [Configurația](../../chess-core/src/main/resources/game-review.yaml)
+## From match to report
 
 ```mermaid
 flowchart LR
-    P["Poziție și istoric"] -->|alimentează| Q["Adâncime comună"]
-    R["Replică verificată"] -->|intră în| Q
-    Q -->|evaluează| B["Scor recomandat"]
-    Q -->|evaluează| M["Scor jucat"]
-    B -->|compară| L["Pierdere în miimi"]
-    M -->|compară| L
-    L -->|clasifică| C["Categorie"]
-    Y["Praguri YAML"] -->|delimitează| C
-    L -->|agregă| A["Precizie"]
-    C -->|"Exclude cartea și mutarea forțată"| A
-    M -->|convertește| W["Perspectiva albului"]
-    W -->|proiectează| G["Punct pe grafic"]
+    A["Finished match"] -->|opens| B["Game Review"]
+    K["Match or study"] -->|checks| L["AI analysis enabled"]
+    L -->|starts| E
+    B -->|looks up| C{"Saved report?"}
+    C -->|Yes| D["Display saved report"]
+    C -->|No| E["Replay moves in order and identify the ECO opening"]
+    E -->|positions| F["Compare moves"]
+    F -->|scores| G["Graph and accuracy"]
+    E -->|"Eligible finished match"| H["Estimate Elo from the result and AI reference rating"]
+    G -->|completes| I["Complete report"]
+    H -->|adds Elo| I
+    I -->|persists| J["Save to archive"]
+    I -->|displays| D
 ```
 
 <details>
-<summary>Legendă — traseul scorurilor</summary>
+<summary>Legend — when the report is calculated and saved</summary>
 
-- Comparația folosește adâncimea încheiată pentru ambele mutări. Graficul
-  exprimă fiecare scor jucat din perspectiva albului.
+- An active match and study require enabled analysis and at least one move.
+- The report calculates grades and accuracy. An eligible finished match adds
+  Elo, and saving requires an existing archive entry.
 
 </details>
 
-Scorul intern se raportează la culoarea care mută. Motorul evaluează pozițiile obișnuite în centipioni, iar maturile demonstrabile primesc scoruri extreme. Analiza transformă scorul pe scara 0–1.000, apoi compară cele două valori.
+The ECO index identifies the last named position, including positions reached by transposition. It separately marks the move prefix that actually follows a book line. A move in that prefix receives the **Book** grade only if its loss against the recommendation is below 100‰. [ECO index](../../chess-core/src/main/java/ro/atf/chess/OpeningIndex.java)
+
+## Evaluating a ply
+
+A ply is a move by one side. Before each ply, the engine retrieves the position and history. At the search root, it identifies moves that immediately lead to an automatic draw by material, repetition, or the number of plies without a pawn move or capture. Analysis compares the best line found and the played move at the same completed depth. The search starts at three plies and attempts to reach six, with a tactical extension and a budget of 85,000 additional nodes per position. When an iteration exceeds the budget, the previous iteration's result is retained. [Search](../../chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java) · [Configuration](../../chess-core/src/main/resources/game-review.yaml)
+
+```mermaid
+flowchart LR
+    P["Position and history"] -->|feeds| Q["Common depth"]
+    R["Verified reply"] -->|feeds| Q
+    Q -->|evaluates| B["Recommended score"]
+    Q -->|evaluates| M["Played score"]
+    B -->|compares| L["Loss in per mille"]
+    M -->|compares| L
+    L -->|classifies| C["Grade"]
+    Y["YAML thresholds"] -->|define| C
+    L -->|aggregates| A["Accuracy"]
+    C -->|"Exclude book and forced moves"| A
+    M -->|converts| W["White perspective"]
+    W -->|plots| G["Graph point"]
+```
+
+<details>
+<summary>Legend — how the scores flow</summary>
+
+- The comparison uses the completed depth for both moves. The graph shows
+  each played score from White's perspective.
+
+</details>
+
+The internal score is relative to the side to move. The engine evaluates ordinary positions in centipawns and assigns extreme scores to provable mates. Analysis converts the score to a 0–1,000 scale and compares the two values.
 
 ```text
-puncte(cp) = rotunjire(1000 / (1 + exp(-cp / 220)))
-pierdere = max(0, puncte(recomandare) - puncte(mutare jucată))
+points(cp) = round(1000 / (1 + exp(-cp / 220)))
+loss = max(0, points(recommendation) - points(played move))
 ```
 
-De exemplu, dacă recomandarea are +220 cp și mutarea jucată 0 cp, valorile sunt 731‰ și 500‰. Pierderea este **231‰**. Pe grafic, 500‰ înseamnă echilibru. Pentru o mutare a negrului, valoarea desenată este `1000 − puncte(mutare jucată)`, astfel încât partea de sus favorizează mereu albul. Primul punct pornește de la evaluarea recomandării din poziția inițială. [Calcul și grafic](../../chess-core/src/main/java/ro/atf/chess/GameReview.java) · [Afișarea Android](../../android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java)
+For example, if the recommendation scores +220 cp and the played move scores 0 cp, the values are 731‰ and 500‰. The loss is **231‰**. On the graph, 500‰ means balance. For a move by Black, the plotted value is `1000 − points(played move)`, so the upper side always favors White. The first point uses the evaluation of the recommendation in the starting position. [Calculation and graph](../../chess-core/src/main/java/ro/atf/chess/GameReview.java) · [Android display](../../android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java)
 
-În pozițiile exacte din repertoriul verificat, raportul recomandă replica de repertoriu și evaluează ambele variante la aceeași adâncime încheiată. O linie terminală demonstrată sau o remiză automată la rădăcină păstrează prioritatea. Dacă evaluarea locală a mutării jucate depășește scorul recomandării, pierderea rămâne zero. [Repertoriul](../../chess-core/src/main/resources/ai-repertoire.yaml)
+In exact positions from the verified repertoire, the report recommends the repertoire reply and evaluates both lines at the same completed depth. A proven terminal line or automatic draw at the root keeps priority. If the local evaluation of the played move exceeds the recommendation score, the loss stays zero. [Repertoire](../../chess-core/src/main/resources/ai-repertoire.yaml)
 
-## Categorii și precizie
+## Grades and accuracy
 
-Motorul verifică regulile în ordinea de mai jos. Prima regulă aplicabilă stabilește categoria. Pragurile din tabel sunt valorile implicite ale secțiunii `classification` din [game-review.yaml](../../chess-core/src/main/resources/game-review.yaml). Testele de guvernanță verifică valorile, unitățile întregi și ordinea pragurilor. Analizele deja salvate păstrează rezultatul calculat la momentul respectiv. Toate mutările intră în tabel, iar coloana jucătorului rămâne prima dintre cele numerice chiar dacă joacă cu negrul.
+The engine checks the rules in the order below. The first applicable rule determines the grade. The table shows the default thresholds from the `classification` section of [game-review.yaml](../../chess-core/src/main/resources/game-review.yaml). Governance tests verify the values, integer units, and threshold order. Previously saved reviews retain their original result. All moves appear in the table, and the player's column remains the first numerical column when they play Black.
 
-| Ordine | Categorie | Condiție |
+| Order | Grade | Condition |
 |---|---|---|
-| 1 | De carte | În prefixul ECO, cu pierdere sub 100‰. |
-| 2 | Forțată | Există o singură mutare legală. |
-| 3 | Strălucită | Scor cel puțin egal cu al recomandării, adâncime de minimum 4, scor jucat de cel puțin 550‰ și sacrificiu acceptat de minimum 200 cp în replica găsită. Mai cere un avantaj de cel puțin 100‰ față de alternativa estimată sau un singur mat demonstrat în căutare. |
-| 4 | Excelentă tactic | Scor cel puțin egal cu al recomandării, adâncime de minimum 4, avantaj de cel puțin 100‰ față de alternativă și trecerea pragului evaluat de motor. Recomandarea ajunge la minimum 750‰ cu alternativa sub 700‰ sau la minimum 450‰ cu alternativa sub 400‰. |
-| 5 | Cea mai bună | Scorul intern al mutării atinge cel puțin scorul recomandării. |
-| 6 | Ocazie ratată | Adversarul tocmai a pierdut cel puțin 100‰, recomandarea ajunge la minimum 750‰, iar mutarea jucată la maximum 550‰. |
-| 7–11 | Greșeală gravă, greșeală, imprecizie, bună, excelentă | Pragurile sunt ≥200‰, ≥100‰, ≥50‰, ≥20‰, respectiv sub 20‰. |
+| 1 | Book | In the ECO prefix, with a loss below 100‰. |
+| 2 | Forced | There is only one legal move. |
+| 3 | Brilliant | Score at least equal to the recommendation, depth of at least 4, played score of at least 550‰, and an accepted sacrifice of at least 200 cp in the reply found. Also requires an advantage of at least 100‰ over the estimated alternative or a single proven mate in the search. |
+| 4 | Tactically excellent | Score at least equal to the recommendation, depth of at least 4, an advantage of at least 100‰ over the alternative, and a crossed engine evaluation threshold. The recommendation reaches at least 750‰ with the alternative below 700‰, or at least 450‰ with the alternative below 400‰. |
+| 5 | Best | The internal score for the move reaches at least the recommendation score. |
+| 6 | Missed opportunity | The opponent just lost at least 100‰, the recommendation reaches at least 750‰, and the played move scores at most 550‰. |
+| 7–11 | Blunder, mistake, inaccuracy, good, excellent | The thresholds are ≥200‰, ≥100‰, ≥50‰, ≥20‰, and below 20‰, respectively. |
 
-Precizia se calculează separat pentru fiecare culoare, din pierderile mutărilor cu alegere. Mutările de carte și cele forțate sunt excluse.
+Accuracy is calculated separately for each side from losses on moves with a choice. Book and forced moves are excluded.
 
 ```text
-precizie = rotunjire(100 - suma pierderilor / (10 × numărul de mutări cu alegere))
+accuracy = round(100 - total losses / (10 × number of moves with a choice))
 ```
 
-Cu două mutări eligibile care pierd 231‰ și 50‰, precizia este **86%** după rotunjire. Fără mutări eligibile, câmpul rămâne necompletat. [Clasificarea și agregarea](../../chess-core/src/main/java/ro/atf/chess/GameReview.java)
+With two eligible moves losing 231‰ and 50‰, the rounded accuracy is **86%**. With no eligible moves, the field remains blank. [Classification and aggregation](../../chess-core/src/main/java/ro/atf/chess/GameReview.java)
 
-## Cum se estimează Elo
+## How Elo is estimated
 
 ```mermaid
 flowchart LR
-    A["Reper AI"] -->|ancorează| E["Estimare Elo"]
-    B["Rezultatul partidei"] -->|informează| E
-    C["Minimum 10 decizii"] -->|permite| E
-    E -->|produce| D["Valoare și interval"]
-    H["Mutări pentru AI"] -->|limitează| F["Precizie și categorii"]
+    A["AI reference rating"] -->|anchors| E["Elo estimate"]
+    B["Match result"] -->|informs| E
+    C["At least 10 decisions"] -->|enables| E
+    E -->|produces| D["Value and interval"]
+    H["Moves played for AI"] -->|limits| F["Accuracy and grades"]
 ```
 
 <details>
-<summary>Legendă — eligibilitatea estimării Elo</summary>
+<summary>Legend — eligibility for an Elo estimate</summary>
 
-- Reperul și rezultatul produc estimarea dacă există suficiente mutări cu
-  alegere. Intervenția jucătorului pentru AI limitează raportul la datele
-  poziționale.
+- The reference rating and result produce an estimate when there are enough
+  moves with a choice. Playing moves on behalf of the AI limits the report
+  to positional data.
 
 </details>
 
-Elo estimat folosește rezultatul și reperul profilului AI. Pentru jucător, `s` este 1 la victorie, 0,5 la remiză și 0 la înfrângere. Formula se aplică după minimum zece mutări cu alegere.
+Estimated Elo uses the outcome and the reference rating of the AI profile. For the player, `s` is 1 for a win, 0.5 for a draw, and 0 for a loss. The formula applies after at least ten moves with a choice.
 
 ```text
 p = (1 + s) / 3
-diferență Elo = rotunjire(400 × log10(p / (1 - p)))
-estimare = Elo de referință + diferență Elo
+Elo difference = round(400 × log10(p / (1 - p)))
+estimate = reference Elo + Elo difference
 ```
 
-Rezultatul unic actualizează o distribuție uniformă a scorului așteptat la `Beta(1 + s, 2 − s)`. Afișajul adaugă diferențele Elo din cuantilele 5% și 95% la capetele intervalului reperului AI. De exemplu, o înfrângere contra **Advanced**, cu reper 1461 și suficiente decizii, dă **≈1341 (549–1900)**. Intervalul arată cât de puțină informație oferă o singură partidă. Reperul AI provine din protocolul local de calibrare cu Stockfish. [Calibrarea externă](ai-quality.md#rezultatele-ancorei-externe) · [Configurația](../../chess-core/src/main/resources/game-review.yaml)
+The single result updates a uniform expected-score distribution to `Beta(1 + s, 2 − s)`. The display adds the Elo differences from the 5% and 95% quantiles to the ends of the AI reference interval. For example, a loss against **Advanced**, with a reference of 1461 and enough decisions, yields **≈1341 (549–1900)**. The interval reflects how little information a single match provides. The AI reference comes from the local calibration protocol with Stockfish. [External calibration](ai-quality.md#external-anchor-results) · [Configuration](../../chess-core/src/main/resources/game-review.yaml)
 
-## Salvare și verificare
+## Saving and verification
 
-- Analiza terminată se păstrează lângă partida din arhivă. Cache-ul are versiune și amprenta SHA-256 a salvării exacte, inclusiv rezultatul și configurația. O analiză absentă, trunchiată sau incompatibilă se recalculează la redeschidere.
-- Raportul din arhivă include scorurile și liniile calculate pentru fiecare mutare. Marcajul păstrează semimutarea, linia, pasul și starea ferestrei **De ce?** după redeschidere sau restart. Închiderea explicită lasă mutarea selectată în istoric. ID-ul arhivei și amprenta salvării leagă marcajul de partida exactă. Prima deschidere pornește la final. O linie sau un pas indisponibil readuce tabla la poziția jucată.
-- Închiderea ferestrei în timpul calculului oprește căutarea. Arhiva reține ultimele zece rezultate și elimină raportul și marcajul odată cu intrarea veche. Continuarea din arhivă creează o partidă separată.
-- `GameReviewTest` verifică evaluarea, clasificarea, estimarea Elo și reconcilierea tabelului. `GameReviewGovernanceTest` verifică pragurile, reperele și catalogul ECO. `MatchArchiveTest` verifică refacerea raportului complet și respingerea cache-urilor incompatibile. [Strategia de testare](../testing/README.md#partidă-și-istoric)
+- The finished review is stored alongside the archived match. The cache has a version and the SHA-256 hash of the exact save, including the result and configuration. A missing, truncated, or incompatible review is recalculated on reopening.
+- The archived report includes the scores and calculated lines for each move. The bookmark preserves the ply, line, step, and **Why?** window state across reopening or restart. Explicitly closing the window leaves the move selected in history. The archive ID and save hash bind the bookmark to the exact match. The first opening starts at the end. An unavailable line or step returns the board to the played position.
+- Closing the window during calculation stops the search. The archive keeps the ten most recent results and removes the report and bookmark with the oldest entry. Continuing from the archive creates a separate match.
+- `GameReviewTest` verifies evaluation, grading, Elo estimation, and table reconciliation. `GameReviewGovernanceTest` checks thresholds, reference ratings, and the ECO catalog. `MatchArchiveTest` verifies restoration of the full report and rejection of incompatible caches. [Test strategy](../testing/README.md#game-and-history)
 
-## Navigarea în review și variantele recomandate
+## Review navigation and recommended lines
 
-Review-ul măsoară spațiul util al ferestrei după antet și zonele de sistem. În portret, tabla este cel mai mare pătrat care lasă loc barei de comenzi și începutului raportului derulabil. Într-o fereastră lată, raportul trece lateral când rămâne lizibil și tabla poate crește. Cursorul, indiciul și numele deschiderii se pot schimba fără să deplaseze tabla.
+Game Review measures usable window space after accounting for the header and system areas. In portrait, the board is the largest square that leaves room for the controls and the start of the scrollable report. In a wide window, the report moves to the side when it stays readable and the board can grow. The cursor, hint, and opening name may change without moving the board.
 
-Săgețile schimbă câte o semimutare, iar comanda **Moment-cheie următor** sare la următoarea poziție marcată. Lista și graficul permit selecția directă. Tabla, notația, categoria, scorurile și markerul graficului urmăresc același cursor. Săgețile se dezactivează la capete. Bara are ținte de 48 dp și etichete accesibile în română și engleză. În ferestre foarte înguste, bara derulează orizontal. Detaliile de scor, graficul, precizia, Elo, comparația și lista mutărilor se derulează împreună.
+The arrows move by one ply, and **Next key moment** jumps to the next marked position. The list and graph support direct selection. The board, notation, grade, scores, and graph marker follow the same cursor. The arrows are disabled at the endpoints. The toolbar uses 48 dp targets and accessible labels in Romanian and English. In very narrow windows, the toolbar scrolls horizontally. Score details, graph, accuracy, Elo, comparison, and the move list scroll together.
 
-Punctele desenate și atingerea folosesc aceeași proiecție orizontală, inclusiv marginile graficului. Atingerea alege semimutarea cea mai apropiată și sincronizează markerul, tabla și evidențierea mutării din listă. Poziția inițială nu are rând în listă. Atingerea în margini selectează poziția inițială sau finală. Comanda de accesibilitate pentru un rând derulează direct până la mutarea cerută, inclusiv într-o partidă lungă.
+Plotted points and touches use the same horizontal projection, including the graph insets. Tapping selects the nearest ply and synchronizes the marker, board, and highlight in the move list. The starting position has no list row. A tap in the margins selects the starting or ending position. The accessibility action for a row scrolls directly to the requested move, including in a long match.
 
-Numele deschiderii identificate apare la intrare. Prima navigare sau activarea variantei îl retrage din raport. **Detalii despre deschidere** din meniul de acțiuni afișează la cerere numele și codul ECO.
+The identified opening name appears when the review opens. The first navigation action or line activation removes it from the report. **Opening details** in the actions menu shows the name and ECO code on demand.
 
 ```mermaid
 flowchart LR
-    L["Listă de mutări"] -->|selectează| C["Cursor analiză"]
-    G["Punct pe grafic"] -->|selectează| C
-    N["Săgeți și salt"] -->|mută| C
-    C -->|sincronizează| B["Poziție pe tablă"]
-    C -->|sincronizează| S["Scor și categorie"]
-    C -->|poziționează| M["Marcaj pe grafic"]
-    C -->|"De ce?"| E["Redare pe tot ecranul, motiv și scor"]
-    E -->|deschide| R["Linii comparate"]
-    C -->|"Bec"| R
-    R -->|"Săgeți"| P["Parcurge linia din poziția comună"]
-    P -->|"Înapoi la mutarea selectată"| C
-    P -->|salvează| A["Marcaj de reluare"]
+    L["Move list"] -->|selects| C["Review cursor"]
+    G["Graph point"] -->|selects| C
+    N["Arrows and jump"] -->|moves| C
+    C -->|synchronizes| B["Board position"]
+    C -->|synchronizes| S["Score and grade"]
+    C -->|positions| M["Graph marker"]
+    C -->|"Why?"| E["Full-screen replay, reason, and score"]
+    E -->|opens| R["Compared lines"]
+    C -->|"Lightbulb"| R
+    R -->|"Arrows"| P["Replay the line from the common position"]
+    P -->|"Back to selected move"| C
+    P -->|saves| A["Resume bookmark"]
 ```
 
 <details>
-<summary>Legendă — cursorul și liniile de analiză</summary>
+<summary>Legend — review cursor and lines</summary>
 
-- Lista, graficul și săgețile trimit selecția către același cursor.
-- Liniile păstrează mutarea de origine și pasul ales pentru redeschidere.
+- The list, graph, and arrows send the selection to the same cursor.
+- The lines preserve the origin move and selected step for reopening.
 
 </details>
 
-Becul deschide linia recomandată direct în review. La o mutare care pierde scor, **De ce?** deschide aceeași fereastră pe tot ecranul ca Teoria deschiderilor. Tabla și săgețile rămân fixe, iar explicația se derulează separat. **După mutare** și **Recomandată** pornesc din poziția anterioară mutării selectate. Prima mutare din **După mutare** este cea din partidă, iar continuarea conține replicile calculate. **Înapoi** revine la mutarea selectată, cu graficul și lista în locul în care erau. [Teoria pe tabla de analiză](openings.md#indicii-de-teorie-pe-tabla-de-analiză)
+The lightbulb opens the recommended line directly in Game Review. For a move that loses score, **Why?** opens the same full-screen window as Opening Theory. The board and arrows remain fixed, and the explanation scrolls separately. **After move** and **Recommended** both start at the position before the selected move. The first move in **After move** is the one played in the match, and the continuation includes the calculated replies. **Back** restores the selected move and returns the graph and list to their previous positions. [Opening theory on the analysis board](openings.md#opening-theory-hints-on-the-analysis-board)
 
-Pentru o mutare cu pierdere de scor, explicația folosește liniile validate cu regulile și istoricul poziției. În exemplul `g4`, linia jucată arată `…Dh4#`. La mat prin promovare, explicația numește piesa ajunsă pe ultima linie. La material, compară ramurile la același număr de pași și numește captura care produce cea mai mare pierdere ce persistă până la finalul comparației. Deficitul net descrie întreaga comparație. Când ramura recomandată dovedește un câștig material ratat la același orizont, explicația numește captura și valoarea care rămâne după apărare. Când dovada tactică lipsește, explicația arată evaluarea mutării jucate, evaluarea recomandării și adâncimea comună, din perspectiva culorii care mută. O linie ilegală din cache rămâne indisponibilă. [Proba mutării](../../atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java)
+For a move that loses score, the explanation uses lines validated against the rules and position history. In the `g4` example, the played line shows `…Dh4#`. For mate by promotion, the explanation names the piece that reached the last rank. For material, it compares branches at the same step count and names the capture that causes the greatest loss still present at the end of the comparison. The net deficit describes the whole comparison. When the recommended branch proves a missed material gain at the same horizon, the explanation names the capture and the value that remains after the defense. When tactical proof is unavailable, the explanation shows the played evaluation, the recommended evaluation, and their common depth from the side-to-move perspective. An illegal cached line remains unavailable. [Move check](../../atf-tests/src/test/java/ro/atf/chess/GameReviewTimelineTest.java)
 
-În meniul de acțiuni, **Vezi pe tablă** închide review-ul și mută cursorul activ la semimutarea aleasă. **Reîncearcă mutarea** cere confirmarea continuării din poziția anterioară pentru mutările jucătorului sau pentru ambele culori în studiu. Anularea sau lipsa unui loc liber păstrează analiza la linia și pasul curent. Continuarea confirmată din arhivă deschide o partidă nouă din prefixul original.
+In the actions menu, **Show on board** closes Game Review and sets the active cursor to the selected ply. **Try this move again** asks for confirmation before continuing from the previous position for the player's moves, or for either side in study. Cancellation or a lack of free slots keeps the analysis on the current line and step. Confirmed continuation from the archive opens a new match from the original prefix.
 
-`GameReviewTimeline` validează fiecare mutare și culoare față de sursă. `GameReviewLayout` alege geometria din dimensiunile măsurate. Verificările componentelor și parcursul Android urmăresc sincronizarea, navigarea variantei și păstrarea partidei. [Sanity și Extent](../testing/README.md#partidă-și-istoric)
+`GameReviewTimeline` validates each move and side against the source. `GameReviewLayout` chooses the geometry from measured dimensions. Component checks and the Android flow verify synchronization, line navigation, and preservation of the match. [Sanity and Extent](../testing/README.md#game-and-history)

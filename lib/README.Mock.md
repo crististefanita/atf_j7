@@ -1,12 +1,12 @@
-# Mock — transport HTTP determinist
+# Mock — Deterministic HTTP Transport
 
-## Pe scurt
+## Overview
 
-`atf-mock` înlocuiește portul Core `ApiTransport` cu un catalog local de răspunsuri. Folosiți-l pentru componente și contracte offline, cu intrări controlate și un fallback explicit.
+`atf-mock` replaces the Core port `ApiTransport` with a local response catalog. Use it for offline components and contracts with controlled input and an explicit fallback.
 
-## Exemplu minim
+## Minimal Example
 
-`mock.yaml` în directorul de lucru:
+Place `mock.yaml` in the working directory.
 
 ```yaml
 mock:
@@ -15,7 +15,7 @@ mock:
   fallback: {status: 500, body: '{}'}
 ```
 
-Fragment într-o metodă; transportul rămâne offline:
+In this method fragment, the transport stays offline.
 
 ```java
 import atf.core.http.request.ApiRequest;
@@ -27,22 +27,22 @@ var response = mock.send(ApiRequest.of("GET", "/health"),
         "https://offline.test/health", "none").join();
 ```
 
-`response.status()` este `200`; o cerere fără rută potrivită primește fallback-ul `500`. Testul compară independent răspunsul cu rezultatul așteptat.
+`response.status()` is `200`. A request without a matching route receives the `500` fallback. The test independently compares the response with the expected result.
 
-## Catalog și potrivire
+## Catalog and Matching
 
-| Necesitate | API sau contract |
+| Need | API or Contract |
 |---|---|
-| Catalog YAML explicit | `AtfMockTransport.fromConfiguration(Path)` |
-| Configurația proiectului | `fromProjectConfiguration()`: `atf.mock.config` > `ATF_MOCK_CONFIG` > `atf-mock.yaml/yml` |
-| Condiții de request | Metodă, cale, profil auth, query, headere cerute și corp așteptat în `MockRoute` |
-| Corp de request | Mod implicit `json`, probă MIME negativă `wrong-content-type`; potrivire numerică fără conversie prin `double` |
-| Query repetat | `ApiQueryParameters`; include valorile cerute, cu multiplicitate |
+| Explicit YAML catalog | `AtfMockTransport.fromConfiguration(Path)` |
+| Project configuration | `fromProjectConfiguration()`: `atf.mock.config` > `ATF_MOCK_CONFIG` > `atf-mock.yaml/yml` |
+| Request conditions | Method, path, auth profile, query, required headers, and expected body in `MockRoute` |
+| Request body | Default `json` mode, negative MIME check `wrong-content-type`, and numeric matching without converting through `double` |
+| Repeated query parameters | `ApiQueryParameters` includes the required values with their multiplicity |
 
-- Fără configurație, `fromProjectConfiguration()` folosește fixture-ul `defaults()`; catalogul aplicației rămâne local.
-- Durata din rută este metadată a răspunsului, nu o întârziere reală simulată.
-- O probă mock verifică integrarea; acceptanța serviciului, brokerului sau dispozitivului real rămâne separată.
+- Without configuration, `fromProjectConfiguration()` uses the `defaults()` fixture. The application catalog stays local.
+- The mock uses route duration as response metadata and returns without a simulated delay.
+- A mock check verifies integration. Acceptance of the real service, broker, or device is a separate check.
 
 ---
 
-Înainte de o versiune nouă, verificați compatibilitatea locală cu `PlatformLibraryProvenanceTest` și contractele simulate folosite de Chess Lab. Păstrați coordonatele, hash-urile și notele de integrare sincronizate cu `library-provenance.json`.
+Before adopting a new version, check local compatibility with `PlatformLibraryProvenanceTest` and verify the simulated contracts used by Chess Lab. Keep coordinates, hashes, and integration notes aligned with `library-provenance.json`.

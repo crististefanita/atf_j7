@@ -1,268 +1,271 @@
-# Strategia de testare
+# Testing strategy
 
-Construiți în TMP dintr-o copie a sursei. Suitele JVM verifică motorul și
-guvernanța fără emulator. Selectați proba Android care acoperă gesturile,
-geometria, randarea sau reluarea afectată de schimbare.
+Build in TMP from a copy of the source. The JVM suites verify the engine and
+governance without an emulator. Select the Android probe that covers the
+gestures, geometry, rendering, or resumption affected by the change.
 
-## Alegerea nivelului
+## Choosing the Test Level
 
-- **Componentă** pentru reguli, progres, persistență, ordonare și layout măsurabil. Folosiți store-ul real cu preferințe în memorie și aserțiuni pe valori observabile.
-- **Guvernanță** pentru reguli de structură, proveniență, contracte de raportare și publicare. Includeți o probă negativă când un artefact incomplet ar putea primi PASS.
-- **Sanity Android** când comportamentul depinde de Activity, preferințele Android, procese, randarea nativă sau accesibilitate. Păstrați doar parcursul care validează integrarea lipsă din componente.
-- **Benchmark** numai pentru comparații cu Stockfish, calibrarea boților sau măsurători de timp. Țineți intrările fixe și raportați separat rezultatele opționale.
+- **Component** for rules, progress, persistence, ordering, and measurable layout. Use the real store with in-memory preferences and assert observable values.
+- **Governance** for structural rules, provenance, reporting contracts, and publication. Include a negative probe when an incomplete artifact could pass.
+- **Android sanity** when behavior depends on an Activity, Android preferences, processes, native rendering, or accessibility. Keep the flow that verifies the integration missing from component coverage.
+- **Benchmark** only for comparisons with Stockfish, bot calibration, or timing measurements. Hold inputs fixed and report optional results separately.
 
-Alegeți cel mai mic nivel care observă contractul. Verificați regulile în
-JVM, iar integrarea nativă și restartul real pe Android. În Extent, urmăriți
-aserțiunea, diagnosticul și, unde este necesară, captura checkpointului.
+Choose the lowest level that can observe the contract. Verify the rules in the
+JVM, and verify native integration and an actual process restart on Android.
+In Extent, follow the assertion, diagnostic, and checkpoint capture where needed.
 
-## Motor și proiecție
+## Engine and projection
 
-`ChessComponentTest` verifică poziția inițială, orientarea și legalitatea, cu oracole independente. Cazurile includ numărul pozițiilor la primele trei mutări individuale, rocada, en passant, promovarea și matul.
+`ChessComponentTest` checks the starting position, orientation, and legality against independent oracles. Cases include position counts for the first three plies, castling, en passant, promotion, and checkmate.
 
-`BoardPanelLayoutTest` verifică geometria panoului pentru ferestre înalte, scunde și etichete mai înalte. Dimensiunea tablei se calculează din spațiul rămas după măsurarea ambelor etichete.
+`BoardPanelLayoutTest` verifies panel geometry for tall and short windows and taller labels. It calculates board size from the space left after measuring both labels.
 
-`MainMenuLayoutTest` verifică ordinea celor patru capitole, textele românești și englezești, derularea, totalurile și zona de atingere a becului. `QuestStepTest` verifică piesele și culoarea la mutare înainte și după apărare, reluarea și blocarea navigării până la rezolvare. Acoperă și redarea unui mat alternativ din catalog, cu explicația lui, plus revenirea la linia de referință pentru date vechi sau invalide.
+`MainMenuLayoutTest` checks the order of the four chapters, Romanian and English text, scrolling, totals, and the hint button's touch target. `QuestStepTest` checks the pieces and side to move before and after the defense, resumption, and navigation locking until solved. It also covers replaying an alternate mate from the catalog with its explanation, and returning to the reference line for old or invalid data.
 
-`QuestCatalogTest` enumeră fiecare mutare legală pentru toate cele 500 de probleme și cere o singură soluție de mat. O probă separă șahul cu apărare de mat. O altă probă verifică patul, rocada prin șah și captura en passant care ar expune propriul rege. Amprenta completă a mulțimilor de mutări se compară cu [`quest-oracle.yaml`](../../chess-core/src/main/resources/quest-oracle.yaml), produs de `chess.js` 1.4.0.
+`QuestCatalogTest` enumerates every legal move for all 500 puzzles and requires exactly one mating solution. One probe distinguishes check with a legal defense from checkmate. Another checks stalemate, castling through check, and an en passant capture that would expose the mover's king. It compares the full move-set fingerprint with [`quest-oracle.yaml`](../../chess-core/src/main/resources/quest-oracle.yaml), produced by `chess.js` 1.4.0.
 
-`QuestCatalogTest` recalculează din YAML ordinea strict crescătoare a problemelor Mat în 1 și caută poziții repetate în toate cele patru capitole. Cazurile negative acoperă un mat alternativ, o temă incorectă, un ID retras, o poziție apropiată cu aceeași soluție și copii obținute prin simetrie. `QuestProgressTest` verifică reluarea după reordonare și retragerea unei poziții fără creditarea înlocuitoarei.
+`QuestCatalogTest` recalculates the strictly increasing Mate in 1 order from YAML and looks for repeated positions across all four chapters. Negative cases cover an alternative mate, an incorrect theme, a retired ID, a similar position with the same solution, and copies created by symmetry. `QuestProgressTest` verifies resumption after reordering and removal of a position without awarding credit for its replacement.
 
-`QuestHintTest` verifică pentru toate cele 500 de probleme că prima treaptă expune exclusiv plecarea, iar a doua destinația validată de motor. După apărarea adversarului, indiciul trebuie să folosească următoarea poziție. `QuestProgressTest` verifică pragurile după reluare și reordonare, idempotența rezolvărilor și finalul unui catalog de altă lungime.
+`QuestHintTest` checks all 500 puzzles to ensure that the first tier reveals only the origin and the second reveals the destination validated by the engine. After the opponent's defense, the hint must use the next position. `QuestProgressTest` checks milestones after resumption and reordering, idempotent solves, and completion of a catalog of a different size.
 
-`MateExplanationTest` confruntă pentru toate cele 500 de probleme piesele care dau șah și explicațiile câmpurilor de fugă cu amprenta produsă de chess.js. Probele pentru `mate-101` și `mate-102` folosesc pozițiile din catalog și verifică faptul că pornesc în șah, indiciile și fiecare apărare legală. O probă separată cere o apărare legală după un șah care lasă adversarului mutări.
+`MateExplanationTest` compares the checking pieces and explanations of escape squares for all 500 puzzles with the fingerprint produced by chess.js. The `mate-101` and `mate-102` probes use catalog positions and check that they start in check, along with the hints and every legal defense. A separate probe requires a legal defense after a check that leaves the opponent legal moves.
 
 ```powershell
 ./scripts/update-mate-one-order.ps1 -ChessJs $chessJs
 ```
 
-Setați `$chessJs` la fișierul CommonJS din pachetul extras chess.js 1.4.0. Verificatorul citește versiunea din `package.json`. Motorul independent rulează în TMP și nu intră în APK. [chess.js](https://github.com/jhlywa/chess.js/tree/v1.4.0) · [Regenerarea ordinii și a dovezii](../board/quest-curation.md#configurarea-capitolelor)
+Set `$chessJs` to the CommonJS file from the extracted chess.js 1.4.0 package. The verifier reads the version from `package.json`. The independent engine runs in TMP, outside the APK. [chess.js](https://github.com/jhlywa/chess.js/tree/v1.4.0) · [Regenerating the order and evidence](../board/quest-curation.md#configuring-the-chapters)
 
-`MateInTwoCatalogTest` verifică exact 300 de poziții, absența matului imediat, o singură cheie, fiecare apărare legală și toate maturile din ramurile rezultate. Amprenta calculată de J7 trebuie să coincidă cu cea produsă independent de chess.js.
+`MateInTwoCatalogTest` checks exactly 300 positions, the absence of an immediate mate, a single key move, every legal defense, and all mates in the resulting branches. The fingerprint calculated by J7 must match the one chess.js produced independently.
 
 ```powershell
 node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> chess-core/src/main/resources/mate-in-two.yaml chess-core/src/main/resources/mate-in-two.sha256
 ```
 
-`MateInThreeCatalogTest` verifică 200 de poziții cu mat exact în trei, unicitatea primei mutări și toate continuările câștigătoare după prima apărare. Amprenta este comparată cu cea calculată de chess.js 1.4.0.
+`MateInThreeCatalogTest` checks 200 positions with mate in exactly three, a unique first move, and all winning continuations after the first defense. It compares the fingerprint with the one calculated by chess.js 1.4.0.
 
 ```powershell
 node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/resources/mate-in-three.yaml chess-core/src/main/resources/mate-in-three.sha256
 ```
 
-## Paritatea Web a motorului
+## Web engine parity
 
-`ChessWebRulesComponentTest` verifică motorul și cataloagele pe JVM. `ChessWebParityPublication` execută aceleași cazuri în workerul TeaVM pentru toate resursele folosite. Rulați proba explicit cu pachetul din TMP. [Build și probe Web](../../web/README.md)
+`ChessWebRulesComponentTest` checks the engine and catalogs on the JVM. `ChessWebParityPublication` executes the same cases in the TeaVM worker for all resources used. Run the probe explicitly with the bundle from TMP. [Web build and probes](../../web/README.md)
 
-### Intrarea în meniul Web
+### Opening the Web menu
 
-`ChessWebShellTest` compară titlul și grupurile din Web cu resursele APK. Componentele de navigare simulează istoricul browserului, accesul direct la o secțiune și revenirea la meniu. Guvernanța verifică adresa publică din README, iar sanity-ul pornește din acel link într-un profil nou. [Contractul meniului](../../web/README.md#meniul-principal-și-piesele)
+`ChessWebShellTest` compares the Web title and groups with the APK resources. Navigation components simulate browser history, direct access to a section, and returning to the menu. Governance checks the public address in the README, and the sanity run starts at that link in a fresh profile. [Menu contract](../../web/README.md#main-menu-and-pieces)
 
-Pentru culoarea inițială, `MatchSetupTest` și `ChessWebParityPublication#packagedWorkerResolvesAndSavesTheSharedColorChoices` folosesc același fixture cu rezultate explicite pentru Alb, Negru și ambele rezultate aleatorii. Raportul verifică numărul de extrageri, orientarea, tura și păstrarea culorii după redeschidere. Adaptorul de test verifică și respingerea unei replici AI cu revizie expirată. `ChessWebShellTest` compară ordinea și textele RO/EN ale opțiunilor cu resursele Android.
+For the initial color, `MatchSetupTest` and `ChessWebParityPublication#packagedWorkerResolvesAndSavesTheSharedColorChoices` use the same fixture with explicit outcomes for White, Black, and both random results. The report verifies the number of draws, orientation, turn, and color retention after reopening. The test adapter also checks rejection of an AI reply from an expired revision. `ChessWebShellTest` compares the order and RO/EN option text with Android resources.
 
-`ChessWebStudyShellTest` verifică fără browser că tablele din Probleme și Partide folosesc aceeași regulă CSS și păstrează comenzile în structura de joc. În proba de browser, măsurați dreptunghiurile tablei și ale comenzilor vizibile în ambele ecrane, la 360 × 640 și 1280 × 900 CSS px cu text la 130%. După prima mutare, verificați că tabla rămâne fixă, istoricul încape și documentul nu cere derulare în aceste profiluri. [Regula de dimensionare](../../web/README.md#tabla-din-probleme-și-din-partidă)
+`ChessWebStudyShellTest` checks without a browser that the boards in Puzzles and Games use the same CSS rule and keep controls within the game structure. In the browser probe, measure the board and visible control rectangles on both screens at 360 × 640 and 1280 × 900 CSS px with text at 130%. After the first move, verify that the board stays fixed, history fits, and the document needs no scrolling on these profiles. [Sizing rule](../../web/README.md#the-board-in-puzzles-and-matches)
 
-Proba MCP a măsurat aceeași latură în ambele ecrane, 324 px pe compact în RO și 469,8 px pe desktop în EN. La 320 × 480 în RO, ambele table păstrează o latură de 249,6 px și pot derula vertical pentru a păstra accesul la comenzi.
+The MCP probe measured the same side length on both screens, 324 px on the compact profile in RO and 469.8 px on desktop in EN. At 320 × 480 in RO, both boards retain a side length of 249.6 px and can scroll vertically to keep controls accessible.
 
-### Controlul replicilor AI
+### Controlling AI replies
 
-Selectați `ChessWebParityPublication#packagedWorkerKeepsAiIdentityThroughManualControl` în comanda Maven pentru pachetul TeaVM. `MatchControlsTest` și workerul citesc același fixture pentru comutarea fără mutare manuală și pentru mutarea legală jucată de partea AI. Proba workerului cere același ID, slot și checkpoint după redeschidere, respinge replica de la o revizie expirată și verifică efectul mutării manuale asupra estimării Elo. `MatchLedgerTest` verifică și clasificarea la încărcarea salvărilor vechi. [Comanda Maven](../../web/README.md) · [Datele comune](../../atf-tests/src/test/resources/match-automation-cases.json)
+Select `ChessWebParityPublication#packagedWorkerKeepsAiIdentityThroughManualControl` in the Maven command for the TeaVM bundle. `MatchControlsTest` and the worker read the same fixture for toggling control without a manual move and for a legal move played by the AI side. The worker probe requires the same ID, slot, and checkpoint after reopening, rejects replies from expired revisions, and verifies the manual move's effect on the Elo estimate. `MatchLedgerTest` also checks classification when loading old saves. [Maven command](../../web/README.md) · [Shared data](../../atf-tests/src/test/resources/match-automation-cases.json)
 
-`MatchControlsTest` verifică disponibilitatea comutatorului la poziția curentă, în istoric și după încheiere. `ChessWebShellTest` verifică etichetele RO și EN cu resursele Android. Un ceas și un calcul simulate verifică anularea prin `AbortSignal` și ignorarea unui rezultat livrat după anulare. În sanity-ul de interfață, treceți în modul manual în tura AI, efectuați o mutare legală și redeschideți același slot. Reactivați automatizarea în tura AI și observați o singură replică. [Contractul partidei](../../web/README.md#controlul-replicilor-ai)
+`MatchControlsTest` checks switch availability at the current position, in history, and after the game ends. `ChessWebShellTest` checks the RO and EN labels against Android resources. A simulated clock and computation verify cancellation through `AbortSignal` and ignoring a result delivered after cancellation. In the UI sanity run, switch to manual mode on the AI's turn, make a legal move, and reopen the same slot. Re-enable automation on the AI's turn and observe a single reply. [Game contract](../../web/README.md#ai-reply-control)
 
-### Analiza în partida cu AI
+### Analysis in the AI game
 
-Selectați `MatchAnalysisParityTest` și
-`ChessWebParityPublication#packagedWorkerProjectsInlineMatchAnalysis` în comanda
-Maven pentru pachetul TeaVM. Cazurile comune fixează checkpointul și semimutarea
-afișată. Comparați opțiunea după restaurare, evaluarea albului, linia de mat din
-poziția istorică și starea terminală.
-[Comanda Maven](../../web/README.md) · [Datele comune](../../atf-tests/src/test/resources/match-analysis-cases.json)
+Select `MatchAnalysisParityTest` and
+`ChessWebParityPublication#packagedWorkerProjectsInlineMatchAnalysis` in the
+Maven command for the TeaVM bundle. The shared cases fix the checkpoint and the
+displayed ply. Compare the option after restoration, White's evaluation, the
+mating line from the historical position, and the terminal state.
+[Maven command](../../web/README.md) · [Shared data](../../atf-tests/src/test/resources/match-analysis-cases.json)
 
-`ChessWebShellTest` exercită în Node schimbarea poziției în timpul calculului
-și refuzul indiciului care nu mai este legal în poziția afișată. Un mock al
-workerului urmărește starea barei, eliberarea selecției o singură dată și
-redarea liniei. Poziția din afara teoriei și cazul de mat compară rezultatul
-analizei în partidă și pe Tabla de analiză.
+`ChessWebShellTest` exercises switching positions during computation and
+rejecting a hint that is no longer legal in the displayed position in Node.
+A worker mock tracks the state of the bar, clearing the selection once, and
+line replay. The off-book position and the mate case compare the analysis
+result in the game and on the Analysis board.
 
-În proba de interfață, deschideți meniul principal cu o analiză deja importată.
-Titlul rămâne singur în antet, iar analiza se poate deschide din zona de
-import. Începeți o partidă cu bifa oprită și verificați absența panoului.
-Porniți una cu analiză și comparați dreptunghiurile barei și tablei de la
-poziția de start. Declanșați becul din rândul istoricului și parcurgeți o
-semimutare în previzualizare, apoi verificați poziția și revenirea focusului.
-La redeschidere, verificați bifa salvată, orientarea și încadrarea la text mărit.
-[Contractul Web](../../web/README.md#analiza-în-partida-cu-ai)
+In the UI probe, open the main menu with an analysis already imported. The
+title remains alone in the header, and analysis can be opened from the import
+area. Start a game with the checkbox cleared and verify that the panel is
+absent. Start another with analysis enabled and compare the bar and board
+rectangles at the starting position. Trigger the hint button in the history
+row and step one ply in the preview, then check the position and focus
+restoration. After reopening, verify the saved checkbox, orientation, and
+layout at larger text size.
+[Web contract](../../web/README.md#analysis-in-an-ai-match)
 
-Pentru proba pereche RO/EN, porniți din aceeași partidă după **1.e4 e5**.
-Alegeți poziția 1/2 și verificați bara din stânga, evaluarea +0,05 pentru
-Alb și indiciul **…Nc6**. Redați pașii 0 → 1 → 2 → 1 pe tabla variantei.
-Închideți la 1/2 și redeschideți același slot la 2/2. Bara indică
-+0,19 pentru Alb; pe Web am verificat și noul indiciu **Nf3**.
+For the paired RO/EN probe, start from the same game after **1.e4 e5**.
+Select position 1/2 and verify the left bar, the +0.05 evaluation for
+White, and the hint **…Nc6**. Replay steps 0 → 1 → 2 → 1 on the variation board.
+Close at 1/2 and reopen the same slot at 2/2. The bar reads +0.19 for White.
+On the Web, the probe also verified the new hint **Nf3**.
 
-| Adaptor | Profil compact, text 1,3× | Proba și dovada |
+| Adapter | Compact profile, 1.3× text | Probe and evidence |
 |---|---|---|
-| Android | 720 × 1280, 320 dpi | `-AnalysisOnly -CompactMatchAnalysisOnly` verifică APK-ul izolat în dezvoltare. Pentru ediție, adăugați `-Distribution -SourceCommit <sha>` ca să verificați exact APK-ul semnat. Ambele probe fac pregătire și restart real în RO și EN. `AndroidSanityPublication#publishCompactMatchAnalysisSanity` verifică recepțiile și capturile. |
-| Web | 360 × 640 CSS px | Browser MCP măsoară tabla și salvează capturi la istoric, redare, întoarcere și reluare. `ChessWebMatchAnalysisPublication` leagă cele două limbi de rulare, revizie și runtime. |
+| Android | 720 × 1280, 320 dpi | `-AnalysisOnly -CompactMatchAnalysisOnly` checks the isolated APK during development. For a release, add `-Distribution -SourceCommit <sha>` to check the exact signed APK. Both probes run setup and an actual restart in RO and EN. `AndroidSanityPublication#publishCompactMatchAnalysisSanity` verifies receipts and captures. |
+| Web | 360 × 640 CSS px | The MCP browser measures the board and saves captures in history, replay, return, and resumption. `ChessWebMatchAnalysisPublication` ties both languages to the run, revision, and runtime. |
 
-Publicatorul Web primește directorul recepțiilor prin
-`-Dchess.web.match.browser`, directorul runtime prin
-`-Dchess.web.match.runtime` și valorile execuției prin
-`-Dchess.web.match.runId` și `-Dchess.web.match.source`. Alegeți un HTML
-nou prin `-Dchess.web.match.extent`. Testele negative verifică recepțiile
-substituite, coordonatele deformate și abaterea de la linia comună.
+The Web publisher receives the receipts directory through
+`-Dchess.web.match.browser`, the runtime directory through
+`-Dchess.web.match.runtime`, and the execution values through
+`-Dchess.web.match.runId` and `-Dchess.web.match.source`. Choose a new HTML
+file through `-Dchess.web.match.extent`. Negative tests check substituted
+receipts, distorted coordinates, and deviations from the common line.
 
-Comparați tabla înainte și după săgeți, la întoarcerea din previzualizare și
-după redeschiderea slotului. În APK, verificați pătratul maxim după ce măsurați
-zona utilă fără barele de sistem și rezervați loc pentru jucători și comenzi.
-Profilul Android măsurat lasă un dreptunghi de 694 × 665 px pentru tablă,
-după rezervarea barei de evaluare și a intervalului. Latura de 665 px
-(332,5 dp) atinge limita de înălțime. În Web, la 360 × 640 CSS px, tabla
-de 350 px, bara de 8 px și intervalul de
-2 px ocupă toată lățimea utilă. Bara rămâne vizibilă pe toată înălțimea, în stânga
-tablei, iar becul păstrează o țintă vizibilă de cel puțin 48 de unități în
-fiecare adaptor. La 320 × 568 CSS px și text 130%, înălțimea limitează
-tabla Web la 279,6 CSS px. Verificați că săgețile păstrează coordonatele,
-iar becul încape fără derulare. În Web, **Mat în 1** păstrează dreptunghiul
-și după rezolvare, Next și Back.
+Compare the board before and after using the arrows, on returning from the
+preview, and after reopening the slot. For the APK, verify the largest square
+after measuring the usable space without the system bars and reserving room
+for players and controls. The measured Android profile leaves a 694 × 665 px
+rectangle for the board after reserving the evaluation bar and gap. The 665 px
+side (332.5 dp) reaches the height limit. On the Web at 360 × 640 CSS px, the
+350 px board, 8 px bar, and 2 px gap use the full usable width. The bar remains
+visible along the full height to the left of the board. The hint button retains
+a visible target of at least 48 units in each adapter. At 320 × 568 CSS px and
+130% text, height limits the Web board to 279.6 CSS px. Verify that the arrows
+preserve the coordinates and the hint button fits without scrolling. On the
+Web, **Mate in 1** keeps its rectangle after solving, Next, and Back.
 
-### Actualizarea pachetului Web
+### Updating the Web bundle
 
-În componentă, verificați că adresele din `index.html` indică aceeași
-versiune pentru toate stilurile și modulul de intrare, inclusiv după
-schimbarea unui singur fișier. Urmăriți importurile relative și workerul
-până la motorul TeaVM din directorul versiunii. Un pachet cu același manifest
-trebuie să aibă aceeași adresă de runtime. [Schema pachetului](../../web/README.md#identitatea-pachetului-web)
+In the component test, verify that the addresses in `index.html` point to the
+same version for all styles and the entry module, including after a change to
+a single file. Follow the relative imports and worker through to the TeaVM engine
+in the version directory. A bundle with the same manifest must have the same
+runtime address. [Bundle diagram](../../web/README.md#web-bundle-identity)
 
-Pentru sanity în browser MCP, păstrați un profil care a deschis ediția
-anterioară și are o partidă salvată. După publicare, reîncărcați normal din
-linkul README, cu memoria cache activă. Verificați adresele efectiv cerute,
-reluarea slotului și funcționarea barei și a becului. În Extent, înregistrați
-revizia, directorul runtime, checkpointul și capturile. O probă HTTP care
-citește fiecare fișier ocolind memoria cache verifică publicarea octeților.
-[Publicarea Web](../../web/parity.md#publicarea-linkului)
+For sanity in the MCP browser, keep a profile that opened the previous release
+and has a saved game. After publication, reload normally from the README link
+with the cache enabled. Verify the addresses actually requested, slot resumption,
+and that the bar and hint button work. In Extent, record the revision, runtime
+directory, checkpoint, and captures. An HTTP probe that bypasses the cache to
+read each file verifies delivery of the published bytes.
+[Web publication](../../web/parity.md#publishing-the-link)
 
-Proba de migrare în același tab a redeschis slotul pe site-ul public cu
-stilurile și modulul din aceeași versiune; becul a arătat e2–e4. Proba locală
-cu cache activ a păstrat și poziția după 1.e4 Nc6 înainte de un indiciu nou.
+The same-tab migration probe reopened the slot on the public site with the
+styles and module from the same version. The hint button indicated e2–e4.
+The local probe with the cache enabled also kept the position after 1.e4 Nc6
+before requesting a new hint.
 
-### Orientarea tablei în partidă
+### Board orientation in a game
 
-`MatchControlsTest` verifică disponibilitatea acțiunii în partidă și în istoric. `MatchStoreTest` și `ChessWebParityPublication#packagedWorkerPreservesTheMatchWhenFlipping` folosesc același fixture pentru păstrarea poziției, istoricului și orientării la redeschidere. Workerul respinge o replică rămasă la revizia veche. `ChessWebShellTest` folosește un ceas simulat și verifică înlocuirea programării vechi cu o singură replică la revizia curentă. [Comanda de verificare](../../web/README.md#motorul-chess-lab-în-browser)
+`MatchControlsTest` verifies that the action is available in a game and in history. `MatchStoreTest` and `ChessWebParityPublication#packagedWorkerPreservesTheMatchWhenFlipping` use the same fixture for preserving the position, history, and orientation upon reopening. The worker rejects a pending reply from the old revision. `ChessWebShellTest` uses a simulated clock to verify that the old schedule is replaced by a single reply at the current revision. [Verification command](../../web/README.md#the-chess-lab-engine-in-the-browser)
 
-În proba de interfață, deschideți o partidă, reveniți la o semimutare din istoric și alegeți **Întoarce tabla**. Comparați colțurile, tura, semimutarea și dreptunghiul tablei. Verificați revenirea focusului la butonul din antet și orientarea după redeschidere. Fixture-ul de arhivă verifică orientarea noului slot la continuare și perspectiva originală la redeschiderea arhivei. [Comportamentul partidei](../../web/README.md#partida-cu-ai)
+In the UI probe, open a game, return to a historical ply, and select **Flip board**. Compare the corners, turn, ply, and board rectangle. Verify that focus returns to the header button and check the orientation after reopening. The archive fixture checks the new slot's orientation on continuation and the original perspective when reopening the archive. [Game behavior](../../web/README.md#ai-match)
 
-### Partide salvate, arhivă și continuare
+### Saved games, archive, and continuation
 
-`MatchStoreTest`, `MatchLedgerTest` și `MatchLedgerPreferencesTest` verifică migrarea, ordinea, retenția și selecția slotului. Cazurile acoperă rescrierea slotului activ, o continuare separată din arhivă și refuzul când toate sloturile sunt ocupate. `ChessWebLedgerPublication` verifică biblioteca după reîncărcare, checkpointurile și capturile din Edge. [Probe Web](../../web/README.md#partide-salvate-și-încheiate)
+`MatchStoreTest`, `MatchLedgerTest`, and `MatchLedgerPreferencesTest` check migration, order, retention, and slot selection. Cases cover overwriting the active slot, a separate continuation from the archive, and refusal when all slots are occupied. `ChessWebLedgerPublication` checks the library after reloading, checkpoints, and Edge captures. [Web probes](../../web/README.md#saved-and-finished-matches)
 
-`MatchLedgerReviewTest` verifică persistența analizei și a poziției de reluare per arhivă, respingerea unui checkpoint sau cache din altă partidă, migrarea unui rezultat unic și evacuarea completă. `ChessWebArchiveReviewsPublication` validează două analize calculate de worker, pozițiile redeschise după reîncărcare și capturile din aceeași rulare. [Reluarea analizei arhivate](../../web/README.md#reluarea-analizei-unei-partide-arhivate)
+`MatchLedgerReviewTest` checks persistence of analysis and the resume position per archive entry, rejection of a checkpoint or cache from another game, migration of a single result, and complete eviction. `ChessWebArchiveReviewsPublication` validates two worker-calculated reviews, the positions restored after reload, and captures from the same run. [Resuming archived analysis](../../web/README.md#resuming-an-archived-match-review)
 
-`ArchivedReviewContinuationTest` verifică poziția exactă din istoric, slotul separat, biblioteca plină și o singură replică AI după reluare. `ChessWebArchiveContinuationPublication` compară dovada din browser cu checkpointul, analiza și poziția de reluare originale, inclusiv după o mutare în partida nouă. Android păstrează proba nativă de continuare din arhivă în `-GameReviewOnly`. [Continuarea din Game Review](../../web/README.md#continuarea-din-game-review)
+`ArchivedReviewContinuationTest` checks the exact position in history, the separate slot, a full library, and a single AI reply on resumption. `ChessWebArchiveContinuationPublication` compares browser evidence with the original checkpoint, analysis, and resume position, including after a move in the new game. Android keeps the native probe for continuing from the archive under `-GameReviewOnly`. [Continuing from Game Review](../../web/README.md#continuing-from-game-review)
 
-`GameReviewGraphParityTest` folosește partida de 185 de semimutări din APK și poziții de control verificate separat. În JVM verifică punctul 184 la geometria nativă și la două lățimi Web, ambele capete, piesele Staunton originale și dimensiunile capturilor. Sanity-ul Android păstrează atingerea și redarea nativă. `ChessWebReviewGraphPublication` cere coordonatele trimise de interfață către worker, poziția de pe tablă, rândul vizibil și marcajul din arhivă după reîncărcare. [Graficul Game Review](../../web/README.md#graficul-din-game-review)
+`GameReviewGraphParityTest` uses the 185-ply game from the APK and separately verified control positions. On the JVM, it checks point 184 at native geometry and at two Web widths, both endpoints, the original Staunton pieces, and capture dimensions. Android sanity keeps native touch and rendering checks. `ChessWebReviewGraphPublication` requires coordinates sent from the UI to the worker, the board position, the visible row, and the archive marker after reloading. [Game Review graph](../../web/README.md#game-review-graph)
 
-`ChessWebReviewAccessibilityTest` verifică în Node destinațiile de focus, limitele istoricului și derularea necesară. `GameReviewSessionTest` verifică revenirea la poziția jucată după **De ce?**. Sanity-ul Edge păstrează proba Tab, săgeți și revenirea cu focus vizibil la font 1,3×. Reperul Android compact RO/EN verifică încadrarea și păstrarea poziției. [Tastatura în Game Review](../../web/README.md#tastatura-în-game-review) · [Redarea compactă](#redare-comună-pe-ecran-compact)
+`ChessWebReviewAccessibilityTest` checks focus destinations, history bounds, and required scrolling in Node. `GameReviewSessionTest` checks returning to the played position after **Why?**. The Edge sanity run keeps the Tab, arrow-key, and visible focus return probe at 1.3× font scale. The compact Android RO/EN baseline verifies fit and position retention. [Keyboard controls in Game Review](../../web/README.md#keyboard-navigation-in-game-review) · [Compact replay](#shared-replay-on-a-compact-screen)
 
-Pentru cititoare de ecran, `ChessWebReviewAccessibilityTest` verifică textele RO/EN, limitele graficului și sursa fiecărui anunț. Sanity-ul urmărește valoarea graficului, rândul selectat și revenirea din **De ce?**. Extent indică sursa fiecărei observații, precum arborele Chromium, un eveniment Android sau o cerere către sintetizator. [Cititorul de ecran Web](../../web/README.md#cititorul-de-ecran-în-game-review) · [Proba TalkBack](#proba-talkback)
+For screen readers, `ChessWebReviewAccessibilityTest` checks RO/EN text, graph bounds, and the source of each announcement. The sanity run tracks the graph value, selected row, and return from **Why?**. Extent identifies the source of each observation, such as the Chromium tree, an Android event, or a request to the speech synthesizer. [Web screen reader](../../web/README.md#screen-readers-in-game-review) · [TalkBack probe](#talkback-probe)
 
-Pe Android, `-MatchMenusOnly` verifică listele și deschiderea rândurilor salvate și încheiate. `-GameReviewOnly` verifică o mutare alternativă în continuare și păstrarea intrării arhivate. [Partidă și istoric](#partidă-și-istoric)
+On Android, `-MatchMenusOnly` verifies the lists and opening saved and finished rows. `-GameReviewOnly` checks an alternative move in the continuation and retention of the archive entry. [Game and history](#game-and-history)
 
-### Studiu Web
+### Web Study
 
-Testele de componentă simulează tabla, stocarea și temporizatorul. Ele verifică geometria săgeții în ambele orientări, etichetele RO/EN din resursele APK, accesul la explicațiile lungi, focusul, istoricul, reluarea unei apărări și răspunsurile întârziate după închiderea ecranului.
+The component tests simulate the board, storage, and timer. They check arrow geometry in both orientations, RO/EN labels from the APK resources, access to long explanations, focus, history, resumption of a defense, and replies delayed until after the screen closes.
 
-`ChessWebStudyShellTest` rulează și workerul compilat când primește `-Dchess.study.bundle`. Raportul Extent consemnează deschiderea celor șase capitole, catalogul RO/EN de deschideri, poziția de analiză, izolarea Game Review și refuzul continuării când toate cele zece locuri sunt ocupate. [Comenzile Studiu](../../web/README.md#studiu)
+`ChessWebStudyShellTest` also runs the compiled worker when it receives `-Dchess.study.bundle`. The Extent report records opening the six chapters, the RO/EN opening catalog, the analysis position, Game Review isolation, and refusal to continue when all ten slots are occupied. [Study controls](../../web/README.md#study)
 
-### Reluarea Game Review pe Android și Web
+### Resuming Game Review on Android and the Web
 
-`GameReviewSessionTest` verifică selecția semimutării, cele două ramuri, bookmarkul și refuzul comenzilor expirate. `ChessGameSessionTest` verifică poziția restaurată și analiza unei linii neterminate. Probele Edge folosesc pachetul compilat pentru import, analiză nouă și reîncărcare reală. Publicatorul Extent verifică mutările, cache-ul de analiză, identitatea pachetului și capturile. [Comenzile de rulare](../../web/README.md#game-review)
+`GameReviewSessionTest` checks ply selection, both branches, the bookmark, and rejection of expired commands. `ChessGameSessionTest` checks the restored position and analysis of an unfinished line. Edge probes use the compiled bundle for import, new analysis, and a real reload. The Extent publisher verifies moves, the analysis cache, bundle identity, and captures. [Run commands](../../web/README.md#game-review)
 
-## Tactică și punctaj
+## Tactics and scoring
 
-`QuestRewardsTest` verifică seria între capitole, plafonul bonusului, restaurarea unei încercări asistate, punctajul anterior și totalurile. `TacticsCatalogTest` verifică cheia unică, lipsa matului imediat, continuitatea ID-urilor și câștigul care rezistă răspunsurilor legale la capătul liniei. `QuestPayoffTest` verifică reluarea etapelor, capturile, finalul alternativ și restaurarea soluțiilor vechi. YAML-ul indică proveniența pozițiilor. Amprenta conține cheia și câștigul de material recalculate de chess.js.
+`QuestRewardsTest` checks the streak across chapters, the bonus cap, restoration of an assisted attempt, previous scores, and totals. `TacticsCatalogTest` checks the unique key move, absence of an immediate mate, continuity of IDs, and gains that withstand legal replies at the end of the line. `QuestPayoffTest` checks resuming from intermediate stages, captures, the alternative ending, and restoring older solutions. The YAML gives the provenance of the positions. The fingerprint contains the key move and material gain recalculated by chess.js.
 
-`QuestDefenseStudyTest` verifică toate studiile din [catalogul explicațiilor](../../chess-core/src/main/resources/quest-defense-studies.yaml). Controlează cheia, replica legală, limba, bilanțul de pe tablă și compatibilitatea cu progresul salvat. Proba `measuresHardOnReviewedDefensesWithoutGivingItTheLesson` măsoară cheile și mutările ulterioare separat. La fiecare poziție fixată, motorul primește numai tabla și profilul Hard. Concordanța cu linia de studiu rămâne o măsurătoare, iar legalitatea și plafonul sunt aserțiuni.
+`QuestDefenseStudyTest` checks every study in the [explanation catalog](../../chess-core/src/main/resources/quest-defense-studies.yaml). It checks the key move, legal reply, language, board material balance, and compatibility with saved progress. The `measuresHardOnReviewedDefensesWithoutGivingItTheLesson` probe measures key moves and subsequent moves separately. For each fixed position, the engine receives only the board and the Hard profile. Agreement with the study line remains a measurement, while legality and the cap are assertions.
 
-Pentru explicațiile din Tactică, rulați `run-android-sanity.ps1 -TacticsExplanationOnly` cu parametrizarea ADB din [Sanity Android](#sanity-android). Proba deschide din tablă reluarea normală pentru `tactic-002` și studiul cu replica `…Kg8` pentru `tactic-043`. Verifică navigarea, materialul afișat și păstrarea punctelor după închidere.
+For Tactics explanations, run `run-android-sanity.ps1 -TacticsExplanationOnly` with the ADB parameters in [Android sanity](#android-sanity). From the board, the probe opens the normal replay for `tactic-002` and the study with the `…Kg8` reply for `tactic-043`. It verifies navigation, displayed material, and retention of points after closing.
 
-Publicați `android-tactics-explanation.html` cu `-Dtest=AndroidSanityPublication#publishTacticsExplanationSanity` și `-Dchess.android.receipt=<dosar>/tactics-explanation.txt`. Extent include capturile și verifică ID-ul de rulare, recepția și amprentele PNG raportate de instrumentare.
+Publish `android-tactics-explanation.html` with `-Dtest=AndroidSanityPublication#publishTacticsExplanationSanity` and `-Dchess.android.receipt=<dosar>/tactics-explanation.txt`. Extent includes the captures and checks the run ID, receipt, and PNG fingerprints reported by instrumentation.
 
-Pentru ultima mutare din `training-069`, rulați `-TrainingFinishOnly`. `QuestPayoffTest` verifică obiectivul imediat, linia legală după `Rd8+` și punctajul unic. Sanity verifică accesul la explicație după șah, reluarea pe tablă, păstrarea progresului și redeschiderea explicației după rezolvare. Publicați raportul cu `-Dtest=AndroidSanityPublication#publishTrainingFinishSanity` și recepția `training-finish.txt`.
+For the last move in `training-069`, run `-TrainingFinishOnly`. `QuestPayoffTest` checks the immediate objective, the legal line after `Rd8+`, and scoring exactly once. Sanity checks access to the explanation after check, replay on the board, progress retention, and reopening the explanation after solving. Publish the report with `-Dtest=AndroidSanityPublication#publishTrainingFinishSanity` and the `training-finish.txt` receipt.
 
 ```powershell
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/tactics.yaml chess-core/src/main/resources/tactics.sha256
 ```
 
-## Reluarea explicațiilor din puzzle
+## Resuming puzzle explanations
 
 [QuestReplayTest](../../atf-tests/src/test/java/ro/atf/chess/QuestReplayTest.java)
-verifică pe pozițiile din catalog semimutarea salvată în Mat în 2, fiecare
-cadru în ambele direcții la Mat în 3 și premiul exact de 10 puncte.
+uses catalog positions to verify the saved ply in Mate in 2, every frame in
+both directions in Mate in 3, and the exact award of 10 points.
 
-Proba nativă păstrează verificarea comenzilor la font mărit, deschiderea după
-apărarea salvată, rotația tablei, pixelii pieselor și progresul după închiderea
-explicației. Inclusiv când două mutări se termină pe același pătrat, poziția
-pieselor separă apărarea de cadrul final.
+The native probe keeps checks for the controls at larger font size, opening
+after the saved defense, board rotation, piece pixels, and progress after
+closing the explanation. Even when two moves end on the same square, the
+piece positions distinguish the defense from the final frame.
 
-Pe Android 9, la 720 × 1280 logic și 320 dpi, screenshotul UI Automation poate
-decupa cadrul fizic de 1080 × 1920. Proba verifică în fereastră tabla și
-comenzile, apoi folosește cadrul complet și verifică pe PNG toate cele patru
-colțuri ale tablei. La 1080 × 1920 nativ folosește UI Automation. Ambele runde
-folosesc font 1,3×. Recepția replayDisplay înregistrează profilul și sursa
-capturii. [Testul de geometrie](../../atf-tests/src/test/java/ro/atf/chess/ScreenCaptureGeometryTest.java)
+On Android 9, at 720 × 1280 logical and 320 dpi, the UI Automation screenshot
+can crop the physical 1080 × 1920 frame. The probe checks the board and controls
+in the window, then uses the full frame and checks all four board corners
+in the PNG. At native 1080 × 1920, it uses UI Automation. Both runs use a
+1.3× font scale. The replayDisplay receipt records the profile and capture
+source. [Geometry test](../../atf-tests/src/test/java/ro/atf/chess/ScreenCaptureGeometryTest.java)
 
-## Progresul problemelor
+## Puzzle progress
 
-`AppLanguagePreferenceTest` verifică selecția implicită, persistența limbii
-și scrierea respinsă. `MainMenuLayoutTest` fixează **Setări** în grupul Profil.
-Proba `-PuzzleUxOnly` alege ambele limbi din selector, redeschide meniul și
-verifică **Deschideri** după schimbare, cu partida, profilul și progresul păstrate.
+`AppLanguagePreferenceTest` verifies the default selection, language
+persistence, and a rejected write. `MainMenuLayoutTest` pins **Settings** in
+the Profile group. The `-PuzzleUxOnly` probe selects both languages in the
+selector, reopens the menu, and checks **Openings** after switching, with
+the game, profile, and progress preserved.
 
-`QuestHintTest` acoperă pașii piesă → mutare → explicație, iar
-`PuzzleExplainLayoutTest` verifică structura explicației, comenzile de 48 dp
-și spațiul rezervat pentru **Pericol**. Becul, săgeata și cartea disting cele
-trei acțiuni pe ecran. Explicația pune titlul și ieșirea în antet. Mutarea și
-dovada se derulează sub tabla fixă. Probele `-PuzzleMateReplayOnly` și
-`-PuzzleDangerOnly` păstrează verificările native ale liniei și marcajului.
+`QuestHintTest` covers piece → move → explanation. `PuzzleExplainLayoutTest`
+checks the explanation structure, 48 dp controls, and space reserved for
+**Danger**. The hint bulb, arrow, and book distinguish the three actions
+on screen. The explanation puts the title and exit in the header. The move
+and evidence scroll beneath the fixed board. The `-PuzzleMateReplayOnly` and
+`-PuzzleDangerOnly` probes keep native checks of the line and marker.
 
-Antetul celor șase capitole afișează punctele capitolului și seria globală de
-la două rezolvări consecutive. Săgețile și becul stau sub tablă. Meniul din
-antet afișează opțiunile în aceeași zonă, păstrând poziția și latura tablei. **Întoarce
-tabla** schimbă orientarea, iar **Meniu principal** păstrează problema, semimutarea
-și recompensele înainte de întoarcerea la ecranul principal. Comanda de sistem
-**Înapoi** închide întâi opțiunile. Din ecranul de joc revine la **Probleme**.
-Detaliile se pot derula. Zona rezervată păstrează un rând de stare și locul
-pentru opțiuni, astfel încât tabla să folosească toată lățimea când încape.
+The six chapter headers show chapter points and the global streak once two
+consecutive puzzles have been solved. The arrows and hint button sit under
+the board. The header menu shows options in the same area, preserving the
+board position and side length. **Flip board** changes the orientation, and
+**Main menu** preserves the puzzle, ply, and rewards before returning to the
+main screen. The system **Back** command closes the options first. From the
+game screen, it returns to **Puzzles**. Details can scroll. The reserved
+area keeps one status row and room for options so that the board uses the
+full width when it fits.
 
-| Probă | Contract urmărit |
+| Probe | Contract covered |
 |---|---|
-| `PuzzleChromeLayoutTest` | Antet pe două rânduri, scor și controale la spațiu restrâns. Săgețile și becul sunt centrate sub tabla pătrată, cu ținte de 48 dp. |
-| Sanity Android cu `-PuzzleUxOnly` | Verifică toate cele șase capitole în română și engleză. Deschide opțiunile, întoarce tabla și revine cu progresul păstrat. Controlează geometria tablei și blocarea comenzilor la limite, în timpul unei replici sau înainte de rezolvare. |
+| `PuzzleChromeLayoutTest` | Two-row header, score, and controls in limited space. The arrows and hint button are centered below the square board, with 48 dp targets. |
+| Android sanity with `-PuzzleUxOnly` | Checks all six chapters in Romanian and English. Opens options, flips the board, and returns with progress preserved. Checks board geometry and control locking at bounds, during a reply, or before a solve. |
 
-Rulați `-PuzzleUxOnly -PuzzleLanguage ro` pe 720 × 1280 la 320 dpi și
-`-PuzzleUxOnly -PuzzleLanguage en` pe 1080 × 1920 la 440 dpi, ambele la
-font 1,3×. Publicați cele șase puncte de control ale fiecărei rulări cu
-`AndroidSanityPublication#publishPuzzleUxSanity`. Extent leagă fiecare comparație
-și captură încorporată de recepția nativă. Identificatorii `puzzle_options`,
-`puzzle_flip_board`, `puzzle_main_menu`, `puzzle_points`, `puzzle_streak`, `quest_previous`
-și `quest_next` permit verificarea comenzilor prin arborele de accesibilitate.
+Run `-PuzzleUxOnly -PuzzleLanguage ro` at 720 × 1280 and 320 dpi and
+`-PuzzleUxOnly -PuzzleLanguage en` at 1080 × 1920 and 440 dpi, both at
+a 1.3× font scale. Publish the six checkpoints from each run with
+`AndroidSanityPublication#publishPuzzleUxSanity`. Extent ties each comparison
+and embedded capture to the native receipt. The identifiers `puzzle_options`,
+`puzzle_flip_board`, `puzzle_main_menu`, `puzzle_points`, `puzzle_streak`, `quest_previous`,
+and `quest_next` let you check the controls through the accessibility tree.
 
-`BoardPanelLayoutTest` verifică lățimea maximă a tablei de joc și de reluare
-la patru lățimi, plus o fereastră scundă și text mărit. Proba Android
-`-PuzzleDangerOnly` compară partida, puzzle-ul și explicația în aceeași fereastră.
+`BoardPanelLayoutTest` checks the maximum width of the game and replay boards
+at four widths, plus a short window and larger text. The Android probe
+`-PuzzleDangerOnly` compares the game, puzzle, and explanation in the same window.
 
-`QuestDangerTest` verifică matul pe poziția finală, capturile în ambele culori,
-recaptura care anulează câștigul, patul, piesa legată și en passant.
-`-PuzzleDangerOnly` verifică pe Android activarea la cerere, stingerea la navigare,
-motivul accesibil și păstrarea punctelor. Publicați recepția `puzzle-danger.txt`
-prin `AndroidSanityPublication#publishPuzzleDangerSanity`. Extent leagă aserțiunile
-și capturile de aceeași rulare și același APK.
+`QuestDangerTest` checks mate in the final position, captures for both colors,
+a recapture that cancels the gain, stalemate, a pinned piece, and en passant.
+On Android, `-PuzzleDangerOnly` checks activation on request, hiding the marker
+when navigating, the accessible reason, and points retention. Publish the
+`puzzle-danger.txt` receipt through `AndroidSanityPublication#publishPuzzleDangerSanity`.
+Extent ties the assertions and captures to the same run and APK.
 
-`QuestStoreTest` folosește store-ul de producție cu preferințe în memorie. Verifică reluarea cursorului după ID în **Tactică** și **Antrenament tactic**, rezolvarea fără puncte duplicate, seria comună și totalurile separate. Include preferințele moștenite și retry-ul după o scriere respinsă. `QuestProgressTest` verifică următoarea problemă nerezolvată după extinderea catalogului.
+`QuestStoreTest` uses the production store with in-memory preferences. It checks resuming the cursor by ID in **Tactics** and **Tactical training**, solving without duplicate points, the shared streak, and separate totals. It covers legacy preferences and retry after a rejected write. `QuestProgressTest` checks the next unsolved puzzle after the catalog grows.
 
-`QuestCatalogTest` verifică 1.238 de poziții publice distincte și 24 de poziții independente. `TacticsCatalogTest` verifică dovada materială a celor 114 exerciții de Antrenament tactic și a lotului independent. `MainMenuLayoutTest` verifică titlurile și totalurile. `ChessComponentSuite` rulează fără emulator. `DocumentationGovernanceTest` și `ReleaseGovernanceTest` verifică linkurile locale, versiunea și secțiunea de descărcare.
+`QuestCatalogTest` checks 1,238 distinct public positions and 24 independent positions. `TacticsCatalogTest` checks the material proof for the 114 Tactical training exercises and the independent set. `MainMenuLayoutTest` checks titles and totals. `ChessComponentSuite` runs without an emulator. `DocumentationGovernanceTest` and `ReleaseGovernanceTest` verify local links, the version, and the download section.
 
-La schimbarea catalogului material, rulați verificarea cheii și a amprentei pentru fiecare capitol afectat. Verificatorul reface și liniile publicate în `payoff-line`, inclusiv răspunsurile legale după ultima mutare. Amprenta continuă să urmărească cheia și rezultatul orizontului de trei semimutări.
+When the material catalog changes, run the key and fingerprint verification for each affected chapter. The verifier also reconstructs the lines published in `payoff-line`, including legal replies after the last move. The fingerprint continues to track the key move and the result at a three-ply horizon.
 
 ```powershell
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/training.yaml chess-core/src/main/resources/training.sha256
@@ -270,16 +273,16 @@ node scripts/verify-tactics.cjs <cale-catre-chess.js> atf-tests/src/test/resourc
 node scripts/verify-tactics.cjs <cale-catre-chess.js> chess-core/src/main/resources/intermezzo.yaml chess-core/src/main/resources/intermezzo.sha256
 ```
 
-## Suite JVM
+## JVM suites
 
-| Intrare JUnit | Ce verifică |
+| JUnit entry point | What it checks |
 |---|---|
-| `ChessComponentSuite` | Regulile, pozițiile și problemele, progresul, partida, deschiderile, indiciile și geometria verificată în JVM. Include contractele de accesibilitate Web rulate prin Node.js. Rulează offline. |
-| `ChessGovernanceSuite` | Inventarul suitelor, rezultatele și diagnosticul din Extent, legăturile locale din documentație, politica AI și calificarea release-ului. |
-| `ChessBenchmarkSuite` | Stockfish, liga offline și ancora Elo. Fiecare probă pornește când primește intrările documentate. |
-| `ChessJvmSuite` | Intrarea Maven implicită. Reunește cele trei selecții într-un raport. |
+| `ChessComponentSuite` | Rules, positions and puzzles, progress, games, openings, hints, and geometry verified in the JVM. Includes Web accessibility contracts run through Node.js. Runs offline. |
+| `ChessGovernanceSuite` | Suite inventory, Extent results and diagnostics, local documentation links, AI policy, and release qualification. |
+| `ChessBenchmarkSuite` | Stockfish, the offline league, and the Elo anchor. Each probe starts when given its documented inputs. |
+| `ChessJvmSuite` | The default Maven entry point. Combines the three selections in one report. |
 
-Din copia TMP, cu JDK 21, Maven și Node.js disponibil în PATH, rulați suita necesară.
+From the TMP copy, with JDK 21, Maven, and Node.js available on PATH, run the suite you need.
 
 ```powershell
 mvn test '-Dmaven.repo.local=target/maven-repo' '-Dchess.extent=target/jvm.html'
@@ -287,82 +290,80 @@ mvn test '-Dtest=ChessComponentSuite' '-Dchess.extent=target/components.html'
 mvn test '-Dtest=ChessGovernanceSuite' '-Dchess.extent=target/governance.html'
 ```
 
-În IDE, porniți clasa suitei ca test JUnit. Pentru un singur caz, folosiți clasa sau metoda direct, de exemplu `-Dtest=ChessMatchTest#historyPreservesCastlingAndEnPassant`. Folosiți un fișier Extent nou la fiecare lansare. Pentru un raport cumulat, porniți `ChessJvmSuite`. [Intrările JUnit](../../atf-tests/src/test/java/ro/atf/chess/suites)
+In the IDE, run the suite class as a JUnit test. For a single case, use its class or method directly, for example `-Dtest=ChessMatchTest#historyPreservesCastlingAndEnPassant`. Use a fresh Extent file for each run. For a combined report, run `ChessJvmSuite`. [JUnit entry points](../../atf-tests/src/test/java/ro/atf/chess/suites)
 
-JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Configurarea Stockfish, a ligii și a ancorei Elo](../board/ai-quality.md#control-la-fiecare-schimbare)
+JUnit marks benchmark probes skipped when their inputs are missing. [Setting up Stockfish, the league, and the Elo anchor](../board/ai-quality.md#checks-for-every-change)
 
-`AiLeagueBenchmarkTest` joacă cele 72 de partide ale ligii într-un pool de cel mult trei workeri și verifică separat replay-ul fiecărui rezultat; folosiți o cale TSV nouă în `-Dchess.league` și un Extent nou. Astfel, testul acoperă căutările simultane și păstrarea checkpoint-urilor fiecărui joc.
+`AiLeagueBenchmarkTest` plays the 72 league games in a pool of at most three workers and independently verifies replay of each result. Use a fresh TSV path in `-Dchess.league` and a fresh Extent report. This covers concurrent searches and retention of each game's checkpoints.
 
-`HardQuestTransferBenchmarkTest` rulează în `ChessBenchmarkSuite`. O probă cere soluția corectă pentru fiecare quest public și independent, folosind poziția și obiectivul. Cealaltă măsoară decizia adversarului Hard folosind numai poziția. Extent arată totalurile pe capitol, ratările și respectarea plafonului. Pragul de 39 la Antrenament tactic se aplică celor 48 de ID-uri din lotul înghețat. [Pragurile de regresie](../../atf-tests/src/test/resources/hard-quest-transfer.yaml)
+`HardQuestTransferBenchmarkTest` runs in `ChessBenchmarkSuite`. One probe requires the correct solution for every public and independent puzzle, using the position and objective. The other measures the Hard opponent's decision using only the position. Extent shows chapter totals, misses, and compliance with the cap. The threshold of 39 in Tactical training applies to the 48 IDs in the frozen set. [Regression thresholds](../../atf-tests/src/test/resources/hard-quest-transfer.yaml)
 
-`SuiteGovernanceTest` compară planurile descoperite de JUnit. Fiecare metodă JVM cu audit aparține unei singure suite primare. Publicarea recepțiilor Android și TalkBack are intrări explicite. `DocumentationGovernanceTest` verifică fișierele și ancorele Markdown locale, inclusiv cele din feedback.
+`SuiteGovernanceTest` compares the plans discovered by JUnit. Each audited JVM method belongs to one primary suite. Android and TalkBack receipt publication have explicit entry points. `DocumentationGovernanceTest` checks local files and Markdown anchors, including those in feedback.
 
-## Schimbarea testelor față de o bază Git
+## Test changes against a Git baseline
 
-Comparați schimbarea cu SHA-ul complet al commitului revizuit. Folosiți un
-worktree Git din TMP, cu istoricul necesar. Verificarea citește separat
-HEAD, indexul și fișierele de lucru. O mutare apare ca ștergerea căii vechi
-și adăugarea căii noi. Se verifică și editările în interiorul unui test.
+Compare the change against the reviewed commit's full SHA. Use a Git worktree
+in TMP with the required history. The check reads HEAD, the index, and the
+working files separately. A move appears as deletion of the old path and
+addition of the new path. The check also covers edits within a test.
 
-| Schimbare | Condiție |
+| Change | Requirement |
 |---|---|
-| Adăugare independentă | Intră în inventarul și suita care îi corespund. |
-| Editare a testului, resursei sau selectorului | Control cu baza, calea exactă, contractul și metoda ce îl verifică. |
-| Ștergere sau mutare | Acord explicit de ștergere și test înlocuitor într-un fișier distinct. |
-| Mutare din Android în JVM | Metoda trece în suita de componente și controlul identifică proba nativă păstrată. |
+| Independent addition | Add it to the appropriate inventory and suite. |
+| Edit to a test, resource, or selector | Record a control with the baseline, exact path, contract, and the method that checks it. |
+| Deletion or move | Explicit deletion approval and a replacement test in a separate file. |
+| Move from Android to the JVM | The method moves to the component suite, and the control identifies the retained native probe. |
 
-În [registrul testChanges](test-changes.yaml), completați un control pentru
-fiecare cale existentă afectată. Indicați ID-ul, baza, calea sursă, calea
-înlocuitoare, clasa și metoda exactă, contractul păstrat și dreptul de
-ștergere. Când mutați o verificare nativă, adăugați calea și eticheta
-stabilă a verificării Android păstrate. Revizorul confirmă echivalența
-aserțiunilor și păstrează dovada Android pentru gesturi, randare, date Android
-sau restart real. Verificarea Git controlează selecția, execută metoda JVM
-și confirmă referința la controlul nativ.
+In the [testChanges register](test-changes.yaml), add a control for each affected
+existing path. Specify the ID, baseline, source path, replacement path, exact
+class and method, retained contract, and permission to delete. When moving a
+native check, add the path and stable label of the retained Android check.
+The reviewer confirms assertion equivalence and keeps Android evidence for
+gestures, rendering, Android data, or an actual restart. The Git check verifies
+selection, executes the JVM method, and confirms the reference to the native control.
 
 ```powershell
 mvn test "-Dtest=TestChangeReview" "-Dchess.testChanges.base=$reviewBase" "-Dchess.extent=$testChangeExtent"
 ```
 
-Setați valoarea reviewBase la SHA-ul complet al strămoșului comun ales pentru
-revizuire și testChangeExtent la o cale HTML nouă în TMP. Testul arhivează
-decizia și scrie separat Extent pentru metodele executate. O bază nouă cere
-reconcilierea registrului. Scoateți intrarea când revizia de bază include
-deja schimbarea. Preflight-ul de distribuție acceptă recepția pentru un
-candidat Git curat și o bază distinctă. [Preflight](../release/README.md#calificare-și-publicare)
+Set reviewBase to the full SHA of the common ancestor chosen for review and
+testChangeExtent to a fresh HTML path in TMP. The test archives the decision
+and writes a separate Extent report for the executed methods. A new baseline
+requires reconciling the register. Remove the entry when the baseline revision
+already includes the change. The distribution preflight accepts the receipt
+for a clean Git candidate and a distinct baseline. [Preflight](../release/README.md#qualification-and-publication)
 
-## Raportare Extent
+## Extent Reporting
 
-Un test JVM auditat care se încheie normal trebuie să evalueze cel puțin o
-aserțiune în **TEST BODY**. O comparație exclusiv în setup sau teardown
-produce FAIL în JUnit și în Extent. Eșecurile și întreruperile existente
-își păstrează diagnosticul. `ExtentGovernanceTest` verifică execuția directă
-și în suită.
+An audited JVM test that completes normally must evaluate at least one
+assertion in **TEST BODY**. A comparison made only in setup or teardown
+produces FAIL in JUnit and Extent. Existing failures and interruptions retain
+their diagnostics. `ExtentGovernanceTest` checks direct and suite execution.
 
-În Extent, deschideți scenariul, **TEST BODY** și **Assertions** pentru a vedea valorile așteptate, valorile observate și rezultatul fiecărei comparații. Extensia măsoară execuția de la setup la teardown, apoi publică starea și diagnosticul JUnit. `ExtentGovernanceTest` verifică HTML-ul produs pentru PASS, FAIL, SKIP și pentru un caz fără comparații.
+In Extent, open the scenario, **TEST BODY**, and **Assertions** to see expected values, observed values, and the outcome of each comparison. The extension measures execution from setup to teardown, then publishes the JUnit status and diagnostic. `ExtentGovernanceTest` verifies the HTML produced for PASS, FAIL, SKIP, and a case without comparisons.
 
-Pentru cele două meniuri Android, fiecare checkpoint grupează acțiunea, comparația nativă și captura PNG încorporată. La reluarea unei partide, aserțiunea verifică poziția și evidențierea ultimei mutări în imagine. Verificați că aserțiunile se pot extinde și că amprentele corespund recepției, APK-ului, commitului și capturilor. O captură absentă, invalidă, substituită sau repetată între cele două ecrane produce FAIL cu diagnostic în HTML. `ExtentGovernanceTest` exercită publicarea offline. [Calificarea ediției](../release/README.md#calificare-și-publicare)
+For the two Android menus, each checkpoint groups the action, native comparison, and embedded PNG capture. When resuming a game, the assertion checks the position and last-move highlight in the image. Verify that assertions can be expanded and that fingerprints match the receipt, APK, commit, and captures. A missing, invalid, substituted, or repeated capture across the two screens produces FAIL with a diagnostic in the HTML. `ExtentGovernanceTest` exercises publication offline. [Release qualification](../release/README.md#qualification-and-publication)
 
-Pentru Analiza partidei, păstrați recepția nativă, identitatea APK-ului și raportul Extent. Verificați amprentele raportului și ale capturilor în dovezile ediției. [Calificarea ediției](../release/README.md#calificare-și-publicare)
+For Game Review, keep the native receipt, APK identity, and Extent report. Verify the report and capture fingerprints in the release evidence. [Release qualification](../release/README.md#qualification-and-publication)
 
-Captura UI Automation poate avea dimensiuni raster mai mici decât ecranul real al emulatorului. Comparațiile de pixeli proiectează dreptunghiurile din coordonate de ecran în coordonatele bitmapului folosind dimensiunile reale ale displayului; verificarea vizibilității elementelor rămâne bazată pe limitele native ale ferestrei. Astfel, redimensionarea capturii nu devine un fals eșec vizual.
+The UI Automation capture can have raster dimensions smaller than the emulator's actual screen. Pixel comparisons map screen-coordinate rectangles to bitmap coordinates using the actual display dimensions. Element visibility checks still use the native window bounds. Resizing the capture therefore avoids a false visual failure.
 
-## Sanity Android
+## Android Sanity
 
-J7 păstrează API minim 26. Jocul și lecțiile folosesc navigarea de sistem
-pentru API 26–32 și callback-ul platformei de la API 33. Proba de analiză
-trimite comanda Înapoi prin Android după mutarea Hard și verifică revenirea
-în meniu cu partida păstrată. Lint verifică API-urile și resursele din APK.
+J7 retains minimum API 26. The game and lessons use system navigation on
+API 26–32 and the platform callback from API 33. After a Hard move, the analysis
+probe sends the Android Back command and checks that the menu reopens with the
+game preserved. Lint checks APK APIs and resources.
 
-Verificați separat compatibilitatea surselor împachetate în aplicație:
-rulați `gradlew.bat :app:lintDebug` din `android`, în TMP. Maven verifică
-motorul pe JDK 21; build-ul Gradle și lint răspund la întrebări diferite
-despre compilare și API-ul minim. Proba nativă confirmă apoi comportamentul.
+Verify compatibility of the sources packaged in the app separately.
+Run `gradlew.bat :app:lintDebug` from `android` in TMP. Maven verifies the
+engine on JDK 21. The Gradle build and lint answer different questions about
+compilation and the minimum API. The native probe confirms the behavior.
 
-Pentru calificare, folosiți un emulator rezervat și curat. Din copia TMP,
-setați `ANDROID_HOME` către SDK 36, încărcați identitatea de semnare și
-construiți APK-ul de distribuție și instrumentarea lui.
-[Semnare și calificare](../release/README.md#calificare-și-publicare)
+For qualification, use a reserved, clean emulator. In the TMP copy, set
+`ANDROID_HOME` to SDK 36, load the signing identity, and build the distribution
+APK and its instrumentation.
+[Signing and qualification](../release/README.md#qualification-and-publication)
 
 ```powershell
 Push-Location android
@@ -371,175 +372,181 @@ Pop-Location
 ./scripts/run-android-sanity.ps1 -Adb adb -Serial <serial> -LeaseFile <registru-rezervare> -Distribution -SourceCommit <sha>
 ```
 
-Runnerul refuză o instalare existentă a pachetului de distribuție.
-Folosiți registrul comun de rezervare pe dispozitivele partajate. Varianta
-cu alt ID de aplicație rămâne o probă de dezvoltare și nu califică APK-ul.
+The runner rejects an existing installation of the distribution package.
+Use the shared reservation register on shared devices. The variant with a
+different application ID remains a development probe and cannot qualify the APK.
 
-1. Prima instrumentare verifică meniul, culoarea, cele două trepte ale becului și încadrarea în română la font 1,3×. Rezolvă două poziții în Tactică și trece la a doua poziție nerezolvată din Antrenament tactic. În Mat în 2 observă mutarea înainte de apărare și pauza de cel puțin 650 ms. În Mat în 3 închide tabla cu a doua apărare în așteptare.
-2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, pragul de cinci rezolvări, poziția și punctele restaurate în Tactică și reluarea celei de-a doua probleme nerezolvate din Antrenament tactic.
-3. Extent cere un ID comun de rulare și PID-uri distincte pentru cele cinci faze. Verifică cele 58 de perechi ID–etichetă din `prepare`, cele 26 de comparații din `restore` și recepțiile de partidă. Diagnosticul apare lângă comparația nativă.
+1. The first instrumentation phase checks the menu, color, both hint tiers, and layout in Romanian at a 1.3× font scale. It solves two Tactics positions and advances to the second unsolved Tactical training position. In Mate in 2 it observes the move before the defense and the pause of at least 650 ms. In Mate in 3 it closes the board with the second defense pending.
+2. The runner stops the process. The second instrumentation phase checks the pending reply, the five-solve milestone, the restored position and points in Tactics, and resumption of the second unsolved Tactical training puzzle.
+3. Extent requires a common run ID and distinct PIDs for the five phases. It verifies the 58 ID–label pairs in `prepare`, the 26 comparisons in `restore`, and the game receipts. The diagnostic appears next to the native comparison.
 
-La modificarea instrumentării, sincronizați inventarul `prepare` și numărul de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt` și `-Dchess.android.runId=<runId din execution.json>`.
+When changing instrumentation, synchronize the `prepare` inventory and per-phase assertion counts with `AndroidSanityPublication`. To regenerate the report, copy the native evidence into a fresh directory and run `-Dtest=AndroidSanityPublication#publishBoardSanity` with `-Dchess.android.receipt=<dosar>/prepare.txt` and `-Dchess.android.runId=<runId din execution.json>`.
 
-`AndroidReceiptTest` verifică offline randarea celor 58 de aserțiuni și respingerea unei aserțiuni lipsă, a unui ID duplicat, a unei etichete substituite și a unei faze din altă rulare. Proba de reluare verifică și respingerea unei etichete străine pentru Antrenament tactic, cu numărul total păstrat.
+`AndroidReceiptTest` verifies offline that all 58 assertions render and that a missing assertion, duplicate ID, substituted label, and phase from a different run are rejected. The resume probe also checks rejection of a foreign Tactical training label while keeping the total unchanged.
 
-## Upgrade al progresului
+## Upgrading saved progress
 
-Sanity-ul de distribuție pornește de la o instalare curată. Pentru proba
-separată de upgrade, porniți de la un emulator curat, verificați că cele
-două APK-uri au același certificat și instalați întâi ediția publicată.
-Creați progres, opriți procesul și instalați candidatul cu `adb install -r`.
-Verificați `versionCode`, timpul primei instalări, PID-urile și ID-urile
-problemelor, apoi comparați punctele, seria și apărarea rămasă în curs.
+The distribution sanity run starts from a clean installation. For the separate
+upgrade probe, start with a clean emulator, confirm that both APKs have the
+same certificate, and install the published release first. Create progress,
+stop the process, and install the candidate using `adb install -r`.
+Verify `versionCode`, first-install time, PIDs, and puzzle IDs, then compare the
+points, streak, and pending defense.
 
-În componentă, `QuestStoreTest` verifică reordonarea și extinderea
-capitolului cu același ID și punctaj, inclusiv refuzul acordării duble.
-Restartul Android verifică restaurarea aceleiași instalări.
-Doar instalarea peste o ediție existentă dovedește migrarea între APK-uri.
+In the component test, `QuestStoreTest` verifies reordering and expanding a
+chapter with the same ID and score, including rejection of a duplicate award.
+An Android restart verifies restoration in the same installation.
+Installing over an existing release is required to prove migration between APKs.
 
-La upgrade-ul de la 0.9.0 la 0.10.0, problema `mate-008` s-a redeschis la `23/500`, cu două rezolvări și 20 de puncte. În vechiul catalog avea rangul 3. Faza Android pentru restartul aceleiași versiuni verifică rangul 3 pentru datele pregătite în acea versiune. O probă de upgrade verifică ID-ul memorat și rangul lui din noul YAML.
+On the upgrade from 0.9.0 to 0.10.0, `mate-008` reopened at `23/500`, with two solves and 20 points. It was ranked third in the old catalog. The Android phase for a restart on the same version checks rank 3 for the data prepared in that version. An upgrade probe verifies the stored ID and its rank in the new YAML.
 
-Pe API 28, un profil de probă salvat de 0.9.0 a păstrat după upgrade 105 ID-uri rezolvate, 1.072 de puncte, seria de trei, încercarea asistată și mutarea finală salvată. La prima deschidere, Mat în 3 a executat a doua apărare restantă și a ținut **Următoarea** blocată până la mat.
+On API 28, a test profile saved by 0.9.0 kept 105 solved IDs, 1,072 points, the three-solve streak, the assisted attempt, and the saved final move after upgrading. On first opening, Mate in 3 played the second pending defense and kept **Next** disabled until mate.
 
-Verificați și un capitol de mat completat anterior. `mate-129`, `mate2-024nn` și `mate3-02YEp` rămân ultimele în capitolele lor, iar toate pozițiile noi din aceste capitole sunt înaintea lor. În APK-ul 0.10.0 publicat, Mat în 1 afișa `500/500` cu `102/500` rezolvate și **Următoarea** dezactivată. **Precedentă** deschidea problema de la `499/500`.
+Also verify a previously completed mate chapter. `mate-129`, `mate2-024nn`, and `mate3-02YEp` remain last in their chapters, and every new position in these chapters appears before them. In the published 0.10.0 APK, Mate in 1 displayed `500/500` with `102/500` solved and **Next** disabled. **Previous** opened the puzzle at `499/500`.
 
-## Tabla de analiză dintr-o partidă
+## Analysis board from a game
 
-`AnalysisLineTest` și workerul TeaVM citesc `contextual-analysis.json`. Cazurile fixează checkpointul, semimutarea vizibilă și orientarea pentru o partidă cu AI, o arhivă după abandon și o poziție de mat. Ele verifică ramificarea, respingerea unui cursor invalid și păstrarea sursei. Componenta cu mock-uri verifică revenirea la partidă și la declanșator, păstrarea marcajului studiului independent și ignorarea răspunsurilor întârziate după ieșire. [Contractele APK–Web](../../web/parity.md#contracte-și-probe)
+`AnalysisLineTest` and the TeaVM worker read `contextual-analysis.json`. The cases fix the checkpoint, visible ply, and orientation for an AI game, an archive entry after resignation, and a checkmate position. They check branching, rejection of an invalid cursor, and retention of the source. The component test with mocks checks returning to the game and opening control, keeping the independent study bookmark, and ignoring replies delayed until after exit. [APK–Web contracts](../../web/parity.md#contracts-and-checks)
 
-Rulați din copia din TMP, cu `$site` din buildul Web.
+Run from the TMP copy with `$site` from the Web build.
 
 ```powershell
 mvn -B -ntp -pl atf-tests -am test '-Dtest=AnalysisLineTest,ChessWebAnalysisStudyTest,ChessWebStudyShellTest#packagedWorkerSharesTheContextualAnalysisCasesWithTheJvm' '-Dsurefire.failIfNoSpecifiedTests=false' "-Dchess.study.bundle=$site" "-Dchess.extent=$report"
 ```
 
-În sanity, deschideți o partidă la o mutare din istoric, deschideți tabla de analiză și reveniți. Verificați cursorul, orientarea și focusul. Cazurile de legalitate și persistență rămân în componente. [Tabla de analiză pe Web](../../web/README.md#studiu)
+In sanity, open a game at a historical move, open the Analysis board, and return. Check the cursor, orientation, and focus. Legality and persistence cases remain in components. [Analysis board on the Web](../../web/README.md#study)
 
-## Deschideri
+## Openings
 
-`OpeningCatalogTest` verifică parcurgerea pentru ambele culori, pozițiile finale distincte și recunoașterea noilor linii în indexul ECO. `OpeningLessonTest` verifică o singură semimutare la fiecare apăsare, pauza replicii și rejucarea din istoric. `MatchAiGovernanceTest` verifică pozițiile de comparație cu Stockfish pentru fiecare lecție. În Engleză și Nimzo-indiană, pozițiile noi măsoară răspunsul negrului înainte de retragerea calului, respectiv de schimbul de pe c3. În Catalană și Alapin, comparația pornește cu albul la mutare după ultima replică din lecție.
+`OpeningCatalogTest` checks playthrough for both colors, distinct final positions, and recognition of new lines in the ECO index. `OpeningLessonTest` checks a single ply per press, the pause before a reply, and replay from history. `MatchAiGovernanceTest` checks Stockfish comparison positions for every lesson. In the English and Nimzo-Indian, the new positions measure Black's reply before the knight retreat and the exchange on c3, respectively. In the Catalan and Alapin, comparison starts with White to move after the last reply in the lesson.
 
-Pentru paritatea vizuală APK–Web, `OpeningLessonTest` verifică latura tablei, pragul pentru două coloane și încadrarea după măsurarea etichetelor. `ChessWebOpeningStudyTest` verifică treptele indiciului și contractul de afișare fără browser. În sanity, deschideți Italiana C54 cu albele la `0 / 12`, apoi dezvăluiți `e2–e4`. Repetați la font 1,3× pe profilul compact de 360 × 640 unități logice și pe cel orizontal de 1280 × 900. Laturile țintă sunt 288 și 592 de unități. Comparați poziția tablei înainte și după indiciu, conturul lui `e2`, textul complet și comenzile de minimum 48 de unități. În Extent consemnați densitatea și zona utilă de pe Android, viewportul Web și capturile pereche. [Lecțiile](../board/openings.md) · [Probele Studiu](../../web/README.md#studiu)
+For APK–Web visual parity, `OpeningLessonTest` checks the board side length, the two-column threshold, and fit after measuring labels. `ChessWebOpeningStudyTest` checks hint tiers and the display contract without a browser. In sanity, open Italian Game C54 as White at `0 / 12`, then reveal `e2–e4`. Repeat at a 1.3× font scale on a compact 360 × 640 logical-unit profile and a 1280 × 900 landscape profile. The target side lengths are 288 and 592 units. Compare board position before and after the hint, the outline on `e2`, complete text, and controls measuring at least 48 units. Record Android density and usable area, the Web viewport, and paired captures in Extent. [Lessons](../board/openings.md) · [Study probes](../../web/README.md#study)
 
-Pe Android, rulați sanity cu `-OpeningsOnly`. Proba joacă destinația indicată în Italiană și sugestia AI compatibilă cu lecția. Verifică mesajul pentru varianta spaniolă sugerată de AI, navigarea în ambele sensuri, rejucarea dintr-o poziție anterioară și tabla orientată pentru negru.
+On Android, run sanity with `-OpeningsOnly`. The probe plays the indicated destination in the Italian Game and the AI suggestion compatible with the lesson. It checks the message for the AI-suggested Spanish line, navigation in both directions, replay from an earlier position, and a board oriented for Black.
 
-La două apăsări **Următoarea**, proba compară coordonatele și dimensiunile tablei și ale celulelor `a1` și `h8`: când apare **Continuă lecția** și când revine **Indiciu lecție**. Folosește fereastra emulatorului și două măsurători native compacte, de până la 320 × 480 dp și 280 × 440 dp. Extent cere ambele comparații chiar dacă numărul total de aserțiuni este corect.
+With two presses of **Next**, the probe compares coordinates and dimensions for the board and the `a1` and `h8` squares when **Continue lesson** appears and when **Lesson hint** returns. It uses the emulator window and two compact native measurements, up to 320 × 480 dp and 280 × 440 dp. Extent requires both comparisons, even when the total number of assertions is correct.
 
 ```powershell
 mvn test '-Dtest=AndroidSanityPublication#publishOpeningSanity' "-Dchess.android.receipt=$receipt"
 ```
 
-Setați `$receipt` la `openings.txt` din dosarul TMP tipărit de runner. Raportul include aserțiunile native și cadrele pentru catalog, indiciu, analiză și rejucare.
+Set `$receipt` to `openings.txt` in the TMP directory printed by the runner. The report includes native assertions and frames for the catalog, hint, analysis, and replay.
 
-Pentru APK-ul semnat, folosiți `-Distribution -IncludeOpenings -SourceCommit <sha>`. Proba folosește același APK instalat ca sanity-ul de bază și salvează recepția și capturile în subdirectorul `openings`.
+For the signed APK, use `-Distribution -IncludeOpenings -SourceCommit <sha>`. The probe uses the same APK installed for the base sanity run and saves the receipt and captures in the `openings` subdirectory.
 
-## Partidă și istoric
+## Game and History
 
-`ChessGameBotSessionTest` verifică profilul și culoarea după restaurare, proprietatea turei și respingerea unei replici duplicate. `ChessWebBotPublication` publică proba Edge la `/chess/` și compară mutarea livrată de worker cu JVM. [Sanity Web cu AI](../../web/README.md#partida-cu-ai)
+`ChessGameBotSessionTest` checks the profile and color after restoration, turn ownership, and rejection of a duplicate reply. `ChessWebBotPublication` publishes the Edge probe at `/chess/` and compares the worker's move with the JVM move. [Web sanity with AI](../../web/README.md#ai-match)
 
-`-ActiveMatchOnly` verifică poziția exactă după restart pe tura jucătorului. Publicați recepția `active-match-prepare.txt` cu `AndroidSanityPublication#publishActiveMatchSanity`.
+`-ActiveMatchOnly` checks the exact position after restarting on the player's turn. Publish the `active-match-prepare.txt` receipt with `AndroidSanityPublication#publishActiveMatchSanity`.
 
-`-PendingBotOnly` oprește procesul în tura botului într-o partidă Advanced cu jucătorul la Negru. La relansare, proba verifică o singură replică legală după istoric, profilul și poziția. Publicați `pending-bot-prepare.txt` cu `AndroidSanityPublication#publishPendingBotSanity` și `-Dchess.android.receipt=<cale>`. Extent leagă capturile de APK, de rulare și de PID-urile distincte.
+`-PendingBotOnly` stops the process on the bot's turn in an Advanced game with the player as Black. On relaunch, the probe checks that there is a single legal reply after the history, and checks the profile and position. Publish `pending-bot-prepare.txt` with `AndroidSanityPublication#publishPendingBotSanity` and `-Dchess.android.receipt=<cale>`. Extent ties the captures to the APK, run, and distinct PIDs.
 
-`MatchControlsTest` verifică comenzile din meniu în partida activă, în
-istoric și după rezultat, inclusiv remiza doar la tura jucătorului și sensul
-bifei **Lasă AI-ul să mute**. `MatchToolbarResourcesTest` verifică antetul
-comun, țintele tactile, încadrarea textului și etichetele RO/EN.
-Proba nativă deschide meniul la font 1,3×, întoarce tabla păstrând aceleași
-coordonate și verifică poziția selectată în banda de mutări.
+`MatchControlsTest` checks menu controls in the active game, in history, and
+after the result. This includes draws only on the player's turn and the meaning
+of the **Let AI move** checkbox. `MatchToolbarResourcesTest` checks the shared
+header, touch targets, text fit, and RO/EN labels. The native probe opens the
+menu at 1.3× font scale, flips the board while preserving its coordinates,
+and checks the selected position in the move strip.
 
-`MatchStoreTest` rulează persistența de producție cu preferințe în memorie și ceas fix. Verifică listele disjuncte după migrare și restart, salvarea atomică la încheiere, reutilizarea locului arhivat și plafonul celor zece partide active. `MatchListEntryTest` respinge construirea unui rând pentru meniul greșit. `MatchArchiveTest` verifică și codec-ul analizei, plafonul și identitatea checkpoint-ului.
+`MatchStoreTest` runs production persistence with in-memory preferences and a fixed clock. It checks disjoint lists after migration and restart, atomic saving when the game ends, reuse of the archived slot, and the ten-active-game cap. `MatchListEntryTest` rejects constructing a row for the wrong menu. `MatchArchiveTest` also checks the analysis codec, cap, and checkpoint identity.
 
-`MatchListEntryTest` verifică datele afișate pentru partide în curs, partide încheiate, remize, renunțări și salvări vechi. `MainMenuLayoutTest` verifică textele în română și engleză, ierarhia dintre titlu, mutări și dată, contrastul etichetei și poziția butonului **Înapoi**. `MatchSlotsTest` verifică ordinea de înlocuire, controlul manual și respingerea replicilor AI vechi. Android păstrează un parcurs pe meniu, cu o captură a listei și o verificare a deschiderii partidei.
+`MatchListEntryTest` checks the displayed data for in-progress games, completed games, draws, resignations, and old saves. `MainMenuLayoutTest` checks Romanian and English text, the hierarchy of title, moves, and date, label contrast, and the **Back** button's position. `MatchSlotsTest` checks replacement order, manual control, and rejection of stale AI replies. Android keeps one flow per menu, with a list capture and a check that the game opens.
 
-`ChessMatchTest` verifică reluarea din fiecare poziție a unei partide terminate, salvarea variantei noi, rocada, en passant și repetarea poziției. `GameReviewTest` verifică matul ratat, variantele comparate, transpoziția ECO, schimbarea categoriei la configurarea pragului, anularea și estimarea din perspectiva jucătorului. `GameReviewGovernanceTest` verifică valorile implicite, bugetul, reperele Elo și legalitatea liniilor importate. [Metodă, interacțiune și praguri](../board/game-review.md)
+`ChessMatchTest` checks resumption from every position of a finished game, saving the new variation, castling, en passant, and position repetition. `GameReviewTest` checks missed mate, compared lines, ECO transposition, changes in classification with the threshold setting, cancellation, and estimation from the player's perspective. `GameReviewGovernanceTest` checks defaults, budget, Elo references, and legality of imported lines. [Method, interaction, and thresholds](../board/game-review.md)
 
-Pentru geometrie, `GameReviewLayoutTest` verifică pătratul maxim, comenzile fixe și spațiul rămas explicației în profiluri portret compacte și late, inclusiv cu text mai mare. Același calcul poziționează tabla în teoria deschiderilor și în **De ce?**. `GameReviewGraphLayoutTest` verifică selecția din centrul fiecărui punct pe grafice înguste și partide lungi, rotunjirea între puncte, capetele și cazurile fără lățime utilă. `GameReviewTimelineTest` verifică alinierea cu partida, dispariția deschiderii după prima navigare, limitele cursorului, saltul la moment-cheie, parcurgerea variantei și revenirea la poziția jucată fără modificarea istoricului.
+For geometry, `GameReviewLayoutTest` checks the largest square, fixed controls, and space left for the explanation on compact and wide portrait profiles, including larger text. The same calculation positions the board in opening theory and **Why?**. `GameReviewGraphLayoutTest` checks selection at each point's center on narrow graphs and long games, rounding between points, endpoints, and cases with no usable width. `GameReviewTimelineTest` checks alignment with the game, the opening label disappearing after the first navigation action, cursor bounds, jumping to a key moment, replaying the variation, and returning to the played position with history preserved.
 
-Pentru integrarea nativă, rulați `run-android-sanity.ps1 -GameReviewOnly` după construirea variantei `sanity`. La calificarea APK-ului folosiți `-Distribution -GameReviewOnly -SourceCommit <sha>`. Prima fază are 23 de aserțiuni și cinci capturi, inclusiv selecția semimutării 184 din partida de 185. Fazele **De ce?** și reluare adaugă șapte aserțiuni și patru capturi. Ele verifică fereastra pe tot ecranul, tabla fixă în ambele linii și ambele evaluări cu adâncimea. **Înapoi** păstrează mutarea și zona vizibilă din istoric. Proba verifică și anularea, redeschiderea după oprirea procesului și continuarea separată cu arhiva intactă. Publicați `android-game-review.html` din `game-review.txt` cu `-Dtest=AndroidSanityPublication#publishGameReviewSanity` și `-Dchess.android.receipt=<cale>`. Păstrați recepțiile și capturile celor trei faze împreună. Extent verifică identificatorul comun de rulare, PID-urile distincte la reluare, identitatea APK-ului și a dispozitivului și amprenta fiecărei capturi. [Semnare și calificare](../release/README.md#calificare-și-publicare) · [Comportamentul review-ului](../board/game-review.md#navigarea-în-review-și-variantele-recomandate)
+For native integration, run `run-android-sanity.ps1 -GameReviewOnly` after building the `sanity` variant. To qualify the APK, use `-Distribution -GameReviewOnly -SourceCommit <sha>`. The first phase has 23 assertions and five captures, including selection of ply 184 in the 185-ply game. The **Why?** and restore phases add seven assertions and four captures. They check the full-screen window, the fixed board in both lines, and both evaluations with their depth. **Back** preserves the move and visible area of history. The probe also checks cancellation, reopening after process termination, and a separate continuation with the archive intact. Publish `android-game-review.html` from `game-review.txt` with `-Dtest=AndroidSanityPublication#publishGameReviewSanity` and `-Dchess.android.receipt=<cale>`. Keep receipts and captures from all three phases together. Extent checks the common run ID, distinct PIDs on resumption, APK and device identity, and each capture fingerprint. [Signing and qualification](../release/README.md#qualification-and-publication) · [Review behavior](../board/game-review.md#review-navigation-and-recommended-lines)
 
-`GameReviewTimelineTest` acoperă matul permis și ratat, promovarea la damă și la turn, captura decisivă, schimbul compensat, orizontul inegal și liniile vechi invalide. `MatchStoreTest` verifică restaurarea marcajului după redeschiderea stocării, continuarea separată și invalidarea când se schimbă identitatea. `AndroidReceiptTest` respinge o captură substituită, o fază preluată din altă rulare și un restart raportat cu același PID.
+`GameReviewTimelineTest` covers allowed and missed mate, promotion to queen and rook, a decisive capture, a compensated exchange, unequal horizons, and invalid older lines. `MatchStoreTest` verifies bookmark restoration after reopening storage, separate continuation, and invalidation when identity changes. `AndroidReceiptTest` rejects a substituted capture, phase taken from another run, and a reported restart with the same PID.
 
-`GameReviewTest` reconciliază tabelul cu mutările individuale, inclusiv zerourile și rolurile inversate când jucătorul are negrul. `MatchActionsTest` verifică refuzul, redeschiderea rezultatului salvat, mutarea din istoric și respingerea unei salvări care suprascrie un mat. [Fluxul jucătorului](../board/README.md#partidă-cu-calculatorul)
+`GameReviewTest` reconciles the table with individual moves, including zeros and reversed roles when the player has Black. `MatchActionsTest` checks refusal, reopening the saved result, moving from history, and rejecting a save that overwrites checkmate. [Player flow](../board/README.md#game-against-the-computer)
 
-Pentru analiza AI, rulați `-AnalysisOnly`. Prima fază pornește dintr-un joc
-salvat și verifică becul din istoric, două semimutări ale variantei, geometria
-tablei și revenirea la cursor fără schimbarea salvării. Faza din
-`analysis-restore/` verifică poziția și indiciul ascuns după restart. Sunt
-cinci aserțiuni înainte de restart și două după. `-IncludeManualAnalysis`
-rulează și tabla manuală cu același ID.
+For AI analysis, run `-AnalysisOnly`. The first phase starts from a saved
+game and checks the hint button in history, two plies in the variation, board
+geometry, and returning to the cursor with the save unchanged. The phase in
+`analysis-restore/` checks the position and hidden hint after restart. There
+are five assertions before the restart and two after it. `-IncludeManualAnalysis`
+also runs the manual board under the same ID.
 
-`MatchHintTest` verifică ordinea variantelor, destinația jucabilă, promovarea exactă și prioritatea selecției manuale. Include un caz în care mutarea indicată aparține culorii care a mutat deja. `MatchEvaluationTest` verifică perspectiva albului, formatarea și proporțiile barei pentru avantaj, egalitate și final. `MatchSetupTest` verifică alegerile de culoare, adâncimile AI, salvările anterioare și mutarea de deschidere a motorului când omul joacă cu negrul. `PlayerProfileTest` verifică validarea numelui, iar `MainMenuLayoutTest` verifică gruparea și opțiunile celor două dropdownuri.
+`MatchHintTest` checks variation order, the playable destination, exact promotion, and priority of manual selection. It includes a case where the suggested move belongs to the side that has already played. `MatchEvaluationTest` checks White's perspective, formatting, and bar proportions for an advantage, equality, and the result. `MatchSetupTest` checks color choices, AI depths, previous saves, and the engine's opening move when the human plays Black. `PlayerProfileTest` checks name validation, and `MainMenuLayoutTest` checks grouping and options in both dropdowns.
 
-`HintPreviewTest` verifică pașii motorului pe poziții reale, revenirea exactă,
-matul, schimbul compensat și respingerea unei linii ilegale. Proba din
-Siciliană urmărește `…Qxf2+ Kxf2` și verifică diferența față de start din
-perspectiva negrului. `MatchHintTest` acoperă una, două și trei linii și
-exclude o alternativă pozitivă din afara ferestrei de 25 cp. `HintComparisonTest`
-verifică ordinea comună a becului, dialogului și mutării la atingere în
-Siciliană, Caro–Kann și Catalană, pentru ambele culori. Extent consemnează
-mutările, orizontul comun și consumul sub plafonul configurat. Probele redau
-ambele linii, păstrează varianta la revenire și resping indiciul din alt cadru.
-Réti și Alehina verifică păstrarea mutării când inversarea nu este confirmată.
-Explicația verifică replica de mat, captura necompensată și diferența de scor.
-`AndroidReceiptTest`
-reproduce fără emulator PNG-ul substituit și faza străină, inclusiv când
-metadatele au fost actualizate. Extent păstrează rezultatele native, ID-ul,
-amprenta APK-ului și capturile confirmate de amprentele din instrumentare.
+`HintPreviewTest` checks engine steps on real positions, exact restoration,
+mate, compensated exchanges, and rejection of illegal lines. The Sicilian
+probe follows `…Qxf2+ Kxf2` and checks the difference from the starting
+position from Black's perspective. `MatchHintTest` covers one, two, and three
+lines and excludes a positive alternative beyond the 25 cp window.
+`HintComparisonTest` checks the shared ordering of the hint button, dialog, and
+tap-to-move in the Sicilian, Caro–Kann, and Catalan for both colors. Extent
+records the moves, shared horizon, and usage below the configured cap. The
+probes replay both lines, preserve the variation on returning, and reject a
+hint from another frame. The Réti and Alekhine check that the move stays in
+place when a reversal remains unconfirmed. The explanation checks a mating
+reply, an uncompensated capture, and the score difference.
+`AndroidReceiptTest` reproduces a substituted PNG and a foreign phase
+without an emulator, even when the metadata has been updated. Extent keeps
+the native results, ID, APK fingerprint, and captures verified against the
+instrumentation fingerprints.
 
 ```powershell
 mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishMatchAnalysisSanity' '-Dchess.android.receipt=<dosar>/analysis-prepare.txt'
 ```
 
-`ChessMatchTest` verifică reconstrucția înainte și după replica botului, accesul la pozițiile din istoric, matul, rocada, en passant și repetarea. După fazele de probleme, runnerul pornește cu date proaspete și execută `match-prepare`, `match-restore` și `match-settled` în procese distincte, păstrând partida între ele. Verifică poziția inițială, săgețile, selecția directă, revenirea la ultima mutare, blocarea mutărilor în istoric și identitatea partidei salvate.
+`ChessMatchTest` checks reconstruction before and after the bot reply, access to historical positions, checkmate, castling, en passant, and repetition. After the puzzle phases, the runner starts with fresh data and executes `match-prepare`, `match-restore`, and `match-settled` in separate processes, retaining the game between them. It checks the starting position, arrows, direct selection, return to the last move, move locking in history, and the saved game's identity.
 
-## Tablă de analiză
+## Analysis Board
 
-`AnalysisLineTest` verifică navigarea, ramificarea, mutările speciale și exportul prefixului. Un cursor în istoric poate deschide analiza partidei sursă încheiate dacă linia întreagă îi păstrează mutările. O ramură diferită, o partidă în curs și un mat jucat manual folosesc analiza de studiu. `GameReviewTest` verifică analiza tuturor mutărilor și criteriile Elo. `MatchSlotsTest` verifică locul zece, refuzul la capacitate și respingerea răspunsurilor AI vechi. `MainMenuLayoutTest` acoperă intrarea localizată din meniu.
+`AnalysisLineTest` checks navigation, branching, special moves, and prefix export. A cursor in history can open review of the finished source game if the whole line preserves its moves. A different branch, in-progress game, or manually played mate uses study analysis. `GameReviewTest` checks analysis of all moves and the Elo criteria. `MatchSlotsTest` checks the tenth slot, refusal at capacity, and rejection of stale AI replies. `MainMenuLayoutTest` covers the localized menu entry.
 
-Pentru Android folosiți `-ManualAnalysisOnly` sau `-IncludeManualAnalysis`.
-Proba deschide tabla din meniu, joacă `1.d4` în afara celor trei sugestii inițiale,
-confirmă refacerea listei, apoi schimbă două trasee cu aceeași primă mutare
-și parcurge Italiana până la ultima semimutare pe ecran complet, cu tabla fixă. Verifică explicația ultimei
-mutări, revenirea cu săgeata și închiderea previzualizării la cursorul inițial.
-După ieșirea din repertoriu verifică indiciul motorului. La revenirea în istoric,
-captura arată eticheta de teorie sub tabla fixă, iar ultima aserțiune confirmă
-că mutarea indicată nu creează o partidă salvată. `OpeningTheoryTest` acoperă
-cele trei trasee, toate mutările din YAML, transpozițiile, rocada și trecerea
-de la lecții la indexul ECO și la motor. Verifică Alapin și trecerea la motor, ramificarea în Franceză și sufixul Catalanei după transpoziție. Verifică și ruta `1.d4 Nf6 2.c4 g6`, unde noile poziții aduc alte trei trasee, apoi unul și refac lista la revenirea în istoric. Publicați `manual-analysis.txt`
-cu `-Dtest=AndroidSanityPublication#publishManualAnalysisSanity` și
-`-Dchess.android.receipt=<cale>`. Raportul are cinci aserțiuni și o captură
-legată de recepție. Proba confirmă în PNG toate cele patru colțuri ale tablei.
-Pe API 28, când dimensiunile logice și fizice diferă, captează cadrul fizic
-complet. În rularea combinată, publicatorul Extent confruntă și ID-ul
-fazei de joc din directorul părinte. [Utilizare](../board/README.md#tablă-de-analiză)
+For Android, use `-ManualAnalysisOnly` or `-IncludeManualAnalysis`.
+The probe opens the board from the menu, plays `1.d4` outside the three
+initial suggestions, confirms the refreshed list, then switches between two
+paths sharing their first move and follows the Italian Game to the final ply
+on the full-screen fixed board. It checks the final move explanation, returning
+with the arrow, and closing the preview at the original cursor. After leaving
+the repertoire, it checks the engine hint. When returning to history, the
+capture shows the theory label under the fixed board. The final assertion
+confirms that the suggested move creates no saved game. `OpeningTheoryTest`
+covers the three paths, all YAML moves, transpositions, castling, and the
+transition from lessons to the ECO index and engine. It verifies the Alapin and
+the switch to the engine, branching in the French, and the Catalan suffix
+after transposition. It also checks `1.d4 Nf6 2.c4 g6`, where new positions
+produce three other paths, then one, and returning to history restores the
+list. Publish `manual-analysis.txt` with
+`-Dtest=AndroidSanityPublication#publishManualAnalysisSanity` and
+`-Dchess.android.receipt=<cale>`. The report has five assertions and one
+capture tied to the receipt. The probe confirms all four board corners in the
+PNG. On API 28, when logical and physical dimensions differ, it captures the
+full physical frame. In the combined run, the Extent publisher also checks
+the game phase ID in the parent directory. [Usage](../board/README.md#analysis-board)
 
-`-MatchMenusOnly` rulează cele două meniuri pe aceeași instalare. Pentru probe separate de dezvoltare, folosiți `-MatchSlotsOnly` sau `-MatchArchiveOnly`. Publicați cu `AndroidSanityPublication#publishMatchSlotsSanity` sau `#publishMatchArchiveSanity` și recepția fazei. Extent leagă aserțiunea, captura încorporată și amprenta ei de același pas Android. Identitatea execuției include procesul, commitul și amprenta APK-ului pentru distribuție. [Partide salvate și încheiate](../board/README.md#partidă-cu-calculatorul)
+`-MatchMenusOnly` runs both menus on the same installation. For separate development probes, use `-MatchSlotsOnly` or `-MatchArchiveOnly`. Publish with `AndroidSanityPublication#publishMatchSlotsSanity` or `#publishMatchArchiveSanity` and the phase receipt. Extent ties the assertion, embedded capture, and fingerprint to the same Android step. Execution identity includes the process, commit, and distribution APK fingerprint. [Saved and finished games](../board/README.md#game-against-the-computer)
 
-## Redare comună pe ecran compact
+## Shared replay on a compact screen
 
-Rulați `scripts/run-android-sanity.ps1 -Distribution -ReplayCompactOnly -SourceCommit <sha>` după build-ul semnat în TMP. Proba configurează profilul portret 720 × 1280, 320 dpi, font 1,3×, pornește aplicația în română și apoi în engleză, cu date de test independente, și restaurează profilul emulatorului la final.
+Run `scripts/run-android-sanity.ps1 -Distribution -ReplayCompactOnly -SourceCommit <sha>` after the signed build in TMP. The probe sets the portrait profile to 720 × 1280, 320 dpi, and a 1.3× font scale, starts the app in Romanian and then English with independent test data, and restores the emulator profile at the end.
 
-În fiecare limbă, deschide un traseu din Teoria deschiderilor și ambele variante din **De ce?**, urmărește comenzile și textul, derulează explicația și revine la poziția de pornire. Verifică dreptunghiul tablei și al săgeților la schimbarea variantei și a pasului. Testele JVM păstrează acoperirea geometriei și a cursorului fără emulator.
+In each language, it opens an Opening theory path and both **Why?** variations, tracks the controls and text, scrolls the explanation, and returns to the starting position. It checks the board and arrow rectangles when switching variations and steps. JVM tests keep geometry and cursor coverage without an emulator.
 
-Publicați raportul cu `-Dtest=AndroidSanityPublication#publishReplayCompactSanity` și `-Dchess.android.receipt=<recepția RO>`. `android-replay-compact.html` include cele 12 aserțiuni și patru capturi. Raportul cere ambele limbi și același APK, commit, profil, dispozitiv și ID de rulare, cu procese distincte. [Calificarea ediției](../release/README.md#calificare-și-publicare)
+Publish the report with `-Dtest=AndroidSanityPublication#publishReplayCompactSanity` and `-Dchess.android.receipt=<RO receipt>`. `android-replay-compact.html` includes the 12 assertions and four captures. The report requires both languages and the same APK, commit, profile, device, and run ID, with distinct processes. [Release qualification](../release/README.md#qualification-and-publication)
 
-## Proba TalkBack
+## TalkBack probe
 
-1. Activați TalkBack pe emulator. În **Mat în 1**, deschideți **Indiciu**, apoi **Arată mutarea**. Atingeți culoarea la mutare și glisați de două ori spre dreapta prin intrarea tactilă a emulatorului. După fiecare gest, capturați evenimentul Android `TYPE_VIEW_ACCESSIBILITY_FOCUSED` și cadrul cu focusul. Repetați după **Întoarce tabla**. [Intrarea tactilă a emulatorului](https://developer.android.com/studio/run/emulator-console)
-2. Pentru prima problemă din 0.3.1, traseul este negrul la mutare → regina neagră de pe d8 → h4, cu oricare dintre culori jos. Proba pe API 33 cu TalkBack 14.2 a confirmat cele patru glisări prin `EmulatorController/sendTouch`. [Extent-ul istoric](https://github.com/crististefanita/chess/blob/v0.4.0/release/0.3.1/reports/talkback-gestures-extent.html) rămâne în tagul Git, în afara retenției scurte a release-urilor.
-3. `QuestHintTest` verifică proiecția în ambele orientări. Sanity-ul verifică actualizarea legăturilor native. Proba glisărilor are propriul raport și folosește evenimentele de focus ca dovadă.
+1. Enable TalkBack on the emulator. In **Mate in 1**, open **Hint**, then **Show move**. Touch the side to move and swipe right twice through emulator touch input. After each gesture, capture the Android `TYPE_VIEW_ACCESSIBILITY_FOCUSED` event and the frame with the focus. Repeat after **Flip board**. [Emulator touch input](https://developer.android.com/studio/run/emulator-console)
+2. In the first 0.3.1 puzzle, the route is Black to move → black queen on d8 → h4 with either color at the bottom. The API 33 probe with TalkBack 14.2 confirmed all four swipes through `EmulatorController/sendTouch`. The [historical Extent report](https://github.com/crististefanita/chess/blob/v0.4.0/release/0.3.1/reports/talkback-gestures-extent.html) remains in the Git tag outside the short release-retention window.
+3. `QuestHintTest` checks projection in both orientations. The sanity run checks updates to native links. The swipe probe has its own report and uses focus events as evidence.
 
-Pentru republicare, rulați `TalkBackPublication#publishTalkBackGestures` din copia TMP și indicați logul prin `-Dchess.talkback.gestures`. Logul unei singure probe conține evenimentele `J7FocusProbe` și markerii `J7ProbeMarker`, de la `BLACK_ANCHOR_START` la `WHITE_DESTINATION_END`. În același director puneți `emulator.json`, capturile `BLACK-color.png`, `BLACK-PIECE.png`, `BLACK-DESTINATION.png` și echivalentele `WHITE-*`.
+To republish, run `TalkBackPublication#publishTalkBackGestures` from the TMP copy and specify the log through `-Dchess.talkback.gestures`. The single-probe log contains `J7FocusProbe` events and `J7ProbeMarker` markers from `BLACK_ANCHOR_START` to `WHITE_DESTINATION_END`. Put `emulator.json`, the `BLACK-color.png`, `BLACK-PIECE.png`, and `BLACK-DESTINATION.png` captures, and their `WHITE-*` counterparts in the same directory.
 
-Pentru vorbire, activați **Display speech output**. La a cincea rezolvare, comparați mesajul unic de mat și prag cu ce se anunță după întoarcere, revenirea din meniu și repornire. Proba anterioară compară ediția 0.3.0 cu build-ul corectat și consemnează cererile TalkBack și audio PCM sintetizat. [Extent-ul istoric](https://github.com/crististefanita/chess/blob/v0.3.1/docs/feedback/talkback-extent.html) este păstrat în tagul Git.
+For speech, enable **Display speech output**. On the fifth solve, compare the single mate and milestone announcement with what is announced after flipping, returning from the menu, and restarting. The previous probe compares release 0.3.0 with the corrected build and records TalkBack requests and synthesized PCM audio. The [historical Extent report](https://github.com/crististefanita/chess/blob/v0.3.1/docs/feedback/talkback-extent.html) is retained in the Git tag.
 
 ### Game Review
 
-Activați TalkBack și **Explore by touch** pe emulator. Rulați fazele native `talkback-review-ro` și `talkback-review-en` din copia TMP. Fiecare folosește aceeași partidă arhivată. Focalizați graficul, apoi mutarea selectată. Intrați în **De ce?** și reveniți prin **Înapoi**. Verificați focusul pe butonul de deschidere și semimutarea salvată.
+Enable TalkBack and **Explore by touch** on the emulator. Run the native `talkback-review-ro` and `talkback-review-en` phases from the TMP copy. Both use the same archived game. Focus the graph, then the selected move. Enter **Why?** and return with **Back**. Check focus on the button that opened the explanation and the saved ply.
 
-Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scorul albului de 0 la sută. Proba a capturat audio și la mutarea selectată și la revenirea pe **De ce?**. `GameReviewGraphLayoutTest` verifică offline același punct al graficului și formatarea scorului. [Cititorul de ecran Web](../../web/README.md#cititorul-de-ecran-în-game-review)
+On API 28, TalkBack 7.2 synthesized position 3 of 4 and White's score of zero percent once per language. The probe also captured audio for the selected move and on returning to **Why?**. `GameReviewGraphLayoutTest` verifies the same graph point and score formatting offline. [Web screen reader](../../web/README.md#screen-readers-in-game-review)
 
-Pentru auditul vorbirii, rulați `TalkBackPublication#publishGameReviewTalkBack` cu `-Dchess.talkback.review` către directorul `run-<id>`. Pentru fiecare limbă, păstrați în același director recepția nativă, metadatele execuției și cele trei capturi. Jurnalul comun `talkback.log` conține limitele acțiunilor `J7ReviewProbe` și recepțiile `J7ReviewSpeech` cu text și audio PCM acceptat de observator pentru procesul TalkBack. Extent verifică identitatea, digesturile și anunțurile în fiecare interval. [Proba Web](../../web/README.md#cititorul-de-ecran-în-game-review)
+To audit speech, run `TalkBackPublication#publishGameReviewTalkBack` with `-Dchess.talkback.review` pointing to the `run-<id>` directory. For each language, keep the native receipt, execution metadata, and three captures together. The shared `talkback.log` contains `J7ReviewProbe` action boundaries and `J7ReviewSpeech` receipts with text and PCM audio accepted by the observer for the TalkBack process. Extent verifies identity, digests, and announcements in each interval. [Web probe](../../web/README.md#screen-readers-in-game-review)
 
-[Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)
+[Chessboard](../board/README.md) · [Release process](../release/README.md)
