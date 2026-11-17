@@ -76,7 +76,7 @@ class ChessWebReviewFocusPublication {
                 same("Focus evidence matches the native scenario and exact archived fixture",
                         List.of(scope, SCOPE, CHECKPOINT, fixtureHash), List.of(receipt.path("scope").asText(),
                                 fixture.path("scope").asText(), fixture.path("checkpoint").asText(), receipt.path("fixtureSha256").asText())),
-                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.HOME_URL : "", publicUrl),
                 same("Native game ends at the fourth recorded ply", 4, review.turns().size()),
                 same("Enlargement changes computed fonts for the page, Why and history rows by 30%", true, enlarged(receipt)),
                 same("The browser consumes the cached review without new engine requests", IntNode.valueOf(0), receipt.path("analysisRequests"))));

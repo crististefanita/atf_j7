@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { bindBoardSelection, boardKeyIndex, boardPlacement, mountStudyArrow, studyArrow, studyMarkers, studySquareDescription } from '../src/main/web/study-board.mjs';
-import { studyHashes, studyRouteForHash, watchStudyHistory, writeModeHash } from '../src/main/web/study-navigation.mjs';
+import { routeForHash, routeHashes, studyHashes, watchRouteHistory, writeModeHash } from '../src/main/web/study-navigation.mjs';
 
 test('Each study route has an enabled home entry and a distinct panel', async () => {
     const html = await readFile(new URL('../src/main/web/index.html', import.meta.url), 'utf8');
@@ -43,9 +43,9 @@ test('Study links, Back and Forward reopen the route represented by the address'
     }
     const visible = [];
     let current;
-    watchStudyHistory(browser, () => current, hash => {
-        current = studyRouteForHash(hash);
-        visible.push(current ?? 'menu');
+    watchRouteHistory(browser, () => routeHashes[current], hash => {
+        current = routeForHash(hash).mode;
+        visible.push(current);
         writeModeHash(browser, hash || undefined, false);
     });
     writeModeHash(browser, studyHashes.quests, true);
@@ -61,29 +61,40 @@ test('Study links, Back and Forward reopen the route represented by the address'
     assert.equal(browser.location.href, origin);
     traverse(1);
     traverse(1);
-    assert.deepEqual(visible, ['openings', 'quests', 'menu', 'quests', 'openings']);
+    assert.deepEqual(visible, ['openings', 'quests', 'home', 'quests', 'openings']);
     assert.equal(browser.location.search, '?lang=ro');
 });
 
-test('Study hash routing leaves unrelated route changes alone', () => {
-    let current;
+test('Home is the default route and direct game, study and review links remain distinct', () => {
+    for (const hash of ['', '#unknown', '#archive/', '#review/']) assert.deepEqual(routeForHash(hash), { mode: 'home' });
+    for (const [mode, hash] of Object.entries(routeHashes)) assert.deepEqual(routeForHash(hash), { mode });
+    assert.deepEqual(routeForHash('#archive/archived-game'), { mode: 'archive', archiveId: 'archived-game' });
+    assert.deepEqual(routeForHash('#review/archived-game'), { mode: 'archive-review', archiveId: 'archived-game' });
+});
+
+test('Browser Back and Forward switch between AI and Home once per changed route', () => {
+    let current = 'home';
     let onHashChange;
     const navigated = [];
     const browser = {
-        location: { hash: '#saved' },
+        location: { hash: '' },
+        history: { pushState(_state, _title, hash) { browser.location.hash = hash; } },
         addEventListener(_type, listener) { onHashChange = listener; },
     };
-    watchStudyHistory(browser, () => current, hash => navigated.push(hash));
+    watchRouteHistory(browser, () => routeHashes[current], hash => {
+        current = routeForHash(hash).mode;
+        navigated.push(current);
+    });
+    writeModeHash(browser, routeHashes.ai, true);
+    current = 'ai';
     onHashChange();
-    assert.deepEqual(navigated, []);
-    browser.location.hash = '#analysis';
+    browser.location.hash = '';
     onHashChange();
-    current = 'analysis';
+    assert.equal(current, 'home');
+    browser.location.hash = routeHashes.ai;
     onHashChange();
-    assert.deepEqual(navigated, ['#analysis']);
-    browser.location.hash = '#saved';
     onHashChange();
-    assert.deepEqual(navigated, ['#analysis', '#saved']);
+    assert.deepEqual(navigated, ['home', 'ai']);
 });
 
 test('Study accepts native square order and placement without moving any piece', () => {

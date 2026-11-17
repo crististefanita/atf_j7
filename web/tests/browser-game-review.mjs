@@ -13,7 +13,7 @@ import { createReviewAccessibilityProbe } from './review-accessibility.mjs';
 const args = process.argv.slice(2);
 const accessibilityScenario = args[0] === '--accessibility';
 if (accessibilityScenario) args.shift();
-assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs [--accessibility] <site> <archive fixture|scenario> <new-evidence-directory> <edge-exe> [public-ai-url]');
+assert.ok(args.length === 4 || args.length === 5, 'Usage: node browser-game-review.mjs [--accessibility] <site> <archive fixture|scenario> <new-evidence-directory> <edge-exe> [public-home-url]');
 const [site, , evidence, browserPath] = args.map(path => resolve(path));
 const activeScenario = args[1] === '--active';
 const aiScenario = args[1] === '--ai';
@@ -23,7 +23,7 @@ const reviewContinueScenario = args[1] === '--review-continue';
 const fixturePath = activeScenario || aiScenario || ledgerScenario || archivesScenario || reviewContinueScenario ? null : resolve(args[1]);
 const hostPath = '/chess/';
 const publicUrl = args[4];
-const readmeUrl = `https://crististefanita.github.io${hostPath}#ai`;
+const readmeUrl = `https://crististefanita.github.io${hostPath}`;
 const relativeEvidence = relative(site, evidence);
 assert.ok(relativeEvidence === '..' || relativeEvidence.startsWith('..' + sep), 'Keep evidence outside the built site');
 const viewport = { width: 390, height: 844, deviceScaleFactor: 1, locale: publicUrl ? 'en-US' : 'ro-RO' };
@@ -302,11 +302,6 @@ try {
     }
 
     async function exerciseAi() {
-        if (publicUrl) {
-            await until(() => evaluate(`${visible('#ai-setup')} && location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
-                'English AI setup from the exact public README link');
-            await touch('#open-review');
-        }
         const menu = await until(() => evaluate(`document.querySelector('#home-menu:not([hidden])') && [...document.querySelectorAll('.home-menu h2')].map(node => node.textContent)`),
             'Android-style grouped home menu');
         assert.deepEqual(menu, publicUrl ? ['Games', 'Study', 'Profile'] : ['Partide', 'Studiu', 'Profil']);
@@ -456,8 +451,12 @@ try {
         }, label);
 
         if (publicUrl) {
-            await waitActive('migrated AI match from the public README link', value => value.mode === 'AI' && value.ply === 2);
-            assert.equal(await evaluate('location.href'), publicUrl);
+            const aiUrl = new URL('#ai', publicUrl).href;
+            await send('Page.navigate', { url: aiUrl });
+            await until(() => evaluate(`location.href === ${JSON.stringify(aiUrl)}`), 'explicit public AI deep link');
+            await reload();
+            await waitActive('migrated AI match from the explicit deep link', value => value.mode === 'AI' && value.ply === 2);
+            assert.equal(await evaluate('location.href'), aiUrl);
             assert.equal(await evaluate('document.documentElement.lang'), 'en');
             await touch('#open-review');
         }
@@ -570,11 +569,6 @@ try {
             return finishList();
         }
 
-        if (publicUrl) {
-            await until(() => evaluate(`${visible('#ai-setup')} && location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
-                'public preview starts in AI setup');
-            await touch('#open-review');
-        }
         await touch('#open-finished');
         const initial = await finishList();
         const archiveAId = initial.find(row => row.mode === 'LOCAL')?.id;
@@ -646,11 +640,6 @@ try {
         const savedLedger = () => evaluate(`localStorage.getItem('${ledgerKey}')`);
         const modalOpen = () => evaluate("document.querySelector('#continue-dialog').open");
 
-        if (publicUrl) {
-            await until(() => evaluate(`${visible('#ai-setup')} && location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
-                'public preview starts in AI setup');
-            await touch('#open-review');
-        }
         if (await displayed('#review-close')) await touch('#review-close');
         await touch('#open-finished');
         const originArchiveId = await until(() => evaluate("document.querySelector('.match-row[data-mode=AI]')?.dataset.id"), 'archived AI game');
@@ -732,11 +721,6 @@ try {
     }
 
     async function openMigratedReview(total) {
-        if (publicUrl) {
-            await until(() => evaluate(`${visible('#ai-setup')} && location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
-                'public preview starts in AI setup');
-            await touch('#open-review');
-        }
         if (await displayed('#review-close')) await touch('#review-close');
         await touch('#open-finished');
         const archiveId = await until(() => evaluate("document.querySelector('.match-row[data-mode=AI]')?.dataset.id"),
@@ -889,6 +873,11 @@ try {
     }
     await send('Page.navigate', { url: page });
     await until(() => evaluate("document.querySelector('#review')?.getAttribute('aria-busy') === 'false'"), 'review page ready');
+    if (publicUrl) {
+        await until(() => evaluate(`${visible('#home-menu')} && !(${visible('#ai-setup')}) &&
+            location.href === ${JSON.stringify(publicUrl)} && document.documentElement.lang === 'en'`),
+            'English main menu from the exact public README link');
+    }
     let sourceProof;
     if (activeScenario) {
         sourceProof = await exerciseActive();

@@ -1,6 +1,6 @@
 # Paritate APK–Web · Chess Lab
 
-**Joacă în browser** este imediat sub **Descarcă APK** în secțiunea **Jocul** din README și deschide partida cu AI. Verificarea compară rezultatele, comenzile și starea după reluare pentru funcțiile implementate pe ambele platforme. Fiecare dispozitiv își păstrează progresul local. [README principal](../README.md#jocul)
+**Joacă în browser** este imediat sub **Descarcă APK** în secțiunea **Jocul** din README și deschide meniul principal. Partidele și studiul se aleg din meniu, iar adresele explicite deschid ecranul cerut. Fiecare dispozitiv își păstrează progresul local. [README principal](../README.md#jocul)
 
 ## Contracte și probe
 
@@ -8,7 +8,7 @@ Același scenariu de componentă fixează starea inițială, acțiunile și obse
 
 | Funcție din APK | Situație Web | Dovadă necesară pentru paritate |
 |---|---|---|
-| Meniu principal | Grupurile Partide, Studiu și Profil păstrează ordinea și textele din resursele APK. Studiu afișează cele trei comenzi și totalurile problemelor. | Verificați în browser MCP accesul la comenzi și încadrarea la font mărit. [Verificarea meniului](README.md#studiu) |
+| Meniu principal | APK și adresa de bază Web pornesc în **Chess Lab**. Grupurile Partide, Studiu și Profil păstrează ordinea și textele din resursele APK. | Componentele compară titlul, ordinea și textele în RO și EN. Navigarea folosește istoric și stocare simulate. [Verificarea meniului](README.md#meniul-principal-și-piesele) |
 | Piese și culorile tablei | Partidele și Game Review folosesc contururile Staunton din `ChessPieceArtwork` și aceleași culori ca `BoardView`. | Rulați componenta de randare și sanity-ul cu mutare pe tabla Web. [Verificarea pieselor](README.md#meniul-principal-și-piesele) |
 | Partidă locală, reguli și promovare | Motor comun. Partida locală acceptă mutările ambelor culori și redeschide checkpointul. | Fixture de rocadă, en passant, pat, promovare și remiză. Sanity cu mutare, restart, reluare și o mutare nouă. |
 | Partidă cu AI | Web acceptă Alb sau Negru și Basic, Advanced și Hard din motorul Java. Păstrează o partidă automată și reia tura AI din checkpoint. | Extindeți la alegerea aleatorie, controlul manual în aceeași partidă și verificarea reluării cu un calcul deja în curs. |

@@ -1,13 +1,11 @@
 # ATF J7 · Chess Lab
 
-Chess Lab oferă pe Android și în browser partide cu calculatorul, probleme,
-deschideri și o tablă de analiză. J7 folosește bibliotecile ATF pentru verificare
-și rapoarte Extent.
+Play chess against AI, solve puzzles, and study openings.
 
 ## Jocul
 
 - [Descarcă APK Chess Lab 0.15.2](https://github.com/crististefanita/chess/releases/download/v0.15.2/ChessLab-0.15.2.apk)
-- [Joacă în browser](https://crististefanita.github.io/chess/#ai)
+- [Joacă în browser](https://crististefanita.github.io/chess/)
 
 ## Arhitectura J7
 

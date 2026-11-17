@@ -49,7 +49,7 @@ class ChessWebArchiveReviewsPublication {
         String encoded = receipt.path("ledgerSnapshot").asText();
         String publicUrl = receipt.path("publicUrl").asText("");
         var checks = new ArrayList<>(List.of(same("Evidence belongs to the two archived reviews", SCOPE, receipt.path("scope").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.HOME_URL : "", publicUrl),
                 same("The archived games have two separate identities", true, !first.isBlank() && !second.isBlank() && !first.equals(second)),
                 same("The local archive has the exact first checkpoint", LOCAL, firstCheckpoint),
                 same("The AI archive has its own exact checkpoint", AI, secondCheckpoint)));

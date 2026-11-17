@@ -390,14 +390,14 @@ class DocumentationGovernanceTest {
 
     @Test void mainReadmeShowsOneDirectPlayLinkBelowTheApk(Checks check) throws IOException {
         var readme = prose(ProjectRoot.locate().resolve("README.md"));
-        String address = ChessPublicationRoutes.PLAY_URL;
+        String address = ChessPublicationRoutes.HOME_URL;
         var game = readme.stream().dropWhile(line -> !line.equals("## Jocul")).skip(1)
                 .takeWhile(line -> !line.startsWith("## ")).filter(line -> !line.isBlank()).toList();
         check.same("Jocul contains exactly two links", 2, game.size());
-        check.same("Jocul ends with the direct online play link", "- [Joacă în browser](" + address + ")",
+        check.same("Jocul ends with the canonical browser main menu", "- [Joacă în browser](" + address + ")",
                 game.isEmpty() ? "" : game.getLast());
         check.same("The canonical play address appears exactly once", 1L,
-                readme.stream().filter(line -> line.contains(address)).count());
+                readme.stream().filter(line -> line.contains("](" + address + ")")).count());
     }
 
     @Test void projectReadmeArchitectureMatchesTheExecutableBuild(Checks check) throws Exception {

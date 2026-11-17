@@ -8,7 +8,7 @@ final class ChessPublicationRoutes {
     static final String RELEASES = "https://github.com/" + REPOSITORY + "/releases/";
     static final String PAGES_HOST = OWNER + ".github.io";
     static final String PAGES_PATH = "/" + REPOSITORY_NAME + "/";
-    static final String PLAY_URL = "https://" + PAGES_HOST + PAGES_PATH + "#ai";
+    static final String HOME_URL = "https://" + PAGES_HOST + PAGES_PATH;
 
     private static final String PREVIOUS_RELEASES = "https://github.com/" + OWNER + "/atf_j7/releases/";
 

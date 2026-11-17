@@ -53,6 +53,10 @@ node scripts/verify-mate-in-three.cjs <cale-catre-chess.js> chess-core/src/main/
 
 `ChessWebRulesComponentTest` verifică motorul și cataloagele pe JVM. `ChessWebParityPublication` execută aceleași cazuri în workerul TeaVM pentru toate resursele folosite. Rulați proba explicit cu pachetul din TMP. [Build și probe Web](../../web/README.md)
 
+### Intrarea în meniul Web
+
+`ChessWebShellTest` compară titlul și grupurile din Web cu resursele APK. Componentele de navigare simulează istoricul browserului, accesul direct la o secțiune și revenirea la meniu. Guvernanța verifică adresa publică din README, iar sanity-ul pornește din acel link într-un profil nou. [Contractul meniului](../../web/README.md#meniul-principal-și-piesele)
+
 ### Partide salvate, arhivă și continuare
 
 `MatchStoreTest`, `MatchLedgerTest` și `MatchLedgerPreferencesTest` verifică migrarea, ordinea, retenția și selecția slotului. Cazurile acoperă rescrierea slotului activ, o continuare separată din arhivă și refuzul când toate sloturile sunt ocupate. `ChessWebLedgerPublication` verifică biblioteca după reîncărcare, checkpointurile și capturile din Edge. [Probe Web](../../web/README.md#partide-salvate-și-încheiate)

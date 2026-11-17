@@ -1,7 +1,12 @@
 export const studyHashes = Object.freeze({ quests: '#puzzles', openings: '#openings', analysis: '#analysis' });
+export const routeHashes = Object.freeze({ review: '#review', match: '#game', ai: '#ai', saved: '#saved', finished: '#finished', ...studyHashes });
 
-export function studyRouteForHash(hash) {
-    return Object.keys(studyHashes).find(route => studyHashes[route] === hash);
+export function routeForHash(hash) {
+    const mode = Object.keys(routeHashes).find(route => routeHashes[route] === hash);
+    if (mode) return { mode };
+    if (hash.startsWith('#review/') && hash.length > '#review/'.length) return { mode: 'archive-review', archiveId: hash.slice('#review/'.length) };
+    if (hash.startsWith('#archive/') && hash.length > '#archive/'.length) return { mode: 'archive', archiveId: hash.slice('#archive/'.length) };
+    return { mode: 'home' };
 }
 
 export function writeModeHash(browser, hash, addHistory) {
@@ -11,12 +16,10 @@ export function writeModeHash(browser, hash, addHistory) {
     browser.history[update](null, '', url);
 }
 
-export function watchStudyHistory(browser, currentStudy, navigate) {
+export function watchRouteHistory(browser, currentHash, navigate) {
     browser.addEventListener('hashchange', () => {
         const hash = browser.location.hash;
-        const destination = studyRouteForHash(hash);
-        const current = currentStudy();
-        if (destination !== current && (destination || current)) void navigate(hash);
+        if (hash !== (currentHash() ?? '')) void navigate(hash);
     });
 }
 

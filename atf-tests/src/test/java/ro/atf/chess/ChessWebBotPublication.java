@@ -56,7 +56,7 @@ class ChessWebBotPublication {
                 new ReportField("JVM bot reference UCI", reference.uci()), new ReportField("Browser bot UCI", botUci));
         var checks = new ArrayList<>(List.of(same("Evidence belongs to the AI game flow", SCOPE, receipt.path("scope").asText()),
                 same("Browser serves the production-shaped subpath", ChessPublicationRoutes.PAGES_PATH, receipt.path("hostPath").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.HOME_URL : "", publicUrl),
                 same("Pending checkpoint retains Black's seat and the Hard profile", PENDING, pendingRaw),
                 same("Browser persists the pending game in AI mode", AI_PREFIX + pendingRaw, pendingStored),
                 same("The real worker replies with the same move as the JVM bot", reference.uci(), botUci),

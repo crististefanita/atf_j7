@@ -111,8 +111,8 @@ public final class ReleaseEvidence {
         require(asset.matches(), "Jocul must start with the canonical APK link");
         String owner = asset.group(1);
         String repository = asset.group(2);
-        String pages = "https://" + owner.toLowerCase(java.util.Locale.ROOT) + ".github.io/" + repository + "/#ai";
-        require(pages.equals(online), "The online game must open the repository's AI game on GitHub Pages");
+        String pages = "https://" + owner.toLowerCase(java.util.Locale.ROOT) + ".github.io/" + repository + "/";
+        require(pages.equals(online), "The online game must open the repository's main menu on GitHub Pages");
         var edition = EDITION.matcher(after);
         require(edition.find(), "Missing published edition section below Jocul");
         var editionRows = edition.group(1).lines().filter(line -> !line.isBlank()).toList();

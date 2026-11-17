@@ -60,6 +60,8 @@ Primii martori sunt `1.e4 c5 2.c3 h5`, cu revenire din istoric la traseul Alapin
 
 ## WEB-04 · Calificare și publicare
 
+**Intrarea Web.** Linkul din README deschide meniul **Chess Lab**, ca pe APK. Verificați pe adresa publică meniul, deschiderea unei secțiuni și revenirea. Analiza salvată rămâne accesibilă din comandă sau de la adresa sa explicită. [Contractul meniului](../../web/README.md#meniul-principal-și-piesele)
+
 **P2 · Responsabili J7 și release.** J7 servește jocul Web static din `gh-pages`. Proba la adresa publică verifică fișierele servite și reluarea într-un profil nou. Includeți în RAG actualizarea Web și legați commitul, cataloagele și SHA-urile APK și Web de recepții și revizia publicată. Verificați recuperarea stocării la upgrade și versiunea contractului pe ambele platforme.
 
 Schimbarea limbii din **Setări** păstrează meniul principal. Componenta verifică reîncărcarea cu o analiză și partide deja salvate, folosind stocare și istoric simulate. Sanity-ul candidatului Web confirmă schimbarea EN → RO → EN în același meniu. [Setările Web](../../web/README.md#partida-cu-ai)

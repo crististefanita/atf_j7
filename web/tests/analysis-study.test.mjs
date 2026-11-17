@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { analysisHintDescription, analysisScore, analysisStudySession, createAnalysisStudy } from '../src/main/web/study-analysis.mjs';
-import { matchAnalysisNavigation, studyHashes, studyRouteForHash, watchStudyHistory, writeModeHash } from '../src/main/web/study-navigation.mjs';
+import { matchAnalysisNavigation, routeForHash, studyHashes, watchRouteHistory, writeModeHash } from '../src/main/web/study-navigation.mjs';
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const frame = (revision, ply, extra = {}) => ({
@@ -149,9 +149,9 @@ test('Contextual analysis returns once to the exact active or archived game and 
                 shown.push(['resume source', route, match.viewPly, match.revision]);
             },
         });
-        watchStudyHistory(browser, () => screen === 'analysis' ? screen : undefined, destination => {
+        watchRouteHistory(browser, () => screen === 'analysis' ? studyHashes.analysis : hash, destination => {
             if (navigation.restore(destination)) return;
-            screen = studyRouteForHash(destination);
+            screen = routeForHash(destination).mode;
             shown.push(['direct', destination]);
         });
         const opener = { isConnected: true, focus({ preventScroll }) { assert.equal(preventScroll, true); focused++; } };

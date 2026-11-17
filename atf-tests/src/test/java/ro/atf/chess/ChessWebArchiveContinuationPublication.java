@@ -53,7 +53,7 @@ class ChessWebArchiveContinuationPublication {
         String after = receipt.path("ledgerAfter").asText();
         String publicUrl = receipt.path("publicUrl").asText("");
         var checks = new ArrayList<>(List.of(same("Evidence belongs to archived Game Review continuation", SCOPE, receipt.path("scope").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.HOME_URL : "", publicUrl),
                 same("The finished original has the exact archived checkpoint", SOURCE, receipt.path("archiveCheckpoint").asText()),
                 same("The user selects the exact recorded move", SELECTED_PLY, receipt.path("selectedPly").asInt()),
                 same("The fork starts at the JVM history checkpoint", start.checkpoint(), receipt.path("forkStartCheckpoint").asText()),

@@ -56,7 +56,7 @@ class ChessWebLedgerPublication {
                 new ReportField("New game checkpoint", forkCheckpoint),
                 new ReportField("Browser origin", publicUrl.isEmpty() ? "Loopback" : publicUrl));
         var inputs = new ArrayList<>(List.of(same("Evidence belongs to the ledger flow", SCOPE, receipt.path("scope").asText()),
-                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.PLAY_URL : "", publicUrl),
+                same("Browser uses the expected deployment channel", publicRun ? ChessPublicationRoutes.HOME_URL : "", publicUrl),
                 same("The migrated manual game preserves its original three plies", LEGACY_LOCAL,
                         receipt.path("legacyLocalCheckpoint").asText()),
                 same("The migrated AI game preserves its checkpoint and mode", LEGACY_AI, receipt.path("legacyAiCheckpoint").asText()),

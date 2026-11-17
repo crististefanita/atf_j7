@@ -132,7 +132,7 @@ Pentru proba publică, transmiteți URL-ul din README ca ultim argument și adă
 
 ## Meniul principal și piesele
 
-Intrarea Web grupează comenzile în aceeași ordine ca meniul Android. **Partide salvate** apare când există partide active. **Partidă nouă cu calculatorul** deschide configurarea, iar linkul direct din README deschide intrarea jocului cu AI. **Profil** validează numele prin `PlayerProfile`, iar **Setări** păstrează limba în browser. [Matricea funcțiilor](parity.md#contracte-și-probe)
+**Joacă în browser** din README deschide meniul principal **Chess Lab**, inclusiv când există partide sau o analiză salvată. Grupurile urmează ordinea din APK. **Partide salvate** apare când există partide active, iar **Partidă nouă cu calculatorul** deschide configurarea. Adresele explicite, cum sunt `#ai`, `#openings` și `#review`, deschid ecranul cerut. **Profil** validează numele prin `PlayerProfile`, iar **Setări** păstrează limba în browser. [Matricea funcțiilor](parity.md#contracte-și-probe)
 
 Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile comune din `ChessPieceArtwork`. Web primește contururile din worker și le desenează în coordonatele 48 × 48 din APK. `ChessWebShellTest` verifică ordinea și textele RO/EN față de resursele Android, persistența simulată și reutilizarea SVG. Sanity-ul Edge deschide meniul și verifică toate cele șase tipuri de piese înaintea primei mutări. [Strategia de testare](../docs/testing/README.md#partidă-și-istoric)
 

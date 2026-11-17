@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
-import { clearMainMenuIntent, createHomeMenu, hasSavedHomeGames, homeLabels, homeLocale, reloadProfileLanguage, restoreMainMenu,
-    saveHomeProfile } from '../src/main/web/home-menu.mjs';
+import { createHomeMenu, hasSavedHomeGames, homeLabels, homeLocale, reloadProfileLanguage, saveHomeProfile } from '../src/main/web/home-menu.mjs';
 import { profileKey, readProfile, writeProfile } from '../src/main/web/player-profile.mjs';
 import { showReviewPiece } from '../src/main/web/review-workspace.mjs';
+import { routeForHash } from '../src/main/web/study-navigation.mjs';
 
 const base = new URL('../../', import.meta.url);
 const read = path => readFile(new URL(path, base), 'utf8');
@@ -28,6 +28,14 @@ const groups = [
 test('Web home preserves Android groups, action order and RO and EN labels', async () => {
     const html = await read('web/src/main/web/index.html');
     const layout = await read('android/app/src/main/res/layout/main_menu.xml');
+    const nativeHeading = layout.match(/<TextView\b[^>]*style="@style\/MenuHeading"[^>]*>/)?.[0];
+    const strings = await read('android/app/src/main/res/values/strings.xml');
+    assert.equal(nativeHeading?.match(/android:text="@string\/([^"]+)"/)?.[1], 'app_name');
+    const name = strings.match(/<string name="app_name" translatable="false">([^<]+)<\/string>/)?.[1];
+    assert.ok(name, 'The Android home heading resolves to the app name');
+    assert.equal(html.match(/<title>([^<]+)<\/title>/)?.[1], name);
+    assert.equal(html.match(/<h1\b[^>]*\sid="title"[^>]*>([^<]+)<\/h1>/)?.[1], name);
+
     for (const [nativeId, webId, nativeActions, webActions] of groups) {
         const native = layout.split('android:id="@+id/' + nativeId + '"')[1].split('</LinearLayout>')[0];
         const web = html.split('id="' + webId + '"')[1].split('</div>')[0];
@@ -165,11 +173,9 @@ test('Language reload retains Home with a saved review and preserves the AI prof
     assert.equal(fromHome.location.reloads, 1);
     assert.equal(fromHome.location.href, 'https://example.test/chess/?example=1');
     assert.equal(homeLocale(new URL(fromHome.location.href).search, storage), 'ro');
-    assert.equal(restoreMainMenu(fromHome), true);
+    assert.deepEqual(routeForHash(new URL(fromHome.location.href).hash), { mode: 'home' });
     assert.equal(entries.get('chesslab.game-review.v1'), 'saved review');
     assert.equal(entries.get('chesslab.match-ledger.v1'), 'saved games');
-    clearMainMenuIntent(fromHome);
-    assert.equal(restoreMainMenu(fromHome), false);
     assert.deepEqual(fromHome.history.state, { other: 'kept' });
     assert.equal(reloadProfileLanguage(fromHome, 'ro', 'ro', 'language'), false);
     assert.equal(fromHome.location.reloads, 1);
@@ -178,5 +184,6 @@ test('Language reload retains Home with a saved review and preserves the AI prof
     assert.equal(reloadProfileLanguage(inAi, 'ro', 'en', 'both'), true);
     assert.equal(inAi.location.reloads, 1);
     assert.equal(inAi.location.href, 'https://example.test/chess/?example=1#ai');
-    assert.equal(restoreMainMenu(inAi), false);
+    assert.deepEqual(routeForHash(new URL(inAi.location.href).hash), { mode: 'ai' });
+    assert.deepEqual(inAi.history.state, { other: 'kept' });
 });
