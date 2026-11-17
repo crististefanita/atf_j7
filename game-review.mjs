@@ -24,7 +24,11 @@ const words = {
     en: {
         title: 'Game review', 'archive-label': 'Open a review',
         'open-match': 'Local game', 'open-review': 'Main menu', 'new-match': 'New game',
-        'match-options-title': 'Game options', 'flip-match': 'Flip board', 'close-match-options': 'Close',
+        'match-options-title': 'Game options', 'flip-match': 'Flip board',
+        'menu-saved': 'Saved games', 'menu-analysis': 'Analysis board', 'menu-review': 'Game review',
+        'menu-draw': 'Offer draw', 'menu-resign': 'Resign game', 'ai-analysis-label': 'AI analysis for a new game',
+        'resign-message': 'End this game and record a loss?', 'resign-confirm': 'Confirm resignation', 'resign-cancel': 'Cancel',
+        drawDeclined: 'The AI declined the draw.', resigned: 'You resigned', agreedDraw: 'Draw by agreement', reviewEmpty: 'There are no moves to analyze.',
         'match-automatic-label': 'Let AI play its moves', manualAiTurn: 'Your move for the AI side',
         automationSaveFailed: 'The browser could not save the AI setting.',
         'open-ai': 'Play against AI', 'side-label': 'Your color', 'level-label': 'AI level',
@@ -69,7 +73,11 @@ const words = {
     ro: {
         title: 'Analiza partidei', 'archive-label': 'Deschide o analiză',
         'open-match': 'Partidă locală', 'open-review': 'Meniu principal', 'new-match': 'Partidă nouă',
-        'match-options-title': 'Opțiunile partidei', 'flip-match': 'Întoarce tabla', 'close-match-options': 'Închide',
+        'match-options-title': 'Opțiunile partidei', 'flip-match': 'Întoarce tabla',
+        'menu-saved': 'Partide salvate', 'menu-analysis': 'Tablă de analiză', 'menu-review': 'Analiza partidei',
+        'menu-draw': 'Oferă remiză', 'menu-resign': 'Renunță la partidă', 'ai-analysis-label': 'Analiză AI pentru o partidă nouă',
+        'resign-message': 'Închei partida și înregistrezi o înfrângere?', 'resign-confirm': 'Confirmă renunțarea', 'resign-cancel': 'Anulează',
+        drawDeclined: 'AI-ul a refuzat remiza.', resigned: 'Ai renunțat la partidă', agreedDraw: 'Remiză prin acord', reviewEmpty: 'Partida nu are mutări de analizat.',
         'match-automatic-label': 'Lasă AI-ul să mute', manualAiTurn: 'Mută pentru culoarea AI-ului',
         automationSaveFailed: 'Browserul nu a putut salva setarea AI.',
         'open-ai': 'Joc cu AI', 'side-label': 'Culoarea ta', 'level-label': 'Nivelul AI',
@@ -122,12 +130,15 @@ const board = find('board');
 const matchBoard = find('match-board');
 const matchOptions = find('match-options');
 const matchOptionsButton = find('match-options-button');
+const resignation = find('match-resign');
+const menuActions = {
+    FLIP: 'flip-match', HOME: 'open-review', SAVED_GAMES: 'menu-saved', ANALYSIS_BOARD: 'menu-analysis',
+    GAME_REVIEW: 'menu-review', OFFER_DRAW: 'menu-draw', RESIGN: 'menu-resign',
+};
+let resignationRevision;
+let liveReviewOrigin;
 const matchMenu = attachOptionsMenu(matchOptionsButton, matchOptions, {
-    canOpen: () => {
-        if (busy) return false;
-        find('flip-match').disabled = Boolean(analysis) || engineFailed || otherTabChanged;
-        return true;
-    },
+    canOpen: () => !busy,
     onToggle: scheduleBot,
 });
 const matchAutomatic = find('match-automatic');
@@ -191,7 +202,9 @@ const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, 
 
 document.documentElement.lang = locale;
 for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
-    'open-match', 'open-review', 'flip-match', 'close-match-options', 'match-automatic-label',
+    'open-match', 'open-review', 'flip-match', 'match-automatic-label',
+    'menu-saved', 'menu-analysis', 'menu-review', 'menu-draw', 'menu-resign', 'ai-analysis-label',
+    'resign-message', 'resign-confirm', 'resign-cancel',
     'new-match', 'analyze', 'cancel-analysis', 'progress-label', 'promote-label',
     'side-label', 'level-label', 'white-choice', 'black-choice', 'random-choice', 'start-ai', 'cancel-setup',
     'retry-bot', 'open-saved',
@@ -203,6 +216,7 @@ for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions',
 find('open-match-analysis').textContent = homeLabels[locale]['home-analysis'];
 matchOptionsButton.setAttribute('aria-label', words['match-options-title']);
 matchOptions.setAttribute('aria-label', words['match-options-title']);
+find('resign-title').textContent = words['menu-resign'];
 find('why-actions').setAttribute('aria-label', words['review-actions']);
 find('match-history').setAttribute('aria-label', words['match-history']);
 find('study-progress-label').textContent = words['progress-label'];
@@ -596,6 +610,7 @@ function renderMatch() {
     renderMatchAutomation();
     if (container.hidden) {
         matchMenu.close();
+        if (resignation.open) resignation.close('cancel');
         return;
     }
     const isAi = match.mode === 'AI';
@@ -614,7 +629,8 @@ function renderMatch() {
     container.dataset.awaitingBot = match.awaitingBot;
     orientBoard(matchBoard, matchSquares, match.blackBelow);
     drawBoard(matchBoard, matchSquares, match);
-    const result = browsing || match.result === 'IN_PROGRESS' ? words[match.sideToMove] : words[match.result] ?? words.DRAW;
+    const result = browsing || match.result === 'IN_PROGRESS' ? words[match.sideToMove]
+        : match.resigned ? words.resigned : match.result === 'AGREED_DRAW' ? words.agreedDraw : words[match.result] ?? words.DRAW;
     find('match-turn').textContent = match.manualAiTurn ? words.manualAiTurn
         : match.awaitingBot && failedBotRevision !== match.revision ? words.botTurn : result;
     find('match-profile').hidden = !isAi;
@@ -655,6 +671,14 @@ function renderAnalysis() {
     find('analyze').disabled = running || !match || match.awaitingBot || match.ply === 0;
     const reviewed = match?.archiveId && finishedMatches.some(entry => entry.id === match.archiveId && entry.reviewed);
     find('analyze').textContent = reviewed ? words.openCached : words.analyze;
+    find('open-match-analysis').hidden = match?.mode === 'AI';
+    find('analyze').hidden = match?.mode === 'AI';
+    const available = match?.menu ?? {};
+    for (const [action, id] of Object.entries(menuActions)) {
+        const button = find(id);
+        button.hidden = !Object.hasOwn(available, action);
+        button.disabled = !available[action] || (action !== 'HOME' && action !== 'SAVED_GAMES' && (running || engineFailed || otherTabChanged));
+    }
     find('new-match').disabled = running || Boolean(match?.awaitingBot);
     renderMatchAutomation();
 }
@@ -709,6 +733,7 @@ function shownRouteHash() {
 
 function showMode(nextMode, addHistory = false) {
     if (nextMode !== mode) {
+        if (mode === 'review') liveReviewOrigin = undefined;
         cancelAnalysis();
         studyAnalysis?.cancel();
         studyPanels[mode]?.close?.();
@@ -840,7 +865,7 @@ function play(move) {
 }
 
 function scheduleBot() {
-    const ready = mode === 'ai' && matchRoute === 'ai' && !setupVisible && !matchMenu.isOpen() &&
+    const ready = mode === 'ai' && matchRoute === 'ai' && !setupVisible && !matchMenu.isOpen() && !resignation.open &&
         match?.awaitingBot && match.viewPly === match.ply &&
         failedBotRevision !== match.revision && !busy && !analysis && !engineFailed && !otherTabChanged;
     scheduleBotReply(ready ? match : undefined);
@@ -928,14 +953,21 @@ function cancelAnalysis() {
     renderAnalysis();
 }
 
-function analyzeMatch() {
-    if (!match?.ply || match.awaitingBot || busy || analysis || otherTabChanged || engineFailed) return;
+function analyzeMatch(fromMenu = false) {
+    if (!match || busy || analysis || otherTabChanged || engineFailed || !fromMenu && match.awaitingBot) return;
+    if (match.ply === 0) {
+        if (match.readOnly) setStatus(words.reviewEmpty);
+        return;
+    }
     if (match.readOnly && match.archiveId) {
         void openArchiveReview(match.archiveId, match);
     } else {
         runReviewAnalysis(match, async source => {
             const response = await call('review-open', { archive: source });
-            if (await commit(response.view, source)) showMode('review', true);
+            if (await commit(response.view, source)) {
+                if (fromMenu) liveReviewOrigin = match;
+                showMode('review', true);
+            }
         });
     }
 }
@@ -994,6 +1026,7 @@ function runReviewAnalysis(snapshot, openComputedReview, rated = false) {
     const route = matchRoute;
     const job = new Worker(new URL('./engine-worker.mjs', import.meta.url), { type: 'module' });
     analysis = job;
+    scheduleBot();
     const id = String(++serial);
     const progress = find('progress');
     progress.removeAttribute('value');
@@ -1003,6 +1036,7 @@ function runReviewAnalysis(snapshot, openComputedReview, rated = false) {
         if (analysis !== job) return;
         cancelAnalysis();
         setStatus(words.analysisFailure);
+        scheduleBot();
     };
     job.addEventListener('error', fail);
     job.addEventListener('messageerror', fail);
@@ -1027,6 +1061,7 @@ function runReviewAnalysis(snapshot, openComputedReview, rated = false) {
 
 function showMainMenu(addHistory = false) {
     setupVisible = false;
+    liveReviewOrigin = undefined;
     if (archiveReviewId) {
         archiveReviewId = undefined;
         view = undefined;
@@ -1192,6 +1227,35 @@ find('open-ai').addEventListener('click', () => {
 matchOptions.addEventListener('click', event => {
     if (event.target.closest('button[type="button"]')) matchMenu.close(true);
 }, true);
+find('menu-saved').addEventListener('click', () => { if (!busy) showMode('saved', true); });
+find('menu-analysis').addEventListener('click', () => {
+    if (mode === matchRoute && !busy && !analysis && !engineFailed) contextualAnalysis.open(mode, matchOptionsButton);
+});
+find('menu-review').addEventListener('click', () => analyzeMatch(true));
+find('menu-draw').addEventListener('click', () => void decideMatch('OFFER_DRAW', match?.revision));
+find('menu-resign').addEventListener('click', () => {
+    if (busy || !match?.menu.RESIGN) return;
+    resignationRevision = match.revision;
+    resignation.returnValue = '';
+    resignation.showModal();
+    scheduleBot();
+});
+resignation.addEventListener('close', () => {
+    if (resignation.returnValue === 'confirm') void decideMatch('RESIGN', resignationRevision);
+    if (!find('match-options-anchor').hidden) matchOptionsButton.focus({ preventScroll: true });
+    scheduleBot();
+});
+
+async function decideMatch(action, revision) {
+    if (busy || match?.revision !== revision || !match?.menu[action] || mode !== matchRoute) return;
+    await exclusive(async () => {
+        const sourceMode = mode;
+        const response = await call('match-decision', { expectedRevision: revision, action });
+        if (response.outcome === 'APPLIED') await commitPlayedMatch(response, sourceMode);
+        else if (response.outcome === 'DECLINED') setStatus(words.drawDeclined);
+        else await restoreMatchDurable(words.matchSaveFailed);
+    }, words.matchSaveFailed);
+}
 find('flip-match').addEventListener('click', () => {
     if (!match || mode !== matchRoute || setupVisible || analysis) return;
     void exclusive(async () => {
@@ -1238,7 +1302,11 @@ find('review-close').addEventListener('click', () => {
         void closeStudyReview();
         return;
     }
-    showMainMenu();
+    if (liveReviewOrigin && liveReviewOrigin === match) {
+        liveReviewOrigin = undefined;
+        showMode(matchRoute);
+        matchOptionsButton.focus({ preventScroll: true });
+    } else showMainMenu();
 });
 find('reopen-review').addEventListener('click', () => { void openStandaloneReview(true); });
 find('match-rows').addEventListener('click', event => {
@@ -1258,7 +1326,7 @@ find('new-match').addEventListener('click', () => {
 find('ai-setup').addEventListener('submit', event => {
     event.preventDefault();
     if (busy || mode !== 'ai') return;
-    void enterMatch({ setup: { mode: 'AI', humanSide: find('ai-side').value, level: find('ai-level').value } });
+    void enterMatch({ setup: { mode: 'AI', humanSide: find('ai-side').value, level: find('ai-level').value, analysis: find('ai-analysis').checked } });
 });
 find('cancel-setup').addEventListener('click', () => {
     if (busy || !setupBackMode) return;
@@ -1272,11 +1340,14 @@ find('retry-bot').addEventListener('click', () => {
     renderMatch();
     scheduleBot();
 });
-find('analyze').addEventListener('click', analyzeMatch);
+find('analyze').addEventListener('click', () => analyzeMatch());
 find('open-match-analysis').addEventListener('click', event => {
     if (mode === matchRoute && !busy && !analysis && !engineFailed && !setupVisible) contextualAnalysis.open(mode, event.currentTarget);
 });
-find('cancel-analysis').addEventListener('click', cancelAnalysis);
+find('cancel-analysis').addEventListener('click', () => {
+    cancelAnalysis();
+    scheduleBot();
+});
 find('promote').addEventListener('change', event => {
     if (promotionMoves.includes(event.target.value)) play(event.target.value);
 });

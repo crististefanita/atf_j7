@@ -104,6 +104,7 @@ main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height
 }
 .match-automatic input { flex: none; inline-size: 1rem; block-size: 1rem; margin: 0; accent-color: var(--accent); }
 .match-automatic:has(input:disabled) { color: var(--muted); }
+.ai-analysis-option { display: flex; gap: .45rem; align-items: center; margin-block-start: .6rem; width: fit-content; }
 .options-anchor { position: relative; justify-self: start; }
 .options-panel {
   position: absolute;

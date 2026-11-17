@@ -1,5 +1,5 @@
 import { analyzeRatedReview, analyzeReview, applyBotMove, canonicalCheckpoint, computeBotMove, continueArchiveReview, continueMatch,
-  flipMatchBoard, matchAutomation, matchHistory, normalizePlayerName, openLedger, openMatch, openReview, archiveReviewCheckpoint,
+  flipMatchBoard, matchAutomation, matchDecision, matchHistory, normalizePlayerName, openLedger, openMatch, openReview, archiveReviewCheckpoint,
   archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, pieceArtwork, playBot, playMatch, reviewAction, reviewGraphSelect,
   saveArchiveReview, snapshot, continueStudyMatch, openStudyReview, studyCommand, studyReviewAction, studyReviewGraphSelect } from "./chess-engine.mjs";
 
@@ -58,7 +58,7 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       self.postMessage({ id, ...JSON.parse(openLedger(ledger ?? null, legacy?.local ?? null, legacy?.ai ?? null)), pieceArt: JSON.parse(pieceArtwork()) });
     } else if (type === "match-open" && validMatchOpen(route, slot, archiveId, setup)) {
       self.postMessage({ id, ...JSON.parse(openMatch(route ?? null, slot ?? 0, archiveId ?? null,
-        setup?.mode ?? null, setup?.humanSide ?? null, setup?.level ?? null)) });
+        setup?.mode ?? null, setup?.humanSide ?? null, setup?.level ?? null, setup?.analysis === true)) });
     } else if (type === "match-play" && validRevision(expectedRevision) && typeof move === "string") {
       self.postMessage({ id, ...JSON.parse(playMatch(expectedRevision, move)) });
     } else if (type === "match-bot" && validRevision(expectedRevision)) {
@@ -69,6 +69,8 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       self.postMessage({ id, ...JSON.parse(applyBotMove(expectedRevision, move)) });
     } else if (type === "match-automation" && validRevision(expectedRevision) && typeof automatic === "boolean") {
       self.postMessage({ id, ...JSON.parse(matchAutomation(expectedRevision, automatic)) });
+    } else if (type === "match-decision" && validRevision(expectedRevision) && ["OFFER_DRAW", "RESIGN"].includes(action)) {
+      self.postMessage({ id, ...JSON.parse(matchDecision(expectedRevision, action)) });
     } else if (type === "match-history" && validRevision(expectedRevision) && validRevision(ply)) {
       self.postMessage({ id, ...JSON.parse(matchHistory(expectedRevision, ply)) });
     } else if (type === "match-flip" && validRevision(expectedRevision)) {
@@ -116,7 +118,7 @@ function validMatchOpen(route, slot, archiveId, setup) {
   if (slot != null) return Number.isInteger(slot) && slot >= 1 && slot <= 10;
   if (archiveId != null) return validArchiveId(archiveId);
   return setup.mode === "LOCAL" || (setup.mode === "AI" && ["WHITE", "BLACK", "RANDOM"].includes(setup.humanSide)
-    && ["BASIC", "ADVANCED", "HARD"].includes(setup.level));
+    && ["BASIC", "ADVANCED", "HARD"].includes(setup.level) && (setup.analysis === undefined || typeof setup.analysis === "boolean"));
 }
 
 async function sha256(checkpoint) {
