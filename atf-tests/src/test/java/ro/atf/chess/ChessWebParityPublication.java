@@ -128,6 +128,37 @@ class ChessWebParityPublication {
         check.same("The packaged worker reports every automation observation", 3 * cases.size() + 3, rows.size());
     }
 
+    @Test void packagedWorkerProjectsInlineMatchAnalysis(Checks check) throws Exception {
+        String configured = System.getProperty("chess.web.bundle", "");
+        check.same("The packaged worker is supplied for inline match analysis", true, !configured.isBlank());
+        Path root = ProjectRoot.locate();
+        Path site = Path.of(configured).toAbsolutePath().normalize();
+        Path fixture = root.resolve("atf-tests/src/test/resources/match-analysis-cases.json");
+        var rows = ChessWebRulesComponentTest.rows(runWorker(root, "match-analysis-worker.mjs", site.resolve("engine-worker.mjs"), fixture).strip());
+        var cases = MatchAnalysisParityTest.fixture();
+        int revisionChecks = 0;
+        for (var example : cases) {
+            String id = example.id();
+            check.same(id + " preserves the opt-in and checkpoint in the same AI match",
+                    "AI/" + example.enabled() + "/" + example.checkpoint() + "/" + example.result(), rows.get(id + ":saved"));
+            var nativeFrame = MatchAnalysisParityTest.frame(ChessMatch.restore(example.checkpoint()), example.displayedPly());
+            check.same(id + " matches the native evaluation, hint and replay of the displayed position",
+                    nativeFrame.audit(), rows.get(id + ":frame"));
+            check.same(id + " leaves the durable ledger untouched across evaluation and replay", "true", rows.get(id + ":read-only"));
+            if (example.recommendation() != null) {
+                check.same(id + " rejects stale commands and a different position stamped with the same revision",
+                        "STALE/STALE/APPLIED", rows.get(id + ":revision"));
+                revisionChecks++;
+            }
+        }
+        check.same("An obsolete replay cannot reappear after navigating from history to the terminal frame",
+                "FINISHED/STALE/null", rows.get("advanced-to-terminal"));
+        check.same("Unopened analysis is unavailable and malformed setup or frame inputs are rejected",
+                "UNAVAILABLE/TypeError: Invalid chess worker request/TypeError: Invalid chess worker request/true",
+                rows.get("input-guards"));
+        check.same("The packaged worker reports every inline analysis observation", 3 * cases.length + revisionChecks + 2, rows.size());
+    }
+
     private String runWorker(Path root, String script, Path worker, Path input) throws IOException, InterruptedException {
         var stdout = evidence.resolve("worker-result.txt");
         var stderr = evidence.resolve("worker-error.txt");

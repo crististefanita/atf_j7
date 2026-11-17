@@ -40,6 +40,26 @@ La poziția curentă a unei partide cu AI, debifează **Lasă AI-ul să mute** c
 
 Tipul partidei, automatizarea curentă și marcajul pentru mutări jucate manual de partea AI sunt câmpuri distincte. O mutare legală jucată pentru calculator marchează partida ca neeligibilă pentru estimarea Elo. Comutarea și reluarea automatizării păstrează identitatea și eligibilitatea. Game Review poate analiza partida și permite o continuare cu replici automate din arhiva unei partide cu AI, păstrând marcajul folosit pentru estimarea Elo. Bibliotecile vechi păstrează clasificarea folosită de versiunea care le-a salvat. [Probele comune JVM și TeaVM](../docs/testing/README.md#controlul-replicilor-ai)
 
+### Analiza în partida cu AI
+
+Bifează **Analiză AI pentru o partidă nouă** în configurare. Bifa pornește
+debifată. Alegerea se păstrează în checkpointul slotului și se aplică la
+redeschiderea lui.
+
+Bara de evaluare și becul urmăresc poziția de pe tablă, inclusiv în istoric.
+Motorul comun calculează evaluarea din perspectiva albului, iar afișajul așază
+capătul alb al barei lângă partea albă a tablei. Poziția finală arată rezultatul
+partidei. Indiciile din partidă caută variante tactice cu `ChessMatch.hintAt`.
+Pentru teoria deschiderilor, folosește tabla de analiză.
+
+Becul arată o variantă și marcajul mutării recomandate. Deschide previzualizarea
+din butonul variantei și parcurge linia cu săgețile pe tabla de previzualizare.
+În poziția curentă, apăsarea destinației marcate joacă indiciul legal când
+selecția tablei este liberă.
+Browserul calculează analiza într-un worker separat. Schimbarea poziției sau
+ieșirea din partidă invalidează rezultatul anterior.
+[Probele de componentă și interfață](../docs/testing/README.md#analiza-în-partida-cu-ai)
+
 ### Tabla din Probleme și din partidă
 
 Problemele și partidele cu AI folosesc același pătrat pentru aceeași fereastră și mărime a textului. Dimensiunea pornește de la spațiul disponibil în Probleme și rezervă loc pentru comenzi și istoric. Pe ferestre foarte scunde, pagina poate derula pentru a păstra tabla și comenzile utilizabile. [Verificarea dimensiunilor](../docs/testing/README.md#paritatea-web-a-motorului)

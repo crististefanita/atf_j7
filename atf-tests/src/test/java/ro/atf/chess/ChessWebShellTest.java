@@ -52,6 +52,9 @@ class ChessWebShellTest {
         var passed = tap.lines().map(PASS::matcher).filter(java.util.regex.Matcher::matches)
                 .map(match -> match.group(1)).toList();
         check.same("All Android reference and Web adapter contracts execute", List.of(
+                "Inline analysis starts unchecked and shares the board frame geometry",
+                "Inline analysis drops older frames and keeps hints on a board flip only",
+                "A hinted destination applies only the exact legal variation and respects selection",
                 "Web home preserves Android groups, action order and RO and EN labels",
                 "Only active saved games show the home action",
                 "AI color choices preserve Android order and RO and EN labels",

@@ -1,7 +1,11 @@
 package ro.atf.chess;
 
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import ro.atf.chess.ChessPosition.Move;
 import ro.atf.chess.ChessPosition.Side;
+import ro.atf.chess.OpeningCatalog.Text;
 
 /** Values shared by the board views exposed across the worker boundary. */
 final class WebBoardState {
@@ -29,6 +33,34 @@ final class WebBoardState {
     }
 
     static String move(Move move) { return move == null ? "null" : quote(move.uci()); }
+
+    static String frame(ChessPosition position, Move last) {
+        String squares = placement(position).replace("/", "");
+        for (int count = 1; count <= 8; count++) squares = squares.replace(String.valueOf(count), " ".repeat(count));
+        return "\"board\":" + quote(squares) + ",\"sideToMove\":" + quote(position.turn().name()) + ",\"lastMove\":" + move(last);
+    }
+
+    static String marks(Move suggested) {
+        return suggested == null ? "[]" : "[" + quote(BoardSquare.name(suggested.from())) + "," + quote(BoardSquare.name(suggested.to())) + "]";
+    }
+
+    static String text(Text label) {
+        return label == null ? "null" : "{\"en\":" + quote(label.en()) + ",\"ro\":" + quote(label.ro()) + "}";
+    }
+
+    static <T> String json(List<T> values, Function<T, String> encode) {
+        return values.stream().map(encode).collect(Collectors.joining(",", "[", "]"));
+    }
+
+    static String evaluation(MatchEvaluation evaluation) {
+        return evaluation == null ? "null" : "{\"ending\":" + quote(evaluation.ending().name())
+                + ",\"whiteShare\":" + evaluation.whiteShare() + ",\"centipawns\":" + evaluation.whiteCentipawns()
+                + ",\"mate\":" + evaluation.whiteMateMoves() + "}";
+    }
+
+    static String terminalEvaluation(ChessMatch.Result result) {
+        return "{\"ending\":\"FINISHED\",\"whiteShare\":" + MatchEvaluation.terminalWhiteShare(result) + "}";
+    }
 
     static String quote(String token) {
         if (token == null) return "null";

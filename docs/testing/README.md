@@ -69,6 +69,31 @@ Selectați `ChessWebParityPublication#packagedWorkerKeepsAiIdentityThroughManual
 
 `MatchControlsTest` verifică disponibilitatea comutatorului la poziția curentă, în istoric și după încheiere. `ChessWebShellTest` verifică etichetele RO și EN cu resursele Android. Un ceas și un calcul simulate verifică anularea prin `AbortSignal` și ignorarea unui rezultat livrat după anulare. În sanity-ul de interfață, treceți în modul manual în tura AI, efectuați o mutare legală și redeschideți același slot. Reactivați automatizarea în tura AI și observați o singură replică. [Contractul partidei](../../web/README.md#controlul-replicilor-ai)
 
+### Analiza în partida cu AI
+
+Selectați `MatchAnalysisParityTest` și
+`ChessWebParityPublication#packagedWorkerProjectsInlineMatchAnalysis` în comanda
+Maven pentru pachetul TeaVM. Cazurile comune fixează checkpointul și semimutarea
+afișată. Comparați opțiunea după restaurare, evaluarea albului, linia de mat din
+poziția istorică și starea terminală.
+[Comanda Maven](../../web/README.md) · [Datele comune](../../atf-tests/src/test/resources/match-analysis-cases.json)
+
+`ChessWebShellTest` exercită în Node schimbarea poziției în timpul calculului
+și refuzul indiciului care nu mai este legal în poziția afișată.
+
+În proba de interfață, porniți întâi o partidă cu bifa debifată și verificați
+absența panoului. Porniți apoi una cu analiză, arătați un indiciu și parcurgeți
+o semimutare în previzualizare. Verificați revenirea focusului, orientarea
+barei și poziția din istoric. Redeschideți același slot și verificați opțiunea
+salvată, încadrarea tablei și accesul la comenzi la text mărit.
+[Contractul Web](../../web/README.md#analiza-în-partida-cu-ai)
+
+Pe candidatul Web, proba MCP în română la 360 × 640 CSS px și text la 130%
+a observat o tablă de 324 × 324 px, revenirea focusului după închiderea
+previzualizării și recalcularea la o semimutare din istoric. Aplicarea
+indiciului și replica AI au păstrat geometria tablei. Cazurile JVM folosesc
+modelul comun din adaptorul Android, iar proba TeaVM execută workerul compilat.
+
 ### Orientarea tablei în partidă
 
 `MatchControlsTest` verifică disponibilitatea acțiunii în partidă și în istoric. `MatchStoreTest` și `ChessWebParityPublication#packagedWorkerPreservesTheMatchWhenFlipping` folosesc același fixture pentru păstrarea poziției, istoricului și orientării la redeschidere. Workerul respinge o replică rămasă la revizia veche. `ChessWebShellTest` folosește un ceas simulat și verifică înlocuirea programării vechi cu o singură replică la revizia curentă. [Comanda de verificare](../../web/README.md#motorul-chess-lab-în-browser)

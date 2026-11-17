@@ -1,0 +1,54 @@
+[
+  {
+    "id": "default-disabled",
+    "humanSide": "WHITE",
+    "level": "BASIC",
+    "analysis": null,
+    "moves": "e2e4 e7e5",
+    "checkpoint": "1|e2e4 e7e5",
+    "displayedPly": 2,
+    "sideToMove": "WHITE",
+    "result": "IN_PROGRESS",
+    "ending": null,
+    "recommendation": null
+  },
+  {
+    "id": "current-white-edge",
+    "humanSide": "BLACK",
+    "level": "ADVANCED",
+    "analysis": true,
+    "moves": "e2e4 e7e5",
+    "checkpoint": "3|BLACK|ADVANCED|1|e2e4 e7e5",
+    "displayedPly": 2,
+    "sideToMove": "WHITE",
+    "result": "IN_PROGRESS",
+    "ending": "HORIZON",
+    "recommendation": "g1f3"
+  },
+  {
+    "id": "historical-black-mate",
+    "humanSide": "WHITE",
+    "level": "BASIC",
+    "analysis": true,
+    "moves": "f2f3 e7e5 g2g4 d8h4",
+    "checkpoint": "2|analysis|f2f3 e7e5 g2g4 d8h4",
+    "displayedPly": 3,
+    "sideToMove": "BLACK",
+    "result": "BLACK_WINS",
+    "ending": "CHECKMATE",
+    "recommendation": "d8h4"
+  },
+  {
+    "id": "finished-black-win",
+    "humanSide": "WHITE",
+    "level": "BASIC",
+    "analysis": true,
+    "moves": "f2f3 e7e5 g2g4 d8h4",
+    "checkpoint": "2|analysis|f2f3 e7e5 g2g4 d8h4",
+    "displayedPly": 4,
+    "sideToMove": "WHITE",
+    "result": "BLACK_WINS",
+    "ending": "FINISHED",
+    "recommendation": null
+  }
+]

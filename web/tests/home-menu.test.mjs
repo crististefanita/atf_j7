@@ -7,9 +7,75 @@ import { profileKey, readProfile, writeProfile } from '../src/main/web/player-pr
 import { showReviewPiece } from '../src/main/web/review-workspace.mjs';
 import { routeForHash } from '../src/main/web/study-navigation.mjs';
 import { createMatchBotTimer } from '../src/main/web/match-bot-timer.mjs';
+import { createInlineAnalysisSession, guidedMatchMove } from '../src/main/web/match-inline-analysis.mjs';
 
 const base = new URL('../../', import.meta.url);
 const read = path => readFile(new URL(path, base), 'utf8');
+
+test('Inline analysis starts unchecked and shares the board frame geometry', async () => {
+    const [layout, html, styles] = await Promise.all([
+        read('android/app/src/main/res/layout/match_setup.xml'),
+        read('web/src/main/web/index.html'),
+        read('web/src/main/web/game-review.css'),
+    ]);
+    const native = layout.match(/<CheckBox android:id="@\+id\/match_analysis_option"[^>]+>/)?.[0];
+    assert.ok(native);
+    assert.doesNotMatch(native, /android:checked="true"/);
+    assert.match(html, /<input id="ai-analysis" type="checkbox">/);
+    assert.match(html, /<div id="match-inline-analysis"[^>]*hidden>/);
+    assert.match(styles, /\.match-board-frame\s*\{[^}]*inline-size:\s*min\(100%,\s*var\(--play-board-limit\)\)/);
+    assert.match(styles, /\.match-inline-meter\s*\{[^}]*position:\s*absolute;[^}]*inset-inline-end:\s*calc\(100% \+ 2px\)/);
+});
+
+test('Inline analysis drops older frames and keeps hints on a board flip only', () => {
+    const workers = [];
+    const statuses = [];
+    const makeWorker = () => {
+        const events = new Map();
+        const worker = {
+            messages: [],
+            addEventListener(type, listener) { events.set(type, listener); },
+            postMessage(value) { this.messages.push(value); },
+            terminate() { this.stopped = true; },
+            answer(message, data) { events.get('message')({ data: { id: message.id, ...data } }); },
+        };
+        workers.push(worker);
+        return worker;
+    };
+    const session = createInlineAnalysisSession({ createWorker: makeWorker, publish: state => statuses.push(state?.state?.ply ?? null) });
+    const frame = { reviewCheckpoint: '2|e2e4 e7e5', viewPly: 2, revision: 4, blackBelow: false };
+    session.show(frame, 'ai-slot-one');
+    assert.equal(workers.length, 0);
+    const enabled = { ...frame, analysisEnabled: true };
+    session.show(enabled, 'ai-slot-one');
+    const first = workers[0];
+    assert.equal(first.messages[0].type, 'match-analysis-open');
+    session.show({ ...enabled, viewPly: 1, revision: 5 }, 'ai-slot-one');
+    const current = workers[1];
+    assert.equal(first.stopped, true);
+    first.answer(first.messages[0], { analysis: { revision: 4, ply: 2, hint: { move: 'd2d4' } } });
+    assert.equal(session.revealedMove(), null);
+    current.answer(current.messages[0], { analysis: { revision: 5, ply: 1, hint: { count: 2, move: null } } });
+    assert.equal(statuses.at(-1), 1);
+    session.command('hint');
+    assert.equal(current.messages[1].expectedRevision, 5);
+    current.answer(current.messages[1], { analysis: { revision: 5, ply: 1, hint: { count: 2, move: 'e7e5' } } });
+    session.show({ ...enabled, viewPly: 1, revision: 6, blackBelow: true }, 'ai-slot-one');
+    assert.equal(workers.length, 2);
+    assert.equal(session.revealedMove(), 'e7e5');
+    session.show(null);
+    current.answer(current.messages[1], { analysis: { revision: 5, ply: 1, hint: { move: 'c7c5' } } });
+    assert.equal(current.stopped, true);
+    assert.equal(statuses.at(-1), null);
+    assert.equal(session.revealedMove(), null);
+});
+
+test('A hinted destination applies only the exact legal variation and respects selection', () => {
+    assert.equal(guidedMatchMove('a7a8n', undefined, 'a8', ['a7a8q', 'a7a8n']), 'a7a8n');
+    assert.equal(guidedMatchMove('a7a8n', undefined, 'a8', ['a7a8q']), null);
+    assert.equal(guidedMatchMove('a7a8n', 'a7', 'a8', ['a7a8n']), null);
+    assert.equal(guidedMatchMove('a7a8n', undefined, 'a7', ['a7a8n']), null);
+});
 
 const translations = {
     'home-games-heading': 'menu_play', 'home-study-heading': 'menu_study', 'home-profile-heading': 'profile_title',

@@ -13,6 +13,7 @@ public final class ChessWebEngine {
     private static final WebQuestStudy QUESTS = new WebQuestStudy();
     private static final WebOpeningStudy OPENINGS = new WebOpeningStudy();
     private static final WebAnalysisStudy ANALYSIS = new WebAnalysisStudy();
+    private static final WebMatchAnalysis MATCH_ANALYSIS = new WebMatchAnalysis();
 
     private ChessWebEngine() { }
 
@@ -151,6 +152,16 @@ public final class ChessWebEngine {
 
     @JSExport
     public static String computeBotMove(String checkpoint) { return ChessMatch.restore(checkpoint).chooseBotMove().uci(); }
+
+    @JSExport
+    public static String openMatchAnalysis(String checkpoint, int ply, int revision) {
+        return MATCH_ANALYSIS.open(checkpoint, ply, revision);
+    }
+
+    @JSExport
+    public static String matchAnalysisAction(int revision, String action, int index) {
+        return MATCH_ANALYSIS.action(revision, action, index);
+    }
 
     @JSExport
     public static String applyBotMove(int revision, String move) { return GAME.applyBot(revision, move); }

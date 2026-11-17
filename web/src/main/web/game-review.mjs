@@ -8,6 +8,7 @@ import { matchAnalysisNavigation, routeForHash, routeHashes, watchRouteHistory, 
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 import { createMatchBotTimer } from './match-bot-timer.mjs';
+import { bindInlineMatchAnalysis, guidedMatchMove } from './match-inline-analysis.mjs';
 import { attachOptionsMenu } from './options-menu.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
@@ -230,6 +231,12 @@ document.addEventListener('focusin', event => {
 
 const squares = buildBoard(board, false);
 const matchSquares = buildBoard(matchBoard, true);
+const drawMatchHintArrow = mountStudyArrow(matchBoard);
+let matchHintSquares = [];
+const inlineMatchAnalysis = bindInlineMatchAnalysis({
+    find, locale, createBoard: createStudyBoard, cue: drawMatchHint,
+    createWorker: () => new Worker(new URL('./engine-worker.mjs', import.meta.url), { type: 'module' }),
+});
 
 worker.addEventListener('message', ({ data }) => {
     const request = pending.get(data.id);
@@ -328,7 +335,10 @@ function drawBoard(target, cells, state) {
         if (!showReviewPiece(piece, type, state.pieceArt ?? pieceArtwork)) piece.textContent = glyphs[type] ?? '';
         const description = exists ? words.pieceAt(words.pieces[kinds[type]], white, name) : name;
         if (exists) descriptions.push(description);
-        if (cell.tagName === 'BUTTON') cell.setAttribute('aria-label', description);
+        if (cell.tagName === 'BUTTON') {
+            cell.setAttribute('aria-label', description);
+            if (target === matchBoard) cell.dataset.positionLabel = description;
+        }
     }
     const turn = words[state.sideToMove];
     target.setAttribute('aria-label', `${words.board} · ${turn}`);
@@ -336,6 +346,24 @@ function drawBoard(target, cells, state) {
         find('board-position').textContent = descriptions.join(', ');
         find('turn').textContent = turn;
     }
+}
+
+function drawMatchHint(move, blackBelow) {
+    const from = move?.slice(0, 2);
+    const to = move?.slice(2, 4);
+    const next = move ? [from, to] : [];
+    for (const square of new Set([...matchHintSquares, ...next])) {
+        const { cell } = matchSquares.get(square);
+        const origin = square === from;
+        const destination = square === to;
+        cell.toggleAttribute('data-study-hint', origin);
+        if (cell.dataset.positionLabel) {
+            const label = studySquareDescription(cell.dataset.positionLabel, locale, { origin, destination });
+            if (cell.getAttribute('aria-label') !== label) cell.setAttribute('aria-label', label);
+        }
+    }
+    matchHintSquares = next;
+    drawMatchHintArrow(from, to, blackBelow);
 }
 
 function createStudyBoard(host, onSquare) {
@@ -609,6 +637,7 @@ function renderMatch() {
     find('match-options-anchor').hidden = container.hidden;
     renderMatchAutomation();
     if (container.hidden) {
+        inlineMatchAnalysis.show(null);
         matchMenu.close();
         if (resignation.open) resignation.close('cancel');
         return;
@@ -629,6 +658,8 @@ function renderMatch() {
     container.dataset.awaitingBot = match.awaitingBot;
     orientBoard(matchBoard, matchSquares, match.blackBelow);
     drawBoard(matchBoard, matchSquares, match);
+    inlineMatchAnalysis.show(match, container.dataset.matchId);
+    drawMatchHint(inlineMatchAnalysis.revealedMove(), match.blackBelow);
     const result = browsing || match.result === 'IN_PROGRESS' ? words[match.sideToMove]
         : match.resigned ? words.resigned : match.result === 'AGREED_DRAW' ? words.agreedDraw : words[match.result] ?? words.DRAW;
     find('match-turn').textContent = match.manualAiTurn ? words.manualAiTurn
@@ -926,6 +957,11 @@ function canPlayMatch() {
 
 function chooseSquare(square) {
     if (!canPlayMatch() || busy || analysis || otherTabChanged || engineFailed) return;
+    const guided = guidedMatchMove(inlineMatchAnalysis.revealedMove(), selectedSquare, square, match.legalMoves);
+    if (guided) {
+        play(guided);
+        return;
+    }
     const target = `${selectedSquare}${square}`;
     const moves = match.legalMoves.filter(move => move.slice(0, 4) === target);
     if (moves.length === 1) {

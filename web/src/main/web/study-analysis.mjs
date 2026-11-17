@@ -80,6 +80,48 @@ export function analysisHintDescription(hint, locale) {
     return words.hintVariant(hint.number, hint.count) + '. ' + move + promotion + (family ? '. ' + family : '') + '.';
 }
 
+export function renderAnalysisMeter(meter, fill, evaluation, blackBelow) {
+    meter.setAttribute('aria-hidden', evaluation == null);
+    if (!evaluation) {
+        meter.removeAttribute('aria-valuenow');
+        fill.style.height = '0%';
+        return;
+    }
+    const share = Math.round(evaluation.whiteShare * 100);
+    meter.setAttribute('aria-valuenow', share);
+    fill.style.height = share + '%';
+    fill.style.insetBlockStart = blackBelow ? '0' : 'auto';
+    fill.style.insetBlockEnd = blackBelow ? 'auto' : '0';
+}
+
+export function renderAnalysisEvidence(target, preview, rootSide, locale, proofButton) {
+    const words = copy[language(locale)];
+    if (preview.kind === 'THEORY') {
+        target.textContent = preview.name[language(locale)] + ' · ' + preview.eco + ' · '
+            + (preview.idea?.[language(locale)] ?? words.genericTheory);
+        return;
+    }
+    const evidence = [];
+    if (preview.depth > 0) evidence.push(words.depth(preview.depth));
+    if (preview.initialCp !== null) evidence.push(pawns(preview.initialCp, locale) + ' → ' + pawns(preview.finalCp, locale)
+        + ' · Δ ' + pawns(preview.finalCp - preview.initialCp, locale));
+    if (preview.decisive) {
+        const proof = preview.decisive;
+        const label = words.proof(proof.branch + 1, proof.ply, notation(proof.move), pieceName(words, proof.piece), proof.reason === 'MATE');
+        const jump = proofButton(label);
+        jump.setAttribute('aria-label', label + ' ' + words.jump);
+        target.replaceChildren(evidence.join(' · '), jump);
+        return;
+    }
+    const piece = pieceName(words, preview.piece);
+    const move = notation(preview.proofMove);
+    evidence.push(preview.proof === 'CHECKMATE' ? words.mateProof(piece, move)
+        : preview.proof === 'CHECKMATE_AGAINST' ? words.replyMate(piece, move)
+        : preview.proof === 'CAPTURE' ? words.capture(move, pieceName(words, preview.captured), preview.gain)
+        : preview.proof === 'STALEMATE' ? words.results.STALEMATE : words.forecast(sideName(words, rootSide)));
+    target.textContent = evidence.join(' · ');
+}
+
 function keepMoveVisible(history, move) {
     if (!move || !history.clientWidth) return;
     const viewport = history.getBoundingClientRect();
@@ -345,18 +387,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         controls.feedback.hidden = !next.analysis || !!preview;
         controls.score.textContent = analysisScore(next.evaluation, locale);
         controls.meter.hidden = !next.analysis || !!preview;
-        const meterReady = !controls.meter.hidden && next.evaluation != null;
-        controls.meter.setAttribute('aria-hidden', !meterReady);
-        if (meterReady) {
-            const share = Math.round(next.evaluation.whiteShare * 100);
-            controls.meter.setAttribute('aria-valuenow', share);
-            controls.fill.style.height = share + '%';
-            controls.fill.style.insetBlockStart = next.blackBelow ? '0' : 'auto';
-            controls.fill.style.insetBlockEnd = next.blackBelow ? 'auto' : '0';
-        } else {
-            controls.meter.removeAttribute('aria-valuenow');
-            controls.fill.style.height = '0%';
-        }
+        renderAnalysisMeter(controls.meter, controls.fill, controls.meter.hidden ? null : next.evaluation, next.blackBelow);
         controls.previous.disabled = frame.ply === 0;
         controls.next.disabled = controls.latest.disabled = frame.ply === frame.total;
         controls.latest.hidden = !!preview;
@@ -390,37 +421,11 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
             for (const [index, choice] of Array.from(controls.variants.children).entries()) {
                 choice.setAttribute('aria-pressed', index === preview.branch);
             }
-            renderEvidence(preview, next.sideToMove);
+            renderAnalysisEvidence(controls.evidence, preview, next.sideToMove, locale,
+                label => button(label, async () => { if (await request('preview-proof')) controls.playback.focus(); }));
         }
         renderHistory(next, !!preview);
         renderPromotion(next.promotions);
-    }
-
-    function renderEvidence(preview, rootSide) {
-        if (preview.kind === 'THEORY') {
-            controls.evidence.textContent = preview.name[language(locale)] + ' · ' + preview.eco + ' · '
-                + (preview.idea?.[language(locale)] ?? words.genericTheory);
-            return;
-        }
-        const evidence = [];
-        if (preview.depth > 0) evidence.push(words.depth(preview.depth));
-        if (preview.initialCp !== null) evidence.push(pawns(preview.initialCp, locale) + ' → ' + pawns(preview.finalCp, locale)
-            + ' · Δ ' + pawns(preview.finalCp - preview.initialCp, locale));
-        if (preview.decisive) {
-            const proof = preview.decisive;
-            const label = words.proof(proof.branch + 1, proof.ply, notation(proof.move), pieceName(words, proof.piece), proof.reason === 'MATE');
-            const jump = button(label, async () => { if (await request('preview-proof')) controls.playback.focus(); });
-            jump.setAttribute('aria-label', label + ' ' + words.jump);
-            controls.evidence.replaceChildren(evidence.join(' · '), jump);
-            return;
-        }
-        const piece = pieceName(words, preview.piece);
-        const move = notation(preview.proofMove);
-        evidence.push(preview.proof === 'CHECKMATE' ? words.mateProof(piece, move)
-            : preview.proof === 'CHECKMATE_AGAINST' ? words.replyMate(piece, move)
-            : preview.proof === 'CAPTURE' ? words.capture(move, pieceName(words, preview.captured), preview.gain)
-            : preview.proof === 'STALEMATE' ? words.results.STALEMATE : words.forecast(sideName(words, rootSide)));
-        controls.evidence.textContent = evidence.join(' · ');
     }
 
     function renderHistory(next, preview) {

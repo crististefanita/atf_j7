@@ -1,6 +1,6 @@
 import { analyzeRatedReview, analyzeReview, applyBotMove, canonicalCheckpoint, computeBotMove, continueArchiveReview, continueMatch,
   flipMatchBoard, matchAutomation, matchDecision, matchHistory, normalizePlayerName, openLedger, openMatch, openReview, archiveReviewCheckpoint,
-  archiveReviewRated, importLegacyReview, ledgerState, openArchiveReview, pieceArtwork, playBot, playMatch, reviewAction, reviewGraphSelect,
+  archiveReviewRated, importLegacyReview, ledgerState, matchAnalysisAction, openArchiveReview, openMatchAnalysis, pieceArtwork, playBot, playMatch, reviewAction, reviewGraphSelect,
   saveArchiveReview, snapshot, continueStudyMatch, openStudyReview, studyCommand, studyReviewAction, studyReviewGraphSelect } from "./chess-engine.mjs";
 
 let pending = Promise.resolve();
@@ -65,6 +65,10 @@ async function respond({ id, type, resources, archive, checkpoint, review, ledge
       self.postMessage({ id, ...JSON.parse(playBot(expectedRevision)) });
     } else if (type === "match-bot-compute" && typeof checkpoint === "string") {
       self.postMessage({ id, move: computeBotMove(checkpoint) });
+    } else if (type === "match-analysis-open" && typeof checkpoint === "string" && validRevision(ply) && validRevision(expectedRevision)) {
+      self.postMessage({ id, ...JSON.parse(openMatchAnalysis(checkpoint, ply, expectedRevision)) });
+    } else if (type === "match-analysis-action" && validRevision(expectedRevision) && validMatchAnalysisAction(action, index)) {
+      self.postMessage({ id, ...JSON.parse(matchAnalysisAction(expectedRevision, action, index ?? 0)) });
     } else if (type === "match-bot-apply" && validRevision(expectedRevision) && typeof move === "string") {
       self.postMessage({ id, ...JSON.parse(applyBotMove(expectedRevision, move)) });
     } else if (type === "match-automation" && validRevision(expectedRevision) && typeof automatic === "boolean") {
@@ -103,6 +107,11 @@ function validRevision(value) {
 }
 
 function validPly(value) { return value === -1 || validRevision(value); }
+
+function validMatchAnalysisAction(action, index) {
+  if (action === "preview-branch" || action === "preview-seek") return validRevision(index);
+  return ["hint", "preview", "preview-close", "preview-proof"].includes(action) && (index == null || validRevision(index));
+}
 
 function optionalText(value) {
   return value == null || typeof value === "string";
