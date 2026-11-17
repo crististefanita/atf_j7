@@ -98,6 +98,22 @@ Numerele Stockfish compară rădăcinile testate cu replicile adverse libere. Nu
 
 [Protocolul și colecția de audit](../testing/hint-audit.md) · [Contractele frontierei](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java)
 
+## Prima colecție de audit mutare cu mutare
+
+`opening-hints-v1` păstrează 24 de decizii pe trasee și nouă controale de buget din poziții pereche din [sursa auditată](https://github.com/crististefanita/chess/commit/a7e71d9412323603847c20da220c8554903ae9be). Rejucarea independentă validează 539 de semimutări PV, 233 de replici adverse, contoare, drepturi, material, PGN SAN și amprente. Douăsprezece cereri de rang indisponibil revin explicit la prima sugestie oferită. Datele sunt în `C:\work\sah\colectii\hint-hard\2026-11-17-v1`.
+
+Auditul H17/H19 separă prima recomandare de rangul jucat intenționat. Găsește cinci decizii ale liderului cu pierdere de scor așteptat de cel puțin 150‰ la H19. Un `Bg5` selectat intenționat pierde 484,5‰, iar liderul acelei poziții pierde 9‰. Niciun număr nu stabilește un rating Elo. Prima colecție rămâne imuabilă când evaluăm algoritmi ulteriori.
+
+| Martor | API efectiv și alocație | Rădăcină aleasă, SF H19 | Alternativă verificată, SF H19 |
+|---|---|---|---|
+| Decizia italiană 5 | Indiciu, 100k pe traseu; aceeași rădăcină la 200k | `…Bxf2+`, −311 cp / 0‰ | `…Qg6`, −49 cp / 444‰ |
+| Aceeași poziție completă | Hard efectiv, 100k noduri suplimentare | `…Na5`, −120 cp / 155,5‰ | `…Qg6`, −49 cp / 444‰ |
+| Decizia italiană 3 | Indiciu, 200k | `…Qd6`, −379 cp / 0‰ | `…Qd8`, −197 cp / 10‰ |
+
+Pierderile italiene se reproduc și cu motorul precedent. După captura nebunului, `Kxf2 …Qc5+ d4` este o apărare reală și contează furculița ulterioară de cal. Creditul superficial și candidații indiciului sunt distincte de decizia Hard efectivă. În grila Caro–Kann cu albul după `…d5`, adâncimile selectate sunt H5/H5/H4 la 50k/100k/200k. O alocație mai mare nu implică deci un rezultat selectat mai adânc sau o mutare mai puternică. Acestea sunt cazuri explicite pentru continuare, fără a reprezenta o poartă de forță globală trecută.
+
+[Protocolul auditului](../testing/hint-audit.md) · [Feedback algoritmic deschis](../feedback/README.md)
+
 ## Control la fiecare schimbare
 
 1. Rulați suita JVM înainte de schimbare. Comparați din aceeași copie TMP, cu același executabil Stockfish și același YAML de evaluare. Păstrați raportul Extent din fiecare rulare.

@@ -12,6 +12,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
+| P1 | Italiană · replicile defensive din indiciu și Hard | Auditul găsește compensația falsă pentru `…Bxf2+`; și alegerea Hard efectivă este inferioară. | Compară `…Bxf2+`, `…Na5` și `…Qg6` prin apărări libere la orizont comun și păstrează sacrificiile corecte. |
 | P1 | Indiciu · precizia alternativelor independente | Unele alternative rămân supraevaluate după verificarea schimburilor. | Verifică ordonarea și fiecare alternativă oferită față de replici libere, în același buget. |
 | P2 | Audit indicii · transfer mai larg | Planul inițial acoperă trei trasee scurte de deschidere și trei bugete. | Adaugă familii cu istorii separate și măsoară pierderea liderului distinct de rangurile inferioare jucate intenționat. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
@@ -53,6 +54,15 @@ Adaugă verificarea compactă în poarta de promovare pentru schimbările de geo
 NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului. Componenta și Edge confirmă acum o singură valoare accesibilă.
 
 Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceeași mutare din **De ce?**. [Feedback Web](web-parity.md)
+
+</details>
+
+<details>
+<summary>P1 · Italiană · replicile defensive din indiciu și Hard</summary>
+
+Colecția `opening-hints-v1`, legată de sursă, găsește decizia 5 din `italian-ranked` recomandând `…Bxf2+`. Stockfish H19 dă −311 cp / 0‰ prin `Kxf2 …Qc5+ d4`, față de −49 cp / 444‰ pentru `…Qg6`. H4 brut al indiciului preferă deja `Qg6 −59` față de `Bxf2+ −90`, dar creditul orizontului anterior ridică sacrificiul la −41, iar selecția candidaților pierde `Qg6`. Separat, Hard efectiv la 100k alege `…Na5`, evaluat la −120 cp / 155,5‰. Ambele sunt lacune existente, reproduse cu motorul precedent.
+
+Păstrați dovezile orizontului curent distincte de ordonarea euristică și cereți un candidat relevant. Verificați apărările centrale liniștite și furculița ulterioară de cal. Comparați independent API-ul Hard efectiv și indiciul de 200k, cu sacrificii corecte de nebun, damă și cal ca martori. Păstrați porțile Sicilianei, Caro–Kann, Catalanei și `Qxc2`. Conservați prima colecție imuabilă și verificați transferul înainte de promovarea corecției. [Protocolul auditului](../testing/hint-audit.md)
 
 </details>
 
