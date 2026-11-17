@@ -46,15 +46,19 @@ final class HardMoveAudit {
         for (var variation : entry.variations()) {
             require(!variation.line().isEmpty() && roots.add(variation.move()), "Missing or duplicate native root");
             var replay = board;
+            var path = new ArrayList<ChessPosition>();
             for (var move : variation.line()) {
                 require(replay.legalMoves().contains(move), "Illegal native continuation");
                 replay = replay.play(move);
+                path.add(replay);
             }
             require(variation.materialChange() == HintAuditSession.materialChangeCp(board, replay), "Foreign material ledger");
             require(variation.ending() != TacticalAnalysis.Ending.CHECKMATE || replay.isCheckmate(), "Unproved native mate");
             require(variation.ending() != TacticalAnalysis.Ending.STALEMATE || !replay.hasLegalMove() && !replay.isCheck(), "Unproved stalemate");
             if (variation.ending() == TacticalAnalysis.Ending.HORIZON && variation.line().size() < entry.depth()) {
-                require(variation.line().size() == 1 && variation.score() == 0 && priorOccurrences(match, replay) >= 2,
+                int repetitions = priorOccurrences(match, replay);
+                for (var state : path) if (state.sameForRepetition(replay)) repetitions++;
+                require(variation.score() == 0 && repetitions >= 3,
                         "A truncated line is not a repetition convention");
             }
         }
