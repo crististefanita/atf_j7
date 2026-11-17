@@ -1,0 +1,193 @@
+ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
+DOC_PAIR | main EN / main_RO RO. See docs/release/README.md (Bilingual Documentation / Documentație bilingvă).
+  Run ReleaseGate documentation-pair <Git root> <EN ref> <RO ref> on the paired candidates, then review translated meaning.
+COVERED | README.md
+COVERED | android/app/build.gradle
+COVERED | android/app/src/main/java/ro/atf/chess/android/AnalysisReplayDialog.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/HintPreviewDialog.java
+COVERED | atf-tests/pom.xml
+COVERED | atf-tests/src/test/java/ro/atf/chess/AiOpeningRegressionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebOptionsMenuTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebShellTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/DocumentationPairGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardAdaptivePolicyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintReplayPresentationTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MarkdownVisualContract.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchSetupTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/RookEndgameHistoryTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/TestChangePolicyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/WebHintReplayComponentTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/WebUiParityGovernanceTest.java
+COVERED | atf-tests/src/test/resources/match-analysis-cases.json
+COVERED | chess-core/src/main/java/ro/atf/chess/HardAdaptivePolicy.java
+COVERED | chess-core/src/main/java/ro/atf/chess/HintPreview.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchAiPolicy.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchHint.java
+COVERED | chess-core/src/main/java/ro/atf/chess/OpeningRepertoire.java
+COVERED | chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java
+COVERED | chess-core/src/main/resources/hard-adaptive.yaml
+COVERED | chess-core/src/main/resources/match-ai.yaml
+COVERED | docs/README.md
+COVERED | docs/board/README.md
+COVERED | docs/board/ai-quality.md
+COVERED | docs/board/game-review.md
+COVERED | docs/board/openings.md
+COVERED | docs/board/quest-curation.md
+COVERED | docs/feedback/README.md
+COVERED | docs/feedback/hard-learning.md
+COVERED | docs/feedback/web-parity.md
+COVERED | docs/release/README.md
+COVERED | docs/testing/README.md
+COVERED | docs/testing/test-changes.yaml
+COVERED | lib/README.Console.md
+COVERED | lib/README.Core.md
+COVERED | lib/README.Mock.md
+COVERED | lib/README.Reporting.md
+COVERED | lib/README.TestKit.md
+COVERED | lib/README.md
+COVERED | pom.xml
+COVERED | release-tools/src/main/java/ro/atf/chess/release/DocumentationPair.java
+COVERED | release-tools/src/main/java/ro/atf/chess/release/GitTestChanges.java
+COVERED | release-tools/src/main/java/ro/atf/chess/release/MarkdownOutline.java
+COVERED | release-tools/src/main/java/ro/atf/chess/release/ReleaseEvidence.java
+COVERED | release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java
+COVERED | release-tools/src/main/java/ro/atf/chess/release/ReleaseRag.java
+COVERED | release/0.15.1/README.md
+COVERED | release/0.15.1/reports/README.md
+COVERED | release/0.15.1/reports/android-manual-analysis.html
+COVERED | release/0.15.1/reports/android-match-analysis.html
+COVERED | release/0.15.1/reports/board-sanity-execution.json
+COVERED | release/0.15.1/reports/distribution-verification.json
+COVERED | release/0.15.1/reports/game-review-execution.json
+COVERED | release/0.15.1/reports/github-release.json
+COVERED | release/0.15.1/reports/hint-analysis-execution.json
+COVERED | release/0.15.1/reports/public-download.json
+COVERED | release/0.15.1/reports/publication-governance.json
+COVERED | release/0.15.1/reports/qualification.json
+COVERED | release/0.15.1/reports/rag.txt
+COVERED | release/0.15.1/reports/raw-receipts.json
+COVERED | release/0.15.1/reports/test-change-review-execution.json
+COVERED | release/0.15.2/README.md
+COVERED | release/0.15.2/reports/README.md
+COVERED | release/0.15.3/README.md
+COVERED | release/0.15.3/reports/README.md
+COVERED | release/0.15.3/reports/analysis-compact-execution.json
+COVERED | release/0.15.3/reports/android-analysis-compact.html
+COVERED | release/0.15.3/reports/android-game-review.html
+COVERED | release/0.15.3/reports/components.html
+COVERED | release/0.15.3/reports/distribution-verification.json
+COVERED | release/0.15.3/reports/game-review-execution.json
+COVERED | release/0.15.3/reports/github-release.json
+COVERED | release/0.15.3/reports/governance.html
+COVERED | release/0.15.3/reports/public-download.json
+COVERED | release/0.15.3/reports/publication-governance.html
+COVERED | release/0.15.3/reports/publication-governance.json
+COVERED | release/0.15.3/reports/qualification.json
+COVERED | release/0.15.3/reports/rag.txt
+COVERED | release/0.15.3/reports/raw-receipts.json
+COVERED | release/0.15.3/reports/signing-transition.json
+COVERED | release/0.15.3/reports/test-change-review-execution.json
+COVERED | release/0.15.3/reports/test-change-review.html
+COVERED | release/0.15.3/reports/test-change-review.html.proof.html
+COVERED | release/0.16.0/README.md
+COVERED | release/0.16.0/reports/README.md
+COVERED | release/README.md
+COVERED | release/index.json
+COVERED | web/src/main/web/game-review.css
+COVERED | web/src/main/web/game-review.mjs
+COVERED | web/src/main/web/home-menu.mjs
+COVERED | web/src/main/web/index.html
+COVERED | web/src/main/web/options-menu.mjs
+COVERED | web/src/main/web/review-import.mjs
+COVERED | web/src/main/web/study-analysis.css
+COVERED | web/src/main/web/study-analysis.mjs
+NEEDS_REVIEW | .github/workflows/chess-pages.yml
+NEEDS_REVIEW | web/README.md
+NEEDS_REVIEW | web/parity.md
+NEEDS_REVIEW | web/tests/analysis-study.test.mjs
+NEEDS_REVIEW | web/tests/browser-game-review.mjs
+NEEDS_REVIEW | web/tests/home-menu.test.mjs
+NEEDS_REVIEW | web/tests/options-menu.test.mjs
+docs/testing/README.md:120 ### Menu and hint parity
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify ChessWebShellTest, ChessWebOptionsMenuTest and MCP compact RO/EN at 130%
+docs/testing/README.md:120 ### Menu and hint parity
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify HintReplayPresentationTest, HintPreviewTest, GameReviewLayoutTest and Android compact RO/EN at 130%
+docs/testing/README.md:22 ## Engine and projection
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify ChessComponentTest and QuestCatalogTest
+docs/board/ai-quality.md:85 ## Checks for every change
+  SHA-256 9718e412c7c9efbb8b275e5ae8b4d9f544b6a4bc0dd9660f332fcd8ed75f2414
+  Verify HardQuestTransferBenchmarkTest, RookEndgameHistoryTest and ChessBenchmarkSuite: Stockfish and the offline league
+docs/testing/README.md:64 ### Adaptive Hard budget
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify HardAdaptivePolicyTest, AiOpeningRegressionTest, MatchSetupTest and RookEndgameHistoryTest
+docs/testing/README.md:531 ## Game and History
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest and BoardSanity -AnalysisOnly -IncludeManualAnalysis
+docs/testing/README.md:435 ## Android Sanity
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify BoardSanity
+docs/testing/README.md:531 ## Game and History
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest, MatchStoreTest and BoardSanity -Distribution -GameReviewOnly
+docs/testing/README.md:596 ## Analysis Board
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify OpeningTheoryTest, GameReviewLayoutTest and BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis
+docs/testing/README.md:628 ## Shared replay on a compact screen
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify GameReviewLayoutTest and BoardSanity -Distribution -ReplayCompactOnly
+docs/testing/README.md:508 ## Openings
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify OpeningLessonTest and BoardSanity -IncludeOpenings
+docs/testing/README.md:395 ## Test changes against a Git baseline
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify TestChangeReview with the explicit Git baseline and ReleaseGate preflight
+docs/testing/README.md:363 ## JVM suites
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify ChessJvmSuite and ChessGovernanceSuite
+docs/release/README.md:62 ## Strict Exception for Installing the Exact APK
+  SHA-256 473502fe04846e5d2bbc385704cac713c7a22f986ebcee66894522a4770bb005
+  Verify DocumentationGovernanceTest and ReleaseGovernanceTest
+docs/release/README.md:62 ## Strict Exception for Installing the Exact APK
+  SHA-256 473502fe04846e5d2bbc385704cac713c7a22f986ebcee66894522a4770bb005
+  Verify ReleaseGovernanceTest with negative cases for commit, hash, authorization, and Extent
+docs/release/README.md:62 ## Strict Exception for Installing the Exact APK
+  SHA-256 473502fe04846e5d2bbc385704cac713c7a22f986ebcee66894522a4770bb005
+  Verify ReleaseGovernanceTest and DocumentationGovernanceTest
+docs/testing/README.md:420 ## Extent Reporting
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify ExtentGovernanceTest
+docs/release/README.md:8 ## Qualification and Publication
+  SHA-256 473502fe04846e5d2bbc385704cac713c7a22f986ebcee66894522a4770bb005
+  Verify DocumentationGovernanceTest, ReleaseGovernanceTest and ExtentGovernanceTest
+1. Investigate the changes from the latest tag and run `ReleaseRag` with the modified paths. Open the cited documents and record the risks, affected suites, and acceptance criteria.
+2. Select the version from the 0.x series. A fix increments the patch, and a new feature or contract change increments the minor version. Align `versionName`, `versionCode`, the Maven version, and the APK name. In `release/index.json`, `currentVersion` is the current release, and `versions` contains the current release followed by one previous release for comparison. The candidate remains separate until publication. [Release catalog](../../release/README.md)
+3. Update the notes and affected guides on both branches. Move confirmed rules from feedback into the owning guide. In `main` use **Play** and **Published Release**. In `main_RO` use **Jocul** and **Ediția publicată**. Place the APK and browser links under the play heading in that order. Place the GitHub notes below the architecture. [Bilingual documentation](#bilingual-documentation) · [Web publication](../../web/parity.md#publishing-the-link)
+4. Create the candidate commit in a clean Git worktree in TMP. Declare the SHA of the review baseline, a distinct ancestor of the candidate. Run DocumentationGovernanceTest, ReleaseGovernanceTest, ExtentGovernanceTest, TestChangeReview, and ReleaseGate preflight before signing. Keep the reports and Git review receipt. Enable the AI probes when the diff affects the engine or corpus. [JVM suites](../testing/README.md#jvm-suites) · [Test changes](../testing/README.md#test-changes-against-a-git-baseline)
+5. Initialize the external identity by dot-sourcing `scripts/Initialize-J7Signing.ps1`. For a new key after a published release, use `-StartNewIdentity` explicitly. The script rejects implicit rotation and protects the key with ACL and DPAPI. Build the APK and Android tests with Gradle, then verify the signature, `versionCode`, and compatibility through `scripts/verify-signing-continuity.ps1`. Run the flow that covers the change on the emulator and keep the installed APK hash and Extent report. If the signing identity changed and the emulator still has the old release, preserve the installation containing valuable data. A sanity APK with a different `applicationId` supplies supplementary evidence and cannot qualify the distribution binary.
+6. Run `ChessComponentSuite` and Game Review sanity under the same qualification ID. Pass the APK, commit, raw receipt directories, and Extent reports through `ReleaseGate qualification`. Check the expandable comparisons and captures for their steps in Extent. For a change to Opening theory or **Why?**, add the compact probe at a 1.3× font scale in RO and EN for the same APK and commit. [Shared replay](../testing/README.md#shared-replay-on-a-compact-screen) [Extent audit criteria](../testing/README.md#extent-reporting)
+7. After signing and qualification, push the candidate tag without rewriting history and publish the GitHub asset. Keep `currentVersion`, the comparison list, and the main README on the latest verified release until the new asset exists. Then promote the catalog and README on both branches. Keep only the new and immediately preceding releases on GitHub Releases and locally. Retire the other releases and folders after the new asset and README route pass verification. Keep the Git tags.
+8. Read the README from `main` on GitHub and download the APK from the displayed URL. Use `ReleaseGate publication` to verify the tag, channel, HTTP status, byte count, SHA-256, and CRC. Save the evidence, push the reports commit, and repeat the download from the final version of the README.
+docs/README.md:33 ## Documentation Checks
+  SHA-256 8d30608338124b051c19a11a861fd9c1258a82a916cd07b3cd74835f30a02289
+  Verify DocumentationGovernanceTest and ReleaseGovernanceTest
+docs/testing/README.md:22 ## Engine and projection
+  SHA-256 6fec578121fcdde6f3702776a48c9627bf4c2b0fbe59cd6f4510484abf988306
+  Verify BoardPanelLayoutTest and QuestHintTest
+docs/feedback/README.md:1 # Feedback · Chess Lab
+  SHA-256 0da7ac6379b3e361aca60c0e5b4cc78996b90525fb22322080cc5caf17b02773
+  Verify DocumentationGovernanceTest and review of open criteria
+lib/README.md:8 ## Provenance
+  SHA-256 4978317841ecb9c36517ca5be3b1f579a08e3b391cf52183dda6d2813777bce1
+  Verify ReleaseGovernanceTest

@@ -4,7 +4,7 @@ Play chess against AI, solve puzzles, and study openings.
 
 ## Play
 
-- [Download Chess Lab 0.15.3 APK](https://github.com/crististefanita/chess/releases/download/v0.15.3/ChessLab-0.15.3.apk)
+- [Download Chess Lab 0.16.0 APK](https://github.com/crististefanita/chess/releases/download/v0.16.0/ChessLab-0.16.0.apk)
 - [Play in your browser](https://crististefanita.github.io/chess/)
 
 ## J7 Architecture
@@ -46,7 +46,7 @@ flowchart LR
   module and compiles `release-tools` as an additional source directory.
 - The dotted line shows the receipts produced by Android instrumentation. Component
   tests run on the JVM. Publishing the receipts completes the native evidence.
-- The browser sends moves to the worker. The Edge checks compare resumption and
+- The browser sends moves to the worker. Shared worker contract tests compare resumption and
   results with the JVM engine.
 - Extent uses ATF Reporting from `lib`. The version name, APK, and publication
   evidence are reconciled in the [release catalog](release/README.md).
@@ -55,7 +55,7 @@ flowchart LR
 
 ## Published Release
 
-- [Chess Lab 0.15.3 · release notes](https://github.com/crististefanita/chess/releases/tag/v0.15.3)
+- [Chess Lab 0.16.0 · release notes](https://github.com/crististefanita/chess/releases/tag/v0.16.0)
 
 ## Entry Points
 

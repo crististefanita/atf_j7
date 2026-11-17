@@ -109,14 +109,3 @@ Use MCP to verify Puzzles, Analysis board and Game Review, including Why, at
 360 × 640 and 1280 × 900, with RO/EN text at 130%. Open beside the pressed
 trigger, reach the last option, dismiss and check focus. The current session
 has no browser MCP capability, so the rendered verdict stays pending.
-
-## WEB-06 · Android Hint Presentation
-
-**P2 · Native rendering pending.** Calculated hints now use the same fullscreen
-workspace as opening theory. The component matrix checks fixed bounds,
-independent line cursors and the original game checkpoint. The Android release
-build and lint pass. [Hint contract](../board/README.md#game-review-and-hints)
-
-Check the current Android build at compact and large sizes in RO/EN at 130%.
-Switch all available lines, step forward and back, and close at the original
-history position. Confirm the board, controls and scrollable explanation fit.
