@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Play chess against AI, solve puzzles, and study openings.">
   <title>Chess Lab</title>
-  <link rel="stylesheet" href="runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/game-review.css">
-  <link rel="stylesheet" href="runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-openings.css">
-  <link rel="stylesheet" href="runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-analysis.css">
-  <link rel="stylesheet" href="runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/study-quests.css">
-  <script type="module" src="runtime/4489706181ea9dcc344abebe9b64d066d68675c994749166dc484ba4aceb6243/game-review.mjs"></script>
+  <link rel="stylesheet" href="runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/game-review.css">
+  <link rel="stylesheet" href="runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-openings.css">
+  <link rel="stylesheet" href="runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-analysis.css">
+  <link rel="stylesheet" href="runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/study-quests.css">
+  <script type="module" src="runtime/5bac7e99097b77eee1b6e8a9fdbeaafa54c0b3c2b62465fc9fa495598a7cbe04/game-review.mjs"></script>
 </head>
 <body>
   <main>
@@ -163,13 +163,15 @@
         </button>
       </header>
       <div id="match-inline-preview-board"></div>
-      <div class="movement">
+      <div class="match-inline-preview-navigation">
         <button id="match-inline-previous" type="button" aria-label="Previous move">‹</button>
         <output id="match-inline-position" aria-live="polite"></output>
         <button id="match-inline-next" type="button" aria-label="Next move">›</button>
       </div>
-      <div id="match-inline-branches" class="analysis-study-variants"></div>
-      <p id="match-inline-evidence" class="analysis-study-evidence"></p>
+      <div class="match-inline-preview-details">
+        <div id="match-inline-branches" class="analysis-study-variants"></div>
+        <p id="match-inline-evidence" class="analysis-study-evidence"></p>
+      </div>
     </dialog>
     <dialog id="match-resign" aria-labelledby="resign-title" aria-describedby="resign-message">
       <h2 id="resign-title">Resign game</h2>
