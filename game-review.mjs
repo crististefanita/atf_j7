@@ -4,14 +4,14 @@ import { bindBoardSelection, boardPlacement, mountStudyArrow, studyMarkers, stud
 import { createQuestStudy } from './study-quests.mjs';
 import { createOpeningStudy } from './study-openings.mjs';
 import { createAnalysisStudy } from './study-analysis.mjs';
+import { studyHashes, studyRouteForHash, watchStudyHistory, writeModeHash } from './study-navigation.mjs';
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 
 const storageKey = 'chesslab.game-review.v1';
 const ledgerKey = 'chesslab.match-ledger.v1';
 const legacyMatchKeys = { local: 'chesslab.active-match.v1', ai: 'chesslab.ai-match.v1' };
-const routeHashes = { match: '#game', ai: '#ai', saved: '#saved', finished: '#finished',
-    quests: '#puzzles', openings: '#openings', analysis: '#analysis' };
+const routeHashes = { match: '#game', ai: '#ai', saved: '#saved', finished: '#finished', ...studyHashes };
 const studyRoutes = {
     quests: ['home-puzzles', createQuestStudy],
     openings: ['home-openings', createOpeningStudy],
@@ -666,7 +666,7 @@ function renderMatchList() {
     find('match-rows').replaceChildren(...rows);
 }
 
-function showMode(nextMode) {
+function showMode(nextMode, addHistory = false) {
     if (nextMode !== mode) {
         cancelAnalysis();
         studyAnalysis?.cancel();
@@ -678,7 +678,7 @@ function showMode(nextMode) {
     const hash = mode === 'archive-review' ? `#review/${encodeURIComponent(archiveReviewId)}`
         : mode === 'archive' ? `#archive/${encodeURIComponent(match.archiveId)}`
         : mode === 'study-review' ? routeHashes[studyReturn.route] : routeHashes[mode];
-    window.history.replaceState(null, '', hash ?? (location.pathname + location.search));
+    writeModeHash(window, hash, addHistory);
     const main = mode === 'review';
     const listing = listRoutes.has(mode);
     const title = { match: 'open-match', ai: 'open-ai', archive: 'open-finished', saved: 'open-saved', finished: 'open-finished' };
@@ -1000,13 +1000,14 @@ function refreshStudyTotals() {
     }).catch(() => { if (generation === studyGeneration) totals.hidden = true; });
 }
 
-async function openStudy(route, resume = false) {
-    showMode(route);
+async function openStudy(route, resume = false, addHistory = false) {
+    showMode(route, addHistory);
     setStatus('');
+    const generation = studyGeneration;
     try {
         await studyPanels[route].open(route === 'quests' ? { resume } : undefined);
     } catch {
-        if (mode === route) setStatus(words.failedAction);
+        if (generation === studyGeneration && mode === route) setStatus(words.failedAction);
     }
 }
 
@@ -1014,7 +1015,7 @@ function leaveStudy() {
     const route = mode;
     studyTotalsDirty = true;
     reviewDismissed = true;
-    showMode('review');
+    showMode('review', true);
     if (studyRoutes[route]) find(studyRoutes[route][0]).focus();
 }
 
@@ -1076,12 +1077,19 @@ async function openStudyReview(checkpoint, blackBelow, selectPly = -1) {
     }
 }
 
-async function closeStudyReview() {
+function restoreStudyReviewOrigin() {
     const previous = studyReturn;
+    if (!previous) return;
     studyReturn = undefined;
     view = previous.view;
     archiveReviewId = previous.archiveReviewId;
     reviewDismissed = previous.reviewDismissed;
+    return previous;
+}
+
+async function closeStudyReview() {
+    const previous = restoreStudyReviewOrigin();
+    if (!previous) return;
     await openStudy(previous.route);
     if (mode === previous.route && previous.opener?.isConnected) previous.opener.focus({ preventScroll: true });
 }
@@ -1103,7 +1111,7 @@ async function continueStudyGame(checkpoint, automatic, blackBelow) {
 }
 
 for (const [route, [id]] of Object.entries(studyRoutes)) {
-    find(id).addEventListener('click', () => { if (!busy) void openStudy(route); });
+    find(id).addEventListener('click', () => { if (!busy) void openStudy(route, false, true); });
 }
 
 find('open-match').addEventListener('click', () => {
@@ -1372,15 +1380,26 @@ await exclusive(async () => {
     render();
     revealRestoredReview(view);
 }, words.badArchive);
-if (location.hash === routeHashes.match) await enterMatch({ route: 'LOCAL' });
-else if (location.hash === routeHashes.ai) await enterMatch({ route: 'AI' });
-else if (location.hash === routeHashes.saved) showMode('saved');
-else if (location.hash === routeHashes.finished) showMode('finished');
-else if (location.hash === routeHashes.quests) await openStudy('quests', true);
-else if (location.hash === routeHashes.openings) await openStudy('openings');
-else if (location.hash === routeHashes.analysis) await openStudy('analysis');
-else if (location.hash.startsWith('#review/')) await openArchiveReview(location.hash.slice('#review/'.length));
-else if (location.hash.startsWith('#archive/')) {
-    const id = location.hash.slice('#archive/'.length);
-    await enterMatch({ archiveId: id });
-} else render();
+const activeStudyRoute = () => studyReturn?.route ?? (Object.hasOwn(studyRoutes, mode) ? mode : undefined);
+
+async function openLocatedMode(hash) {
+    const previousStudy = activeStudyRoute();
+    restoreStudyReviewOrigin();
+    const study = studyRouteForHash(hash);
+    if (study) await openStudy(study, study === 'quests');
+    else if (hash === routeHashes.match) await enterMatch({ route: 'LOCAL' });
+    else if (hash === routeHashes.ai) await enterMatch({ route: 'AI' });
+    else if (hash === routeHashes.saved) showMode('saved');
+    else if (hash === routeHashes.finished) showMode('finished');
+    else if (hash.startsWith('#review/')) await openArchiveReview(hash.slice('#review/'.length));
+    else if (hash.startsWith('#archive/')) await enterMatch({ archiveId: hash.slice('#archive/'.length) });
+    else if (previousStudy) {
+        studyTotalsDirty = true;
+        reviewDismissed = true;
+        showMode('review');
+        find(studyRoutes[previousStudy][0]).focus();
+    } else render();
+}
+
+watchStudyHistory(window, activeStudyRoute, openLocatedMode);
+await openLocatedMode(location.hash);

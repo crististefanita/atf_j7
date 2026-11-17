@@ -366,6 +366,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         ...(puzzle.hint === 'SOLUTION' ? [puzzle.suggestion.slice(2, 4)] : [])] : [];
     const handler = (name, fn) => at(name).addEventListener('click', fn);
     const present = dialog => { if (!dialog.open) dialog.showModal(); };
+    let explanationOpener;
 
     for (const [id, label] of Object.entries({
         title: words.title, home: words.home, 'game-home': words.home, 'error-home': words.home,
@@ -680,11 +681,14 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     handler('previous', () => void command('previous'));
     handler('next', () => void command('next'));
     function showGuidance() {
-        if (!at('hint').disabled) void command('hint', { value: puzzle?.alternative ? puzzle.attempt.move : '' });
+        if (at('hint').disabled) return;
+        explanationOpener = at('hint');
+        void command('hint', { value: puzzle?.alternative ? puzzle.attempt.move : '' });
     }
     handler('hint', showGuidance);
     handler('hint-label', showGuidance);
     handler('details', () => {
+        explanationOpener = at('details');
         if (puzzle?.alternative) void command('explain', { value: puzzle.attempt.move });
         else if (puzzle?.attempt) openAttempt();
     });
@@ -719,6 +723,12 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     });
     handler('promote-close', () => at('promotion').close());
     handler('explain-close', () => at('explanation').close());
+    at('explanation').addEventListener('close', () => {
+        if (!at('game').hidden && explanationOpener && !explanationOpener.disabled && !explanationOpener.hidden) {
+            explanationOpener.focus();
+        }
+        explanationOpener = undefined;
+    });
     handler('explain-replay', () => void command('explain', { value: 'replay' }));
     handler('explain-alternative', () => void command('alternative'));
     handler('replay-previous', () => stepReplay(-1));

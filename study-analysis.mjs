@@ -253,6 +253,9 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         feedback.append(score, replay);
         const variants = text('div', '', 'analysis-study-variants');
         const evidence = text('p', '', 'analysis-study-evidence');
+        const replayDetails = text('div', '', 'analysis-study-replay-details');
+        replayDetails.hidden = true;
+        replayDetails.append(variants, evidence);
         navigation.append(previous, history, next, latest, hint);
         const promotion = document.createElement('dialog');
         promotion.setAttribute('aria-label', words.promote);
@@ -294,9 +297,9 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         saveDialog.append(text('h3', words.continue), saveMessage, autoLabel, saveActions);
         root.classList.add('analysis-study');
         root.setAttribute('aria-label', words.title);
-        root.replaceChildren(header, stage, status, feedback, announcement, error, variants, evidence, navigation, promotion, saveDialog);
+        root.replaceChildren(header, stage, status, feedback, announcement, error, replayDetails, navigation, promotion, saveDialog);
         return { title, back, reset, menu, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score, feedback,
-            announcement, error, replay, variants, evidence, history, previous, next, latest, hint, promotion, promotionChoices, saveDialog,
+            announcement, error, replay, replayDetails, variants, evidence, history, previous, next, latest, hint, promotion, promotionChoices, saveDialog,
             promptContinuation };
     }
 
@@ -349,7 +352,8 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
             controls.replay.textContent = words.preview + ' · ' + notation(next.hint.move) + (family ? ' · ' + family : '');
             controls.replay.setAttribute('aria-label', words.preview + '. ' + announcement);
         }
-        controls.variants.hidden = controls.evidence.hidden = !preview;
+        root.classList.toggle('analysis-study-replay', Boolean(preview));
+        controls.replayDetails.hidden = !preview;
         if (preview) {
             const key = preview.branches.join(' ');
             if (key !== controls.variants.dataset.branches) {
