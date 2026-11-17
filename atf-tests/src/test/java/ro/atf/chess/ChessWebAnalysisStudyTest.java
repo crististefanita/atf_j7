@@ -40,6 +40,7 @@ class ChessWebAnalysisStudyTest {
                 "Reported analysis score uses the same side, mate and decimal policy as Android",
                 "A revealed analysis hint names its moves and opening for screen readers",
                 "Analysis places evaluation to the left and all history controls in APK order",
-                "Selecting an offscreen analysis move scrolls only the strip in either direction"), passed);
+                "Selecting an offscreen analysis move scrolls only the strip in either direction",
+                "Analysis options use the shared anchored menu and preserve the board on dismissal in RO and EN"), passed);
     }
 }

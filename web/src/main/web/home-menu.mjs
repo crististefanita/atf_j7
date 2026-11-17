@@ -5,7 +5,7 @@ export const homeLabels = {
         'home-games-heading': 'Games', 'home-study-heading': 'Study', 'home-profile-heading': 'Profile',
         'open-ai': 'New game vs computer', 'open-saved': 'Saved games', 'open-finished': 'Finished games',
         'home-puzzles': 'Puzzles', 'home-openings': 'Openings', 'home-analysis': 'Analysis board',
-        'home-settings': 'Settings', 'open-profile': 'Profile', 'profile-name-label': 'Display name', 'profile-language-label': 'Language',
+        'home-settings': 'Settings', 'profile-name-label': 'Display name', 'profile-language-label': 'Language',
         'save-profile': 'Save', 'profile-reset': 'Reset', 'cancel-profile': 'Cancel', defaultName: 'You',
         name: value => 'Name · ' + value,
         invalid: 'Use 1–10 characters with at least one letter or digit. Spaces, hyphens and apostrophes are allowed.',
@@ -15,7 +15,7 @@ export const homeLabels = {
         'home-games-heading': 'Partide', 'home-study-heading': 'Studiu', 'home-profile-heading': 'Profil',
         'open-ai': 'Partidă nouă cu calculatorul', 'open-saved': 'Partide salvate', 'open-finished': 'Partide încheiate',
         'home-puzzles': 'Probleme', 'home-openings': 'Deschideri', 'home-analysis': 'Tablă de analiză',
-        'home-settings': 'Setări', 'open-profile': 'Profil', 'profile-name-label': 'Nume afișat', 'profile-language-label': 'Limbă',
+        'home-settings': 'Setări', 'profile-name-label': 'Nume afișat', 'profile-language-label': 'Limbă',
         'save-profile': 'Salvează', 'profile-reset': 'Resetează', 'cancel-profile': 'Anulează', defaultName: 'Tu',
         name: value => 'Nume · ' + value,
         invalid: 'Folosește 1–10 caractere, cu cel puțin o literă sau o cifră. Poți include spații, cratime și apostrofuri.',
@@ -113,7 +113,6 @@ export function createHomeMenu(find, locale, storage, normalize, onSave) {
 
     find('home-name').addEventListener('click', () => show('name'));
     find('home-settings').addEventListener('click', () => show('language'));
-    find('open-profile').addEventListener('click', () => show('both'));
     find('cancel-profile').addEventListener('click', () => { if (!saving) dialog.close(); });
     dialog.addEventListener('cancel', event => { if (saving) event.preventDefault(); });
     reset.addEventListener('click', () => { void submit(true); });

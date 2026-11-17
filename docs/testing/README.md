@@ -97,6 +97,21 @@ estimate belongs to that exact comparator.
 
 The MCP probe measured the same side length on both screens, 324 px on the compact profile in RO and 469.8 px on desktop in EN. At 320 × 480 in RO, both boards retain a side length of 249.6 px and can scroll vertically to keep controls accessible.
 
+### Menu and hint parity
+
+- `ChessWebShellTest` compares the home and game actions with Android and checks
+  import recovery on its own route. Name and Settings are the last home actions.
+- `ChessWebOptionsMenuTest` tests the real menu controller with simulated bounds,
+  viewport changes, keyboard input and focus. Include compact and desktop sizes,
+  130% text, a scrolled origin and long lists.
+- `HintReplayPresentationTest` checks the shared replay layout, independent line
+  cursors and the Android adapter. The selected history position is preserved.
+- `WebUiParityGovernanceTest` requires RAG to cite these component checks and
+  the owning section. An unknown surface remains flagged for review.
+
+Use the MCP browser for the rendered Web check and Android for the native
+adapter. Keep those observations distinct from the offline component verdict.
+
 ### Controlling AI replies
 
 - Select `ChessWebParityPublication#packagedWorkerKeepsAiIdentityThroughManualControl` in the Maven command for the TeaVM bundle. `MatchControlsTest` and the worker read the same fixture for toggling control without a manual move and for a legal move played by the AI side.

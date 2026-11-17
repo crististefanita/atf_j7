@@ -53,7 +53,10 @@ class ChessWebShellTest {
                 .map(match -> match.group(1)).toList();
         check.same("All Android reference and Web adapter contracts execute", List.of(
                 "Inline analysis starts unchecked and shares the board frame geometry",
-                "Home keeps imported review recovery below Study and outside the title header",
+                "Home ends with native settings and archive tools belong to standalone review",
+                "Standalone review recovery stays outside home, games, study and native review",
+                "Standalone import clears canceled and repeated selections without opening hidden tools",
+                "Game controls keep profile and new-game actions on the native home route",
                 "Inline analysis drops older frames and keeps hints on a board flip only",
                 "Inline analysis projects the score, lamp and playable theory for the displayed move",
                 "A hinted destination applies only the exact legal variation and respects selection",
@@ -66,7 +69,7 @@ class ChessWebShellTest {
                 "Disabling automation aborts a running calculation and discards its result",
                 "Profile persistence respects the native validator and write failures",
                 "Board piece renderer reuses the same Staunton SVG on a move and clears it on capture",
-                "Home name, settings and AI profile share the existing dialog and stored profile",
+                "Home name and settings share the native dialog and stored profile",
                 "Language reload retains Home with a saved review and preserves the AI profile route"), passed);
     }
 }

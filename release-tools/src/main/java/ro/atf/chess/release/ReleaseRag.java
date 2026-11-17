@@ -36,6 +36,16 @@ public final class ReleaseRag {
     private static final Route RELEASE = new Route("release-tools/", "docs/release/README.md", "## Qualification and Publication",
             "DocumentationGovernanceTest, ReleaseGovernanceTest and ExtentGovernanceTest");
     private static final List<Route> ROUTES = List.of(
+            uiMenus("web/src/main/web/index.html"),
+            uiMenus("web/src/main/web/home-menu.mjs"),
+            uiMenus("web/src/main/web/game-review.mjs"),
+            uiMenus("web/src/main/web/game-review.css"),
+            uiMenus("web/src/main/web/review-import.mjs"),
+            uiMenus("web/src/main/web/options-menu.mjs"),
+            uiMenus("web/src/main/web/study-analysis.mjs"),
+            uiMenus("web/src/main/web/study-analysis.css"),
+            hintPresentation("android/app/src/main/java/ro/atf/chess/android/HintPreviewDialog.java"),
+            hintPresentation("android/app/src/main/java/ro/atf/chess/android/AnalysisReplayDialog.java"),
             new Route("chess-core/", "docs/testing/README.md", "## Engine and projection", "ChessComponentTest and QuestCatalogTest"),
             ai("chess-core/src/main/resources/ai-repertoire.yaml"),
             ai("chess-core/src/main/resources/match-ai.yaml"),
@@ -187,6 +197,16 @@ public final class ReleaseRag {
             new Route("README.md", RELEASE.document(), RELEASE.heading(), RELEASE.check()), RELEASE);
 
     private ReleaseRag() { }
+
+    private static Route uiMenus(String path) {
+        return new Route(path, "docs/testing/README.md", "### Menu and hint parity",
+                "ChessWebShellTest, ChessWebOptionsMenuTest and MCP compact RO/EN at 130%");
+    }
+
+    private static Route hintPresentation(String path) {
+        return new Route(path, "docs/testing/README.md", "### Menu and hint parity",
+                "HintReplayPresentationTest, HintPreviewTest, GameReviewLayoutTest and Android compact RO/EN at 130%");
+    }
 
     private static Route testChanges(String path) {
         return new Route(path, "docs/testing/README.md", "## Test changes against a Git baseline",

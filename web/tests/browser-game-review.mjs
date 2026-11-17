@@ -324,7 +324,7 @@ try {
         await send('Input.insertText', { text: 'Ana' });
         await touch('#save-profile');
         await until(() => evaluate(`document.querySelector('#home-name').textContent.endsWith(' · Ana')`), 'validated profile name');
-        await touch('#open-match');
+        await evaluate("location.hash = '#game'; void 0");
         await waitActive('fresh manual game', value => value.mode === 'LOCAL');
         const shapes = await evaluate(`[...document.querySelectorAll('#match-board .piece[data-shape]')].map(piece => piece.dataset.shape)`);
         assert.equal(shapes.length, 32);
@@ -368,7 +368,7 @@ try {
             settled.turn === 'BLACK' && !settled.awaitingBot);
 
         await touchMatchOption('#open-review');
-        await touch('#open-match');
+        await evaluate("location.hash = '#game'; void 0");
         const manualRestored = await waitActive('original manual game', value => value.mode === 'LOCAL' && value.ply === 1);
         await touchMatchOption('#open-review');
         await touch('#open-saved');
@@ -377,12 +377,18 @@ try {
         check('manual-independent', true, manualRestored.checkpoint === manual.checkpoint && manualRestored.fen === manual.fen &&
             aiRestored.checkpoint === replied.checkpoint);
         const language = publicUrl ? 'ro' : 'en';
+        await touchMatchOption('#open-review');
         const ledgerBefore = await evaluate("localStorage.getItem('chesslab.match-ledger.v1')");
-        await touch('#open-profile');
+        await touch('#home-name');
         await evaluate("document.querySelector('#profile-name').value = 'Ștefan'; void 0");
+        await touch('#save-profile');
+        await until(() => evaluate("document.querySelector('#home-name').textContent.endsWith(' · Ștefan')"), 'saved profile name');
+        await touch('#home-settings');
         await evaluate(`document.querySelector('#profile-language').value = '${language}'; void 0`);
         await touch('#save-profile');
         await until(() => evaluate(`document.documentElement.lang === '${language}' && !location.search`), 'saved profile language');
+        await touch('#open-saved');
+        await touch('.match-row[data-mode="AI"]');
         const personalized = await waitActive('game with personalized profile', value => value.profile.startsWith('Ștefan · '));
         await reload();
         const restoredProfile = await waitActive('same game after profile reload', value => value.profile === personalized.profile);
@@ -397,7 +403,7 @@ try {
 
     async function exerciseActive() {
 
-        await touch('#open-match');
+        await evaluate("location.hash = '#game'; void 0");
         const initial = await waitActive('initial game', value => value.ply === 0);
         check('new-match', true, initial.checkpoint === '1|' && initial.result === 'IN_PROGRESS' && initial.turn === 'WHITE' &&
             initial.cells === 64 && initial.width === initial.height && initial.width > 350 && initial.analyzeDisabled);
@@ -426,7 +432,7 @@ try {
         const partialArchive = await evaluate(savedReview);
         check('unfinished-analysis', true, partial.fen === recorded.fen && typeof partialArchive.review === 'string' && await evaluate(savedMatch) === recorded.checkpoint);
         if (await displayed('#review-close')) await touch('#review-close');
-        await touch('#open-match');
+        await evaluate("location.hash = '#game'; void 0");
         await waitActive('returned from unfinished analysis to same match', value => value.ply === 3);
         const complete = await move('d8', 'h4', 4);
         check('continued-move', 'd8h4', complete.last);
@@ -921,6 +927,8 @@ try {
     console.log(`Game Review passed ${observations.length} checks in ${browserVersion}: ${evidence}`);
 
     async function exerciseArchive() {
+        await evaluate("location.hash = '#review'; void 0");
+        await until(() => evaluate(visible('#review-tools')), 'standalone archive tools');
         const { root } = await send('DOM.getDocument');
         const { nodeId } = await send('DOM.querySelector', { nodeId: root.nodeId, selector: '#archive' });
         await send('DOM.setFileInputFiles', { nodeId, files: [fixturePath] });

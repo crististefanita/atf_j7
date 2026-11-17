@@ -1,3 +1,5 @@
+import { attachOptionsMenu } from './options-menu.mjs';
+
 const copy = {
     en: {
         title: 'Analysis board', back: 'Back to the previous screen', reset: 'Reset line', options: 'Analysis board options',
@@ -244,30 +246,38 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         const backButton = button(words.back, back, '‹');
         const title = text('h2', words.title);
         const reset = button(words.reset, () => void request('reset'), '↺');
-        const menu = text('details', '', 'analysis-study-menu');
-        const summary = text('summary', '⋯');
+        const menu = text('div', '', 'analysis-study-menu options-anchor');
+        const summary = text('button', '☰', 'analysis-study-icon');
+        summary.type = 'button';
         summary.setAttribute('aria-label', words.options);
-        const actions = text('div', '', 'analysis-study-menu-items');
+        summary.setAttribute('aria-controls', 'analysis-study-options');
+        summary.setAttribute('aria-expanded', 'false');
+        const actions = text('div', '', 'analysis-study-menu-items options-panel');
+        actions.id = 'analysis-study-options';
+        actions.hidden = true;
+        actions.setAttribute('role', 'group');
+        actions.setAttribute('aria-label', words.options);
+        menu.append(summary, actions);
+        const options = attachOptionsMenu(summary, actions);
         const toggler = text('label', '');
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.addEventListener('change', () => void request('analysis', { option: toggle.checked ? 'on' : 'off' }));
         toggler.append(toggle, words.analysis);
         const review = button(words.review, () => {
-            menu.open = false;
+            options.close();
             if (state?.analysis && state.total > 0) openReview?.(state.checkpoint, state.blackBelow, state.ply);
         });
         const promptContinuation = () => {
-            menu.open = false;
+            options.close();
             if (!continueGame || state?.result !== 'IN_PROGRESS' || saveDialog.open) return;
             saveMessage.textContent = words.confirm(state.ply);
             automatic.checked = true;
             saveDialog.showModal();
         };
         const saveGame = button(words.continue, promptContinuation);
-        const flip = button(words.flip, () => { menu.open = false; void request('flip'); });
+        const flip = button(words.flip, () => { options.close(true); void request('flip'); });
         actions.append(toggler, review, saveGame, flip);
-        menu.append(summary, actions);
         header.append(backButton, title, reset, menu);
         const top = text('p', '', 'analysis-study-side');
         const bottom = text('p', '', 'analysis-study-side');
@@ -360,7 +370,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         root.classList.add('analysis-study');
         root.setAttribute('aria-label', words.title);
         root.replaceChildren(header, stage, status, feedback, announcement, error, variants, navigation, replayDetails, promotion, saveDialog);
-        return { title, back: backButton, reset, menu, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score, feedback,
+        return { title, back: backButton, reset, menu, options, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score, feedback,
             announcement, error, replay, replayDetails, variants, evidence, history, previous, next, latest, hint, playback,
             promotion, promotionChoices, saveDialog,
             promptContinuation };
@@ -369,6 +379,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
     function render(next) {
         state = next;
         const preview = next.preview;
+        if (preview) controls.options.close();
         const frame = preview ?? next;
         controls.widget.render({ ...frame, blackBelow: next.blackBelow, locked: !!preview || next.result !== 'IN_PROGRESS' });
         const lower = next.blackBelow ? 'BLACK' : 'WHITE';
@@ -487,6 +498,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         },
         close() {
             if (!controls) return;
+            controls.options.close();
             if (controls.promotion.open) controls.promotion.close();
             if (controls.saveDialog.open) controls.saveDialog.close();
             session.close();

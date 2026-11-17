@@ -87,6 +87,9 @@
 
 ### Game controls and preferences
 
+- Name and new-game setup are available from the main menu. The game toolbar
+  follows the same action inventory on Android and Web.
+
 - The **Let AI play its moves** checkbox sits in the header on the menu row.
   Clear it to play legal moves for both colors. The option is saved separately
   for each game, and selecting it on the AI's turn starts the reply. In the
@@ -169,6 +172,10 @@
   the perspective of the side originally to move. An advantage can come from
   positional evaluation, and checkmate and stalemate have their own results.
   The arrows step through all available plies.
+
+- Calculated hints and opening theory use the same full-screen replay surface
+  on Android. The board and arrows keep their bounds while details scroll below.
+  Each line retains its own step when you switch between alternatives.
 
 - The first lightbulb variation and the recommended line agree. Tapping the
   destination plays the exact marked move. **Back to position** restores the

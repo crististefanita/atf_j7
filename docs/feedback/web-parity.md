@@ -97,3 +97,26 @@ upgrade, verify the game library, an archived review, and the resumed ply,
 including after a reload and in an already open tab.
 [Web upgrade](../../web/README.md#explanations-and-upgrade-progress) ·
 [Release process](../release/README.md#qualification-and-publication)
+
+## WEB-05 · Menus and Anchored Options
+
+**P2 · Rendered verification pending.** Components verify the home ending at
+Name and Settings, removal of duplicate AI controls, and archive recovery at
+its own route. The shared menu controller covers placement and focus.
+[Menu contract](../../web/README.md#main-menu-and-pieces) · [Component checks](../testing/README.md#menu-and-hint-parity)
+
+Use MCP to verify Puzzles, Analysis board and Game Review, including Why, at
+360 × 640 and 1280 × 900, with RO/EN text at 130%. Open beside the pressed
+trigger, reach the last option, dismiss and check focus. The current session
+has no browser MCP capability, so the rendered verdict stays pending.
+
+## WEB-06 · Android Hint Presentation
+
+**P2 · Native rendering pending.** Calculated hints now use the same fullscreen
+workspace as opening theory. The component matrix checks fixed bounds,
+independent line cursors and the original game checkpoint. The Android release
+build and lint pass. [Hint contract](../board/README.md#game-review-and-hints)
+
+Check the current Android build at compact and large sizes in RO/EN at 130%.
+Switch all available lines, step forward and back, and close at the original
+history position. Confirm the board, controls and scrollable explanation fit.

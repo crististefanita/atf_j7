@@ -277,12 +277,12 @@ For the public check, pass the URL from the README as the last argument and add 
 - **Saved games** appears when there are active matches, and **New game vs computer** opens setup. Explicit URLs such as `#ai`, `#openings`, and `#review` open the requested screen.
 - **Profile** validates the name through `PlayerProfile`, and **Settings** stores the language in the browser. [Feature matrix](parity.md#contracts-and-checks)
 
-An existing match review reopens from its match or archive. **Resume last
-analysis** appears at the bottom of the main menu, next to import, when
-the browser has a saved standalone analysis. The header shows **Chess Lab**.
+- The home screen ends with Name and Settings.
+- Imported reviews and their resumption controls live on the review screen
+  at `#review`. An existing match review reopens from its match or archive.
 
 - The local match, AI match, and Game Review use the shared silhouettes and details in `ChessPieceArtwork`. Web receives the outlines from the worker and draws them in the APK's 48 × 48 coordinate space.
-- `ChessWebShellTest` verifies order and RO/EN text against Android resources, mocked persistence, and SVG reuse. The Edge sanity check opens the menu and verifies all six piece types before the first move.
+- `ChessWebShellTest` verifies order and RO/EN text against Android resources, mocked persistence, and SVG reuse. The MCP sanity check opens the menu and verifies all six piece types before the first move.
 - [Test strategy](../docs/testing/README.md#game-and-history)
 
 ## Study
@@ -309,6 +309,12 @@ the browser has a saved standalone analysis. The header shows **Chess Lab**.
 ### AI match options
 
 The AI match menu uses the same command projection as Android. Verify shared match results before probing platform navigation.
+
+- Name and new-game setup are reached from the main menu. The area below an
+  active AI board contains the game's controls and analysis.
+- Three-line menus open beside their trigger. The shared placement uses the
+  visible viewport, opens above when needed, and scrolls long lists internally.
+  Escape and outside dismissal close the panel, with focus restored on request.
 
 <details>
 <summary>Mocked commands, browser flows, and Extent</summary>

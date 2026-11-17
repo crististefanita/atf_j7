@@ -21,7 +21,7 @@
 .analysis-study-header h2 { flex: 1; margin: 0; font-size: 1.19rem; line-height: 1.25; }
 .analysis-study-header > button,
 .analysis-study-navigation .analysis-study-icon,
-.analysis-study-menu summary {
+.analysis-study-menu > button {
   display: inline-grid;
   place-items: center;
   inline-size: 48px;
@@ -35,18 +35,11 @@
 
 .analysis-study-header > button:hover,
 .analysis-study-navigation .analysis-study-icon:hover,
-.analysis-study-menu summary:hover {
+.analysis-study-menu > button:hover {
   background: #373632;
 }
 
-.analysis-study-menu { position: relative; }
-.analysis-study-menu summary { cursor: pointer; list-style: none; }
-.analysis-study-menu summary::-webkit-details-marker { display: none; }
 .analysis-study-menu-items {
-  position: absolute;
-  z-index: 3;
-  inset-block-start: 100%;
-  inset-inline-end: 0;
   inline-size: min(20rem, calc(100vw - 2rem));
   padding: .35rem;
   background: #302e2a;

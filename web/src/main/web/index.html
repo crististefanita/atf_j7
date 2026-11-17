@@ -65,15 +65,14 @@
           <button id="home-settings" type="button">Settings</button>
         </div>
       </section>
-      <div class="home-tools">
-        <button id="open-match" type="button">Local game</button>
-        <div class="archive" id="review-import">
-          <label for="archive" id="archive-label">Open a review</label>
-          <input id="archive" class="visually-hidden" type="file" accept=".json,application/json">
-        </div>
-        <button id="reopen-review" type="button" hidden>Resume last review</button>
-      </div>
     </div>
+    <section id="review-tools" class="review-import-tools" hidden>
+      <div class="archive" id="review-import">
+        <label for="archive" id="archive-label">Open a review</label>
+        <input id="archive" class="visually-hidden" type="file" accept=".json,application/json">
+      </div>
+      <button id="reopen-review" type="button" hidden>Resume last review</button>
+    </section>
     <section id="study-quests" class="study-surface" hidden></section>
     <section id="study-openings" class="study-surface" hidden></section>
     <section id="study-analysis" class="study-surface" hidden></section>
@@ -143,11 +142,9 @@
         <select id="promote"></select>
       </div>
       <div class="movement match-actions">
-        <button id="new-match" type="button" hidden>New game</button>
         <button id="retry-bot" type="button" hidden>Retry AI move</button>
         <button id="open-match-analysis" type="button">Analysis board</button>
         <button id="analyze" type="button">Analyze game</button>
-        <button id="open-profile" type="button" hidden>Profile</button>
         <button id="cancel-analysis" type="button" hidden>Cancel analysis</button>
       </div>
       <div id="analysis-progress" class="analysis-progress" hidden>

@@ -8,6 +8,7 @@ import { showReviewPiece } from '../src/main/web/review-workspace.mjs';
 import { routeForHash } from '../src/main/web/study-navigation.mjs';
 import { createMatchBotTimer } from '../src/main/web/match-bot-timer.mjs';
 import { bindInlineMatchAnalysis, createInlineAnalysisSession, guidedMatchMove } from '../src/main/web/match-inline-analysis.mjs';
+import { createReviewImport } from '../src/main/web/review-import.mjs';
 
 const base = new URL('../../', import.meta.url);
 const read = path => readFile(new URL(path, base), 'utf8');
@@ -34,14 +35,96 @@ test('Inline analysis starts unchecked and shares the board frame geometry', asy
     assert.match(styles, /\.match-board-frame\s*\{[^}]*inline-size:\s*min\(100%,\s*var\(--play-board-limit\)\)/);
 });
 
-test('Home keeps imported review recovery below Study and outside the title header', async () => {
+test('Home ends with native settings and archive tools belong to standalone review', async () => {
     const html = await read('web/src/main/web/index.html');
     const header = html.match(/<header>([^]*?)<\/header>/)?.[1];
-    const tools = html.match(/<div class="home-tools">([^]*?)<section id="study-quests"/)?.[1];
-    assert.ok(header && tools);
+    const home = html.slice(html.indexOf('<div id="home-menu"'), html.indexOf('<section id="review-tools"'));
+    const tools = html.match(/<section id="review-tools"[^>]*hidden>([^]*?)<\/section>/)?.[1];
+    assert.ok(header && home && tools);
     assert.doesNotMatch(header, /id="(?:reopen-review|archive)"/);
+    assert.doesNotMatch(home, /id="(?:open-match|reopen-review|archive|archive-label|review-import)"/);
+    assert.deepEqual([...home.matchAll(/<button id="([^"]+)"/g)].map(entry => entry[1]),
+        ['open-ai', 'open-saved', 'open-finished', 'home-puzzles', 'home-openings', 'home-analysis', 'home-name', 'home-settings']);
     assert.match(tools, /id="reopen-review"[^>]*hidden/);
     assert.match(tools, /id="archive"[^>]*type="file"/);
+});
+
+function reviewImportFixture() {
+    const controls = new Map();
+    for (const id of ['review-tools', 'reopen-review', 'archive']) {
+        const events = new Map();
+        controls.set(id, {
+            hidden: true, value: '',
+            addEventListener(type, listener) { events.set(type, listener); },
+            fire(type) { events.get(type)({ target: this }); },
+        });
+    }
+    const resumed = [];
+    const loaded = [];
+    const find = controls.get.bind(controls);
+    const entry = createReviewImport(find, () => resumed.push('saved-review'), file => loaded.push(file));
+    return { entry, find, resumed, loaded };
+}
+
+test('Standalone review recovery stays outside home, games, study and native review', () => {
+    const { entry, find, resumed } = reviewImportFixture();
+    for (const mode of ['home', 'ai', 'match', 'saved', 'finished', 'archive', 'archive-review', 'study-review', 'quests', 'openings', 'analysis']) {
+        entry.show(mode, true, false);
+        assert.equal(find('review-tools').hidden, true, mode);
+        assert.equal(find('reopen-review').hidden, true, mode);
+        find('reopen-review').fire('click');
+    }
+    assert.deepEqual(resumed, []);
+    entry.show('review', false, false);
+    assert.equal(find('review-tools').hidden, false);
+    assert.equal(find('reopen-review').hidden, true);
+    entry.show('review', true, false);
+    find('reopen-review').fire('click');
+    assert.deepEqual(resumed, ['saved-review']);
+    entry.show('review', true, true);
+    assert.equal(find('review-tools').hidden, true);
+    assert.equal(find('reopen-review').hidden, true);
+    find('reopen-review').fire('click');
+    assert.deepEqual(resumed, ['saved-review']);
+});
+
+test('Standalone import clears canceled and repeated selections without opening hidden tools', () => {
+    const { entry, find, loaded } = reviewImportFixture();
+    const input = find('archive');
+    const file = { name: 'review.json' };
+    entry.show('review', false, false);
+    input.files = [];
+    input.value = 'canceled';
+    input.fire('change');
+    assert.equal(input.value, '');
+    assert.deepEqual(loaded, []);
+    input.files = [file];
+    input.value = file.name;
+    input.fire('change');
+    assert.equal(input.value, '');
+    input.value = file.name;
+    input.fire('change');
+    assert.deepEqual(loaded, [file, file]);
+    entry.show('home', true, false);
+    input.value = file.name;
+    input.fire('change');
+    assert.equal(input.value, '');
+    assert.deepEqual(loaded, [file, file]);
+});
+
+test('Game controls keep profile and new-game actions on the native home route', async () => {
+    const [html, adapter, native] = await Promise.all([
+        read('web/src/main/web/index.html'), read('web/src/main/web/game-review.mjs'),
+        read('chess-core/src/main/java/ro/atf/chess/MatchControls.java'),
+    ]);
+    assert.doesNotMatch(html, /id="(?:open-profile|new-match|open-match)"/);
+    assert.doesNotMatch(adapter, /find\('(?:open-profile|new-match|open-match)'\)/);
+    assert.match(html, /id="open-ai"/);
+    assert.match(html, /id="home-name"/);
+    assert.match(html, /id="home-settings"/);
+    assert.match(native, /enum Action \{ FLIP, HOME, SAVED_GAMES, ANALYSIS_BOARD, GAME_REVIEW, OFFER_DRAW, RESIGN \}/);
+    assert.match(adapter, /HOME: 'open-review'/);
+    assert.match(adapter, /reviewImport\.show\(mode, Boolean\(archive\), Boolean\(liveReviewOrigin\)\)/);
 });
 
 function mockWorker(list) {
@@ -430,7 +513,7 @@ test('Board piece renderer reuses the same Staunton SVG on a move and clears it 
     assert.equal(piece.children.length, 0);
 });
 
-test('Home name, settings and AI profile share the existing dialog and stored profile', async () => {
+test('Home name and settings share the native dialog and stored profile', async () => {
     const html = await read('web/src/main/web/index.html');
     const controls = new Map();
     let focused;
@@ -464,9 +547,9 @@ test('Home name, settings and AI profile share the existing dialog and stored pr
     find('profile-language').value = 'en';
     find('profile-form').fire('submit');
     await setImmediate();
-    find('open-profile').fire('click');
+    find('home-name').fire('click');
     assert.equal(find('profile-name-field').hidden, false);
-    assert.equal(find('profile-language-field').hidden, false);
+    assert.equal(find('profile-language-field').hidden, true);
     assert.equal(find('profile-name').value, 'Ana');
     assert.deepEqual(changes, [
         { profile: { name: 'Ana', language: 'ro' }, fields: 'name' },
