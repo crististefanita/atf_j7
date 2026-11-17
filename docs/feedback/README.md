@@ -12,7 +12,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
-| P1 | Italian · hint and Hard defensive replies | All three probes were rejected; false `…Bxf2+` compensation remains. | Preserve raw eligible alternatives without starving seed search or comparison within 200k; retain the frozen transfer and sacrifice guards. |
+| P1 | Italian · native Hard choice | Hint S5 is corrected; actual Hard still chooses `…Na5`. | Compare with `…Qg6` at a common horizon, verify H17/H19 replies and transfer without regressions. |
 | P1 | Hint · independent alternative accuracy | The correct Sicilian `N1c3` leader still offers the inferior `Bg5`. | Correct the offered alternatives without regressing the leader, with common-horizon and free-reply evidence. |
 | P2 | Hint audit · broader transfer | The initial plan covers three short opening paths and three budgets. | Add new history-separated families and measure leader loss separately from deliberately played lower ranks. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
@@ -58,13 +58,11 @@ Confirm speech on the corrected build in RO and EN and a return to the same move
 </details>
 
 <details>
-<summary>P1 · Italian · hint and Hard defensive replies</summary>
+<summary>P1 · Italian · native Hard choice</summary>
 
-The source-bound `opening-hints-v1` collection finds `italian-ranked` decision 5 recommending `…Bxf2+`. Stockfish H19 gives −311 cp / 0‰ through `Kxf2 …Qc5+ d4`, versus −49 cp / 444‰ for `…Qg6`. The hint's raw H4 already prefers `Qg6 −59` to `Bxf2+ −90`, but the earlier-horizon credit raises the sacrifice to −41 and the shortlist drops `Qg6`. Separately, actual Hard at 100k chooses `…Na5`, evaluated at −120 cp / 155.5‰. Both are existing gaps, reproduced with the prior engine.
+The 200k S5 hint now recommends only `…Qg6`, preserving the Traxler sacrifice and Sicilian/Caro–Kann controls. The remaining gap is actual Hard: in the same full history it chooses `…Na5` at 100k. Stockfish H19 gives −120 cp / 155.5‰ for that choice and −49 cp / 444‰ for `…Qg6`. Compare defenses at the same horizon without automatically importing hint selection into native play or adding FEN exceptions.
 
-Three isolated Italian probes were rejected; the qualified production engine is unchanged. No Italian correction or Elo gain was qualified. [Measured trials](../board/ai-quality.md#first-move-by-move-collection)
-
-Next preserve raw eligible alternatives without starving seed search or comparison within the single 200k ceiling. Verify quiet central defenses and the later knight fork; measure actual completed horizons and node allocation. Compare the native Hard `…Na5` and hint S5 separately. Retain correct bishop, queen and knight sacrifices, the Sicilian, Caro–Kann, Catalan and `Qxc2` controls, and the immutable v1 evidence. Promote only after independent transfer; captured failures are regression data, not runtime FEN exceptions or automatic learning labels. [Frozen transfer guards](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java) · [Audit protocol](../testing/hint-audit.md)
+The new native calibration has 100 games and 12,522 analyses: local Elo 1,507, 95% interval 1,357–1,656. It does not prove improvement over previous Hard. The next promotion needs transfer on unused families and a paired candidate–live duel; preserve sound sacrifices and all allowances. [Correction and calibration](../board/ai-quality.md#italian-credit-correction-and-native-hard-calibration) · [Every-move audit](../testing/hard-audit.md)
 
 </details>
 

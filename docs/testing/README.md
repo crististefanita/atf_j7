@@ -111,6 +111,10 @@ same-position budget comparisons through one engine call per decision.
 The Extent report preserves source identity, checkpoints, FEN, offered and
 compared variants, reply facts, actual depths and nodes. [Run and interpretation](hint-audit.md)
 
+### Native Hard game audit
+
+Every ply, including an opposing reply, requires the actual history-aware Hard analysis. Components reject missing or foreign receipts; the benchmark publisher replays evidence before Elo and Extent. [Protocol, command and interpretation](hard-audit.md)
+
 ## Web engine parity
 
 `ChessWebRulesComponentTest` checks the engine and catalogs on the JVM. `ChessWebParityPublication` executes the same cases in the TeaVM worker for all resources used. Run the probe explicitly with the bundle from TMP. [Web build and probes](../../web/README.md)

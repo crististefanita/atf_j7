@@ -111,7 +111,7 @@ The H17/H19 audit separates the first recommendation from the deliberately playe
 
 The Italian losses also reproduce on the prior engine. After the bishop capture, `Kxf2 …Qc5+ d4` is a real defense and the later knight fork matters. The hint's shallow credit and shortlist are distinct from the actual foreground Hard decision. In the matched White Caro–Kann grid after `…d5`, selected depths are H5/H5/H4 at 50k/100k/200k. A larger allowance therefore does not imply a deeper selected result or a stronger move. These are explicit follow-up cases, not a passed global-strength gate.
 
-All three subsequent Italian algorithm probes were rejected; the qualified Sicilian and Caro–Kann corrections and source `a7e71d9` remain unchanged. The independent foreground Hard check preserved the move and depth on all 24 v1 histories against the prior engine. Five node costs changed, including two reserve uses from 100k to 200k. This sample establishes neither identical cost nor an Elo gain.
+The first three Italian probes were rejected before the credit correction documented below; these historical results belong to source `a7e71d9`. The independent foreground Hard check preserved the move and depth on all 24 v1 histories against the prior engine. Five node costs changed, including two reserve uses from 100k to 200k. This sample establishes neither identical cost nor an Elo gain.
 
 <details>
 <summary>Rejected Italian probes and the retained contract</summary>
@@ -122,11 +122,30 @@ All three subsequent Italian algorithm probes were rejected; the qualified Sicil
 | V2 · restore H3 and book fallback | Preserves Sicilian S7 | Still regresses the Italian S1 control |
 | V3 · retain the raw eligible domain before credit pruning | Retains the relevant alternative | Cannot complete H4 within the 50k seed; S5 falls back to H3 and `…Bxf2+`; 78/79 component gate fails |
 
-The next P1 is to preserve raw eligible alternatives without starving either seed search or common-horizon comparison within the same 200k total. Keep the actual native Hard `…Na5` control separate from hint S5. Captured mistakes become frozen, source-bound regression cases with free Stockfish H17/H19 replies and sound-sacrifice counterexamples, never runtime FEN bans or automatically trusted training labels. The transfer guard preserves the Sicilian leader; it does not claim that the still-offered `Bg5` is filtered. [Frozen transfer guards](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
+The rejected probes showed that broad filtering can starve the seed or regress another leader. The correction below separates the refuted material offer from a balanced exchange and retains diagnostic challengers. Actual Hard `…Na5` remains a separate P1. Old receipts and sound-sacrifice controls remain evidence, never runtime FEN bans or automatic training labels. [Frozen controls](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
 
 </details>
 
 [Audit protocol](../testing/hint-audit.md) · [Open algorithm feedback](../feedback/README.md)
+
+
+## Italian credit correction and native Hard calibration
+
+Earlier-horizon credit cannot sustain an immediate material offer contradicted by raw H4 evidence. Search retains the exact values and bounds observed before credit pruning; it does not add another search. Only a credit-backed incumbent offering net material outside the raw window is demoted. The balanced `…Bxb5` exchange and still-uncertain historical challengers remain available. Public suggestions stay distinct from comparison candidates. Fallback scores exclude ordering credit; preference can use evidence from other horizons and does not promise numeric sorting by those raw scores.
+
+At Italian S5 the 200k hint recommends only `…Qg6`. Cold Stockfish 19 with free replies confirms at H19 `…Bxf2+` −311 cp / 0‰, `…Qg6` −49 cp / 444‰ and `…Nge7` −169 cp / 30.5‰. H17 preserves the order. In the distinct Traxler context the same `…Bxf2+` remains Stockfish's free leader at H17/H19 and J7 preserves it; non-mating sacrifices are not banned. The color-inverted Italian position retains the `Qg3` defense.
+
+Among 44 identical-position, identical-budget hint requests, only the Italian S5 leader changes. Sicilian and Caro–Kann leaders stay unchanged; four new histories retain their leaders and alternatives. All 24 compared native Hard decisions keep move, depth and nodes. These samples do not qualify every offered alternative: Sicilian `Bg5` remains open. [Credit regressions](../../atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java)
+
+The November 18 calibration uses source `772251450f5d8cf337f8f31c18734f5601043e8d`, 50 paired starts and 100 games against Stockfish 19 `UCI_Elo 1500`, one thread and 6,000 requested nodes. Each of the 12,522 played plies has the actual native Hard analysis: 1,600 prefixes, 5,462 Hard turns and 5,460 before Stockfish replies. Independent PGN/JSONL replay and the Extent publisher verify the whole sample.
+
+| Profile | W / D / L / unfinished | Central local Elo | Conservative 95% interval | Unfinished all lost / won |
+|---|---|---|---|---|
+| Native adaptive Hard 100k–200k | 39 / 3 / 37 / 21 | 1,507 | 1,357–1,656 | 1,433 / 1,581 |
+
+The bootstrap uses openings as units with 20,000 samples. The cap is 220 plies; unfinished games remain distinct from draws. The difference from the configured anchor is +7 Elo, interval −143…+156. This is not a human rating or evidence of improvement over the previous Hard: the correction concerns hints and the native decision algorithm is unchanged. The app's anchors retain their governed evidence.
+
+The first run stopped after 49 games and a partial game because the validator rejected a legal rook repetition. After correcting the validator, the entire sample was restarted; the interrupted run is retained separately and excluded from the estimate. All 208 production classes were identical between those launches. Later, three hint-path collections were expressed compatibly with API 26 without changing the Hard decision. Evidence is under `C:\work\sah\studii\2026-11-17-j7-italian-calibration`; the qualified report is `league/qualified/qualified-extent.html`. [Native protocol and command](../testing/hard-audit.md)
 
 ## Checks for every change
 

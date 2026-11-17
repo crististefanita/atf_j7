@@ -97,13 +97,9 @@ cases are no longer an untouched transfer set. Raw game outcomes do not become
 automatic learning labels, and runtime FEN bans cannot stand in for search.
 [Frozen transfer contracts](../../atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java)
 
-All three Italian algorithm probes were rejected. Recovering one quiet defense
-cannot close the issue while another opening regresses or the seed cannot
-finish its required horizon. The next iteration must preserve raw eligible
-alternatives without starving seed search or comparison within the same 200k
-total, report actual completed depths, and retain immutable v1 receipts. Native
-Hard and the hint remain separately measured APIs; partial diagnostic paths do
-not establish an Elo improvement.
+The three initial Italian probes were rejected. The subsequent correction retains raw H4 evidence and demotes only a credit-backed material offer contradicted by that evidence. S5 recommends `…Qg6` and no longer offers `…Bxf2+` or `…Nge7` as equivalent. Among 44 matched requests, only that leader changes; four new histories keep their leaders. The balanced Sicilian exchange and Traxler `…Bxf2+` sacrifice remain valid. Diagnostic comparisons stay distinct from public suggestions, and fallback scores exclude historical credit. Preference order may include earlier-horizon support and does not promise numeric sorting by those raw scores. [Regressions and counterexamples](../../atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java)
+
+Native Hard and the hint remain distinct APIs. [Per-move game audit and Elo](hard-audit.md) measure actual games separately.
 
 Exact-cache tests distinguish full-window values from cutoff bounds and compare
 warm, cold, and disabled caches. The upstream reference also classifies bounds
