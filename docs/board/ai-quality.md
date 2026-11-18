@@ -770,3 +770,23 @@ După `1.e4 c5 2.Nf3 h6 3.Nc3 e5`, căutarea la patru semimutări ajungea la `Nx
 Basic a pierdut toate cele 12 partide contra ancorei 1500. Rularea contra 1320 oferă o estimare finită. Fiecare profil are câte șase perechi, cu un fir Stockfish și 6.000 de noduri cerute pe mutare. Ratingurile depind de lot și de adversar. [Calibrarea Stockfish](https://official-stockfish.github.io/docs/stockfish-wiki/Stockfish-FAQ.html#the-elo-rating-of-stockfish)
 
 </details>
+
+## Studiul pereche nativ/indiciu și respingerea recapturii
+
+Producătorul din 18 noiembrie `e320379212dbb55afb392351da559b1cf949ac4d` înregistrează trei studii de deschidere a câte 20 de semimutări. La fiecare checkpoint capturează Hard nativ, indiciile publice și evaluarea afișată înainte de joc. Bugetul nativ rămâne de cel mult 200k suplimentare; indiciile păstrează totalul separat de 200k. Motorul de producție este neschimbat.
+
+| Constatare H19 | Rezultat măsurat |
+|---|---:|
+| Prime indicii cu pierdere de cel puțin 150‰ | 12/60 |
+| Variante oferite cu acea pierdere | 15/83 |
+| Prime replici adverse din PV cu acea pierdere | 10/83 |
+| Recomandări native cu acea pierdere, inclusiv poziții de control | 3/60 |
+| Decizii Hard efectiv jucate cu acea pierdere | 2/21 |
+
+Toate cele 960 de recepții brute Stockfish H17/H19 se rejucă valid. Integritatea trece; benchmarkul separat de calitate șahistă eșuează. Sunt acoperite prima replică adversă și capetele liniilor, nu fiecare apărare ipotetică ulterioară. După `6.e6` din Caro–Kann, `…dxc3` nativ păstrează câștigul, iar primul indiciu `…fxe6` pierde 576‰. Bara pentru alb afișează +36 cp acolo unde Stockfish raportează −411 cp pentru alb. `Nd5/Na4` din Italiană pierde 467‰ în indiciu, iar `…Be7/…Nc6` din Siciliană 358‰. [Protocolul și ambele verdicte](../testing/hard-hint-study.md)
+
+Prototipul de recaptură țintită închide `…Qxe5 / …Nxe5` în frunzele H6 izolate și ordonează `…Qg6 −50` înainte de `…Na5 −80 cp`, inversând reperul. Probele cache încălzit, rece, dezactivat și cu fereastră îngustă păstrează rezultatul local. Rădăcinile izolate au plafoane separate; nu dovedesc contabilizarea deciziei complete. Candidatul complet alege sacrificiul nesănătos `…Bxf2+` și pierde martorii 019/021/022 cu 478,5‰, 191,5‰ și 516‰ la H19. Este respins și rămâne în afara producției.
+
+Game Review efectiv păstrează toate mutările și nu emite Elo pentru studiu, dar nouă neconcordanțe de clasificare persistă la ambele adâncimi ale oracolului. Rădăcinile jucate sunt auditate; liniile alternative sunt rejucate legal fără a pretinde evaluarea independentă a fiecărei alternative. [Constatările analizei](game-review.md#limitările-măsurate-ale-analizei)
+
+Cele trei partide limitate păstrează rezultatul `*`. Nu produc Elo sau ΔElo nou al candidatului. Calibrarea nativă Hard calificată separat rămâne 1.507, cu interval conservator 95% 1.357–1.656, din 100 de partide. Patru lecții cu istoric complet sunt date externe de studiu, nu excepții FEN în runtime. [Lucrul rămas deschis](../feedback/README.md)

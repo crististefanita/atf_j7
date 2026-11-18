@@ -55,3 +55,7 @@ Folosește perechile de deschidere ca unități bootstrap, 20.000 de eșantioane
 O rulare întreruptă rămâne diagnostic. Repornește experimentul înghețat când o corecție a validatorului ar cere altfel amestecarea producătorilor sau sesiunilor. Păstrează fișierele brute vechi și explică excluderea. O corecție numai a indiciului nu dovedește o schimbare cauzală a forței Hard efective, iar o calibrare mai mică nu înlocuiește implicit ancorele guvernate ale aplicației.
 
 [Auditul indiciului](hint-audit.md) · [Strategia testării](README.md) · [Dovezile AI curente](../board/ai-quality.md)
+
+## Indicii pereche în timpul partidei
+
+Folosește `HardHintAuditedGame` când fiecare mutare nativă cere și indiciul public și evaluarea barei. Păstrează decizia nativă cu istoric, fără a juca indiciul în locul adversarului. [Protocolul pereche Stockfish](hard-hint-study.md) adaugă verificarea oracolului brut și verdicte separate de calitate. Partida diagnostică limitată rămâne studiu și nu intră în eșantionul evaluat Elo al ligii.

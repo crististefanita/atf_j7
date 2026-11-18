@@ -11,10 +11,11 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 |---|---|---|---|
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
+| P1 | Game Review · clasificarea mutărilor | Nouă neconcordanțe persistă la ambele adâncimi ale oracolului, inclusiv pierdere mare ratată și gafă falsă. | Reproduce și corectează clasificarea fără a schimba istoricul, inventa Elo sau substitui dovezile analizei cu scorul indiciului. |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
-| P1 | Italiană · schimbul neîncheiat nativ | Extensia uniformă repară exemplul, dar pierde trei familii; verificarea doar a damei reintroduce sacrificiul fals. | Închide schimbul la orizont comun și cel mult 200k, păstrând martorii și transferul independent înainte de duel. |
-| P1 | Indiciu · precizia alternativelor independente | Liderul sicilian corect `N1c3` încă oferă alternativa inferioară `Bg5`. | Corectează alternativele oferite fără regresia liderului, cu dovezi la orizont comun și replici libere. |
-| P2 | Audit indicii · transfer mai larg | Planul inițial acoperă trei trasee scurte de deschidere și trei bugete. | Adaugă familii cu istorii separate și măsoară pierderea liderului distinct de rangurile inferioare jucate intenționat. |
+| P1 | Italiană · schimbul neîncheiat nativ | Recaptura țintită repară perechea H6 izolată, dar decizia completă și martorii regresează. | Rezolvă decizia completă în 200k, păstrând 019/021/022 și transferul independent înainte de duel. |
+| P1 | Indiciu · lider, alternative și replici adverse | Studiul pereche găsește pierderi mari în 12/60 prime indicii, 15/83 variante oferite și 10/83 prime replici adverse. | Repară sugestiile publice complete și replicile calculate la orizonturi comune, păstrând alegerile native corecte și familiile independente. |
+| P2 | Audit indicii · transfer mai larg | Captura pereche nativ/indiciu și rejucarea brută H17/H19 acoperă acum trei partide limitate. | Îngheață istorii independente noi și verifică transferul corecțiilor dincolo de traseele inspectate. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
 | P2 | Android · gestul predictiv | Gestul predictiv mai cere un dispozitiv compatibil. | Verifică anularea și reluarea pe API 33+. |
 | P1 | Calibrarea profilurilor AI | Intervalele Elo încă se suprapun. | Adaugă jocuri pereche pentru a restrânge incertitudinea. |
@@ -49,6 +50,15 @@ Adaugă verificarea compactă în poarta de promovare pentru schimbările de geo
 </details>
 
 <details>
+<summary>P1 · Game Review · clasificarea mutărilor</summary>
+
+Apelul efectiv `GameReview.analyzeLine` păstrează toate cele 60 de mutări și nu emite rating pentru cele trei studii limitate. Totuși, `6.e6` din Caro–Kann este BEST, iar precizia albului este 100, deși rădăcina jucată pierde 533‰ la H17 și 581,5‰ la H19. `5.Nc3` din Siciliană este BLUNDER cu 0‰ pierdere la ambele orizonturi. În cele trei partide, trei etichete pozitive însoțesc o pierdere mare la oracol, iar șase etichete severe însoțesc sub 10‰ pierdere la ambele adâncimi.
+
+Îngheață martorii cu istoric complet înainte de corecția comparației comune. Verifică rădăcinile jucată și recomandată la același orizont complet, păstrează redarea legală și bookmark-urile și măsoară familii noi. Pierderea logistică locală și WDL Stockfish sunt modele distincte; nu lega producția de Stockfish și nu copia mecanic eticheta sa. Auditul curent evaluează rădăcina jucată și verifică legalitatea PV-urilor salvate; nu certifică independent fiecare alternativă a analizei. [Contractul analizei și limitarea](../board/game-review.md#limitările-măsurate-ale-analizei) · [Audit pereche](../testing/hard-hint-study.md)
+
+</details>
+
+<details>
 <summary>P2 · Game Review · NVDA</summary>
 
 NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului. Componenta și Edge confirmă acum o singură valoare accesibilă.
@@ -60,31 +70,31 @@ Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceea
 <details>
 <summary>P1 · Italiană · schimbul neîncheiat din căutarea nativă</summary>
 
-Indiciul S5 rămâne corectat la `…Qg6`; Hard nativ păstrează `…Na5` la H5/100k noduri suplimentare. PV-ul se încheie cu `…Nxc4`, înainte de `Nxc6` care câștigă dama. La H6, comparația exactă separată încă ordonează `…Na5 −154` înainte de `…Qg6 −170 cp`; în frunzele lor, Stockfish H19 găsește recapturi favorabile negrelor `…Qxe5` (+306) și `…Nxe5` (+493 cp). Simplul acces la mai multe rădăcini nu rezolvă această pereche.
+Prototipul de recaptură pe ultima casetă capturată schimbă ordonarea H6 izolată din `…Na5 −154 / …Qg6 −170 cp` în `−80 / −50 cp`. În frunze găsește `…Qxe5` și `…Nxe5`; ambele culori și probele cache rece, încălzit, dezactivat și cu fereastră îngustă păstrează rezultatul local. Fiecare rădăcină izolată are propriul buget; probele nu certifică o decizie completă în același buget cumulat.
 
-Nu repeta extensia uniformă de două semimutări: repară exemplul italian, dar pierde trei familii cu cel puțin 150‰ și trece numai 83/87 componente față de 87/87 pe reper. Verificarea doar a damei atacate reintroduce `…Bxf2+`. Următoarea probă trebuie să trateze schimbul legal neîncheiat fără a micșora declarativ adâncimea sau a copia indiciul în joc. Păstrează `Be2` față de `Nb5`, `Nxc6` față de `Nxc7+`, familiile 019/021/022, sacrificiile corecte și martorii Sicilianei/Caro–Kann. După transfer independent și plafon de cel mult 200k noduri suplimentare, măsoară duelul candidat–live cu culorile inversate.
+Candidatul complet alege însă `…Bxf2+`, evaluat la −311 cp și 0‰ de Stockfish H19. Pierde și 478,5‰, 191,5‰ și 516‰ în martorii 019/021/022. `…cxd4` din Siciliană și `…d5` din Caro–Kann rămân neschimbate. Respinge prototipul, precum și extensiile anterioare uniformă și doar pentru damă. Păstrează contextul ultimei capturi în identitatea cache-ului; nu copia indiciul în joc și nu relaxa veto-ul de stabilitate.
 
-Motorul live nu s-a schimbat. Elo local aplicabil rămâne 1.507 [1.357–1.656], din 100 de partide; nu există ΔElo nou al candidaților respinși. Benchmarkul nativ reparat păstrează toate pragurile și adaugă audit pentru fiecare poziție. [Dovezi și rezultate](../board/ai-quality.md#studiul-frontierei-native-și-auditul-puzzle-urilor) · [Contracte de audit](../testing/hard-audit.md#auditul-puzzle-urilor-fără-obiectiv-transmis-adversarului)
+Izolează de ce închiderea schimbului schimbă liderul complet și cei trei martori. Cere istoricul complet, replici adverse libere la același orizont și decizia nativă completă în 200k suplimentare înainte de transfer neinspectat și duel pereche. Indiciul public S5 corectat rămâne `…Qg6`; Hard nativ rămâne `…Na5`. Motorul live este neschimbat, deci nu există ΔElo nou al candidatului. [Studiul măsurat](../board/ai-quality.md#studiul-pereche-nativindiciu-și-respingerea-recapturii) · [Contractul auditului](../testing/hard-hint-study.md)
 
 </details>
 
 <details>
-<summary>P1 · Indiciu · precizia alternativelor independente</summary>
+<summary>P1 · Indiciu · lider, alternative și replici adverse</summary>
 
-Alternativa `…Nd7` din Siciliana principală și liderul `…d6` din Caro–Kann principală sunt corectate. Diferența de transfer rămasă apare în vecinul Sicilian cu `Nc3`, unde vechiul lider `…Nd7` are 44,5‰ față de 479,5‰ pentru `…cxd4` la H19. În vecinul Caro–Kann cu `Nc3`, `…d6` are încă 400‰ față de 482‰ pentru `…d5`. Liderul martorului anterior capturii `Nxc2` rămâne `…Nf6`, iar alternativa sa `…b5` este mai slabă. `cxd5` din Catalană rămâne inferior lui `Nf3` din Stockfish. [Comparații închise](../board/ai-quality.md#comparația-selectivă-a-indiciului-și-auditul-mutărilor)
+Liderul `N1c3` din vechiul S7 sicilian rămâne corect, dar alternativa `Bg5` pierde 484,5‰ față de rădăcina H19 liberă. Noua colecție de trei trasee legată de sursă expune și lideri greșiți: Caro–Kann după `6.e6` oferă `…fxe6` în locul alegerii native `…dxc3` (pierdere 576‰); Italiana după `4…Qf6` oferă `Na4` în loc de `Nd5` nativ (467‰); Siciliana după `7.f4` ordonează `…Nc6` înainte de alternativa oferită mult mai bună `…Nbd7` (358‰ pierdute de lider). `…Be7` nativ pierde numai 10,5‰ acolo. Înainte de `6.e6`, mutarea nativă este slabă, iar indiciul util: niciun API nu este oracolul celuilalt.
 
-În S7 sicilian din v1, liderul `N1c3` are −1 cp / 499,5‰ la H19, iar alternativa oferită `Bg5` are −166 cp / 24‰ după replica liberă `…Qa5+`. Față de optimul rădăcinii libere, pierderile sunt 9‰ și 484,5‰; diferența dintre rădăcinile impuse este 475,5‰. Martorul de regresie protejează numai liderul și nu certifică eliminarea alternativei slabe.
+Cele 60 de checkpoint-uri și 83 de variante oferite au 960 de cereri brute H17/H19. Benchmarkul de calitate eșuează la pragul neschimbat de 150‰: 12 prime indicii, 15 mutări oferite și 10 prime replici adverse din PV îl depășesc. Verifică acea primă replică și capetele PV, nu toate apărările ipotetice ulterioare. Trei trasee corelate oferă diagnostic, nu o precizie globală.
 
-Îmbunătățiți ordonarea comună în plafonul total de 200.000 de noduri pentru indiciu. Comparați toate mutările oferite la același orizont complet și verificați replicile adverse libere la H17/H19 pe familii noi. Păstrați sacrificiile corecte de damă și cal, negativele limitelor din cache și identitatea bec/comparație/rejucare. Un PASS de integritate a rejucării nu dovedește forță egală între alternative. Păstrați dovezile adâncimii complete și ale nodurilor efective. [Probe AI](../testing/README.md#partidă-și-istoric)
+Începe cu perechea Caro–Kann înainte și după `6.e6`, apoi păstrează `Nd5/Na4` în Italiană, `…Be7/…Nc6` în Siciliană, sacrificiile corecte, 019/021/022 și negativele limitelor din cache. Compară ambele rădăcini, replicile adverse libere și orizonturile acceptate în totalul de 200k al indiciului. Nu ascunde un lider slab eliminându-l din raport și nu înlocui eșecul cu un PASS de legalitate a redării. [Protocolul pereche și benchmarkurile](../testing/hard-hint-study.md) · [Rezultatele curente legate de sursă](../board/ai-quality.md#studiul-pereche-nativindiciu-și-respingerea-recapturii)
 
 </details>
 
 <details>
 <summary>P2 · Audit indicii · transfer mai larg</summary>
 
-Colectorul versionat păstrează identitatea sursei, istoricul complet, adâncimile efective, candidații oferiți și comparați, rangurile indisponibile și bugetele plafonate. Contractele cu mock-uri acoperă substituția, scorurile reamprentate, reluarea și ieșirea întreruptă. Traseele reale sunt partide diagnostice ale politicilor de indicii, cu mutarea teoretică a adversarului Hard normal înregistrată separat.
+Noul colector pereche capturează decizia nativă efectivă, indiciile publice și evaluarea afișată înainte de fiecare mutare jucată. Componentele cu mock și negativele UCI brute resping faze lipsă, rădăcini substituite, scoruri modificate, altă rulare, istoric incomplet și limite prezentate ca scor exact. Benchmarkul rejucă toate cele 60 de etape și 960 de cereri fără emulator sau altă căutare Stockfish. Aceste contracte de integritate sunt implementate; nu mai sunt ToDo-uri de calitate.
 
-Adăugați familii independente de deschidere și final din PGN-urile arhivate. Înghețați istoriile înainte de reglaj, verificați prima pierdere cu replici Stockfish H17/H19 libere și păstrați toate eșecurile. Comparați bugetele numai din checkpoint-uri identice. Păstrați Extent, PGN și manifestul JSONL de încredere legate de sursă și separați pierderea liderului de rangurile 2 și 3 alese intenționat. [Protocolul auditului](../testing/hint-audit.md)
+Extinde către familii independente de deschidere și final din PGN-urile arhivate. Îngheață istoriile înainte de reglaj, păstrează pierderile și contraexemplele corecte și compară bugetele numai din checkpoint-uri identice. Separă turele native efective de pozițiile de control și calitatea primului indiciu de alegerea intenționată a unui rang inferior. Cele trei partide de 20 de semimutări rămân studii neterminate și nu produc Elo. [Audit pereche](../testing/hard-hint-study.md)
 
 </details>
 

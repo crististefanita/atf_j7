@@ -176,3 +176,9 @@ flowchart LR
 - În meniul de acțiuni, **Vezi pe tablă** închide review-ul și mută cursorul activ la semimutarea aleasă. **Reîncearcă mutarea** cere confirmarea continuării din poziția anterioară pentru mutările jucătorului sau pentru ambele culori în studiu. Anularea sau lipsa unui loc liber păstrează analiza la linia și pasul curent. Continuarea confirmată din arhivă deschide o partidă nouă din prefixul original.
 
 - `GameReviewTimeline` validează fiecare mutare și culoare față de sursă. `GameReviewLayout` alege geometria din dimensiunile măsurate. Verificările componentelor și parcursul Android urmăresc sincronizarea, navigarea variantei și păstrarea partidei. [Sanity și Extent](../testing/README.md#partidă-și-istoric)
+
+## Limitările măsurate ale analizei
+
+Studiul pereche din 18 noiembrie rulează efectiv `GameReview.analyzeLine` pe trei partide de deschidere limitate. Păstrează toate cele 60 de mutări, PV-urile jucate și recomandate legale și absența Elo pentru studiu. Rădăcinile jucate au dovezi independente Stockfish H17/H19. Nouă neconcordanțe persistă la ambele orizonturi: trei etichete native pozitive însoțesc o pierdere de cel puțin 150‰, iar șase etichete native severe însoțesc sub 10‰ pierdere. Aceasta nu evaluează independent fiecare alternativă a analizei.
+
+`6.e6` din Caro–Kann este BEST cu precizia albului 100, deși rădăcina jucată pierde 533‰ / 581,5‰. `5.Nc3` din Siciliană este BLUNDER cu 0‰ / 0‰ pierdere. Sunt martori de regresie cu istoric complet pentru comparație și clasificare, nu eșecuri de navigare sau arhivare. Punctele logistice locale și WDL ale oracolului sunt modele distincte; redarea legală nu certifică eticheta. [Dovezi pereche și interpretare](../testing/hard-hint-study.md) · [Criterii deschise de corecție](../feedback/README.md)

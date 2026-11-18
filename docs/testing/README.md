@@ -111,6 +111,8 @@ scurte reale și bugete comparate din aceeași poziție, printr-un apel pe deciz
 Raportul Extent păstrează identitatea sursei, checkpoint-urile, FEN, variantele
 oferite și comparate, replicile, adâncimile și nodurile efective. [Rulare și interpretare](hint-audit.md)
 
+`HardHintAuditedGameTest` leagă jocul nativ, indiciile publice și bara la fiecare checkpoint. `StockfishStudyAuditTest` respinge UCI brut, rădăcini, istorii, orizonturi și identități de oracol modificate. `HardHintStudyBenchmarkTest` publică offline colecția înregistrată cu verdicte separate de integritate și calitate șahistă. [Audit pereche și publicare](hard-hint-study.md)
+
 ### Auditul nativ al partidelor Hard
 
 Fiecare semimutare, inclusiv replica adversarului, cere analiza efectivă Hard cu istoric. Componentele resping recepții lipsă sau străine; publicatorul benchmark rejucă dovezile înainte de Elo și Extent. [Protocol, comandă și interpretare](hard-audit.md)

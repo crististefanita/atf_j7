@@ -107,3 +107,7 @@ Testele cache-ului exact disting valorile ferestrei complete de limitele tăieri
 și ea limitele separat. [Căutarea Stockfish 19](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp#L1460-L1468)
 
 [Politica AI](../board/ai-quality.md) · [Strategia testării](README.md) · [Feedback curent](../feedback/README.md)
+
+## Studii pereche native și de indiciu public
+
+Colectorul inițial de mai sus urmărește politicile de indicii. Pentru jocul nativ efectiv cu indiciu de control înainte de fiecare semimutare, folosește [captura pereche și protocolul Stockfish](hard-hint-study.md). Verifică recepțiile native cu istoric complet, fiecare rădăcină publică oferită, prima replică adversă din PV și capetele liniilor la H17/H19, cu verdict separat de eșec când calitatea șahistă înregistrată este insuficientă. Nu certifică fiecare continuare ipotetică și nu produce rating dintr-un studiu limitat.
