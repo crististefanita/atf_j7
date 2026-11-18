@@ -1022,3 +1022,11 @@ testChanges:
     test: ro.atf.chess.MatchAnalysisParityTest#nativeModelProjectsTheDisplayedMatchFrame
     contract: "Update the sound Nc3 opening snapshot while preserving the exact scored continuation, small White advantage, displayed historical board and native-worker/manual-board parity"
     allowDelete: false
+
+  - id: J7-NATIVE-QUEST-BUDGET-AUDIT
+    base: "6d1498686addf53005f294102868b420e49fc045"
+    from: atf-tests/src/test/java/ro/atf/chess/HardQuestTransferBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HardQuestAuditTest.java
+    test: ro.atf.chess.HardQuestAuditTest#adaptiveAndRepertoireAllowancesRemainDistinctAndStrict
+    contract: "Retain frozen accuracy floors and objective-blind native Hard choices; enforce separate repertoire and adaptive ceilings with over-limit negatives"
+    allowDelete: false
