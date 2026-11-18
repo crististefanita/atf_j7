@@ -1085,3 +1085,35 @@ testChanges:
     test: ro.atf.chess.PromotionExchangePolicyTest#yamlRejectsCaseLookupsUnknownModesAndInvalidThresholds
     contract: "Preserve all complete-catalog identities, legal PVs, budget checks and the separate unsolved-quality verdict; additionally bind the current producer to its loaded promotion policy and reject untyped lookup fields"
     allowDelete: false
+
+  - id: J7-PAWN-PROOF-AUDIT-EN
+    base: "e3e620cd9ec89f2ceefab49c123d4fbe4639e664"
+    from: atf-tests/src/test/java/ro/atf/chess/HardQuestAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/PawnPushProofTest.java
+    test: ro.atf.chess.PawnPushProofTest#auditRejectsRemovedForeignOrModifiedProofs
+    contract: "Preserve original native allowance, legal-PV, material and selection checks; additionally replay source-bound winning plans and reject missing certificates, foreign history, changed defense coverage, strategy, score and work while retaining old non-proof JSON"
+    allowDelete: false
+
+  - id: J7-PAWN-PROOF-POLICY-EN
+    base: "e3e620cd9ec89f2ceefab49c123d4fbe4639e664"
+    from: atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/PawnPushProofTest.java
+    test: ro.atf.chess.PawnPushProofTest#yamlOwnsOnlyStructuralProofLimits
+    contract: "Preserve every complete-catalog receipt and the separate incomplete-quality verdict; bind the loaded pawn policy and preserve typed source-bound certificates without adding curriculum lookups or relaxing accuracy floors"
+    allowDelete: false
+
+  - id: J7-PAWN-PROOF-AUDIT-RO
+    base: "d7d516652e5986bae7b33c8e1ea29960a83b1826"
+    from: atf-tests/src/test/java/ro/atf/chess/HardQuestAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/PawnPushProofTest.java
+    test: ro.atf.chess.PawnPushProofTest#auditRejectsRemovedForeignOrModifiedProofs
+    contract: "Preserve original native allowance, legal-PV, material and selection checks; additionally replay source-bound winning plans and reject missing certificates, foreign history, changed defense coverage, strategy, score and work while retaining old non-proof JSON"
+    allowDelete: false
+
+  - id: J7-PAWN-PROOF-POLICY-RO
+    base: "d7d516652e5986bae7b33c8e1ea29960a83b1826"
+    from: atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/PawnPushProofTest.java
+    test: ro.atf.chess.PawnPushProofTest#yamlOwnsOnlyStructuralProofLimits
+    contract: "Preserve every complete-catalog receipt and the separate incomplete-quality verdict; bind the loaded pawn policy and preserve typed source-bound certificates without adding curriculum lookups or relaxing accuracy floors"
+    allowDelete: false
