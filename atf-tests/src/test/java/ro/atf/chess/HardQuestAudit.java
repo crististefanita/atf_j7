@@ -45,6 +45,9 @@ final class HardQuestAudit {
             require(proof!=null&&nodes[0]==certificate.extraNodes()&&verifier.defenderReplies()==certificate.defenderEdgesVisited(),"Invented pawn proof work or opposing coverage");
             require(proof.strategySha256().equals(certificate.strategySha256())&&proof.line().size()==certificate.linePlies(),"Changed pawn proof strategy");
             require(search.result().ranked().size()==1&&proof.line().equals(search.result().ranked().getFirst().line()),"Native PV differs from its complete winning proof");
+            var end=position;for(var move:proof.line())end=end.play(move);
+            int expected=end.isCheckmate()?100000-proof.line().size():TacticalAnalysis.positionValue(end,position.turn());
+            require(search.result().ranked().getFirst().score()==expected,"Substituted pawn proof score");
         }
     }
 
