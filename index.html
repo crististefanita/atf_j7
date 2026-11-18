@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Play chess against AI, solve puzzles, and study openings.">
   <title>Chess Lab</title>
-  <link rel="stylesheet" href="runtime/b1eb92ddf29a17249064fb7d34f9306b1f6b892db348b03ab414f9f104fbc173/game-review.css">
-  <link rel="stylesheet" href="runtime/b1eb92ddf29a17249064fb7d34f9306b1f6b892db348b03ab414f9f104fbc173/study-openings.css">
-  <link rel="stylesheet" href="runtime/b1eb92ddf29a17249064fb7d34f9306b1f6b892db348b03ab414f9f104fbc173/study-analysis.css">
-  <link rel="stylesheet" href="runtime/b1eb92ddf29a17249064fb7d34f9306b1f6b892db348b03ab414f9f104fbc173/study-quests.css">
-  <link rel="stylesheet" href="runtime/b1eb92ddf29a17249064fb7d34f9306b1f6b892db348b03ab414f9f104fbc173/chess-controls.css">
-  <script type="module" src="runtime/b1eb92ddf29a17249064fb7d34f9306b1f6b892db348b03ab414f9f104fbc173/game-review.mjs"></script>
+  <link rel="stylesheet" href="runtime/8532400108c10b5dfae7d0c64fddf750d0d4106ddc234627d9d95f5cf70b7920/game-review.css">
+  <link rel="stylesheet" href="runtime/8532400108c10b5dfae7d0c64fddf750d0d4106ddc234627d9d95f5cf70b7920/study-openings.css">
+  <link rel="stylesheet" href="runtime/8532400108c10b5dfae7d0c64fddf750d0d4106ddc234627d9d95f5cf70b7920/study-analysis.css">
+  <link rel="stylesheet" href="runtime/8532400108c10b5dfae7d0c64fddf750d0d4106ddc234627d9d95f5cf70b7920/study-quests.css">
+  <link rel="stylesheet" href="runtime/8532400108c10b5dfae7d0c64fddf750d0d4106ddc234627d9d95f5cf70b7920/chess-controls.css">
+  <script type="module" src="runtime/8532400108c10b5dfae7d0c64fddf750d0d4106ddc234627d9d95f5cf70b7920/game-review.mjs"></script>
 </head>
 <body>
   <main>
@@ -20,6 +20,12 @@
       <button id="review-close" data-chess-back type="button" hidden>‹</button>
       <button id="close-why" class="review-icon" type="button" aria-label="Close explanation" aria-describedby="review-why-context" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
       <h1 id="title">Chess Lab</h1>
+      <div class="header-actions">
+        <label id="match-automatic-option" class="match-automatic" hidden>
+          <input id="match-automatic" type="checkbox"><span id="match-automatic-label">Let AI play its moves</span>
+        </label>
+        <button id="why-actions" class="review-icon" type="button" aria-label="Review actions" aria-expanded="false" aria-controls="review-menu" hidden><svg class="dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+      </div>
       <div id="match-options-anchor" class="options-anchor" hidden>
         <button id="match-options-button" class="match-options-button review-icon" type="button" aria-label="Game options" aria-controls="match-options" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -33,12 +39,6 @@
           <button id="menu-draw" type="button" hidden>Offer draw</button>
           <button id="menu-resign" type="button" hidden>Resign game</button>
         </div>
-      </div>
-      <div class="header-actions">
-        <label id="match-automatic-option" class="match-automatic" hidden>
-          <input id="match-automatic" type="checkbox"><span id="match-automatic-label">Let AI play its moves</span>
-        </label>
-        <button id="why-actions" class="review-icon" type="button" aria-label="Review actions" aria-expanded="false" aria-controls="review-menu" hidden><svg class="dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
       </div>
     </header>
     <div id="home-menu" class="home-menu" hidden>
