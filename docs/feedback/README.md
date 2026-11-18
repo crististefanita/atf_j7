@@ -9,6 +9,8 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 
 | Prioritate | Zonă | Observație | Criteriu de închidere |
 |---|---|---|---|
+| P1 | Indiciu · continuarea adversă completă | Finalul raportat cu piesă valoroasă cedată pe pion nu are poziție furnizată; un PV legal nu exclude replica adversă slabă. | Extrage martori din partide nou admise, verifică fiecare semimutare PV la H17/H19 și păstrează sacrificiile corecte înaintea schimbării căutării. |
+| P1 | Învățare · admitere pe fiecare mutare | Partidele istorice fără Hard și indiciul public maxim înaintea mutărilor nu îndeplinesc contractul actual. | Păstrează doar jurnale complete alb/negru cu sursă, istoric, plafon și replay independent; retrage partidele neconforme. [Admitere](../testing/learning-archive.md) |
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Documentație · protejarea traducerilor | Poarta bilingvă verifică structura și linkurile, iar proza și exemplele cer în continuare revizuire semantică. | Detectează proza copiată și exemplele schimbate prin cazuri negative țintite, păstrând literalii tehnici și dovezile imuabile. |

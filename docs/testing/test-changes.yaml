@@ -1117,3 +1117,19 @@ testChanges:
     test: ro.atf.chess.PawnPushProofTest#yamlOwnsOnlyStructuralProofLimits
     contract: "Preserve every complete-catalog receipt and the separate incomplete-quality verdict; bind the loaded pawn policy and preserve typed source-bound certificates without adding curriculum lookups or relaxing accuracy floors"
     allowDelete: false
+
+  - id: J7-LEARNING-ADMISSION-EN
+    base: "9f4fff37908936b2a187f463dc90a7b4f036ddb5"
+    from: atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningGameAuditTest.java
+    test: ro.atf.chess.LearningGameAuditTest#bothColorsRequireTheirOwnMaximumHintBeforePlaying
+    contract: "Reuse the unchanged hint legality, horizon, material and node checks; require pre-move Hard and an explicitly requested maximum public hint for every actual White and Black move"
+    allowDelete: false
+
+  - id: J7-LEARNING-ADMISSION-RO
+    base: "5e620bebad8163dc9fb7788a62d59256e44515de"
+    from: atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningGameAuditTest.java
+    test: ro.atf.chess.LearningGameAuditTest#bothColorsRequireTheirOwnMaximumHintBeforePlaying
+    contract: "Reuse the unchanged hint legality, horizon, material and node checks; require pre-move Hard and an explicitly requested maximum public hint for every actual White and Black move"
+    allowDelete: false
