@@ -52,7 +52,7 @@ Publication replays native and hint evidence without Stockfish or an emulator. E
 
 These studies do not estimate Elo or prove optimal play against every defense. Use the [paired native league](hard-audit.md#elo-and-unfinished-games) for source-qualified strength and confidence intervals. Repairing one fixture does not permit promotion when independent controls regress.
 
-## Current source-qualified collection
+## Reference source-qualified collection
 
 The November 18 collection uses producer `e320379212dbb55afb392351da559b1cf949ac4d`: three study games capped at 20 plies, 60 played positions, 83 offered variations and 960 oracle requests. The positions include both native and shadow decisions. At H19, 12 first suggestions, 15 offered variations and 10 opposing PV replies lose at least 150‰. Native choices have three such gaps across all 60 positions, two on its 21 actual turns. Game Review has nine stable classification disagreements across H17/H19.
 
@@ -62,4 +62,12 @@ Raw data, both Extent verdicts, review observations and study-only YAML lessons 
 
 ## Follow-up
 
-Keep the Caro–Kann pair before and after `6.e6`, Italian `Nd5` versus `Na4`, and Sicilian `…Be7` versus `…Nc6` as source-bound regression studies. Compare roots and defenses at one horizon and budget. Do not turn observed solutions into runtime FEN exceptions or automatically trusted training labels. Preserve the original corpus when evaluating a later candidate. [Current feedback](../feedback/README.md)
+Keep the corrected Caro–Kann pair before and after `6.e6` as a regression control. Italian `Nd5` versus `Na4`, Sicilian `…Be7` versus `…Nc6`, and inaccurate secondary offers remain unresolved source-bound studies. Compare roots and defenses at one horizon and budget. Do not turn observed solutions into runtime FEN exceptions or automatically trusted training labels. Preserve the original corpus when evaluating a later candidate. [Current feedback](../feedback/README.md)
+
+## Comparing the corrected Caro–Kann hint
+
+The forcing-pawn correction is measured on a paired replay of exactly the same historical moves. Its producer is `5858e65e02b96e15ca8238d1d68cc2db70f2b6d8`; historical opponent replies are explicitly marked as replayed, not new Stockfish games. All sixty native reports and displayed estimates match the reference. Only the public hint after `6.e6` changes.
+
+The new plan contains 954 cold H17/H19 requests covering all played and offered roots, first opposing PV replies and endpoints. Integrity passes; absolute quality remains FAIL with 11/60 deficient leaders, 14/83 deficient offered moves and 10/83 deficient first opposing PV replies. Qualify the targeted improvement and independent transfer separately from that absolute floor. Keep rejected runs, source identity and raw receipts intact. [Results and interpretation](../board/ai-quality.md#carokann-hint-and-forcing-pawn-recapture-verification)
+
+`HintRecaptureRegressionTest` verifies the Caro pair, diagnostic comparison, preview and tap identity, interrupted budgets, exact-cache mode separation and bounded YAML. Disabling the new allowance must reproduce `…fxe6` and fail the target test. New PGN transfer histories are frozen before evaluation, then become regression cases after inspection. A positive hint delta is not a native-game Elo delta. [Components](../../atf-tests/src/test/java/ro/atf/chess/HintRecaptureRegressionTest.java)

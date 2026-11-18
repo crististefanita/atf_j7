@@ -102,6 +102,8 @@ frame and whole documented continuation is replayed by the actual rules.
 
 [Hint frontier](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java) · [Opening contracts](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java) · [Web replay parity](../../atf-tests/src/test/java/ro/atf/chess/WebHintReplayComponentTest.java)
 
+`HintRecaptureRegressionTest` protects the forcing pawn/piece capture comparison, the preceding good hint, warm/cold/disabled cache identity, interrupted exchanges and bounded YAML. [Measured Caro–Kann correction](../board/ai-quality.md#carokann-hint-and-forcing-pawn-recapture-verification)
+
 ### Offline hint collection
 
 `HintAuditSessionTest` validates the versioned plan, full-history resumption,

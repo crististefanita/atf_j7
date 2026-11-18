@@ -182,3 +182,7 @@ flowchart LR
 The paired 18 November study runs actual `GameReview.analyzeLine` on three capped opening games. It preserves all 60 moves, legal played and recommended PVs, and the absence of study Elo. The played roots have independent Stockfish H17/H19 evidence. Nine disagreements persist at both horizons: three native-positive labels accompany a loss of at least 150‰, and six native severe labels accompany less than 10‰ loss. This does not grade every review alternative independently.
 
 Caro–Kann `6.e6` is BEST with White accuracy 100 while the played root loses 533‰ / 581.5‰. Sicilian `5.Nc3` is BLUNDER with 0‰ / 0‰ loss. These are full-history regression witnesses for comparison and grading, not navigation or archive failures. Local logistic loss points and oracle WDL are distinct models; a legal replay does not certify the classification. [Paired evidence and interpretation](../testing/hard-hint-study.md) · [Open correction criteria](../feedback/README.md)
+
+## Review after the hint correction
+
+The targeted Caro–Kann hint correction leaves actual `GameReview.analyzeLine` byte-equivalent after JSON projection on all sixty replayed moves. The previous nine H17/H19 classification disagreements remain open. `6.e6` is still labeled BEST and Sicilian `5.Nc3` is still labeled BLUNDER. Preserved history and the corrected live hint must not be presented as a correction to the review comparison. No study Elo is emitted. [Source-qualified findings](ai-quality.md#carokann-hint-and-forcing-pawn-recapture-verification)
