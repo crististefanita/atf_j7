@@ -30,7 +30,15 @@ class LearningArchiveBenchmarkTest {
         inspectOracle(check);
     }
 
+    @Test void nativeHardChoicesHaveNoStableLargeIndependentOracleLoss(Checks check)throws Exception {
+        check.same("Recorded native Hard strength has its own quality verdict, separate from capture and hint quality",0,inspectOracle(check,true));
+    }
+
     private static int inspectOracle(Checks check)throws Exception {
+        return inspectOracle(check,false);
+    }
+
+    private static int inspectOracle(Checks check,boolean nativeQuality)throws Exception {
         var games=inspectGames(check);var root=root();
         var manifest=trusted(root.resolve("deep-oracle/manifest.json"),"oracleManifestSha256");
         verify(root.resolve("deep-oracle/plan.json"),manifest.path("planSha256").asText());
@@ -51,7 +59,7 @@ class LearningArchiveBenchmarkTest {
             }
         }
         check.same("Every planned query has raw exact H17/H19 evidence",expected.keySet(),receipts.keySet());
-        var covered=new java.util.HashSet<String>();int pvPlies=0,stableLarge=0,opposingLarge=0;
+        var covered=new java.util.HashSet<String>();int pvPlies=0,stableLarge=0,opposingLarge=0,nativeLarge=0;
         for(var step:plan.path("steps")) {
             String id=step.path("case").asText()+":"+step.path("ply").asInt();
             var envelope=games.moves().get(id);require(envelope!=null&&covered.add(id),"Foreign or repeated actual phase");
@@ -60,6 +68,11 @@ class LearningArchiveBenchmarkTest {
             pair(step.path("free"),frame.initialFen(),history,null,receipts);
             pair(step.path("played"),frame.initialFen(),history,body.played().uci(),receipts);
             pair(step.path("native"),frame.initialFen(),history,frame.hard().decision().move().uci(),receipts);
+            double native17=StockfishStudyAudit.loss(receipts.get(step.path("free").path("17").asText()),receipts.get(step.path("native").path("17").asText()));
+            double native19=StockfishStudyAudit.loss(receipts.get(step.path("free").path("19").asText()),receipts.get(step.path("native").path("19").asText()));
+            if(native17>=150&&native19>=150)nativeLarge++;
+            check.same(id+" native="+frame.hard().decision().move().uci()+" depth="+frame.hard().decision().depth()+" WDL-loss H17="+native17+" H19="+native19,
+                    frame.hard().decision().move().uci(),receipts.get(step.path("native").path("19").asText()).path("query").path("root").asText());
             require(step.path("hints").size()==frame.hint().lines().size(),"Missing offered hint");
             for(int rank=0;rank<frame.hint().lines().size();rank++) {
                 var hint=step.path("hints").get(rank);var path=frame.hint().lines().get(rank).line();
@@ -81,7 +94,7 @@ class LearningArchiveBenchmarkTest {
         check.same("Hypothetical plies independently counted",manifest.path("pvPlies").asInt(),pvPlies);
         check.same("Stable large errors are disclosed separately from integrity",manifest.path("stableLarge").asInt(),stableLarge);
         check.same("Stable weak opposing replies remain visible",manifest.path("opposingLarge").asInt(),opposingLarge);
-        return stableLarge;
+        return nativeQuality?nativeLarge:stableLarge;
     }
 
     private record Games(JsonNode identity,java.util.Map<String,LearningGameAudit.Envelope> moves) { }

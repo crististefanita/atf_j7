@@ -98,3 +98,9 @@ an Elo gain. Two full-strength Stockfish games are diagnostic games, not a rated
 league. Preserve every pre-move Hard/hint pair, both colors, and attach the full
 native review before the independent oracle completes. Pending oracle phases
 remain pending; integrity and absolute chess quality keep separate Extent verdicts.
+
+The component benchmark `LearningArchiveBenchmarkTest.nativeHardChoicesHaveNoStableLargeIndependentOracleLoss`
+keeps native choices under a separate oracle quality gate. It binds every observed
+move to its original journal and reports the two independent WDL losses in Extent.
+A later fix needs a current-source replay or fresh game and renewed oracle evidence;
+changing an expected move to accept the defect cannot close it.
