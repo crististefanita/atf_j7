@@ -68,6 +68,30 @@ class HintQueenRecaptureTest {
         check.same("An absent capture has no queen to resolve", false, probe.invoke(null, free, -1));
     }
 
+    @Test void queenPressureIsAnAllocationSignalRatherThanPermissionToMakeAnIllegalMove(Checks check) {
+        var board = ChessMatch.restore("2|analysis|" + ITALIAN).position();
+        check.same("Nd5 actually attacks the queen on f6", true, board.play(move("c3d5")).attacksFrom(move("c3d5").to(), move("f6d8").from()));
+        check.same("Na4 attacks other targets, not that queen", false, board.play(move("c3a4")).attacksFrom(move("c3a4").to(), move("f6d8").from()));
+        check.same("An out-of-board source is not an attack", false, board.attacksFrom(-1, 45));
+        check.same("A piece does not attack its own square", false, board.attacksFrom(18, 18));
+        var pinned = ChessPosition.fromFen("4r1k1/8/8/8/5q2/8/4N3/4K3 w - - 0 1");
+        check.same("Geometric pressure can exist under a king pin", true, pinned.attacksFrom(move("e2f4").from(), move("e2f4").to()));
+        check.same("Actual move generation still rejects the pinned capture", false, pinned.legalMovesFrom(move("e2f4").from()).contains(move("e2f4")));
+    }
+
+    @Test void partialBudgetsKeepTheLastCompletedEvidenceAndNeverSpendPastTheCeiling(Checks check) {
+        var game = ChessMatch.restore("2|analysis|" + ITALIAN);
+        for (int limit : List.of(1_000, 5_000, 50_000, 100_000)) {
+            var search = TacticalAnalysis.verifiedHints(game.position(), limit);
+            check.same("A partial allowance retains a legal completed suggestion at " + limit, true,
+                    !search.lines().isEmpty() && game.position().legalMoves().contains(search.lines().getFirst().move()));
+            check.same("Seed confirmation and interruption share the same allowance at " + limit, true, search.extraNodes() > 0 && search.extraNodes() <= limit);
+            check.same("The reported selected horizon really has a replayable PV at " + limit, true,
+                    search.selectedDepth() > 0 && search.lines().getFirst().line().size() >= search.selectedDepth());
+        }
+        check.same("Experiments cannot mutate the governed default ceiling", 200_000, MatchAiPolicy.CURRENT.hint.search().extraNodes());
+    }
+
     @Test void warmBoundsAndSeedValuesCannotImpersonateTheQueenRecaptureMode(Checks check) throws Exception {
         var board = ChessPosition.fromFen("3q2k1/8/8/8/3p4/4P3/3R4/6K1 w - - 0 1");
         var warm = new Frontier(64); var seed = warm.search(board, -100_001, 100_001); warm.queens(1);
