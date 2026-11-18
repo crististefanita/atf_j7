@@ -1,0 +1,13 @@
+:root {
+  --board-seat-size: 1.35rem;
+  --board-feedback-size: 2.5rem;
+  --board-stage-min: 10rem;
+  --board-meter-size: 8px;
+  --board-meter-gap: 5px;
+  --board-meter-gutter: calc(var(--board-meter-size) + var(--board-meter-gap));
+  /* Analysis board is the reference: header, navigation, two feedback rows and seats. */
+  --board-reference-chrome: calc(2 * var(--chess-control-size) + 2 * var(--board-feedback-size) + 2 * var(--board-seat-size));
+  --play-board-limit: min(var(--play-column), max(
+    calc(var(--board-stage-min) - 2 * var(--board-seat-size)),
+    calc(100dvh - 2 * var(--play-page-padding) - var(--board-reference-chrome))));
+}
