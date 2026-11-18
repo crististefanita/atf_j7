@@ -62,7 +62,7 @@ Raw data, both Extent verdicts, review observations and study-only YAML lessons 
 
 ## Follow-up
 
-Keep the corrected Caro–Kann pair before and after `6.e6` as a regression control. Italian `Nd5` versus `Na4`, Sicilian `…Be7` versus `…Nc6`, and inaccurate secondary offers remain unresolved source-bound studies. Compare roots and defenses at one horizon and budget. Do not turn observed solutions into runtime FEN exceptions or automatically trusted training labels. Preserve the original corpus when evaluating a later candidate. [Current feedback](../feedback/README.md)
+Keep the corrected Caro–Kann pair before and after `6.e6` as a regression control. Sicilian `…Be7` versus `…Nc6` and inaccurate secondary offers remain unresolved source-bound studies. Compare roots and defenses at one horizon and budget. Do not turn observed solutions into runtime FEN exceptions or automatically trusted training labels. Preserve the original corpus when evaluating a later candidate. [Current feedback](../feedback/README.md)
 
 ## Comparing the corrected Caro–Kann hint
 
@@ -71,3 +71,11 @@ The forcing-pawn correction is measured on a paired replay of exactly the same h
 The new plan contains 954 cold H17/H19 requests covering all played and offered roots, first opposing PV replies and endpoints. Integrity passes; absolute quality remains FAIL with 11/60 deficient leaders, 14/83 deficient offered moves and 10/83 deficient first opposing PV replies. Qualify the targeted improvement and independent transfer separately from that absolute floor. Keep rejected runs, source identity and raw receipts intact. [Results and interpretation](../board/ai-quality.md#carokann-hint-and-forcing-pawn-recapture-verification)
 
 `HintRecaptureRegressionTest` verifies the Caro pair, diagnostic comparison, preview and tap identity, interrupted budgets, exact-cache mode separation and bounded YAML. Disabling the new allowance must reproduce `…fxe6` and fail the target test. New PGN transfer histories are frozen before evaluation, then become regression cases after inspection. A positive hint delta is not a native-game Elo delta. [Components](../../atf-tests/src/test/java/ro/atf/chess/HintRecaptureRegressionTest.java)
+
+## Italian comparison and new thematic histories
+
+Producer `3b1e7ed1a4f2659b544d29732848d8078c5f3abc` fixes `Nd5/Na4` after `4…Qf6`. Keep the same sixty historical phases for the matched comparison, with native choices and displayed estimates preserved. Record the two additional sixteen-ply branches as fresh thematic studies, not as a replacement baseline or a rating league. Their opening prefixes overlap deliberately; `Na4` is a labeled inferior-prefix counterexample.
+
+All 92 played phases have paired native/hint evidence. The 1190-query raw plan also covers diagnostic comparison roots, with their actual histories and horizons. Source and compiled runtime remain frozen during generation; an independent chess-rules replay verifies every PGN and checkpoint. The integrity report passes. The absolute-quality report still fails: the matched sixty retain 9 large-loss leaders, 12 deficient offers and 9 deficient first opposing replies. New thematic observations are reported separately, without pooling them into an apparent improvement.
+
+`HintQueenRecaptureTest` covers public and manual-board identity, an explicit cold common-horizon comparison, legal and pinned recaptures in both colors, geometric allocation versus legality, exact cache modes, incomplete budgets and a sound queen sacrifice. Setting the existing recapture allowance to zero reproduces `Na4` and genuinely fails the target assertion. No emulator is needed for these search contracts. Validation preserves the small 13.5‰ leader decline and the 322.5‰ improvement; it must not claim zero regressions or exact score calibration. [Mechanism and measured limits](../board/ai-quality.md#italian-queen-recapture-and-hint-continuity) · [Components](../../atf-tests/src/test/java/ro/atf/chess/HintQueenRecaptureTest.java)

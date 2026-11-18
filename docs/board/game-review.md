@@ -186,3 +186,5 @@ Caro–Kann `6.e6` is BEST with White accuracy 100 while the played root loses 5
 ## Review after the hint correction
 
 The targeted Caro–Kann hint correction leaves actual `GameReview.analyzeLine` byte-equivalent after JSON projection on all sixty replayed moves. The previous nine H17/H19 classification disagreements remain open. `6.e6` is still labeled BEST and Sicilian `5.Nc3` is still labeled BLUNDER. Preserved history and the corrected live hint must not be presented as a correction to the review comparison. No study Elo is emitted. [Source-qualified findings](ai-quality.md#carokann-hint-and-forcing-pawn-recapture-verification)
+
+The subsequent Italian queen-recapture hint correction also preserves the same sixty-move Game Review JSON exactly. The two fresh sixteen-ply studies retain all moves and no rating; they do not close the nine matched classification gaps. [Italian source and audit](ai-quality.md#italian-queen-recapture-and-hint-continuity)

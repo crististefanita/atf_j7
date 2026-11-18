@@ -104,6 +104,8 @@ frame and whole documented continuation is replayed by the actual rules.
 
 `HintRecaptureRegressionTest` protects the forcing pawn/piece capture comparison, the preceding good hint, warm/cold/disabled cache identity, interrupted exchanges and bounded YAML. [Measured Caro–Kann correction](../board/ai-quality.md#carokann-hint-and-forcing-pawn-recapture-verification)
 
+`HintQueenRecaptureTest` protects the Italian developing queen attack, the legal pawn recapture, scoped seed/comparison cache, completed-budget fallback, manual-board/tap identity and sound queen offers. Disabling the allowance must reproduce the old first hint. [Measured Italian correction](../board/ai-quality.md#italian-queen-recapture-and-hint-continuity)
+
 ### Offline hint collection
 
 `HintAuditSessionTest` validates the versioned plan, full-history resumption,

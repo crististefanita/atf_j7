@@ -14,8 +14,8 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Game Review · move classification | Nine grade disagreements persist at both oracle depths, including a missed large loss and a false blunder. | Reproduce and correct classification without changing played history, inventing Elo or substituting hint scores for review evidence. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
 | P1 | Italian · unresolved native exchange | Targeted recapture repairs the isolated H6 pair, but complete play and controls regress. | Resolve the complete decision within 200k, preserving 019/021/022 and independent transfer before a duel. |
-| P1 | Hint · leader, alternatives and opposing replies | The corrected replay retains large losses in 11/60 first hints, 14/83 offered variants and 10/83 first opposing replies. | Repair complete public suggestions and their scored replies at common horizons, preserving correct native choices and independent families. |
-| P2 | Hint audit · broader transfer | Paired native/hint collection and raw H17/H19 replay now cover three capped games. | Freeze new independent histories and verify whether fixes transfer beyond these inspected paths. |
+| P1 | Hint · leader, alternatives and opposing replies | The corrected replay retains large losses in 9/60 first hints, 12/83 offered variants and 9/83 first opposing replies. | Repair complete public suggestions and their scored replies at common horizons, preserving correct native choices and independent families. |
+| P2 | Hint audit · broader transfer | Paired native/hint collection and raw H17/H19 replay now cover three replays and two fresh thematic branches. | Freeze new independent histories and verify whether fixes transfer beyond these inspected paths. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
 | P1 | AI profile calibration | The Elo intervals still overlap. | Add paired games to narrow the rating uncertainty. |
@@ -81,20 +81,20 @@ Next isolate why closing the exchange changes the complete leader and the three 
 <details>
 <summary>P1 · Hint · leader, alternatives and opposing replies</summary>
 
-The Caro–Kann hint after `6.e6` is corrected to `…dxc3` within the unchanged total 200k. The preceding `Nce2`, the Italian and Sicilian outputs, and native play are preserved. Completed behavior and the rejected broad probe belong to the [AI guide](../board/ai-quality.md#carokann-hint-and-forcing-pawn-recapture-verification).
+The Italian `Nd5/Na4` defect after `4…Qf6` and the Caro–Kann `…dxc3/…fxe6` defect after `6.e6` are closed as first-hint regressions. Their mechanism and rejected broad scopes belong to the [AI guide](../board/ai-quality.md#italian-queen-recapture-and-hint-continuity), with permanent component checks. Other queen-pressure positions remain deficient: `validation-039`, a distinct full-history position after `…Qb6`, retains its previous 462‰ first-hint loss.
 
-Remaining leader gaps include Italian `Na4` instead of native `Nd5` (467‰ H19 loss) and Sicilian `…Nc6` instead of the much better offered `…Nbd7` (358‰). The earlier Sicilian `N1c3` leader still offers inferior `Bg5`. In the independent forcing set, the improved `Nxd7` leader still offers `Bxe4`, which loses 243.5‰ at H19. Do not equate the comparison's narrow native score gap with oracle-equivalent moves.
+The matched sixty-phase replay still fails absolute quality: 9 first hints, 12 offered moves and 9 first opposing PV replies breach 150‰. The Sicilian `…Nc6` leader still loses 358‰ while offering much better `…Nbd7`; earlier `N1c3` still offers inferior `Bg5`. The forcing-pawn transfer case still offers `Bxe4` at 243.5‰. The new validation history `validation-057` improves its leader but retains inferior `Bg5` as a secondary offer at 339.5‰. Prioritize the first common-horizon divergence and the free opposing reply; a narrow native score gap is not evidence of equivalent moves.
 
-The replayed absolute quality benchmark still fails: 11 first hints, 14 offered moves and 10 first opposing PV replies breach 150‰. It audits the first opposing reply and PV endpoints, not every future defense. Next isolate the Italian and Sicilian leader/comparison discrepancy at common completed horizons and correct deficient secondary offers. Retain the Caro pair, the new PGN controls, sound sacrifices and exact-cache negatives. Require unchanged ceilings, full histories and raw H17/H19 verification on newly frozen histories before promotion. Native play and Game Review need separate evidence. [Audit protocol and publication](../testing/hard-hint-study.md)
+Preserve the completed Caro and Italian controls, sound sacrifices, exact-cache negatives, 200k total hint ceiling and unmodified historical moves. Address defective secondary offers and PV replies before claiming complete scholastic explanations. Grade first choices, every offered root and scored replies separately at H17/H19. A hint fix does not certify native Hard play, the bar or Game Review grades. [Audit and publication](../testing/hard-hint-study.md)
 
 </details>
 
 <details>
 <summary>P2 · Hint audit · broader transfer</summary>
 
-Paired capture and raw Stockfish replay are implemented and covered by negative components. The corrected Caro case and two improved first hints transfer to the sixteen newly frozen forcing-pawn histories without a new leader loss there. Sixteen earlier histories exposed the rejected general scope and are now development controls. These are game checkpoints with shared historical sources, not a large independent strength sample.
+Paired capture and raw Stockfish replay now cover sixty matched historical plies and two distinct sixteen-ply thematic studies. The new comparison audit includes diagnostic roots. The selected study has 1190 validated raw receipts; legal replay and receipt integrity do not imply chess-quality PASS.
 
-Expand to untouched opening and endgame families, especially wrong secondary offers and misleading review grades. Freeze inputs before tuning, retain failures, and distinguish native actual turns from shadow analysis. Reuse trusted receipts only with their original source identity and exact query; source substitution must fail. Limited replays do not produce Elo. [Paired audit](../testing/hard-hint-study.md)
+Sixteen inspected queen-pressure histories exposed the rejected broad scope and became development controls. Sixteen subsequently frozen opening histories retain a 322.5‰ leader improvement and a 13.5‰ decrease, with no new 150‰ leader loss. The development set separately retains an 18.5‰ decrease. Do not retune on these observations and call them unseen. Expand to untouched families with wrong secondary offers and misleading review grades; retain failures, source identity and exact histories. Capped overlapping studies do not measure Elo. [Paired audit](../testing/hard-hint-study.md)
 
 </details>
 
