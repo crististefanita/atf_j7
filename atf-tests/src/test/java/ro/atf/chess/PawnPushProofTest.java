@@ -84,8 +84,9 @@ class PawnPushProofTest {
         var legacy=ChessMatch.start(true);var original=legacy.analyzeBot(MatchSetup.Level.HARD);
         var json=new com.fasterxml.jackson.databind.ObjectMapper();var oldShape=json.valueToTree(original);
         ((com.fasterxml.jackson.databind.node.ObjectNode)oldShape.get("search")).remove("pawnProof");
-        var restored=json.treeToValue(oldShape,ChessMatch.BotAnalysis.class);HardQuestAudit.validate(legacy.position(),restored);
+        var restored=HardQuestAudit.read(oldShape);HardQuestAudit.validate(legacy.position(),restored);
         check.same("Legacy JSON without the optional proof field remains supported",original,restored);
+        check.same("The same native reader retains the new complete proof",actual,HardQuestAudit.read(json.valueToTree(actual)));
     }
 
     @Test void yamlOwnsOnlyStructuralProofLimits(Checks check) {
