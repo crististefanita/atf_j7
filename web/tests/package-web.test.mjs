@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -97,4 +98,20 @@ test('Packaging refuses a missing entry asset and leaves previously published ru
     await assert.rejects(packageWeb(source, engine, site), { code: 'EEXIST' });
     assert.equal(await readFile(immutableFile, 'utf8'), unexpectedContents);
     assert.equal(await readFile(join(site, 'index.html'), 'utf8'), originalIndex);
+});
+
+test('Git staging with autocrlf preserves qualified engine bytes and the runtime manifest', async t => {
+    const { source, engine, site } = await fixture(t);
+    await writeFile(engine, 'export const workerReady = true;\r\n');
+    const revision = await packageWeb(source, engine, site);
+    assert.equal(await readFile(join(site, '.gitattributes'), 'utf8'), '* -text\n');
+    const git = (...args) => execFileSync('git', ['-C', site, ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+    git('init');
+    git('config', 'core.autocrlf', 'true');
+    git('add', '.');
+    for (const name of await readdir(join(site, 'runtime', revision))) {
+        const route = 'runtime/' + revision + '/' + name;
+        assert.deepEqual(git('show', ':' + route), await readFile(join(site, route)), name + ' retains its hashed bytes');
+    }
+    assert.deepEqual(git('show', ':runtime/' + revision + '/chess-engine.mjs'), await readFile(engine));
 });

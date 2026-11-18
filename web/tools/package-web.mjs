@@ -48,6 +48,7 @@ export async function packageWeb(source, engineFile, site) {
     const runtime = join(site, address);
     await mkdir(runtime, { recursive: true });
     for (const name of names) await writeImmutable(join(runtime, name), files.get(name));
+    await writeFile(join(site, '.gitattributes'), '* -text\n');
     await writeFile(join(site, '.nojekyll'), '');
     await writeFile(join(site, 'index.html'), page);
     return revision;
