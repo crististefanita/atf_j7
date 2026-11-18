@@ -22,20 +22,15 @@ class LearningArchiveBenchmarkTest {
     }
 
     @Test void maximumHintsHaveNoStableLargeLossInEitherSideOfThePreview(Checks check)throws Exception {
-        var manifest=trusted(root().resolve("deep-oracle/manifest.json"),"oracleManifestSha256");
-        verify(root().resolve("deep-oracle/grades.json"),manifest.path("gradesSha256").asText());
-        var rows=JSON.readTree(root().resolve("deep-oracle/grades.json").toFile());
-        require(rows.isArray()&&!rows.isEmpty(),"Empty quality sample cannot pass");
-        int large=0;
-        for(var row:rows) {
-            double h17=row.path("losses").path("17").asDouble(-1),h19=row.path("losses").path("19").asDouble(-1);
-            require(h17>=0&&h19>=0,"Missing quality horizon");
-            if(h17>=150&&h19>=150)large++;
-        }
+        int large=inspectOracle(check);
         check.same("Absolute hint quality is separate from legal, complete and source-bound capture; stable PV losses >=150 permille",0,large);
     }
 
     @Test void everyHypotheticalPlyHasRawIndependentOracleEvidence(Checks check)throws Exception {
+        inspectOracle(check);
+    }
+
+    private static int inspectOracle(Checks check)throws Exception {
         var games=inspectGames(check);var root=root();
         var manifest=trusted(root.resolve("deep-oracle/manifest.json"),"oracleManifestSha256");
         verify(root.resolve("deep-oracle/plan.json"),manifest.path("planSha256").asText());
@@ -86,6 +81,7 @@ class LearningArchiveBenchmarkTest {
         check.same("Hypothetical plies independently counted",manifest.path("pvPlies").asInt(),pvPlies);
         check.same("Stable large errors are disclosed separately from integrity",manifest.path("stableLarge").asInt(),stableLarge);
         check.same("Stable weak opposing replies remain visible",manifest.path("opposingLarge").asInt(),opposingLarge);
+        return stableLarge;
     }
 
     private record Games(JsonNode identity,java.util.Map<String,LearningGameAudit.Envelope> moves) { }
