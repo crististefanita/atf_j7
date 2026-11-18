@@ -357,11 +357,14 @@ public final class TacticalAnalysis {
             shortlistNodes = verificationNodes - shortlist.remaining;
         }
         if (roots.size() < 2) return hintSearch(lines, null, seed.extraNodes() + shortlistNodes, seed);
+        // A known unresolved seed must not be restored when the deeper comparison runs out.
+        resolveOfferedQueenPawnCapture(position, lines, budget);
         var comparison = verifyHintRoots(position, roots, budget, policy.search().maxPlies(), seed.depth());
         return verifiedHints(position, lines, seed, comparison, shortlistNodes, repertoire, policy, roots.size() > HINT_ROOT_LIMIT);
     }
 
-    private record HintVerification(SearchReport search, List<Variation> balancedLines, boolean recaptureCheck) { }
+    private record HintVerification(SearchReport search, List<Variation> balancedLines, boolean recaptureCheck,
+                                    boolean queenClosure) { }
 
     private static ArrayList<Move> hintVerificationRoots(List<Variation> ranked, List<Move> horizonLeaders, Set<Move> excluded) {
         var roots = new ArrayList<Move>();
@@ -383,7 +386,8 @@ public final class TacticalAnalysis {
         var comparison = verified.search();
         int used = seed.extraNodes() + shortlistNodes + comparison.extraNodes();
         var ranked = comparison.result().ranked();
-        if (ranked.isEmpty()) return hintSearch(lines, null, used, seed);
+        if (ranked.isEmpty()) return queenPawnCaptureNeedsRecapture(position, lines.get(0))
+                ? new HintSearch(List.of(), null, used, seed.depth(), 0) : hintSearch(lines, null, used, seed);
         var original = lines.get(0);
         var best = ranked.get(0);
         boolean lostMateProof = original.signedMatePlies() != 0
@@ -399,11 +403,15 @@ public final class TacticalAnalysis {
                 && ranked.stream().anyMatch(line -> line.score() == best.score() && !HintPinSupport.reinforces(position, line.move()));
         boolean unsupportedReversal = !decisiveExactGain && !defensiveTie && !best.move().equals(original.move()) && best.signedMatePlies() == 0
                 && (comparison.depth() <= seed.depth() || !supportsAtEqualTurns(verified.balancedLines(), best.move(), original.move()));
-        if (lostMateProof || shallowerBookReversal || unsupportedReversal) {
+        boolean shorterDivergentReplay = comparison.depth() < seed.depth() && !extendsLine(original, best);
+        if (lostMateProof || shallowerBookReversal || unsupportedReversal || shorterDivergentReplay) {
+            if (verified.queenClosure()) {
+                // Keep the incumbent, but only its actually scored, closed continuation.
+                return new HintSearch(List.of(comparedOriginal), null, used, seed.depth(), comparison.depth());
+            }
+            if (queenPawnCaptureNeedsRecapture(position, original)) return new HintSearch(List.of(), null, used, seed.depth(), 0);
             return hintSearch(lines, null, used, seed);
         }
-        // A shorter comparison can corroborate a deeper replay when it follows the same moves.
-        if (comparison.depth() < seed.depth() && !extendsLine(original, best)) return hintSearch(lines, null, used, seed);
         var eligible = hintLines(comparison.result(), policy).stream()
                 .filter(line -> line.move().equals(best.move()) || !seed.nonEquivalentRoots().contains(line.move())).collect(Collectors.toList());
         if (defensiveTie) eligible.removeIf(line -> !line.move().equals(best.move()));
@@ -412,7 +420,7 @@ public final class TacticalAnalysis {
             eligible.removeIf(line -> !line.move().equals(best.move())
                     && lines.stream().noneMatch(saved -> saved.move().equals(line.move())));
         }
-        var replays = eligible.stream().map(line -> lines.stream().filter(saved -> extendsLine(saved, line))
+        var replays = eligible.stream().map(line -> verified.queenClosure() ? line : lines.stream().filter(saved -> extendsLine(saved, line))
                 .findFirst().orElse(line)).collect(Collectors.toList());
         int comparisonSize = widerCoverage ? ranked.size()
                 : best.signedMatePlies() == 0 ? Math.min(ranked.size(), Math.max(2, eligible.size())) : eligible.size();
@@ -481,6 +489,7 @@ public final class TacticalAnalysis {
         List<Variation> balanced = List.of();
         List<Variation> latestEven = List.of();
         int completed = 0;
+        boolean queenClosure = false;
         for (int depth = 2; depth <= maxPlies; depth++) {
             try {
                 var candidate = hintRootLines(position, moves, depth, budgets);
@@ -491,6 +500,7 @@ public final class TacticalAnalysis {
                     latestEven = List.of();
                 }
                 ranked = candidate;
+                queenClosure = budget.queenPieceRecaptureExtension > 0;
                 balanced = latestEven;
                 if (depth % 2 == 0) latestEven = ranked;
                 completed = depth;
@@ -499,7 +509,7 @@ public final class TacticalAnalysis {
             }
         }
         return new HintVerification(new SearchReport(new Result(ranked), completed, before - budget.remaining), balanced,
-                budget.recaptureExtension > 0 || budget.queenPieceRecaptureExtension > 0 || budget.queenRecaptures > 0);
+                budget.recaptureExtension > 0 || budget.queenPieceRecaptureExtension > 0 || budget.queenRecaptures > 0, queenClosure);
     }
 
     private static boolean competingCaptures(ChessPosition position, List<Move> moves) {
@@ -523,18 +533,21 @@ public final class TacticalAnalysis {
     private static boolean resolveOfferedQueenPawnCapture(ChessPosition position, List<Variation> ranked, SearchBudget budget) {
         if (budget.queenPieceRecaptureExtension > 0 || ranked.isEmpty()
                 || MatchAiPolicy.CURRENT.hint.verificationRecapturePlies() == 0) return false;
-        var path = ranked.get(0).line();
+        if (!queenPawnCaptureNeedsRecapture(position, ranked.get(0))) return false;
+        // Re-run every compared root, not just the displayed line, within the same allowance.
+        budget.queenPieceRecaptureExtension = MatchAiPolicy.CURRENT.hint.verificationRecapturePlies();
+        return true;
+    }
+
+    private static boolean queenPawnCaptureNeedsRecapture(ChessPosition position, Variation variation) {
+        var path = variation.line();
         if (path.isEmpty()) return false;
         var before = position;
         for (int index = 0; index < path.size() - 1; index++) before = before.playGenerated(path.get(index));
         var move = path.get(path.size() - 1);
         var victim = MatchMaterial.victim(before, move);
         var after = before.playGenerated(move);
-        if (victim == null || victim.kind() != Kind.PAWN || !nonPawnCanRecaptureQueen(after, move.to())) return false;
-        // Re-run every compared root at this completed horizon, not just the displayed line.
-        // Exhaustion retains the preceding completed result and charges all attempted work.
-        budget.queenPieceRecaptureExtension = MatchAiPolicy.CURRENT.hint.verificationRecapturePlies();
-        return true;
+        return victim != null && victim.kind() == Kind.PAWN && nonPawnCanRecaptureQueen(after, move.to());
     }
 
     private static boolean attacksQueen(ChessPosition position, List<Move> moves) {

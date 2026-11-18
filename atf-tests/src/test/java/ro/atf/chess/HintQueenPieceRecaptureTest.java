@@ -44,6 +44,14 @@ class HintQueenPieceRecaptureTest {
         check.same("Reconfirmation also pays for every attempted node",true,search.extraNodes()<=200000);
     }
 
+    @Test void aClosedComparisonCannotRestoreTheUnresolvedSeedReplay(Checks check) {
+        var game=ChessMatch.restore("3|WHITE|HARD|1|d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 c1g5");
+        var search=TacticalAnalysis.verifiedHints(game.position(),200000);
+        check.same("The established central exchange remains the first move",move("d5c4"),search.lines().getFirst().move());
+        check.same("A shared prefix cannot restore the old queen-for-pawn tail",false,search.lines().stream().anyMatch(line->line.line().getLast().equals(move("d8d4"))));
+        check.same("The recomputed continuation still shares one total ceiling",true,search.extraNodes()<=200000);
+    }
+
     @Test void oldCacheBoundsAndSeedsCannotMasqueradeAsResolvedQueenExchanges(Checks check)throws Exception {
         var board=ChessPosition.fromFen("3q2k1/8/8/8/3p4/8/3R4/3Q2K1 w - - 0 1");
         var warm=new Frontier(64);var old=warm.search(board,-100001,100001);warm.enable();var actual=warm.search(board,-100001,100001);
