@@ -80,8 +80,8 @@ class NavigationGovernanceTest {
         check.same("Opening lessons share the content column", true, source("study-openings.css").contains("max-inline-size: var(--play-column)"));
         check.same("Puzzles reserve only the common vertical page insets", true,
                 source("study-quests.css").contains("--quest-insets: var(--chess-page-insets)"));
-        check.same("Openings reserve the same page insets", true,
-                source("study-openings.css").contains("block-size: calc(100dvh - var(--chess-page-insets))"));
+        check.same("Openings keep the page insets as a minimum rather than shrinking the square", true,
+                source("study-openings.css").contains("min-block-size: max(20rem, calc(100dvh - var(--chess-page-insets)))"));
     }
 
     @Test void nativeGameUsesOneMoveAndAnalysisKeepsItsHistoryStrip(Checks check) throws IOException {

@@ -1,0 +1,12 @@
+[
+  {"id":"phone-analysis","width":328.8,"height":640,"padding":8,"font":16,"rail":13,"limit":404.8,"square":315.8},
+  {"id":"phone-without-rail","width":328.8,"height":640,"padding":8,"font":16,"rail":0,"limit":404.8,"square":328.8},
+  {"id":"short-analysis","width":560,"height":420,"padding":4,"font":16,"rail":13,"limit":192.8,"square":192.8},
+  {"id":"short-puzzle","width":560,"height":420,"padding":4,"font":16,"rail":0,"limit":192.8,"square":192.8},
+  {"id":"medium-ai","width":560,"height":555,"padding":12.92,"font":16,"rail":13,"limit":309.96,"square":309.96},
+  {"id":"desktop-analysis","width":560,"height":900,"padding":20,"font":16,"rail":13,"limit":560,"square":547},
+  {"id":"desktop-game","width":560,"height":900,"padding":20,"font":16,"rail":0,"limit":560,"square":560},
+  {"id":"short-minimum","width":560,"height":300,"padding":4,"font":16,"rail":13,"limit":116.8,"square":116.8},
+  {"id":"large-text-phone","width":328.8,"height":640,"padding":8,"font":20.8,"rail":13,"limit":367.84,"square":315.8},
+  {"id":"large-text-desktop","width":728,"height":900,"padding":20,"font":20.8,"rail":13,"limit":603.84,"square":603.84}
+]

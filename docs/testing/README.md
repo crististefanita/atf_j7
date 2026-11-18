@@ -134,9 +134,9 @@ Fiecare semimutare, inclusiv replica adversarului, cere analiza efectivă Hard c
 - Pentru culoarea inițială, `MatchSetupTest` și `ChessWebParityPublication#packagedWorkerResolvesAndSavesTheSharedColorChoices` folosesc același fixture cu rezultate explicite pentru Alb, Negru și ambele rezultate aleatorii. Raportul verifică numărul de extrageri, orientarea, tura și păstrarea culorii după redeschidere.
 - Adaptorul de test verifică și respingerea unei replici AI cu revizie expirată. `ChessWebShellTest` compară ordinea și textele RO/EN ale opțiunilor cu resursele Android.
 
-`ChessWebStudyShellTest` verifică fără browser că tablele din Probleme și Partide folosesc aceeași regulă CSS și păstrează comenzile în structura de joc. În proba de browser, măsurați dreptunghiurile tablei și ale comenzilor vizibile în ambele ecrane, la 360 × 640 și 1280 × 900 CSS px cu text la 130%. După prima mutare, verificați că tabla rămâne fixă, istoricul încape și documentul nu cere derulare în aceste profiluri. [Regula de dimensionare](../../web/README.md#tabla-din-probleme-și-din-partidă)
+`ChessWebStudyShellTest` verifică regula comună și structura comenzilor. `ChessWebBoardSizingTest` evaluează expresiile CSS reale pe zece cazuri independente de lățime, înălțime, bară și text, inclusiv intrări aritmetice respinse. `BoardSizingGovernanceTest` verifică proprietarul unic al dimensiunii și derularea consumatorilor. Componentele califică acest contract; ele nu înlocuiesc măsurarea în browser.
 
-Proba MCP a măsurat aceeași latură în ambele ecrane, 324 px pe compact în RO și 469,8 px pe desktop în EN. La 320 × 480 în RO, ambele table păstrează o latură de 249,6 px și pot derula vertical pentru a păstra accesul la comenzi.
+În Browser MCP, folosiți Tabla de analiză ca reper la aceeași fereastră și mărime a textului. Comparați Probleme, AI, Partide salvate redeschise și Deschideri la 360 × 640, 740 × 420 și 1280 × 900 CSS px. Măsurați pătratul, bara și comenzile înainte și după navigare. Conținutul suplimentar se poate derula vertical; el nu micșorează din nou pătratul și nu suprapune comenzile. Păstrați țintele de 48 px, toate cele opt rânduri și absența depășirii orizontale. [Regula de dimensionare](../../web/README.md#tabla-din-probleme-și-din-partidă)
 
 ### Paritatea meniurilor și indiciilor
 
@@ -215,14 +215,12 @@ substituite, coordonatele deformate și abaterea de la linia comună.
   zona utilă fără barele de sistem și rezervați loc pentru jucători și comenzi.
   Profilul Android măsurat lasă un dreptunghi de 694 × 665 px pentru tablă,
   după rezervarea barei de evaluare și a intervalului. Latura de 665 px
-  (332,5 dp) atinge limita de înălțime. În Web, la 360 × 640 CSS px, tabla
-  de 350 px, bara de 8 px și intervalul de
-  2 px ocupă toată lățimea utilă. Bara rămâne vizibilă pe toată înălțimea, în stânga
-  tablei, iar becul păstrează o țintă vizibilă de cel puțin 48 de unități în
-  fiecare adaptor. La 320 × 568 CSS px și text 130%, înălțimea limitează
-  tabla Web la 279,6 CSS px. Verificați că săgețile păstrează coordonatele,
-  iar becul încape fără derulare. În Web, **Mat în 1** păstrează dreptunghiul
-  și după rezolvare, Next și Back.
+  (332,5 dp) atinge limita de înălțime. Web urmează reperul comun din Tabla de
+  analiză, separat de geometria nativă. Bara de 8 px și intervalul de 5 px
+  rămân de-a lungul întregului pătrat. Comparați rezultatul Web cu reperul la
+  aceeași fereastră și mărime a textului. Becul păstrează ținta de 48 px; pe
+  pagini scunde, derulați până la el fără schimbarea pătratului. **Mat în 1**
+  păstrează dreptunghiul după rezolvare, Next și Back.
 
 </details>
 

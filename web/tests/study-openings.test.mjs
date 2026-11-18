@@ -262,6 +262,7 @@ test('The board and leading evaluation meter share one row before and after enab
   assert.match(css, /\.opening-workspace \.opening-actions > button\s*\{[^}]*min-block-size: 48px[^}]*border-radius: 8px/);
   assert.match(css, /\.opening-message-text\s*\{[^}]*block-size: 3lh[^}]*overflow: hidden/);
   assert.match(css, /\.opening-board-row \.square\[data-study-hint\]::before\s*\{[^}]*border-radius: 13%[^}]*#57e0b4[^}]*pointer-events: none/);
-  assert.match(css, /@media \(orientation: landscape\) and \(min-width: 704px\)[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /inline-size: min\(100%, var\(--play-column\)\)/);
+  assert.doesNotMatch(css, /2 \* var\(--play-room\)|max-inline-size: none|repeat\(2, minmax\(0, 1fr\)\);\s*grid-template-rows/);
   assert.match(css, /--opening-board-side:\s*max\(0px, min\(var\(--play-board-limit\)/);
 });
