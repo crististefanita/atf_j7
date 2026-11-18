@@ -100,7 +100,7 @@ cache/bound and pinned-piece controls preserve the sound queen sacrifice. A shal
 Sicilian challenger initially regressed, so the final change starts only at the
 completed seed horizon and preserves selective-offer eligibility.
 
-The frozen comparison contains 108 contexts, including 32 new contexts from known
+The initial qualification comparison contains 108 contexts, including 32 new contexts from known
 opening ancestry. Only this case and its color control change their complete
 HintSearch; no public leader changes. All 554 cold Stockfish H17/H19 queries are
 retained, with no newly bad leader or extra offer. The six already-bad leaders in
@@ -115,6 +115,46 @@ Current evidence and new complete game journals are in
 `C:\work\sah\.studii\experiments\2026-11-18-qxd4` and
 `C:\work\sah\.studii\corpus\2026-11-18-qxd4-final`.
 [Behavior and components](../board/ai-quality.md#queen-recaptures-at-the-hint-frontier)
+
+The final follow-up replays the 108 frozen contexts and all 130 observed game
+frames. It adds 48 cold H17/H19 queries to the pinned original teacher phases,
+validating 1,650 query contexts without relabeling old output. Both Caro orientations
+and the Queen's Gambit fallback now have no stable large loss anywhere in their
+changed scored lines. No bad leader, extra offer or exposed endpoint is introduced;
+bad exposed endpoints fall from 17 to 14 across this replay. Those fourteen remain
+open, not fourteen independent families. All 2,303 catalog analyses and the 130
+recorded game analyses remain exactly identical for native Hard.
+
+## Complete-game findings retained as component targets
+
+The two full games (Queen's Gambit and French) and the mating control belong to
+producer `242d6fe21d6fbe625f628cb3f677f9618f588674`: 130 pre-move Hard/maximum-hint
+pairs and complete native reviews. Their 1,001 hypothetical hint plies have 70
+stable large losses (65 distinct forced queries), including 31 opposing replies.
+Six offered roots and five recorded native choices lose at least 150‰ at both
+horizons. These are diagnostic positions, not a rated league or learned rules.
+
+| Next native target | Current failure | Component closure |
+|---|---|---|
+| `queens-gambit-21` · `11…Qa5` | 225.5/219.5‰ loss; Stockfish prefers `…a5`; Hard completes H5 using 100k additional nodes. | Compare `…Qa5 Bd3` and `…a5` with free replies at a common native horizon; pass the permanent witness and independent families. |
+| `french-20` · `11.Bb5+` | 475.5/453‰ loss; `…c6` refutes the line; Stockfish prefers `Nc4`; Hard completes H5 using 200k additional nodes. | Prioritize this larger loss, isolate `…c6` and the following exchange, then preserve the queen-chain controls and full catalog. |
+
+The IDs use the original zero-based pre-move ply. The small source fixture and
+`HardLearningWitnessTest` preserve legal histories, all eight raw oracle phases
+and substitution negatives without a Stockfish installation. The two
+`HardLearningWitnessBenchmarkTest` goals recalculate the current native choice;
+they remain FAIL until repaired, and an unseen replacement requires fresh oracle
+support. Never close them by changing an expected bad move or runtime FEN lookup.
+The generic native, hint, exposed-endpoint and review quality verdicts stay separate
+from integrity and from the normal release regression suite.
+
+The full review additionally measures six bad recommended roots, twelve unsound
+exposed public tails and sixteen native error labels with small oracle loss.
+Those are results of the original producer, not claims that the later hint fixes
+have been replayed historically. Keep those source-bound observations unchanged;
+current-source hint comparisons are explicit replays with original teacher
+identities, never newly invented historical pre-move journals.
+[Reusable admission and reproduction](../testing/learning-archive.md)
 
 ## Evidence and Closure Checks
 

@@ -45,6 +45,12 @@ Earlier equal-turn support and cache entries from another frontier mode cannot
 corroborate the new result. Selective verification cannot certify extra equivalent
 offers merely because their new provisional scores are close.
 
+Once this frontier is active, close the complete queen exchange, including a
+queen capturing another queen and legal king, rook or knight recaptures. A common
+prefix does not authorize restoring an older unresolved seed PV. A veto may retain
+the incumbent only with its newly scored continuation and actual completed depth;
+without a completed safe continuation, no unproved seed is published.
+
 This is a search correction, not an appended display move, sacrifice ban or
 position-specific opening exception. Pinned recaptures remain illegal, and
 `…Qxg3+ hxg3 …Rh1#` must remain a proved mate. Ordinary opponent decisions and
