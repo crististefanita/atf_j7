@@ -14,6 +14,8 @@ Porniți de la ghidul care răspunde întrebării. Verificați afirmațiile desp
 | Cum se califică un APK și unde sunt dovezile ediției? | [Procesul de release](release/README.md#calificare-și-publicare) · [Edițiile publicate](../release/README.md) |
 | Ce ipoteze mai cer dovezi? | [Feedback](feedback/README.md) |
 
+Adversarul Hard și solverele cu obiectiv de puzzle au dovezi distincte: [studiu puzzle nativ](testing/hard-puzzle-study.md).
+
 ## Reguli de întreținere
 
 - **README principal:** scop, cele două linkuri ale ediției curente, harta

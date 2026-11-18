@@ -675,3 +675,7 @@ Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scor
 - [Proba Web](../../web/README.md#cititorul-de-ecran-în-game-review)
 
 [Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)
+
+### Studii de puzzle cu Hard nativ
+
+`HintCandidateCoverageTest` verifică cele patru rădăcini siciliene, scorurile brute, siguranța damei, contraexemplele, fallback-ul și bugetele mici. `StockfishFenAuditTest` verifică originea FEN, contoarele și respingerea proiecțiilor împrumutate. [Procedură, inventar și limite](hard-puzzle-study.md)

@@ -83,7 +83,7 @@ Izolează de ce închiderea schimbului schimbă liderul complet și cei trei mar
 
 Regresiile primului indiciu din Italiană și Caro–Kann rămân închise. Defectul liderului sicilian `…Nc6/…Nbd7` după `7.f4` este de asemenea corectat la H5 complet și 200k; egalitatea brută −21/−21 este păstrată. Mecanismul și domeniile generale respinse aparțin [ghidului AI](../board/ai-quality.md#recaptura-damei-și-continuitatea-indiciului-italian), cu teste de componentă permanente. Alte poziții cu presiune asupra damei rămân deficitare: `validation-039`, poziție distinctă cu istoric complet după `…Qb6`, păstrează pierderea anterioară de 462‰ a primului indiciu.
 
-Rejucarea pereche de șaizeci de faze încă eșuează la calitatea absolută: 8 prime indicii, 11 mutări oferite și 9 prime replici adverse din PV depășesc 150‰. Indiciul sicilian corectat oferă doar `…Nbd7` și pierde 33‰ la H19, față de 358‰ înainte; oracolul liber preferă `…Qb6`, iar teoria nativă încă furnizează `…Be7` corect. Modelul tot nu diferențiază numeric cele două rădăcini de cal. Îmbunătățește această distincție și acoperirea candidaților fără să promovezi un schimb oprit înainte de recaptură. `N1c3` anterior încă oferă `Bg5` inferior. [Mecanism și prototipuri respinse](../board/ai-quality.md#egalități-exacte-în-siciliană-și-apărarea-piesei-legate) Cazul de transfer cu pion forțant încă oferă `Bxe4` la 243,5‰. Noua istorie `validation-057` îmbunătățește liderul, dar păstrează `Bg5` inferior ca ofertă secundară la 339,5‰. Prioritizează prima divergență la orizont comun și replica adversă liberă; diferența mică dintre scorurile native nu dovedește mutări echivalente.
+Rejucarea pereche de șaizeci de faze încă eșuează la calitatea absolută: 8 prime indicii, 11 mutări oferite și 9 prime replici adverse din PV depășesc 150‰. Indiciul sicilian corectat oferă doar `…Nbd7` și pierde 33‰ la H19, față de 358‰ înainte; oracolul liber preferă `…Qb6`, iar teoria nativă încă furnizează `…Be7` corect. Modelul tot nu diferențiază numeric cele două rădăcini de cal. Acoperirea candidaților este acum implementată și guvernată: toate patru rădăcinile sunt comparate la H5/200k. Repară diferențierea numerică și replicile adverse fără să promovezi un schimb oprit înaintea recapturii. [Măsurători](../board/ai-quality.md#acoperirea-celor-patru-rădăcini-în-siciliană) `N1c3` anterior încă oferă `Bg5` inferior. [Mecanism și prototipuri respinse](../board/ai-quality.md#egalități-exacte-în-siciliană-și-apărarea-piesei-legate) Cazul de transfer cu pion forțant încă oferă `Bxe4` la 243,5‰. Noua istorie `validation-057` îmbunătățește liderul, dar păstrează `Bg5` inferior ca ofertă secundară la 339,5‰. Prioritizează prima divergență la orizont comun și replica adversă liberă; diferența mică dintre scorurile native nu dovedește mutări echivalente.
 
 Păstrează martorii Caro și Italiană închiși, sacrificiile corecte, negativele cache-ului exact, plafonul total 200k al indiciului și mutările istorice intacte. Rezolvă ofertele secundare și replicile PV deficitare înainte de a pretinde explicații scolastice complete. Evaluează separat liderii, fiecare rădăcină oferită și replicile calculate la H17/H19. Corecția indiciului nu certifică jocul Hard nativ, bara sau clasificările Game Review. [Audit și publicare](../testing/hard-hint-study.md)
 
@@ -92,7 +92,7 @@ Păstrează martorii Caro și Italiană închiși, sacrificiile corecte, negativ
 <details>
 <summary>P2 · Audit indicii · transfer mai larg</summary>
 
-Această rundă adaugă șaizeci și patru de istorii selectate geometric fără vreo schimbare de ieșire; dovedește doar păstrarea. Primele șaisprezece sunt evaluate de oracol. Noul audit legat de sursă capturează toate cele 100 de faze native, păstrând 85 de proiecții originale de oracol și validând 284 de cereri noi. Păstrează identitățile originale și legătura exactă a cererilor; nu reeticheta dovezi și nu număra prefixele comune ca partide independente.
+Runda curentă păstrează toate cele șaizeci și patru de istorii geometrice înghețate. Capturează 100 de faze native noi, inclusiv cele două ramuri noi cu damă/nebun, și validează 308 interogări brute noi plus 958 de proiecții pe interogări originale exacte. Perechile liber/forțat cer aceeași identitate de oracol; integritatea cererilor nu permite combinarea a doi producători. Păstrează identitățile originale și legătura exactă a cererilor; nu reeticheta dovezi și nu număra prefixele comune ca partide independente.
 
 Colecția italiană anterioară și domeniul respins al presiunii asupra damei rămân dovezi istorice în ghidul AI. Redarea legală și integritatea recepțiilor nu implică PASS la calitate șahistă.
 
@@ -207,5 +207,16 @@ Măsurați 100.000 fix, 200.000 fix și modul adaptiv pe aceeași sursă, în pa
 Modelul de ordonare antrenat pe 58 de pierderi schimbă 34/36 de liste de rădăcini excluse din ajustare și păstrează toate mutările finale. Verificarea cronologică identifică o pierdere mai devreme într-una dintre cele 36 de partide.
 
 Includeți în următorul lot de antrenare mutări bune păstrate, replici liniștite și sacrificii verificate. Cereți îmbunătățirea rangului alternativei și schimbarea deciziilor complete în familii excluse din ajustare înainte de interpretarea Elo pereche. [Cercetarea offline](hard-learning.md)
+
+</details>
+
+<details>
+<summary>P1 · Native Hard · rook-root re-entry and puzzle transfer</summary>
+
+Hard obișnuit completează 1.182/1.238 de probleme canonice; 82 de etape sunt ratate în 56 de probleme. 200k fix/H6 recuperează 0/82, 200k/H7 20/82 și 500k/H7 26/82. Sunt diagnostice pe ratări înghețate, nu calificări de candidat pe catalog complet. Păstrează capitolele de mat rezolvate 500/500 și 300/300 și distincția adversar/solver cu obiectiv.
+
+Prioritizează `mate3-04iY6` și `mate3-019gx`: ambele pierd un mat forțat potrivit Stockfish H17/H19, inclusiv la 500k. Căutarea de turn elimină permanent rădăcini după selecția la orizont scurt. Un prototip extern de readmitere recuperează ambele chei în 200k, dar ratează `training-051`, evaluat de oracol victorie→remiză. Nu înlocui demonstrarea rădăcinilor eliminate cu simpla creștere a bugetului. Cere non-regresie pe întreg catalogul, martori de turn/remiză păstrați, familii noi și apărări libere înainte de integrare; măsoară ΔElo pereche numai după poartă.
+
+Celelalte cinci etape materiale inspectate păstrează victoria deși ratează obiectivul didactic. Separă eșecul obiectivului de pierderea WDL confirmată; nu reeticheta variante, nu relaxa obiectivul și nu declara toate problemele rezolvate. [Metodă, inventar și dovezi](../testing/hard-puzzle-study.md)
 
 </details>

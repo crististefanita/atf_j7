@@ -834,3 +834,35 @@ Prototipurile anterioare de frontieră sunt respinse. Închiderea capturii de da
 Producătorul `b90f181b707a3a7dd4c67147a31208534b69f0e2` păstrează toate rapoartele native și celelalte 59 de indicii complete. Șaizeci și patru de istorii PGN selectate geometric au ieșiri vechi/noi identice; primele șaisprezece primesc verificări de rădăcină H17/H19. Aceasta dovedește păstrarea, nu activarea sau câștiguri independente. Două studii tematice noi de douăzeci de semimutări urmează prefixele forțate `…Nbd7` și inferior `…Nc6`, apoi câte șase semimutări efectiv jucate noi. Se suprapun cu prefixul sicilian inspectat și nu formează o ligă de forță. Auditul validează 284 de cereri brute noi și păstrează identitățile originale pentru 85 de proiecții de oracol neschimbate din colecția anterioară de 1190 de cereri. Toate cele 100 de recepții native curente sunt capturate din nou; cele vechi nu sunt reetichetate drept curente. [Contractul auditului](../testing/hard-hint-study.md)
 
 Dovezile și lecțiile doar de studiu rămân în `C:\work\sah\studii\2026-11-18-j7-sicilian-knight-hint`. Cele 110 verificări de componentă/raport trec, iar motorul original eșuează real în aserțiunea țintită nouă. Traseele plafonate nu produc Elo nou sau ΔElo nativ. [Lacune rămase ale modelului și ofertelor](../feedback/README.md)
+
+## Acoperirea celor patru rădăcini în Siciliană
+
+După același prefix `7.f4`, indiciul compară `…Nbd7`, `…Nc6`, `…Be7` și `…Qb6` la H5
+încheiat, într-un singur plafon total 200k. Scorurile brute rămân −21/−21/−25/−29 cp.
+`HintCandidateCoverage` adaugă referința lipsă din teoria nativă într-o comparație defensivă
+cu două rădăcini, apoi cel mult o mutare liniștită sigură de damă care atacă nou un pion
+neapărat și o piesă minoră. Alocă muncă, nu bonus de scor, lookup FEN sau răspuns automat din
+teorie. Toate cele patru rădăcini calculate rămân diagnostice; public se oferă numai `…Nbd7`.
+
+Stockfish 19 H17/H19 verifică fiecare rădăcină, prima replică adversă din PV și capătul liniei.
+La H19 pierderile rădăcinilor forțate sunt 33/358/10,5/11‰. Căutarea liberă H19 alege `…Qb6`;
+cea forțată separat diferă cu 11‰, deci nu raportăm un zero exact inventat. Primele replici
+adverse costă 21,5/15,5/69,5/37‰. Liniile legale sunt auditate, nu certificate optime la
+fiecare semimutare ulterioară. Acoperirea extinsă nu repară subevaluarea numerică a damei și nebunului.
+
+Replay-ul pereche de șaizeci de faze schimbă numai comparația/PV-ul indiciului țintă. Indiciile
+din Italiană și Caro–Kann, toate deciziile native, evaluările, checkpoint-urile și mutările jucate
+rămân identice. Cele șaizeci și patru de istorii de transfer au ieșiri identice. Numerele istorice
+rămân 8/60 lideri, 11/82 oferte și 9/82 prime replici adverse cu pierdere mare. Două studii noi de
+câte douăzeci de semimutări pornesc din `…Qb6` și `…Be7`; incluzându-le, numerele devin 15/100
+lideri, 19/142 oferte și 15/142 replici. Cohortele noi expun limite rămase, nu o regresie pereche sau ΔElo.
+
+Auditul legat de surse păstrează 100 de faze native noi, 308 interogări brute Stockfish noi și
+958 de proiecții pe interogări exacte cu originea păstrată. Perechea liber/forțat cere același
+producător de oracol, istoric, orizont și opțiuni. Combinarea recepțiilor valide din două rulări
+este respinsă. Cele 119 verificări de componentă/raport și calificarea limitată trec; calitatea
+absolută a indiciilor încă eșuează la limita neschimbată 150‰.
+
+Dovezi: `C:\work\sah\studii\2026-11-18-j7-sicilian-candidate-coverage`.
+[Componente](../../atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java) ·
+[Audit indicii](../testing/hard-hint-study.md) · [Reper puzzle-uri native](../testing/hard-puzzle-study.md)
