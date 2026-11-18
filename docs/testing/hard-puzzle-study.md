@@ -103,3 +103,31 @@ Compară pierderea WDL ca `max(0, free expected score - forced expected score)` 
 scorurile exacte și PV-urile brute rămân imuabile. O etapă didactică rezolvată nu certifică
 transformarea avantajului în victorie. Păstrează prima pierdere nouă ca YAML contextual, cu
 originea completă, istoric, linie adversă și contraexemplu, separat de configurația tiparelor runtime.
+
+
+## Auditarea certificatelor planurilor câștigătoare
+
+Separă orizontul obișnuit de acoperirea planului forțat. O continuare câștigătoare lungă nu
+dovedește minimax pe toate rădăcinile la acea adâncime. Fixează `pawnPushPolicy` în metadatele
+producătorului curent și păstrează `pawnProof` cu nodurile efective, lungimea planului, contorul
+fără progres și identitatea istoricului și strategiei. Munca obișnuită și cea a dovezii trebuie
+să încapă în aceeași alocație nativă.
+
+Adaptorul nativ de teste are un singur decodor explicit, inclusiv pentru colecții indexate prin mutări:
+
+```java
+var nativeSearch = HardQuestAudit.read(receipt.path("analysis"));
+HardQuestAudit.validate(game, nativeSearch);
+```
+
+Folosește partida compusă completă, nu doar tabla curentă, când există o dovadă. Recalculează
+strategia limitată cu cache-ul și vizitele declarate; respinge certificate șterse din PV-uri
+lungi, acoperire adversă, istoric, strategie, registru material sau scor modificate. JSON-ul
+nativ vechi poate omite câmpul opțional. Păstrează producătorul original; nu-i inventa metadate
+ale politicii curente.
+
+Include cazuri negative pentru buget întrerupt, promovare nesigură, pat, remiză cu pion de turn,
+istoric străin și revendicarea celor cincizeci de mutări. Păstrează deciziile Basic/Advanced în
+contexte identice. Verifică separat conversia efectivă până la mat sau remiză, față de certificatul
+care se termină cu dama sigură. Verificarea WDL la rădăcină pe loturi de transfer înghețate nu
+înlocuiește partidele complete sau dovezile Elo pereche.

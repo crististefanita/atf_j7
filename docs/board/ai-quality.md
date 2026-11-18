@@ -974,10 +974,10 @@ Plafonul runtime rămâne adaptiv 100k→200k noduri suplimentare; H3 inițial r
 Media pe catalog se schimbă de la 15.537,58 la 15.537,99 noduri suplimentare. Nu se declară un
 câștig de latență sau Elo. Basic și Advanced păstrează analiza completă în fiecare context comparat.
 
-**Recuperarea canonică nu înseamnă conversia partidei.** În joc liber, referința remizează prin
+**Limita reperului anterior de promovare.** În joc liber, referința remizează prin
 repetiție după `c5`. Candidatul ajunge la `h8=Q Rxh8 Kxh8 Ke4`, apoi pierde victoria cu `Kg7`
 în loc de `a4`; ambele orizonturi confirmă 500‰ pierdut. Linia se încheie cu remiză și regi goi
-după 12 semimutări. Acesta este următorul studiu de conversie, nu o partidă rezolvată.
+după 12 semimutări. Lacuna este închisă prin [dovada limitată de conversie](#conversia-limitată-a-finalurilor-de-pioni) de mai jos.
 `training-051` alege încă `Ke6`, nu `Rc8+` câștigător. Cele 79 de ratări canonice rămase cuprind
 56 de pierderi WDL mari, 22 de obiective ratate cu victoria păstrată și un caz mai mic/dependent
 de adâncime. Din cele 53 de prime ratări didactice, 42 au pierdere mare; verifică și prefixele
@@ -991,3 +991,58 @@ conține Extent, PGN-urile efective, cele 79 de lecții contextuale păstrate ș
 reutilizabile de promovare/tempo. Tiparele runtime generalizează geometria; lecțiile externe
 păstrează contraexemplele și proveniența în loc să memoreze tacit mutările câștigătoare.
 [Procedura repetabilă a studiului](../testing/hard-puzzle-study.md)
+
+## Conversia limitată a finalurilor de pioni
+
+După `h8=Q Rxh8 Kxh8 Ke4`, Hard obișnuit încheie efectiv H6 și preferă `Kg7` la
++104 cp. De această dată, veto-ul de stabilitate nu este cauza. Orizontul apreciază pionul
+rămas după pierderea celuilalt, nu tempoul prin care `a4` câștigă. [Politica pionilor](../../chess-core/src/main/resources/hard-pawn-promotion.yaml)
+adaugă o dovadă limitată pentru cel mult doi pioni proprii contra regelui singur, fără să
+schimbe ponderile, repertoriul, Basic/Advanced sau căutarea obișnuită H6.
+
+`PawnPushProof` acceptă un plan câștigător numai după ce fiecare replică legală a regelui
+advers are o continuare câștigătoare. Poate alege mutări de pioni și mutări de rege care reduc
+strict un potențial de escortă. Avansul pionilor și capturile sunt ireversibile; potențialul
+regelui împiedică ciclurile interne. Pozițiile anterioare ale partidei rămân interzise, iar
+remiza revendicabilă la cincizeci de mutări respinge dovada. Dama trebuie să evite orice
+captură legală imediată și să nu producă pat. Obiectivul terminal este dama sigură, nu un mat
+inventat. Dovada lipsă sau întreruptă înseamnă necunoscut și păstrează decizia obișnuită.
+[Implementarea dovezii](../../chess-core/src/main/java/ro/atf/chess/PawnPushProof.java)
+
+| Observație | Rezultat calificat |
+|---|---:|
+| Poziția cerută | `a4`; H6 obișnuit plus dovadă separată de 23 de semimutări |
+| Muncă în buget comun | 2.568 obișnuite + 14.325 în dovadă = 16.893 de noduri suplimentare |
+| Conversia referinței | Remiză în ambele culori, câte opt semimutări |
+| Conversia efectivă contra replicilor libere Stockfish H19 | Mat în 37 de semimutări cu alb și 31 cu negru |
+| Pierderi WDL native la H17/H19 | Zero pe ambele trasee ale candidatului |
+| Poziții tematice neatinse | 24 de poziții, două alegeri schimbate, zero regresii WDL la rădăcină |
+| Catalogul canonic existent | Toate cele 2.303 de decizii, scoruri, costuri și PV-uri păstrate; 1.185/1.238 complete |
+| Capitolele de mat existente | Toate cele 1.000 păstrează fiecare ramură adversă legală |
+
+`SearchReport.depth` rămâne orizontul obișnuit încheiat. Câmpul opțional `pawnProof` păstrează
+separat lungimea planului, nodurile, limita cache-ului, contorul mutărilor fără progres și
+amprentele istoricului și strategiei câștigătoare. Nu afirmă că fiecare rădăcină a fost căutată
+până la H23. Dovada împarte alocația adaptivă existentă de 100k→200k noduri suplimentare și
+capacitatea cache-ului; H3 rămâne separat nebugetat. La maximul diagnostic de 5k, dovada
+întreruptă păstrează `Kg7`/H6 și nu publică certificat.
+[Componentele dovezii și cazurile negative](../../atf-tests/src/test/java/ro/atf/chess/PawnPushProofTest.java)
+
+Auditul legat de sursă înregistrează 84 de semimutări efective pentru referință/candidat și
+ambele culori, cu 313 interogări de oracol cu cache gol. Șase interogări H17/H19 noi confirmă
+martorul păstrat: `training-051` alege încă `Ke6` de remiză, nu `Rc8+` câștigător. Cele 79 de
+ratări didactice în 53 de probleme rămân deschise. Două conversii în oglindă sau rădăcinile
+de transfer nu stabilesc un câștig Elo. Conversia completă pe loturi independente și domeniile
+materiale mai largi rămân lucrări separate.
+
+Trec cele 128 de verificări țintite de componentă/raport, benchmarkul nativ complet de mat,
+verificările finale ale cititorului și patru verificări de dovezi brute. Decodarea JSON nativă
+este comună catalogului și `HardQuestAudit`; recepțiile vechi fără dovadă rămân citibile.
+PV-urile native mai lungi cer certificatul păstrat, iar rejucarea respinge costuri, istoric,
+acoperire adversă, strategie sau evaluare substituite.
+[Contractul repetabil al auditului](../testing/hard-puzzle-study.md#auditarea-certificatelor-planurilor-câștigătoare)
+
+Dovezile și lecțiile reutilizabile sunt în `C:\work\sah\studii\2026-11-18-j7-hard-promotion-conversion`:
+Extent, PGN-uri până la rezultat efectiv, recepții brute de oracol/native legate de sursă și
+YAML structural. Configurația runtime nu conține FEN-uri, chei didactice, scoruri de oracol
+sau lookup-uri de mutări învățate.

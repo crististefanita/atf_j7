@@ -25,7 +25,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Căutarea Hard · generalizare | Recaptura selectivă pierde pe deschideri independente. | Cere progres independent la bugetul fix. |
 | P1 | Hard · conversia după captura de pion | Avantajul după captură poate fi pierdut ulterior. | Verifică păstrarea avantajului pe poziții și replici noi. |
 | P1 | Transferul tactică → partidă | Hard ratează tactici fără obiectiv declarat. | Măsoară detectarea și păstrează contractul rezolvării cu obiectiv. |
-| P1 | Hard nativ · conversie materială | Rămân 79 de etape canonice neacceptate în 53 de probleme; promovarea recuperată încă ratează conversia ulterioară. | Verifică `a4` față de `Kg7` după promovarea închisă, apoi transferul fără pierderea etapelor acceptate sau a remizelor apărate. |
+| P1 | Hard nativ · obiective materiale rămase | Rămân 79 de etape canonice neacceptate în 53 de probleme; `training-051` încă remizează cu `Ke6`. | Rezolvă `Rc8+` față de `Ke6` cu replici adverse libere, păstrând conversia calificată cu pioni, remizele apărate și catalogul complet. |
 | P2 | Progres · upgrade Android | Upgrade-ul semnat mai cere o probă de progres. | Păstrează ID-urile, rezolvările și punctele după upgrade și restart. |
 | P2 | Calitatea AI · evaluare material | Scorul material diferă de Stockfish. | Redu abaterea la aceleași bugete. |
 | P2 | Calibrarea problemelor | Benzile de dificultate importate se suprapun. | Verifică timpul și încercările pe un lot amestecat separat. |
@@ -228,22 +228,25 @@ Păstrează deschise 79 de etape neacceptate în 53 de probleme materiale: 56 au
 la ambele orizonturi Stockfish, 22 păstrează victoria, iar una e mai mică/dependentă de adâncime.
 Cele 42 de prime ratări didactice cu pierdere mare confirmată preced etapele condiționate
 ulterioare. Verifică și prefixele acceptate înainte de a declara prima pierdere cronologică.
-`training-051` încă remizează cu `Ke6` în loc să câștige cu `Rc8+`.
 
-**Urmează conversia după promovarea recuperată.** După `h8=Q Rxh8 Kxh8 Ke4`, compară
-`a4` și `Kg7` la orizonturi comune, cu replici adverse libere. Ambele adâncimi Stockfish
-confirmă că `Kg7` nativ pierde 500‰, iar `a4` păstrează victoria. Continuarea efectivă de
-12 semimutări se încheie cu remiză și regi goi; acceptarea canonică nu închide această lacună.
-Păstrează contraexemple cu opoziție corectă, curse de pioni și finaluri remize, `training-021/051/065`,
-plafonul de 200k și porțile native pentru catalogul complet și maturi înainte de promovare.
+**Următorul martor compact: `training-051`.** Hard obișnuit alege încă `Ke6`, nu `Rc8+`;
+șase interogări H17/H19 noi confirmă o pierdere de 500‰, victorie→remiză. Compară mutarea de
+turn și replicile adverse libere la orizonturi comune, în alocația efectivă. Noua dovadă de
+pioni nu se aplică atunci când adversarul are turn; nu extinde lema ei de siguranță la acel
+domeniu. Păstrează `training-021/065` și porțile native pentru catalogul complet și maturi.
 
-Continuă auditul înghețat al celor șase contexte dincolo de prima ratăre didactică. Păstrează
-FEN-ul inițial, istoricul efectiv complet, ambele decizii native, adversarul efectiv, scorurile
-H17/H19 și lecția YAML contextuală. Rularea curentă înregistrează 178 de semimutări efective și
-463 de interogări brute de oracol. Celelalte 79 de analize native sunt identice cu producătorul
-anterior; proveniența lor veche de oracol rămâne atașată. Nu se declară probleme publice noi,
-lookup-uri FEN runtime sau câștig Elo.
-[Mecanismul calificat al promovării și limitele sale](../board/ai-quality.md#confirmarea-promovării-prin-schimb-închis)
-· [Procedură repetabilă](../testing/hard-puzzle-study.md)
+Conversia `a4` după promovare este închisă printr-un certificat de plan câștigător legat de
+sursă și maturi efective în ambele culori. Mecanismul, partidele de 37/31 de semimutări,
+cazurile negative și limitele aparțin [ghidului AI](../board/ai-quality.md#conversia-limitată-a-finalurilor-de-pioni).
+Cele 24 de poziții tematice noi stabilesc non-regresie WDL la rădăcină, nu conversie completă
+sau câștig Elo. Joacă alte familii excluse până la rezultat efectiv, inclusiv remize apărate,
+înainte să extinzi domeniul material sau să promovezi o afirmație de forță. Păstrează PGN-urile
+complete și primele pierderi verificate; nu număra exemplele în oglindă ca partide Elo independente.
+
+Cele 79 de lecții contextuale originale păstrează producătorul de oracol după verificarea
+egalității integrale a deciziilor native. YAML-ul structural nou descrie tempoul pionilor,
+escorta regelui, repetiția și promovarea sigură cu contraexemple; runtime nu conține chei
+didactice sau lookup FEN.
+[Procedura repetabilă pentru certificate și recepții](../testing/hard-puzzle-study.md#auditarea-certificatelor-planurilor-câștigătoare)
 
 </details>
