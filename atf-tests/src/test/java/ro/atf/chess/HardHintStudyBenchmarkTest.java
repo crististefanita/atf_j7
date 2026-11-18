@@ -164,7 +164,7 @@ class HardHintStudyBenchmarkTest {
         var grade = new Grade(count, receipts.size(), firstLarge, offeredLarge, replyLarge);
         var output = folder.resolve("oracle-audit/qualified-grades.json");
         var serialized = JSON.writerWithDefaultPrettyPrinter().writeValueAsString(Map.of("source", revision, "grade", grade, "rows", rows));
-        if (Files.exists(output)) require(Files.readString(output).equals(serialized), "Re-publication changed qualified observations");
+        if (Files.exists(output)) require(JSON.readTree(Files.readString(output)).equals(JSON.readTree(serialized)), "Re-publication changed qualified observations");
         else Files.writeString(output, serialized, java.nio.file.StandardOpenOption.CREATE_NEW);
         return grade;
     }
