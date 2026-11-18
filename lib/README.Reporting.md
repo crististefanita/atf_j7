@@ -2,19 +2,19 @@
 
 ## Pe scurt
 
-Reporting publică datele, comparațiile și verdictul callerului în Extent/fallback, fără Core ori Kit.
+Reporting publică datele, comparațiile și verdictul apelantului în Extent sau în raportul HTML alternativ, independent de Core și Kit.
 
 | Nevoie | API |
 |---|---|
 | Rulare individuală/clasă/suită | `AssertionAuditRun` |
 | Invocare | `run.open(Identity)` → `AssertionAuditReport` |
-| Ports / fallback | `AtfReportPorts` / `HtmlReportSession` |
+| Porturi / raport HTML alternativ | `AtfReportPorts` / `HtmlReportSession` |
 | HTTP observat | `request.execution(ReportExecutionEvidence)`, cu `ReportResponse` |
 | Capturi | `UiExtentReportSession`; PNG integral |
 
 ## Exemplu minim
 
-Individual: `try (var run = open(output)) { publish(run, actual); }`. Suita păstrează run-ul și deschide un scenariu per invocare:
+Pentru o rulare individuală, folosiți `try (var run = open(output)) { publish(run, actual); }`. Suita păstrează rularea și deschide un scenariu pentru fiecare invocare:
 
 ```java
 import atf.reporting.audit.AssertionAuditRun;
@@ -45,24 +45,24 @@ public static void publish(AssertionAuditRun run, String actual) {
 }
 ```
 
-## Scope și integrare
+## Responsabilități și integrare
 
-| Owner | Închidere și limită |
+| Responsabil | Închidere și limită |
 |---|---|
 | AssertionAuditRun | Deține sesiunea; close publică HTML-ul final. |
 | run.open(identity) | Împrumută sesiunea; close închide scenariul invocării. |
 | Constructorul AssertionAuditReport(session, ...) | Deține și închide sesiunea proprie. |
 
-- Aceleași settings/redactor în run și renderer; preview implicit **240**, citit prin assertionMaxDisplayCharacters(). Valorile complete preced preview-ul.
-- Exemplul urmează thread-ul sesiunii; AssertionAuditRun.extent(...) serializează publicarea pentru apelanți concurenți.
-- Kit colectează comparația JUnit evaluată o dată; Reporting publică. Callerul păstrează verdictul, cauza și timing-ul prin phase(..., timing).
-- Fails indexează cauza terminală la rândul ACTION sau OBSERVE care a eșuat. Tests păstrează și diagnosticul colapsabil, iar comparațiile independente rămân distincte.
-- PNG-ul păstrează întregul viewport/display; captura și zoom-ul aparțin adaptorului. Capturile identice din același pas păstrează o singură dovadă și primul caption.
-- După close, ReportArtifactInspector.inspect(path, profile) califică inventarul și resursele embedded; diagnosticul localizează dependențele externe. Căile text rămân valide. Inspectorul este static; randarea și interacțiunile se verifică separat în browser.
-- Titlurile se publică drept text literal în Extent și fallback. Profilul acceptă etichetele originale, inclusiv multiline. ReportArtifactProfile.visibleLabel(label) oferă aceeași proiecție de spații ca inspectorul.
-- Browserul aparține callerului: separați diagnosticul de discovery JUnit de execuție, închideți contextul înaintea browserului și păstrați cauza inițială la cleanup.
+- Folosiți aceeași configurație și același redactor în rulare și în componenta de randare; lungimea implicită de previzualizare este **240**, citită prin `assertionMaxDisplayCharacters()`. Valorile complete sunt disponibile înaintea previzualizării.
+- Exemplul urmează firul de execuție al sesiunii; `AssertionAuditRun.extent(...)` serializează publicarea pentru apelanți concurenți.
+- Kit colectează comparația JUnit evaluată o dată; Reporting o publică. Apelantul păstrează verdictul, cauza și timpii de execuție prin `phase(..., timing)`.
+- Fila **Fails** indexează cauza terminală la rândul **ACTION** sau **OBSERVE** care a eșuat. Fila **Tests** păstrează și diagnosticul colapsabil, iar comparațiile independente rămân distincte.
+- PNG-ul păstrează întreaga zonă vizibilă a paginii sau întregul ecran; captura și mărirea aparțin adaptorului. Capturile identice din același pas păstrează o singură dovadă și prima legendă.
+- După închidere, `ReportArtifactInspector.inspect(path, profile)` califică inventarul și resursele încorporate; diagnosticul localizează dependențele externe. Căile text rămân valide. Inspectorul este static; randarea și interacțiunile se verifică separat în browser.
+- Titlurile se publică drept text literal în Extent și în raportul alternativ. Profilul acceptă etichetele originale, inclusiv pe mai multe rânduri. `ReportArtifactProfile.visibleLabel(label)` oferă aceeași proiecție a spațiilor ca inspectorul.
+- Browserul aparține apelantului: separați diagnosticul descoperirii testelor JUnit de execuție, închideți contextul înaintea browserului și păstrați cauza inițială la eliberarea resurselor.
 
-Durata HTTP provine din `ReportResponse.duration()`; `detail(...)` păstrează textul callerului, fără să îl transforme într-o măsurătoare de transport.
+Durata HTTP provine din `ReportResponse.duration()`; `detail(...)` păstrează textul apelantului, separat de durata măsurată a transportului.
 
 ---
 

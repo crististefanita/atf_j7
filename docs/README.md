@@ -25,6 +25,8 @@ Adversarul Hard și solverele cu obiectiv de puzzle au dovezi distincte: [studiu
 - **Format:** un titlu, Markdown semantic și blocuri cu limbaj declarat.
   Folosiți tabele pentru comparații și pași ordonați pentru proceduri.
   Diagrama răspunde unei singure întrebări și are legenda imediat sub ea.
+- **Limbă:** revizuiți proza și etichetele vizibile din ambele ramuri conform
+  [contractului documentației bilingve](release/README.md#documentație-bilingvă).
 - **Linkuri:** căi relative și ancore existente; verificați destinația după
   mutarea documentului. În exemple, folosiți parametri pentru căi locale.
 - **Feedback:** observație, prioritate, responsabilitate, probă și criteriu de

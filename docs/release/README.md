@@ -1,4 +1,4 @@
-# Release și RAG
+# Publicare și RAG
 
 ## Pe scurt
 
@@ -11,7 +11,7 @@ Versiunea disponibilă se verifică în README-ul din `origin/main`. Dacă ramur
 
 1. Investigați schimbările față de ultimul tag și rulați `ReleaseRag` cu căile modificate. Deschideți documentele citate și notați riscurile, suitele afectate și criteriile de acceptare.
 2. Alegeți versiunea din seria 0.x. O corecție urcă patch-ul, iar o funcție nouă sau o schimbare de contract urcă minorul. Aliniați `versionName`, `versionCode`, versiunea Maven și numele APK-ului. În `release/index.json`, `currentVersion` este ediția curentă, iar `versions` conține curentul urmat de o singură ediție anterioară pentru comparație. Candidatul rămâne separat până la publicare. [Catalogul edițiilor](../../release/README.md)
-3. Actualizați notele și ghidurile afectate în ambele ramuri. Mutați regulile confirmate din feedback în ghidul ownerului. În `main` folosiți **Play** și **Published Release**. În `main_RO` folosiți **Jocul** și **Ediția publicată**. Așezați linkurile APK și browser în această ordine sub titlul de joc. Puneți notele GitHub sub arhitectură. [Documentație bilingvă](#documentație-bilingvă) · [Publicarea Web](../../web/parity.md#publicarea-linkului)
+3. Actualizați notele și ghidurile afectate în ambele ramuri. Mutați regulile confirmate din feedback în ghidul responsabil. În `main` folosiți **Play** și **Published Release**. În `main_RO` folosiți **Jocul** și **Ediția publicată**. Așezați linkurile APK și browser în această ordine sub titlul de joc. Puneți notele GitHub sub arhitectură. [Documentație bilingvă](#documentație-bilingvă) · [Publicarea Web](../../web/parity.md#publicarea-linkului)
 4. Creați commitul candidat în worktree-ul Git curat din TMP. Declarați SHA-ul bazei de revizuire, strămoș distinct al candidatului. Rulați DocumentationGovernanceTest, ReleaseGovernanceTest, ExtentGovernanceTest, TestChangeReview și ReleaseGate preflight înainte de semnare. Păstrați rapoartele și recepția reviziei Git. Activați probele AI când diff-ul afectează motorul sau corpusul. [Suitele JVM](../testing/README.md#suite-jvm) · [Schimbarea testelor](../testing/README.md#schimbarea-testelor-față-de-o-bază-git)
 5. Inițializați identitatea externă prin dot-sourcing `scripts/Initialize-J7Signing.ps1`. Pentru o cheie nouă după o ediție publicată, folosiți explicit `-StartNewIdentity`; scriptul refuză rotația implicită și protejează cheia cu ACL și DPAPI. Construiți APK-ul și testele Android cu Gradle, verificați semnătura, `versionCode` și compatibilitatea prin `scripts/verify-signing-continuity.ps1`. Rulați pe emulator parcursul potrivit schimbării și păstrați hash-ul APK-ului instalat și Extent-ul. Dacă semnarea s-a rotit și emulatorul păstrează ediția veche, nu dezinstalați instalarea cu date valoroase pentru a forța testul. Un APK sanity cu alt `applicationId` este suplimentar și nu califică binarul distribuibil.
 6. Rulați `ChessComponentSuite` și sanity Game Review sub același ID de calificare. Treceți APK-ul, commitul, directoarele recepțiilor brute și rapoartele Extent prin `ReleaseGate qualification`. Verificați în Extent comparațiile extensibile și capturile din pașii lor. Pentru o schimbare în Teoria deschiderilor sau **De ce?**, adăugați proba compactă la font 1,3× în RO și EN pe același APK și commit. [Redarea comună](../testing/README.md#redare-comună-pe-ecran-compact) [Criterii de audit Extent](../testing/README.md#raportare-extent)
@@ -32,6 +32,15 @@ Folosiți `main` pentru engleză și `main_RO` pentru română. Pregătiți ambe
 actualizări în worktree-uri detașate în TMP. Ramura implicită deține publicarea,
 iar metadatele, linkul APK și dovezile identifică aceeași ediție în ambele ramuri.
 
+Scrieți întreaga proză Markdown redactată în engleză pe `main` și în română pe
+`main_RO`, inclusiv titlurile, rezumatele, tabelele, etichetele linkurilor,
+etichetele din diagrame și legendele. Păstrați același sens, aceleași fapte,
+proceduri și acoperire în ambele versiuni. Identificatorii de cod, comenzile,
+SAN și etichetele interfeței citate își păstrează forma cerută. HTML-ul, JSON-ul
+generat și recepțiile brute de execuție păstrează octeții originali și limba
+observată a interfeței; traduceți README-ul care explică dovezile, în loc să
+rescrieți un artefact calificat.
+
 1. Porniți din `origin/main` și `origin/main_RO` live. Precizați formularea
    românească și transpuneți aceeași schimbare în engleză. Aliniați căile,
    ierarhia secțiunilor, sensul comenzilor, valorile și dovezile.
@@ -51,8 +60,10 @@ git push --atomic origin "${enCommit}:refs/heads/main" "${roCommit}:refs/heads/m
 ```
 
 Poarta perechii verifică inventarul Markdown urmărit, ordinea structurii,
-linkurile și destinațiile de heading corespondente și identitatea în octeți a
-dovezilor publicate. Revizuirea umană verifică fidelitatea traducerii. [Strategia de testare](../testing/README.md#alegerea-nivelului)
+linkurile și destinațiile titlurilor corespondente și identitatea în octeți a
+dovezilor publicate. Revizuiți fiecare bloc de proză și fiecare etichetă vizibilă
+din diagrame pentru limba sa și sensul tradus; trecerea porții structurale nu
+dovedește singură traducerea integrală sau fidelitatea ei. [Strategia de testare](../testing/README.md#alegerea-nivelului)
 
 GitHub Actions livrează artefactul Web calificat dintr-un commit Git imuabil
 prin [workflow-ul Pages](../../.github/workflows/chess-pages.yml).
@@ -69,7 +80,7 @@ Excepția cere autorizare explicită de publicare, o schimbare de semnătură co
 <details>
 <summary>Dovezi obligatorii și pași de semnare</summary>
 
-Dacă semnătura s-a schimbat, singurul emulator disponibil conține instalarea veche și date care nu trebuie șterse, iar utilizatorul a cerut explicit publicarea prin README, ediția poate fi publicată numai cu starea `PUBLISHED_WITH_INSTALL_EXCEPTION`. Dosarul ediției trebuie să conțină `publication-exception.json`, build receipt verificabil, raportul și recepția sanity suplimentară, tranziția de semnare, Extent-ul cu hash verificat, recepțiile publică și autentificată de download și metadatele release-ului GitHub. Excepția este limitată la instalarea exactă: motivul, commitul și hash-ul APK-ului distribuibil, hash-ul diferit al APK-ului sanity, numărul aserțiunilor suplimentare și `CLEAN_INSTALL_REQUIRED` sunt validate separat. Nu se emite `qualification.json`, nu se afirmă că APK-ul exact a fost instalat și excepția nu relaxează testele, semnătura, integritatea asset-ului ori downloadul complet. După ce există un emulator curat, rulați calificarea strictă și înlocuiți excepția cu dovezile complete.
+Dacă semnătura s-a schimbat, singurul emulator disponibil conține instalarea veche și date care nu trebuie șterse, iar utilizatorul a cerut explicit publicarea prin README, ediția poate fi publicată numai cu starea `PUBLISHED_WITH_INSTALL_EXCEPTION`. Dosarul ediției trebuie să conțină `publication-exception.json`, o recepție de compilare verificabilă, raportul și recepția probei suplimentare de bază, tranziția de semnare, Extent-ul cu amprentă verificată, recepțiile publică și autentificată ale descărcării și metadatele ediției GitHub. Excepția este limitată la instalarea exactă: motivul, commitul și amprenta APK-ului distribuibil, amprenta diferită a APK-ului suplimentar, numărul aserțiunilor suplimentare și `CLEAN_INSTALL_REQUIRED` sunt validate separat. Nu se emite `qualification.json`, nu se afirmă că APK-ul exact a fost instalat și excepția nu relaxează testele, semnătura, integritatea fișierului publicat ori descărcarea completă. După ce există un emulator curat, rulați calificarea strictă și înlocuiți excepția cu dovezile complete.
 
 Dot-source scriptul în sesiunea de build pentru a încărca `J7_SIGNING_STORE` și `J7_SIGNING_PASSWORD`; parola este decriptată local cu DPAPI și nu este afișată. Pentru upgrade, certificatul trebuie să coincidă exact. O semnătură diferită cere explicit modul `CLEAN_INSTALL`; Android nu poate actualiza versiunea instalată, iar datele aplicației vechi nu sunt migrate. Gradle construiește perechea semnată cu `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`. Runnerul cu `-Distribution -SourceCommit <sha>` cere un emulator fără pachetul jocului și confruntă octeții instalați cu APK-ul calificat înaintea instrumentării.
 

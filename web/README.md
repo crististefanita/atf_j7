@@ -56,6 +56,12 @@ flowchart LR
 - Buildul lasă aici datele generate, compilarea și pachetul `site`. Pentru cache local complet, adăugați `-Offline` la build și `-o` la Maven.
 - [Locația fișierelor de lucru](../docs/README.md#reguli-de-întreținere)
 
+Folosiți browserul MCP pentru acceptanța vizuală. Exemplele Edge din linia de
+comandă de mai jos documentează adaptorul opțional existent; rulați-le numai
+când acel traseu de browser este permis. Consemnați metoda efectiv folosită și
+păstrați deschise verificările de randare nerulate. Rezultatele JVM și ale
+workerului califică propriile contracte.
+
 ```powershell
 $site = ./web/Build-ChessWeb.ps1 -WorkRoot $workRoot
 $report = Join-Path (Split-Path -Parent $site) 'web-parity.html'
@@ -90,7 +96,7 @@ Culoarea, dificultatea și automatizarea aparțin slotului salvat. Schimbarea nu
 - [Verificarea orientării](../docs/testing/README.md#orientarea-tablei-în-partidă)
 
 - Din meniul principal, schimbați limba în **Setări** și numele afișat în **Nume**. După salvarea limbii se redeschide același meniu, inclusiv când browserul păstrează o analiză.
-- **Profil** este disponibil din partida cu AI și păstrează ruta partidei după schimbare. Browserul salvează profilul local, separat de partide.
+- Reveniți în meniul principal pentru a modifica **Nume** sau **Setări**, apoi redeschideți partida salvată. Browserul păstrează profilul separat, astfel încât checkpointul partidei este conservat.
 - Limba implicită este engleza, iar un nume gol afișează **You** sau **Tu**, în funcție de limbă. `ChessWebShellTest` verifică reîncărcarea cu stocare, istoric și adresă simulate.
 - [Strategia de testare](../docs/testing/README.md)
 
@@ -115,7 +121,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - Dezactivarea anulează replica programată sau calculul aflat în curs. Reactivarea la tura AI cere o singură replică, salvată numai la revizia curentă.
 
 - Tipul partidei, automatizarea curentă și marcajul pentru mutări jucate manual de partea AI sunt câmpuri distincte. O mutare legală jucată pentru calculator marchează partida ca neeligibilă pentru estimarea Elo.
-- Comutarea și reluarea automatizării păstrează identitatea și eligibilitatea. Game Review poate analiza partida și permite o continuare cu replici automate din arhiva unei partide cu AI, păstrând marcajul folosit pentru estimarea Elo.
+- Comutarea și reluarea automatizării păstrează identitatea și eligibilitatea. Analiza partidei poate analiza partida și permite o continuare cu replici automate din arhiva unei partide cu AI, păstrând marcajul folosit pentru estimarea Elo.
 - Bibliotecile vechi păstrează clasificarea folosită de versiunea care le-a salvat. [Probele comune JVM și TeaVM](../docs/testing/README.md#controlul-replicilor-ai)
 
 ### Analiza în partida cu AI
@@ -177,7 +183,7 @@ Pentru destinația publică, transmiteți URL-ul din README ca ultim argument No
 
 - Din **Partide încheiate**, deschideți partida și alegeți **Analizează partida**. Prima deschidere salvează analiza sub ID-ul partidei și checkpointul ei.
 - **Deschide analiza** păstrează mutarea, ramura, pasul și starea **De ce?**, inclusiv după reîncărcarea paginii. Ștergerea intrării la limita de zece partide elimină și analiza asociată.
-- O analiză din formatul anterior se atașează automat o singură dată, când checkpointul identifică exact o intrare. Analizele independente rămân disponibile din Game Review.
+- O analiză din formatul anterior se atașează automat o singură dată, când checkpointul identifică exact o intrare. Analizele independente rămân disponibile din Analiza partidei.
 - [Probe de componentă](../docs/testing/README.md#reluarea-game-review-pe-android-și-web)
 
 Proba Edge calculează două analize distincte cu workerul real și verifică ambele poziții după reîncărcare. Folosiți un director nou pentru dovezi, inclusiv când validați destinația publică.
@@ -190,7 +196,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveReviewsPublication' "-Dche
 
 Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.archive.reviews.public=true` la publicarea Extent.
 
-### Continuarea din Game Review
+### Continuarea din analiza partidei
 
 - În analiza unei partide încheiate, selectați o poziție din istoricul jucat și confirmați **Continuă de aici**. Partida pornește exact după semimutarea selectată, într-un slot liber sau reutilizabil, cu analiza și poziția de reluare originale păstrate.
 - Când **De ce?** sau o variantă este deschisă, reveniți în istoric. Poziția finală nu oferă continuarea.
@@ -206,7 +212,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebArchiveContinuationPublication' "
 
 Pentru destinația publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.archive.continuation.public=true` la publicarea Extent. [Probe de componentă și sanity](../docs/testing/README.md#partide-salvate-arhivă-și-continuare)
 
-### Graficul din Game Review
+### Graficul analizei partidei
 
 Atingerea unui punct din grafic selectează aceeași semimutare pe tablă și în listă. Fixture-ul de 185 de semimutări verifică accesul la mutările târzii.
 
@@ -235,7 +241,7 @@ Pentru destinația publică, transmiteți URL-ul din README ca ultim argument No
 
 </details>
 
-### Tastatura în Game Review
+### Tastatura în analiza partidei
 
 - Tab trece prin tablă, comenzile disponibile, grafic și rândul selectat. Săgețile graficului păstrează focusul pe grafic și sincronizează tabla și istoricul.
 - În listă, săgețile sus/jos, Home și End schimbă poziția și duc focusul la rândul rezultat. **De ce?** deschide redarea cu focus pe **Înapoi**.
@@ -255,7 +261,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebReviewFocusPublication' "-Dchess.
 
 Folosiți classpath-ul din proba graficului și un director nou pentru dovezi. Pentru difuzarea publică, transmiteți URL-ul din README ca ultim argument Node și adăugați `-Dchess.web.focus.public=true`.
 
-### Cititorul de ecran în Game Review
+### Cititorul de ecran în analiza partidei
 
 - Graficul expune poziția, mutarea înregistrată și scorul albului. Rândul curent anunță mutarea și poziția.
 - **Înapoi** din **De ce?** readuce focusul pe declanșator și păstrează semimutarea. Proiecția în RO și EN și alegerea canalului de anunț se verifică în `ChessWebReviewAccessibilityTest`.
@@ -281,7 +287,7 @@ Pentru proba publică, transmiteți URL-ul din README ca ultim argument și adă
 - Importul și reluarea analizelor importate se află pe ecranul de analiză
   `#review`. Analiza unei partide se redeschide din partida sau arhiva ei.
 
-- Partida locală, partida cu AI și Game Review folosesc siluetele și detaliile comune din `ChessPieceArtwork`. Web primește contururile din worker și le desenează în coordonatele 48 × 48 din APK.
+- Partida locală, partida cu AI și Analiza partidei folosesc siluetele și detaliile comune din `ChessPieceArtwork`. Web primește contururile din worker și le desenează în coordonatele 48 × 48 din APK.
 - `ChessWebShellTest` verifică ordinea și textele RO/EN față de resursele Android, persistența simulată și reutilizarea SVG. Sanity-ul MCP deschide meniul și verifică toate cele șase tipuri de piese înaintea primei mutări.
 - [Strategia de testare](../docs/testing/README.md#partidă-și-istoric)
 
@@ -292,7 +298,7 @@ Pentru proba publică, transmiteți URL-ul din README ca ultim argument și adă
 
 - **Probleme** (`#puzzles`) folosește catalogul APK, inclusiv Mat în 1, 2 și 3. `QuestStore` și `QuestRewards` păstrează local problema curentă pe capitol, etapa, rezultatele și punctajul. Indiciul arată întâi piesa, apoi destinația. **Următoarea** se activează după rezolvare. Explicația are propria zonă de derulare.
 - **Deschideri** (`#openings`) folosește catalogul și `OpeningLesson` pentru poziții, mutări, istoric și replica de carte. Selectați explicația lecției pentru textul complet. În analiza AI, comparația deschide mutarea decisivă când aceasta există în varianta verificată.
-- **Tablă de analiză** (`#analysis`) folosește `AnalysisLine` pentru mutări, ramificare și cursor. Bara de evaluare stă în stânga, iar selecția se păstrează la vedere în rândul cu istoricul și comenzile. Game Review revine la poziția selectată. **Continuă de aici** rezervă un loc liber și păstrează orientarea și alegerea replicilor AI.
+- **Tablă de analiză** (`#analysis`) folosește `AnalysisLine` pentru mutări, ramificare și cursor. Bara de evaluare stă în stânga, iar selecția se păstrează la vedere în rândul cu istoricul și comenzile. Analiza partidei revine la poziția selectată. **Continuă de aici** rezervă un loc liber și păstrează orientarea și alegerea replicilor AI.
 
 - Atât în probleme, cât și în partide, meniul cu trei linii se deschide sub buton fără să deplaseze tabla. Escape închide meniul și readuce focusul la buton.
 - Un clic în afară îl închide. Tabla din Deschideri folosește aceeași limită după dimensiunea ferestrei și rezervă spațiu pentru bara de evaluare, explicație și comenzi.
@@ -337,7 +343,7 @@ Pentru proba vizuală folosiți browserul MCP la 360 × 640 CSS px cu text la 13
 |---|---|
 | Probleme | Rezolvați câte o problemă din Mat în 1, 2 și 3. Verificați cele două trepte ale indiciului, reluarea după o apărare și punctele după reîncărcare. Măsurați tabla înainte și după deschiderea meniului și verificați revenirea focusului cu Escape. |
 | Deschideri | Deschideți lecția italiană. Verificați poziția tablei înainte și după indiciu, încadrarea barei și accesul la comenzi pe compact, desktop și fereastră orizontală scundă. |
-| Tablă de analiză | Jucați o linie suficient de lungă pentru derulare. Selectați un pas din istoric, verificați bara, poziția și rândul selectat, apoi deschideți Game Review și reveniți. |
+| Tablă de analiză | Jucați o linie suficient de lungă pentru derulare. Selectați un pas din istoric, verificați bara, poziția și rândul selectat, apoi deschideți Analiza partidei și reveniți. |
 
 Testați și schimbarea adresei între cele trei destinații Studiu, apoi comenzile Înapoi și Înainte din browser. Publicatorul `ChessWebStudyPublication` atașează imaginile în Extent și verifică profilul, amprenta originalului și originea cadrelor Android. Capturile native din alte ediții sau profiluri servesc ca repere și păstrează verdictul vizual integral deschis.
 
@@ -367,14 +373,14 @@ $receipt = Join-Path $evidence 'result.json'
 mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebGamePublication' "-Dchess.web.bundle=$site" "-Dchess.web.game.receipt=$receipt"
 ```
 
-## Game Review
+## Analiza partidei
 
-- Serviți directorul `site` prin HTTPS sau pe `localhost`, unde Web Crypto poate calcula SHA-256. Deschideți Game Review și încărcați o arhivă JSON cu `id`, `checkpoint`, `review` și, opțional, `bookmark`.
+- Serviți directorul `site` prin HTTPS sau pe `localhost`, unde Web Crypto poate calcula SHA-256. Deschideți Analiza partidei și încărcați o arhivă JSON cu `id`, `checkpoint`, `review` și, opțional, `bookmark`.
 - `review` este cache-ul produs de `GameReviewCodec` pentru aceeași partidă încheiată. Testele generează o arhivă reproductibilă cu `GameReviewArchiveFixture`.
 
-- `GameReviewSession` folosește `GameReviewTimeline` pe Android și în worker. Comenzile selectează semimutarea, deschid **De ce?**, schimbă ramura și derulează linia. O comandă cu revizie expirată păstrează starea curentă. Închiderea explicației revine la mutarea selectată. Fiecare platformă păstrează progresul local. Browserul păstrează analizele importate și analizele partidelor active în spațiul Game Review, iar analizele partidelor încheiate în intrările bibliotecii. [Contractul de navigare](../docs/board/game-review.md#navigarea-în-review-și-variantele-recomandate)
+- `GameReviewSession` folosește `GameReviewTimeline` pe Android și în worker. Comenzile selectează semimutarea, deschid **De ce?**, schimbă ramura și derulează linia. O comandă cu revizie expirată păstrează starea curentă. Închiderea explicației revine la mutarea selectată. Fiecare platformă păstrează progresul local. Browserul păstrează analizele importate și analizele partidelor active în spațiul Analiza partidei, iar analizele partidelor încheiate în intrările bibliotecii. [Contractul de navigare](../docs/board/game-review.md#navigarea-în-review-și-variantele-recomandate)
 
-Rulați întâi testele de componentă, apoi proba din Edge pe buildul real și publicatorul Extent. Pe Android, `-GameReviewOnly` păstrează gesturile și restartul de proces. [Strategia și dovezile Game Review](../docs/testing/README.md#reluarea-game-review-pe-android-și-web)
+Rulați întâi testele de componentă, apoi proba din Edge pe buildul real și publicatorul Extent. Pe Android, `-GameReviewOnly` păstrează gesturile și restartul de proces. [Strategia și dovezile Analiza partidei](../docs/testing/README.md#reluarea-game-review-pe-android-și-web)
 
 După rularea testelor de mai sus, alegeți `$fixture` și un `$evidence` nou în TMP. Setați `$edge` la executabilul Edge.
 

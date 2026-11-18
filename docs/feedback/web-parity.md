@@ -33,7 +33,7 @@ AI întârziate. [Motor și proiecție](../testing/README.md#motor-și-proiecți
 <details>
 <summary>Anunțuri și focus la cititorul de ecran</summary>
 
-**Game Review · Web.** NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului în ediția anterioară. Graficul folosește acum o singură valoare accesibilă, cu poziție și scor. Componenta acoperă actualizările repetate, iar Extent respinge o recepție Web cu descrierea duplicată. Confirmați vorbirea pe build-ul corectat în RO și EN. Păstrați focusul pe grafic între două semimutări cu scoruri diferite și verificați revenirea la declanșator după **De ce?**. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-game-review)
+**Game Review · Web.** NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului în ediția anterioară. Graficul folosește acum o singură valoare accesibilă, cu poziție și scor. Componenta acoperă actualizările repetate, iar Extent respinge o recepție Web cu descrierea duplicată. Confirmați vorbirea pe build-ul corectat în RO și EN. Păstrați focusul pe grafic între două semimutări cu scoruri diferite și verificați revenirea la declanșator după **De ce?**. [Cititorul de ecran](../../web/README.md#cititorul-de-ecran-în-analiza-partidei)
 
 </details>
 
@@ -107,5 +107,6 @@ importurilor pe ruta proprie. Controlerul comun acoperă poziționarea și focus
 
 Folosiți MCP pentru Probleme, Tablă de analiză și Game Review, inclusiv De ce,
 la 360 × 640 și 1280 × 900, cu text RO/EN la 130%. Deschideți lângă buton,
-atingeți ultima opțiune, închideți și verificați focusul. Sesiunea curentă
-nu oferă browserul MCP, astfel că verdictul randării rămâne în așteptare.
+atingeți ultima opțiune, închideți și verificați focusul. Verificările arhivate ale
+resurselor Web confirmă integritatea octeților serviți. Verdictul parității randate
+rămâne în așteptare până când acest parcurs MCP are propria recepție și capturi.

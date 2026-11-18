@@ -2,11 +2,11 @@
 
 ## Pe scurt
 
-`atf-console` proiectează evenimentele ATF în stdout/stderr: lifecycle, durate și detalii configurabile. Este util pentru urmărirea unei rulări Maven sau IntelliJ; artifactul HTML este produs de [Reporting](README.Reporting.md).
+`atf-console` proiectează evenimentele ATF în stdout/stderr: ciclul de execuție, durate și detalii configurabile. Este util pentru urmărirea unei rulări Maven sau IntelliJ; artefactul HTML este produs de [Reporting](README.Reporting.md).
 
 ## Exemplu minim
 
-Fragment într-o metodă; politica este explicită, iar stream-ul rămâne în adaptor:
+Fragment într-o metodă; politica este explicită, iar fluxul de ieșire rămâne în adaptor:
 
 ```java
 import atf.console.AtfConsoleReporter;
@@ -31,7 +31,7 @@ reporting:
 | Intenție | Alegere |
 |---|---|
 | Mesaj independent de detalii | `info(...)` |
-| Evenimente typed, cu lifecycle și durată | `publish(AtfConsoleEvent)` prin portul Core `AtfConsoleSink` |
+| Evenimente cu tip explicit, ciclu de execuție și durată | `publish(AtfConsoleEvent)` prin portul Core `AtfConsoleSink` |
 | Consolă complet oprită | `enabled: false` sau `ConsoleSettings.disabled()` |
 | Calea raportului final în consolă | Constructorul cu `reportPathEnabled: true` și evenimentul `REPORT_PUBLISHED` |
 | Politică JUnit per clasă | Adaptorul JUnit Console și adnotările Test Kit; declarați Kit explicit |

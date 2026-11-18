@@ -11,6 +11,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 |---|---|---|---|
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
+| P2 | Documentație · protejarea traducerilor | Poarta bilingvă verifică structura și linkurile, iar proza și exemplele cer în continuare revizuire semantică. | Detectează proza copiată și exemplele schimbate prin cazuri negative țintite, păstrând literalii tehnici și dovezile imuabile. |
 | P1 | Game Review · clasificarea mutărilor | Nouă neconcordanțe persistă la ambele adâncimi ale oracolului, inclusiv pierdere mare ratată și gafă falsă. | Reproduce și corectează clasificarea fără a schimba istoricul, inventa Elo sau substitui dovezile analizei cu scorul indiciului. |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
 | P1 | Italiană · schimbul neîncheiat nativ | Recaptura țintită repară perechea H6 izolată, dar decizia completă și martorii regresează. | Rezolvă decizia completă în 200k, păstrând 019/021/022 și transferul independent înainte de duel. |
@@ -23,11 +24,12 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Învățarea Hard din PGN-uri | Modelul de ordonare antrenat pe pierderi păstrează toate mutările finale în 36 de familii noi. | Adaugă mutări bune păstrate și sacrificii, apoi verifică ordonarea și deciziile complete. |
 | P1 | Căutarea Hard · generalizare | Recaptura selectivă pierde pe deschideri independente. | Cere progres independent la bugetul fix. |
 | P1 | Hard · conversia după captura de pion | Avantajul după captură poate fi pierdut ulterior. | Verifică păstrarea avantajului pe poziții și replici noi. |
-| P1 | Transferul tactică → partidă | Hard ratează tactici fără obiectiv declarat. | Măsoară detectarea și păstrează contractul solverului. |
+| P1 | Transferul tactică → partidă | Hard ratează tactici fără obiectiv declarat. | Măsoară detectarea și păstrează contractul rezolvării cu obiectiv. |
+| P1 | Hard fără obiectiv declarat · readmiterea mutărilor candidate | Hard obișnuit lasă 82 de etape nerezolvate în 56 de probleme canonice. | Recuperează soluțiile de mat ratate în finaluri de turn fără regresii pe catalogul complet și cu replici adverse independente. |
 | P2 | Progres · upgrade Android | Upgrade-ul semnat mai cere o probă de progres. | Păstrează ID-urile, rezolvările și punctele după upgrade și restart. |
 | P2 | Calitatea AI · evaluare material | Scorul material diferă de Stockfish. | Redu abaterea la aceleași bugete. |
 | P2 | Calibrarea problemelor | Benzile de dificultate importate se suprapun. | Verifică timpul și încercările pe un lot amestecat separat. |
-| P2 | Android · separarea tranzițiilor de ecran | Ecranul Android deține mai multe tranziții de sesiune. | Mută tranzițiile într-un owner testabil în JVM. |
+| P2 | Android · separarea tranzițiilor de ecran | Ecranul Android deține mai multe tranziții de sesiune. | Mută tranzițiile într-un responsabil testabil pe JVM. |
 
 ## Dovezi și verificări de închidere
 
@@ -52,16 +54,16 @@ Adaugă verificarea compactă în poarta de promovare pentru schimbările de geo
 <details>
 <summary>P1 · Game Review · clasificarea mutărilor</summary>
 
-Apelul efectiv `GameReview.analyzeLine` păstrează toate cele 60 de mutări și nu emite rating pentru cele trei studii limitate. Totuși, `6.e6` din Caro–Kann este BEST, iar precizia albului este 100, deși rădăcina jucată pierde 533‰ la H17 și 581,5‰ la H19. `5.Nc3` din Siciliană este BLUNDER cu 0‰ pierdere la ambele orizonturi. În cele trei partide, trei etichete pozitive însoțesc o pierdere mare la oracol, iar șase etichete severe însoțesc sub 10‰ pierdere la ambele adâncimi.
+Apelul efectiv `GameReview.analyzeLine` păstrează toate cele 60 de mutări și nu emite rating pentru cele trei studii limitate. Totuși, `6.e6` din Caro–Kann are eticheta `BEST`, iar precizia albului este 100, deși rădăcina jucată pierde 533‰ la H17 și 581,5‰ la H19. `5.Nc3` din Siciliană are eticheta `BLUNDER`, cu 0‰ pierdere la ambele orizonturi. În cele trei partide, trei etichete pozitive însoțesc o pierdere mare la oracol, iar șase etichete severe însoțesc sub 10‰ pierdere la ambele adâncimi.
 
-Îngheață martorii cu istoric complet înainte de corecția comparației comune. Verifică rădăcinile jucată și recomandată la același orizont complet, păstrează redarea legală și bookmark-urile și măsoară familii noi. Pierderea logistică locală și WDL Stockfish sunt modele distincte; nu lega producția de Stockfish și nu copia mecanic eticheta sa. Auditul curent evaluează rădăcina jucată și verifică legalitatea PV-urilor salvate; nu certifică independent fiecare alternativă a analizei. [Contractul analizei și limitarea](../board/game-review.md#limitările-măsurate-ale-analizei) · [Audit pereche](../testing/hard-hint-study.md)
+Îngheață martorii cu istoric complet înainte de corecția comparației comune. Verifică rădăcinile jucată și recomandată la același orizont complet, păstrează redarea legală și marcajele din istoric și măsoară familii noi. Pierderea logistică locală și WDL Stockfish sunt modele distincte; nu lega producția de Stockfish și nu copia mecanic eticheta sa. Auditul curent evaluează rădăcina jucată și verifică legalitatea PV-urilor salvate; nu certifică independent fiecare alternativă a analizei. [Contractul analizei și limitarea](../board/game-review.md#limitările-măsurate-ale-analizei) · [Audit pereche](../testing/hard-hint-study.md)
 
 </details>
 
 <details>
 <summary>P2 · Game Review · NVDA</summary>
 
-NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului. Componenta și Edge confirmă acum o singură valoare accesibilă.
+NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului. Testele de componentă verifică o singură valoare accesibilă.
 
 Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceeași mutare din **De ce?**. [Feedback Web](web-parity.md)
 
@@ -74,7 +76,7 @@ Prototipul de recaptură pe ultima casetă capturată schimbă ordonarea H6 izol
 
 Candidatul complet alege însă `…Bxf2+`, evaluat la −311 cp și 0‰ de Stockfish H19. Pierde și 478,5‰, 191,5‰ și 516‰ în martorii 019/021/022. `…cxd4` din Siciliană și `…d5` din Caro–Kann rămân neschimbate. Respinge prototipul, precum și extensiile anterioare uniformă și doar pentru damă. Păstrează contextul ultimei capturi în identitatea cache-ului; nu copia indiciul în joc și nu relaxa veto-ul de stabilitate.
 
-Izolează de ce închiderea schimbului schimbă liderul complet și cei trei martori. Cere istoricul complet, replici adverse libere la același orizont și decizia nativă completă în 200k suplimentare înainte de transfer neinspectat și duel pereche. Indiciul public S5 corectat rămâne `…Qg6`; Hard nativ rămâne `…Na5`. Motorul live este neschimbat, deci nu există ΔElo nou al candidatului. [Studiul măsurat](../board/ai-quality.md#studiul-pereche-nativindiciu-și-respingerea-recapturii) · [Contractul auditului](../testing/hard-hint-study.md)
+Izolează de ce închiderea schimbului schimbă liderul complet și cei trei martori. Cere istoricul complet, replici adverse libere la același orizont și decizia nativă completă în 200k suplimentare înainte de transfer neinspectat și duel pereche. Indiciul public S5 corectat rămâne `…Qg6`; Hard nativ rămâne `…Na5`. Motorul curent este neschimbat, deci nu există ΔElo nou al candidatului. [Studiul măsurat](../board/ai-quality.md#studiul-pereche-nativindiciu-și-respingerea-recapturii) · [Contractul auditului](../testing/hard-hint-study.md)
 
 </details>
 
@@ -211,11 +213,20 @@ Includeți în următorul lot de antrenare mutări bune păstrate, replici lini�
 </details>
 
 <details>
-<summary>P1 · Native Hard · rook-root re-entry and puzzle transfer</summary>
+<summary>P2 · Documentație · protejarea traducerilor</summary>
+
+Poarta bilingvă verifică inventarul documentelor, titlurile localizate, blocurile structurale, destinațiile linkurilor și dovezile arhivate. Nu inspectează sensul paragrafelor sau conținutul exemplelor delimitate. Un paragraf englezesc copiat sub titluri românești sau o comandă schimbată în același bloc poate trece verificările structurale. Traducerile revizuite cer în continuare verificarea semantică explicită din [procesul bilingv](../release/README.md#documentație-bilingvă).
+
+Adaugă cazuri negative țintite pentru proză copiată, titluri de secțiuni colapsabile, etichete de link și etichete umane din diagrame, precum și comenzi sau valori măsurate modificate. Păstrează identificatorii, etichetele UI citate, SAN/FEN/UCI, sintaxa comenzilor și dovezile imuabile de execuție. Compararea propozițiilor identice poate semnala omisiuni; nu certifică singură limba sau corectitudinea unei propoziții reformulate. [Controalele bilingve actuale](../../atf-tests/src/test/java/ro/atf/chess/DocumentationPairGovernanceTest.java)
+
+</details>
+
+<details>
+<summary>P1 · Hard fără obiectiv declarat · readmiterea mutărilor în finaluri de turn și transferul din probleme</summary>
 
 Hard obișnuit completează 1.182/1.238 de probleme canonice; 82 de etape sunt ratate în 56 de probleme. 200k fix/H6 recuperează 0/82, 200k/H7 20/82 și 500k/H7 26/82. Sunt diagnostice pe ratări înghețate, nu calificări de candidat pe catalog complet. Păstrează capitolele de mat rezolvate 500/500 și 300/300 și distincția adversar/solver cu obiectiv.
 
-Prioritizează `mate3-04iY6` și `mate3-019gx`: ambele pierd un mat forțat potrivit Stockfish H17/H19, inclusiv la 500k. Căutarea de turn elimină permanent rădăcini după selecția la orizont scurt. Un prototip extern de readmitere recuperează ambele chei în 200k, dar ratează `training-051`, evaluat de oracol victorie→remiză. Nu înlocui demonstrarea rădăcinilor eliminate cu simpla creștere a bugetului. Cere non-regresie pe întreg catalogul, martori de turn/remiză păstrați, familii noi și apărări libere înainte de integrare; măsoară ΔElo pereche numai după poartă.
+Prioritizează `mate3-04iY6` și `mate3-019gx`: ambele pierd un mat forțat potrivit Stockfish H17/H19, inclusiv la 500k. Căutarea finalurilor de turn elimină permanent mutări candidate după selecția la orizont scurt. Un prototip extern de readmitere recuperează ambele chei în 200k, dar ratează `training-051`, evaluat de oracol victorie→remiză. Nu înlocui demonstrarea rădăcinilor eliminate cu simpla creștere a bugetului. Cere non-regresie pe întreg catalogul, martori de turn/remiză păstrați, familii noi și apărări libere înainte de integrare; măsoară ΔElo pereche numai după poartă.
 
 Celelalte cinci etape materiale inspectate păstrează victoria deși ratează obiectivul didactic. Separă eșecul obiectivului de pierderea WDL confirmată; nu reeticheta variante, nu relaxa obiectivul și nu declara toate problemele rezolvate. [Metodă, inventar și dovezi](../testing/hard-puzzle-study.md)
 

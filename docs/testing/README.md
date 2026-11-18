@@ -260,17 +260,17 @@ Folosiți componentele pentru starea sloturilor și a arhivei, continuare, selec
 `MatchLedgerReviewTest` verifică persistența analizei și a poziției de reluare per arhivă, respingerea unui checkpoint sau cache din altă partidă, migrarea unui rezultat unic și evacuarea completă. `ChessWebArchiveReviewsPublication` validează două analize calculate de worker, pozițiile redeschise după reîncărcare și capturile din aceeași rulare. [Reluarea analizei arhivate](../../web/README.md#reluarea-analizei-unei-partide-arhivate)
 
 - `ArchivedReviewContinuationTest` verifică poziția exactă din istoric, slotul separat, biblioteca plină și o singură replică AI după reluare. `ChessWebArchiveContinuationPublication` compară dovada din browser cu checkpointul, analiza și poziția de reluare originale, inclusiv după o mutare în partida nouă.
-- Android păstrează proba nativă de continuare din arhivă în `-GameReviewOnly`. [Continuarea din Game Review](../../web/README.md#continuarea-din-game-review)
+- Android păstrează proba nativă de continuare din arhivă în `-GameReviewOnly`. [Continuarea din Game Review](../../web/README.md#continuarea-din-analiza-partidei)
 
 - `GameReviewGraphParityTest` folosește partida de 185 de semimutări din APK și poziții de control verificate separat. În JVM verifică punctul 184 la geometria nativă și la două lățimi Web, ambele capete, piesele Staunton originale și dimensiunile capturilor.
 - Sanity-ul Android păstrează atingerea și redarea nativă. `ChessWebReviewGraphPublication` cere coordonatele trimise de interfață către worker, poziția de pe tablă, rândul vizibil și marcajul din arhivă după reîncărcare.
-- [Graficul Game Review](../../web/README.md#graficul-din-game-review)
+- [Graficul Game Review](../../web/README.md#graficul-analizei-partidei)
 
 - `ChessWebReviewAccessibilityTest` verifică în Node destinațiile de focus, limitele istoricului și derularea necesară. `GameReviewSessionTest` verifică revenirea la poziția jucată după **De ce?**.
 - Sanity-ul Edge păstrează proba Tab, săgeți și revenirea cu focus vizibil la font 1,3×. Reperul Android compact RO/EN verifică încadrarea și păstrarea poziției.
-- [Tastatura în Game Review](../../web/README.md#tastatura-în-game-review) · [Redarea compactă](#redare-comună-pe-ecran-compact)
+- [Tastatura în Game Review](../../web/README.md#tastatura-în-analiza-partidei) · [Redarea compactă](#redare-comună-pe-ecran-compact)
 
-Pentru cititoare de ecran, `ChessWebReviewAccessibilityTest` verifică textele RO/EN, limitele graficului și sursa fiecărui anunț. Sanity-ul urmărește valoarea graficului, rândul selectat și revenirea din **De ce?**. Extent indică sursa fiecărei observații, precum arborele Chromium, un eveniment Android sau o cerere către sintetizator. [Cititorul de ecran Web](../../web/README.md#cititorul-de-ecran-în-game-review) · [Proba TalkBack](#proba-talkback)
+Pentru cititoare de ecran, `ChessWebReviewAccessibilityTest` verifică textele RO/EN, limitele graficului și sursa fiecărui anunț. Sanity-ul urmărește valoarea graficului, rândul selectat și revenirea din **De ce?**. Extent indică sursa fiecărei observații, precum arborele Chromium, un eveniment Android sau o cerere către sintetizator. [Cititorul de ecran Web](../../web/README.md#cititorul-de-ecran-în-analiza-partidei) · [Proba TalkBack](#proba-talkback)
 
 Pe Android, `-MatchMenusOnly` verifică listele și deschiderea rândurilor salvate și încheiate. `-GameReviewOnly` verifică o mutare alternativă în continuare și păstrarea intrării arhivate. [Partidă și istoric](#partidă-și-istoric)
 
@@ -286,7 +286,7 @@ Testele de componentă simulează tabla, stocarea și temporizatorul. Ele verifi
 
 - `GameReviewSessionTest` verifică selecția semimutării, cele două ramuri, bookmarkul și refuzul comenzilor expirate. `ChessGameSessionTest` verifică poziția restaurată și analiza unei linii neterminate.
 - Probele Edge folosesc pachetul compilat pentru import, analiză nouă și reîncărcare reală. Publicatorul Extent verifică mutările, cache-ul de analiză, identitatea pachetului și capturile.
-- [Comenzile de rulare](../../web/README.md#game-review)
+- [Comenzile de rulare](../../web/README.md#analiza-partidei)
 
 ## Tactică și punctaj
 
@@ -489,7 +489,7 @@ cu alt ID de aplicație rămâne o probă de dezvoltare și nu califică APK-ul.
 2. Runnerul oprește procesul. A doua instrumentare verifică răspunsul restant, pragul de cinci rezolvări, poziția și punctele restaurate în Tactică și reluarea celei de-a doua probleme nerezolvate din Antrenament tactic.
 3. Extent cere un ID comun de rulare și PID-uri distincte pentru cele cinci faze. Verifică cele 58 de perechi ID–etichetă din `prepare`, cele 26 de comparații din `restore` și recepțiile de partidă. Diagnosticul apare lângă comparația nativă.
 
-La modificarea instrumentării, sincronizați inventarul `prepare` și numărul de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt` și `-Dchess.android.runId=<runId din execution.json>`.
+La modificarea instrumentării, sincronizați inventarul `prepare` și numărul de aserțiuni pe fază cu `AndroidSanityPublication`. Pentru a regenera raportul, copiați dovezile native într-un dosar nou și rulați `-Dtest=AndroidSanityPublication#publishBoardSanity` cu `-Dchess.android.receipt=<dosar>/prepare.txt` și `-Dchess.android.runId=<runId>`. Citiți `runId` din `execution.json`.
 
 `AndroidReceiptTest` verifică offline randarea celor 58 de aserțiuni și respingerea unei aserțiuni lipsă, a unui ID duplicat, a unei etichete substituite și a unei faze din altă rulare. Proba de reluare verifică și respingerea unei etichete străine pentru Antrenament tactic, cu numărul total păstrat.
 
@@ -668,11 +668,11 @@ Pentru republicare, rulați `TalkBackPublication#publishTalkBackGestures` din co
 - Fiecare folosește aceeași partidă arhivată. Focalizați graficul, apoi mutarea selectată.
 - Intrați în **De ce?** și reveniți prin **Înapoi**. Verificați focusul pe butonul de deschidere și semimutarea salvată.
 
-Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scorul albului de 0 la sută. Proba a capturat audio și la mutarea selectată și la revenirea pe **De ce?**. `GameReviewGraphLayoutTest` verifică offline același punct al graficului și formatarea scorului. [Cititorul de ecran Web](../../web/README.md#cititorul-de-ecran-în-game-review)
+Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scorul albului de 0 la sută. Proba a capturat audio și la mutarea selectată și la revenirea pe **De ce?**. `GameReviewGraphLayoutTest` verifică offline același punct al graficului și formatarea scorului. [Cititorul de ecran Web](../../web/README.md#cititorul-de-ecran-în-analiza-partidei)
 
 - Pentru auditul vorbirii, rulați `TalkBackPublication#publishGameReviewTalkBack` cu `-Dchess.talkback.review` către directorul `run-<id>`. Pentru fiecare limbă, păstrați în același director recepția nativă, metadatele execuției și cele trei capturi.
 - Jurnalul comun `talkback.log` conține limitele acțiunilor `J7ReviewProbe` și recepțiile `J7ReviewSpeech` cu text și audio PCM acceptat de observator pentru procesul TalkBack. Extent verifică identitatea, digesturile și anunțurile în fiecare interval.
-- [Proba Web](../../web/README.md#cititorul-de-ecran-în-game-review)
+- [Proba Web](../../web/README.md#cititorul-de-ecran-în-analiza-partidei)
 
 [Tabla de joc](../board/README.md) · [Procesul de release](../release/README.md)
 

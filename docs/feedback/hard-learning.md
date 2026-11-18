@@ -41,7 +41,7 @@ candidatului la patru semimutări cu cel nativ la cinci. Folosiți aceste exempl
 cu efecte opuse pentru a valida replica efectivă după o schimbare selectivă.
 
 Politica adaptivă pentru mutarea curentă este o implementare separată pe sursa
-main actuală. Rezerva ei de noduri și orice ordonare învățată viitoare cer
+`main` actuală. Rezerva ei de noduri și orice ordonare învățată viitoare cer
 propriile comparații cu sursele identificate.
 
 ## Liga pereche încheiată
@@ -52,7 +52,7 @@ Diferența estimată a fost +4,34 Elo, cu interval de 95% între −2,77 și +11
 Atribuirea unei înfrângeri sau unei victorii fiecărei partide neterminate schimbă
 estimarea centrală la −15,82 sau +24,53. Rejucarea legală a verificat 238.591
 de recepții de decizie. Secvențele complete de mutări coincid în 657 de perechi.
-Modelul rămâne un prior experimental cu efect incert asupra forței de joc.
+Modelul rămâne o preferință experimentală de ordonare, cu efect incert asupra forței de joc.
 
 Aceste partide au folosit H5 și 44.000 de noduri suplimentare pe sursa de
 cercetare înghețată. Profilul main adaptiv, cu buget mai mare, cere propria

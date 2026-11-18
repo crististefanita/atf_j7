@@ -7,7 +7,7 @@ Calificarea leagă commitul sursă, APK-ul semnat, suita de componente și obser
 ## Dovezi
 
 - [Componente și aserțiuni auditabile](components.html)
-- [Game Review pe Android semnat — 30 de aserțiuni native](android-game-review.html)
+- [Analiza partidei pe Android semnat — 30 de aserțiuni native](android-game-review.html)
 - [Analiză și indiciu pe Android compact — RO/EN, 130%, 32 de aserțiuni native](android-analysis-compact.html)
 - [Indiciul comun și reluarea partidei pe APK-ul semnat](android-match-analysis.html)
 - [Tabla manuală — teorie, indicii calculate și revenire](android-manual-analysis.html)
@@ -15,7 +15,7 @@ Calificarea leagă commitul sursă, APK-ul semnat, suita de componente și obser
 - [Revizuirea testelor față de baza Git declarată](test-change-review.html)
 - [Dovada acoperirii înlocuitoare](test-change-review.html.proof.html)
 - [Calificarea ediției și identitatea sursei semnate](qualification.json)
-- [Recepția execuției Game Review](game-review-execution.json)
+- [Recepția execuției Analiza partidei](game-review-execution.json)
 - [Execuția compactă, aserțiunile brute și amprentele capturilor integrate](analysis-compact-execution.json)
 - [Execuția indiciilor comune — 12 aserțiuni native și trei faze ale aceleiași rulări](hint-analysis-execution.json)
 - [Recepția bazei Git și a revizuirii acoperirii](test-change-review-execution.json)
