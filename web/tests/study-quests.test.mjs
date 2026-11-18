@@ -448,6 +448,7 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     assert.match(compact, /#quest-study-hint-label\s*\{[^}]*max-inline-size:\s*none;/);
     assert.match(compact, /\[data-replay\] \.quest-study-dialog\s*\{\s*padding-inline:\s*0;/);
     assert.match(css, /\.quest-study-board-and-details,[^}]*grid-template-rows:\s*auto minmax\(2lh, 1fr\);/);
+    assert.match(css, /#quest-study-replay-board\s*\{[^}]*width: min\(100%, var\(--replay-board-side, var\(--play-board-limit\)\)\);/);
 });
 
 test('A puzzle lesson captures the source when replay opens inside the same dialog', async () => {

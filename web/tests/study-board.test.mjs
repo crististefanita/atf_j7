@@ -220,7 +220,7 @@ test('Keyboard follows displayed squares without wrapping rows or activating a l
     assert.equal(children[9].tabIndex, 0);
 });
 
-test('Puzzle and match boards share the viewport budget and keep controls in view', async () => {
+test('Puzzle and match boards share the Analysis reference and keep controls in page flow', async () => {
     const source = name => readFile(new URL(`../src/main/web/${name}`, import.meta.url), 'utf8');
     const [css, puzzleCss, matchMarkup, puzzleMarkup] = await Promise.all([
         source('game-review.css'), source('study-quests.css'), source('index.html'), source('study-quests.mjs'),
@@ -230,18 +230,16 @@ test('Puzzle and match boards share the viewport budget and keep controls in vie
     assert.match(sharedBoard, /inline-size:\s*min\(100%,\s*var\(--play-board-limit\)\);/);
     assert.match(sharedBoard, /margin-inline:\s*auto;/);
     assert.match(css, /\.board\s*\{[^}]*aspect-ratio:\s*1\s*;/);
-    assert.match(css, /--play-board-limit:[^;]*var\(--play-column\)[^;]*100dvh\s*-\s*var\(--play-chrome\)/);
-    const chromeBudget = css.match(/--play-chrome:\s*([^;]+);/)?.[1];
-    assert.ok(chromeBudget, 'the shared budget names the space around the board');
-    for (const token of ['--play-insets', '--play-action-size', '--play-puzzle-text']) {
-        assert.ok(chromeBudget.includes(`var(${token})`), `the board reserves ${token}`);
-    }
+    const model = await source('board-layout.css');
+    assert.match(model, /--play-board-limit:[^;]*var\(--play-column\)[^;]*100dvh[^;]*var\(--board-reference-chrome\)/);
+    assert.doesNotMatch(css, /--play-chrome|--play-puzzle-text/);
     assert.match(css, /\.match-actions button\s*\{[^}]*flex:[^;]*min-content;[^}]*overflow-wrap:\s*normal;/);
     assert.match(css, /#match-history\s*\{[^}]*flex-wrap:\s*nowrap;/);
     assert.match(css, /#match-history :is\(#match-previous, #match-next\)\s*\{[^}]*min-inline-size:\s*var\(--play-action-size\);/);
     assert.match(puzzleCss, /grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) auto;/);
-    assert.match(puzzleCss, /\.quest-study-board-and-details\s*\{[^}]*container-type:\s*size;/);
-    assert.match(puzzleCss, /#quest-study-board\s*\{[^}]*inline-size:\s*min\(100%, var\(--play-board-limit\), max\(0px, 100cqb - 2lh\)\)/);
+    assert.match(puzzleCss, /\.quest-study-board-and-details\s*\{[^}]*container-type:\s*inline-size;/);
+    assert.match(puzzleCss, /#quest-study-board\s*\{[^}]*inline-size:\s*min\(100%, var\(--play-board-limit\)\)/);
+    assert.match(puzzleCss, /#quest-study-game\s*\{[^}]*min-block-size:\s*calc\(100dvh - var\(--quest-insets\)\);/);
     assert.match(puzzleCss, /\.quest-study-details,[^}]*overflow:\s*auto;/);
 
     assert.match(puzzleCss, /#quest-study-turn\s*\{[^}]*block-size:\s*calc\(1lh \+ 2 \* var\(--quest-turn-padding\)\)/,
@@ -263,8 +261,8 @@ test('Compact AI board spends the available width only on the rail, gap and squa
     const css = await readFile(new URL('../src/main/web/game-review.css', import.meta.url), 'utf8');
     const rule = css.match(/\.match\[data-mode="AI"\] > \.match-board-frame\s*\{([^}]+)\}/)?.[1];
     assert.ok(rule, 'the compact rule applies to the AI match board');
-    assert.match(rule, /--match-meter-width:\s*8px;/);
-    assert.match(rule, /--match-meter-gap:\s*2px;/);
+    assert.match(rule, /--match-meter-width:\s*var\(--board-meter-size\);/);
+    assert.match(rule, /--match-meter-gap:\s*var\(--board-meter-gap\);/);
     assert.match(rule, /grid-template-columns:\s*var\(--match-meter-width\)\s+minmax\(0,\s*1fr\)/);
     assert.match(rule, /inline-size:\s*min\(100%,\s*calc\(var\(--play-board-limit\)\s*\+\s*var\(--match-meter-width\)\s*\+\s*var\(--match-meter-gap\)\)\)/);
     assert.match(css, /match-board-frame:has\(\.match-inline-meter\[hidden\]\)\s*\{[^}]*--match-meter-width:\s*0px;[^}]*--match-meter-gap:\s*0px;/);
@@ -291,7 +289,8 @@ test('Replay layout caps puzzle, match and analysis boards at the originating sq
         .map(name => readFile(new URL('../src/main/web/' + name, import.meta.url), 'utf8')));
     for (const [index, selector] of ['#quest-study-replay-board', '#match-inline-preview-board.board'].entries()) {
         const rule = css[index].slice(css[index].indexOf(selector)).split('}')[0];
-        assert.match(rule, /(?:inline-size|width): min\(100%, var\(--replay-board-side, var\(--play-board-limit\)\),/);
+        assert.match(rule, /(?:inline-size|width): min\(100%, var\(--replay-board-side, var\(--play-board-limit\)\)\)/);
+        assert.doesNotMatch(rule, /100cqb|100cqh/);
     }
     assert.match(css[2], /\.analysis-study-replay \.analysis-study-stack\s*\{\s*max-inline-size: var\(--replay-board-side, 100%\);/);
 });
