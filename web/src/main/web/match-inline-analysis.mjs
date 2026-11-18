@@ -1,5 +1,6 @@
 import { analysisHintDescription, analysisScore, renderAnalysisEvidence, renderAnalysisMeter } from './study-analysis.mjs';
 import { rememberBoardSize } from './study-board-size.mjs';
+import { renderLinePosition } from './line-navigation.mjs';
 
 export function createInlineAnalysisSession({ createWorker, publish }) {
     let current;
@@ -150,8 +151,9 @@ export function bindInlineMatchAnalysis({ find, locale, createWorker, createBoar
         previous.disabled = preview.ply === 0;
         next.disabled = preview.ply >= preview.total;
         position.dataset.step = preview.ply;
-        setText(position, words.step + ' ' + preview.ply + ' ' + words.of + ' ' + preview.total
-            + (preview.lastMove ? ' · ' + notation(preview.lastMove) : ''));
+        renderLinePosition(position, { ply: preview.ply, total: preview.total,
+            text: words.step + ' ' + preview.ply + ' ' + words.of + ' ' + preview.total
+                + (preview.lastMove ? ' · ' + notation(preview.lastMove) : '') });
         const key = preview.branches.join(' ');
         if (branches.dataset.moves !== key) {
             branches.dataset.moves = key;

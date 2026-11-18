@@ -1,5 +1,6 @@
 import { attachOptionsMenu } from './options-menu.mjs';
 import { rememberBoardSize } from './study-board-size.mjs';
+import { renderLinePosition } from './line-navigation.mjs';
 
 const copy = {
     en: {
@@ -244,7 +245,9 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
 
     function mount() {
         const header = text('div', '', 'analysis-study-header');
+        header.setAttribute('data-chess-header', '');
         const backButton = button(words.back, back, '‹');
+        backButton.setAttribute('data-chess-back', '');
         const title = text('h2', words.title);
         const reset = button(words.reset, () => void request('reset'), '↺');
         const menu = text('div', '', 'analysis-study-menu options-anchor');
@@ -310,6 +313,7 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         const history = text('nav', '', 'analysis-study-history');
         history.setAttribute('aria-label', words.history);
         const navigation = text('div', '', 'analysis-study-navigation analysis-study-toolbar');
+        navigation.setAttribute('data-chess-navigation', '');
         const previous = button(words.previous, () => void seek((state.preview ?? state).ply - 1), '‹');
         const playback = text('p', '', 'analysis-study-playback');
         playback.setAttribute('aria-live', 'polite');
@@ -324,12 +328,14 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         const feedback = text('div', '', 'analysis-study-feedback');
         feedback.append(score, replay);
         const variants = text('div', '', 'analysis-study-variants');
+        variants.setAttribute('data-chess-lines', '');
         const evidence = text('p', '', 'analysis-study-evidence');
         const replayDetails = text('div', '', 'analysis-study-replay-details');
         replayDetails.hidden = true;
         replayDetails.append(evidence);
         variants.hidden = true;
         navigation.append(previous, playback, history, next, latest, hint);
+        for (const arrow of [previous, next, latest]) arrow.setAttribute('data-chess-arrow', '');
         const promotion = document.createElement('dialog');
         promotion.setAttribute('aria-label', words.promote);
         const promotionChoices = text('div', '', 'analysis-study-navigation');
@@ -422,7 +428,8 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         controls.variants.hidden = controls.replayDetails.hidden = !preview;
         if (preview) {
             const move = frame.lastMove || preview.branches[preview.branch];
-            controls.playback.textContent = words.step(frame.ply, frame.total) + (move ? ' · ' + notation(move) : '');
+            renderLinePosition(controls.playback, { ply: frame.ply, total: frame.total,
+                text: words.step(frame.ply, frame.total) + (move ? ' · ' + notation(move) : '') });
             const key = preview.branches.join(' ');
             if (key !== controls.variants.dataset.branches) {
                 controls.variants.replaceChildren(...preview.branches.map((move, index) => {

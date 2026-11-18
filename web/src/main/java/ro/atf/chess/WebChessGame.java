@@ -248,6 +248,7 @@ final class WebChessGame {
         }
         var history = new StringBuilder("[");
         for (int ply = 1; ply <= match.ply(); ply++) appendMove(history, match.moveAt(ply));
+        var navigation = MatchHistorySelection.at(match, viewPly);
         String raw = match.checkpoint();
         String checkpoint = isAi ? MatchLedger.AI_PREFIX + raw : raw;
         return "{\"revision\":" + revision + ",\"fen\":" + quote(placement(position))
@@ -263,7 +264,14 @@ final class WebChessGame {
                 + ",\"resigned\":" + match.resigned() + ",\"menu\":" + menu(match, latest)
                 + ",\"slot\":" + slot + ",\"archiveId\":" + quote(archiveId) + ",\"readOnly\":" + (archiveId != null)
                 + ",\"canContinue\":" + !latest + ",\"history\":" + history.append(']')
+                + ",\"navigation\":" + navigation(navigation)
                 + ",\"legalMoves\":" + legal.append(']') + ",\"lastMove\":" + move(match.moveAt(viewPly)) + "}";
+    }
+
+    private static String navigation(MatchHistorySelection value) {
+        return "{\"ply\":" + value.ply() + ",\"total\":" + value.total() + ",\"number\":" + value.number()
+                + ",\"side\":" + (value.side() == null ? "null" : quote(value.side().name())) + ",\"move\":" + move(value.move())
+                + ",\"boundary\":" + quote(value.boundary().name()) + ",\"compact\":" + quote(value.compact()) + "}";
     }
 
     private String menu(ChessMatch match, boolean latest) {

@@ -1,5 +1,6 @@
 import { attachOptionsMenu } from './options-menu.mjs';
 import { rememberBoardSize } from './study-board-size.mjs';
+import { renderLinePosition } from './line-navigation.mjs';
 
 const progressKey = 'chesslab.puzzle-progress.v1';
 const defenseDelay = 650;
@@ -285,11 +286,14 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         <button id="quest-study-retry" type="button" hidden></button>
         <button id="quest-study-error-home" type="button" hidden></button>
         <section id="quest-study-menu" hidden>
-          <h2 id="quest-study-title"></h2><p id="quest-study-total"></p><p id="quest-study-series"></p>
-          <div id="quest-study-chapters"></div><button id="quest-study-home" type="button"></button>
+          <header data-chess-header><button id="quest-study-home" data-chess-back type="button">‹</button><h2 id="quest-study-title"></h2></header>
+          <p id="quest-study-total"></p><p id="quest-study-series"></p>
+          <div id="quest-study-chapters"></div>
         </section>
         <section id="quest-study-game" hidden>
-          <header class="quest-study-head">
+          <header class="quest-study-head" data-chess-header>
+            <button id="quest-study-back" data-chess-back type="button">‹</button>
+            <h2 id="quest-study-chapter"></h2><span id="quest-study-rank"></span>
             <div id="quest-study-options-anchor" class="options-anchor">
               <button id="quest-study-option-title" type="button" aria-controls="quest-study-options" aria-expanded="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4,6h16 M4,12h16 M4,18h16"/></svg>
@@ -299,7 +303,6 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
                 <button id="quest-study-game-home" type="button"></button>
               </div>
             </div>
-            <h2 id="quest-study-chapter"></h2><span id="quest-study-rank"></span>
           </header>
           <div class="quest-study-score"><strong id="quest-study-score"></strong>
             <span id="quest-study-series-badge" class="quest-study-series"><svg viewBox="0 0 24 24" aria-hidden="true">
@@ -318,8 +321,8 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
           </div>
           <p id="quest-study-announcement" class="visually-hidden" role="status" aria-atomic="true"></p>
           <div class="quest-study-footer">
-            <nav class="quest-study-actions">
-              <button id="quest-study-previous" type="button">‹</button>
+            <nav class="quest-study-actions" data-chess-navigation>
+              <button id="quest-study-previous" data-chess-arrow type="button">‹</button>
               <button id="quest-study-hint" type="button">
                 <svg id="quest-study-lamp-piece" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M9,18L9,16C9,14.9 8.1,14.2 7.5,13.4C6.6,12.3 6,10.9 6,9.5C6,6.2 8.7,3.5 12,3.5C15.3,3.5 18,6.2 18,9.5C18,10.9 17.4,12.3 16.5,13.4C15.9,14.2 15,14.9 15,16L15,18ZM10,21L14,21"/>
@@ -327,7 +330,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
                 <svg id="quest-study-lamp-move" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M6,18L18,6M11,6L18,6L18,13"/></svg>
                 <svg id="quest-study-lamp-explain" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M3,5C6,4 9,4 12,6C15,4 18,4 21,5L21,18C18,17 15,17 12,19C9,17 6,17 3,18ZM12,6L12,19"/></svg>
               </button>
-              <button id="quest-study-next" type="button">›</button>
+              <button id="quest-study-next" data-chess-arrow type="button">›</button>
             </nav>
             <p id="quest-study-hint-label" aria-hidden="true"></p>
           </div>
@@ -337,8 +340,8 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
           <button id="quest-study-promote-close" type="button"></button>
         </div></dialog>
         <dialog id="quest-study-explanation" aria-labelledby="quest-study-explain-title"><div class="quest-study-dialog">
-          <div class="quest-study-dialog-head"><h3 id="quest-study-explain-title"></h3>
-            <button id="quest-study-explain-close" type="button"></button></div>
+          <div class="quest-study-dialog-head" data-chess-header>
+            <button id="quest-study-explain-close" data-chess-back type="button">‹</button><h3 id="quest-study-explain-title"></h3></div>
           <div class="quest-study-replay-body">
             <div id="quest-study-replay" hidden><div id="quest-study-replay-board" class="quest-study-board"></div></div>
             <div id="quest-study-replay-details" class="quest-study-replay-details" tabindex="0" role="region">
@@ -347,10 +350,10 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
               <p id="quest-study-explain-text"></p>
             </div>
           </div>
-          <nav id="quest-study-replay-actions" class="quest-study-actions" hidden>
-            <button id="quest-study-replay-previous" type="button">‹</button>
+          <nav id="quest-study-replay-actions" class="quest-study-actions" data-chess-navigation hidden>
+            <button id="quest-study-replay-previous" data-chess-arrow type="button">‹</button>
             <button id="quest-study-threat" type="button" aria-pressed="false"></button>
-            <button id="quest-study-replay-next" type="button">›</button>
+            <button id="quest-study-replay-next" data-chess-arrow type="button">›</button>
           </nav>
           <div id="quest-study-lesson-actions" hidden>
             <button id="quest-study-explain-replay" type="button"></button>
@@ -658,7 +661,8 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         setText('danger-reason', !threat ? '' : threat.kind === 'MATE' ? words.provenMate(threat.square)
             : words.provenCapture(threat.square, signedMaterial(threat.gain)));
         at('explain-text').textContent = replayExplanation(replay, current, final);
-        setText('replay-status', replayStatus.filter(Boolean).join(' · '));
+        renderLinePosition(at('replay-status'), { ply: replayPly, total: replay.frames.length - 1,
+            text: replayStatus.filter(Boolean).join(' · ') });
         at('replay-details').scrollTop = 0;
         replayView.render({ board: current.board, sideToMove: current.sideToMove, blackBelow,
             marks: danger && current.danger ? [mark(current.danger.square)] : [], lastMove: current.lastMove, locked: true });
@@ -706,6 +710,12 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
         else if (puzzle?.attempt) openAttempt();
     });
     handler('home', () => void goHome());
+    at('home').textContent = '‹';
+    at('home').setAttribute('aria-label', words.home);
+    at('explain-close').textContent = '‹';
+    at('explain-close').setAttribute('aria-label', words.close);
+    at('back').setAttribute('aria-label', locale === 'ro' ? 'Înapoi la probleme' : 'Back to puzzles');
+    handler('back', () => void showMenu());
     handler('game-home', () => void goHome());
     handler('error-home', () => void goHome());
     root.addEventListener('keydown', event => {

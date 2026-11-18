@@ -20,7 +20,7 @@
   font-size: 1.45rem;
   padding: .3rem;
 }
-.opening-header h2 { font-size: 1.3rem; margin: 0; }
+.opening-header h2 { font-size: var(--chess-screen-title); margin: 0; }
 .opening-catalog {
   display: grid;
   gap: .5rem;
@@ -55,7 +55,7 @@
 .opening-study:has(.opening-workspace:not([hidden])) > .opening-header,
 .opening-navigation { padding-inline: 10px; gap: 8px; }
 .opening-study:has(.opening-workspace:not([hidden])) > .opening-header h2 {
-  font-size: 1.3125rem;
+  font-size: var(--chess-screen-title);
   line-height: 1.15;
   overflow-wrap: anywhere;
 }

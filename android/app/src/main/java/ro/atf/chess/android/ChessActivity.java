@@ -362,7 +362,7 @@ public final class ChessActivity extends BackNavigableActivity {
         status.setId(R.id.match_status);
         screen.addView(status, new LinearLayout.LayoutParams(-1, -2));
         if (matchAnalysis != null) screen.addView(matchAnalysis);
-        history = new MatchHistoryView(this, this::notation, this::reviewMatch, matchAnalysis == null ? null : matchAnalysis.bulb());
+        history = new MatchHistoryView(this, this::notation, this::reviewMatch, true, matchAnalysis == null ? null : matchAnalysis.bulb());
         screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
         return screen;
     }

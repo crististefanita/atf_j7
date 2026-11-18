@@ -167,6 +167,10 @@ adapter. Keep those observations distinct from the offline component verdict.
 
 Compare the same checkpoint and ply in the JVM and worker. Use native and browser probes for the rendered bar, lightbulb, and fixed board.
 
+`MatchHistorySelectionTest` verifies the single game-move cursor against fourteen shared cases. The Web component covers both wire formats, unchanged live announcements, history growth, branching and stale cursors. The compiled worker checks projection parity and orientation. In Browser MCP, step from Start through the first, intermediate and latest move at compact, landscape and desktop sizes; verify one label between the arrows, boundary cues and an unchanged board rectangle. The APK adapter uses the shared cursor in game mode and preserves the Analysis board's history strip.
+
+`NavigationGovernanceTest` registers the shared title, Back and navigation styling, the adapters that consume the line projection and the variant collections that must remain available. Component probes retain the Analysis board's complete history, both opening and calculated-line branches, and puzzle hint/Danger controls. A rendered Web check visits Games, Puzzles, Openings and Analysis board, including their contextual Back path; it must not infer Android rendering from Web captures.
+
 <details>
 <summary>Shared cases, screens, and receipts</summary>
 
