@@ -793,7 +793,7 @@ Cele trei partide limitate păstrează rezultatul `*`. Nu produc Elo sau ΔElo n
 
 ## Indiciul Caro–Kann și verificarea recapturii după pionul cu șah
 
-După `1.e4 c6 2.d4 d5 3.e5 c5 4.Nc3 Nc6 5.dxc5 d4 6.e6`, indiciul alege acum `…dxc3` în loc de `…fxe6`. Vechea comparație H6 se oprea după `Qxd8+`, fără recaptura legală de cal. Închiderea doar a șahului nu ajungea: o captură ulterioară de piesă putea rămâne fără răspuns. Închiderea generală a pierdut pe un istoric independent și a fost respinsă.
+După `1.e4 c6 2.d4 d5 3.e5 c5 4.Nc3 Nc6 5.dxc5 d4 6.e6`, indiciul alege acum `…dxc3` în loc de `…fxe6`. Vechea comparație H6 se oprea după `Qxd8`, fără recaptura legală de cal. Închiderea doar a șahului nu ajungea: o captură ulterioară de piesă putea rămâne fără răspuns. Închiderea generală a pierdut pe un istoric independent și a fost respinsă.
 
 Domeniul acceptat compară capturi de pion și de piesă numai când luarea piesei permite o captură adversă legală de pion cu șah. La frontiera obișnuită poate urmări caseta ultimei capturi încă cel mult două semimutări, inclusiv ieșirile legale din șah. Evaluarea fără mutare nu este permisă în șah cât timp extensia este activă. Limita este `hint.verification-recapture-plies` din schema 8; zero o dezactivează. Căutarea inițială, jocul nativ obișnuit și bara păstrează politicile lor. Identitatea cache-ului include modul recapturii, deci o valoare inițială nu poate substitui dovada extinsă. Tăierile și lucrul întrerupt nu devin valori exacte în cache. Comparația selectivă poate înlocui liderul fără să introducă oferte echivalente noi.
 
