@@ -142,6 +142,8 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 
 - In a mobile AI match, the board and evaluation bar together use the full usable width when width limits the square's side. When analysis is enabled, the bar and its gap occupy a strip on the left.
 - In a shorter window, the available height leaves room for the score, history, and lightbulb. Navigating history and reopening the slot retain the board rectangle.
+- Between the game arrows, show only the move that produced the selected position, for example **1. e2–e4** or **1… e7–e5**. **Start** identifies the initial position. The first move is amber and the latest is turquoise; a single move combines both cues. Accessible labels name the boundary as well. Continuation stays outside this row. `MatchHistorySelection` owns the JVM cursor; Web and APK adapters share fourteen cases, including capture, castling, promotion, reopening and branching.
+- Openings supplies the title-and-Back header pattern; Analysis board supplies the compact navigation controls. `chess-controls.css` shares title scale, 48 px arrows and position styling. `line-navigation.mjs` projects the boundary of the selected line. Game, study and preview adapters keep their own wording, complete history and branch selectors; switching a line retains its owner's cursor. Puzzle navigation keeps its hint or Danger control. Back returns to the context that opened the screen, and options stay anchored to their own trigger.
 - [Compact RO/EN check](../docs/testing/README.md#analysis-in-the-ai-game)
 
 Puzzles size the board from the available space after reserving room for

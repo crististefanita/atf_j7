@@ -132,6 +132,7 @@ async function mountLesson(locale) {
   class Element {
     children = [];
     attributes = new Map();
+    dataset = {};
     events = new Map();
     classList = { add() {}, toggle() {} };
     style = { setProperty() {} };
@@ -211,9 +212,11 @@ for (const [locale, title, hint] of [
     caption.click();
     const dialog = find('opening-dialog');
     assert.ok(dialog.open);
-    assert.equal(dialog.children[0].textContent, title);
+    assert.equal(dialog.children[0].attributes.has('data-chess-header'), true);
+    assert.equal(dialog.children[0].children[1].textContent, title);
     assert.equal(find('opening-message-full').textContent, longPlan);
-    dialog.children.at(-1).click();
+    assert.equal(dialog.children[0].children[0].attributes.get('aria-label'), locale === 'ro' ? 'Închide' : 'Close');
+    dialog.children[0].children[0].click();
     assert.equal(document.activeElement, caption);
     assert.equal(live.textWrites, 1);
 

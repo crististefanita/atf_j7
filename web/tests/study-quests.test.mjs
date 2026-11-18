@@ -136,6 +136,7 @@ async function mountPuzzle(state, call, locale = 'ro') {
         children = [];
         events = new Map();
         attributes = new Map();
+        dataset = {};
         #text = '';
         textWrites = 0;
         hidden = false;

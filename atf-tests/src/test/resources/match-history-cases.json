@@ -1,0 +1,16 @@
+[
+  {"id":"empty","moves":[],"ply":0,"boundary":"START","compact":""},
+  {"id":"single-start","moves":["e2e4"],"ply":0,"boundary":"START","compact":""},
+  {"id":"single-move","moves":["e2e4"],"ply":1,"boundary":"ONLY","compact":"1. e2–e4"},
+  {"id":"first","moves":["e2e4","e7e5","g1f3","b8c6","f1b5"],"ply":1,"boundary":"FIRST","compact":"1. e2–e4"},
+  {"id":"black-middle","moves":["e2e4","e7e5","g1f3","b8c6","f1b5"],"ply":2,"boundary":"MIDDLE","compact":"1… e7–e5"},
+  {"id":"white-middle","moves":["e2e4","e7e5","g1f3","b8c6","f1b5"],"ply":3,"boundary":"MIDDLE","compact":"2. g1–f3"},
+  {"id":"white-last","moves":["e2e4","e7e5","g1f3","b8c6","f1b5"],"ply":5,"boundary":"LAST","compact":"3. f1–b5"},
+  {"id":"branched-first","moves":["d2d4","d7d5"],"ply":1,"boundary":"FIRST","compact":"1. d2–d4"},
+  {"id":"black-last","moves":["d2d4","d7d5"],"ply":2,"boundary":"LAST","compact":"1… d7–d5"},
+  {"id":"capture","moves":["e2e4","d7d5","e4d5"],"ply":3,"boundary":"LAST","compact":"2. e4–d5"},
+  {"id":"en-passant","moves":["e2e4","a7a6","e4e5","d7d5","e5d6"],"ply":5,"boundary":"LAST","compact":"3. e5–d6"},
+  {"id":"castle","fen":"r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1","moves":["e1g1"],"ply":1,"boundary":"ONLY","compact":"1. e1–g1"},
+  {"id":"promotion","fen":"k7/7P/8/8/8/8/8/4K3 w - - 0 1","moves":["h7h8q"],"ply":1,"boundary":"ONLY","compact":"1. h7–h8=Q"},
+  {"id":"black-underpromotion","fen":"4k3/8/8/8/8/8/1p6/4K3 b - - 0 1","moves":["b2b1n"],"ply":1,"boundary":"ONLY","compact":"1… b2–b1=N"}
+]

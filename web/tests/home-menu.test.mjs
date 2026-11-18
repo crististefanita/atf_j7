@@ -37,7 +37,7 @@ test('Inline analysis starts unchecked and shares the board frame geometry', asy
 
 test('Home ends with native settings and archive tools belong to standalone review', async () => {
     const html = await read('web/src/main/web/index.html');
-    const header = html.match(/<header>([^]*?)<\/header>/)?.[1];
+    const header = html.match(/<main>\s*<header[^>]*>([^]*?)<\/header>/)?.[1];
     const home = html.slice(html.indexOf('<div id="home-menu"'), html.indexOf('<section id="review-tools"'));
     const tools = html.match(/<section id="review-tools"[^>]*hidden>([^]*?)<\/section>/)?.[1];
     assert.ok(header && home && tools);
@@ -389,7 +389,9 @@ test('The match options expose native board actions in RO and EN', async () => {
         read('android/app/src/main/res/values/strings.xml'), read('android/app/src/main/res/values-ro/strings.xml'),
     ]);
     assert.match(toolbar, /android:contentDescription="@string\/match_actions"/);
-    const anchor = html.match(/<div id="match-options-anchor"[^>]*>([^]*?)<h1 id="title">/)?.[1];
+    const header = html.match(/<main>\s*<header[^>]*>([^]*?)<\/header>/)?.[1];
+    assert.match(header, /id="return-menu"[^]*?id="title"[^]*?id="match-options-anchor"/);
+    const anchor = header.slice(header.indexOf('<div id="match-options-anchor"'), header.indexOf('<div class="header-actions"'));
     assert.match(anchor, /id="match-options-button"[^>]+aria-controls="match-options" aria-expanded="false"/);
     const panel = anchor.match(/<div id="match-options"[^>]* role="group"[^>]* hidden>([^]*?)<\/div>/)?.[1];
     assert.deepEqual([...panel.matchAll(/<button id="([^"]+)"/g)].map(entry => entry[1]),

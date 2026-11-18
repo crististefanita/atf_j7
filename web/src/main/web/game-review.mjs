@@ -9,6 +9,7 @@ import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 import { createMatchBotTimer } from './match-bot-timer.mjs';
 import { bindInlineMatchAnalysis, guidedMatchMove } from './match-inline-analysis.mjs';
+import { renderMatchHistory } from './match-history.mjs';
 import { attachOptionsMenu, followOptionsMenu } from './options-menu.mjs';
 import { createReviewImport } from './review-import.mjs';
 
@@ -221,6 +222,10 @@ for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 
     find(id).textContent = words[id];
 }
 for (const id of ['movement', 'previous', 'next', 'close-why', 'review-actions', 'next-key']) find(id).setAttribute('aria-label', words[id]);
+for (const id of ['return-menu', 'archive-review-back', 'review-close']) {
+    find(id).textContent = '‹';
+    find(id).setAttribute('aria-label', words[id]);
+}
 find('open-match-analysis').textContent = homeLabels[locale]['home-analysis'];
 matchOptionsButton.setAttribute('aria-label', words['match-options-title']);
 matchOptions.setAttribute('aria-label', words['match-options-title']);
@@ -681,8 +686,8 @@ function renderMatch() {
         const summary = words.aiProfile(levels[match.level], words[`${match.humanSide.toLowerCase()}-choice`]);
         find('match-profile').textContent = homeMenu.name ? `${homeMenu.name} · ${summary}` : summary;
     }
-    find('match-history').hidden = match.ply === 0 && !match.analysisEnabled;
-    find('match-ply').textContent = `${match.viewPly}/${match.ply}`;
+    find('match-history').hidden = false;
+    renderMatchHistory(find('match-ply'), match, locale);
     find('match-previous').disabled = match.viewPly === 0;
     find('match-next').disabled = !browsing;
     find('continue-match').hidden = !match.canContinue;
@@ -788,7 +793,7 @@ function showMode(nextMode, addHistory = false) {
     const studying = Object.hasOwn(studyPanels, mode);
     find('title').textContent = mode === 'home' ? 'Chess Lab' : studying ? homeLabels[locale][studyRoutes[mode][0]] : words[title[mode] ?? 'title'];
     document.title = mode === 'home' ? 'Chess Lab' : `Chess Lab · ${find('title').textContent}`;
-    find('return-menu').hidden = !listing && mode !== 'archive' && !(mode === 'review' && !view);
+    find('return-menu').hidden = !listing && mode !== matchRoute && mode !== 'archive' && !(mode === 'review' && !view);
     find('archive-review-back').hidden = mode !== 'archive-review';
     find('ai-setup').hidden = mode !== 'ai' || !setupVisible;
     find('cancel-setup').hidden = !setupBackMode;

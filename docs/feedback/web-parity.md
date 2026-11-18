@@ -22,6 +22,11 @@ equivalent decisions in `ChessActivity`, `AnalysisActivity`, and the Web
 adapter. Start with resuming, canceling, and receiving a delayed AI reply.
 [Engine and projection](../testing/README.md#engine-and-projection)
 
+**P1 · Web compilation · Hard proof digest.** At source `9f4fff3`, the full Web build fails in
+[`PawnPushProof.hash`](../../chess-core/src/main/java/ro/atf/chess/PawnPushProof.java): TeaVM cannot compile the reachable JCA provider path behind `MessageDigest.getInstance("SHA-256")`.
+The JVM classes compile, and the Android adapter compiles separately. Keep the qualified published engine for UI-only bundles.
+Before publishing a new engine, use a deterministic portable digest and verify identical proof IDs on JVM and TeaVM, then rerun the complete Web build and Hard controls. Do not qualify the failed engine from its successful JVM compilation alone.
+
 **Closure checks**
 
 - On the JVM and in the worker, use the same case with a simulated clock and

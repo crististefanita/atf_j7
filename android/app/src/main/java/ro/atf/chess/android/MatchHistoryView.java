@@ -11,10 +11,12 @@ import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition.Move;
+import ro.atf.chess.MatchHistorySelection;
 
 final class MatchHistoryView extends LinearLayout {
     private static final int MUTED = 0xffc0bfb4;
@@ -22,6 +24,7 @@ final class MatchHistoryView extends LinearLayout {
     private static final int CONTROL_SIZE = 48;
     private final LinearLayout moves;
     private final HorizontalScrollView scroll;
+    private final TextView current;
     private final ImageButton previous;
     private final ImageButton next;
     private final ImageButton latest;
@@ -32,6 +35,10 @@ final class MatchHistoryView extends LinearLayout {
     private ChessMatch boundLine;
 
     MatchHistoryView(Context context, Function<Move, String> notation, IntConsumer select, View... actions) {
+        this(context, notation, select, false, actions);
+    }
+
+    MatchHistoryView(Context context, Function<Move, String> notation, IntConsumer select, boolean singleMove, View... actions) {
         super(context);
         this.notation = notation;
         this.select = select;
@@ -40,25 +47,44 @@ final class MatchHistoryView extends LinearLayout {
         setBackgroundColor(0xff2b2926);
         previous = control(R.id.match_history_previous, R.drawable.match_chevron, R.string.match_history_previous, () -> select.accept(shown - 1));
         previous.setScaleX(-1);
-        scroll = new HorizontalScrollView(context);
-        scroll.setHorizontalScrollBarEnabled(false);
-        scroll.setHorizontalFadingEdgeEnabled(true);
-        scroll.setFadingEdgeLength(dp(6));
         moves = new LinearLayout(context);
         moves.setId(R.id.match_history_moves);
         moves.setBaselineAligned(false);
-        scroll.addView(moves, new HorizontalScrollView.LayoutParams(-2, -2));
-        addView(scroll, new LayoutParams(0, -2, 1));
+        if (singleMove) {
+            scroll = null;
+            current = new TextView(context);
+            current.setGravity(Gravity.CENTER);
+            current.setTextDirection(TEXT_DIRECTION_LTR);
+            current.setTextSize(12);
+            current.setMaxLines(2);
+            current.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);
+            moves.addView(current, new LayoutParams(0, dp(CONTROL_SIZE), 1));
+            addView(moves, new LayoutParams(0, dp(CONTROL_SIZE), 1));
+        } else {
+            current = null;
+            scroll = new HorizontalScrollView(context);
+            scroll.setHorizontalScrollBarEnabled(false);
+            scroll.setHorizontalFadingEdgeEnabled(true);
+            scroll.setFadingEdgeLength(dp(6));
+            scroll.addView(moves, new HorizontalScrollView.LayoutParams(-2, -2));
+            addView(scroll, new LayoutParams(0, -2, 1));
+        }
         next = control(R.id.match_history_next, R.drawable.match_chevron, R.string.match_history_next, () -> select.accept(shown + 1));
         latest = control(R.id.match_history_latest, R.drawable.match_latest, R.string.match_history_latest, () -> select.accept(end));
         for (View action : actions) {
             if (action != null) addView(action, new LayoutParams(dp(CONTROL_SIZE), dp(CONTROL_SIZE)));
         }
-        moves.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> keepSelectionVisible());
-        scroll.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> keepSelectionVisible());
+        if (scroll != null) {
+            moves.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> keepSelectionVisible());
+            scroll.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> keepSelectionVisible());
+        }
     }
 
     void show(ChessMatch match, int ply) {
+        if (current != null) {
+            showCurrent(MatchHistorySelection.at(match, ply));
+            return;
+        }
         if (boundLine != match && boundLine != null) {
             int common = Math.min(end, match.ply());
             while (common > 0 && boundLine.positionAt(common) != match.positionAt(common)) common--;
@@ -77,6 +103,35 @@ final class MatchHistoryView extends LinearLayout {
         shown = ply;
         moves.getChildAt(ply).setSelected(true);
         keepSelectionVisible();
+    }
+
+    private void showCurrent(MatchHistorySelection value) {
+        shown = value.ply();
+        end = value.total();
+        previous.setEnabled(shown > 0);
+        next.setEnabled(shown < end);
+        latest.setEnabled(shown < end);
+        String label = value.move() == null ? getContext().getString(R.string.match_history_start) : value.compact();
+        if (!label.contentEquals(current.getText())) current.setText(label);
+        int boundary = switch (value.boundary()) {
+            case START -> R.string.match_history_start;
+            case FIRST -> R.string.match_history_first;
+            case LAST -> R.string.match_history_last;
+            case ONLY -> R.string.match_history_only;
+            case MIDDLE -> 0;
+        };
+        String spoken = value.move() == null ? label : getContext().getString(R.string.match_history_move_description,
+                value.number(), getContext().getString(value.side() == ro.atf.chess.ChessPosition.Side.WHITE ? R.string.white : R.string.black),
+                notation.apply(value.move()));
+        current.setContentDescription(boundary == 0 || value.move() == null ? spoken : getContext().getString(boundary) + ". " + spoken);
+        boolean first = value.boundary() == MatchHistorySelection.Boundary.FIRST || value.boundary() == MatchHistorySelection.Boundary.START;
+        boolean last = value.boundary() == MatchHistorySelection.Boundary.LAST || value.boundary() == MatchHistorySelection.Boundary.ONLY;
+        current.setTextColor(last ? 0xff57e0b4 : first ? 0xffe4be7a : MUTED);
+        var background = new GradientDrawable();
+        background.setColor(last ? 0xff203b35 : first ? 0xff433a29 : 0x00000000);
+        background.setCornerRadius(dp(6));
+        if (value.boundary() == MatchHistorySelection.Boundary.ONLY) background.setStroke(dp(1), 0xffe4be7a);
+        current.setBackground(background);
     }
 
     private void keepSelectionVisible() {
