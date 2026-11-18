@@ -83,6 +83,18 @@ final class StockfishStudyAudit {
         return Math.max(0, free.path("expectedPermille").asDouble() - forced.path("expectedPermille").asDouble());
     }
 
+    static JsonNode phase(JsonNode step, String role, int depth, List<String> history, String root,
+                          java.util.Map<String, JsonNode> receipts) {
+        var key = step.path("queries").path(role).path(Integer.toString(depth));
+        require(key.isTextual() && receipts.containsKey(key.asText()), "Missing oracle phase " + role);
+        var receipt = receipts.get(key.asText());
+        var query = receipt.path("query");
+        require(strings(query.path("history")).equals(history) && query.path("depth").asInt() == depth
+                && (root == null ? query.path("root").isNull() : root.equals(query.path("root").asText())),
+                "Oracle phase belongs to another move, horizon or root");
+        return receipt;
+    }
+
     private static List<String> strings(JsonNode value) {
         require(value.isArray(), "Missing raw oracle array");
         var result = new ArrayList<String>();

@@ -1,0 +1,6 @@
+schema: 1
+oracle-depths: [17, 19]
+native-max-extra-nodes: 200000
+hint-max-total-nodes: 200000
+large-loss-permille: 150
+quality-scope: FIRST_HINT_ALL_OFFERED_AND_FIRST_OPPOSING_REPLY

@@ -74,6 +74,29 @@ class StockfishStudyAuditTest {
                 () -> StockfishStudyAudit.validate(first.get("query"), first.get("identity"), other));
     }
 
+    @Test void thePlanCannotOmitAnOfferedHintOrBorrowAnotherPhase(Checks check) {
+        var receipt = fixture("e2e4", "c7c5");
+        var step = JSON.createObjectNode(); step.putObject("queries").putObject("HINT-1").put("19", "receipt-one");
+        var receipts = java.util.Map.<String, JsonNode>of("receipt-one", receipt);
+        check.same("The offered root resolves to its actual phase", receipt,
+                StockfishStudyAudit.phase(step, "HINT-1", 19, List.of("e2e4"), "c7c5", receipts));
+        check.rejects("A missing second offered suggestion cannot be silently skipped", IllegalArgumentException.class,
+                () -> StockfishStudyAudit.phase(step, "HINT-2", 19, List.of("e2e4"), "e7e5", receipts));
+        check.rejects("A different first move cannot borrow the phase", IllegalArgumentException.class,
+                () -> StockfishStudyAudit.phase(step, "HINT-1", 19, List.of("e2e4"), "e7e5", receipts));
+        step.withObject("/queries/HINT-1").put("17", "receipt-one");
+        check.rejects("A present slot cannot relabel H19 as H17", IllegalArgumentException.class,
+                () -> StockfishStudyAudit.phase(step, "HINT-1", 17, List.of("e2e4"), "c7c5", receipts));
+    }
+
+    @Test void studyPolicyKeepsTheFixedOracleAndLargeLossDefinition(Checks check) {
+        var policy = ChessYaml.resource("hard-hint-study.yaml");
+        check.same("Independent audit uses both complete horizons", List.of(17, 19), ChessYaml.list(policy, "oracle-depths"));
+        check.same("The existing large-loss definition remains 150 permille", 150, ChessYaml.number(policy, "large-loss-permille"));
+        check.same("Hint and native ceilings retain their distinct semantics", List.of(200_000, 200_000),
+                List.of(ChessYaml.number(policy, "native-max-extra-nodes"), ChessYaml.number(policy, "hint-max-total-nodes")));
+    }
+
     private static ObjectNode fixture(String history, String root) {
         var query = JSON.createObjectNode(); query.set("history", JSON.valueToTree(history.isEmpty() ? List.of() : List.of(history.split(" "))));
         if (root == null) query.putNull("root"); else query.put("root", root);
