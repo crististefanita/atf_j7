@@ -176,3 +176,9 @@ flowchart LR
 - In the actions menu, **Show on board** closes Game Review and sets the active cursor to the selected ply. **Try this move again** asks for confirmation before continuing from the previous position for the player's moves, or for either side in study. Cancellation or a lack of free slots keeps the analysis on the current line and step. Confirmed continuation from the archive opens a new match from the original prefix.
 
 - `GameReviewTimeline` validates each move and side against the source. `GameReviewLayout` chooses the geometry from measured dimensions. Component checks and the Android flow verify synchronization, line navigation, and preservation of the match. [Sanity and Extent](../testing/README.md#game-and-history)
+
+## Measured review limitations
+
+The paired 18 November study runs actual `GameReview.analyzeLine` on three capped opening games. It preserves all 60 moves, legal played and recommended PVs, and the absence of study Elo. The played roots have independent Stockfish H17/H19 evidence. Nine disagreements persist at both horizons: three native-positive labels accompany a loss of at least 150‰, and six native severe labels accompany less than 10‰ loss. This does not grade every review alternative independently.
+
+Caro–Kann `6.e6` is BEST with White accuracy 100 while the played root loses 533‰ / 581.5‰. Sicilian `5.Nc3` is BLUNDER with 0‰ / 0‰ loss. These are full-history regression witnesses for comparison and grading, not navigation or archive failures. Local logistic loss points and oracle WDL are distinct models; a legal replay does not certify the classification. [Paired evidence and interpretation](../testing/hard-hint-study.md) · [Open correction criteria](../feedback/README.md)

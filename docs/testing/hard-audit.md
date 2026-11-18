@@ -55,3 +55,7 @@ Use opening pairs as bootstrap units, 20,000 samples and the frozen seed. Keep W
 An interrupted run remains diagnostic evidence. Restart the frozen experiment when a validator correction would otherwise require pooling different producers or sessions. Preserve old raw files and explain their exclusion. A hint-only correction does not establish a causal change in foreground Hard strength, and a smaller calibration does not silently replace the app's governed anchors.
 
 [Hint audit](hint-audit.md) · [Testing strategy](README.md) · [Current AI evidence](../board/ai-quality.md)
+
+## Paired hints during a game
+
+Use `HardHintAuditedGame` when each native move also needs the public hint and bar estimate. It retains the native history-aware decision instead of replaying a hint as the opponent. The [paired Stockfish protocol](hard-hint-study.md) adds raw oracle verification and separate quality verdicts. A capped diagnostic game remains a study and must not enter this league's rated sample.

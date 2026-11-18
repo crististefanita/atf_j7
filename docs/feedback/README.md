@@ -11,10 +11,11 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 |---|---|---|---|
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
+| P1 | Game Review · move classification | Nine grade disagreements persist at both oracle depths, including a missed large loss and a false blunder. | Reproduce and correct classification without changing played history, inventing Elo or substituting hint scores for review evidence. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
-| P1 | Italian · unresolved native exchange | Uniform extension repairs the example but loses three families; queen-only checking revives the false sacrifice. | Resolve the exchange at a common horizon within 200k, preserving controls and independent transfer before a duel. |
-| P1 | Hint · independent alternative accuracy | The correct Sicilian `N1c3` leader still offers the inferior `Bg5`. | Correct the offered alternatives without regressing the leader, with common-horizon and free-reply evidence. |
-| P2 | Hint audit · broader transfer | The initial plan covers three short opening paths and three budgets. | Add new history-separated families and measure leader loss separately from deliberately played lower ranks. |
+| P1 | Italian · unresolved native exchange | Targeted recapture repairs the isolated H6 pair, but complete play and controls regress. | Resolve the complete decision within 200k, preserving 019/021/022 and independent transfer before a duel. |
+| P1 | Hint · leader, alternatives and opposing replies | The paired study finds large losses in 12/60 first hints, 15/83 offered variants and 10/83 first opposing replies. | Repair complete public suggestions and their scored replies at common horizons, preserving correct native choices and independent families. |
+| P2 | Hint audit · broader transfer | Paired native/hint collection and raw H17/H19 replay now cover three capped games. | Freeze new independent histories and verify whether fixes transfer beyond these inspected paths. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
 | P1 | AI profile calibration | The Elo intervals still overlap. | Add paired games to narrow the rating uncertainty. |
@@ -49,6 +50,15 @@ Add compact verification to the promotion gate for geometry changes. Reject a mi
 </details>
 
 <details>
+<summary>P1 · Game Review · move classification</summary>
+
+The actual `GameReview.analyzeLine` preserves all 60 moves and emits no rating for the three capped studies. Nevertheless, `6.e6` in Caro–Kann is BEST and White accuracy is 100 while the played root loses 533‰ at H17 and 581.5‰ at H19. Sicilian `5.Nc3` is BLUNDER with 0‰ loss at both horizons. Across the three games, three positive labels accompany a large oracle loss and six severe labels accompany less than 10‰ loss at both depths.
+
+Freeze these full-history witnesses before fixing the shared comparison. Check native played and recommended roots at a common completed horizon, retain legal replay/bookmarks, and measure new families. Local logistic loss and Stockfish WDL are distinct models; do not make production depend on Stockfish or copy its label mechanically. The current audit grades the played root and checks saved review PV legality; it does not independently certify every review alternative. [Review contract and limitation](../board/game-review.md#measured-review-limitations) · [Paired audit](../testing/hard-hint-study.md)
+
+</details>
+
+<details>
 <summary>P2 · Game Review · NVDA</summary>
 
 NVDA 2026.3.1 repeated the position and score in RO. Component checks and Edge now confirm one accessible value.
@@ -60,31 +70,31 @@ Confirm speech on the corrected build in RO and EN and a return to the same move
 <details>
 <summary>P1 · Italian · unresolved native-search exchange</summary>
 
-The S5 hint remains corrected to `…Qg6`; native Hard retains `…Na5` at H5/100k additional nodes. Its PV ends with `…Nxc4`, before `Nxc6` wins the queen. At H6 the separate exact pair still ranks `…Na5 −154` above `…Qg6 −170 cp`; at their leaves Stockfish H19 finds favorable Black recaptures `…Qxe5` (+306) and `…Nxe5` (+493 cp). Root coverage alone does not resolve the pair.
+The targeted last-capture recapture prototype changes the isolated H6 ordering from `…Na5 −154 / …Qg6 −170 cp` to `−80 / −50 cp`. At the leaves it finds `…Qxe5` and `…Nxe5`; both colors and cold, warm, disabled and narrow-window cache probes preserve the local result. Each isolated root has its own allowance; these probes do not certify a complete decision under one combined budget.
 
-Do not repeat the uniform two-ply extension: it repairs the Italian example but loses three families by at least 150‰ and passes only 83/87 components against the reference's 87/87. Checking only an attacked queen reintroduces `…Bxf2+`. The next probe must handle the unresolved legal exchange without relabeling a shallower search or copying hint selection into game play. Retain `Be2` versus `Nb5`, `Nxc6` versus `Nxc7+`, families 019/021/022, sound sacrifices and Sicilian/Caro–Kann controls. After independent transfer within the 200k additional-node maximum, measure a color-reversed candidate–live duel.
+The complete candidate instead chooses `…Bxf2+`, evaluated at −311 cp and 0‰ by Stockfish H19. It also loses 478.5‰, 191.5‰ and 516‰ in controls 019/021/022. Sicilian `…cxd4` and Caro–Kann `…d5` remain unchanged. Reject this prototype and the earlier uniform and queen-only extensions. Preserve the last-capture context in cache identity; do not copy the hint into native play or loosen the stability veto.
 
-The live engine is unchanged. Applicable local Elo remains 1,507 [1,357–1,656] from 100 games; no new candidate ΔElo exists for the rejected probes. The repaired native benchmark retains every accuracy floor and adds a position-level audit. [Evidence and results](../board/ai-quality.md#native-frontier-study-and-quest-audit) · [Audit contracts](../testing/hard-audit.md#position-only-puzzle-audit)
+Next isolate why closing the exchange changes the complete leader and the three controls. Require full-history, same-horizon free opposing replies and a complete native decision within 200k additional nodes before untouched transfer and a paired duel. The corrected S5 public hint remains `…Qg6`; native Hard remains `…Na5`. The live engine is unchanged, so there is no new candidate ΔElo. [Measured study](../board/ai-quality.md#paired-nativehint-study-and-recapture-rejection) · [Audit contract](../testing/hard-hint-study.md)
 
 </details>
 
 <details>
-<summary>P1 · Hint · independent alternative accuracy</summary>
+<summary>P1 · Hint · leader, alternatives and opposing replies</summary>
 
-The primary Sicilian `…Nd7` alternative and Caro–Kann `…d6` leader are corrected. The remaining transfer gap is visible in the Sicilian neighbor with `Nc3`, where the existing `…Nd7` leader gives 44.5‰ versus 479.5‰ for `…cxd4` at H19. In the Caro–Kann `Nc3` neighbor, `…d6` still gives 400‰ versus 482‰ for `…d5`. The critical pre-`Nxc2` leader remains `…Nf6`, while its offered `…b5` is weaker. Catalan `cxd5` remains inferior to Stockfish's `Nf3`. [Completed comparisons](../board/ai-quality.md#selective-hint-comparison-and-move-by-move-audit)
+The earlier Sicilian S7 `N1c3` leader remains sound while offered `Bg5` loses 484.5‰ against the free H19 root. The new source-qualified three-path collection exposes leader failures too: Caro–Kann after `6.e6` offers `…fxe6` instead of the native `…dxc3` (576‰ loss); Italian after `4…Qf6` offers `Na4` instead of native `Nd5` (467‰); Sicilian after `7.f4` ranks `…Nc6` before the much better offered `…Nbd7` (358‰ loss for the first hint). Native `…Be7` loses only 10.5‰ there. Before `6.e6`, the native move is bad while the hint is useful: never treat either API as the other's oracle.
 
-In v1 Sicilian S7, the leader `N1c3` has −1 cp / 499.5‰ at H19, while the offered `Bg5` has −166 cp / 24‰ after free `…Qa5+`. Relative to the free-root optimum, their losses are 9‰ and 484.5‰; the gap between those forced roots is 475.5‰. The regression guard protects the leader only and does not certify exclusion of the bad alternative.
+The 60 checkpoints and 83 offered variants have 960 raw H17/H19 queries. The quality benchmark fails at the unchanged 150‰ floor: 12 first hints, 15 offered moves and 10 first opposing PV replies breach it. It checks that first reply and PV endpoints, not every later hypothetical defense. Three correlated paths are diagnostic coverage, not a global accuracy estimate.
 
-Improve the shared ranking within the total 200,000-node hint ceiling. Compare all offered moves at a common completed horizon and check free opposing replies at H17/H19 on new families. Keep the sound queen and knight sacrifices, exact-cache bound negatives, and bulb/comparison/replay identity. A replay-integrity PASS does not establish that the alternatives are equally strong. Preserve completed-depth and actual-node evidence. [AI checks](../testing/README.md#game-and-history)
+Start with the paired Caro–Kann positions before and after `6.e6`, then retain Italian `Nd5/Na4`, Sicilian `…Be7/…Nc6`, sound sacrifices, 019/021/022 and cache-bound negatives. Compare both candidate roots, free opposing replies and accepted horizons inside the hint's total 200k. Do not hide a weak leader by dropping it from the report or replace these failures with a PASS for legal replay. [Paired protocol and benchmarks](../testing/hard-hint-study.md) · [Current source-qualified results](../board/ai-quality.md#paired-nativehint-study-and-recapture-rejection)
 
 </details>
 
 <details>
 <summary>P2 · Hint audit · broader transfer</summary>
 
-The versioned collector preserves source identity, full history, actual search depths, offered and compared candidates, unavailable ranks, and bounded budgets. The mocked contracts cover substitution, rehashed scores, resumption and interrupted output. Actual paths are diagnostic hint self-play, with the normal Hard theory move recorded separately.
+The new paired collector captures actual native decisions, public hints and the displayed estimate before every played move. Mocked components and raw-UCI negatives reject missing phases, substituted roots, altered scores, a foreign run, incomplete history and bound-as-exact evidence. The benchmark replays all 60 steps and 960 queries without an emulator or another Stockfish search. These integrity contracts are implemented; they are not remaining quality ToDos.
 
-Add independent opening and endgame families from archived PGNs. Freeze their histories before tuning, verify the first loss with free Stockfish H17/H19 replies, and retain all failures. Compare budgets only at identical checkpoints. Preserve the source-bound Extent, PGN and trusted JSONL manifest and keep leader loss separate from intentionally selected ranks 2 and 3. [Audit protocol](../testing/hint-audit.md)
+Expand to independent opening and endgame families from archived PGNs. Freeze histories before tuning, retain losses and correct counterexamples, and compare budgets only at identical checkpoints. Keep native actual turns distinct from shadow positions, and first-hint quality distinct from deliberately playing a lower rank. The three 20-ply games remain unfinished studies and cannot supply Elo. [Paired audit](../testing/hard-hint-study.md)
 
 </details>
 

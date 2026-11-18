@@ -106,3 +106,7 @@ warm, cold, and disabled caches. The upstream reference also classifies bounds
 separately. [Stockfish 19 search](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp#L1460-L1468)
 
 [AI policy](../board/ai-quality.md) · [Testing strategy](README.md) · [Current feedback](../feedback/README.md)
+
+## Paired native and public-hint studies
+
+The initial collector above follows hint policies. For an actual native game with a hint shadow before every ply, use the [paired capture and Stockfish protocol](hard-hint-study.md). It verifies full-history native receipts, every offered public root, the first opposing PV reply and endpoints at H17/H19, with a separate failing verdict when the recorded chess quality is inadequate. It does not certify every hypothetical continuation or generate a rating from a capped study.

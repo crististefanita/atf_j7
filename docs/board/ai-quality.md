@@ -771,3 +771,23 @@ In 16 thematic games against Stockfish 19 with colors reversed, A scored 5 / 0 /
 Basic lost all 12 games against the 1500 anchor. The run against 1320 gives a finite estimate. Each profile has six pairs, with one Stockfish thread and 6,000 requested nodes per move. Ratings depend on the set and opponent. [Stockfish calibration](https://official-stockfish.github.io/docs/stockfish-wiki/Stockfish-FAQ.html#the-elo-rating-of-stockfish)
 
 </details>
+
+## Paired native/hint study and recapture rejection
+
+The 18 November producer `e320379212dbb55afb392351da559b1cf949ac4d` records three 20-ply opening studies. At every checkpoint it captures native Hard, public hints and the displayed estimate before play. The native allowance remains at most 200k additional nodes; hints retain their separate 200k total. The production engine is unchanged.
+
+| H19 observation | Measured result |
+|---|---:|
+| First hints with loss at least 150‰ | 12/60 |
+| Offered variants with that loss | 15/83 |
+| First opposing PV replies with that loss | 10/83 |
+| Native recommendations with that loss, including shadow positions | 3/60 |
+| Actual played Hard decisions with that loss | 2/21 |
+
+All 960 raw Stockfish H17/H19 receipts replay successfully. Evidence integrity passes; the separate chess-quality benchmark fails. The first opposing reply and endpoints are covered, not every later hypothetical defense. After Caro–Kann `6.e6`, native `…dxc3` preserves the win while the first hint `…fxe6` loses 576‰. The White bar estimate is +36 cp where Stockfish reports −411 cp for White. Italian `Nd5/Na4` loses 467‰ in the hint and Sicilian `…Be7/…Nc6` loses 358‰. [Protocol and both verdicts](../testing/hard-hint-study.md)
+
+The targeted recapture prototype closes `…Qxe5 / …Nxe5` at the isolated H6 leaves and ranks `…Qg6 −50` above `…Na5 −80 cp`, reversing the reference pair. Warm, cold, disabled and narrow-window tests preserve that local result. Individual isolated roots have separate caps; they do not prove complete-decision accounting. The full candidate chooses the unsound `…Bxf2+` and loses controls 019/021/022 by 478.5‰, 191.5‰ and 516‰ at H19. It is rejected and remains outside production.
+
+Actual Game Review retains all moves and emits no study Elo, but nine classification disagreements remain stable at both oracle depths. The played roots are audited; review alternative lines are replayed legally without claiming independent grading of every alternative. [Review findings](game-review.md#measured-review-limitations)
+
+The three capped games all retain result `*`. They produce no new Elo or candidate ΔElo. The separately qualified native Hard calibration remains 1,507, conservative 95% interval 1,357–1,656, from 100 games. Four full-history lessons are external study data, not runtime FEN overrides. [Current unresolved work](../feedback/README.md)

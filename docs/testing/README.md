@@ -111,6 +111,8 @@ same-position budget comparisons through one engine call per decision.
 The Extent report preserves source identity, checkpoints, FEN, offered and
 compared variants, reply facts, actual depths and nodes. [Run and interpretation](hint-audit.md)
 
+`HardHintAuditedGameTest` binds native play, public hints and the bar at each checkpoint. `StockfishStudyAuditTest` rejects altered raw UCI, roots, histories, horizons and oracle identities. `HardHintStudyBenchmarkTest` publishes the recorded collection offline with separate integrity and chess-quality verdicts. [Paired audit and publication](hard-hint-study.md)
+
 ### Native Hard game audit
 
 Every ply, including an opposing reply, requires the actual history-aware Hard analysis. Components reject missing or foreign receipts; the benchmark publisher replays evidence before Elo and Extent. [Protocol, command and interpretation](hard-audit.md)
