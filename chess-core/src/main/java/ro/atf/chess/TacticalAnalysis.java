@@ -193,8 +193,6 @@ public final class TacticalAnalysis {
         var root = new RootSearch(position, Set.of());
         var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
         if (moves.isEmpty()) return new SearchReport(new Result(List.of()), 0, 0);
-        budget.queenRecaptureExtension = attacksQueen(position, moves)
-                ? Math.min(1, MatchAiPolicy.CURRENT.hint.verificationRecapturePlies()) : 0;
         int before = budget.remaining;
         Result best = new Result(List.of());
         Map<Move, Integer> shallowScores = Map.of();
@@ -209,6 +207,19 @@ public final class TacticalAnalysis {
                 var confirmation = depth == MatchAiPolicy.BASE_PLIES + 1 ? shallowScores : Map.<Move, Integer>of();
                 var evidence = confirmation.isEmpty() ? null : new HashMap<Move, Line>();
                 var candidate = deepen(root, moves, depth, budget, policy.maxLossCp(), confirmation, evidence);
+                if (depth == MatchAiPolicy.BASE_PLIES && repertoire == null
+                        && candidate.best().size() == 1 && candidate.best().get(0).signedMatePlies() == 0
+                        && MatchMaterial.victim(position, candidate.best().get(0).move()) == null
+                        && attacksQueen(position, List.of(candidate.best().get(0).move()))
+                        && policy.verificationRecapturePlies() > 0) {
+                    // Confirm an already leading forcing idea, not every speculative queen attack.
+                    budget.queenRecaptureExtension = 1;
+                    try {
+                        candidate = deepen(root, moves, depth, budget, policy.maxLossCp(), confirmation, evidence);
+                    } catch (BudgetExhausted exhausted) {
+                        // The ordinary horizon is already complete; keep it when confirmation runs out.
+                    }
+                }
                 var outsideRawWindow = outsideRawHintWindow(evidence, policy.maxLossCp());
                 var excluded = excludedHintRoots(position, candidate, outsideRawWindow, confirmation);
                 if (!excluded.isEmpty()) candidate = new Result(candidate.ranked().stream()
@@ -434,7 +445,10 @@ public final class TacticalAnalysis {
     }
 
     private static HintVerification verifyHintRoots(ChessPosition position, List<Move> moves, int nodes, int maxPlies) {
-        return verifyHintRoots(position, moves, hintBudget(nodes), maxPlies);
+        var budget = hintBudget(nodes);
+        budget.queenRecaptureExtension = attacksQueen(position, moves)
+                ? Math.min(1, MatchAiPolicy.CURRENT.hint.verificationRecapturePlies()) : 0;
+        return verifyHintRoots(position, moves, budget, maxPlies);
     }
 
     private static HintVerification verifyHintRoots(ChessPosition position, List<Move> moves, SearchBudget budget, int maxPlies) {
@@ -442,8 +456,6 @@ public final class TacticalAnalysis {
         // Keep seed, ordinary opponent and display searches unchanged; all extra visits use this budget.
         budget.recaptureExtension = competingCaptures(position, moves)
                 ? MatchAiPolicy.CURRENT.hint.verificationRecapturePlies() : 0;
-        budget.queenRecaptureExtension = attacksQueen(position, moves)
-                ? Math.min(1, MatchAiPolicy.CURRENT.hint.verificationRecapturePlies()) : 0;
         int before = budget.remaining;
         var budgets = Collections.nCopies(moves.size(), budget);
         List<Variation> ranked = List.of();
