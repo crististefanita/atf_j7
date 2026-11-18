@@ -112,6 +112,20 @@ class HintRecaptureRegressionTest {
         check.same("Verification cannot donate new nodes", 150_000, MatchAiPolicy.CURRENT.hint.verificationNodes());
     }
 
+    @Test void anInterruptedExchangeCannotPopulateTheCacheWithAnExactRoot(Checks check) throws Exception {
+        var position = ChessPosition.fromFen("3r2k1/8/8/8/3q4/8/3R4/3R2K1 w - - 0 1");
+        var interrupted = new Frontier(64); interrupted.recaptures(2); interrupted.replenish(2);
+        check.rejects("The finite allowance interrupts an unfinished exchange", java.lang.reflect.InvocationTargetException.class,
+                () -> interrupted.search(position, -100_001, 100_001));
+        check.same("An interrupted exchange cannot spend past zero", 0, interrupted.remaining());
+        interrupted.replenish(20_000);
+        var resumed = interrupted.search(position, -100_001, 100_001);
+        var cold = new Frontier(64); cold.recaptures(2);
+        var reference = cold.search(position, -100_001, 100_001);
+        check.same("Retrying the interrupted root has the independently completed score", value(reference, "score"), value(resumed, "score"));
+        check.same("Retrying retains the independently completed legal PV", value(reference, "moves"), value(resumed, "moves"));
+    }
+
     private static Move move(String value) { return Move.fromUci(value); }
     private static Object value(Object record, String name) throws Exception {
         var method = record.getClass().getDeclaredMethod(name); method.setAccessible(true); return method.invoke(record);
@@ -133,6 +147,9 @@ class HintRecaptureRegressionTest {
         }
         int remaining() throws Exception {
             var field = budget.getClass().getDeclaredField("remaining"); field.setAccessible(true); return field.getInt(budget);
+        }
+        void replenish(int nodes) throws Exception {
+            var field = budget.getClass().getDeclaredField("remaining"); field.setAccessible(true); field.setInt(budget, nodes);
         }
         Object search(ChessPosition position, int alpha, int beta) throws Exception { return search.invoke(null, position, 0, 0, alpha, beta, budget, objective); }
     }
