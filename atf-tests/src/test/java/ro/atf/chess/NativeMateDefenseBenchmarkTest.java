@@ -17,7 +17,8 @@ class NativeMateDefenseBenchmarkTest {
                 var position=quest.position();var game=ChessMatch.fromPosition(position,new MatchSetup(position.turn().other(),MatchSetup.Level.HARD,false));
                 var audit=NativeMateAudit.verify(check,game,quest.playerMoves(),quest.id());
                 // Consult the educational contract only after the ordinary opponent's complete audit.
-                check.same(quest.id()+" actual initial move satisfies its existing goal",true,quest.assess(audit.firstMove()).continues()||quest.assess(audit.firstMove()).solved());
+                var outcome=quest.assess(audit.firstMove());
+                check.same(quest.id()+" actual initial move satisfies its existing goal",true,outcome.continues()||outcome.solved());
                 puzzles++;decisions+=audit.nativeDecisions();defenses+=audit.defensiveBranches();terminals+=audit.terminalBranches();
             }
             check.same("All "+chapter.size()+" current mating exercises are nonempty",true,!chapter.isEmpty());

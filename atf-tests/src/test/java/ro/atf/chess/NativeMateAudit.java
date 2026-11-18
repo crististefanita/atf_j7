@@ -31,7 +31,8 @@ final class NativeMateAudit {
         if(position.turn()==attacker) {
             var analysis=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(position,analysis);
             if(first==null)first=analysis.decision().move();decisions++;
-            check.same(label+" native step "+path+" H"+analysis.decision().depth()+" extra="+analysis.decision().extraNodes()+" PV="+analysis.search().result().ranked(),true,analysis.decision().extraNodes()<=200000);
+            int maximum=HardQuestAudit.maximumNodes(position);
+            check.same(label+" native step "+path+" H"+analysis.decision().depth()+" extra="+analysis.decision().extraNodes()+" max="+maximum+" PV="+analysis.search().result().ranked(),true,analysis.decision().extraNodes()<=maximum);
             walk(game.play(analysis.decision().move()),left-1,path+" "+analysis.decision().move().uci());
         } else {
             for(var reply:position.legalMoves()){defenses++;walk(game.play(reply),left-1,path+" "+reply.uci());}
