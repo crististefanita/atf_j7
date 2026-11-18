@@ -61,7 +61,11 @@ public final class TacticalAnalysis {
     }
 
     record SearchReport(Result result, int depth, int extraNodes, List<Move> horizonLeaders,
-                        Map<Move, Integer> scoreCredits, Set<Move> excludedRoots, Set<Move> nonEquivalentRoots) {
+                        Map<Move, Integer> scoreCredits, Set<Move> excludedRoots, Set<Move> nonEquivalentRoots,
+                        PawnPushProof.Certificate pawnProof) {
+        SearchReport(Result result,int depth,int extraNodes,List<Move> leaders,Map<Move,Integer> credits,Set<Move> excluded,Set<Move> nonEquivalent) {
+            this(result,depth,extraNodes,leaders,credits,excluded,nonEquivalent,null);
+        }
         SearchReport(Result result, int depth, int extraNodes) { this(result, depth, extraNodes, List.of(), Map.of(), Set.of(), Set.of()); }
         SearchReport(Result result, int depth, int extraNodes, List<Move> leaders) { this(result, depth, extraNodes, leaders, Map.of(), Set.of(), Set.of()); }
         SearchReport { horizonLeaders = List.copyOf(horizonLeaders); scoreCredits = Map.copyOf(scoreCredits); excludedRoots = Set.copyOf(excludedRoots); nonEquivalentRoots = Set.copyOf(nonEquivalentRoots); }
@@ -141,6 +145,10 @@ public final class TacticalAnalysis {
 
     static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers,
                                     List<ChessPosition> repetitionHistory) {
+        return botAnalysis(position,level,gap,repetitionOffers,repetitionHistory,0);
+    }
+    static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers,
+                                    List<ChessPosition> repetitionHistory,int quietPlies) {
         boolean hard = level == MatchSetup.Level.HARD;
         var repertoire = gap == 0 ? OpeningRepertoire.CURRENT.playReply(position, level) : null;
         var root = new RootSearch(position, repetitionOffers);
@@ -157,7 +165,7 @@ public final class TacticalAnalysis {
                     Math.max(gap, policy.candidateGapCp()), base, repetitionHistory, policy, adaptive);
         }
         return matchSearch(root, searchPolicy, gap, 0, hard && repertoire == null,
-                hard && repertoire == null, base, adaptive);
+                hard && repertoire == null, base, adaptive,repetitionHistory,quietPlies);
     }
 
     private static boolean bareKingMateEndgame(ChessPosition position) {
@@ -574,6 +582,12 @@ public final class TacticalAnalysis {
     private static SearchReport matchSearch(RootSearch root, MatchAiPolicy.Search policy, int gap, int tacticalExtension,
                                             boolean confirmAcrossHorizons, boolean prioritizeChecks, Result base,
                                             HardAdaptivePolicy adaptive) {
+        return matchSearch(root,policy,gap,tacticalExtension,confirmAcrossHorizons,prioritizeChecks,base,adaptive,List.of(),0);
+    }
+
+    private static SearchReport matchSearch(RootSearch root, MatchAiPolicy.Search policy, int gap, int tacticalExtension,
+                                            boolean confirmAcrossHorizons, boolean prioritizeChecks, Result base,
+                                            HardAdaptivePolicy adaptive,List<ChessPosition> history,int quietPlies) {
         int completed = MatchAiPolicy.BASE_PLIES;
         Result best = base;
         if (policy.maxPlies() == completed || best.ranked().isEmpty() || best.ranked().get(0).signedMatePlies() == 1) {
@@ -655,8 +669,36 @@ public final class TacticalAnalysis {
             budget.remaining -= budget.reserve - verification.remaining;
             if (capture != null) best = new Result(List.of(capture));
         }
+        if(prioritizeChecks&&gap==0) {
+            var promotion=confirmPawnPlan(root,budget,policy,completed,transpositionLimit,history,quietPlies);
+            if(promotion!=null)return promotion;
+        }
         return new SearchReport(best, completed, policy.extraNodes() - budget.remaining);
     }
+
+    private static SearchReport confirmPawnPlan(RootSearch root,SearchBudget budget,MatchAiPolicy.Search search,
+                                                int completed,int cacheLimit,List<ChessPosition> history,int quietPlies) {
+        var policy=PawnPushPolicy.CURRENT;
+        if(!policy.enabled()||!PawnPushProof.eligible(root.position(),policy.maxPawns()))return null;
+        int before=budget.remaining,cache=Math.max(0,cacheLimit-budget.transpositions.size());
+        var proof=new PawnPushProof(root.position().turn(),budget::visit,cache,history);
+        if(budget.adaptive!=null)budget.adaptive.exchangeProof(true);
+        try {
+            var forced=proof.prove(root.position(),policy.maxPlies(),quietPlies);
+            if(forced==null)return null;
+            var end=root.position();for(var move:forced.line())end=end.play(move);
+            var ending=end.isCheckmate()?Ending.CHECKMATE:Ending.HORIZON;
+            int score=ending==Ending.CHECKMATE?MATE-forced.line().size():positionValue(end,root.position().turn());
+            var line=new Variation(forced.line(),score,materialFor(end,root.position().turn())-material(root.position()),ending);
+            var certificate=new PawnPushProof.Certificate(policy.maxPlies(),forced.line().size(),before-budget.remaining,
+                    proof.defenderReplies(),cache,quietPlies,PawnPushProof.historyHash(history),forced.strategySha256());
+            return new SearchReport(new Result(List.of(line)),completed,search.extraNodes()-budget.remaining,List.of(),Map.of(),Set.of(),Set.of(),certificate);
+        } catch(BudgetExhausted exhausted) {
+            return null; // No incomplete or restricted proof may replace the ordinary decision.
+        } finally {if(budget.adaptive!=null)budget.adaptive.exchangeProof(false);}
+    }
+
+    private static int materialFor(ChessPosition position,Side side) {return position.turn()==side?material(position):-material(position);}
 
     private static Variation confirmPromotionExchange(RootSearch root, Move incumbent, Variation candidate,
                                                        int depth, SearchBudget budget) {

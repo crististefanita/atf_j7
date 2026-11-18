@@ -210,6 +210,9 @@ public final class ChessMatch {
     }
 
     /** Retains the search that actually selected the move; auditing must not run a different second search. */
+    List<ChessPosition> searchHistory() { return positions.subList(0,positions.size()-1); }
+    int searchQuietPlies() { return quietPlies; }
+
     BotAnalysis analyzeBot(MatchSetup.Level level) {
         if (result != Result.IN_PROGRESS) throw new IllegalStateException("The match has ended");
         var board = position();
@@ -218,7 +221,7 @@ public final class ChessMatch {
         var policy = MatchAiPolicy.CURRENT.repetition;
         var repetitionOffers = cycle ? repetitionOffers(board) : Set.<Move>of();
         var search = TacticalAnalysis.botAnalysis(board, level, cycle ? policy.maxScoreLossCp() : 0, repetitionOffers,
-                positions.subList(0, positions.size() - 1));
+                searchHistory(),quietPlies);
         Move chosen = null;
         int fewestVisits = Integer.MAX_VALUE;
         int mostActivity = Integer.MIN_VALUE;
