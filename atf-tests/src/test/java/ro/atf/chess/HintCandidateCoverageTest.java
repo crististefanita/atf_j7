@@ -19,7 +19,7 @@ class HintCandidateCoverageTest {
         var hint=TacticalAnalysis.verifiedHints(board,200_000);var comparison=hint.comparison();
         check.same("The whole calculation retains its executed seed/selection/comparison/budget",List.of(3,5,5,200_000),List.of(hint.seedDepth(),hint.selectedDepth(),comparison.depth(),hint.extraNodes()));
         check.same("All four roots are retained as scored diagnostic evidence",Set.of("b8c6","b8d7","d8b6","f8e7"),comparison.result().ranked().stream().map(v->v.move().uci()).collect(Collectors.toSet()));
-        check.same("Coverage adds no oracle score or positional bonus",Map.of("b8d7",-21,"b8c6",-21,"f8e7",-25,"d8b6",-46),comparison.result().ranked().stream().collect(Collectors.toMap(v->v.move().uci(),TacticalAnalysis.Variation::score)));
+        check.same("Coverage adds no oracle score or positional bonus",Map.of("b8d7",-21,"b8c6",-21,"f8e7",-25,"d8b6",-29),comparison.result().ranked().stream().collect(Collectors.toMap(v->v.move().uci(),TacticalAnalysis.Variation::score)));
         check.same("A theory challenger is compared rather than copied as the answer",move("f8e7"),OpeningRepertoire.CURRENT.playReply(board,MatchSetup.Level.HARD));
         check.same("The accepted best public line remains the qualified knight defense",List.of("b8d7"),hint.lines().stream().map(v->v.move().uci()).toList());
         for(var line:comparison.result().ranked()) {

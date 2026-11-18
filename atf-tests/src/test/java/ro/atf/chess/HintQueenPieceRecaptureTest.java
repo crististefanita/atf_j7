@@ -36,12 +36,20 @@ class HintQueenPieceRecaptureTest {
         }
     }
 
+    @Test void selectiveClosureCannotManufactureAnEquivalentSicilianOffer(Checks check) {
+        var board=ChessPosition.fromFen("rnbqkbnr/pp2pppp/3p4/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq d3 0 3");
+        var search=TacticalAnalysis.verifiedHints(board,200000);
+        check.same("The sound exchange stays the public offer",List.of(move("c5d4")),search.lines().stream().map(TacticalAnalysis.Variation::move).toList());
+        check.same("A selectively resolved frontier cannot certify a new equivalent move",false,search.lines().stream().anyMatch(line->line.move().equals(move("b8d7"))));
+        check.same("Reconfirmation also pays for every attempted node",true,search.extraNodes()<=200000);
+    }
+
     @Test void oldCacheBoundsAndSeedsCannotMasqueradeAsResolvedQueenExchanges(Checks check)throws Exception {
         var board=ChessPosition.fromFen("3q2k1/8/8/8/3p4/8/3R4/3Q2K1 w - - 0 1");
         var warm=new Frontier(64);var old=warm.search(board,-100001,100001);warm.enable();var actual=warm.search(board,-100001,100001);
         var cold=new Frontier(64);cold.enable();var expected=cold.search(board,-100001,100001);
         var disabled=new Frontier(0);disabled.enable();
-        check.same("The old seed does not become a queen-exchange proof",true,(int)field(actual,"score")>(int)field(old,"score"));
+        check.same("The ordinary and resolved modes have distinct cache identities",java.util.Set.of(0,1),warm.cacheModes());
         check.same("Warm and cold caches preserve the same value",field(expected,"score"),field(actual,"score"));
         check.same("Disabling the cache preserves the same value",field(expected,"score"),field(disabled.search(board,-100001,100001),"score"));
         var bounded=new Frontier(64);bounded.enable();int score=(int)field(expected,"score");
@@ -69,11 +77,12 @@ class HintQueenPieceRecaptureTest {
             var type=Class.forName("ro.atf.chess.TacticalAnalysis$SearchBudget");var constructor=type.getDeclaredConstructor(int.class,int.class,int.class);constructor.setAccessible(true);budget=constructor.newInstance(20000,2,cache);
             var goal=Class.forName("ro.atf.chess.TacticalAnalysis$Objective");objective=Enum.valueOf((Class)goal,"POSITION");
             search=TacticalAnalysis.class.getDeclaredMethod("search",ChessPosition.class,int.class,int.class,int.class,int.class,type,goal);search.setAccessible(true);
-            settle=TacticalAnalysis.class.getDeclaredMethod("settle",ChessPosition.class,int.class,int.class,int.class,int.class,type,int.class,int.class);settle.setAccessible(true);
+            settle=TacticalAnalysis.class.getDeclaredMethod("settle",ChessPosition.class,int.class,int.class,int.class,int.class,type,int.class,int.class,boolean.class);settle.setAccessible(true);
         }
         void enable()throws Exception{var f=budget.getClass().getDeclaredField("queenPieceRecaptureExtension");f.setAccessible(true);f.setInt(budget,1);}
         int remaining()throws Exception{var f=budget.getClass().getDeclaredField("remaining");f.setAccessible(true);return f.getInt(budget);}
-        Object boundary(ChessPosition board,int square)throws Exception{return settle.invoke(null,board,0,8,-100001,100001,budget,square,-1);}
+        java.util.Set<Integer> cacheModes()throws Exception{var f=budget.getClass().getDeclaredField("transpositions");f.setAccessible(true);var result=new java.util.HashSet<Integer>();for(var key:((java.util.Map<?,?>)f.get(budget)).keySet())result.add((int)field(key,"queenPieceRecaptureExtension"));return result;}
+        Object boundary(ChessPosition board,int square)throws Exception{return settle.invoke(null,board,0,8,-100001,100001,budget,square,-1,true);}
         Object search(ChessPosition board,int alpha,int beta)throws Exception{return search.invoke(null,board,0,0,alpha,beta,budget,objective);}
     }
 }

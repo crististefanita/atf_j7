@@ -192,7 +192,6 @@ public final class TacticalAnalysis {
     private static SearchBudget hintBudget(int nodes) {
         var budget = new SearchBudget(nodes, MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies(),
                 MatchAiPolicy.CURRENT.hardTranspositions.entryLimit(nodes));
-        budget.queenPieceRecaptureExtension = Math.min(1, MatchAiPolicy.CURRENT.hint.verificationRecapturePlies());
         budget.checkOrderBonus = MatchAiPolicy.CURRENT.hardOrdering.checkBonus();
         budget.quietMoveOrdering = new QuietMoveOrdering();
         return budget;
@@ -358,7 +357,7 @@ public final class TacticalAnalysis {
             shortlistNodes = verificationNodes - shortlist.remaining;
         }
         if (roots.size() < 2) return hintSearch(lines, null, seed.extraNodes() + shortlistNodes, seed);
-        var comparison = verifyHintRoots(position, roots, budget, policy.search().maxPlies());
+        var comparison = verifyHintRoots(position, roots, budget, policy.search().maxPlies(), seed.depth());
         return verifiedHints(position, lines, seed, comparison, shortlistNodes, repertoire, policy, roots.size() > HINT_ROOT_LIMIT);
     }
 
@@ -467,6 +466,11 @@ public final class TacticalAnalysis {
     }
 
     private static HintVerification verifyHintRoots(ChessPosition position, List<Move> moves, SearchBudget budget, int maxPlies) {
+        return verifyHintRoots(position, moves, budget, maxPlies, MatchAiPolicy.BASE_PLIES);
+    }
+
+    private static HintVerification verifyHintRoots(ChessPosition position, List<Move> moves, SearchBudget budget, int maxPlies,
+                                                   int seedDepth) {
         // A checking pawn reply can push the recapture of a valuable victim beyond the frontier.
         // Keep seed, ordinary opponent and display searches unchanged; all extra visits use this budget.
         budget.recaptureExtension = competingCaptures(position, moves)
@@ -479,7 +483,14 @@ public final class TacticalAnalysis {
         int completed = 0;
         for (int depth = 2; depth <= maxPlies; depth++) {
             try {
-                ranked = hintRootLines(position, moves, depth, budgets);
+                var candidate = hintRootLines(position, moves, depth, budgets);
+                // Preliminary comparisons must not displace the already completed seed frontier.
+                if (depth >= seedDepth && resolveOfferedQueenPawnCapture(position, candidate, budget)) {
+                    candidate = hintRootLines(position, moves, depth, budgets);
+                    // Earlier even-horizon values used another frontier mode.
+                    latestEven = List.of();
+                }
+                ranked = candidate;
                 balanced = latestEven;
                 if (depth % 2 == 0) latestEven = ranked;
                 completed = depth;
@@ -488,7 +499,7 @@ public final class TacticalAnalysis {
             }
         }
         return new HintVerification(new SearchReport(new Result(ranked), completed, before - budget.remaining), balanced,
-                budget.recaptureExtension > 0 || budget.queenRecaptures > 0);
+                budget.recaptureExtension > 0 || budget.queenPieceRecaptureExtension > 0 || budget.queenRecaptures > 0);
     }
 
     private static boolean competingCaptures(ChessPosition position, List<Move> moves) {
@@ -507,6 +518,23 @@ public final class TacticalAnalysis {
             }
         }
         return forcingReply && capturesPawn;
+    }
+
+    private static boolean resolveOfferedQueenPawnCapture(ChessPosition position, List<Variation> ranked, SearchBudget budget) {
+        if (budget.queenPieceRecaptureExtension > 0 || ranked.isEmpty()
+                || MatchAiPolicy.CURRENT.hint.verificationRecapturePlies() == 0) return false;
+        var path = ranked.get(0).line();
+        if (path.isEmpty()) return false;
+        var before = position;
+        for (int index = 0; index < path.size() - 1; index++) before = before.playGenerated(path.get(index));
+        var move = path.get(path.size() - 1);
+        var victim = MatchMaterial.victim(before, move);
+        var after = before.playGenerated(move);
+        if (victim == null || victim.kind() != Kind.PAWN || !nonPawnCanRecaptureQueen(after, move.to())) return false;
+        // Re-run every compared root at this completed horizon, not just the displayed line.
+        // Exhaustion retains the preceding completed result and charges all attempted work.
+        budget.queenPieceRecaptureExtension = MatchAiPolicy.CURRENT.hint.verificationRecapturePlies();
+        return true;
     }
 
     private static boolean attacksQueen(ChessPosition position, List<Move> moves) {
@@ -1109,10 +1137,15 @@ public final class TacticalAnalysis {
 
     private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget,
                                int lastCapture, int recapturesLeft) {
+        return settle(position,left,distance,alpha,beta,budget,lastCapture,recapturesLeft,false);
+    }
+
+    private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget,
+                               int lastCapture, int recapturesLeft, boolean capturedPawn) {
         if (left == 0 && recapturesLeft < 0) {
             // A queen capture is not a completed exchange while the opponent can legally recapture it.
             // Resolve this once within the existing verification budget, rather than rejecting the queen offer.
-            recapturesLeft = budget.queenPieceRecaptureExtension > 0 && nonPawnCanRecaptureQueen(position, lastCapture)
+            recapturesLeft = capturedPawn && budget.queenPieceRecaptureExtension > 0 && nonPawnCanRecaptureQueen(position, lastCapture)
                     ? budget.queenPieceRecaptureExtension
                     : budget.queenRecaptureExtension > 0 && pawnCanRecaptureQueen(position, lastCapture)
                             ? budget.queenRecaptureExtension : 0;
@@ -1139,9 +1172,10 @@ public final class TacticalAnalysis {
         boolean cutoff = false;
         for (Move move : moves) {
             budget.visit();
-            int target = recapturing || MatchMaterial.victim(position, move) != null ? move.to() : -1;
+            var victim = MatchMaterial.victim(position, move);
+            int target = recapturing || victim != null ? move.to() : -1;
             var child = settle(position.playGenerated(move), recapturing ? 0 : left - 1, distance + 1, -beta, -alpha, budget,
-                    target, recapturing ? recapturesLeft - 1 : recapturesLeft).prepend(move);
+                    target, recapturing ? recapturesLeft - 1 : recapturesLeft, victim != null && victim.kind() == Kind.PAWN).prepend(move);
             if (best == null || child.score() > best.score()) best = child;
             alpha = Math.max(alpha, child.score());
             if (alpha >= beta) {

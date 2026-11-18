@@ -1133,35 +1133,3 @@ testChanges:
     test: ro.atf.chess.LearningGameAuditTest#bothColorsRequireTheirOwnMaximumHintBeforePlaying
     contract: "Reuse the unchanged hint legality, horizon, material and node checks; require pre-move Hard and an explicitly requested maximum public hint for every actual White and Black move"
     allowDelete: false
-
-  - id: J7-QXD4-ITALIAN-HORIZON-EN
-    base: "60c53119bd77e0fbb6f53215281ca9abde4729f9"
-    from: atf-tests/src/test/java/ro/atf/chess/HintQueenRecaptureTest.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
-    test: ro.atf.chess.HintQueenPieceRecaptureTest#theActualCaroHintCannotEndAtTheUnansweredQueenCapture
-    contract: "Keep the actual Italian Nd5 recommendation, replay, tap and 200k ceiling; report completed H5 instead of H6 after charging legal non-pawn queen recaptures without hiding the lost horizon"
-    allowDelete: false
-
-  - id: J7-QXD4-SICILIAN-SCORE-EN
-    base: "60c53119bd77e0fbb6f53215281ca9abde4729f9"
-    from: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
-    test: ro.atf.chess.HintQueenPieceRecaptureTest#theFrontierScoresTheQueensLegalRecaptureInBothColors
-    contract: "Keep four scored roots at completed H5 under 200k and Nbd7 as the offer; update only Qb6's actually recalculated native score from -29 to -46 after closing legal queen exchanges"
-    allowDelete: false
-
-  - id: J7-QXD4-ITALIAN-HORIZON-RO
-    base: "3ab9dd5e99592e2c9a823121acd909ce88b66d48"
-    from: atf-tests/src/test/java/ro/atf/chess/HintQueenRecaptureTest.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
-    test: ro.atf.chess.HintQueenPieceRecaptureTest#theActualCaroHintCannotEndAtTheUnansweredQueenCapture
-    contract: "Keep the actual Italian Nd5 recommendation, replay, tap and 200k ceiling; report completed H5 instead of H6 after charging legal non-pawn queen recaptures without hiding the lost horizon"
-    allowDelete: false
-
-  - id: J7-QXD4-SICILIAN-SCORE-RO
-    base: "3ab9dd5e99592e2c9a823121acd909ce88b66d48"
-    from: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
-    test: ro.atf.chess.HintQueenPieceRecaptureTest#theFrontierScoresTheQueensLegalRecaptureInBothColors
-    contract: "Keep four scored roots at completed H5 under 200k and Nbd7 as the offer; update only Qb6's actually recalculated native score from -29 to -46 after closing legal queen exchanges"
-    allowDelete: false
