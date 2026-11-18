@@ -405,6 +405,8 @@ JUnit marks benchmark probes skipped when their inputs are missing. [Setting up 
 - `SuiteGovernanceTest` compares the plans discovered by JUnit. Each audited JVM method belongs to one primary suite.
 - Android and TalkBack receipt publication have explicit entry points. `DocumentationGovernanceTest` checks local files and Markdown anchors, including those in feedback.
 
+Puzzle auditing retains the actual search from the same call and distinguishes repertoire from adaptive ceilings, with negative tests and frozen accuracy floors. [Contract and interpretation](hard-audit.md#position-only-puzzle-audit)
+
 ## Test changes against a Git baseline
 
 - Compare the change against the reviewed commit's full SHA. Use a Git worktree in TMP with the required history.

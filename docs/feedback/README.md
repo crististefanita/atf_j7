@@ -12,7 +12,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
-| P1 | Italian · native Hard choice | Hint S5 is corrected; actual Hard still chooses `…Na5`. | Compare with `…Qg6` at a common horizon, verify H17/H19 replies and transfer without regressions. |
+| P1 | Italian · unresolved native exchange | Uniform extension repairs the example but loses three families; queen-only checking revives the false sacrifice. | Resolve the exchange at a common horizon within 200k, preserving controls and independent transfer before a duel. |
 | P1 | Hint · independent alternative accuracy | The correct Sicilian `N1c3` leader still offers the inferior `Bg5`. | Correct the offered alternatives without regressing the leader, with common-horizon and free-reply evidence. |
 | P2 | Hint audit · broader transfer | The initial plan covers three short opening paths and three budgets. | Add new history-separated families and measure leader loss separately from deliberately played lower ranks. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
@@ -58,11 +58,13 @@ Confirm speech on the corrected build in RO and EN and a return to the same move
 </details>
 
 <details>
-<summary>P1 · Italian · native Hard choice</summary>
+<summary>P1 · Italian · unresolved native-search exchange</summary>
 
-The 200k S5 hint now recommends only `…Qg6`, preserving the Traxler sacrifice and Sicilian/Caro–Kann controls. The remaining gap is actual Hard: in the same full history it chooses `…Na5` at 100k. Stockfish H19 gives −120 cp / 155.5‰ for that choice and −49 cp / 444‰ for `…Qg6`. Compare defenses at the same horizon without automatically importing hint selection into native play or adding FEN exceptions.
+The S5 hint remains corrected to `…Qg6`; native Hard retains `…Na5` at H5/100k. Its PV ends with `…Nxc4`, before `Nxc6` wins the queen. At H6 the separate exact pair still ranks `…Na5 −154` above `…Qg6 −170 cp`; at their leaves Stockfish H19 finds favorable Black recaptures `…Qxe5` (+306) and `…Nxe5` (+493 cp). Root coverage alone does not resolve the pair.
 
-The new native calibration has 100 games and 12,522 analyses: local Elo 1,507, 95% interval 1,357–1,656. It does not prove improvement over previous Hard. The next promotion needs transfer on unused families and a paired candidate–live duel; preserve sound sacrifices and all allowances. [Correction and calibration](../board/ai-quality.md#italian-credit-correction-and-native-hard-calibration) · [Every-move audit](../testing/hard-audit.md)
+Do not repeat the uniform two-ply extension: it repairs the Italian example but loses three families by at least 150‰ and passes only 83/87 components against the reference's 87/87. Checking only an attacked queen reintroduces `…Bxf2+`. The next probe must handle the unresolved legal exchange without relabeling a shallower search or copying hint selection into game play. Retain `Be2` versus `Nb5`, `Nxc6` versus `Nxc7+`, families 019/021/022, sound sacrifices and Sicilian/Caro–Kann controls. After independent transfer within a total 200k maximum, measure a color-reversed candidate–live duel.
+
+The live engine is unchanged. Applicable local Elo remains 1,507 [1,357–1,656] from 100 games; no new candidate ΔElo exists for the rejected probes. The repaired native benchmark retains every accuracy floor and adds a position-level audit. [Evidence and results](../board/ai-quality.md#native-frontier-study-and-quest-audit) · [Audit contracts](../testing/hard-audit.md#position-only-puzzle-audit)
 
 </details>
 
@@ -181,7 +183,7 @@ Start by extracting resumption, cancellation, and delayed AI results into a JVM-
 
 Foreground search uses a configurable 100,000-node allowance with a reserve to 200,000. Continuation retains the active stack and cache. Component checks protect the existing exchange proof.
 
-At v1 Sicilian S7, native Hard retains `Bg5` (a7 uses the 100k→200k reserve; SF 24‰) against the hint's `N1c3` (499.5‰), while Italian S5 favors native `…Na5` (155.5‰) over the hint's `…Bxf2+` (0‰); compare the APIs independently rather than blindly routing Hard through the hint.
+The historical v1 comparison retains native `Bg5` at Sicilian S7 (24‰) against hint `N1c3` (499.5‰). The Italian hint has since been corrected to `…Qg6`; the old `…Bxf2+` recommendation no longer describes live source. Continue comparing the APIs independently rather than automatically copying hint selection into Hard.
 
 Measure fixed 100,000, fixed 200,000, and the adaptive mode from the same source on held-out games and Stockfish-verified loss positions. Keep the learned-order league's source identity separate and check legal quiet alternatives, mate, and drawn endgames. [Adaptive contract](../board/ai-quality.md#adaptive-foreground-budget)
 

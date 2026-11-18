@@ -22,6 +22,15 @@ A game cannot play before analyzing its current checkpoint. An invalid move reta
 
 The separately trusted manifest digest pins six fixed roles: combined move JSONL, PGN, results, runtime, freeze and starts. The verifier ignores received path names, replays every game to its native result, checks both colors per start and recomputes the paired rating. An internal hash chain alone cannot authenticate a consistently rewritten bundle. Negative components replace bytes, rewrite the manifest and substitute source or phase identity.
 
+
+## Position-only puzzle audit
+
+`HardQuestTransferBenchmarkTest` measures the native opponent separately from the objective-aware solver. One `analyzeBot(HARD)` call supplies the move and actual search. `HardQuestAudit` validates PV legality, material, endings and accounting identity. Extent retains the native report for every position before grading the move against the catalog oracle.
+
+The ceiling follows the actual path: exact repertoire retains the explicit allowance from `match-ai.yaml`, while an exit uses active `hard-adaptive.yaml`. One node over either ceiling fails. Correcting accounting does not change `hard-quest-transfer.yaml` floors or the frozen training boundary. The report measures first decisions, without proving every reply or complete conversion.
+
+[Audit contracts](../../atf-tests/src/test/java/ro/atf/chess/HardQuestAuditTest.java) · [Native benchmark](../../atf-tests/src/test/java/ro/atf/chess/HardQuestTransferBenchmarkTest.java)
+
 ## Running and publishing a calibration
 
 Build in an external workspace under `C:\work\sah`, with `TEMP`, `TMP` and the JVM temporary directory there. Freeze source, settings and paired starts before observing results. Generate a fresh bundle with a producer implementing the receipt contract. The component suite does not automatically launch a league.

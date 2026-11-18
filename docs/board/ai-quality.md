@@ -147,6 +147,36 @@ The bootstrap uses openings as units with 20,000 samples. The cap is 220 plies; 
 
 The first run stopped after 49 games and a partial game because the validator rejected a legal rook repetition. After correcting the validator, the entire sample was restarted; the interrupted run is retained separately and excluded from the estimate. All 208 production classes were identical between those launches. Later, three hint-path collections were expressed compatibly with API 26 without changing the Hard decision. Evidence is under `C:\work\sah\studii\2026-11-17-j7-italian-calibration`; the qualified report is `league/qualified/qualified-extent.html`. [Native protocol and command](../testing/hard-audit.md)
 
+
+## Native frontier study and quest audit
+
+On November 18 source `6d14986` retains `…Na5` at H5 and 100k. Its native line `…Na5 Nb5 …Qc6 Nxe5 …Nxc4` stops before `Nxc6`, winning the queen. Stockfish H19 confirms +867 cp / 1,000‰ for `Nxc6`, but −545 cp / 0‰ for the tempting check `Nxc7+`. Immediately after `…Na5`, the quiet defense `Be2` gives White 912‰ against 478.5‰ for `Nb5`. The first capture or check does not certify the best reply.
+
+Separate H6 root probes score `…Na5 −154 cp` and `…Qg6 −170 cp`, both exact. Each probe has its own 200k ceiling without previous iterations; this is not a complete decision at that cost. After their continuations, Stockfish H19 finds favorable `…Qxe5` and `…Nxe5` recaptures at +306 and +493 cp for Black. The pair therefore retains an evaluation error and unresolved exchange beyond root coverage alone.
+
+| Experimental probe | Italian result | Verification | Verdict |
+|---|---|---|---|
+| Uniform two-ply tactical frontier | `…Qg6`, completed H4 and 200k | 83/87 components; three H19 losses of at least 150‰ across 32 families | Rejected |
+| Same frontier with an even-horizon guard | Same focal H4 result | Local ablation without separate transfer qualification | Experimental |
+| Frontier only for a legal queen capture | Reintroduces `…Bxf2+`, H5 and 200k | The oracle still refutes the offer | Rejected at the focus case |
+
+The upstream implementation distinguishes stand-pat evaluation from check evasions and filters captures with static exchange evaluation. Treat these as separate hypotheses without copying numeric thresholds. [Stockfish 19 tactical search](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp#L1484-L1687)
+
+The 32 families come from archived games, not globally unseen games. Positions were fixed before candidate comparison and oracle grading. At H19 the 15 changed choices have six WDL gains, six losses and three ties; aggregate difference is −513‰, or −16.03‰ over all 32 positions. Basic and Advanced retain move, depth and nodes in all 37 requests, including focus controls. The reference passes 87/87 components. No candidate enters the live engine or a duel; candidate ΔElo is not measured. Hard's local 1,507 Elo remains the 100-game estimate, 95% interval 1,357–1,656.
+
+The puzzle benchmark incorrectly used the explicit 44k allowance for every adaptive decision. The new audit retains 44k for exact repertoire and the adaptive YAML ceiling for other positions. It rejects overspending either ceiling, an empty report, foreign accounting and substituted material. Frozen accuracy floors and the `training-048` boundary stay unchanged. Each position calls the actual Hard opponent analysis once without supplying the puzzle key or objective; Extent retains its move, depth, nodes and actual PV.
+
+| Chapter | Accepted first decisions | Retained floor |
+|---|---|---|
+| Mate in 1 | 500/500 | 500 |
+| Mate in 2 | 300/300 | 300 |
+| Mate in 3 | 198/200 | 190 |
+| Tactics | 93/100 | 86 |
+| Training | 94/114; 40/48 on the frozen sample | 39/48 |
+| Intermezzo | 24/24 | 24 |
+
+These are accepted first decisions, not complete native conversions of every puzzle. They neither measure Elo nor automatically train the engine. Evidence and two YAML lessons with replies and counterexamples are under `C:\work\sah\studii\2026-11-18-j7-native-italian`. [Position audit and negative contracts](../testing/hard-audit.md#position-only-puzzle-audit)
+
 ## Checks for every change
 
 1. Run the JVM suite before making the change. Compare from the same TMP checkout, with the same Stockfish executable and evaluation YAML. Keep the Extent report from each run.
