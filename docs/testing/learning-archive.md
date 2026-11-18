@@ -46,3 +46,38 @@ retained files, Git source references and active processes have been checked.
 
 Use the [hint protocol](hard-hint-study.md) for oracle interpretation and the
 [native league protocol](hard-audit.md#elo-and-unfinished-games) for strength.
+
+## Post-game review and hint endpoints
+
+Attach a complete native review to every saved game as a separate `review.json`.
+Use `GameReview.analyze` for an actual result and `analyzeLine` for a capped path;
+never turn a cap into a completed game. Retain all moves, colors, grades, score
+perspectives, completed depths, played/recommended lines, explanations and the
+checkpoint-bound review cache. Capped paths have no rating. Completed-game local
+rating estimates are not a measured Elo and must preserve the actual actor roles.
+
+[`LearningReviewAudit`](../../atf-tests/src/test/java/ro/atf/chess/LearningReviewAudit.java)
+binds the original journal to a separate reviewer identity, loaded review policy,
+final checkpoint, result and uninterrupted chronological progress. It rejects
+missing moves, relabeled runs and readable scores that disagree with the cache.
+The configured review search is 85k additional nodes; the API does not expose
+actual per-turn work. Keep that limit distinct from the original 200k public hint.
+
+Compare every played and recommended review branch at each hypothetical ply with
+independent H17/H19 evidence. Existing oracle phases may be referenced only with
+their original identity and identical full history, origin, root, binary and
+options. New phases retain their own identity. Do not relabel inherited output.
+
+For every public hint, audit the exact last move and endpoint. Enumerate **legal**
+captures of the final important piece, including the stronger reply after the
+displayed endpoint. A pinned pawn is not a legal recapture. Exposure alone is not
+an unsound sacrifice: retain `…Qg3 hxg3 …Rh1#` as a sound control. Preserve both
+free and constrained scores, and grade the final move before interpreting the
+reply. The Caro–Kann `…Qxd4` queen-for-pawn tail is a confirmed counterexample,
+not a reason to ban exchanges or all sacrifices.
+
+[`LearningPostgameBenchmarkTest`](../../atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java)
+requires every game's review and readable analysis, both review branches, all
+public tails and the raw oracle phases. Integrity, exposed-tail quality and
+recommendation quality are separate Extent verdicts. Native logistic points and
+Stockfish WDL are different models; label disagreements are calibration findings.

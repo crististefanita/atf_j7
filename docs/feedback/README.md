@@ -13,7 +13,8 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Documentation · translation safeguards | The paired gate checks structure and links while prose and examples still need semantic review. | Detect copied prose and changed examples with focused negatives while preserving technical literals and immutable evidence. |
-| P1 | Game Review · move classification | Nine grade disagreements persist at both oracle depths, including a missed large loss and a false blunder. | Reproduce and correct classification without changing played history, inventing Elo or substituting hint scores for review evidence. |
+| P1 | Game Review · move classification | Five native error labels accompany played losses below 50‰ at both oracle depths on the newly admitted corpus. | Isolate score-model and horizon effects without changing played history, inventing Elo or substituting hint scores for review evidence. |
+| P1 | Game Review · recommended lines | Nine of 76 fresh review recommendations lose at least 150‰ at both H17/H19. | Repair complete same-horizon root/reply comparisons and preserve the actual good moves, cached review and independent families. [Measured cases](#full-review-calibration-on-the-admitted-corpus) |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
 | P1 | Italian · unresolved native exchange | Targeted recapture repairs the isolated H6 pair, but complete play and controls regress. | Resolve the complete decision within 200k, preserving 019/021/022 and independent transfer before a duel. |
 | P1 | Hint · leader, alternatives and opposing replies | The corrected replay retains large losses in 8/60 first hints, 11/82 offered variants and 9/82 first opposing replies. | Repair complete public suggestions and their scored replies at common horizons, preserving correct native choices and independent families. |
@@ -57,6 +58,38 @@ Use the [admission contract](../testing/learning-archive.md) for future games.
 Historical game bodies without current admission are retired. Source fixtures,
 release evidence, unresolved problem definitions and original oracle references
 are separate from the active learning corpus.
+
+## Full-review calibration on the admitted corpus
+
+All five games now retain `review.json`, readable `analysis.json` and a per-game
+README. The added review has its own producer `87ccb91bb169ed95ed7c0dc4b3e58ab67ce7e6df`;
+the original Hard/hint journals stay byte-identical. There are 76 reviewed moves,
+152 played/recommended branches and 745 hypothetical review plies. The teacher
+adds 854 cold H17/H19 queries and references 1,090 identical-context original
+queries without relabeling their runs. The native review keeps its actual 85k
+configured allowance, separate from the original public hint's 200k.
+
+Nine recommended roots have stable large oracle loss. In Caro–Kann, the review
+prefers `…Qa5` over the actually correct `…d5` at move four, losing 299/318‰.
+After `Nc3`, it recommends `…e5` instead of the played `…dxe4`, losing
+472/448.5‰. In the pawn conversion, the review's alternative loses 500/500‰
+while actual `a4` preserves the win. These are whole recorded review results,
+not manually selected root scores. Keep this P1 open until the actual review
+repairs these recommendations and transfers independently. Do not mark every
+review move optimal merely because the original Hard choice was good.
+
+The 118 public hint endpoints contain nine legally exposed important pieces,
+but only two combine exposure with stable large last-move loss. In Caro–Kann,
+`…Qxd4` takes a pawn, allows `Qxd4`, and loses 518.5/513‰; after the recapture,
+the last mover has 0‰ expected score at both horizons. `…Nh6` allows `Bxh6`
+and loses 308.5/290‰. Preserve exchanges that do not lose WDL and the sound
+`…Qxg3+ hxg3 …Rh1#` control, which retains 1,000‰ after the pawn's capture.
+The complete tails and all legal non-pawn recaptures are retained alongside the
+review in `C:\work\sah\.studii\corpus\2026-11-18-v1\postgame-audit`.
+
+Integrity, exposed-tail quality and review-recommendation quality are separate
+Extent verdicts. The first passes; the latter two fail. Local review ratings are
+not measured Elo, and three capped paths have no rating. [Contract and components](../testing/learning-archive.md#post-game-review-and-hint-endpoints)
 
 ## Evidence and Closure Checks
 
