@@ -922,10 +922,10 @@ unei intervenții de referință rămân dovezi condiționate, nu partide indepe
 Toate cele 80 de chei didactice inspectate rămân sub limita existentă de pierdere mare la ambele adâncimi.
 
 `training-051` rămâne la `Ke6`, nu `Rc8+` câștigător; ambele orizonturi confirmă victorie→remiză.
-Fixul de mat nu declară acest final rezolvat. Următorul caz compact este `training-107:1`:
+Fixul de mat nu declară acest final rezolvat. Acest reper a identificat `training-107:1`:
 șase piese, `c5` în loc de `h8=Q`, H5 și 14.652 de noduri suplimentare, cu pierdere 500‰
-la ambele adâncimi. Izolează scorul încheiat și oprirea înainte să schimbi ponderi sau bugete.
-Păstrează alternativele câștigătoare și poarta completă de mat.
+la ambele adâncimi. Recuperarea calificată a promovării și noua lacună de conversie sunt
+înregistrate mai jos. Alternativele câștigătoare păstrate și poarta completă de mat rămân martori.
 
 Pe catalog, media muncii suplimentare crește de la 14.371,56 la 15.537,58 de noduri;
 p95 rămâne 100k, iar maximul 200k. Sunt costuri deterministe, nu latență izolată sau măsurare
@@ -944,6 +944,9 @@ catalogului, numărul public de probleme, politica nativă sau Elo-ul afișat.
 clasează `h8=Q` la +167 cp și dă lui `c5` o limită superioară de −109. H5 preferă linia
 cooperantă `c5 Re8 h8=Q Rxh8 Kxh8` la +190. H6 încheiat inversează ordinea: `c5 Rd7+` este
 −115, iar `h8=Q Rxh8 Kxh8` este +183. Veto-ul final de stabilitate păstra anterior H5.
+
+Confirmarea cu fereastră completă rezolvă `c5` la H4 cu −279 cp, nu cu limita superioară
+preliminară de −109. Mecanismul nu tratează acea limită ca scor exact de comparație.
 
 [Politica promovării](../../chess-core/src/main/resources/hard-promotion-exchange.yaml)
 permite o singură excepție structurală. PV-ul efectiv trebuie să închidă promovarea, capturarea
