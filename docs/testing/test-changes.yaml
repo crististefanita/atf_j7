@@ -1069,3 +1069,19 @@ testChanges:
     test: ro.atf.chess.StockfishFenAuditTest#supportsExplicitFenOriginsWithoutBorrowingAStartPositionPhase
     contract: "Retain strict start-position oracle validation and add explicit FEN origin, clocks, full prefix, raw command and cross-origin projection rejection for puzzle studies"
     allowDelete: false
+
+  - id: J7-PROMOTION-POLICY-RECEIPT-EN
+    base: "bbe7ed7adf85742d89d8a8ef5fb47608b48de5c8"
+    from: atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/PromotionExchangePolicyTest.java
+    test: ro.atf.chess.PromotionExchangePolicyTest#yamlRejectsCaseLookupsUnknownModesAndInvalidThresholds
+    contract: "Preserve all complete-catalog identities, legal PVs, budget checks and the separate unsolved-quality verdict; additionally bind the current producer to its loaded promotion policy and reject untyped lookup fields"
+    allowDelete: false
+
+  - id: J7-PROMOTION-POLICY-RECEIPT-RO
+    base: "737d8a3e8e31d18708b5076d7b69917fa7357684"
+    from: atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/PromotionExchangePolicyTest.java
+    test: ro.atf.chess.PromotionExchangePolicyTest#yamlRejectsCaseLookupsUnknownModesAndInvalidThresholds
+    contract: "Preserve all complete-catalog identities, legal PVs, budget checks and the separate unsolved-quality verdict; additionally bind the current producer to its loaded promotion policy and reject untyped lookup fields"
+    allowDelete: false

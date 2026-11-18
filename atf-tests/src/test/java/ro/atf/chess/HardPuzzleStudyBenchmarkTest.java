@@ -32,6 +32,7 @@ class HardPuzzleStudyBenchmarkTest {
         var raw=trusted(folder.resolve("native.jsonl"),"nativeSha256");var identity=JSON.readTree(trusted(folder.resolve("identity.json"),"identitySha256"));
         String revision=System.getProperty("chess.puzzleStudy.revision","");require(revision.matches("[a-f0-9]{40}")&&revision.equals(identity.path("revision").asText()),"Foreign native puzzle source");
         check.same("The complete public baseline uses the active native policy, not a diagnostic overlay",JSON.valueToTree(HardAdaptivePolicy.CURRENT),identity.path("nativePolicy"));
+        check.same("The closed promotion feature is bound to its actually loaded policy",JSON.valueToTree(PromotionExchangePolicy.CURRENT),identity.path("promotionExchangePolicy"));
         check.same("Additional nodes do not include the initial native horizon",MatchAiPolicy.BASE_PLIES,identity.path("unbudgetedBasePlies").asInt());
         var chapters=chapters();var expectedCatalog=new ArrayList<Object>();
         for(var chapter:chapters)for(var q:chapter.quests())expectedCatalog.add(java.util.Map.of("chapter",chapter.name(),"id",q.id(),"fen",q.fen(),"line",q.line(),"objective",q.objective()));
