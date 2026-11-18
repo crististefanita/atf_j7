@@ -835,3 +835,37 @@ The earlier frontier prototypes are rejected. Resolving a checking queen capture
 Producer `b90f181b707a3a7dd4c67147a31208534b69f0e2` retains all native reports and the other 59 complete hints. Sixty-four geometrically selected PGN histories have identical old/new outputs; the first sixteen receive H17/H19 root checks. This establishes preservation, not activation or independent gains. Two new twenty-ply thematic studies follow forced `…Nbd7` and inferior `…Nc6` prefixes, then six fresh played plies each. They overlap the inspected Sicilian prefix and do not form a strength league. The audit validates 284 new raw requests and retains original identities for 85 unchanged oracle projections from the earlier 1190-request bundle. All 100 current native receipts are newly captured; old native receipts are never relabeled as current. [Audit contract](../testing/hard-hint-study.md)
 
 Evidence and study-only lessons remain in `C:\work\sah\studii\2026-11-18-j7-sicilian-knight-hint`. The 110 component/report checks pass, and the original engine genuinely fails the new target assertion. The capped paths produce no new Elo or native ΔElo. [Remaining model and offer gaps](../feedback/README.md)
+
+## Sicilian four-root coverage
+
+After the same `7.f4` prefix, the hint now compares `…Nbd7`, `…Nc6`, `…Be7` and `…Qb6`
+at completed H5 within one total 200k allowance. The raw scores remain −21/−21/−25/−29 cp.
+`HintCandidateCoverage` adds a missing native-theory challenger to a two-root defensive
+comparison, then at most one safe quiet queen move creating new pressure on an undefended
+pawn and a minor. It adds work, not a score bonus, FEN lookup or automatic theory answer.
+All four scored roots remain diagnostic; only `…Nbd7` is publicly offered.
+
+Stockfish 19 H17/H19 checks every compared root, first opposing PV reply and endpoint.
+At H19 the four forced-root losses are 33/358/10.5/11‰. Free H19 selects `…Qb6`; the separately
+forced queen search differs by 11‰, so it is not reported as an invented exact zero.
+First opposing replies cost 21.5/15.5/69.5/37‰ respectively. Their legal lines are audited,
+not certified as best play at every later ply. Wider coverage does not repair the native
+numerical underranking of the queen and bishop.
+
+The matched sixty-phase replay changes only the target hint comparison/PV. Italian and
+Caro–Kann hints, all native decisions, estimates, checkpoints and played moves remain identical.
+Sixty-four frozen transfer outputs are also identical. Historical large-loss counts remain
+8/60 first hints, 11/82 offers and 9/82 first opposing replies. Two new twenty-ply studies use
+`…Qb6` and `…Be7` prefixes; with these forty phases included, counts are 15/100 leaders,
+19/142 offers and 15/142 replies. These new cohorts expose residual weaknesses rather than
+establish a paired regression or an Elo change.
+
+The source-qualified audit retains 100 fresh native phases, 308 new raw Stockfish requests
+and 958 source-preserving exact-query projections. Free/forced scores must share one oracle
+producer as well as history, depth and options. Mixing valid raw requests from two runs is
+rejected. The 119 component/report checks and scoped qualification pass; absolute hint
+quality still fails at the unchanged 150‰ boundary.
+
+Evidence: `C:\work\sah\studii\2026-11-18-j7-sicilian-candidate-coverage`.
+[Components](../../atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java) ·
+[Hint audit](../testing/hard-hint-study.md) · [Native puzzle baseline](../testing/hard-puzzle-study.md)

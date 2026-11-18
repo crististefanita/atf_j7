@@ -681,3 +681,7 @@ On API 28, TalkBack 7.2 synthesized position 3 of 4 and White's score of zero pe
 - [Web probe](../../web/README.md#screen-readers-in-game-review)
 
 [Chessboard](../board/README.md) · [Release process](../release/README.md)
+
+### Native Hard puzzle studies
+
+`HintCandidateCoverageTest` checks the four Sicilian roots, raw scores, queen safety, counterexamples, fallback and small budgets. `StockfishFenAuditTest` checks FEN origin, clocks and rejection of borrowed projections. [Procedure, inventory and limits](hard-puzzle-study.md)

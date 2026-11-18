@@ -83,7 +83,7 @@ Next isolate why closing the exchange changes the complete leader and the three 
 
 The Italian and Caro–Kann first-hint regressions remain closed. The Sicilian `…Nc6/…Nbd7` leader defect after `7.f4` is also corrected at completed H5 and 200k; the raw −21/−21 tie is retained. Their mechanism and rejected broad scopes belong to the [AI guide](../board/ai-quality.md#italian-queen-recapture-and-hint-continuity), with permanent component checks. Other queen-pressure positions remain deficient: `validation-039`, a distinct full-history position after `…Qb6`, retains its previous 462‰ first-hint loss.
 
-The matched sixty-phase replay still fails absolute quality: 8 first hints, 11 offered moves and 9 first opposing PV replies breach 150‰. The corrected Sicilian hint offers only `…Nbd7` and loses 33‰ at H19, versus 358‰ before; the free oracle prefers `…Qb6` and native theory still supplies sound `…Be7`. The model still cannot distinguish the two knight roots numerically. Improve that distinction and candidate coverage without promoting an exchange stopped before recapture. Earlier `N1c3` still offers inferior `Bg5`. [Mechanism and rejected prototypes](../board/ai-quality.md#sicilian-exact-ties-and-pin-reinforcement) The forcing-pawn transfer case still offers `Bxe4` at 243.5‰. The new validation history `validation-057` improves its leader but retains inferior `Bg5` as a secondary offer at 339.5‰. Prioritize the first common-horizon divergence and the free opposing reply; a narrow native score gap is not evidence of equivalent moves.
+The matched sixty-phase replay still fails absolute quality: 8 first hints, 11 offered moves and 9 first opposing PV replies breach 150‰. The corrected Sicilian hint offers only `…Nbd7` and loses 33‰ at H19, versus 358‰ before; the free oracle prefers `…Qb6` and native theory still supplies sound `…Be7`. The model still cannot distinguish the two knight roots numerically. Candidate coverage is now implemented and governed: all four roots are compared at H5/200k. Improve their numerical distinction and opposing replies without promoting an exchange stopped before recapture. [Four-root measurements](../board/ai-quality.md#sicilian-four-root-coverage) Earlier `N1c3` still offers inferior `Bg5`. [Mechanism and rejected prototypes](../board/ai-quality.md#sicilian-exact-ties-and-pin-reinforcement) The forcing-pawn transfer case still offers `Bxe4` at 243.5‰. The new validation history `validation-057` improves its leader but retains inferior `Bg5` as a secondary offer at 339.5‰. Prioritize the first common-horizon divergence and the free opposing reply; a narrow native score gap is not evidence of equivalent moves.
 
 Preserve the completed Caro and Italian controls, sound sacrifices, exact-cache negatives, 200k total hint ceiling and unmodified historical moves. Address defective secondary offers and PV replies before claiming complete scholastic explanations. Grade first choices, every offered root and scored replies separately at H17/H19. A hint fix does not certify native Hard play, the bar or Game Review grades. [Audit and publication](../testing/hard-hint-study.md)
 
@@ -92,7 +92,7 @@ Preserve the completed Caro and Italian controls, sound sacrifices, exact-cache 
 <details>
 <summary>P2 · Hint audit · broader transfer</summary>
 
-This round adds sixty-four geometrically selected histories without any output change; it proves preservation only. The first sixteen are graded by the oracle. The new source-bound audit captures all 100 native phases, retaining 85 original oracle projections and validating 284 new requests. Preserve original receipt identities and exact-query joins; do not relabel evidence or count overlapping prefixes as independent games.
+The latest round preserves all sixty-four frozen geometric histories. It captures 100 fresh native phases, including the two new queen/bishop branches, and validates 308 new raw requests plus 958 original exact-query projections. Free/forced scores must share one oracle identity; query integrity alone does not permit combining two producers. Preserve original receipt identities and exact-query joins; do not relabel evidence or count overlapping prefixes as independent games.
 
 The earlier Italian collection and its rejected queen-pressure scope remain historical evidence in the AI guide. Legal replay and receipt integrity do not imply chess-quality PASS.
 
@@ -207,5 +207,16 @@ Measure fixed 100,000, fixed 200,000, and the adaptive mode from the same source
 The 58-loss ordering model changes 34/36 held-out root lists and keeps all final moves. Corrected chronology identifies one earlier loss in 36 games.
 
 Include preserved good moves, quiet replies, and verified sacrifices in the next training set. Require alternative-rank improvement and a change in complete decisions on excluded families before interpreting the paired Elo. [Offline research](hard-learning.md)
+
+</details>
+
+<details>
+<summary>P1 · Native Hard · rook-root re-entry and puzzle transfer</summary>
+
+Ordinary Hard completes 1,182/1,238 canonical exercises; 82 stages fail in 56 exercises. Fixed 200k/H6 recovers 0/82, 200k/H7 20/82 and 500k/H7 26/82. These are frozen-miss diagnostics, not complete-catalog candidate qualifications. Preserve the 500/500 and 300/300 solved mate chapters and the native/goal-solver distinction.
+
+Prioritize `mate3-04iY6` and `mate3-019gx`: both lose a forced mate according to Stockfish H17/H19, even at 500k. Rook search permanently removes roots after short-horizon selection. An external re-entry prototype recovers both keys inside 200k but fails `training-051`, which the oracle grades as win→draw. Do not substitute more nodes for proving which roots disappeared or why. Require complete-catalog non-regression, retained rook/draw witnesses, unseen related families and actual free defenses before integration; measure paired ΔElo only after that gate.
+
+Five other inspected material stages preserve a win despite missing the educational goal. Keep exact-goal failure and verified WDL loss separate; do not relabel accepted variants, relax the goal or claim all puzzles solved. [Method, full inventory and evidence](../testing/hard-puzzle-study.md)
 
 </details>

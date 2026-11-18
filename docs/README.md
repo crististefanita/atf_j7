@@ -14,6 +14,8 @@ Start with the guide that answers your question. Verify claims about behavior ag
 | How is an APK qualified and where is the release evidence? | [Release process](release/README.md#qualification-and-publication) · [Published releases](../release/README.md) |
 | Which assumptions still need evidence? | [Feedback](feedback/README.md) |
 
+Ordinary Hard and puzzle-goal solvers have separate evidence: [native puzzle studies](testing/hard-puzzle-study.md).
+
 ## Maintenance Rules
 
 - **Main README.** Purpose, the two current release links, an architecture map,
