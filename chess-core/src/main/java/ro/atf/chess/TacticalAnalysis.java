@@ -610,7 +610,12 @@ public final class TacticalAnalysis {
                     return new SearchReport(candidate, depth, policy.extraNodes() - budget.remaining);
                 }
                 if (prioritizeChecks && depth == policy.maxPlies()
-                        && !stableHardLeader(moves.get(0), candidate)) break;
+                        && !stableHardLeader(moves.get(0), candidate)) {
+                    var promotion = confirmPromotionExchange(root, best.ranked().get(0).move(),
+                            candidate.ranked().get(0), depth, budget);
+                    if (promotion == null) break;
+                    candidate = new Result(List.of(promotion));
+                }
                 // The later capture has no opponent reply at an odd horizon. Keep the completed even ranking.
                 if (prioritizeChecks && gap == 0 && MatchAiPolicy.CURRENT.preservePawnCapture && depth % 2 == 1
                         && completed == depth - 1 && defersPawnCapture(root.position(), best.ranked().get(0), candidate.ranked().get(0), depth)) {
@@ -651,6 +656,23 @@ public final class TacticalAnalysis {
             if (capture != null) best = new Result(List.of(capture));
         }
         return new SearchReport(best, completed, policy.extraNodes() - budget.remaining);
+    }
+
+    private static Variation confirmPromotionExchange(RootSearch root, Move incumbent, Variation candidate,
+                                                       int depth, SearchBudget budget) {
+        var policy = PromotionExchangePolicy.CURRENT;
+        if (depth % 2 != 0 || !policy.matches(root.position(), candidate)) return null;
+        try {
+            int balance = material(root.position());
+            var promoted = root.line(candidate.move(), depth, LIMIT, budget, Objective.POSITION, balance);
+            var original = root.line(incumbent, depth, LIMIT, budget, Objective.POSITION, balance);
+            if (!promoted.exact() || !original.exact() || promoted.score() <= 0
+                    || promoted.score() <= original.score()) return null;
+            var confirmed = new Variation(promoted.moves(), promoted.score(), promoted.balance() - balance, promoted.ending());
+            return policy.matches(root.position(), confirmed) ? confirmed : null;
+        } catch (BudgetExhausted exhausted) {
+            return null;
+        }
     }
 
     private static Move pawnExchangeCandidate(ChessPosition position, Result base) {
