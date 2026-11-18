@@ -63,18 +63,19 @@
 
 .analysis-study-menu-items :is(label, button):hover { background: #45443d; }
 .analysis-study-stage {
-  --analysis-meter-width: 8px;
-  --analysis-meter-gutter: 13px;
-  --analysis-caption-height: 1.35rem;
-  flex: 1 0 10rem;
+  --analysis-meter-width: var(--board-meter-size);
+  --analysis-meter-gutter: var(--board-meter-gutter);
+  --analysis-caption-height: var(--board-seat-size);
+  flex: 1 0 auto;
+  min-block-size: var(--board-stage-min);
   display: grid;
   place-items: center;
-  container-type: size;
+  container-type: inline-size;
 }
 
 .analysis-study-stage:has(.analysis-study-meter[hidden]) { --analysis-meter-gutter: 0px; }
 .analysis-study-stack {
-  inline-size: min(100cqw, calc(100cqh - 2 * var(--analysis-caption-height) + var(--analysis-meter-gutter)));
+  inline-size: min(100%, calc(var(--play-board-limit) + var(--analysis-meter-gutter)));
 }
 .analysis-study-replay .analysis-study-stack {
   max-inline-size: var(--replay-board-side, 100%);
@@ -104,8 +105,8 @@
 .analysis-study-score,
 .analysis-study-evidence,
 .analysis-study-error { margin: 0; text-align: center; }
-.analysis-study-status { min-block-size: 2.5rem; font-size: .875rem; white-space: pre-line; }
-.analysis-study-feedback { min-block-size: 2.5rem; font-size: .875rem; text-align: center; }
+.analysis-study-status { min-block-size: var(--board-feedback-size); font-size: .875rem; white-space: pre-line; }
+.analysis-study-feedback { min-block-size: var(--board-feedback-size); font-size: .875rem; text-align: center; }
 .analysis-study-score { color: #c0bfb4; }
 .analysis-study-feedback button {
   display: block;
@@ -150,15 +151,12 @@
   body.study-active main:has(.analysis-study-replay) { padding-inline: 0; }
   .analysis-study-replay {
     --study-top-gap: 0px;
-    block-size: calc(100dvh - 2 * var(--analysis-page-padding));
+    min-block-size: calc(100dvh - 2 * var(--analysis-page-padding));
   }
   .analysis-study-replay .analysis-study-stage {
     flex: none;
     min-block-size: 0;
     container-type: inline-size;
-  }
-  .analysis-study-replay .analysis-study-stack {
-    inline-size: min(100%, max(8rem, calc(100dvh - 14rem)));
   }
   .analysis-study-replay .analysis-study-variants { flex: none; flex-wrap: nowrap; gap: .2rem; padding-inline: .35rem; }
   .analysis-study-replay .analysis-study-variants button { flex: 1; min-inline-size: 0; min-block-size: 48px; font-size: .85rem; }

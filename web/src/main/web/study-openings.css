@@ -38,17 +38,16 @@
 .opening-card strong { font-size: 1.1rem; }
 .opening-meta, .opening-navigation > :nth-child(2) { color: var(--opening-accent); }
 
-/* Match and puzzles share the same board limit. The lesson reserves its own meter and controls. */
+/* Analysis supplies the square limit; the lesson uses the same rail and centered column. */
 .opening-study:not([hidden]):has(.opening-workspace:not([hidden])) {
-  --opening-seat-height: .9375rem;
-  --opening-meter-width: 8px;
-  --opening-meter-gap: 5px;
+  --opening-seat-height: var(--board-seat-size);
+  --opening-meter-width: var(--board-meter-size);
+  --opening-meter-gap: var(--board-meter-gap);
   --opening-meter-gutter: calc(var(--opening-meter-width) + var(--opening-meter-gap));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   inline-size: min(100%, var(--play-column));
-  block-size: calc(100dvh - var(--chess-page-insets));
-  min-block-size: 20rem;
+  min-block-size: max(20rem, calc(100dvh - var(--chess-page-insets)));
   margin-block-start: var(--study-top-gap);
 }
 .opening-study:has(.opening-workspace:not([hidden])) > .opening-header { gap: var(--chess-header-gap); }
@@ -94,14 +93,13 @@
   display: grid;
   align-content: start;
   justify-items: center;
-  flex: 0 1 calc(min(var(--play-board-limit), 100cqi - var(--opening-meter-gutter)) + 2 * var(--opening-seat-height));
+  flex: 0 0 auto;
   min-inline-size: 0;
   min-block-size: 0;
-  container-type: size;
+  container-type: inline-size;
 }
 .opening-panel > * {
-  --opening-board-side: max(0px, min(var(--play-board-limit), calc(100cqh - 2 * var(--opening-seat-height)),
-    calc(100cqw - var(--opening-meter-gutter))));
+  --opening-board-side: max(0px, min(var(--play-board-limit), calc(100cqw - var(--opening-meter-gutter))));
 }
 .opening-seat {
   inline-size: var(--opening-board-side);
@@ -222,16 +220,3 @@
 }
 .opening-history { display: grid; }
 .opening-history button { text-align: start; white-space: normal; }
-
-@media (orientation: landscape) and (min-width: 704px) {
-  body.study-active main:has(.opening-study:not([hidden]) .opening-workspace:not([hidden])) { max-width: none; }
-  .opening-study:not([hidden]):has(.opening-workspace:not([hidden])) {
-    inline-size: min(100%, 2 * var(--play-room));
-    max-inline-size: none;
-  }
-  .opening-columns {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: minmax(0, 1fr);
-  }
-}

@@ -15,11 +15,6 @@
   --play-action-size: max(48px, 2.75rem);
   --play-column: 35rem;
   --play-room: 38rem;
-  /* Puzzle score, turn, caption and details, in addition to its two action rows. */
-  --play-puzzle-text: 10rem;
-  --play-insets: calc(2 * (var(--play-page-padding) + var(--play-room-padding)) + var(--play-top-gap));
-  --play-chrome: calc(var(--play-insets) + 2 * var(--play-action-size) + var(--play-puzzle-text));
-  --play-board-limit: min(var(--play-column), max(12rem, 100dvh - var(--play-chrome)));
 }
 
 * { box-sizing: border-box; }
@@ -212,6 +207,20 @@ dialog::backdrop { background: #121613a8; }
   position: relative;
   inline-size: min(100%, var(--play-board-limit));
 }
+.match[data-mode="AI"] > .match-board-frame {
+  --match-meter-width: var(--board-meter-size);
+  --match-meter-gap: var(--board-meter-gap);
+  display: grid;
+  grid-template-columns: var(--match-meter-width) minmax(0, 1fr);
+  column-gap: var(--match-meter-gap);
+  inline-size: min(100%, calc(var(--play-board-limit) + var(--match-meter-width) + var(--match-meter-gap)));
+}
+.match[data-mode="AI"] > .match-board-frame:has(.match-inline-meter[hidden]) {
+  --match-meter-width: 0px;
+  --match-meter-gap: 0px;
+}
+.match[data-mode="AI"] .match-inline-meter { position: relative; inset: auto; inline-size: 100%; }
+.match[data-mode="AI"] #match-board { grid-column: 2; inline-size: 100%; }
 .match-inline-meter {
   position: absolute;
   inset-block: 0;
@@ -255,15 +264,16 @@ dialog::backdrop { background: #121613a8; }
   --preview-padding: .65rem;
   inline-size: min(calc(var(--replay-board-side, 35rem) + 2 * var(--preview-padding) + 2px), 100%);
   max-inline-size: none;
-  block-size: min(calc(var(--replay-board-side, var(--play-board-limit)) + 12rem), calc(100dvh - 1rem));
-  max-block-size: none;
+  max-block-size: calc(100dvh - 1rem);
+  inset-block: .5rem auto;
+  margin-block: 0;
   padding: var(--preview-padding);
-  container-type: size;
-  overflow: hidden;
+  container-type: inline-size;
+  overflow: auto;
 }
 #match-inline-preview[open] {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto;
   gap: .35rem;
 }
 #match-inline-preview > header {
@@ -272,7 +282,7 @@ dialog::backdrop { background: #121613a8; }
 }
 #match-inline-preview-title { min-inline-size: 0; }
 #match-inline-preview-board.board {
-  inline-size: min(100%, var(--replay-board-side, var(--play-board-limit)), max(8rem, calc(100cqb - 9.5rem)));
+  inline-size: min(100%, var(--replay-board-side, var(--play-board-limit)));
   margin-inline: auto;
 }
 #match-inline-preview button:not(.square) { min-block-size: var(--play-action-size); }
@@ -360,7 +370,6 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
     --play-room-padding: 0px;
     --play-top-gap: 0px;
     --play-action-size: 48px;
-    --play-puzzle-text: 8.25rem;
   }
   main:has(> .match:not([hidden])) > header h1 { font-size: var(--chess-screen-title); }
   main:has(> .match:not([hidden])) > header .header-actions button { padding-inline: .35rem; font-size: .875rem; }
@@ -370,22 +379,6 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
   #match-history :is(#match-previous, #match-next) { min-inline-size: var(--play-action-size); }
   #match-ply, #continue-match { min-inline-size: 0; }
   #continue-match { padding: .2rem .35rem; font-size: .8rem; line-height: 1.1; }
-}
-@media (max-width: 480px) {
-  .match[data-mode="AI"] > .match-board-frame {
-    --match-meter-width: 8px;
-    --match-meter-gap: 2px;
-    display: grid;
-    grid-template-columns: var(--match-meter-width) minmax(0, 1fr);
-    column-gap: var(--match-meter-gap);
-    inline-size: min(100%, calc(var(--play-board-limit) + var(--match-meter-width) + var(--match-meter-gap)));
-  }
-  .match[data-mode="AI"] > .match-board-frame:has(.match-inline-meter[hidden]) {
-    --match-meter-width: 0px;
-    --match-meter-gap: 0px;
-  }
-  .match[data-mode="AI"] .match-inline-meter { position: relative; inset: auto; inline-size: 100%; }
-  .match[data-mode="AI"] #match-board { grid-column: 2; inline-size: 100%; }
 }
 @media (max-width: 340px) {
   main:has(> .match:not([hidden])) > header h1 { font-size: var(--chess-screen-title); }
