@@ -339,7 +339,7 @@ public final class TacticalAnalysis {
         return verifiedHints(lines, seed, comparison, shortlistNodes, repertoire, policy);
     }
 
-    private record HintVerification(SearchReport search, List<Variation> balancedLines) { }
+    private record HintVerification(SearchReport search, List<Variation> balancedLines, boolean recaptureCheck) { }
 
     private static ArrayList<Move> hintVerificationRoots(List<Variation> ranked, List<Move> horizonLeaders, Set<Move> excluded) {
         var roots = new ArrayList<Move>();
@@ -381,6 +381,11 @@ public final class TacticalAnalysis {
         if (comparison.depth() < seed.depth() && !extendsLine(original, best)) return hintSearch(lines, null, used, seed);
         var eligible = hintLines(comparison.result(), policy).stream()
                 .filter(line -> line.move().equals(best.move()) || !seed.nonEquivalentRoots().contains(line.move())).collect(Collectors.toList());
+        if (verified.recaptureCheck()) {
+            // A selective challenger can replace the leader, but cannot manufacture additional equivalent offers.
+            eligible.removeIf(line -> !line.move().equals(best.move())
+                    && lines.stream().noneMatch(saved -> saved.move().equals(line.move())));
+        }
         var replays = eligible.stream().map(line -> lines.stream().filter(saved -> extendsLine(saved, line))
                 .findFirst().orElse(line)).collect(Collectors.toList());
         int comparisonSize = best.signedMatePlies() == 0 ? Math.min(ranked.size(), Math.max(2, eligible.size())) : eligible.size();
@@ -431,7 +436,7 @@ public final class TacticalAnalysis {
     }
 
     private static HintVerification verifyHintRoots(ChessPosition position, List<Move> moves, SearchBudget budget, int maxPlies) {
-        // Competing captures can hide the recapture of a valuable victim at the frontier.
+        // A checking pawn reply can push the recapture of a valuable victim beyond the frontier.
         // Keep seed, ordinary opponent and display searches unchanged; all extra visits use this budget.
         budget.recaptureExtension = competingCaptures(position, moves)
                 ? MatchAiPolicy.CURRENT.hint.verificationRecapturePlies() : 0;
@@ -451,18 +456,25 @@ public final class TacticalAnalysis {
                 break;
             }
         }
-        return new HintVerification(new SearchReport(new Result(ranked), completed, before - budget.remaining), balanced);
+        return new HintVerification(new SearchReport(new Result(ranked), completed, before - budget.remaining), balanced, budget.recaptureExtension > 0);
     }
 
     private static boolean competingCaptures(ChessPosition position, List<Move> moves) {
-        boolean capturesPiece = false;
+        boolean capturesPawn = false;
+        boolean forcingReply = false;
         if (moves.size() < 2) return false;
         for (var move : moves) {
             var victim = MatchMaterial.victim(position, move);
             if (victim == null) return false;
-            capturesPiece |= victim.kind() != Kind.PAWN;
+            capturesPawn |= victim.kind() == Kind.PAWN;
+            if (victim.kind() != Kind.PAWN) {
+                var after = position.playGenerated(move);
+                forcingReply |= after.legalCapturesAndPromotions().stream().anyMatch(reply ->
+                        after.pieceAt(reply.from()).kind() == Kind.PAWN
+                                && MatchMaterial.victim(after, reply) != null && after.playGenerated(reply).isCheck());
+            }
         }
-        return capturesPiece;
+        return forcingReply && capturesPawn;
     }
 
     private static List<Variation> hintRootLines(ChessPosition position, List<Move> moves, int depth, List<SearchBudget> budgets) {
