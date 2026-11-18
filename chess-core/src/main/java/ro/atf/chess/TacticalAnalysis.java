@@ -737,7 +737,42 @@ public final class TacticalAnalysis {
                 break;
             }
         }
+        if (completed == policy.maxPlies() + endgamePolicy.extensionPlies()
+                && best.ranked().get(0).signedMatePlies() <= 0) {
+            var mate = readmitRookMate(root, base, best, completed, budget);
+            if (mate != null) {
+                best = new Result(List.of(mate.line()));
+                completed = mate.depth();
+            }
+        }
         return new SearchReport(best, completed, policy.extraNodes() - budget.remaining);
+    }
+
+    private record RookMate(Variation line, int depth) { }
+
+    private static RookMate readmitRookMate(RootSearch root, Result initial, Result completed,
+                                             int depth, RookSearchBudget budget) {
+        var retained = completed.ranked().stream().map(Variation::move).collect(Collectors.toSet());
+        var candidates = initial.ranked().stream().map(Variation::move).filter(move -> !retained.contains(move))
+                .collect(Collectors.toCollection(ArrayList::new));
+        orderCheckingRootMovesFirst(root.position(), candidates);
+        int balance = material(root.position());
+        for (int proofDepth = MatchAiPolicy.BASE_PLIES + 2; proofDepth <= depth; proofDepth += 2) {
+            int threshold = MATE - proofDepth;
+            for (Move candidate : candidates) {
+                try {
+                    // A narrow mate threshold only nominates a root; its bound is never published as an exact score.
+                    var probe = root.lineRook(candidate, proofDepth, threshold - 1, LIMIT, budget, balance);
+                    if (probe.score() < threshold || probe.ending() != Ending.CHECKMATE) continue;
+                    var exact = root.lineRook(candidate, proofDepth, -LIMIT, LIMIT, budget, balance);
+                    if (exact.score() >= threshold && exact.ending() == Ending.CHECKMATE)
+                        return new RookMate(new Variation(exact.moves(), exact.score(), exact.balance() - balance, exact.ending()), proofDepth);
+                } catch (BudgetExhausted exhausted) {
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 
     private static boolean rookEndgame(ChessPosition position) {
