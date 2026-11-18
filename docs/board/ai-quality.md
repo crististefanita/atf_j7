@@ -866,3 +866,74 @@ absolută a indiciilor încă eșuează la limita neschimbată 150‰.
 Dovezi: `C:\work\sah\studii\2026-11-18-j7-sicilian-candidate-coverage`.
 [Componente](../../atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java) ·
 [Audit indicii](../testing/hard-hint-study.md) · [Reper puzzle-uri native](../testing/hard-puzzle-study.md)
+
+## Readmiterea calificată a rădăcinilor pentru mat
+
+Producătorul din 18 noiembrie `cc37530be13cf5ade582b3e1d42784fcc4b28e21` recuperează
+`mate3-04iY6` (`Kc4`, în loc de `Kxd4`) și `mate3-019gx` (`Ra4+`, în loc de `Ra8+`).
+Dovezile selectate încheie H5 la 19.865 și 75.415 noduri suplimentare. Ambele probleme
+sunt verificate contra tuturor apărărilor legale, inclusiv cu culorile inversate. Analiza
+nativă nu primește ID-ul, cheia, apărarea sau lungimea declarată a problemei.
+
+Căutarea obișnuită de turn păstrează lista scurtă validată și își încheie întâi orizontul
+configurat. Dacă nu are mat câștigător, rădăcinile eliminate pot reintra pentru o dovadă
+de mat. Șahurile sunt ordonate primele; orizonturile impare pornesc dincolo de H3 deja
+calculat. Fereastra îngustă doar nominalizează candidatul. Urmează obligatoriu confirmarea
+cu fereastră completă la același orizont de dovadă, din același buget rămas, cache și context
+de repetiții. Numai matul pozitiv confirmat înlocuiește decizia. Eșecul sau întreruperea
+păstrează alegerea încheiată. Raportul selectat arată H5 când dovada este H5, fără eticheta H7 împrumutată.
+
+La baza adaptivă de 19.864 de noduri, confirmarea se întrerupe și rămâne `Kxd4`/H7.
+La 19.865 se încheie dovada exactă `Kc4`/H5. Maximul rămâne 200k în ambele probe, astfel
+încât cache-ul și plafonul comun sunt fixe. Martorii existenți de repetiție și remiză trec.
+[Implementare](../../chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java) ·
+[Componente țintite](../../atf-tests/src/test/java/ro/atf/chess/RookRootReentryTest.java)
+
+Readmiterea generală la fiecare adâncime este respinsă: recuperează trei etape din catalog,
+dar pierde victorii în `held-rook-08` și `held-rook-12` la ambele adâncimi Stockfish. Costul
+rădăcinilor suplimentare împiedică încheierea răspunsului câștigător H7. Domeniul calificat,
+limitat la dovada matului, păstrează acești martori. Al doilea lot, cu 24 de compoziții
+legale noi de turnuri/pioni, înghețat după algoritm și înaintea ieșirilor sale, nu are regresii
+WDL la H17/H19. Sunt poziții de verificare, nu probleme publice noi sau partide Elo.
+
+### Dovezi pe întregul catalog curent
+
+| Observație | Rezultat calificat |
+|---|---:|
+| Probleme native canonice complete | 1.184/1.238, anterior 1.182 |
+| Etape canonice acceptate | 2.223/2.303, anterior 2.221 |
+| Etape anterior acceptate pierdute | 0 |
+| Capitolele curente mat în 1 / mat în 2 / mat în 3 | 500/500 · 300/300 · 200/200 |
+| Toate continuările adverse legale din capitolele de mat | 1.500 ramuri terminale, zero ratate |
+| Etape didactice încă neacceptate | 80 în 54 de probleme materiale |
+
+Auditul exhaustiv păstrează cele 1.000 de mutări inițiale efectiv selectate, apoi înregistrează
+1.236 de decizii native noi de continuare. Rejucarea independentă a recepțiilor consumă fiecare
+ramură legală o singură dată. `NativeMateDefenseBenchmarkTest`, portabil în proiect, recalculează
+independent toate cele 2.236 de alegeri native și aceleași 1.500 de frunze de mat. Reutilizează
+`NativeMateAudit` împreună cu testele țintite; nu cere emulator, date externe sau solver cu
+obiectiv declarat. [Comenzi și separarea solverelor](../testing/hard-puzzle-study.md)
+
+Stockfish H17/H19 evaluează acum toate cele 80 de etape canonice încă ratate, nu un eșantion
+favorabil. 57 pierd cel puțin 150‰ la ambele adâncimi; 22 păstrează victoria la ambele,
+deși ratează obiectivul didactic; una are pierdere mai mică sau dependentă de adâncime.
+Din cele 54 de prime ratări, 43 au deja pierdere mare la ambele adâncimi. Etapele ulterioare
+unei intervenții de referință rămân dovezi condiționate, nu partide independente.
+Toate cheile didactice rămân sub limita existentă de pierdere mare la ambele adâncimi.
+
+`training-051` rămâne la `Ke6`, nu `Rc8+` câștigător; ambele orizonturi confirmă victorie→remiză.
+Fixul de mat nu declară acest final rezolvat. Următorul caz compact este `training-107:1`:
+șase piese, `c5` în loc de `h8=Q`, H5 și 14.652 de noduri suplimentare, cu pierdere 500‰
+la ambele adâncimi. Izolează scorul încheiat și oprirea înainte să schimbi ponderi sau bugete.
+Păstrează alternativele câștigătoare și poarta completă de mat.
+
+Pe catalog, media muncii suplimentare crește de la 14.371,56 la 15.537,58 de noduri;
+p95 rămâne 100k, iar maximul 200k. Sunt costuri deterministe, nu latență izolată sau măsurare
+Elo. Baza H3 nativă rămâne separat nebugetată. Cele 146 de verificări de componentă/raport
+trec, precum și noul benchmark portabil complet de mat. Verdictul „toate problemele rezolvate”
+rămâne FAIL pentru cele 54 de probleme materiale incomplete.
+
+Dovezi: `C:\work\sah\studii\2026-11-18-j7-rook-root-reentry`. README-ul indică Extent,
+recepțiile canonice și de apărări libere, oracolul cu origini păstrate, cele 80 de lecții YAML
+și 43 de priorități la prima pierdere. Nu s-au schimbat lookup-uri FEN runtime, acceptarea
+catalogului, numărul public de probleme, politica nativă sau Elo-ul afișat.

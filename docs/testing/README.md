@@ -679,3 +679,5 @@ Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scor
 ### Studii de puzzle cu Hard nativ
 
 `HintCandidateCoverageTest` verifică cele patru rădăcini siciliene, scorurile brute, siguranța damei, contraexemplele, fallback-ul și bugetele mici. `StockfishFenAuditTest` verifică originea FEN, contoarele și respingerea proiecțiilor împrumutate. [Procedură, inventar și limite](hard-puzzle-study.md)
+
+`NativeMateDefenseBenchmarkTest` recalculează offline toate problemele de mat contra tuturor apărărilor legale și reutilizează `NativeMateAudit` cu componentele țintite. [Comenzi și limite](hard-puzzle-study.md#calificare-și-pașii-următori)

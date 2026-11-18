@@ -51,38 +51,32 @@ WDL și PV-ul legal. `StockfishFenAuditTest` respinge recepții din poziția sta
 poziții compuse, contoare modificate și comparații între origini. O etapă materială ratată poate
 păstra victoria; separă aceasta de pierderea WDL confirmată înainte să schimbi motorul sau contractul.
 
-## Reper măsurat și următorul experiment
+## Calificare și pașii următori
 
-Producătorul `711dff3f1bbb4c14aad682e7c319988dd35fce49` măsoară 1.238 de probleme și
-2.303 etape canonice ale jucătorului. Corecția ulterioară a cititorului nu schimbă motorul sau datele.
+Folosește `RookRootReentryTest` pentru cele două rădăcini de mat omise, ambele culori și toate
+apărările legale. `NativeMateAudit` deține parcurgerea nativă comună. Rulează benchmarkul
+portabil complet din copia externă pentru a recalcula fiecare problemă de mat existentă:
 
-| Capitol | Prima acceptată | Complet canonic | Etape acceptate |
-|---|---:|---:|---:|
-| Mat în 1 | 500/500 | 500/500 | 500/500 |
-| Mat în 2 | 300/300 | 300/300 | 600/600 |
-| Mat în 3 | 198/200 | 198/200 | 598/600 |
-| Tactică | 93/100 | 85/100 | 201/221 |
-| Antrenament | 94/114 | 77/114 | 273/330 |
-| Intermezzo | 24/24 | 22/24 | 49/52 |
-| Total | 1.209/1.238 | 1.182/1.238 | 2.221/2.303 |
+```powershell
+mvn test '-Dtest=NativeMateDefenseBenchmarkTest' "-Dchess.extent=$study/native-mates.html"
+```
 
-Rămân 82 de etape ratate în 56 de probleme incomplete. Pe exact acele etape, 200k fix/H6 nu
-recuperează nimic, 200k/H7 recuperează 20, iar 500k/H7 recuperează 26. Toate cele douăzeci se
-păstrează la bugetul mai mare. Aceste brațe nu reevaluează etapele reușite și nu dovedesc non-regresia.
+Apelează adversarul obișnuit înainte să consulte acceptarea didactică. Explorează fiecare
+apărare legală, păstrează adâncimea, nodurile și PV-ul fiecărei alegeri native, iar fiecare
+tablă terminală trebuie să fie mat în obiectivul inițial. Nu folosește solverul cu obiectiv
+declarat și nu cere emulator. Benchmarkul canonic complet rămâne separat pentru problemele materiale.
 
-Opt etape ratate alese înaintea oracolului primesc 50 de interogări brute H17/H19 din FEN.
-Ambele orizonturi confirmă că `mate3-04iY6` și `mate3-019gx` schimbă matul în trei în înfrângere,
-cu toate cele trei politici. `training-051` schimbă victoria în remiză. Celelalte cinci etape
-inspectate păstrează victoria deși nu ating obiectivul didactic; nu le declara cinci gafe
-confirmate și nu relaxa obiectivul în tăcere.
+După schimbare, compară fiecare etapă anterior acceptată și îngheață familii de transfer noi
+înainte să inspectezi ieșirile. Păstrează negativa de confirmare întreruptă, martorii cache-ului
+exact și de repetiție și bugetul curent. Recepția validă și PV-ul legal nu înlocuiesc verdictul
+de calitate. Păstrează variantele respinse chiar dacă totalul din catalog a crescut.
 
-Căutarea finalurilor de turn păstrează numai lista scurtă calculată ca rădăcini pentru orizontul
-următor. Un prototip care readmite toate rădăcinile legale recuperează ambele chei de mat la
-40.478 și 139.520 de noduri suplimentare, dar ratează încă `training-051`. Rămâne extern:
-trei poziții nu califică transferul, non-regresia pe catalog, conversia cu apărări libere sau Elo.
-Folosește ambele maturi, excluderi corecte, `training-051` și familii de turn noi ca să verifici
-dacă readmiterea limitată poate păstra corectitudinea fără regresii nemăsurate.
+Clasifică toate etapele încă neacceptate la ambele adâncimi ale oracolului. Pornește de la
+prima pierdere WDL reală, nu de la o stare ulterioară unei intervenții de referință. Salvează
+FEN-ul inițial, prefixul complet, mutarea jucată, cheia, căutarea efectivă și linia adversă a
+oracolului. Separă ratările didactice care păstrează victoria; nu da cheia memorată lui Hard.
+Prioritizează catalogul curent înaintea problemelor publice noi. Compozițiile noi de verificare
+sunt dovezi separate de transfer, nu adăugări în aplicație.
 
-Dovezi: `C:\work\sah\studii\2026-11-18-j7-sicilian-candidate-coverage`. Pornește de la README,
-apoi rapoartele de integritate/calitate pe catalog și diagnosticul separat de buget/oracol.
-[Criterii curente](../feedback/README.md#pe-scurt)
+[Inventar măsurat și mecanism curent](../board/ai-quality.md#readmiterea-calificată-a-rădăcinilor-pentru-mat)
+· [Lucrări deschise](../feedback/README.md#pe-scurt)

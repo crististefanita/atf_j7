@@ -222,12 +222,27 @@ Adaugă cazuri negative țintite pentru proză copiată, titluri de secțiuni co
 </details>
 
 <details>
-<summary>P1 · Hard fără obiectiv declarat · readmiterea mutărilor în finaluri de turn și transferul din probleme</summary>
+<summary>P1 · Hard fără obiectiv declarat · obiective materiale și primele pierderi WDL</summary>
 
-Hard obișnuit completează 1.182/1.238 de probleme canonice; 82 de etape sunt ratate în 56 de probleme. 200k fix/H6 recuperează 0/82, 200k/H7 20/82 și 500k/H7 26/82. Sunt diagnostice pe ratări înghețate, nu calificări de candidat pe catalog complet. Păstrează capitolele de mat rezolvate 500/500 și 300/300 și distincția adversar/solver cu obiectiv.
+Cele două probleme de mat omise sunt închise prin readmitere limitată și confirmare cu fereastră
+completă. Toate cele 1.000 de probleme de mat existente trec acum contra fiecărei continuări
+adverse legale. Mecanismul și readmiterea generală respinsă aparțin [ghidului AI](../board/ai-quality.md#readmiterea-calificată-a-rădăcinilor-pentru-mat).
 
-Prioritizează `mate3-04iY6` și `mate3-019gx`: ambele pierd un mat forțat potrivit Stockfish H17/H19, inclusiv la 500k. Căutarea finalurilor de turn elimină permanent mutări candidate după selecția la orizont scurt. Un prototip extern de readmitere recuperează ambele chei în 200k, dar ratează `training-051`, evaluat de oracol victorie→remiză. Nu înlocui demonstrarea rădăcinilor eliminate cu simpla creștere a bugetului. Cere non-regresie pe întreg catalogul, martori de turn/remiză păstrați, familii noi și apărări libere înainte de integrare; măsoară ΔElo pereche numai după poartă.
+Păstrează deschise 80 de etape neacceptate în 54 de probleme materiale: 57 au pierdere mare la
+ambele adâncimi Stockfish, 22 păstrează victoria, iar una e mai mică/dependentă de adâncime.
+Cele 43 de contexte confirmate la prima pierdere preced etapele condiționate ulterioare.
+`training-051` încă remizează cu `Ke6` în loc să câștige cu `Rc8+`; nu îl declara rezolvat prin fixul de mat.
 
-Celelalte cinci etape materiale inspectate păstrează victoria deși ratează obiectivul didactic. Separă eșecul obiectivului de pierderea WDL confirmată; nu reeticheta variante, nu relaxa obiectivul și nu declara toate problemele rezolvate. [Metodă, inventar și dovezi](../testing/hard-puzzle-study.md)
+Începe studiul cauzal compact cu `training-107:1`: șase piese, `c5` față de `h8=Q`, H5,
+14.652 de noduri suplimentare și 500‰ pierdut la H17/H19. Stabilește dacă scorul încheiat sau
+regula de oprire elimină promovarea; nodurile nefolosite nu explică singure cauza. Păstrează
+`training-021`, `training-065`, `training-051`, poarta completă de non-regresie canonică și
+benchmarkul portabil de mat. Verifică replica efectivă la orizont comun, apoi transferul pe
+familii neatinse din partidele existente, înaintea măsurării Elo.
+
+Păstrează acceptarea didactică exactă, separând alternativele care păstrează victoria de pierderile
+WDL reale. Lecțiile și istoriile rămân în studiul extern. Prioritizează înțelegerea și rezolvarea
+catalogului curent înaintea extinderii; nu s-au adăugat chei runtime sau probleme publice noi.
+[Procedură repetabilă](../testing/hard-puzzle-study.md)
 
 </details>
