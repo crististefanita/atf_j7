@@ -3,7 +3,7 @@
   --opening-muted: #c0bfb4;
   --opening-accent: #b8d88a;
   color: var(--opening-ink);
-  max-inline-size: var(--play-room);
+  max-inline-size: var(--play-column);
   margin-inline: auto;
 }
 
@@ -46,13 +46,12 @@
   --opening-meter-gutter: calc(var(--opening-meter-width) + var(--opening-meter-gap));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  inline-size: min(100%, var(--play-room));
-  block-size: calc(100dvh - var(--play-insets));
+  inline-size: min(100%, var(--play-column));
+  block-size: calc(100dvh - var(--chess-page-insets));
   min-block-size: 20rem;
-  margin-block-start: var(--play-top-gap);
-  padding-inline: var(--play-room-padding);
+  margin-block-start: var(--study-top-gap);
 }
-.opening-study:has(.opening-workspace:not([hidden])) > .opening-header,
+.opening-study:has(.opening-workspace:not([hidden])) > .opening-header { gap: var(--chess-header-gap); }
 .opening-navigation { padding-inline: 10px; gap: 8px; }
 .opening-study:has(.opening-workspace:not([hidden])) > .opening-header h2 {
   font-size: var(--chess-screen-title);

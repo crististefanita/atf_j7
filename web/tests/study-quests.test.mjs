@@ -219,6 +219,33 @@ const tacticsState = { type: 'puzzle', chapter: 'tactics', id: 'tactic-006', ran
     hintAction: 'SHOW_PIECE', previous: false, next: false, pending: false, solved: false, ply: 0, stage: 0, playerMoves: 1,
     totals: { solved: 5, total: 100, points: 50 }, milestone: { next: 15, reached: true } };
 
+test('Puzzle headers retain localized contextual Back before the title in both languages', async () => {
+    for (const [locale, title, back, home] of [['en', 'Puzzles', 'Back to puzzles', 'Main menu'],
+        ['ro', 'Probleme', 'Înapoi la probleme', 'Meniu principal']]) {
+        let leaves = 0;
+        const { at, markup, focused, exits } = await mountPuzzle(tacticsState, action => {
+            assert.equal(action, 'leave');
+            leaves++;
+            return { ...menu, chapters: [{ key: tacticsState.chapter, totals: tacticsState.totals }] };
+        }, locale);
+        assert.match(markup, /<header data-chess-header><button id="quest-study-home" data-chess-back[^]*?<h2 id="quest-study-title"/);
+        assert.match(markup, /<header class="quest-study-head" data-chess-header>\s*<button id="quest-study-back" data-chess-back[^]*?<h2 id="quest-study-chapter"/);
+        assert.equal(at('back').attributes.get('aria-label'), back);
+        assert.equal(at('home').attributes.get('aria-label'), home);
+        assert.equal(at('title').textContent, title);
+        at('back').events.get('click')();
+        await setImmediate();
+        assert.equal(at('menu').hidden, false);
+        assert.equal(focused(), 'quest-study-title');
+        assert.equal(leaves, 1);
+        assert.equal(exits(), 0);
+        at('home').events.get('click')();
+        await setImmediate();
+        assert.equal(exits(), 1);
+        assert.equal(leaves, 1);
+    }
+});
+
 test('Wrong material check stays in the current puzzle and keeps the Web controls usable', async () => {
     const { at, tap, reports, focused } = await mountPuzzle(tacticsState, (action, args) => {
         assert.deepEqual([action, args.value], ['play', 'd1e2']);
@@ -414,7 +441,9 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     assert.match(css, /\.quest-study button:not\(\.square\)\s*\{\s*min-block-size:/);
     assert.match(css, /\[data-replay\]\[open\]\s*\{[^}]*height:\s*100dvh/);
     const compact = css.slice(css.indexOf('@media (max-width: 480px)'), css.indexOf('@media (max-width: 20rem)'));
-    assert.match(compact, /:has\(#quest-study-game:not\(\[hidden\]\)\)[^}]*--study-top-gap:\s*0px;[^}]*--quest-room-padding:\s*0px;[^}]*--quest-action-size:\s*48px;/);
+    assert.match(compact, /:has\(#quest-study-game:not\(\[hidden\]\)\)[^}]*--study-top-gap:\s*0px;[^}]*--quest-action-size:\s*48px;/);
+    assert.match(css.slice(0, css.indexOf('}')), /width:\s*min\(100%, var\(--play-column\)\);[^]*padding:\s*0;/);
+    assert.match(css, /--quest-insets:\s*var\(--chess-page-insets\);/);
     assert.match(css, /#quest-study-hint-label\s*\{[^}]*min-block-size:\s*1lh;/);
     assert.match(compact, /#quest-study-hint-label\s*\{[^}]*max-inline-size:\s*none;/);
     assert.match(compact, /\[data-replay\] \.quest-study-dialog\s*\{\s*padding-inline:\s*0;/);

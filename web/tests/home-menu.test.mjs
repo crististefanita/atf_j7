@@ -5,7 +5,7 @@ import { setImmediate } from 'node:timers/promises';
 import { createHomeMenu, hasSavedHomeGames, homeLabels, homeLocale, reloadProfileLanguage, saveHomeProfile } from '../src/main/web/home-menu.mjs';
 import { profileKey, readProfile, writeProfile } from '../src/main/web/player-profile.mjs';
 import { showReviewPiece } from '../src/main/web/review-workspace.mjs';
-import { routeForHash } from '../src/main/web/study-navigation.mjs';
+import { pageBackVisible, routeForHash } from '../src/main/web/study-navigation.mjs';
 import { createMatchBotTimer } from '../src/main/web/match-bot-timer.mjs';
 import { bindInlineMatchAnalysis, createInlineAnalysisSession, guidedMatchMove } from '../src/main/web/match-inline-analysis.mjs';
 import { createReviewImport } from '../src/main/web/review-import.mjs';
@@ -390,8 +390,8 @@ test('The match options expose native board actions in RO and EN', async () => {
     ]);
     assert.match(toolbar, /android:contentDescription="@string\/match_actions"/);
     const header = html.match(/<main>\s*<header[^>]*>([^]*?)<\/header>/)?.[1];
-    assert.match(header, /id="return-menu"[^]*?id="title"[^]*?id="match-options-anchor"/);
-    const anchor = header.slice(header.indexOf('<div id="match-options-anchor"'), header.indexOf('<div class="header-actions"'));
+    assert.match(header, /id="return-menu"[^]*?id="title"[^]*?class="header-actions"[^]*?id="match-automatic"[^]*?id="match-options-anchor"/);
+    const anchor = header.slice(header.indexOf('<div id="match-options-anchor"'));
     assert.match(anchor, /id="match-options-button"[^>]+aria-controls="match-options" aria-expanded="false"/);
     const panel = anchor.match(/<div id="match-options"[^>]* role="group"[^>]* hidden>([^]*?)<\/div>/)?.[1];
     assert.deepEqual([...panel.matchAll(/<button id="([^"]+)"/g)].map(entry => entry[1]),
@@ -606,4 +606,17 @@ test('Language reload retains Home with a saved review and preserves the AI prof
     assert.equal(inAi.location.href, 'https://example.test/chess/?example=1#ai');
     assert.deepEqual(routeForHash(new URL(inAi.location.href).hash), { mode: 'ai' });
     assert.deepEqual(inAi.history.state, { other: 'kept' });
+});
+
+test('Fresh AI setup exposes Back without borrowing a saved game or review context', () => {
+    assert.equal(pageBackVisible('ai', { matchRoute: 'match', setupVisible: true, hasReview: true }), true);
+    assert.equal(pageBackVisible('ai', { setupVisible: true }), true);
+    assert.equal(pageBackVisible('ai', { matchRoute: 'match', setupVisible: false }), false);
+    for (const mode of ['saved', 'finished', 'archive']) assert.equal(pageBackVisible(mode), true);
+    assert.equal(pageBackVisible('ai', { matchRoute: 'ai' }), true);
+    assert.equal(pageBackVisible('match', { matchRoute: 'match' }), true);
+    assert.equal(pageBackVisible('review', { hasReview: false }), true);
+    for (const mode of ['home', 'analysis', 'quests', 'openings', 'archive-review']) assert.equal(pageBackVisible(mode), false);
+    assert.equal(pageBackVisible('review', { hasReview: true }), false);
+    assert.equal(pageBackVisible(undefined), false);
 });

@@ -66,6 +66,28 @@ test('Study links, Back and Forward reopen the route represented by the address'
     assert.equal(browser.location.search, '?lang=ro');
 });
 
+test('New screens reset the page origin while a move on the same screen preserves scroll', () => {
+    const resets = [];
+    let writes = 0;
+    const browser = {
+        location: { hash: '#puzzles' },
+        scrollTo: (...point) => resets.push(point),
+        history: { pushState(_state, _title, hash) { writes++; browser.location.hash = hash; } },
+    };
+    writeModeHash(browser, '#puzzles', true, false);
+    assert.deepEqual(resets, []);
+    assert.equal(writes, 0);
+    writeModeHash(browser, '#analysis', true, true);
+    assert.deepEqual(resets, [[0, 0]]);
+    assert.equal(writes, 1);
+    browser.location.hash = '#openings';
+    writeModeHash(browser, '#openings', false, true);
+    assert.deepEqual(resets, [[0, 0], [0, 0]], 'Back/Forward reset even after the browser has changed the address');
+    assert.equal(writes, 1, 'restoring a screen must not add a history entry');
+    writeModeHash(browser, '#openings', false);
+    assert.equal(resets.length, 2);
+});
+
 test('Home is the default route and direct game, study and review links remain distinct', () => {
     for (const hash of ['', '#unknown', '#archive/', '#review/']) assert.deepEqual(routeForHash(hash), { mode: 'home' });
     for (const [mode, hash] of Object.entries(routeHashes)) assert.deepEqual(routeForHash(hash), { mode });
@@ -244,7 +266,8 @@ test('Compact AI board spends the available width only on the rail, gap and squa
     assert.match(rule, /grid-template-columns:\s*var\(--match-meter-width\)\s+minmax\(0,\s*1fr\)/);
     assert.match(rule, /inline-size:\s*min\(100%,\s*calc\(var\(--play-board-limit\)\s*\+\s*var\(--match-meter-width\)\s*\+\s*var\(--match-meter-gap\)\)\)/);
     assert.match(css, /match-board-frame:has\(\.match-inline-meter\[hidden\]\)\s*\{[^}]*--match-meter-width:\s*0px;[^}]*--match-meter-gap:\s*0px;/);
-    assert.match(css, /:root:has\(main > \.match\[data-mode="AI"\]:not\(\[hidden\]\)\)\s*\{[^}]*scrollbar-width:\s*none;/);
+    assert.match(css, /:root\s*\{[^}]*scrollbar-gutter:\s*stable;/);
+    assert.doesNotMatch(css, /scrollbar-gutter:\s*auto;/, 'AI retains the same available width as the other screens');
     assert.match(css, /\.match\[data-mode="AI"\]\s+#match-board\s*\{[^}]*grid-column:\s*2;[^}]*inline-size:\s*100%;/);
 });
 

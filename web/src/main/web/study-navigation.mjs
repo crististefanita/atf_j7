@@ -1,6 +1,11 @@
 export const studyHashes = Object.freeze({ quests: '#puzzles', openings: '#openings', analysis: '#analysis' });
 export const routeHashes = Object.freeze({ review: '#review', match: '#game', ai: '#ai', saved: '#saved', finished: '#finished', ...studyHashes });
 
+export function pageBackVisible(mode, { matchRoute, setupVisible = false, hasReview = false } = {}) {
+    return ['saved', 'finished', 'archive'].includes(mode) || Boolean(matchRoute && mode === matchRoute)
+        || (mode === 'ai' && setupVisible) || (mode === 'review' && !hasReview);
+}
+
 export function routeForHash(hash) {
     const mode = Object.keys(routeHashes).find(route => routeHashes[route] === hash);
     if (mode) return { mode };
@@ -9,7 +14,8 @@ export function routeForHash(hash) {
     return { mode: 'home' };
 }
 
-export function writeModeHash(browser, hash, addHistory) {
+export function writeModeHash(browser, hash, addHistory, resetOrigin = false) {
+    if (resetOrigin) browser.scrollTo(0, 0);
     if ((hash ?? '') === browser.location.hash) return;
     const url = hash ?? (browser.location.pathname + browser.location.search);
     const update = addHistory ? 'pushState' : 'replaceState';

@@ -1,9 +1,9 @@
 .analysis-study {
-  --analysis-page-padding: clamp(.5rem, 2vw, 1.25rem);
+  --analysis-page-padding: var(--play-page-padding);
   display: flex;
   flex-direction: column;
   min-block-size: calc(100dvh - 2 * var(--analysis-page-padding) - var(--study-top-gap));
-  max-width: 36rem;
+  max-width: var(--play-column);
   margin-inline: auto;
   color: #f5f3ec;
 }
