@@ -794,7 +794,7 @@ The three capped games all retain result `*`. They produce no new Elo or candida
 
 ## Caro–Kann hint and forcing-pawn recapture verification
 
-After `1.e4 c6 2.d4 d5 3.e5 c5 4.Nc3 Nc6 5.dxc5 d4 6.e6`, the hint now selects `…dxc3` instead of `…fxe6`. The former H6 comparison ended after `Qxd8+` without the legal knight recapture. Closing only a check was insufficient: a later piece capture could remain unanswered. Broad closure regressed an independent history and was rejected.
+After `1.e4 c6 2.d4 d5 3.e5 c5 4.Nc3 Nc6 5.dxc5 d4 6.e6`, the hint now selects `…dxc3` instead of `…fxe6`. The former H6 comparison ended after `Qxd8` without the legal knight recapture. Closing only a check was insufficient: a later piece capture could remain unanswered. Broad closure regressed an independent history and was rejected.
 
 The accepted scope compares pawn and piece captures only when taking the piece allows a legal opposing pawn capture with check. At the ordinary frontier it can follow the last capture's square for at most two further plies, including legal check evasions. Stand-pat remains unavailable in check while this extension is active. Its allowance is `hint.verification-recapture-plies` in schema 8; zero disables it. Seed search, ordinary native play and the evaluation bar retain their policies. Cache identity includes the recapture mode, so a seed value cannot impersonate the extended proof. Cutoffs and interrupted work never become exact cache entries. The selective comparison can replace the leader without introducing new equivalent offers.
 
