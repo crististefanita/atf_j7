@@ -1133,3 +1133,19 @@ testChanges:
     test: ro.atf.chess.LearningGameAuditTest#bothColorsRequireTheirOwnMaximumHintBeforePlaying
     contract: "Reuse the unchanged hint legality, horizon, material and node checks; require pre-move Hard and an explicitly requested maximum public hint for every actual White and Black move"
     allowDelete: false
+
+  - id: J7-QUEEN-CHAIN-EN
+    base: "87e9d8c81daa9462413e40db98d507721a4191a6"
+    from: atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
+    test: ro.atf.chess.HintQueenPieceRecaptureTest#theQueenExchangeMustFinishBeforeJudgingTheBishopOffer
+    contract: "Preserve Caro, legal recaptures, warm/cold caches and the sound queen mate; add the full queen exchange and reject restoration of an unresolved seed"
+    allowDelete: false
+
+  - id: J7-NATIVE-LOSS-WITNESSES-EN
+    base: "87e9d8c81daa9462413e40db98d507721a4191a6"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningArchiveBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HardLearningWitnessTest.java
+    test: ro.atf.chess.HardLearningWitnessTest#permanentLossesRetainTheirCompleteLegalContextAndRawTeacher
+    contract: "Preserve all existing archive and hypothetical-ply checks; add a separate native quality verdict with portable source-bound oracle witnesses, leaving unresolved quality failures visible"
+    allowDelete: false
