@@ -149,6 +149,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - Prima configurare AI are Back chiar înainte să existe o partidă. Back și Anulează părăsesc formularul prin aceeași acțiune și păstrează partida salvată din care a fost deschis.
 - Partidă nouă, Partide salvate și ecranele de studiu folosesc `--play-column`, aceleași margini ale paginii și paleta de bază din Tabla de analiză. Pe landscape compact, marginea paginii se reduce pentru toate ecranele. Antetul nu primește o suprafață mai lată decât conținutul. Fiecare tablă rezervă loc pentru bara, scorul, istoricul și explicațiile vizibile înainte să dimensioneze pătratul; coloana comună păstrează aceste rezerve contextuale.
 - O altă rută de joc sau studiu resetează derularea moștenită a documentului înainte de afișarea conținutului. Parcurgerea mutărilor în același ecran păstrează poziția paginii; Back și Forward nu adaugă o intrare duplicată în istoricul rutelor.
+- O problemă își măsoară pătratul în spațiul rămas pentru tablă și detalii, după rezervarea antetului, scorului, culorii la mutare și comenzilor de jos. Păstrați două rânduri de text sub tablă și comenzile de 48 px vizibile; un minim fix al pătratului nu trebuie să împingă comenzile în afara unei ferestre scunde.
 - [Proba compactă RO/EN](../docs/testing/README.md#analiza-în-partida-cu-ai)
 
 Problemele își calculează tabla din spațiul disponibil după rezervarea locului
