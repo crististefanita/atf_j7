@@ -2,7 +2,22 @@ package ro.atf.chess;
 
 /** Audits a position-only Hard benchmark without supplying the puzzle objective to the opponent. */
 final class HardQuestAudit {
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON=new com.fasterxml.jackson.databind.ObjectMapper();
     private HardQuestAudit() { }
+
+    /** Ordinary native receipts never inherit hint credits; absent proof is the legacy shape. */
+    static ChessMatch.BotAnalysis read(com.fasterxml.jackson.databind.JsonNode row) throws Exception {
+        var search=row.path("search");
+        require(search.path("scoreCredits").isObject()&&search.path("scoreCredits").isEmpty(),"Ordinary opponent cannot inherit hint score credits");
+        var moves=JSON.getTypeFactory().constructCollectionType(java.util.ArrayList.class,ChessPosition.Move.class);
+        var set=JSON.getTypeFactory().constructCollectionType(java.util.HashSet.class,ChessPosition.Move.class);
+        var certificate=search.path("pawnProof");
+        require(certificate.isMissingNode()||certificate.isNull()||certificate.isObject(),"Invalid native proof phase");
+        return new ChessMatch.BotAnalysis(JSON.treeToValue(row.path("decision"),ChessMatch.BotDecision.class),
+                new TacticalAnalysis.SearchReport(JSON.treeToValue(search.path("result"),TacticalAnalysis.Result.class),search.path("depth").asInt(),search.path("extraNodes").asInt(),
+                        JSON.convertValue(search.path("horizonLeaders"),moves),java.util.Map.of(),JSON.convertValue(search.path("excludedRoots"),set),JSON.convertValue(search.path("nonEquivalentRoots"),set),
+                        certificate.isObject()?JSON.treeToValue(certificate,PawnPushProof.Certificate.class):null));
+    }
 
     static int maximumNodes(ChessPosition position) {
         return OpeningRepertoire.CURRENT.playReply(position, MatchSetup.Level.HARD) == null

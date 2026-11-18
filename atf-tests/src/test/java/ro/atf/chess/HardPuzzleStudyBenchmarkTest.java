@@ -75,15 +75,7 @@ class HardPuzzleStudyBenchmarkTest {
         String expected=System.getProperty("chess.puzzleStudy."+property,"");require(expected.matches("[a-f0-9]{64}"),"Missing separately trusted "+property);var bytes=Files.readAllBytes(path);require(HardLeagueAudit.digest(bytes).equals(expected),"Modified native puzzle input "+property);return bytes;
     }
     private static ChessMatch.BotAnalysis nativeAnalysis(com.fasterxml.jackson.databind.JsonNode row)throws Exception {
-        var search=row.path("search");
-        require(search.path("scoreCredits").isObject()&&search.path("scoreCredits").isEmpty(),"Ordinary opponent cannot inherit hint score credits");
-        var moves=JSON.getTypeFactory().constructCollectionType(java.util.ArrayList.class,ChessPosition.Move.class);
-        var set=JSON.getTypeFactory().constructCollectionType(java.util.HashSet.class,ChessPosition.Move.class);
-        return new ChessMatch.BotAnalysis(JSON.treeToValue(row.path("decision"),ChessMatch.BotDecision.class),
-                new TacticalAnalysis.SearchReport(JSON.treeToValue(search.path("result"),TacticalAnalysis.Result.class),search.path("depth").asInt(),search.path("extraNodes").asInt(),
-                        JSON.convertValue(search.path("horizonLeaders"),moves),java.util.Map.of(),
-                        JSON.convertValue(search.path("excludedRoots"),set),JSON.convertValue(search.path("nonEquivalentRoots"),set),
-                        search.path("pawnProof").isObject()?JSON.treeToValue(search.get("pawnProof"),PawnPushProof.Certificate.class):null));
+        return HardQuestAudit.read(row);
     }
     private static void require(boolean value,String message){if(!value)throw new IllegalArgumentException(message);}
 }
