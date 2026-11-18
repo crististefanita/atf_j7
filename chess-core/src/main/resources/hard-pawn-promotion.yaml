@@ -1,0 +1,4 @@
+schema: 1
+enabled: true
+max-pawns: 2
+max-plies: 24

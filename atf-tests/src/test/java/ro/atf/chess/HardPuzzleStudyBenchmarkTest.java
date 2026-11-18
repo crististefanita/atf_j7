@@ -33,6 +33,7 @@ class HardPuzzleStudyBenchmarkTest {
         String revision=System.getProperty("chess.puzzleStudy.revision","");require(revision.matches("[a-f0-9]{40}")&&revision.equals(identity.path("revision").asText()),"Foreign native puzzle source");
         check.same("The complete public baseline uses the active native policy, not a diagnostic overlay",JSON.valueToTree(HardAdaptivePolicy.CURRENT),identity.path("nativePolicy"));
         check.same("The closed promotion feature is bound to its actually loaded policy",JSON.valueToTree(PromotionExchangePolicy.CURRENT),identity.path("promotionExchangePolicy"));
+        check.same("The forced promotion phase is bound to its actually loaded policy",JSON.valueToTree(PawnPushPolicy.CURRENT),identity.path("pawnPushPolicy"));
         check.same("Additional nodes do not include the initial native horizon",MatchAiPolicy.BASE_PLIES,identity.path("unbudgetedBasePlies").asInt());
         var chapters=chapters();var expectedCatalog=new ArrayList<Object>();
         for(var chapter:chapters)for(var q:chapter.quests())expectedCatalog.add(java.util.Map.of("chapter",chapter.name(),"id",q.id(),"fen",q.fen(),"line",q.line(),"objective",q.objective()));
@@ -51,7 +52,7 @@ class HardPuzzleStudyBenchmarkTest {
                     require(index<records.size(),"Missing native puzzle stage");var row=records.get(index++);
                     require(row.path("chapter").asText().equals(chapter.name())&&row.path("id").asText().equals(quest.id())&&row.path("stage").asInt()==stage,"Missing, reordered or borrowed canonical stage");
                     require(row.path("rootFen").asText().equals(quest.fen())&&row.path("checkpoint").asText().equals(game.checkpoint())&&row.path("fen").asText().equals(StudyFen.replay(quest.fen(),quest.line().subList(0,stage*2))),"Foreign puzzle origin or prefix");
-                    var analysis=nativeAnalysis(row.path("analysis"));HardQuestAudit.validate(game.position(),analysis);
+                    var analysis=nativeAnalysis(row.path("analysis"));HardQuestAudit.validate(game,analysis);
                     check.same("Actual profile ceiling "+quest.id()+":"+stage,HardQuestAudit.maximumNodes(game.position()),row.path("maximumExtraNodes").asInt());
                     var outcome=quest.assess(analysis.decision().move(),stage);boolean accepted=outcome.continues()||outcome.solved();
                     require(row.path("canonicalStageAccepted").asBoolean()==accepted&&row.path("priorNativeStagesAccepted").asBoolean()==prior&&row.path("prefixReferenceIntervention").asBoolean()==intervened,"Invented canonical success or hidden reference intervention");
@@ -81,7 +82,8 @@ class HardPuzzleStudyBenchmarkTest {
         return new ChessMatch.BotAnalysis(JSON.treeToValue(row.path("decision"),ChessMatch.BotDecision.class),
                 new TacticalAnalysis.SearchReport(JSON.treeToValue(search.path("result"),TacticalAnalysis.Result.class),search.path("depth").asInt(),search.path("extraNodes").asInt(),
                         JSON.convertValue(search.path("horizonLeaders"),moves),java.util.Map.of(),
-                        JSON.convertValue(search.path("excludedRoots"),set),JSON.convertValue(search.path("nonEquivalentRoots"),set)));
+                        JSON.convertValue(search.path("excludedRoots"),set),JSON.convertValue(search.path("nonEquivalentRoots"),set),
+                        search.path("pawnProof").isObject()?JSON.treeToValue(search.get("pawnProof"),PawnPushProof.Certificate.class):null));
     }
     private static void require(boolean value,String message){if(!value)throw new IllegalArgumentException(message);}
 }
