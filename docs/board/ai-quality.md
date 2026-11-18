@@ -79,7 +79,7 @@ După `1.e4`, indiciul vechi se oprea la `…Nc6 Bb5 …Nd4 Bc4 …Nxc2+`, înai
 
 Indiciul taxează acum orizonturile inițiale, frontiera schimburilor și comparația de la rădăcină dintr-o singură alocație de 200.000 de noduri. Captura și recaptura folosesc aceeași frontieră la ordonarea alternativelor. Tăierile alpha-beta sunt limite și nu pot intra în cache-ul rezultatelor exacte. Rejucarea păstrează linia evaluată și checkpoint-ul sursă. O estimare statică a rejucării nu poate înlocui tacit acea ordonare.
 
-Martorii includ sacrificiul damei `Qxc8+`, urmat de mat în trei, și sacrificiul calului `Ng6+ hxg6 Rh4#`. Un bilanț material negativ singur nu poate respinge sacrificiul. Stockfish 19 verifică rădăcinile critice la adâncimile 17 și 19, cu replicile adversarului libere. Recepțiile motorului rece, rejucarea publică și rapoartele Extent se păstrează în `C:\work\sah\studii\2026-11-17-j7-hint-repair`. Corecția nu stabilește un rating Elo nou și nu garantează joc optim în orice poziție.
+Studiul istoric `2026-11-17-j7-hint-repair` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 [Contractele indiciului](../../atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java) · [Rejucarea fără modificări](../../atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java) · [Profilurile deschiderilor](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java)
 
@@ -100,7 +100,7 @@ Numerele Stockfish compară rădăcinile testate cu replicile adverse libere. Nu
 
 ## Prima colecție de audit mutare cu mutare
 
-`opening-hints-v1` păstrează 24 de decizii pe trasee și nouă controale de buget din poziții pereche din [sursa auditată](https://github.com/crististefanita/chess/commit/a7e71d9412323603847c20da220c8554903ae9be). Rejucarea independentă validează 539 de semimutări PV, 233 de replici adverse, contoare, drepturi, material, PGN SAN și amprente. Douăsprezece cereri de rang indisponibil revin explicit la prima sugestie oferită. Datele sunt în `C:\work\sah\colectii\hint-hard\2026-11-17-v1`.
+Studiul istoric `opening-hints-v1` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 Auditul H17/H19 separă prima recomandare de rangul jucat intenționat. Găsește cinci decizii ale liderului cu pierdere de scor așteptat de cel puțin 150‰ la H19. Un `Bg5` selectat intenționat pierde 484,5‰, iar liderul acelei poziții pierde 9‰. Niciun număr nu stabilește un rating Elo. Prima colecție rămâne imuabilă când evaluăm algoritmi ulteriori.
 
@@ -146,7 +146,7 @@ Calibrarea din 18 noiembrie folosește sursa `772251450f5d8cf337f8f31c18734f5601
 
 Bootstrap-ul păstrează deschiderea ca unitate, cu 20.000 de eșantioane. Plafonul este 220 de semimutări; neterminatele rămân distincte de remize. Diferența față de ancora configurată este +7 Elo, cu interval −143…+156. Nu este rating uman și nu demonstrează creștere față de Hard anterior: corecția privește indiciul, iar algoritmul deciziei native nu s-a schimbat. Ancorele aplicației rămân guvernate de dovezile lor.
 
-Prima rulare s-a oprit după 49 de partide și o partidă parțială din cauza validatorului unei repetiții legale de turn. După corecția validatorului, întregul lot a fost reluat; rularea întreruptă este păstrată separat și exclusă din estimare. Toate cele 208 clase de producție au fost identice între cele două lansări. Ulterior, trei colectări din calea indiciului au fost exprimate compatibil API 26, fără schimbarea deciziei Hard. Dovezile sunt în `C:\work\sah\studii\2026-11-17-j7-italian-calibration`; raportul calificat este `league/qualified/qualified-extent.html`. [Protocol nativ și comandă](../testing/hard-audit.md)
+Studiul istoric `2026-11-17-j7-italian-calibration` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 
 ## Studiul frontierei native și auditul puzzle-urilor
@@ -176,7 +176,7 @@ Benchmarkul puzzle-urilor folosea eronat plafonul de rezervă explicită 44k pen
 | Antrenament | 94/114; 40/48 în lotul înghețat | 39/48 |
 | Intermezzo | 24/24 | 24 |
 
-Acestea sunt prime decizii acceptate, nu conversii native complete ale tuturor problemelor. Nu măsoară Elo și nu antrenează automat motorul. Dovezile și două lecții YAML cu replici și contraexemple sunt în `C:\work\sah\studii\2026-11-18-j7-native-italian`. [Auditul pozițiilor și contractele negative](../testing/hard-audit.md#auditul-puzzle-urilor-fără-obiectiv-transmis-adversarului)
+Studiul istoric `2026-11-18-j7-native-italian` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 ## Control la fiecare schimbare
 
@@ -803,7 +803,7 @@ Rejucarea acelorași 60 de checkpoint-uri istorice schimbă numai această deciz
 
 Șaisprezece istorii de dezvoltare au expus domeniul general respins. După înghețarea altor șaisprezece istorii PGN cu posibil context de pion forțant, doi lideri se îmbunătățesc la ambele adâncimi ale oracolului: pierderea H19 scade de la 243,5‰ la 8‰ și de la 88‰ la zero, fără pierdere nouă a liderului în acel lot. Sunt checkpoint-uri distincte din partide istorice, nu șaisprezece familii de deschidere independente statistic. Primul caz păstrează o alternativă secundară deficitară, de 243,5‰; rămâne lucru deschis. Game Review efectiv păstrează toate cele șaizeci de mutări și cele nouă neconcordanțe anterioare de clasificare. Corectarea unui indiciu nu certifică etichetele analizei.
 
-Colecția legată de sursă și experimentele respinse sunt păstrate în `C:\work\sah\studii\2026-11-18-j7-caro-hint-recapture`. [Contracte componente și negative](../../atf-tests/src/test/java/ro/atf/chess/HintRecaptureRegressionTest.java) · [Politică](../../chess-core/src/main/resources/match-ai.yaml) · [Audit și publicare](../testing/hard-hint-study.md) · [Lacune de calitate rămase](../feedback/README.md)
+Studiul istoric `2026-11-18-j7-caro-hint-recapture` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 ## Recaptura damei și continuitatea indiciului italian
 
@@ -817,7 +817,7 @@ Producătorul `3b1e7ed1a4f2659b544d29732848d8078c5f3abc` reia aceleași șaizeci
 
 Activarea generală respinsă a degradat un lider independent de la 132‰ la 274‰ pierdere. Cele șaisprezece istorii inspectate sunt martori de dezvoltare, nu validare nouă. După restrângere și înghețarea altor șaisprezece istorii de deschidere, un lider se îmbunătățește de la 339,5‰ la 17‰, iar altul scade de la 0‰ la 13,5‰; niciun lider nou nu depășește 150‰ acolo. Lotul de dezvoltare păstrează separat o scădere de la 0‰ la 18,5‰. Aceste eșantioane țintite de presiune asupra damei nu demonstrează forță globală sau oferte secundare perfecte.
 
-Două studii tematice noi de șaisprezece semimutări urmează prefixele `Nd5` și deliberat inferior `Na4`, cu replici Stockfish noi. Cele 32 semimutări sunt raportate separat de cele șaizeci pereche; prefixele comune nu sunt partide independente. Colecția completă validează 1190 cereri brute H17/H19, inclusiv rădăcinile comparației diagnostice. Toate cele cinci partide sunt plafonate cu rezultat `*`, deci nu se măsoară Elo nou sau ΔElo nativ. Dovezile, prototipurile respinse și lecțiile doar de studiu rămân în `C:\work\sah\studii\2026-11-18-j7-italian-nd5-hint`. [Audit și publicare](../testing/hard-hint-study.md) · [Lacune rămase](../feedback/README.md)
+Studiul istoric `2026-11-18-j7-italian-nd5-hint` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 Prima replică adversă din PV la țintă se îmbunătățește de la 273‰ la 13,5‰ pierdere H19. La liderul italian corectat ulterior, pierderea replicii crește însă de la 24,5‰ la 86‰. Ambele rămân sub pragul înghețat de pierdere mare; niciuna nu dovedește continuarea completă optimă.
 
@@ -833,7 +833,7 @@ Prototipurile anterioare de frontieră sunt respinse. Închiderea capturii de da
 
 Producătorul `b90f181b707a3a7dd4c67147a31208534b69f0e2` păstrează toate rapoartele native și celelalte 59 de indicii complete. Șaizeci și patru de istorii PGN selectate geometric au ieșiri vechi/noi identice; primele șaisprezece primesc verificări de rădăcină H17/H19. Aceasta dovedește păstrarea, nu activarea sau câștiguri independente. Două studii tematice noi de douăzeci de semimutări urmează prefixele forțate `…Nbd7` și inferior `…Nc6`, apoi câte șase semimutări efectiv jucate noi. Se suprapun cu prefixul sicilian inspectat și nu formează o ligă de forță. Auditul validează 284 de cereri brute noi și păstrează identitățile originale pentru 85 de proiecții de oracol neschimbate din colecția anterioară de 1190 de cereri. Toate cele 100 de recepții native curente sunt capturate din nou; cele vechi nu sunt reetichetate drept curente. [Contractul auditului](../testing/hard-hint-study.md)
 
-Dovezile și lecțiile doar de studiu rămân în `C:\work\sah\studii\2026-11-18-j7-sicilian-knight-hint`. Cele 110 verificări de componentă/raport trec, iar motorul original eșuează real în aserțiunea țintită nouă. Traseele plafonate nu produc Elo nou sau ΔElo nativ. [Lacune rămase ale modelului și ofertelor](../feedback/README.md)
+Studiul istoric `2026-11-18-j7-sicilian-knight-hint` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 ## Acoperirea celor patru rădăcini în Siciliană
 
@@ -863,9 +863,7 @@ producător de oracol, istoric, orizont și opțiuni. Combinarea recepțiilor va
 este respinsă. Cele 119 verificări de componentă/raport și calificarea limitată trec; calitatea
 absolută a indiciilor încă eșuează la limita neschimbată 150‰.
 
-Dovezi: `C:\work\sah\studii\2026-11-18-j7-sicilian-candidate-coverage`.
-[Componente](../../atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java) ·
-[Audit indicii](../testing/hard-hint-study.md) · [Reper puzzle-uri native](../testing/hard-puzzle-study.md)
+Studiul istoric `2026-11-18-j7-sicilian-candidate-coverage` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 ## Readmiterea calificată a rădăcinilor pentru mat
 
@@ -933,10 +931,7 @@ Elo. Baza H3 nativă rămâne separat nebugetată. Cele 146 de verificări de co
 trec, precum și noul benchmark portabil complet de mat. Verdictul „toate problemele rezolvate”
 rămâne FAIL pentru cele 54 de probleme materiale incomplete.
 
-Dovezi: `C:\work\sah\studii\2026-11-18-j7-rook-root-reentry`. README-ul indică Extent,
-recepțiile canonice și de apărări libere, oracolul cu origini păstrate, cele 80 de lecții YAML
-și 43 de priorități la prima pierdere. Nu s-au schimbat lookup-uri FEN runtime, acceptarea
-catalogului, numărul public de probleme, politica nativă sau Elo-ul afișat.
+Studiul istoric `2026-11-18-j7-rook-root-reentry` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 ## Confirmarea promovării prin schimb închis
 
@@ -984,13 +979,7 @@ de adâncime. Din cele 53 de prime ratări didactice, 42 au pierdere mare; verif
 acceptate înainte de a declara prima pierdere WDL cronologică. Verdictul „toate problemele
 rezolvate” rămâne FAIL pentru 53 de probleme.
 
-Trec cele 121 de verificări țintite de componentă/raport, benchmarkul portabil complet de mat
-și patru verificări ale dovezilor brute. Toate cele 1.000 de probleme de mat păstrează fiecare
-ramură adversă legală. Studiul extern `C:\work\sah\studii\2026-11-18-j7-hard-training107-promotion`
-conține Extent, PGN-urile efective, cele 79 de lecții contextuale păstrate și tiparele YAML
-reutilizabile de promovare/tempo. Tiparele runtime generalizează geometria; lecțiile externe
-păstrează contraexemplele și proveniența în loc să memoreze tacit mutările câștigătoare.
-[Procedura repetabilă a studiului](../testing/hard-puzzle-study.md)
+Studiul istoric `2026-11-18-j7-hard-training107-promotion` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 ## Conversia limitată a finalurilor de pioni
 
@@ -1042,7 +1031,4 @@ PV-urile native mai lungi cer certificatul păstrat, iar rejucarea respinge cost
 acoperire adversă, strategie sau evaluare substituite.
 [Contractul repetabil al auditului](../testing/hard-puzzle-study.md#auditarea-certificatelor-planurilor-câștigătoare)
 
-Dovezile și lecțiile reutilizabile sunt în `C:\work\sah\studii\2026-11-18-j7-hard-promotion-conversion`:
-Extent, PGN-uri până la rezultat efectiv, recepții brute de oracol/native legate de sursă și
-YAML structural. Configurația runtime nu conține FEN-uri, chei didactice, scoruri de oracol
-sau lookup-uri de mutări învățate.
+Studiul istoric `2026-11-18-j7-hard-promotion-conversion` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.

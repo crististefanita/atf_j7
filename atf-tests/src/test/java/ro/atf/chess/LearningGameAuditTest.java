@@ -46,6 +46,18 @@ class LearningGameAuditTest {
         check.rejects("A historical played prefix cannot be upgraded retrospectively",IllegalArgumentException.class,()->new LearningGameAudit(ID,"fixture",FEN,start().play(move("e2e4")),r->{}));
         check.rejects("An unrepresented FEN clock cannot earn complete audit",IllegalArgumentException.class,()->new LearningGameAudit(ID,"fixture",FEN.replace(" 0 1"," 99 1"),start(),r->{}));
     }
+    @Test void missingCalculationsAndBorrowedSideCannotBeRehashedIntoAdmission(Checks check)throws Exception {
+        var rows=new ArrayList<LearningGameAudit.Envelope>();var o=fixture(rows,new int[1],new int[1],new int[1]);o.observe();o.play(move("e2e4"),LearningGameAudit.Actor.THEORY,null);
+        var json=LearningGameAudit.mapper();
+        for(String field:List.of("hard","hint","estimate")) {
+            var bad=json.valueToTree(rows.getFirst().body());((com.fasterxml.jackson.databind.node.ObjectNode)bad.get("before")).putNull(field);
+            var body=json.treeToValue(bad,LearningGameAudit.Body.class);var receipt=new LearningGameAudit.Envelope(body,LearningGameAudit.digest(body));
+            check.rejects("Rehashing cannot invent the missing "+field,IllegalArgumentException.class,()->LearningGameAudit.validate(List.of(receipt),ID,"fixture",FEN));
+        }
+        var bad=json.valueToTree(rows.getFirst().body());((com.fasterxml.jackson.databind.node.ObjectNode)bad.get("before")).put("side","BLACK");
+        var body=json.treeToValue(bad,LearningGameAudit.Body.class);var receipt=new LearningGameAudit.Envelope(body,LearningGameAudit.digest(body));
+        check.rejects("A rehashed after-side cannot replace the actual pre-move side",IllegalArgumentException.class,()->LearningGameAudit.validate(List.of(receipt),ID,"fixture",FEN));
+    }
     private static LearningGameAudit fixture(List<LearningGameAudit.Envelope> rows,int[] nativeCalls,int[] hints,int[] requested) {
         return new LearningGameAudit(ID,"fixture",FEN,start(),rows::add,g->{nativeCalls[0]++;return nativeOne(g);},(b,n)->{hints[0]++;requested[0]=n;return hintOne(b);});
     }

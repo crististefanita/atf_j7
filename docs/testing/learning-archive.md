@@ -46,4 +46,4 @@ redundant, build-urile copiate, experimentele respinse și partidele neconforme 
 verificarea fișierelor păstrate, referințelor Git și proceselor active.
 
 Folosește [protocolul indiciilor](hard-hint-study.md) pentru interpretarea oracolului
-și [protocolul ligii native](hard-audit.md#elo-și-partide-neterminate) pentru putere.
+și [protocolul ligii native](hard-audit.md#elo-și-partidele-neterminate) pentru putere.

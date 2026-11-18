@@ -9,8 +9,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 
 | Prioritate | Zonă | Observație | Criteriu de închidere |
 |---|---|---|---|
-| P1 | Indiciu · continuarea adversă completă | Finalul raportat cu piesă valoroasă cedată pe pion nu are poziție furnizată; un PV legal nu exclude replica adversă slabă. | Extrage martori din partide nou admise, verifică fiecare semimutare PV la H17/H19 și păstrează sacrificiile corecte înaintea schimbării căutării. |
-| P1 | Învățare · admitere pe fiecare mutare | Partidele istorice fără Hard și indiciul public maxim înaintea mutărilor nu îndeplinesc contractul actual. | Păstrează doar jurnale complete alb/negru cu sursă, istoric, plafon și replay independent; retrage partidele neconforme. [Admitere](../testing/learning-archive.md) |
+| P1 | Indiciu · continuarea adversă completă | A doua variantă nouă după `1.e4` conține `Bxe6` slab; jocul advers liber preferă `Nc3`, cu pierdere 382/399‰ la H17/H19. | Repară continuarea completă evaluată în 200k, verifică fiecare semimutare PV pe familii independente și păstrează sacrificiile corecte. [Martor](#replici-adverse-slabe-în-indiciile-publice) |
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Documentație · protejarea traducerilor | Poarta bilingvă verifică structura și linkurile, iar proza și exemplele cer în continuare revizuire semantică. | Detectează proza copiată și exemplele schimbate prin cazuri negative țintite, păstrând literalii tehnici și dovezile imuabile. |
@@ -33,6 +32,31 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P2 | Calitatea AI · evaluare material | Scorul material diferă de Stockfish. | Redu abaterea la aceleași bugete. |
 | P2 | Calibrarea problemelor | Benzile de dificultate importate se suprapun. | Verifică timpul și încercările pe un lot amestecat separat. |
 | P2 | Android · separarea tranzițiilor de ecran | Ecranul Android deține mai multe tranziții de sesiune. | Mută tranzițiile într-un responsabil testabil pe JVM. |
+
+## Replici adverse slabe în indiciile publice
+
+Jurnalul nou cu hint maxim `learning-max-hint-20261118`, producător
+`8d564655b554d817fea4e3a04723a538ae5f3864`, înregistrează fiecare mutare efectivă
+alb/negru înaintea executării. După `1.e4`, a doua variantă include
+`…Nf6 Qf3 …Nc6 Bc4 …e6 Bxe6 …dxe6 Qxf6`. La faza albului `Bxe6`, căutările
+independente libere preferă `Nc3`: WDL așteptat este 382‰/399‰ la H17/H19 față de
+0‰/0‰ cu `Bxe6` impus. Prefixul ipotetic complet, UCI brut și ambele adâncimi
+rămân în `C:\work\sah\.studii\corpus\2026-11-18-v1\deep-oracle`.
+Poziția repetată în trei trasee este un singur context, nu trei familii.
+
+Aceasta confirmă o continuare adversă slabă, fără a fi neapărat poziția exactă
+nespecificată de utilizator. Indiciul public a fost cerut efectiv la 200k.
+Integritatea trece; calitatea absolută eșuează. Nu închide problema prin adăugarea
+unei recapturi neevaluate, ascunderea variantei secundare sau interzicerea
+sacrificiilor. Compară rădăcinile complete și replicile adverse libere la orizonturi
+native comune în același buget total. Păstrează `…Qg3 hxg3 …Rh1#` și martorii din
+Italiană/Caro/Siciliană. Marchează onest un orizont nedovedit; un PV legal nu devine
+optim doar pentru că bilanțul material corespunde.
+
+Folosește [contractul de admitere](../testing/learning-archive.md) pentru partidele
+viitoare. Partidele istorice fără admiterea actuală se retrag. Fixture-urile sursă,
+dovezile edițiilor, definițiile problemelor deschise și referințele originale ale
+oracolului sunt separate de corpusul activ de învățare.
 
 ## Dovezi și verificări de închidere
 

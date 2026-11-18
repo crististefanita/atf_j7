@@ -58,7 +58,7 @@ Colecția din 18 noiembrie folosește producătorul `e320379212dbb55afb392351da5
 
 Benchmarkul de calitate eșuează; cel de integritate trece. Motorul de joc live este neschimbat. Elo nativ aplicabil rămâne 1.507, cu interval conservator 95% 1.357–1.656, din cele 100 de partide calificate separat. Cele trei trasee neterminate nu produc Elo.
 
-Datele brute, ambele verdicte Extent, observațiile analizei și lecțiile YAML excluse din runtime sunt în `C:\work\sah\studii\2026-11-18-j7-h6-recapture-hint-games`. Adversarul limitat în noduri care produce mutările este separat de oracolul complet în adâncime care le evaluează.
+Studiul istoric `2026-11-18-j7-h6-recapture-hint-games` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
 
 ## Continuare
 
