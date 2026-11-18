@@ -921,9 +921,9 @@ solver is required. [Commands and distinction from objective-aware solvers](../t
 Stockfish H17/H19 now grades all 80 remaining canonical misses, not a selected sample.
 57 stages have a loss of at least 150‰ at both depths; 22 preserve the win at both depths
 despite missing the educational goal; one has a smaller or depth-sensitive loss.
-Among the 54 first missed stages, 43 already have a large loss at both depths. Later stages
+Among the 54 first missed educational stages, 43 have a large WDL loss at both depths. Calling these the chronological first WDL losses additionally requires checking the previously accepted prefixes. Later stages
 after a reference intervention remain marked conditional evidence, not independent games.
-All curriculum keys stay below the existing large-loss boundary at both depths.
+All 80 inspected curriculum keys stay below the existing large-loss boundary at both depths.
 
 `training-051` remains `Ke6` instead of winning `Rc8+`; both oracle depths confirm win→draw.
 The mate fix does not claim this non-mating endgame solved. The next compact study case is

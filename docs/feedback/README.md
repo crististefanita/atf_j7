@@ -229,8 +229,7 @@ The two omitted mates are closed by bounded, full-window-confirmed mate readmiss
 mechanism and rejected general readmission belong to the [AI guide](../board/ai-quality.md#qualified-rook-mate-readmission).
 
 Keep the 80 unaccepted stages in 54 material exercises open: 57 have a large loss at both
-Stockfish depths, 22 preserve the win and one is smaller/depth-sensitive. The 43 confirmed
-first-loss contexts take priority over conditional later stages. `training-051` still draws
+Stockfish depths, 22 preserve the win and one is smaller/depth-sensitive. The 43 first educational misses with a confirmed WDL loss take priority over conditional later stages. Check accepted prefixes before claiming the chronological first WDL loss. `training-051` still draws
 with `Ke6` instead of winning with `Rc8+`; do not declare it fixed by the mate work.
 
 Start the compact causal study with `training-107:1`: six pieces, `c5` versus `h8=Q`, H5,

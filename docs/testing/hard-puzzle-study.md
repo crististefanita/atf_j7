@@ -74,7 +74,7 @@ and repetition controls, and the current budget. A valid receipt and a legal PV 
 for the quality verdict. Retain rejected variants even when their catalog total improved.
 
 Classify all still-unaccepted stages with both oracle depths. Start with the first actual WDL
-loss, not a later state reached only through a reference intervention. Save the initial FEN,
+loss after checking previously accepted prefixes, not a later state reached only through a reference intervention. Save the initial FEN,
 complete prefix, played move, curriculum key, actual search and opposing oracle line. Keep
 win-preserving educational misses distinct; never feed a memorized key into ordinary Hard.
 Prioritize the current catalog before adding public exercises. New verification compositions
