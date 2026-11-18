@@ -349,7 +349,7 @@ public final class TacticalAnalysis {
         }
         if (roots.size() < 2) return hintSearch(lines, null, seed.extraNodes() + shortlistNodes, seed);
         var comparison = verifyHintRoots(position, roots, budget, policy.search().maxPlies());
-        return verifiedHints(lines, seed, comparison, shortlistNodes, repertoire, policy);
+        return verifiedHints(position, lines, seed, comparison, shortlistNodes, repertoire, policy);
     }
 
     private record HintVerification(SearchReport search, List<Variation> balancedLines, boolean recaptureCheck) { }
@@ -369,7 +369,7 @@ public final class TacticalAnalysis {
         return roots;
     }
 
-    private static HintSearch verifiedHints(List<Variation> lines, SearchReport seed, HintVerification verified, int shortlistNodes,
+    private static HintSearch verifiedHints(ChessPosition position, List<Variation> lines, SearchReport seed, HintVerification verified, int shortlistNodes,
                                             Move repertoire, MatchAiPolicy.Hint policy) {
         var comparison = verified.search();
         int used = seed.extraNodes() + shortlistNodes + comparison.extraNodes();
@@ -385,7 +385,10 @@ public final class TacticalAnalysis {
         boolean beatsLosingSeed = original.score() < 0 && best.score() > 0;
         boolean decisiveExactGain = (comparison.depth() == seed.depth() || comparison.depth() > seed.depth() && beatsLosingSeed)
                 && original.line().size() <= comparison.depth() && best.score() - comparedOriginal.score() > policy.maxLossCp();
-        boolean unsupportedReversal = !decisiveExactGain && !best.move().equals(original.move()) && best.signedMatePlies() == 0
+        boolean defensiveTie = best.score() == comparedOriginal.score() && best.signedMatePlies() == 0
+                && HintPinSupport.reinforces(position, best.move())
+                && ranked.stream().anyMatch(line -> line.score() == best.score() && !HintPinSupport.reinforces(position, line.move()));
+        boolean unsupportedReversal = !decisiveExactGain && !defensiveTie && !best.move().equals(original.move()) && best.signedMatePlies() == 0
                 && (comparison.depth() <= seed.depth() || !supportsAtEqualTurns(verified.balancedLines(), best.move(), original.move()));
         if (lostMateProof || shallowerBookReversal || unsupportedReversal) {
             return hintSearch(lines, null, used, seed);
@@ -394,6 +397,7 @@ public final class TacticalAnalysis {
         if (comparison.depth() < seed.depth() && !extendsLine(original, best)) return hintSearch(lines, null, used, seed);
         var eligible = hintLines(comparison.result(), policy).stream()
                 .filter(line -> line.move().equals(best.move()) || !seed.nonEquivalentRoots().contains(line.move())).collect(Collectors.toList());
+        if (defensiveTie) eligible.removeIf(line -> !line.move().equals(best.move()));
         if (verified.recaptureCheck()) {
             // A selective challenger can replace the leader, but cannot manufacture additional equivalent offers.
             eligible.removeIf(line -> !line.move().equals(best.move())
@@ -514,7 +518,7 @@ public final class TacticalAnalysis {
             var line = root.line(moves.get(index), depth, LIMIT, budgets.get(index), Objective.POSITION, balance);
             ranked.add(new Variation(line.moves(), line.score(), line.balance() - balance, line.ending()));
         }
-        ranked.sort(Comparator.comparingInt(Variation::score).reversed());
+        HintPinSupport.sort(position, ranked);
         return ranked;
     }
 
