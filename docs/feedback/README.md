@@ -26,6 +26,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Hard · conversion after a pawn capture | The pawn capture can lose its advantage later. | Verify conversion on new positions and distinct replies. |
 | P1 | Transfer from tactics to games | Hard misses tactics without a declared objective. | Measure discovery and preserve the solver contract. |
 | P1 | Native Hard · remaining material goals | 79 canonical stages remain unaccepted in 53 exercises; `training-051` still draws with `Ke6`. | Resolve `Rc8+` versus `Ke6` with free opposing replies, preserving the qualified pawn conversion, defended draws and full catalog. |
+| P2 | Native studies · original FEN clock | A board-only new match starts its quiet counter at zero while oracle FEN metadata retains the original clock. | Add explicit native FEN-clock initialization and 0/99/149-clock negatives before claiming draw parity for arbitrary composed origins. |
 | P2 | Progress · Android upgrade | A signed upgrade still needs a progress probe. | Keep IDs, solutions and points across upgrade and restart. |
 | P2 | AI quality · material evaluation | The material score differs from Stockfish. | Reduce the discrepancy with fixed search budgets. |
 | P2 | Puzzle calibration | Imported difficulty bands overlap. | Check attempts and time on a separate shuffled set. |
@@ -247,5 +248,23 @@ The original 79 contextual lessons retain their oracle producer after complete n
 decision equality. New structural YAML describes pawn tempo, king escort, repetition and
 safe promotion with counterexamples; runtime contains no curriculum key or FEN lookup.
 [Repeatable certificate and receipt procedure](../testing/hard-puzzle-study.md#auditing-winning-plan-certificates)
+
+</details>
+
+
+<details>
+<summary>P2 · Native studies · original FEN draw counter</summary>
+
+`ChessMatch.fromPosition` accepts a board and starts a new zero-clock match; `StudyFen`
+separately preserves FEN clocks for the oracle. It therefore cannot establish native/oracle
+fifty-move parity for an arbitrary supplied FEN. The qualified post-promotion case is unaffected:
+the last capture resets the counter and `…Ke4` makes it one on both paths.
+
+Own this at the composed-session adapter, not in evaluation weights. Preserve an explicit
+initial halfmove counter and test identical boards with clocks 0/99/149, captures/pawn resets,
+saved-game restoration and rejection of a receipt borrowed from another clock. Keep original
+receipts with their real producer; never patch their headers to manufacture parity.
+[Native constructor](../../chess-core/src/main/java/ro/atf/chess/ChessMatch.java)
+· [FEN receipt helper](../../atf-tests/src/test/java/ro/atf/chess/StudyFen.java)
 
 </details>

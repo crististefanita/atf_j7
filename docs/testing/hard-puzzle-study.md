@@ -130,3 +130,10 @@ Include interrupted-budget, unsafe promotion, stalemate, rook-pawn draw, foreign
 fifty-move-claim negatives. Retain Basic/Advanced decisions at identical contexts. Verify actual
 conversion to checkmate or draw separately from a certificate ending in safe queen material.
 Frozen transfer root-WDL checks cannot substitute for full games or paired Elo evidence.
+
+
+Keep the original FEN draw clock distinct from a newly constructed board-only session.
+`ChessMatch.fromPosition` starts at zero; `StudyFen` retains the input clock. A source-bound
+prefix cannot alone supply an omitted initial clock. The qualified post-capture conversion
+has equal counters after reset; arbitrary composed origins still require the explicit
+clock-adapter follow-up recorded in feedback.
