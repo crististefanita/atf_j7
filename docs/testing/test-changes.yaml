@@ -1038,3 +1038,34 @@ testChanges:
     test: ro.atf.chess.MatchAiGovernanceTest#hardExactTranspositionCacheIsBoundedAndScalesWithTheHardNodeBudget
     contract: "Advance the typed hint schema to include bounded recapture verification while retaining all exact-cache capacity, scaling and rejection assertions"
     allowDelete: false
+  - id: J7-HINT-FOUR-ROOTS-EN
+    base: "02207179ac47b0ba7ec6f8d5afcb8a6b01464d99"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
+    test: ro.atf.chess.HintCandidateCoverageTest#comparesAllFourSicilianRootsAtOneCompletedHorizonAndOneCeiling
+    contract: "Retain both raw knight scores, the qualified public leader, history and shared UI identity while extending the diagnostic comparison to theory and queen pressure within one 200k ceiling"
+    allowDelete: false
+
+  - id: J7-FEN-ORACLE-EN
+    base: "02207179ac47b0ba7ec6f8d5afcb8a6b01464d99"
+    from: atf-tests/src/test/java/ro/atf/chess/StockfishStudyAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/StockfishFenAuditTest.java
+    test: ro.atf.chess.StockfishFenAuditTest#supportsExplicitFenOriginsWithoutBorrowingAStartPositionPhase
+    contract: "Retain strict start-position oracle validation and add explicit FEN origin, clocks, full prefix, raw command and cross-origin projection rejection for puzzle studies"
+    allowDelete: false
+
+  - id: J7-HINT-FOUR-ROOTS-RO
+    base: "eb4ce0134bcd6d68b85f16d678ef0a8f783ed372"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
+    test: ro.atf.chess.HintCandidateCoverageTest#comparesAllFourSicilianRootsAtOneCompletedHorizonAndOneCeiling
+    contract: "Retain both raw knight scores, the qualified public leader, history and shared UI identity while extending the diagnostic comparison to theory and queen pressure within one 200k ceiling"
+    allowDelete: false
+
+  - id: J7-FEN-ORACLE-RO
+    base: "eb4ce0134bcd6d68b85f16d678ef0a8f783ed372"
+    from: atf-tests/src/test/java/ro/atf/chess/StockfishStudyAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/StockfishFenAuditTest.java
+    test: ro.atf.chess.StockfishFenAuditTest#supportsExplicitFenOriginsWithoutBorrowingAStartPositionPhase
+    contract: "Retain strict start-position oracle validation and add explicit FEN origin, clocks, full prefix, raw command and cross-origin projection rejection for puzzle studies"
+    allowDelete: false
