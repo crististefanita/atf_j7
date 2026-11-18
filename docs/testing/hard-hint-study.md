@@ -52,7 +52,7 @@ Publicarea rejucă dovezile native și de indiciu fără Stockfish sau emulator.
 
 Studiile nu estimează Elo și nu dovedesc joc optim împotriva oricărei apărări. Folosește [liga nativă pereche](hard-audit.md#elo-și-partidele-neterminate) pentru forță legată de sursă și intervale de încredere. Repararea unui caz nu permite promovarea când martorii independenți regresează.
 
-## Colecția curentă legată de sursă
+## Colecția de referință legată de sursă
 
 Colecția din 18 noiembrie folosește producătorul `e320379212dbb55afb392351da559b1cf949ac4d`: trei partide de studiu limitate la 20 de semimutări, 60 de poziții jucate, 83 de variante oferite și 960 de cereri de oracol. Pozițiile includ decizii efective și de control. La H19, 12 prime sugestii, 15 variante oferite și 10 replici adverse din PV pierd cel puțin 150‰. Alegerile native au trei asemenea lacune pe toate cele 60 de poziții, două la cele 21 de mutări efective Hard. Game Review are nouă neconcordanțe stabile de clasificare între H17 și H19.
 
@@ -62,4 +62,12 @@ Datele brute, ambele verdicte Extent, observațiile analizei și lecțiile YAML 
 
 ## Continuare
 
-Păstrează perechea Caro–Kann înainte și după `6.e6`, `Nd5` față de `Na4` în Italiană și `…Be7` față de `…Nc6` în Siciliană ca studii de regresie legate de sursă. Compară rădăcinile și apărările la același orizont și buget. Soluțiile observate nu devin interdicții FEN în runtime sau etichete de antrenare acceptate automat. Păstrează colecția originală când evaluezi un candidat ulterior. [Feedback curent](../feedback/README.md)
+Păstrează perechea Caro–Kann corectată înainte și după `6.e6` ca martor de regresie. `Nd5` față de `Na4` în Italiană, `…Be7` față de `…Nc6` în Siciliană și alternativele secundare inexacte rămân studii nerezolvate legate de sursă. Compară rădăcinile și apărările la același orizont și buget. Soluțiile observate nu devin interdicții FEN în runtime sau etichete de antrenare acceptate automat. Păstrează colecția originală când evaluezi un candidat ulterior. [Feedback curent](../feedback/README.md)
+
+## Compararea indiciului Caro–Kann corectat
+
+Corecția după pionul forțant este măsurată pe rejucarea pereche a exact acelorași mutări istorice. Producătorul este `5858e65e02b96e15ca8238d1d68cc2db70f2b6d8`; replicile istorice ale adversarului sunt marcate explicit ca rejucări, nu partide Stockfish noi. Toate cele șaizeci de rapoarte native și evaluări afișate coincid cu reperul. Se schimbă numai indiciul public de după `6.e6`.
+
+Noul plan are 954 de cereri reci H17/H19 pentru toate rădăcinile jucate și oferite, primele replici adverse din PV și capetele liniilor. Integritatea trece; calitatea absolută rămâne FAIL cu 11/60 lideri deficitari, 14/83 mutări oferite deficitare și 10/83 prime replici adverse deficitare. Califică îmbunătățirea țintită și transferul independent separat de pragul absolut. Păstrează intacte rulările respinse, identitatea sursei și recepțiile brute. [Rezultate și interpretare](../board/ai-quality.md#indiciul-carokann-și-verificarea-recapturii-după-pionul-cu-șah)
+
+`HintRecaptureRegressionTest` verifică perechea Caro, comparația diagnostică, identitatea redării și atingerii, bugetele întrerupte, separarea modurilor din cache și YAML plafonat. Dezactivarea noii limite trebuie să reproducă `…fxe6` și să eșueze în testul țintit. Istoriile PGN noi de transfer sunt înghețate înainte de evaluare, apoi devin martori de regresie după inspecție. Progresul indiciului nu este ΔElo al jocului nativ. [Componente](../../atf-tests/src/test/java/ro/atf/chess/HintRecaptureRegressionTest.java)

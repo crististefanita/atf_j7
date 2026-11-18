@@ -102,6 +102,8 @@ Regulile efective rejucă fiecare cadru și întreaga continuare documentată.
 
 [Frontiera indiciului](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java) · [Contractele deschiderilor](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java) · [Paritatea rejucării Web](../../atf-tests/src/test/java/ro/atf/chess/WebHintReplayComponentTest.java)
 
+`HintRecaptureRegressionTest` protejează comparația forțantă captură de pion/piesă, indiciul corect precedent, identitatea cache-ului încălzit/rece/dezactivat, schimburile întrerupte și YAML plafonat. [Corecția Caro–Kann măsurată](../board/ai-quality.md#indiciul-carokann-și-verificarea-recapturii-după-pionul-cu-șah)
+
 ### Colecția offline de indicii
 
 `HintAuditSessionTest` validează planul versionat, reluarea întregului istoric,
