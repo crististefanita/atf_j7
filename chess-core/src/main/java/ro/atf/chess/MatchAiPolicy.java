@@ -11,7 +11,8 @@ final class MatchAiPolicy {
     static final MatchAiPolicy CURRENT = read(ChessYaml.resource("match-ai.yaml"));
 
     record Search(int maxPlies, int extraNodes) { }
-    record Hint(Search search, int maxVariants, int maxLossCp, int tacticalExtensionPlies, int verificationNodes) { }
+    record Hint(Search search, int maxVariants, int maxLossCp, int tacticalExtensionPlies, int verificationNodes,
+                int verificationRecapturePlies) { }
     record Evaluation(int nodes, int maxHorizonCorrectionCp) { }
     record Repetition(int minAdvantageCp, int maxScoreLossCp) { }
     record RookEndgame(int extensionPlies, int candidateGapCp) { }
@@ -54,7 +55,7 @@ final class MatchAiPolicy {
     static MatchAiPolicy read(Map<?, ?> root) {
         requireKeys(root, "schema", "opponents", "hint", "evaluation", "repetition", "rook-endgame", "hard-ordering",
                 "hard-horizon", "hard-transpositions");
-        if (ChessYaml.number(root, "schema") != 7) throw new IllegalArgumentException("Unknown match AI schema");
+        if (ChessYaml.number(root, "schema") != 8) throw new IllegalArgumentException("Unknown match AI schema");
         var settings = ChessYaml.map(root, "opponents");
         requireKeys(settings, "BASIC", "ADVANCED", "HARD");
         var opponents = new EnumMap<Level, Search>(Level.class);
@@ -74,7 +75,7 @@ final class MatchAiPolicy {
             previous = current;
         }
         var row = ChessYaml.map(root, "hint");
-        requireKeys(row, "max-plies", "extra-nodes", "max-variants", "max-loss-cp", "tactical-extension-plies", "verification-nodes");
+        requireKeys(row, "max-plies", "extra-nodes", "max-variants", "max-loss-cp", "tactical-extension-plies", "verification-nodes", "verification-recapture-plies");
         Search search = search(row);
         if (search.extraNodes() > 200_000) throw new IllegalArgumentException("Hint search exceeds 200,000 total nodes");
         int verification = bounded(row, "verification-nodes", 1_000, 150_000);
@@ -103,7 +104,8 @@ final class MatchAiPolicy {
         int basicPlies = bounded(ChessYaml.map(settings, Level.BASIC.name()), "standard-max-plies", 2, BASE_PLIES);
         return new MatchAiPolicy(opponents, basicPlies, new Hint(search,
                 bounded(row, "max-variants", 1, 3), bounded(row, "max-loss-cp", 0, 100),
-                bounded(row, "tactical-extension-plies", 0, 2), verification), new Evaluation(
+                bounded(row, "tactical-extension-plies", 0, 2), verification,
+                bounded(row, "verification-recapture-plies", 0, 2)), new Evaluation(
                         bounded(evaluation, "nodes", 1_000, 40_000), bounded(evaluation, "max-horizon-correction-cp", 0, 50)),
                 new Repetition(bounded(repetition, "min-advantage-cp", 75, 250), bounded(repetition, "max-score-loss-cp", 1, 75)),
                 new RookEndgame(extension, bounded(rookEndgame, "candidate-gap-cp", 25, 75)),

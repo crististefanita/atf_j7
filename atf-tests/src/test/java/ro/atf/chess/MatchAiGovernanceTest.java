@@ -83,7 +83,7 @@ class MatchAiGovernanceTest {
     }
 
     @Test void hardExactTranspositionCacheIsBoundedAndScalesWithTheHardNodeBudget(Checks check) {
-        check.same("Transposition limits use the versioned match-AI schema", 7,
+        check.same("Transposition limits use the versioned match-AI schema", 8,
                 ChessYaml.number(ChessYaml.resource("match-ai.yaml"), "schema"));
         var settings = MatchAiPolicy.CURRENT.hardTranspositions;
         check.same("The measured cache uses half as many entries as Hard extra nodes", 500,
