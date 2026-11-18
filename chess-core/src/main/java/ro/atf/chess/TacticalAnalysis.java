@@ -32,7 +32,7 @@ public final class TacticalAnalysis {
 
         /** Positive for a winning mate, negative for a losing mate, zero if none is proved. */
         public int signedMatePlies() {
-            return Math.abs(score) >= MATE - MatchAiPolicy.MAX_PLIES - 2
+            return Math.abs(score) >= MATE - MatchAiPolicy.MAX_PLIES - 4
                     ? Integer.signum(score) * (MATE - Math.abs(score)) : 0;
         }
     }
@@ -431,6 +431,10 @@ public final class TacticalAnalysis {
     }
 
     private static HintVerification verifyHintRoots(ChessPosition position, List<Move> moves, SearchBudget budget, int maxPlies) {
+        // Competing captures can hide the recapture of a valuable victim at the frontier.
+        // Keep seed, ordinary opponent and display searches unchanged; all extra visits use this budget.
+        budget.recaptureExtension = competingCaptures(position, moves)
+                ? MatchAiPolicy.CURRENT.hint.verificationRecapturePlies() : 0;
         int before = budget.remaining;
         var budgets = Collections.nCopies(moves.size(), budget);
         List<Variation> ranked = List.of();
@@ -448,6 +452,17 @@ public final class TacticalAnalysis {
             }
         }
         return new HintVerification(new SearchReport(new Result(ranked), completed, before - budget.remaining), balanced);
+    }
+
+    private static boolean competingCaptures(ChessPosition position, List<Move> moves) {
+        boolean capturesPiece = false;
+        if (moves.size() < 2) return false;
+        for (var move : moves) {
+            var victim = MatchMaterial.victim(position, move);
+            if (victim == null) return false;
+            capturesPiece |= victim.kind() != Kind.PAWN;
+        }
+        return capturesPiece;
     }
 
     private static List<Variation> hintRootLines(ChessPosition position, List<Move> moves, int depth, List<SearchBudget> budgets) {
@@ -813,7 +828,7 @@ public final class TacticalAnalysis {
         if (budget != null) budget.visit();
         // Cache only exact lines; the key preserves mate distance, objective, horizon and tactical extension.
         var key = budget != null && budget.transpositionLimit > 0
-                ? new SearchTranspositionKey(position.searchKey(), left, distance, objective, budget.tacticalExtension) : null;
+                ? new SearchTranspositionKey(position.searchKey(), left, distance, objective, budget.tacticalExtension, budget.recaptureExtension) : null;
         if (key != null) {
             var cached = budget.transpositions.get(key);
             if (budget.adaptive != null) budget.adaptive.lookup(cached != null);
@@ -933,7 +948,13 @@ public final class TacticalAnalysis {
 
     /** Continue tactical exchanges at the search boundary before scoring material. */
     private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget) {
-        if (left == 0) return leaf(position, distance, position.hasLegalMove(), Objective.POSITION);
+        return settle(position, left, distance, alpha, beta, budget, -1, budget.recaptureExtension);
+    }
+
+    private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget,
+                               int lastCapture, int recapturesLeft) {
+        boolean recapturing = left == 0 && lastCapture >= 0 && recapturesLeft > 0;
+        if (left == 0 && !recapturing) return leaf(position, distance, position.hasLegalMove(), Objective.POSITION);
         int initialAlpha = alpha;
         boolean inCheck = position.isCheck();
         var moves = new ArrayList<Move>();
@@ -947,12 +968,15 @@ public final class TacticalAnalysis {
             if (best.score() >= beta) return best.withExact(false);
             alpha = Math.max(alpha, best.score());
             moves.addAll(position.legalCapturesAndPromotions());
+            if (recapturing) moves.removeIf(move -> move.to() != lastCapture || MatchMaterial.victim(position, move) == null);
         }
         moves.sort(Comparator.comparingInt((Move move) -> captureOrder(position, move)).reversed());
         boolean cutoff = false;
         for (Move move : moves) {
             budget.visit();
-            var child = settle(position.playGenerated(move), left - 1, distance + 1, -beta, -alpha, budget).prepend(move);
+            int target = recapturing || MatchMaterial.victim(position, move) != null ? move.to() : -1;
+            var child = settle(position.playGenerated(move), recapturing ? 0 : left - 1, distance + 1, -beta, -alpha, budget,
+                    target, recapturing ? recapturesLeft - 1 : recapturesLeft).prepend(move);
             if (best == null || child.score() > best.score()) best = child;
             alpha = Math.max(alpha, child.score());
             if (alpha >= beta) {
@@ -977,7 +1001,7 @@ public final class TacticalAnalysis {
     }
 
     private record SearchTranspositionKey(ChessPosition.SearchKey position, int left, int distance, Objective objective,
-                                         int tacticalExtension) { }
+                                         int tacticalExtension, int recaptureExtension) { }
 
     private record RookSearchPath(RookSearchPath previous, ChessPosition.SearchKey position) { }
 
@@ -1090,6 +1114,7 @@ public final class TacticalAnalysis {
         private int remaining;
         private int reserve;
         private final int tacticalExtension;
+        private int recaptureExtension;
         private final int transpositionLimit;
         private int checkOrderBonus;
         private final Map<SearchTranspositionKey, Line> transpositions;

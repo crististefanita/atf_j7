@@ -1,4 +1,4 @@
-schema: 7
+schema: 8
 opponents:
   BASIC: {max-plies: 3, extra-nodes: 0, standard-max-plies: 2}
   ADVANCED: {max-plies: 4, extra-nodes: 10000}
@@ -7,6 +7,7 @@ hint:
   max-plies: 7
   extra-nodes: 200000
   verification-nodes: 150000
+  verification-recapture-plies: 2
   tactical-extension-plies: 2
   max-variants: 3
   max-loss-cp: 25
