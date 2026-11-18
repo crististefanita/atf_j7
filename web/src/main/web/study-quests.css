@@ -59,7 +59,7 @@
 }
 .quest-study .quest-study-head {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   min-block-size: var(--quest-action-size);
   gap: .35rem;
@@ -67,7 +67,7 @@
 }
 .quest-study .quest-study-head h2 {
   margin: 0;
-  font-size: 1.1875rem;
+  font-size: var(--chess-screen-title);
   line-height: 1.15;
   overflow-wrap: anywhere;
 }
@@ -101,6 +101,7 @@
   font-size: .85rem;
   overflow-wrap: anywhere;
 }
+.quest-study .quest-study-dialog-head { flex-wrap: nowrap; justify-content: flex-start; gap: .35rem; }
 .quest-study .quest-study-series {
   justify-self: end;
   display: flex;

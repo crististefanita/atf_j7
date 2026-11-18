@@ -18,7 +18,7 @@
 }
 
 .analysis-study-header { min-height: 3rem; }
-.analysis-study-header h2 { flex: 1; margin: 0; font-size: 1.19rem; line-height: 1.25; }
+.analysis-study-header h2 { flex: 1; margin: 0; font-size: var(--chess-screen-title); line-height: 1.25; }
 .analysis-study-header > button,
 .analysis-study-navigation .analysis-study-icon,
 .analysis-study-menu > button {
@@ -146,7 +146,7 @@
 
 @media (orientation: portrait) and (max-width: 500px) {
   .analysis-study-header { gap: .2rem; }
-  .analysis-study-header h2 { font-size: 1rem; }
+  .analysis-study-header h2 { font-size: var(--chess-screen-title); }
   body.study-active main:has(.analysis-study-replay) { padding-inline: 0; }
   .analysis-study-replay {
     --study-top-gap: 0px;

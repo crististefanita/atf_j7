@@ -185,6 +185,9 @@
     <string name="match_history_next">Next move</string>
     <string name="match_history_latest">Jump to latest move</string>
     <string name="match_history_start">Start</string>
+    <string name="match_history_first">First move</string>
+    <string name="match_history_last">Latest move</string>
+    <string name="match_history_only">First and latest move</string>
     <string name="match_history_white_move" translatable="false">%1$d. %2$s</string>
     <string name="match_history_black_move" translatable="false">%1$d… %2$s</string>
     <string name="match_history_move_description">Move %1$d, %2$s, %3$s</string>

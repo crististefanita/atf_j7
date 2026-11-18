@@ -143,6 +143,8 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 
 - În partida cu AI, pe mobil, ansamblul format din tablă și bara de evaluare folosește întreaga lățime utilă când aceasta limitează latura pătratului. Când analiza este activă, bara și intervalul ei ocupă o fâșie în stânga.
 - Într-o fereastră mai scundă, înălțimea disponibilă lasă loc scorului, istoricului și becului. Navigarea prin istoric și redeschiderea slotului păstrează dreptunghiul tablei.
+- Între săgețile partidei apare doar mutarea care a produs poziția selectată, de exemplu **1. e2–e4** sau **1… e7–e5**. **Start** identifică poziția inițială. Prima mutare este ambră, iar ultima turcoaz; o mutare unică combină indiciile. Etichetele accesibile numesc și limita. Continuarea stă în afara acestui rând. `MatchHistorySelection` deține cursorul JVM; adaptoarele Web și APK împart paisprezece cazuri, inclusiv captură, rocadă, promovare, redeschidere și ramificare.
+- Deschideri oferă reperul pentru titlu și Back, iar Tabla de analiză pentru navigarea compactă. `chess-controls.css` partajează scara titlului, săgețile de 48 px și stilul poziției. `line-navigation.mjs` proiectează limita liniei selectate. Adaptoarele de joc, studiu și previzualizare păstrează formularea proprie, istoricul complet și selectorii de variante; schimbarea liniei păstrează cursorul deținut de ecran. Navigarea problemelor păstrează indiciul sau Pericol. Back revine în contextul care a deschis ecranul, iar opțiunile rămân ancorate de propriul buton.
 - [Proba compactă RO/EN](../docs/testing/README.md#analiza-în-partida-cu-ai)
 
 Problemele își calculează tabla din spațiul disponibil după rezervarea locului

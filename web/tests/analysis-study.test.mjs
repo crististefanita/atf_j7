@@ -288,6 +288,9 @@ test('Analysis places evaluation to the left and all history controls in APK ord
     const replayToolbar = replay.children.find(item => item.className?.includes('analysis-study-toolbar'));
     const variants = replay.children.find(item => item.className === 'analysis-study-variants');
     assert.equal(details.hidden, false);
+    assert.equal(variants.attributes.has('data-chess-lines'), true);
+    assert.equal(replayToolbar.attributes.has('data-chess-navigation'), true);
+    assert.equal(replayToolbar.children[1].dataset.boundary, 'START');
     assert.deepEqual(variants.children.map(item => item.textContent), ['Line 1', 'Line 2']);
     assert.equal(variants.children[1].attributes.get('aria-label'), 'Line 2 · c7 → c5');
     assert.match(details.children[0].textContent, /Control the center/);

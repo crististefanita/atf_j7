@@ -76,13 +76,13 @@ p { margin: .6rem 0; }
 #status, #evaluation { color: var(--muted); }
 main:has(> .match:not([hidden])) > header {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   max-inline-size: var(--play-column);
   min-block-size: var(--play-action-size);
   margin-inline: auto;
   gap: .25rem .5rem;
 }
-main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height: 1.15; overflow-wrap: anywhere; }
+main:has(> .match:not([hidden])) > header h1 { font-size: var(--chess-screen-title); line-height: 1.25; overflow-wrap: anywhere; }
 .match-options-button {
   display: inline-grid;
   place-items: center;
@@ -158,7 +158,25 @@ main:has(> .match:not([hidden])) > header h1 { font-size: 1.1875rem; line-height
 .match-row .match-subtitle, .match-row time, #empty-list { color: var(--muted); }
 .match-row time { font-size: .82rem; }
 #match-previous, #match-next { min-inline-size: 2.75rem; }
-#match-ply { min-inline-size: 3.5rem; text-align: center; font-variant-numeric: tabular-nums; }
+#match-ply {
+  flex: 0 1 12rem;
+  min-inline-size: 0;
+  min-block-size: var(--play-action-size);
+  display: grid;
+  place-items: center;
+  padding: .15rem .4rem;
+  border: 1px solid transparent;
+  border-radius: .35rem;
+  text-align: center;
+  font-size: var(--chess-position-size);
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  color: #c0bfb4;
+}
+#match-ply:is([data-boundary="START"], [data-boundary="FIRST"]) { color: #e4be7a; background: #433a29; }
+#match-ply:is([data-boundary="LAST"], [data-boundary="ONLY"]) { color: #57e0b4; background: #203b35; }
+#match-ply[data-boundary="ONLY"] { border-color: #e4be7a; }
 dialog { max-width: min(27rem, calc(100% - 1.5rem)); color: inherit; background: var(--surface); border: 1px solid var(--border); border-radius: .45rem; }
 dialog::backdrop { background: #121613a8; }
 #profile-dialog .setup-fields { margin-block-start: .7rem; }
@@ -343,7 +361,7 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
     --play-action-size: 48px;
     --play-puzzle-text: 8.25rem;
   }
-  main:has(> .match:not([hidden])) > header h1 { font-size: .9375rem; }
+  main:has(> .match:not([hidden])) > header h1 { font-size: var(--chess-screen-title); }
   main:has(> .match:not([hidden])) > header .header-actions button { padding-inline: .35rem; font-size: .875rem; }
   .match-automatic { max-inline-size: 7rem; padding-inline: .4rem; }
   .match-actions button { flex: 1 1 min-content; padding-inline: .25rem; overflow-wrap: normal; }
@@ -376,7 +394,7 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
 }
 @media (max-width: 340px) {
   main:has(> .match:not([hidden])) { padding-block: .15rem; }
-  main:has(> .match:not([hidden])) > header h1 { font-size: .8rem; }
+  main:has(> .match:not([hidden])) > header h1 { font-size: var(--chess-screen-title); }
   .match-automatic { max-inline-size: 6.25rem; font-size: .72rem; }
 }
 @media (max-width: 43rem) {
