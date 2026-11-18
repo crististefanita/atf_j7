@@ -250,6 +250,12 @@ public final class ChessPosition {
         return Collections.unmodifiableList(attackers);
     }
 
+    /** Geometric attack, including a pinned piece; allocation signals do not establish legal captures. */
+    boolean attacksFrom(int from, int to) {
+        return from >= 0 && from < 64 && to >= 0 && to < 64 && from != to
+                && board[from] != null && reaches(board[from], from, to);
+    }
+
     boolean isCheckedFrom(int square) {
         Piece attacker = board[square];
         return attacker != null && attacker.side() == turn.other() && reaches(attacker, square, kingSquare(turn));

@@ -193,6 +193,8 @@ public final class TacticalAnalysis {
         var root = new RootSearch(position, Set.of());
         var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
         if (moves.isEmpty()) return new SearchReport(new Result(List.of()), 0, 0);
+        budget.queenRecaptureExtension = attacksQueen(position, moves)
+                ? Math.min(1, MatchAiPolicy.CURRENT.hint.verificationRecapturePlies()) : 0;
         int before = budget.remaining;
         Result best = new Result(List.of());
         Map<Move, Integer> shallowScores = Map.of();
@@ -440,6 +442,8 @@ public final class TacticalAnalysis {
         // Keep seed, ordinary opponent and display searches unchanged; all extra visits use this budget.
         budget.recaptureExtension = competingCaptures(position, moves)
                 ? MatchAiPolicy.CURRENT.hint.verificationRecapturePlies() : 0;
+        budget.queenRecaptureExtension = attacksQueen(position, moves)
+                ? Math.min(1, MatchAiPolicy.CURRENT.hint.verificationRecapturePlies()) : 0;
         int before = budget.remaining;
         var budgets = Collections.nCopies(moves.size(), budget);
         List<Variation> ranked = List.of();
@@ -456,7 +460,8 @@ public final class TacticalAnalysis {
                 break;
             }
         }
-        return new HintVerification(new SearchReport(new Result(ranked), completed, before - budget.remaining), balanced, budget.recaptureExtension > 0);
+        return new HintVerification(new SearchReport(new Result(ranked), completed, before - budget.remaining), balanced,
+                budget.recaptureExtension > 0 || budget.queenRecaptures > 0);
     }
 
     private static boolean competingCaptures(ChessPosition position, List<Move> moves) {
@@ -475,6 +480,18 @@ public final class TacticalAnalysis {
             }
         }
         return forcingReply && capturesPawn;
+    }
+
+    private static boolean attacksQueen(ChessPosition position, List<Move> moves) {
+        for (var move : moves) {
+            var after = position.playGenerated(move);
+            for (int square = 0; square < 64; square++) {
+                var victim = after.pieceAt(square);
+                if (victim != null && victim.kind() == Kind.QUEEN && victim.side() != position.turn()
+                        && after.attacksFrom(move.to(), square) && !position.attacksFrom(move.from(), square)) return true;
+            }
+        }
+        return false;
     }
 
     private static List<Variation> hintRootLines(ChessPosition position, List<Move> moves, int depth, List<SearchBudget> budgets) {
@@ -840,7 +857,8 @@ public final class TacticalAnalysis {
         if (budget != null) budget.visit();
         // Cache only exact lines; the key preserves mate distance, objective, horizon and tactical extension.
         var key = budget != null && budget.transpositionLimit > 0
-                ? new SearchTranspositionKey(position.searchKey(), left, distance, objective, budget.tacticalExtension, budget.recaptureExtension) : null;
+                ? new SearchTranspositionKey(position.searchKey(), left, distance, objective, budget.tacticalExtension,
+                        budget.recaptureExtension, budget.queenRecaptureExtension) : null;
         if (key != null) {
             var cached = budget.transpositions.get(key);
             if (budget.adaptive != null) budget.adaptive.lookup(cached != null);
@@ -960,11 +978,19 @@ public final class TacticalAnalysis {
 
     /** Continue tactical exchanges at the search boundary before scoring material. */
     private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget) {
-        return settle(position, left, distance, alpha, beta, budget, -1, budget.recaptureExtension);
+        return settle(position, left, distance, alpha, beta, budget, -1,
+                budget.recaptureExtension > 0 ? budget.recaptureExtension : -1);
     }
 
     private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget,
                                int lastCapture, int recapturesLeft) {
+        if (left == 0 && recapturesLeft < 0) {
+            // A queen capture is not a completed exchange while an opposing pawn can legally recapture it.
+            // Resolve this once within the existing verification budget, rather than rejecting the queen offer.
+            recapturesLeft = budget.queenRecaptureExtension > 0 && pawnCanRecaptureQueen(position, lastCapture)
+                    ? budget.queenRecaptureExtension : 0;
+            if (recapturesLeft > 0) budget.queenRecaptures++;
+        }
         boolean recapturing = left == 0 && lastCapture >= 0 && recapturesLeft > 0;
         if (left == 0 && !recapturing) return leaf(position, distance, position.hasLegalMove(), Objective.POSITION);
         int initialAlpha = alpha;
@@ -999,6 +1025,14 @@ public final class TacticalAnalysis {
         return best.withExact(!cutoff && best.score() > initialAlpha);
     }
 
+    private static boolean pawnCanRecaptureQueen(ChessPosition position, int square) {
+        if (square < 0) return false;
+        var victim = position.pieceAt(square);
+        return victim != null && victim.kind() == Kind.QUEEN && victim.side() != position.turn()
+                && position.legalCapturesAndPromotions().stream().anyMatch(move -> move.to() == square
+                        && position.pieceAt(move.from()).kind() == Kind.PAWN);
+    }
+
     private static int captureOrder(ChessPosition position, Move move) {
         var victim = position.pieceAt(move.to());
         var attacker = position.pieceAt(move.from());
@@ -1013,7 +1047,7 @@ public final class TacticalAnalysis {
     }
 
     private record SearchTranspositionKey(ChessPosition.SearchKey position, int left, int distance, Objective objective,
-                                         int tacticalExtension, int recaptureExtension) { }
+                                         int tacticalExtension, int recaptureExtension, int queenRecaptureExtension) { }
 
     private record RookSearchPath(RookSearchPath previous, ChessPosition.SearchKey position) { }
 
@@ -1127,6 +1161,8 @@ public final class TacticalAnalysis {
         private int reserve;
         private final int tacticalExtension;
         private int recaptureExtension;
+        private int queenRecaptureExtension;
+        private int queenRecaptures;
         private final int transpositionLimit;
         private int checkOrderBonus;
         private final Map<SearchTranspositionKey, Line> transpositions;
