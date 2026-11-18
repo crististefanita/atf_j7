@@ -41,6 +41,14 @@ class ChessWebStudyShellTest {
                 "active-ai-history", "archived-resignation-history", "archived-terminal-position"));
     }
 
+    @Test void packagedBytesSurviveGitStaging(Checks check) throws IOException, InterruptedException {
+        verify(check, "package-web.test.mjs", List.of("--test", "--test-reporter=tap"), List.of(), "ok ", List.of(
+                "Published HTML resolves the complete module and stylesheet graph in one immutable directory",
+                "Changing only a transitive module allocates a new address and preserves the previous runtime",
+                "Packaging refuses a missing entry asset and leaves previously published runtime files intact",
+                "Git staging with autocrlf preserves qualified engine bytes and the runtime manifest"));
+    }
+
     @Test
     @EnabledIfSystemProperty(named = "chess.study.bundle", matches = ".+")
     void packagedWorkerKeepsTheThreeStudyFlowsIndependent(Checks check) throws IOException, InterruptedException {
