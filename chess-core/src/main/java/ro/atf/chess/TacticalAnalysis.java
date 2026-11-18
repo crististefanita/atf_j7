@@ -327,6 +327,7 @@ public final class TacticalAnalysis {
 
         var eligibleRoots = lines.get(0).signedMatePlies() == 0 ? ranked : lines;
         var roots = hintVerificationRoots(eligibleRoots, seed.horizonLeaders(), seed.excludedRoots());
+        if (lines.get(0).signedMatePlies() == 0) roots = HintCandidateCoverage.expand(position, roots, seed.excludedRoots());
         int verificationNodes = budget.remaining;
         int shortlistNodes = 0;
         if (roots.size() == 1 && lines.get(0).signedMatePlies() == 0) {
@@ -349,7 +350,7 @@ public final class TacticalAnalysis {
         }
         if (roots.size() < 2) return hintSearch(lines, null, seed.extraNodes() + shortlistNodes, seed);
         var comparison = verifyHintRoots(position, roots, budget, policy.search().maxPlies());
-        return verifiedHints(position, lines, seed, comparison, shortlistNodes, repertoire, policy);
+        return verifiedHints(position, lines, seed, comparison, shortlistNodes, repertoire, policy, roots.size() > HINT_ROOT_LIMIT);
     }
 
     private record HintVerification(SearchReport search, List<Variation> balancedLines, boolean recaptureCheck) { }
@@ -370,7 +371,7 @@ public final class TacticalAnalysis {
     }
 
     private static HintSearch verifiedHints(ChessPosition position, List<Variation> lines, SearchReport seed, HintVerification verified, int shortlistNodes,
-                                            Move repertoire, MatchAiPolicy.Hint policy) {
+                                            Move repertoire, MatchAiPolicy.Hint policy, boolean widerCoverage) {
         var comparison = verified.search();
         int used = seed.extraNodes() + shortlistNodes + comparison.extraNodes();
         var ranked = comparison.result().ranked();
@@ -405,7 +406,8 @@ public final class TacticalAnalysis {
         }
         var replays = eligible.stream().map(line -> lines.stream().filter(saved -> extendsLine(saved, line))
                 .findFirst().orElse(line)).collect(Collectors.toList());
-        int comparisonSize = best.signedMatePlies() == 0 ? Math.min(ranked.size(), Math.max(2, eligible.size())) : eligible.size();
+        int comparisonSize = widerCoverage ? ranked.size()
+                : best.signedMatePlies() == 0 ? Math.min(ranked.size(), Math.max(2, eligible.size())) : eligible.size();
         comparison = new SearchReport(new Result(ranked.subList(0, comparisonSize)), comparison.depth(), comparison.extraNodes());
         return new HintSearch(Collections.unmodifiableList(replays), comparison.result().ranked().size() > 1 ? comparison : null,
                 used, seed.depth(), comparison.depth());

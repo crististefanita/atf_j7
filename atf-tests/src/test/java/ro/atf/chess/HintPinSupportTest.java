@@ -21,8 +21,8 @@ class HintPinSupportTest {
         check.same("The executed seed / comparison / selection and whole budget stay explicit", List.of(3, 5, 5, 200_000),
                 List.of(search.seedDepth(), search.comparison().depth(), search.selectedDepth(), search.extraNodes()));
         var compared = search.comparison().result().ranked();
-        check.same("Raw H5 centipawns remain tied, not rewritten to an oracle score", List.of(-21, -21), compared.stream().map(Variation::score).toList());
-        check.same("The formerly misleading root stays available diagnostically", List.of("b8d7", "b8c6"), compared.stream().map(v -> v.move().uci()).toList());
+        check.same("The two knight roots retain their raw H5 tie in the wider comparison", List.of(-21, -21), compared.stream().limit(2).map(Variation::score).toList());
+        check.same("The formerly misleading root stays available before the additional challengers", List.of("b8d7", "b8c6"), compared.stream().limit(2).map(v -> v.move().uci()).toList());
         var hint = game.hintAt(game.ply()); hint.revealNext();
         check.same("Bulb, comparison and destination use the same calculated move", List.of(move("b8d7"), move("b8d7"), move("b8d7")),
                 List.of(hint.revealed().move(), hint.compare(game.position()).orElseThrow().stronger().move(), hint.moveForTap(game.position(), -1, move("b8d7").to())));

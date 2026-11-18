@@ -22,8 +22,15 @@ final class StockfishStudyAudit {
         require(expected.path("binarySha256").asText().matches("[a-f0-9]{64}"), "Missing oracle binary identity");
         require(expected.path("binarySha256").equals(identity.path("binarySha256")), "Foreign oracle binary");
         var history = strings(expected.path("history"));
-        var match = ChessMatch.restore("3|WHITE|HARD|1|" + String.join(" ", history));
-        require(receipt.path("fen").asText().equals(HintAuditSession.fen(match)), "Oracle position or clocks differ");
+        ChessMatch match;
+        if (expected.has("initialFen")) {
+            require(expected.get("initialFen").isTextual() && !expected.get("initialFen").asText().isBlank(), "Missing explicit initial FEN");
+            match = ChessMatch.fromPosition(ChessPosition.fromFen(expected.get("initialFen").asText()),
+                    new MatchSetup(ChessPosition.Side.WHITE, MatchSetup.Level.HARD, true));
+            for (String move : history) match = match.play(ChessPosition.Move.fromUci(move));
+        } else match = ChessMatch.restore("3|WHITE|HARD|1|" + String.join(" ", history));
+        var actualFen=expected.has("initialFen") ? StudyFen.replay(expected.get("initialFen").asText(),history.stream().map(ChessPosition.Move::fromUci).toList()) : HintAuditSession.fen(match);
+        require(receipt.path("fen").asText().equals(actualFen), "Oracle position or clocks differ");
         var wdl = receipt.path("wdl");
         require(wdl.isArray() && wdl.size() == 3, "Missing oracle WDL");
         int total = 0;
@@ -46,7 +53,8 @@ final class StockfishStudyAudit {
         require(match.result() == ChessMatch.Result.IN_PROGRESS && receipt.path("actualDepth").asInt() >= depth, "Incomplete oracle horizon");
         var commands = new ArrayList<>(List.of("uci", "setoption name Threads value 1", "setoption name Hash value 32",
                 "setoption name UCI_LimitStrength value false", "setoption name UCI_ShowWDL value true", "isready",
-                "position startpos" + (history.isEmpty() ? "" : " moves " + String.join(" ", history)),
+                "position " + (expected.has("initialFen") ? "fen " + expected.get("initialFen").asText() : "startpos")
+                        + (history.isEmpty() ? "" : " moves " + String.join(" ", history)),
                 "go depth " + depth + (expected.path("root").isNull() ? "" : " searchmoves " + expected.path("root").asText()), "quit"));
         require(commands.equals(strings(receipt.path("uci").path("commands"))), "Missing or changed raw UCI commands");
         var output = strings(receipt.path("uci").path("stdout"));
@@ -76,6 +84,7 @@ final class StockfishStudyAudit {
 
     static double loss(JsonNode free, JsonNode forced) {
         require(free.path("query").path("history").equals(forced.path("query").path("history"))
+                && free.path("query").path("initialFen").equals(forced.path("query").path("initialFen"))
                 && free.path("query").path("depth").equals(forced.path("query").path("depth"))
                 && free.path("identity").equals(forced.path("identity"))
                 && free.path("query").path("root").isNull() && forced.path("query").path("root").isTextual(),
@@ -85,9 +94,15 @@ final class StockfishStudyAudit {
 
     static JsonNode phase(JsonNode step, String role, int depth, List<String> history, String root,
                           java.util.Map<String, JsonNode> receipts) {
+        return phase(step, role, depth, history, root, receipts, null);
+    }
+
+    static JsonNode phase(JsonNode step, String role, int depth, List<String> history, String root,
+                          java.util.Map<String, JsonNode> receipts, String initialFen) {
         var key = step.path("queries").path(role).path(Integer.toString(depth));
         require(key.isTextual() && receipts.containsKey(key.asText()), "Missing oracle phase " + role);
         var receipt = receipts.get(key.asText());
+        require(java.util.Objects.equals(initialFen, receipt.path("query").path("initialFen").asText(null)), "Foreign initial position in oracle projection");
         var query = receipt.path("query");
         require(strings(query.path("history")).equals(history) && query.path("depth").asInt() == depth
                 && (root == null ? query.path("root").isNull() : root.equals(query.path("root").asText())),
