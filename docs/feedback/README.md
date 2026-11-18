@@ -103,7 +103,7 @@ corect de damă. Un candidat sicilian superficial regresa inițial, așa că sol
 finală începe abia la orizontul inițial încheiat și păstrează eligibilitatea
 variantelor verificate selectiv.
 
-Comparația înghețată cuprinde 108 contexte, inclusiv 32 noi din familii de deschidere
+Comparația calificării inițiale cuprinde 108 contexte, inclusiv 32 noi din familii de deschidere
 cunoscute. Doar acest caz și martorul cu culorile inversate își schimbă HintSearch
 integral; niciun lider public nu se schimbă. Sunt păstrate toate cele 554 de cereri
 reci Stockfish H17/H19, fără lider rău sau variantă suplimentară rea nouă. Cei șase
@@ -119,6 +119,49 @@ rămân deschise. Nu transfera verdictul indiciului de 200k politicii separate d
 `C:\work\sah\.studii\experiments\2026-11-18-qxd4` și
 `C:\work\sah\.studii\corpus\2026-11-18-qxd4-final`.
 [Comportament și componente](../board/ai-quality.md#recaptura-damei-la-frontiera-indiciului)
+
+Verificarea finală reia cele 108 contexte înghețate și toate cele 130 de cadre
+observate din partide. Adaugă 48 de cereri reci H17/H19 fazelor originale fixate,
+validând 1.650 de contexte de cerere fără reetichetarea rezultatelor vechi. Ambele
+orientări Caro și fallback-ul din Gambitul Damei nu mai au pierdere mare stabilă
+nicăieri în liniile noi evaluate. Nu apare lider rău, ofertă suplimentară rea sau
+capăt expus greșit nou; capetele expuse greșite scad de la 17 la 14 în această
+rejucare. Cele paisprezece rămân deschise, nu reprezintă paisprezece familii
+independente. Toate cele 2.303 analize ale catalogului și cele 130 de analize din
+partide rămân exact identice pentru Hard nativ.
+
+## Constatările partidelor complete păstrate ca ținte de componentă
+
+Cele două partide complete (Gambitul Damei și Franceza) și martorul de mat aparțin
+producătorului `242d6fe21d6fbe625f628cb3f677f9618f588674`: 130 de perechi Hard/indiciu
+maxim înaintea mutării și analize native finale complete. Cele 1.001 semimutări
+ipotetice ale indiciilor au 70 de pierderi mari stabile (65 de cereri constrânse
+distincte), inclusiv 31 de replici adverse. Șase rădăcini oferite și cinci alegeri
+native înregistrate pierd minimum 150‰ la ambele adâncimi. Sunt poziții de
+diagnostic, nu o ligă de rating sau reguli învățate.
+
+| Următoarea țintă nativă | Defectul curent | Închidere prin componente |
+|---|---|---|
+| `queens-gambit-21` · `11…Qa5` | Pierdere 225,5/219,5‰; Stockfish preferă `…a5`; Hard încheie H5 cu 100k noduri suplimentare. | Compară `…Qa5 Bd3` și `…a5` cu replici libere la același orizont nativ; treci martorul permanent și familiile independente. |
+| `french-20` · `11.Bb5+` | Pierdere 475,5/453‰; `…c6` infirmă linia; Stockfish preferă `Nc4`; Hard încheie H5 cu 200k noduri suplimentare. | Prioritizează pierderea mai mare, izolează `…c6` și schimbul ulterior, apoi păstrează martorii lanțului de dame și catalogul complet. |
+
+ID-urile folosesc semimutarea originală înaintea jocului, numerotată de la zero.
+Micul fixture din surse și `HardLearningWitnessTest` păstrează istoricul legal,
+toate cele opt faze brute ale oracolului și negativele de substituire fără
+instalare Stockfish. Cele două ținte `HardLearningWitnessBenchmarkTest`
+recalculează alegerea nativă curentă; rămân FAIL până la corectare, iar o alternativă
+nouă cere dovezi noi de oracol. Nu le închide schimbând mutarea greșită așteptată
+sau prin căutare FEN în timpul jocului. Verdictele generale de calitate pentru
+nativ, indiciu, capăt expus și analiză rămân separate de integritate și de suita
+obișnuită de regresie a ediției.
+
+Analiza completă măsoară în plus șase recomandări greșite, douăsprezece capete
+publice expuse greșite și șaisprezece etichete native de eroare cu pierdere mică în
+oracol. Acestea sunt rezultate ale producătorului original, nu afirmații că fixurile
+ulterioare ale indiciilor ar fi fost jucate retroactiv. Păstrează observațiile cu
+sursa lor; comparațiile indiciilor din sursa curentă sunt rejucări explicite cu
+identitățile originale ale profesorului, niciodată jurnale istorice inventate.
+[Admitere și reproducere reutilizabile](../testing/learning-archive.md)
 
 ## Dovezi și verificări de închidere
 

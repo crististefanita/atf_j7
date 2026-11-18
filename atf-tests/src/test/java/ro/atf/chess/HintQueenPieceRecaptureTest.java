@@ -44,6 +44,22 @@ class HintQueenPieceRecaptureTest {
         check.same("Reconfirmation also pays for every attempted node",true,search.extraNodes()<=200000);
     }
 
+    @Test void aClosedComparisonCannotRestoreTheUnresolvedSeedReplay(Checks check) {
+        var game=ChessMatch.restore("3|WHITE|HARD|1|d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 c1g5");
+        var search=TacticalAnalysis.verifiedHints(game.position(),200000);
+        check.same("The established central exchange remains the first move",move("d5c4"),search.lines().getFirst().move());
+        check.same("A shared prefix cannot restore the old queen-for-pawn tail",false,search.lines().stream().anyMatch(line->line.line().getLast().equals(move("d8d4"))));
+        check.same("The recomputed continuation still shares one total ceiling",true,search.extraNodes()<=200000);
+    }
+
+    @Test void theQueenExchangeMustFinishBeforeJudgingTheBishopOffer(Checks check)throws Exception {
+        var board=ChessPosition.fromFen("r1b1k2r/ppp2ppp/2n1pn2/2P3B1/2B5/2N1P3/PP3PPP/R2qK1NR w KQkq - 0 8");
+        var ordinary=new Frontier(0).boundary(board,move("d8d1").to());var enabled=new Frontier(0);enabled.enable();var resolved=enabled.boundary(board,move("d8d1").to());
+        @SuppressWarnings("unchecked") var replies=(List<Move>)field(resolved,"moves");
+        check.same("Taking the opposing queen is not a settled gain before its legal recapture",true,!replies.isEmpty()&&replies.getFirst().to()==move("e1d1").to()&&board.legalMoves().contains(replies.getFirst()));
+        check.same("The actual queen exchange changes the frontier score",true,(int)field(resolved,"score")>(int)field(ordinary,"score")+500);
+    }
+
     @Test void oldCacheBoundsAndSeedsCannotMasqueradeAsResolvedQueenExchanges(Checks check)throws Exception {
         var board=ChessPosition.fromFen("3q2k1/8/8/8/3p4/8/3R4/3Q2K1 w - - 0 1");
         var warm=new Frontier(64);var old=warm.search(board,-100001,100001);warm.enable();var actual=warm.search(board,-100001,100001);
@@ -77,12 +93,12 @@ class HintQueenPieceRecaptureTest {
             var type=Class.forName("ro.atf.chess.TacticalAnalysis$SearchBudget");var constructor=type.getDeclaredConstructor(int.class,int.class,int.class);constructor.setAccessible(true);budget=constructor.newInstance(20000,2,cache);
             var goal=Class.forName("ro.atf.chess.TacticalAnalysis$Objective");objective=Enum.valueOf((Class)goal,"POSITION");
             search=TacticalAnalysis.class.getDeclaredMethod("search",ChessPosition.class,int.class,int.class,int.class,int.class,type,goal);search.setAccessible(true);
-            settle=TacticalAnalysis.class.getDeclaredMethod("settle",ChessPosition.class,int.class,int.class,int.class,int.class,type,int.class,int.class,boolean.class);settle.setAccessible(true);
+            settle=TacticalAnalysis.class.getDeclaredMethod("settle",ChessPosition.class,int.class,int.class,int.class,int.class,type,int.class,int.class);settle.setAccessible(true);
         }
         void enable()throws Exception{var f=budget.getClass().getDeclaredField("queenPieceRecaptureExtension");f.setAccessible(true);f.setInt(budget,1);}
         int remaining()throws Exception{var f=budget.getClass().getDeclaredField("remaining");f.setAccessible(true);return f.getInt(budget);}
         java.util.Set<Integer> cacheModes()throws Exception{var f=budget.getClass().getDeclaredField("transpositions");f.setAccessible(true);var result=new java.util.HashSet<Integer>();for(var key:((java.util.Map<?,?>)f.get(budget)).keySet())result.add((int)field(key,"queenPieceRecaptureExtension"));return result;}
-        Object boundary(ChessPosition board,int square)throws Exception{return settle.invoke(null,board,0,8,-100001,100001,budget,square,-1,true);}
+        Object boundary(ChessPosition board,int square)throws Exception{return settle.invoke(null,board,0,8,-100001,100001,budget,square,-1);}
         Object search(ChessPosition board,int alpha,int beta)throws Exception{return search.invoke(null,board,0,0,alpha,beta,budget,objective);}
     }
 }

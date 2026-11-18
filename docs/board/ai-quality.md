@@ -45,6 +45,12 @@ consumă același plafon public de 200k. Întreruperea păstrează ultimul clasa
 pot confirma rezultatul nou. Verificarea selectivă nu certifică variante echivalente
 suplimentare doar fiindcă noile scoruri provizorii sunt apropiate.
 
+După activarea frontierei, încheie întregul schimb de dame, inclusiv dama care
+capturează altă damă și recapturile legale cu regele, turnul sau calul. Un prefix
+comun nu permite restaurarea variantei inițiale neîncheiate. Un veto poate păstra
+liderul doar cu noua continuare evaluată și adâncimea efectiv încheiată; fără o
+continuare sigură încheiată, nu se publică varianta inițială nedemonstrată.
+
 Este o corecție a căutării, nu o mutare adăugată afișajului, o interdicție a
 sacrificiilor sau o excepție pentru o poziție din deschidere. Recapturile cu piese
 legate rămân ilegale, iar `…Qxg3+ hxg3 …Rh1#` trebuie să rămână mat demonstrat.
