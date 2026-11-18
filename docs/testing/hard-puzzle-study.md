@@ -105,3 +105,28 @@ WDL loss as `max(0, free expected score - forced expected score)` through `Stock
 raw exact scores and PVs remain immutable. A solved curriculum stage cannot certify conversion
 of that advantage. Keep the newly exposed first loss as contextual YAML with its full origin,
 history, adversarial line and counterexample, separate from runtime pattern configuration.
+
+
+## Auditing winning-plan certificates
+
+Keep ordinary horizon and a forced plan's coverage separate. A long winning continuation
+does not establish full-root minimax at that depth. Pin `pawnPushPolicy` in current producer
+metadata and retain `pawnProof` with its actual work, plan length, quiet clock, history and
+strategy identity. Ordinary work plus proof work must fit the same native allowance.
+
+The native test adapter has one explicit receipt decoder, including move-keyed collections:
+
+```java
+var nativeSearch = HardQuestAudit.read(receipt.path("analysis"));
+HardQuestAudit.validate(game, nativeSearch);
+```
+
+Use the full composed match, not only its current board, when a proof is present. Recompute
+the bounded strategy with its declared cache and visits; reject removed certificates on long
+PVs, changed opposing coverage, history, strategy, ledger or score. Old non-proof JSON may omit
+the optional field. Keep its original producer; do not invent current policy metadata for it.
+
+Include interrupted-budget, unsafe promotion, stalemate, rook-pawn draw, foreign-history and
+fifty-move-claim negatives. Retain Basic/Advanced decisions at identical contexts. Verify actual
+conversion to checkmate or draw separately from a certificate ending in safe queen material.
+Frozen transfer root-WDL checks cannot substitute for full games or paired Elo evidence.

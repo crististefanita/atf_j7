@@ -978,10 +978,10 @@ The runtime ceiling stays adaptive 100k→200k additional nodes; initial H3 rema
 Mean catalog work changes from 15,537.58 to 15,537.99 additional nodes. No latency or Elo gain
 is claimed. Basic and Advanced retain their complete analyses at each compared context.
 
-**Canonical recovery is not game conversion.** In free play the reference draws by repetition
+**Limit of the promotion-only baseline.** In free play the reference draws by repetition
 after `c5`. The candidate reaches `h8=Q Rxh8 Kxh8 Ke4`, then loses the win with `Kg7` instead
 of `a4`; both oracle horizons confirm 500‰ loss. That line finishes as a bare-king draw after
-12 plies. This is the next conversion study, not a solved game. `training-051` still chooses
+12 plies. That gap is closed by the [bounded conversion proof](#bounded-pawn-ending-conversion) below. `training-051` still chooses
 `Ke6` instead of winning `Rc8+`. The 79 remaining canonical misses comprise 56 large WDL losses,
 22 win-preserving goal misses and one smaller/depth-sensitive case. Their 53 first educational
 misses include 42 large losses; accepted prefixes still need checking before claiming first
@@ -993,3 +993,53 @@ checks pass. All 1,000 mate exercises retain every legal defender branch. The ex
 the retained 79 contextual lessons and reusable promotion/tempo YAML patterns. Runtime patterns
 generalize geometry; the external study lessons preserve counterexamples and provenance rather
 than silently memorizing winning moves. [Repeatable study procedure](../testing/hard-puzzle-study.md)
+
+## Bounded pawn-ending conversion
+
+After `h8=Q Rxh8 Kxh8 Ke4`, ordinary Hard genuinely completes H6 and prefers `Kg7` at
++104 cp. This time the stability veto is not the cause. The horizon values the remaining
+pawn after its partner falls, rather than the tempo that lets `a4` win. The [pawn policy](../../chess-core/src/main/resources/hard-pawn-promotion.yaml)
+adds a bounded proof for at most two own pawns against a bare king, without changing weights,
+repertoire, Basic/Advanced or the ordinary H6 search.
+
+`PawnPushProof` accepts a winning plan only after every legal defending king reply has a
+winning continuation. It may choose pawn moves and king moves that strictly decrease an
+escort potential. Pawn progress and captures are irreversible; the king potential prevents
+internal cycles. Prior game positions remain forbidden, and a claimable fifty-move draw
+rejects the proof. A queen must survive every immediate legal capture and cannot stalemate.
+The terminal goal is safe queen material, not an invented mate. Missing or interrupted proof
+means unknown and preserves the ordinary decision. [Proof implementation](../../chess-core/src/main/java/ro/atf/chess/PawnPushProof.java)
+
+| Observation | Qualified result |
+|---|---:|
+| Required position | `a4`; ordinary H6 plus a separate 23-ply proof |
+| Shared work | 2,568 ordinary + 14,325 proof = 16,893 additional nodes |
+| Reference conversion | Draw in both colors, eight plies each |
+| Actual candidate conversion against free Stockfish H19 | Checkmate in 37 plies as White and 31 as Black |
+| Native game WDL losses at H17/H19 | Zero on both candidate paths |
+| Untouched thematic positions | 24 positions, two changed choices, zero root-WDL regressions |
+| Existing canonical catalog | All 2,303 decisions, scores, work and PVs unchanged; 1,185/1,238 complete |
+| Existing mate chapters | All 1,000 retain every legal defending branch |
+
+`SearchReport.depth` remains the completed ordinary horizon. Optional `pawnProof` records
+the separate plan length, node work, cache limit, quiet counter, history and winning-strategy
+digests. It is not a claim that every root was searched to H23. The proof shares the existing
+adaptive 100k→200k additional-node allowance and cache capacity; H3 remains separately unbudgeted.
+At a diagnostic 5k maximum, incomplete proof preserves `Kg7`/H6 and publishes no certificate.
+[Proof and negative components](../../atf-tests/src/test/java/ro/atf/chess/PawnPushProofTest.java)
+
+The source-bound audit records 84 actually played plies across reference/candidate and both
+colors, with 313 cold oracle queries. Six fresh H17/H19 queries confirm the unchanged control:
+`training-051` still chooses drawing `Ke6` instead of winning `Rc8+`. The 79 educational misses
+in 53 exercises remain open. Neither two mirrored conversions nor the transfer roots establish
+an Elo gain. Full held-out conversion and broader material scopes remain separate work.
+
+The 128 focused component/report checks, complete native mate benchmark, final receipt-reader
+checks and four raw-evidence checks pass. Native JSON decoding is shared by the catalog and
+`HardQuestAudit`; legacy receipts without a proof remain readable. Longer native PVs require
+their retained certificate, and replay rejects substituted work, history, opposing coverage,
+strategy or evaluation. [Repeatable audit contract](../testing/hard-puzzle-study.md#auditing-winning-plan-certificates)
+
+Evidence and reusable lessons live under `C:\work\sah\studii\2026-11-18-j7-hard-promotion-conversion`:
+Extent, PGNs to actual result, source-bound raw oracle/native records and structural YAML.
+Runtime configuration contains no FEN, curriculum key, oracle score or learned-move lookup.

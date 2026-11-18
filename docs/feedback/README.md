@@ -25,7 +25,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Hard search · generalization | Selective recapture regresses on independent openings. | Require independent gains at the fixed budget. |
 | P1 | Hard · conversion after a pawn capture | The pawn capture can lose its advantage later. | Verify conversion on new positions and distinct replies. |
 | P1 | Transfer from tactics to games | Hard misses tactics without a declared objective. | Measure discovery and preserve the solver contract. |
-| P1 | Native Hard · material conversion | 79 canonical stages remain unaccepted in 53 exercises; the promotion recovery still fails later conversion. | Verify `a4` versus `Kg7` after the closed promotion, then transfer without losing accepted stages or defended draws. |
+| P1 | Native Hard · remaining material goals | 79 canonical stages remain unaccepted in 53 exercises; `training-051` still draws with `Ke6`. | Resolve `Rc8+` versus `Ke6` with free opposing replies, preserving the qualified pawn conversion, defended draws and full catalog. |
 | P2 | Progress · Android upgrade | A signed upgrade still needs a progress probe. | Keep IDs, solutions and points across upgrade and restart. |
 | P2 | AI quality · material evaluation | The material score differs from Stockfish. | Reduce the discrepancy with fixed search budgets. |
 | P2 | Puzzle calibration | Imported difficulty bands overlap. | Check attempts and time on a separate shuffled set. |
@@ -226,23 +226,26 @@ Add focused negative cases for copied prose, disclosure captions, link captions 
 
 Keep 79 unaccepted stages in 53 material exercises open: 56 have a large loss at both
 Stockfish horizons, 22 preserve the win and one is smaller/depth-sensitive. The 42 first
-educational misses with a confirmed large loss precede conditional later stages. Check
-accepted prefixes before calling a loss chronologically first. `training-051` still draws
-with `Ke6` instead of winning with `Rc8+`.
+educational misses with a confirmed large loss precede conditional later stages. Verify
+accepted prefixes before claiming a first chronological loss.
 
-**Next: conversion after the recovered promotion.** After `h8=Q Rxh8 Kxh8 Ke4`, compare
-`a4` and `Kg7` at common horizons with free opposing replies. Both Stockfish depths confirm
-that the native `Kg7` loses 500‰, while `a4` preserves the win. The 12-ply actual continuation
-ends in a bare-king draw; canonical acceptance must not close this conversion gap. Preserve
-correct opposition, pawn-race and drawn-ending counterexamples, `training-021/051/065`, the
-200k ceiling and the complete native catalog/mate gates before promotion.
+**Next compact control: `training-051`.** Ordinary Hard still chooses `Ke6` instead of
+`Rc8+`; six fresh H17/H19 queries confirm a 500‰ win-to-draw loss. Compare the rook move and
+free opposing replies at common horizons inside the effective allowance. The new pawn proof
+does not apply while the adversary has a rook; do not extend its safety lemma to that scope.
+Preserve `training-021/065`, the complete native catalog and mate gates before promotion.
 
-Continue the frozen six-context audit beyond the first educational mismatch. Retain the
-initial FEN, complete actual history, both native decisions, actual opponent, H17/H19 scores
-and contextual YAML lesson. The current run records 178 actual plies and 463 raw oracle queries.
-The other 79 native stage analyses are identical to the previous producer; their old oracle
-provenance stays attached. No extra public puzzles, runtime FEN lookup or Elo gain is claimed.
-[Qualified promotion mechanism and limits](../board/ai-quality.md#closed-promotion-confirmation)
-· [Repeatable procedure](../testing/hard-puzzle-study.md)
+The post-promotion `a4` conversion is closed by a source-bound winning-plan certificate and
+actual checkmates in both colors. Its mechanism, 37/31-ply games, failure controls and limits
+belong in the [AI guide](../board/ai-quality.md#bounded-pawn-ending-conversion).
+The 24 new thematic positions establish root-WDL non-regression, not complete conversion
+or an Elo gain. Play further excluded families to actual result, including defended draws,
+before broadening the material scope or promoting a strength claim. Preserve the complete
+PGNs and first verified losses; do not count mirrored examples as independent rating games.
+
+The original 79 contextual lessons retain their oracle producer after complete native
+decision equality. New structural YAML describes pawn tempo, king escort, repetition and
+safe promotion with counterexamples; runtime contains no curriculum key or FEN lookup.
+[Repeatable certificate and receipt procedure](../testing/hard-puzzle-study.md#auditing-winning-plan-certificates)
 
 </details>
