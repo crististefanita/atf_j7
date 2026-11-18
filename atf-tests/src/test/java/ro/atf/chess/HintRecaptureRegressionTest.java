@@ -57,6 +57,24 @@ class HintRecaptureRegressionTest {
         check.same("The preceding line remains playable", true, hint.preview(game.position()).isPresent());
     }
 
+    @Test void independentCheckingPawnFamiliesRetainTheirImprovedFirstMoves(Checks check) {
+        // Frozen forcing-holdout 055/090, independently graded at Stockfish H17/H19 before becoming regression cases.
+        var histories = List.of(
+                "d2d4 d7d6 g1f3 f7f5 b1c3 g8f6 c1g5 d6d5 e2e3 c7c6 f1d3 e7e6 g2g4 f8e7 g4f5 e6f5 h1g1 f6g4 g5e7 d8e7 d1d2 e7b4 e1d1 b4b2 h2h3 g4f2 d1e2 f2e4 c3e4 f5e4 f3e5 c8h3 a2a4 b8d7",
+                "e2e4 e7e5 b1c3 g8f6 g2g3 b8c6 f1g2 f8c5 g1e2 d7d6 c3a4 c5b6 e1g1 e8g8 a4b6 a7b6 f2f4 d8e7 f4e5 e7e5 d2d4 e5h5 g2f3 h5g6 e2f4 g6h6 f4e2 g7g5 e4e5 f6d7 h2h4 h6g7 c1g5 h7h6 e5e6");
+        var expected = List.of(move("e5d7"), move("h6g5"));
+        for (int index = 0; index < histories.size(); index++) {
+            var game = ChessMatch.restore("2|analysis|" + histories.get(index));
+            var search = TacticalAnalysis.verifiedHints(game.position(), 200_000);
+            check.same("Independent family " + index + " retains the lower-loss first recommendation", expected.get(index), search.lines().getFirst().move());
+            check.same("Independent family " + index + " cannot buy more nodes", true, search.extraNodes() <= 200_000);
+            var end = game.position();
+            for (var action : search.lines().getFirst().line()) end = end.play(action);
+            check.same("Independent family " + index + " retains a real material ledger", search.lines().getFirst().materialChange(),
+                    HintAuditSession.materialChangeCp(game.position(), end));
+        }
+    }
+
     @Test void onlyCompetingCapturesOfMaterialActivateTheAdditionalExchangeCheck(Checks check) throws Exception {
         var position = ChessMatch.restore("2|analysis|" + BEFORE + " e5e6").position();
         var select = TacticalAnalysis.class.getDeclaredMethod("competingCaptures", ChessPosition.class, List.class);
