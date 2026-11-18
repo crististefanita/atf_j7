@@ -167,6 +167,10 @@ nativ. Consemnați separat aceste observații și verdictul componentelor offlin
 
 Comparați același checkpoint și aceeași semimutare în JVM și în worker. Folosiți probele native și de browser pentru bara randată, bec și tabla fixă.
 
+`MatchHistorySelectionTest` verifică cursorul pentru o singură mutare prin paisprezece cazuri comune. Componenta Web acoperă ambele formate de transport, anunțurile neschimbate, creșterea istoricului, ramificarea și cursoarele expirate. Workerul compilat verifică paritatea proiecției și orientarea. În Browser MCP, parcurgeți Start, prima mutare, o mutare intermediară și ultima pe profil compact, landscape și desktop; verificați o singură etichetă între săgeți, indiciile limitelor și dreptunghiul tablei neschimbat. Adaptorul APK folosește cursorul comun în partidă și păstrează banda istoricului din Tabla de analiză.
+
+`NavigationGovernanceTest` înregistrează stilurile comune pentru titlu, Back și navigare, adaptoarele care consumă proiecția liniei și colecțiile de variante care trebuie păstrate. Probele de componentă păstrează istoricul complet din Tabla de analiză, ramurile din deschideri și linia calculată și comenzile indiciu/Pericol ale problemelor. Proba Web randată vizitează Partide, Probleme, Deschideri și Tabla de analiză, inclusiv revenirea contextuală prin Back; capturile Web nu dovedesc randarea Android.
+
 <details>
 <summary>Cazuri comune, ecrane și recepții</summary>
 

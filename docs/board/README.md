@@ -127,7 +127,7 @@
   lângă săgeți, cu o zonă de atingere de cel puțin 48 dp.
   [Proba compactă RO/EN](../testing/README.md#analiza-în-partida-cu-ai)
 
-- Sub tablă, săgețile parcurg fiecare mutare, iar săgeata cu opritor revine la ultima. Lista se derulează orizontal și permite alegerea directă a oricărei poziții, inclusiv **Start**. Mutarea selectată indică poziția afișată. Controalele au zone de atingere de 48 dp. Pozițiile anterioare se afișează cu tabla blocată. Dacă botul răspunde în timp ce te uiți în urmă, mutarea nouă apare în listă și poziția consultată rămâne vizibilă. [Navigarea între mutări pe Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
+- Sub tabla partidei, săgețile parcurg fiecare mutare. Între ele apare doar mutarea selectată; **Start** numește poziția inițială. Ambra marchează prima mutare, iar turcoazul ultima, cu descrieri accesibile corespunzătoare. O mutare unică are ambele indicii. Pe Android, săgeata cu opritor revine la ultima mutare. Controalele păstrează ținte de 48 dp, iar pozițiile anterioare sunt blocate. O replică adăugată în timpul consultării actualizează limita fără a înlocui poziția selectată. Tabla de analiză păstrează separat banda istoricului complet. [Navigarea între mutări pe Chess.com](https://support.chess.com/en/articles/10328363-how-do-i-use-game-review-on-the-app)
 
 - Alege o poziție din istoric și apasă **Continuă de aici** sub tablă. Confirmarea păstrează poziția și mutările care duc la ea. Mutările de după poziția aleasă sunt eliminate din partida salvată. Bifa **Lasă AI-ul să mute** pornește replica atunci când e rândul calculatorului. Poți continua și dintr-o partidă terminată. Din arhivă, continuarea folosește un loc liber.
 

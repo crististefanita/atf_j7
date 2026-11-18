@@ -183,6 +183,9 @@
     <string name="match_history_next">Mutarea următoare</string>
     <string name="match_history_latest">Sari la ultima mutare</string>
     <string name="match_history_start">Start</string>
+    <string name="match_history_first">Prima mutare</string>
+    <string name="match_history_last">Ultima mutare</string>
+    <string name="match_history_only">Prima și ultima mutare</string>
     <string name="match_history_move_description">Mutarea %1$d, %2$s, %3$s</string>
     <string name="match_bot_thinking">Calculatorul se gândește…</string>
     <string name="match_retry_bot">Atinge pentru a reîncerca mutarea calculatorului</string>

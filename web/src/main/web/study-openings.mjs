@@ -1,4 +1,5 @@
 import { boardPlacement } from './study-board.mjs';
+import { renderLinePosition } from './line-navigation.mjs';
 
 const checkpointKey = 'chesslab.opening-session.v1';
 const vocabulary = {
@@ -222,17 +223,22 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
   const backButton = button('‹', back);
   backButton.setAttribute('aria-label', text.back);
   const header = element('header', null, 'opening-header');
+  header.setAttribute('data-chess-header', '');
+  backButton.setAttribute('data-chess-back', '');
   header.append(backButton, heading);
   const catalog = element('div', null, 'opening-catalog');
   const workspace = element('div', null, 'opening-workspace');
   workspace.hidden = true;
   const navigation = element('div', null, 'opening-navigation');
+  navigation.setAttribute('data-chess-navigation', '');
   const previous = button('‹', () => seek(lesson.ply - 1));
   const next = button('›', () => flow.dispatch('FORWARD'));
   previous.setAttribute('aria-label', text.previous);
   next.setAttribute('aria-label', text.next);
   const progress = button(null, reviewHistory);
   navigation.append(previous, progress, next);
+  previous.setAttribute('data-chess-arrow', '');
+  next.setAttribute('data-chess-arrow', '');
 
   const panel = element('div', null, 'opening-panel');
   const top = element('p', null, 'opening-seat');
@@ -321,7 +327,13 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
   function openDialog(title, contents) {
     releaseFocus = document.activeElement;
     dialogTitle.textContent = title;
-    dialog.replaceChildren(dialogTitle, ...contents, button(text.close, () => dialog.close()));
+    const dialogHeader = element('div');
+    dialogHeader.setAttribute('data-chess-header', '');
+    const back = button('‹', () => dialog.close());
+    back.setAttribute('data-chess-back', '');
+    back.setAttribute('aria-label', text.close);
+    dialogHeader.append(back, dialogTitle);
+    dialog.replaceChildren(dialogHeader, ...contents);
     dialog.showModal();
   }
 
@@ -417,7 +429,8 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
     const availability = openingControls(lesson);
     renderSeat(top, blackBelow ? 'WHITE' : 'BLACK');
     renderSeat(bottom, lesson.learner);
-    progress.textContent = [lesson.ply + ' / ' + lesson.total, status()].join(' · ');
+    renderLinePosition(progress, { ply: lesson.ply, total: lesson.total,
+      text: [lesson.ply + ' / ' + lesson.total, status()].join(' · ') });
     progress.disabled = !availability.history;
     progress.setAttribute('aria-label', progress.textContent + (progress.disabled ? '' : '. ' + text.history));
     previous.disabled = !availability.previous;
@@ -563,7 +576,9 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
     status.setAttribute('aria-live', 'polite');
     status.tabIndex = -1;
     const row = element('div', null, 'opening-navigation');
+    row.setAttribute('data-chess-navigation', '');
     const choices = element('div', null, 'opening-dialog-actions');
+    choices.setAttribute('data-chess-lines', '');
     const depth = element('p');
     const evidence = element('p');
     const estimates = element('p');
@@ -580,6 +595,8 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
     earlier.setAttribute('aria-label', text.previous);
     later.setAttribute('aria-label', text.next);
     row.append(earlier, status, later);
+    earlier.setAttribute('data-chess-arrow', '');
+    later.setAttribute('data-chess-arrow', '');
     alternatives.forEach((candidate, index) => choices.append(button((index + 1) + ' · ' + notation(candidate.move), () => {
       branch = index;
       advance(0);
@@ -594,7 +611,8 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
         locked: true, targets: [], marks: ply === 0 ? [current.move.slice(0, 2), current.move.slice(2, 4)] : [], lastMove: frame.lastMove });
       const last = ply === current.frames.length - 1;
       const played = frame.lastMove ? notation(frame.lastMove) : text.start;
-      status.textContent = ply + ' / ' + (current.frames.length - 1) + ' · ' + (last && proof.addedDefense ? text.checkedReply(played) : played);
+      renderLinePosition(status, { ply, total: current.frames.length - 1,
+        text: ply + ' / ' + (current.frames.length - 1) + ' · ' + (last && proof.addedDefense ? text.checkedReply(played) : played) });
       earlier.disabled = ply === 0;
       later.disabled = last;
       depth.hidden = current.depth === 0;

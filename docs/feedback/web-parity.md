@@ -22,6 +22,11 @@ care necesită decizii echivalente în `ChessActivity`, `AnalysisActivity`
 și adaptorul Web. Începeți cu reluarea, anularea și primirea unei replici
 AI întârziate. [Motor și proiecție](../testing/README.md#motor-și-proiecție)
 
+**P1 · Compilare Web · Digestul dovezii Hard.** La sursa `9f4fff3`, compilarea Web completă eșuează în
+[`PawnPushProof.hash`](../../chess-core/src/main/java/ro/atf/chess/PawnPushProof.java): TeaVM nu poate compila calea JCA accesibilă prin `MessageDigest.getInstance("SHA-256")`.
+Clasele JVM se compilează, iar adaptorul Android se compilează separat. Păstrați motorul publicat și calificat pentru bundle-uri care modifică doar interfața.
+Înaintea publicării unui motor nou, folosiți un digest determinist portabil și verificați aceleași ID-uri ale dovezilor în JVM și TeaVM, apoi repetați buildul Web complet și martorii Hard. Compilarea JVM reușită nu califică motorul Web eșuat.
+
 **Verificări de închidere**
 
 - Pe JVM și în worker, folosiți același caz cu ceas și stocare simulate.
