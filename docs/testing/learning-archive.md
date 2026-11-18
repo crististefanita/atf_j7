@@ -101,3 +101,10 @@ nu o ligă evaluată. Păstrează fiecare pereche Hard/indiciu înaintea mutări
 ambele culori, și atașează analiza nativă completă înainte să termine oracolul.
 Fazele încă necalculate rămân în așteptare; integritatea și calitatea șahului au
 verdicte Extent separate.
+
+Benchmarkul de componentă `LearningArchiveBenchmarkTest.nativeHardChoicesHaveNoStableLargeIndependentOracleLoss`
+păstrează o poartă de calitate separată pentru alegerile native. Leagă fiecare
+mutare observată de jurnalul original și afișează în Extent ambele pierderi WDL
+independente. O corecție ulterioară cere o rejucare cu sursa curentă sau o partidă
+nouă și dovezi de oracol actualizate; schimbarea mutării așteptate ca să accepte
+defectul nu îl poate închide.
