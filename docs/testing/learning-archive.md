@@ -108,3 +108,10 @@ mutare observată de jurnalul original și afișează în Extent ambele pierderi
 independente. O corecție ulterioară cere o rejucare cu sursa curentă sau o partidă
 nouă și dovezi de oracol actualizate; schimbarea mutării așteptate ca să accepte
 defectul nu îl poate închide.
+
+[Micul fixture permanent](../../atf-tests/src/test/resources/hard-learning-witnesses.yaml)
+păstrează istoricul complet exact și opt faze brute ale oracolului, în sintaxa JSON
+validă YAML 1.2. `HardLearningWitnessTest` îl validează offline și respinge
+substituirile; `HardLearningWitnessBenchmarkTest` recalculează alegerea nativă
+curentă și păstrează fiecare abatere roșie până la corectare. O alternativă nouă
+cere dovezi noi de oracol. Pozițiile sunt contraexemple, nu intrări în cartea de joc.
