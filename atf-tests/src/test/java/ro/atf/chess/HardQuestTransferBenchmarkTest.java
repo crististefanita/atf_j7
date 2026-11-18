@@ -45,10 +45,16 @@ class HardQuestTransferBenchmarkTest {
             for (var quest : chapter.quests()) {
                 var position = quest.position();
                 var setup = new MatchSetup(position.turn().other(), MatchSetup.Level.HARD, false);
-                var decision = ChessMatch.fromPosition(position, setup).botDecision(MatchSetup.Level.HARD);
+                var game = ChessMatch.fromPosition(position, setup);
+                var analysis = game.analyzeBot(MatchSetup.Level.HARD);
+                var decision = analysis.decision();
+                HardQuestAudit.validate(position, analysis);
+                check.same(quest.id() + " native H" + decision.depth() + " nodes=" + decision.extraNodes()
+                        + " max=" + HardQuestAudit.maximumNodes(position) + " PV=" + analysis.search().result().ranked(),
+                        true, position.legalMoves().contains(decision.move()));
                 if (position.legalMoves().contains(decision.move())) legal++;
                 else illegalMoves.add(quest.id() + "->" + decision.move().uci());
-                if (decision.extraNodes() > MatchAiPolicy.CURRENT.opponent(MatchSetup.Level.HARD).extraNodes()) {
+                if (decision.extraNodes() > HardQuestAudit.maximumNodes(position)) {
                     overBudget++;
                     overBudgetMoves.add(quest.id() + "=" + decision.extraNodes());
                 }
@@ -74,7 +80,7 @@ class HardQuestTransferBenchmarkTest {
             check.same("Hard quest transfer preserves its frozen floor: " + summary, true, baselineSolved >= minimum);
             check.same("Every quest search returns a legal move: " + chapter.name() + " violations=" + illegalMoves,
                     chapter.quests().size(), legal);
-            check.same("Every quest search respects the unchanged Hard node cap: " + chapter.name()
+            check.same("Every quest search respects its effective native Hard node cap: " + chapter.name()
                     + " violations=" + overBudgetMoves, 0, overBudget);
         }
     }
