@@ -50,7 +50,7 @@ class HardPuzzleStudyBenchmarkTest {
                     require(index<records.size(),"Missing native puzzle stage");var row=records.get(index++);
                     require(row.path("chapter").asText().equals(chapter.name())&&row.path("id").asText().equals(quest.id())&&row.path("stage").asInt()==stage,"Missing, reordered or borrowed canonical stage");
                     require(row.path("rootFen").asText().equals(quest.fen())&&row.path("checkpoint").asText().equals(game.checkpoint())&&row.path("fen").asText().equals(StudyFen.replay(quest.fen(),quest.line().subList(0,stage*2))),"Foreign puzzle origin or prefix");
-                    var analysis=JSON.treeToValue(row.path("analysis"),ChessMatch.BotAnalysis.class);HardQuestAudit.validate(game.position(),analysis);
+                    var analysis=nativeAnalysis(row.path("analysis"));HardQuestAudit.validate(game.position(),analysis);
                     check.same("Actual profile ceiling "+quest.id()+":"+stage,HardQuestAudit.maximumNodes(game.position()),row.path("maximumExtraNodes").asInt());
                     var outcome=quest.assess(analysis.decision().move(),stage);boolean accepted=outcome.continues()||outcome.solved();
                     require(row.path("canonicalStageAccepted").asBoolean()==accepted&&row.path("priorNativeStagesAccepted").asBoolean()==prior&&row.path("prefixReferenceIntervention").asBoolean()==intervened,"Invented canonical success or hidden reference intervention");
@@ -71,6 +71,16 @@ class HardPuzzleStudyBenchmarkTest {
     }
     private static byte[] trusted(Path path,String property)throws Exception {
         String expected=System.getProperty("chess.puzzleStudy."+property,"");require(expected.matches("[a-f0-9]{64}"),"Missing separately trusted "+property);var bytes=Files.readAllBytes(path);require(HardLeagueAudit.digest(bytes).equals(expected),"Modified native puzzle input "+property);return bytes;
+    }
+    private static ChessMatch.BotAnalysis nativeAnalysis(com.fasterxml.jackson.databind.JsonNode row)throws Exception {
+        var search=row.path("search");
+        require(search.path("scoreCredits").isObject()&&search.path("scoreCredits").isEmpty(),"Ordinary opponent cannot inherit hint score credits");
+        var moves=JSON.getTypeFactory().constructCollectionType(java.util.ArrayList.class,ChessPosition.Move.class);
+        var set=JSON.getTypeFactory().constructCollectionType(java.util.HashSet.class,ChessPosition.Move.class);
+        return new ChessMatch.BotAnalysis(JSON.treeToValue(row.path("decision"),ChessMatch.BotDecision.class),
+                new TacticalAnalysis.SearchReport(JSON.treeToValue(search.path("result"),TacticalAnalysis.Result.class),search.path("depth").asInt(),search.path("extraNodes").asInt(),
+                        JSON.convertValue(search.path("horizonLeaders"),moves),java.util.Map.of(),
+                        JSON.convertValue(search.path("excludedRoots"),set),JSON.convertValue(search.path("nonEquivalentRoots"),set)));
     }
     private static void require(boolean value,String message){if(!value)throw new IllegalArgumentException(message);}
 }
