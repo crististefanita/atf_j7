@@ -9,6 +9,8 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
+| P1 | Hint · whole opposing continuation | The reported valuable-piece-for-pawn tail has no supplied position; legal PVs alone do not exclude a weak opposing reply. | Mine newly admitted games, grade every offered PV ply at H17/H19, retain a concrete witness and preserve sound sacrifices before changing search. |
+| P1 | Learning · per-move admission | Historical games without pre-move Hard and maximum public hint do not meet the current learning contract. | Keep only full White/Black journals with exact source, history, allowance and independent replay; retire noncompliant games. [Admission](../testing/learning-archive.md) |
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Documentation · translation safeguards | The paired gate checks structure and links while prose and examples still need semantic review. | Detect copied prose and changed examples with focused negatives while preserving technical literals and immutable evidence. |

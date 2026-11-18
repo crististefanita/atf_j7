@@ -56,7 +56,7 @@ final class HardHintAuditedGame {
         validateHint(match.position(), entry.hint());
     }
 
-    private static void validateHint(ChessPosition board, HintAuditSession.Search hint) {
+    static void validateHint(ChessPosition board, HintAuditSession.Search hint) {
         require(hint.extraNodes() >= 0 && hint.extraNodes() <= 200_000, "Hint exceeded its independent total allowance");
         require(hint.selectedDepth() > 0 && hint.selectedDepth() <= MatchAiPolicy.MAX_PLIES
                 && hint.seedDepth() > 0 && hint.seedDepth() <= MatchAiPolicy.MAX_PLIES
