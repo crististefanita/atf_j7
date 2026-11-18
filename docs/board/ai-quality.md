@@ -148,6 +148,36 @@ Bootstrap-ul păstrează deschiderea ca unitate, cu 20.000 de eșantioane. Plafo
 
 Prima rulare s-a oprit după 49 de partide și o partidă parțială din cauza validatorului unei repetiții legale de turn. După corecția validatorului, întregul lot a fost reluat; rularea întreruptă este păstrată separat și exclusă din estimare. Toate cele 208 clase de producție au fost identice între cele două lansări. Ulterior, trei colectări din calea indiciului au fost exprimate compatibil API 26, fără schimbarea deciziei Hard. Dovezile sunt în `C:\work\sah\studii\2026-11-17-j7-italian-calibration`; raportul calificat este `league/qualified/qualified-extent.html`. [Protocol nativ și comandă](../testing/hard-audit.md)
 
+
+## Studiul frontierei native și auditul puzzle-urilor
+
+La 18 noiembrie, sursa `6d14986` păstrează `…Na5` la H5 și 100k. Linia nativă `…Na5 Nb5 …Qc6 Nxe5 …Nxc4` se oprește înainte de `Nxc6`, care câștigă dama. Stockfish H19 confirmă +867 cp / 1.000‰ pentru `Nxc6`, dar −545 cp / 0‰ pentru șahul tentant `Nxc7+`. În poziția imediat după `…Na5`, apărarea liniștită `Be2` are 912‰ pentru alb, față de 478,5‰ pentru `Nb5`. Prima captură sau primul șah nu certifică replica optimă.
+
+Comparația separată a rădăcinilor la H6 dă nativ `…Na5 −154 cp` și `…Qg6 −170 cp`, ambele exacte. Fiecare probă are propriul plafon de 200k și nu include iterațiile anterioare; nu reprezintă o decizie completă la acel cost. După continuările lor, Stockfish H19 găsește recapturile favorabile `…Qxe5` și `…Nxe5`, la +306 și +493 cp pentru negru. Perechea păstrează deci o eroare de scor și un schimb neîncheiat, independent de simpla acoperire a rădăcinilor.
+
+| Probă experimentală | Italiană | Verificare | Verdict |
+|---|---|---|---|
+| Frontieră tactică uniformă de două semimutări | `…Qg6`, H4 complet și 200k | 83/87 componente; pe 32 de familii, trei pierderi H19 de cel puțin 150‰ | Respinsă |
+| Aceeași frontieră cu protecția orizontului par | Același rezultat focal H4 | Ablație locală, fără calificare de transfer separată | Experimentală |
+| Frontieră doar la capturarea legală a damei | Reintroduce `…Bxf2+`, H5 și 200k | Oferta rămâne infirmată de oracol | Respinsă la cazul focal |
+
+Sursa originală separă evaluarea de repaus de evadările din șah și filtrează capturile prin evaluarea statică a schimbului. Sunt ipoteze distincte de verificat, fără copierea pragurilor numerice. [Căutarea tactică Stockfish 19](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp#L1484-L1687)
+
+Cele 32 de familii provin din partide arhivate, nu dintr-un lot global nou. Selecția pozițiilor a fost fixată înainte de compararea candidatului și evaluarea oracolului. La H19, cele 15 alegeri schimbate au șase câștiguri, șase pierderi și trei egalități WDL; diferența cumulată este −513‰, adică −16,03‰ pe toate cele 32 de poziții. Basic și Advanced păstrează mutarea, adâncimea și nodurile în toate cele 37 de cereri, inclusiv martorii focali. Reperul trece 87/87 componente. Niciun candidat nu intră în motorul live sau în duel; nu există ΔElo candidat măsurat. Reperul Hard de 1.507 Elo local rămâne cel din 100 de partide, cu IC 95% 1.357–1.656.
+
+Benchmarkul puzzle-urilor folosea eronat plafonul de rezervă explicită 44k pentru toate deciziile adaptive. Auditul nou păstrează 44k pentru repertoriul exact și plafonul YAML adaptiv pentru celelalte poziții. Respinge depășirea fiecărui plafon, raportul gol, contabilizarea străină și materialul substituit. Păstrează pragurile înghețate și granița `training-048`. Fiecare poziție apelează o singură dată analiza adversarului Hard, fără a-i furniza cheia sau obiectivul puzzle-ului; Extent păstrează alegerea, adâncimea, nodurile și PV-ul efectiv.
+
+| Capitol | Prime decizii acceptate | Prag păstrat |
+|---|---|---|
+| Mat în 1 | 500/500 | 500 |
+| Mat în 2 | 300/300 | 300 |
+| Mat în 3 | 198/200 | 190 |
+| Tactici | 93/100 | 86 |
+| Antrenament | 94/114; 40/48 în lotul înghețat | 39/48 |
+| Intermezzo | 24/24 | 24 |
+
+Acestea sunt prime decizii acceptate, nu conversii native complete ale tuturor problemelor. Nu măsoară Elo și nu antrenează automat motorul. Dovezile și două lecții YAML cu replici și contraexemple sunt în `C:\work\sah\studii\2026-11-18-j7-native-italian`. [Auditul pozițiilor și contractele negative](../testing/hard-audit.md#auditul-puzzle-urilor-fără-obiectiv-transmis-adversarului)
+
 ## Control la fiecare schimbare
 
 1. Rulați suita JVM înainte de schimbare. Comparați din aceeași copie TMP, cu același executabil Stockfish și același YAML de evaluare. Păstrați raportul Extent din fiecare rulare.

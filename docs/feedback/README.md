@@ -12,7 +12,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
-| P1 | Italiană · alegerea Hard nativă | Indiciul S5 este corectat; Hard efectiv încă alege `…Na5`. | Compară cu `…Qg6` la orizont comun, verifică replicile H17/H19 și transferul fără regresii. |
+| P1 | Italiană · schimbul neîncheiat nativ | Extensia uniformă repară exemplul, dar pierde trei familii; verificarea doar a damei reintroduce sacrificiul fals. | Închide schimbul la orizont comun și cel mult 200k, păstrând martorii și transferul independent înainte de duel. |
 | P1 | Indiciu · precizia alternativelor independente | Liderul sicilian corect `N1c3` încă oferă alternativa inferioară `Bg5`. | Corectează alternativele oferite fără regresia liderului, cu dovezi la orizont comun și replici libere. |
 | P2 | Audit indicii · transfer mai larg | Planul inițial acoperă trei trasee scurte de deschidere și trei bugete. | Adaugă familii cu istorii separate și măsoară pierderea liderului distinct de rangurile inferioare jucate intenționat. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
@@ -58,11 +58,13 @@ Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceea
 </details>
 
 <details>
-<summary>P1 · Italiană · alegerea Hard nativă</summary>
+<summary>P1 · Italiană · schimbul neîncheiat din căutarea nativă</summary>
 
-Indiciul S5 la 200k recomandă acum numai `…Qg6`, cu sacrificiul Traxler și martorii Sicilianei/Caro–Kann păstrați. Problema rămasă este Hard efectiv: în același istoric alege `…Na5` la 100k. Stockfish H19 dă −120 cp / 155,5‰ pentru această alegere și −49 cp / 444‰ pentru `…Qg6`. Compară apărările la același orizont, fără a importa automat selecția indiciului în jocul nativ sau a introduce excepții FEN.
+Indiciul S5 rămâne corectat la `…Qg6`; Hard nativ păstrează `…Na5` la H5/100k. PV-ul se încheie cu `…Nxc4`, înainte de `Nxc6` care câștigă dama. La H6, comparația exactă separată încă ordonează `…Na5 −154` înainte de `…Qg6 −170 cp`; în frunzele lor, Stockfish H19 găsește recapturi favorabile negrelor `…Qxe5` (+306) și `…Nxe5` (+493 cp). Simplul acces la mai multe rădăcini nu rezolvă această pereche.
 
-Calibrarea nativă nouă are 100 de partide și 12.522 de analize: 1.507 Elo local, IC 95% 1.357–1.656. Nu dovedește o creștere față de Hard anterior. Promovarea următoare cere transfer pe familii nefolosite și duel pereche candidat–live; păstrează sacrificiile corecte și toate bugetele. [Corecție și calibrare](../board/ai-quality.md#corecția-creditului-italian-și-calibrarea-hard-nativ) · [Auditul fiecărei mutări](../testing/hard-audit.md)
+Nu repeta extensia uniformă de două semimutări: repară exemplul italian, dar pierde trei familii cu cel puțin 150‰ și trece numai 83/87 componente față de 87/87 pe reper. Verificarea doar a damei atacate reintroduce `…Bxf2+`. Următoarea probă trebuie să trateze schimbul legal neîncheiat fără a micșora declarativ adâncimea sau a copia indiciul în joc. Păstrează `Be2` față de `Nb5`, `Nxc6` față de `Nxc7+`, familiile 019/021/022, sacrificiile corecte și martorii Sicilianei/Caro–Kann. După transfer independent și buget total de cel mult 200k, măsoară duelul candidat–live cu culorile inversate.
+
+Motorul live nu s-a schimbat. Elo local aplicabil rămâne 1.507 [1.357–1.656], din 100 de partide; nu există ΔElo nou al candidaților respinși. Benchmarkul nativ reparat păstrează toate pragurile și adaugă audit pentru fiecare poziție. [Dovezi și rezultate](../board/ai-quality.md#studiul-frontierei-native-și-auditul-puzzle-urilor) · [Contracte de audit](../testing/hard-audit.md#auditul-puzzle-urilor-fără-obiectiv-transmis-adversarului)
 
 </details>
 
@@ -181,7 +183,7 @@ Extrageți întâi tranzițiile reluare, anulare și rezultat AI întârziat în
 
 Căutarea pentru mutarea curentă folosește o alocație configurabilă de 100.000 de noduri, cu o rezervă până la 200.000. Continuarea păstrează stiva activă și cache-ul. Testele de componentă protejează verificarea existentă a schimbului.
 
-În S7 sicilian din v1, Hard nativ păstrează `Bg5` (a7 folosește rezerva 100k→200k; SF 24‰), față de `N1c3` din indiciu (499,5‰), iar S5 italian favorizează `…Na5` nativ (155,5‰) față de `…Bxf2+` din indiciu (0‰); compară API-urile independent, fără a direcționa orbește Hard prin indiciu.
+Comparația istorică v1 păstrează `Bg5` nativ în S7 sicilian (24‰), față de `N1c3` din indiciu (499,5‰). Indiciul italian este între timp reparat la `…Qg6`; vechea recomandare `…Bxf2+` nu mai descrie sursa live. Compară în continuare API-urile independent, fără a copia automat selecția indiciului în Hard.
 
 Măsurați 100.000 fix, 200.000 fix și modul adaptiv pe aceeași sursă, în partide excluse din ajustare și în poziții cu pierderi verificate de Stockfish. Păstrați identitatea sursei pentru liga ordonării învățate și verificați alternativele legale liniștite, matul și finalurile de remiză. [Contractul adaptiv](../board/ai-quality.md#buget-adaptiv-în-prim-plan)
 

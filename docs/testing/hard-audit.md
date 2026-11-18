@@ -22,6 +22,15 @@ Partida nu poate juca înaintea analizei checkpoint-ului curent. O mutare invali
 
 Amprenta de manifest de încredere, păstrată separat, fixează șase roluri: JSONL combinat al mutărilor, PGN, rezultate, runtime, înghețare și starturi. Verificatorul ignoră căile primite, rejucă fiecare partidă până la rezultatul nativ, verifică ambele culori pentru fiecare start și recalculează ratingul pereche. Lanțul intern de amprente nu autentifică singur o colecție rescrisă coerent. Componentele negative înlocuiesc conținut, rescriu manifestul și substituie identitatea sursei sau fazei.
 
+
+## Auditul puzzle-urilor fără obiectiv transmis adversarului
+
+`HardQuestTransferBenchmarkTest` măsoară adversarul nativ separat de solverul care primește obiectivul. O singură apelare `analyzeBot(HARD)` furnizează alegerea și căutarea efectivă. `HardQuestAudit` validează legalitatea PV-ului, materialul, finalurile și identitatea contabilizării. Extent păstrează raportul nativ pentru fiecare poziție înaintea scorării alegerii după oracolul catalogului.
+
+Plafonul depinde de calea efectivă: repertoriul exact păstrează alocația explicită din `match-ai.yaml`, iar ieșirea din repertoriu folosește politica activă `hard-adaptive.yaml`. O depășire cu un nod eșuează în ambele cazuri. Corectarea contabilizării nu schimbă pragurile `hard-quest-transfer.yaml` sau granița lotului de antrenament. Raportul măsoară prime decizii; nu dovedește toate replicile ori conversia completă.
+
+[Contractele auditului](../../atf-tests/src/test/java/ro/atf/chess/HardQuestAuditTest.java) · [Benchmarkul nativ](../../atf-tests/src/test/java/ro/atf/chess/HardQuestTransferBenchmarkTest.java)
+
 ## Rularea și publicarea calibrării
 
 Construiește într-un spațiu extern din `C:\work\sah`, cu `TEMP`, `TMP` și directorul temporar JVM acolo. Îngheață sursa, configurarea și starturile pereche înainte de observarea rezultatelor. Generează o colecție nouă cu un producător care implementează contractul de recepție. Suita de componente nu pornește automat o ligă.

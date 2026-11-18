@@ -404,6 +404,8 @@ JUnit marchează probele de benchmark ca omise când lipsesc intrările lor. [Co
 - `SuiteGovernanceTest` compară planurile descoperite de JUnit. Fiecare metodă JVM cu audit aparține unei singure suite primare.
 - Publicarea recepțiilor Android și TalkBack are intrări explicite. `DocumentationGovernanceTest` verifică fișierele și ancorele Markdown locale, inclusiv cele din feedback.
 
+Auditul puzzle-urilor păstrează căutarea efectivă din aceeași apelare și distinge plafonul repertoriului de cel adaptiv, cu teste negative și praguri de precizie înghețate. [Contract și interpretare](hard-audit.md#auditul-puzzle-urilor-fără-obiectiv-transmis-adversarului)
+
 ## Schimbarea testelor față de o bază Git
 
 - Comparați schimbarea cu SHA-ul complet al commitului revizuit. Folosiți un worktree Git din TMP, cu istoricul necesar.
