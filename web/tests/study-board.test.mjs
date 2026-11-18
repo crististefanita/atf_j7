@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { bindBoardSelection, boardKeyIndex, boardPlacement, mountStudyArrow, studyArrow, studyMarkers, studySquareDescription } from '../src/main/web/study-board.mjs';
 import { routeForHash, routeHashes, studyHashes, watchRouteHistory, writeModeHash } from '../src/main/web/study-navigation.mjs';
+import { rememberBoardSize } from '../src/main/web/study-board-size.mjs';
 
 test('Each study route has an enabled home entry and a distinct panel', async () => {
     const html = await readFile(new URL('../src/main/web/index.html', import.meta.url), 'utf8');
@@ -245,4 +246,27 @@ test('Compact AI board spends the available width only on the rail, gap and squa
     assert.match(css, /match-board-frame:has\(\.match-inline-meter\[hidden\]\)\s*\{[^}]*--match-meter-width:\s*0px;[^}]*--match-meter-gap:\s*0px;/);
     assert.match(css, /:root:has\(main > \.match\[data-mode="AI"\]:not\(\[hidden\]\)\)\s*\{[^}]*scrollbar-width:\s*none;/);
     assert.match(css, /\.match\[data-mode="AI"\]\s+#match-board\s*\{[^}]*grid-column:\s*2;[^}]*inline-size:\s*100%;/);
+});
+
+test('Replay size records the source square and ignores hidden or invalid geometry', () => {
+    const properties = new Map();
+    const preview = { style: { setProperty: (name, value) => properties.set(name, value) } };
+    for (const width of [192, 315.8, 328.8, 560]) {
+        rememberBoardSize({ getBoundingClientRect: () => ({ width }) }, preview);
+        assert.equal(properties.get('--replay-board-side'), width + 'px');
+    }
+    for (const width of [0, -1, NaN, Infinity]) {
+        rememberBoardSize({ getBoundingClientRect: () => ({ width }) }, preview);
+        assert.equal(properties.get('--replay-board-side'), '560px', 'hidden sources cannot erase a usable cap');
+    }
+});
+
+test('Replay layout caps puzzle, match and analysis boards at the originating square', async () => {
+    const css = await Promise.all(['study-quests.css', 'game-review.css', 'study-analysis.css']
+        .map(name => readFile(new URL('../src/main/web/' + name, import.meta.url), 'utf8')));
+    for (const [index, selector] of ['#quest-study-replay-board', '#match-inline-preview-board.board'].entries()) {
+        const rule = css[index].slice(css[index].indexOf(selector)).split('}')[0];
+        assert.match(rule, /(?:inline-size|width): min\(100%, var\(--replay-board-side, var\(--play-board-limit\)\),/);
+    }
+    assert.match(css[2], /\.analysis-study-replay \.analysis-study-stack\s*\{\s*max-inline-size: var\(--replay-board-side, 100%\);/);
 });

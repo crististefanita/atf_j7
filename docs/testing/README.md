@@ -185,7 +185,7 @@ result in the game and on the Analysis board.
 
 - In the UI probe, open the main menu with an analysis already imported. The title remains alone in the header, and analysis can be opened from the import area.
 - Start a game with the checkbox cleared and verify that the panel is absent. Start another with analysis enabled and compare the bar and board rectangles at the starting position.
-- Trigger the hint button in the history row and step one ply in the preview, then check the position and focus restoration. After reopening, verify the saved checkbox, orientation, and layout at larger text size.
+- Trigger the hint button in the history row and step one ply in the preview, then check the position and focus restoration. Compare source and replay sides for **Calculated line**, puzzle replay and Analysis board at 360 × 640, 1280 × 900 and 740 × 420 CSS px. Verify 64 square cells, visible controls, no horizontal overflow and a new source measurement on reopening. Components cover capture before hiding the meter, invalid geometry and stepping without recapture. After reopening the game, verify the saved checkbox, orientation, and layout at larger text size.
 - [Web contract](../../web/README.md#analysis-in-an-ai-match)
 
 - For the paired RO/EN probe, start from the same game after **1.e4 e5**.

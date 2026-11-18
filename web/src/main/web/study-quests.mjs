@@ -1,4 +1,5 @@
 import { attachOptionsMenu } from './options-menu.mjs';
+import { rememberBoardSize } from './study-board-size.mjs';
 
 const progressKey = 'chesslab.puzzle-progress.v1';
 const defenseDelay = 650;
@@ -602,6 +603,7 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     }
 
     function openReplay(data) {
+        if (!replay || !at('explanation').open) rememberBoardSize(at('board'), at('explanation'));
         replay = data;
         replayPly = data.initial;
         danger = false;

@@ -41,6 +41,7 @@ class ChessWebAnalysisStudyTest {
                 "A revealed analysis hint names its moves and opening for screen readers",
                 "Analysis places evaluation to the left and all history controls in APK order",
                 "Selecting an offscreen analysis move scrolls only the strip in either direction",
+                "Analysis replay captures the source before hiding its meter and keeps the size through stepping",
                 "Analysis options use the shared anchored menu and preserve the board on dismissal in RO and EN"), passed);
     }
 }

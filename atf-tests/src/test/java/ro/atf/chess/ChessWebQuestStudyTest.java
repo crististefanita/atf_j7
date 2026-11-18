@@ -42,6 +42,7 @@ class ChessWebQuestStudyTest {
                 "Puzzle hints announce the APK turn, piece, destination and promotion once in RO and EN",
                 "Puzzle options match the APK and Escape returns focus to the chapters",
                 "Puzzle points, streak and guidance match the native states and announce a newly reached goal once",
-                "Puzzle replay keeps its actions outside the scrollable text and retains eight square rows on compact screens"), passed);
+                "Puzzle replay keeps its actions outside the scrollable text and retains eight square rows on compact screens",
+                "A puzzle lesson captures the source when replay opens inside the same dialog"), passed);
     }
 }

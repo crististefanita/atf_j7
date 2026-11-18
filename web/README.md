@@ -133,7 +133,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - The final position shows the match result.
 
 - The lightbulb clears the current selection and shows the recommended move. The suggestion button opens the line on the preview board, where arrows step through the moves without changing the match.
-- The board keeps its position and equal squares in preview. The controls remain visible, and the explanation scrolls separately.
+- **Calculated line**, puzzle replay and Analysis board previews inherit the visible source board's side before opening. Stepping or switching lines retains that ceiling; reopening measures the current source again. A shorter window may shrink the preview to keep controls visible. The explanation scrolls separately.
 - Closing returns to the history ply, and reopening the slot resumes at the end of the match with the hint hidden. The analysis board also offers opening theory.
 - At the current position, tapping the marked destination plays the legal hint when there is no board selection. The browser calculates analysis in a separate worker.
 - Changing the position or leaving the match invalidates the previous result. [Component and UI checks](../docs/testing/README.md#analysis-in-the-ai-game)

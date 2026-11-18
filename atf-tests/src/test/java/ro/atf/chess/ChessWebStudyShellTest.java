@@ -29,7 +29,9 @@ class ChessWebStudyShellTest {
                 "Hint overlay survives board rotation and is removed when the solution is hidden",
                 "Keyboard follows displayed squares without wrapping rows or activating a locked position",
                 "Puzzle and match boards share the viewport budget and keep controls in view",
-                "Compact AI board spends the available width only on the rail, gap and square"));
+                "Compact AI board spends the available width only on the rail, gap and square",
+                "Replay size records the source square and ignores hidden or invalid geometry",
+                "Replay layout caps puzzle, match and analysis boards at the originating square"));
     }
 
     @Test

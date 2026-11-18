@@ -76,6 +76,9 @@
 .analysis-study-stack {
   inline-size: min(100cqw, calc(100cqh - 2 * var(--analysis-caption-height) + var(--analysis-meter-gutter)));
 }
+.analysis-study-replay .analysis-study-stack {
+  max-inline-size: var(--replay-board-side, 100%);
+}
 
 .analysis-study-side {
   margin: 0 0 0 var(--analysis-meter-gutter);
