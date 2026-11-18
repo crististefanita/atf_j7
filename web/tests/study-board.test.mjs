@@ -239,7 +239,9 @@ test('Puzzle and match boards share the viewport budget and keep controls in vie
     assert.match(css, /\.match-actions button\s*\{[^}]*flex:[^;]*min-content;[^}]*overflow-wrap:\s*normal;/);
     assert.match(css, /#match-history\s*\{[^}]*flex-wrap:\s*nowrap;/);
     assert.match(css, /#match-history :is\(#match-previous, #match-next\)\s*\{[^}]*min-inline-size:\s*var\(--play-action-size\);/);
-    assert.match(puzzleCss, /\.quest-study-board-and-details\s*\{[^}]*min-block-size:[^;]*var\(--play-board-limit\)[^;]*\+\s*2lh/);
+    assert.match(puzzleCss, /grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) auto;/);
+    assert.match(puzzleCss, /\.quest-study-board-and-details\s*\{[^}]*container-type:\s*size;/);
+    assert.match(puzzleCss, /#quest-study-board\s*\{[^}]*inline-size:\s*min\(100%, var\(--play-board-limit\), max\(0px, 100cqb - 2lh\)\)/);
     assert.match(puzzleCss, /\.quest-study-details,[^}]*overflow:\s*auto;/);
 
     assert.match(puzzleCss, /#quest-study-turn\s*\{[^}]*block-size:\s*calc\(1lh \+ 2 \* var\(--quest-turn-padding\)\)/,

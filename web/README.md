@@ -148,6 +148,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - The first AI setup has Back even before a game exists. Back and Cancel leave the form through the same action and retain the saved game that opened it.
 - New game, saved games and study screens use `--play-column`, the same page insets and the base palette from Analysis board. Compact landscape reduces the page inset for every screen. The header does not acquire a wider canvas than its content. Board owners reserve room for their visible meter, score, history and explanations before sizing the square; a shared column does not remove those contextual reservations.
 - A different game or study route resets inherited document scroll before displaying its content. Stepping through moves on the same screen preserves the page position; Back and Forward do not add a duplicate route entry.
+- A puzzle measures its square inside the remaining board-and-details area, after the header, score, turn and footer have taken their space. Keep two text lines available below the board and the 48 px controls visible; a fixed minimum square must not push the footer beyond a short window.
 - [Compact RO/EN check](../docs/testing/README.md#analysis-in-the-ai-game)
 
 Puzzles size the board from the available space after reserving room for
