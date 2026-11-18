@@ -106,6 +106,8 @@ frame and whole documented continuation is replayed by the actual rules.
 
 `HintQueenRecaptureTest` protects the Italian developing queen attack, the legal pawn recapture, scoped seed/comparison cache, completed-budget fallback, manual-board/tap identity and sound queen offers. Disabling the allowance must reproduce the old first hint. [Measured Italian correction](../board/ai-quality.md#italian-queen-recapture-and-hint-continuity)
 
+`HintPinSupportTest` governs exact-score defensive ties, safe reinforcement of a relatively pinned minor, counterexamples, both colors, numerical precedence, preserved history and the shared manual/game hint path. The target stays H5 at 200k, with −21/−21 cp unchanged. [Sicilian audit](../board/ai-quality.md#sicilian-exact-ties-and-pin-reinforcement)
+
 ### Offline hint collection
 
 `HintAuditSessionTest` validates the versioned plan, full-history resumption,
