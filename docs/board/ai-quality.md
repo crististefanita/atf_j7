@@ -21,7 +21,7 @@ Basic searches two plies in ordinary positions and three in elementary rook or q
 
 The hint uses the Hard search kernel independently of the opponent's level. Each completed horizon scores all legal roots through the same tactical frontier. Up to 150,000 nodes from the single 200,000-node allowance verify the incumbent and a challenger from another completed horizon. Both phases share the exact transposition table and ordering. Existing single-root coaching overrides retain a larger seed allocation. If a deeper iteration stops, the last complete result remains available. A changed odd-horizon leader needs confirmation at an equal-turn horizon before replacing the supported result. The list displays at most three distinct first moves within 25 cp of the leader. In a mating position, only variations with the same result and distance remain. Playback uses the scored continuation without searching again or appending an unscored reply. Its static position estimate explains the displayed board and does not rerank the search result. [Reading the difference](README.md)
 
-In Hard, in positions with equal material, the ranking available after four plies also uses the score of the same move at three. The shorter line's contribution is capped. For a quiet move, the credit falls when the provisional line suggests a gain of more than one pawn. Evaluated mates and draws retain their terminal scores. If the budget prevents depth six from completing or the leader changes at that depth, the engine keeps the last complete search. Explicit searches and coaching comparisons keep their declared budgets.
+In Hard, in positions with equal material, the ranking available after four plies also uses the score of the same move at three. The shorter line's contribution is capped. For a quiet move, the credit falls when the provisional line suggests a gain of more than one pawn. Evaluated mates and draws retain their terminal scores. If depth six or confirmation of its changed leader does not complete, the engine keeps the last complete search. Explicit searches and coaching comparisons keep their declared budgets.
 
 Basic, Advanced, and Hard share the documented opening catalogue. A profile-specific verified override takes priority, followed by the first documented continuation of the exact current position. Castling and en passant rights remain part of the identity. A different human reply selects its corresponding branch, and a real exit from theory restores the profile's normal search. Selection is deterministic. Review-only exclusions keep their scope. The live theory fallback is excluded from hint generation; verified coaching overrides and searched continuations retain their scopes. Loading checks legality, duplicate positions, and mates in one. [YAML repertoire](../../chess-core/src/main/resources/ai-repertoire.yaml)
 
@@ -926,10 +926,10 @@ after a reference intervention remain marked conditional evidence, not independe
 All 80 inspected curriculum keys stay below the existing large-loss boundary at both depths.
 
 `training-051` remains `Ke6` instead of winning `Rc8+`; both oracle depths confirm win→draw.
-The mate fix does not claim this non-mating endgame solved. The next compact study case is
+The mate fix does not claim this non-mating endgame solved. This baseline identified
 `training-107:1`: six pieces, `c5` instead of `h8=Q`, H5 and 14,652 additional nodes,
-with a 500‰ loss at both depths. Isolate the completed score and stopping decision before
-changing weights or adding nodes. Preserve the unchanged winning alternatives and the mate gate.
+with a 500‰ loss at both depths. Its qualified promotion recovery and the newly exposed
+conversion gap are recorded below. The unchanged winning alternatives and mate gate remain controls.
 
 Full-catalog mean additional work rises from 14,371.56 to 15,537.58 nodes; p95 stays at
 100k and the maximum at 200k. These are deterministic work counts, not isolated latency or
@@ -948,6 +948,9 @@ catalog acceptance rule, public puzzle count, native policy or Elo display was c
 ranks `h8=Q` at +167 cp and gives `c5` an upper bound of −109. H5 prefers the cooperative
 `c5 Re8 h8=Q Rxh8 Kxh8` at +190. The completed H6 reverses that order: `c5 Rd7+` is
 −115, while `h8=Q Rxh8 Kxh8` is +183. The final stability veto previously kept H5.
+
+Full-window confirmation resolves `c5` at H4 to −279 cp, rather than its preliminary
+−109 upper bound. The mechanism never treats that bound as an exact comparison score.
 
 The [promotion policy](../../chess-core/src/main/resources/hard-promotion-exchange.yaml)
 allows one structural exception. The actual PV must close a promotion, its capture and a
