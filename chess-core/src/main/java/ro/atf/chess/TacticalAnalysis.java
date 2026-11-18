@@ -1150,15 +1150,10 @@ public final class TacticalAnalysis {
 
     private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget,
                                int lastCapture, int recapturesLeft) {
-        return settle(position,left,distance,alpha,beta,budget,lastCapture,recapturesLeft,false);
-    }
-
-    private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget,
-                               int lastCapture, int recapturesLeft, boolean capturedPawn) {
         if (left == 0 && recapturesLeft < 0) {
             // A queen capture is not a completed exchange while the opponent can legally recapture it.
             // Resolve this once within the existing verification budget, rather than rejecting the queen offer.
-            recapturesLeft = capturedPawn && budget.queenPieceRecaptureExtension > 0 && nonPawnCanRecaptureQueen(position, lastCapture)
+            recapturesLeft = budget.queenPieceRecaptureExtension > 0 && nonPawnCanRecaptureQueen(position, lastCapture)
                     ? budget.queenPieceRecaptureExtension
                     : budget.queenRecaptureExtension > 0 && pawnCanRecaptureQueen(position, lastCapture)
                             ? budget.queenRecaptureExtension : 0;
@@ -1188,7 +1183,7 @@ public final class TacticalAnalysis {
             var victim = MatchMaterial.victim(position, move);
             int target = recapturing || victim != null ? move.to() : -1;
             var child = settle(position.playGenerated(move), recapturing ? 0 : left - 1, distance + 1, -beta, -alpha, budget,
-                    target, recapturing ? recapturesLeft - 1 : recapturesLeft, victim != null && victim.kind() == Kind.PAWN).prepend(move);
+                    target, recapturing ? recapturesLeft - 1 : recapturesLeft).prepend(move);
             if (best == null || child.score() > best.score()) best = child;
             alpha = Math.max(alpha, child.score());
             if (alpha >= beta) {
