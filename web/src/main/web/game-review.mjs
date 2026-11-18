@@ -4,7 +4,7 @@ import { bindBoardSelection, boardPlacement, mountStudyArrow, studyMarkers, stud
 import { createQuestStudy } from './study-quests.mjs';
 import { createOpeningStudy } from './study-openings.mjs';
 import { createAnalysisStudy } from './study-analysis.mjs';
-import { matchAnalysisNavigation, routeForHash, routeHashes, watchRouteHistory, writeModeHash } from './study-navigation.mjs';
+import { matchAnalysisNavigation, pageBackVisible, routeForHash, routeHashes, watchRouteHistory, writeModeHash } from './study-navigation.mjs';
 import { historyPlyForKey, reviewFocusCandidates } from './review-focus.mjs';
 import { reviewAnnouncementChannel, reviewWhyText, sliderPlyForKey } from './review-announcement.mjs';
 import { createMatchBotTimer } from './match-bot-timer.mjs';
@@ -778,7 +778,8 @@ function shownRouteHash() {
 }
 
 function showMode(nextMode, addHistory = false) {
-    if (nextMode !== mode) {
+    const routeChanged = nextMode !== mode;
+    if (routeChanged) {
         if (mode === 'review') liveReviewOrigin = undefined;
         cancelAnalysis();
         studyAnalysis?.cancel();
@@ -787,13 +788,12 @@ function showMode(nextMode, addHistory = false) {
     }
     setReviewMenu(false);
     mode = nextMode;
-    writeModeHash(window, shownRouteHash(), addHistory);
-    const listing = listRoutes.has(mode);
+    writeModeHash(window, shownRouteHash(), addHistory, routeChanged);
     const title = { match: 'open-match', ai: 'open-ai', archive: 'open-finished', saved: 'open-saved', finished: 'open-finished' };
     const studying = Object.hasOwn(studyPanels, mode);
     find('title').textContent = mode === 'home' ? 'Chess Lab' : studying ? homeLabels[locale][studyRoutes[mode][0]] : words[title[mode] ?? 'title'];
     document.title = mode === 'home' ? 'Chess Lab' : `Chess Lab · ${find('title').textContent}`;
-    find('return-menu').hidden = !listing && mode !== matchRoute && mode !== 'archive' && !(mode === 'review' && !view);
+    find('return-menu').hidden = !pageBackVisible(mode, { matchRoute, setupVisible, hasReview: Boolean(view) });
     find('archive-review-back').hidden = mode !== 'archive-review';
     find('ai-setup').hidden = mode !== 'ai' || !setupVisible;
     find('cancel-setup').hidden = !setupBackMode;
@@ -1340,7 +1340,8 @@ find('open-saved').addEventListener('click', () => showMode('saved', true));
 find('open-finished').addEventListener('click', () => showMode('finished', true));
 find('return-menu').addEventListener('click', () => {
     if (busy) return;
-    if (mode === 'archive') showMode('finished');
+    if (mode === 'ai' && setupVisible) cancelSetup();
+    else if (mode === 'archive') showMode('finished');
     else showMainMenu();
 });
 find('archive-review-back').addEventListener('click', () => {
@@ -1372,11 +1373,12 @@ find('ai-setup').addEventListener('submit', event => {
     if (busy || mode !== 'ai') return;
     void enterMatch({ setup: { mode: 'AI', humanSide: find('ai-side').value, level: find('ai-level').value, analysis: find('ai-analysis').checked } });
 });
-find('cancel-setup').addEventListener('click', () => {
-    if (busy || !setupBackMode) return;
+function cancelSetup() {
+    if (busy || !setupVisible) return;
     setupVisible = false;
-    showMode(setupBackMode);
-});
+    showMode(setupBackMode ?? 'home');
+}
+find('cancel-setup').addEventListener('click', cancelSetup);
 find('retry-bot').addEventListener('click', () => {
     if (failedBotRevision !== match?.revision) return;
     failedBotRevision = undefined;

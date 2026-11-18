@@ -11,8 +11,10 @@ export function optionsMenuPlacement(anchor, panel, viewport, gap = 4, margin = 
     const before = panel.height > below && above > below;
     const maxHeight = before ? above : below;
     const height = Math.min(panel.height, maxHeight);
+    const onRight = (anchor.left + anchor.right) / 2 > (left + right) / 2;
+    const aligned = onRight ? anchor.right - width : anchor.left;
     return {
-        left: Math.max(left, Math.min(anchor.left, right - width)),
+        left: Math.max(left, Math.min(aligned, right - width)),
         top: before ? anchor.top - gap - height : anchor.bottom + gap,
         maxWidth,
         maxHeight,
