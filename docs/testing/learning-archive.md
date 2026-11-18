@@ -104,3 +104,10 @@ keeps native choices under a separate oracle quality gate. It binds every observ
 move to its original journal and reports the two independent WDL losses in Extent.
 A later fix needs a current-source replay or fresh game and renewed oracle evidence;
 changing an expected move to accept the defect cannot close it.
+
+The small [permanent witness fixture](../../atf-tests/src/test/resources/hard-learning-witnesses.yaml)
+keeps exact full histories and eight raw oracle phases in YAML 1.2 JSON syntax.
+`HardLearningWitnessTest` validates it offline and rejects substitutions;
+`HardLearningWitnessBenchmarkTest` recalculates the current native choice and
+keeps each known loss red until it is repaired. An unseen replacement needs new
+teacher evidence. These positions are counterexamples, never runtime book entries.
