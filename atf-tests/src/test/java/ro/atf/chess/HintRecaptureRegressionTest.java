@@ -69,6 +69,9 @@ class HintRecaptureRegressionTest {
                 select.invoke(null, position, List.of(move("d4c3"), move("d8a5"))));
         check.same("A singleton cannot impersonate a comparison", false,
                 select.invoke(null, position, List.of(move("d4c3"))));
+        var counterexample = ChessPosition.fromFen("r1bq1rk1/pp2nppp/2n1p3/b1pp4/Q1P5/2N2NP1/PP1PPPBP/R1BR2K1 b - - 1 9");
+        check.same("A normal pawn versus knight exchange without a checking pawn reply retains ordinary verification", false,
+                select.invoke(null, counterexample, List.of(move("d5c4"), move("a5c3"))));
     }
 
     @Test void aSeedCacheCannotImpersonateARecaptureVerifiedValue(Checks check) throws Exception {
