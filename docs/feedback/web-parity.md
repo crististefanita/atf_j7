@@ -107,5 +107,6 @@ its own route. The shared menu controller covers placement and focus.
 
 Use MCP to verify Puzzles, Analysis board and Game Review, including Why, at
 360 × 640 and 1280 × 900, with RO/EN text at 130%. Open beside the pressed
-trigger, reach the last option, dismiss and check focus. The current session
-has no browser MCP capability, so the rendered verdict stays pending.
+trigger, reach the last option, dismiss and check focus. The archived Web asset
+checks establish served-byte integrity. The rendered parity verdict stays pending
+until this MCP journey has its own receipt and captures.

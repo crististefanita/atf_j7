@@ -391,7 +391,7 @@ To reproduce, use a TMP checkout and three new TSV and Extent paths. Each run va
 foreach ($index in 1..3) {
     mvn -B -ntp test '-Dtest=AiAnchorBenchmarkTest' "-Dchess.stockfish=$stockfish" `
         "-Dchess.anchor=$scratch/anchor-$index.tsv" "-Dchess.extent=$scratch/anchor-$index.html"
-    if ($LASTEXITCODE) { throw "Sesiunea $index a eșuat" }
+    if ($LASTEXITCODE) { throw "Session $index failed" }
 }
 ```
 

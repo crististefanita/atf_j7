@@ -25,6 +25,8 @@ Ordinary Hard and puzzle-goal solvers have separate evidence: [native puzzle stu
 - **Format.** One title, semantic Markdown, and language tags on fenced blocks.
   Use tables for comparisons and numbered steps for procedures.
   Each diagram answers one question and has its legend immediately below.
+- **Language.** Review prose and visible labels in both branches against the
+  [bilingual documentation contract](release/README.md#bilingual-documentation).
 - **Links.** Use relative paths and existing anchors. Verify the destination after
   moving a document. Use parameters for local paths in examples.
 - **Feedback.** State the observation, priority, owner, evidence, and closure criteria.

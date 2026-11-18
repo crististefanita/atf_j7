@@ -32,6 +32,14 @@ Use `main` for English and `main_RO` for Romanian. Prepare both updates in
 detached worktrees in TMP. The default branch owns publication, and version
 metadata, the APK link and evidence identify the same release in both branches.
 
+Write all authored Markdown prose in English on `main` and Romanian on
+`main_RO`, including headings, summaries, tables, link labels, diagram labels
+and legends. Preserve the same meaning, facts, procedure and coverage in both
+versions. Code identifiers, commands, SAN and quoted interface labels retain
+their required spelling. Generated HTML, JSON and raw execution receipts keep
+their original bytes and observed interface language; translate the README
+that explains the evidence, rather than rewriting a qualified artifact.
+
 1. Start from the live `origin/main` and `origin/main_RO`. Make the Romanian
    wording precise and translate the same change into English. Keep document
    paths, section hierarchy, command meaning, values and evidence aligned.
@@ -52,7 +60,9 @@ git push --atomic origin "${enCommit}:refs/heads/main" "${roCommit}:refs/heads/m
 
 The pair gate verifies the tracked Markdown inventory, ordered structure,
 corresponding links and heading destinations, and byte-identical published
-evidence. Human review verifies translation fidelity. [Testing strategy](../testing/README.md#choosing-the-test-level)
+evidence. Review every prose block and visible diagram label for its language
+and translated meaning; a passing structural gate alone does not establish
+language completeness or translation fidelity. [Testing strategy](../testing/README.md#choosing-the-test-level)
 
 GitHub Actions deploys the qualified Web asset from an immutable Git commit
 through the [Pages workflow](../../.github/workflows/chess-pages.yml).

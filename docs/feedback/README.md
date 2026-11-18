@@ -11,6 +11,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 |---|---|---|---|
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
+| P2 | Documentation · translation safeguards | The paired gate checks structure and links while prose and examples still need semantic review. | Detect copied prose and changed examples with focused negatives while preserving technical literals and immutable evidence. |
 | P1 | Game Review · move classification | Nine grade disagreements persist at both oracle depths, including a missed large loss and a false blunder. | Reproduce and correct classification without changing played history, inventing Elo or substituting hint scores for review evidence. |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
 | P1 | Italian · unresolved native exchange | Targeted recapture repairs the isolated H6 pair, but complete play and controls regress. | Resolve the complete decision within 200k, preserving 019/021/022 and independent transfer before a duel. |
@@ -24,6 +25,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Hard search · generalization | Selective recapture regresses on independent openings. | Require independent gains at the fixed budget. |
 | P1 | Hard · conversion after a pawn capture | The pawn capture can lose its advantage later. | Verify conversion on new positions and distinct replies. |
 | P1 | Transfer from tactics to games | Hard misses tactics without a declared objective. | Measure discovery and preserve the solver contract. |
+| P1 | Hard without a declared objective · root re-entry | Ordinary Hard leaves 82 stages unresolved across 56 canonical exercises. | Recover the missed rook-endgame mates with complete-catalog non-regression and independent opposing replies. |
 | P2 | Progress · Android upgrade | A signed upgrade still needs a progress probe. | Keep IDs, solutions and points across upgrade and restart. |
 | P2 | AI quality · material evaluation | The material score differs from Stockfish. | Reduce the discrepancy with fixed search budgets. |
 | P2 | Puzzle calibration | Imported difficulty bands overlap. | Check attempts and time on a separate shuffled set. |
@@ -52,7 +54,7 @@ Add compact verification to the promotion gate for geometry changes. Reject a mi
 <details>
 <summary>P1 · Game Review · move classification</summary>
 
-The actual `GameReview.analyzeLine` preserves all 60 moves and emits no rating for the three capped studies. Nevertheless, `6.e6` in Caro–Kann is BEST and White accuracy is 100 while the played root loses 533‰ at H17 and 581.5‰ at H19. Sicilian `5.Nc3` is BLUNDER with 0‰ loss at both horizons. Across the three games, three positive labels accompany a large oracle loss and six severe labels accompany less than 10‰ loss at both depths.
+The actual `GameReview.analyzeLine` preserves all 60 moves and emits no rating for the three capped studies. Nevertheless, `6.e6` in Caro–Kann is labelled `BEST` and White accuracy is 100 while the played root loses 533‰ at H17 and 581.5‰ at H19. Sicilian `5.Nc3` is labelled `BLUNDER` with 0‰ loss at both horizons. Across the three games, three positive labels accompany a large oracle loss and six severe labels accompany less than 10‰ loss at both depths.
 
 Freeze these full-history witnesses before fixing the shared comparison. Check native played and recommended roots at a common completed horizon, retain legal replay/bookmarks, and measure new families. Local logistic loss and Stockfish WDL are distinct models; do not make production depend on Stockfish or copy its label mechanically. The current audit grades the played root and checks saved review PV legality; it does not independently certify every review alternative. [Review contract and limitation](../board/game-review.md#measured-review-limitations) · [Paired audit](../testing/hard-hint-study.md)
 
@@ -61,7 +63,7 @@ Freeze these full-history witnesses before fixing the shared comparison. Check n
 <details>
 <summary>P2 · Game Review · NVDA</summary>
 
-NVDA 2026.3.1 repeated the position and score in RO. Component checks and Edge now confirm one accessible value.
+NVDA 2026.3.1 repeated the position and score in RO. Component checks verify one accessible value.
 
 Confirm speech on the corrected build in RO and EN and a return to the same move from **Why?**. [Web feedback](web-parity.md)
 
@@ -211,11 +213,20 @@ Include preserved good moves, quiet replies, and verified sacrifices in the next
 </details>
 
 <details>
+<summary>P2 · Documentation · translation safeguards</summary>
+
+The paired gate checks document inventory, localized headings, structural blocks, link destinations and archived evidence. It does not inspect paragraph meaning or the contents of fenced examples. A copied English paragraph under Romanian headings or a changed command inside the same fence can pass its structural checks. The reviewed translations still require the explicit semantic check in the [bilingual process](../release/README.md#bilingual-documentation).
+
+Add focused negative cases for copied prose, disclosure captions, link captions and human-readable diagram labels, plus changed commands or measured values. Preserve identifiers, quoted UI labels, SAN/FEN/UCI, command syntax and immutable execution evidence. An identical-sentence check can flag omissions; it cannot independently certify the language or accuracy of a rewritten sentence. [Current pair controls](../../atf-tests/src/test/java/ro/atf/chess/DocumentationPairGovernanceTest.java)
+
+</details>
+
+<details>
 <summary>P1 · Native Hard · rook-root re-entry and puzzle transfer</summary>
 
 Ordinary Hard completes 1,182/1,238 canonical exercises; 82 stages fail in 56 exercises. Fixed 200k/H6 recovers 0/82, 200k/H7 20/82 and 500k/H7 26/82. These are frozen-miss diagnostics, not complete-catalog candidate qualifications. Preserve the 500/500 and 300/300 solved mate chapters and the native/goal-solver distinction.
 
-Prioritize `mate3-04iY6` and `mate3-019gx`: both lose a forced mate according to Stockfish H17/H19, even at 500k. Rook search permanently removes roots after short-horizon selection. An external re-entry prototype recovers both keys inside 200k but fails `training-051`, which the oracle grades as win→draw. Do not substitute more nodes for proving which roots disappeared or why. Require complete-catalog non-regression, retained rook/draw witnesses, unseen related families and actual free defenses before integration; measure paired ΔElo only after that gate.
+Prioritize `mate3-04iY6` and `mate3-019gx`: both lose a forced mate according to Stockfish H17/H19, even at 500k. The rook-endgame search permanently removes roots after short-horizon selection. An external re-entry prototype recovers both keys inside 200k but fails `training-051`, which the oracle grades as win→draw. Do not substitute more nodes for proving which roots disappeared or why. Require complete-catalog non-regression, retained rook/draw witnesses, unseen related families and actual free defenses before integration; measure paired ΔElo only after that gate.
 
 Five other inspected material stages preserve a win despite missing the educational goal. Keep exact-goal failure and verified WDL loss separate; do not relabel accepted variants, relax the goal or claim all puzzles solved. [Method, full inventory and evidence](../testing/hard-puzzle-study.md)
 

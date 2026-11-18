@@ -300,7 +300,7 @@ The component tests simulate the board, storage, and timer. They check arrow geo
 
 For Tactics explanations, run `run-android-sanity.ps1 -TacticsExplanationOnly` with the ADB parameters in [Android sanity](#android-sanity). From the board, the probe opens the normal replay for `tactic-002` and the study with the `…Kg8` reply for `tactic-043`. It verifies navigation, displayed material, and retention of points after closing.
 
-Publish `android-tactics-explanation.html` with `-Dtest=AndroidSanityPublication#publishTacticsExplanationSanity` and `-Dchess.android.receipt=<dosar>/tactics-explanation.txt`. Extent includes the captures and checks the run ID, receipt, and PNG fingerprints reported by instrumentation.
+Publish `android-tactics-explanation.html` with `-Dtest=AndroidSanityPublication#publishTacticsExplanationSanity` and `-Dchess.android.receipt=<run-directory>/tactics-explanation.txt`. Extent includes the captures and checks the run ID, receipt, and PNG fingerprints reported by instrumentation.
 
 - For the last move in `training-069`, run `-TrainingFinishOnly`. `QuestPayoffTest` checks the immediate objective, the legal line after `Rd8+`, and scoring exactly once.
 - Sanity checks access to the explanation after check, replay on the board, progress retention, and reopening the explanation after solving. Publish the report with `-Dtest=AndroidSanityPublication#publishTrainingFinishSanity` and the `training-finish.txt` receipt.
@@ -490,7 +490,7 @@ different application ID remains a development probe and cannot qualify the APK.
 2. The runner stops the process. The second instrumentation phase checks the pending reply, the five-solve milestone, the restored position and points in Tactics, and resumption of the second unsolved Tactical training puzzle.
 3. Extent requires a common run ID and distinct PIDs for the five phases. It verifies the 58 ID–label pairs in `prepare`, the 26 comparisons in `restore`, and the game receipts. The diagnostic appears next to the native comparison.
 
-When changing instrumentation, synchronize the `prepare` inventory and per-phase assertion counts with `AndroidSanityPublication`. To regenerate the report, copy the native evidence into a fresh directory and run `-Dtest=AndroidSanityPublication#publishBoardSanity` with `-Dchess.android.receipt=<dosar>/prepare.txt` and `-Dchess.android.runId=<runId din execution.json>`.
+When changing instrumentation, synchronize the `prepare` inventory and per-phase assertion counts with `AndroidSanityPublication`. To regenerate the report, copy the native evidence into a fresh directory and run `-Dtest=AndroidSanityPublication#publishBoardSanity` with `-Dchess.android.receipt=<run-directory>/prepare.txt` and `-Dchess.android.runId=<runId>`. Read `runId` from `execution.json`.
 
 `AndroidReceiptTest` verifies offline that all 58 assertions render and that a missing assertion, duplicate ID, substituted label, and phase from a different run are rejected. The resume probe also checks rejection of a foreign Tactical training label while keeping the total unchanged.
 
@@ -609,7 +609,7 @@ Verify matches, storage, and review in components. Use Android sanity for proces
 - `AndroidReceiptTest` reproduces a substituted PNG and a foreign phase without an emulator, even when the metadata has been updated. Extent keeps the native results, ID, APK fingerprint, and captures verified against the instrumentation fingerprints.
 
 ```powershell
-mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishMatchAnalysisSanity' '-Dchess.android.receipt=<dosar>/analysis-prepare.txt'
+mvn test '-Dmaven.repo.local=target/maven-repo' '-Dtest=AndroidSanityPublication#publishMatchAnalysisSanity' '-Dchess.android.receipt=<run-directory>/analysis-prepare.txt'
 ```
 
 `ChessMatchTest` checks reconstruction before and after the bot reply, access to historical positions, checkmate, castling, en passant, and repetition. After the puzzle phases, the runner starts with fresh data and executes `match-prepare`, `match-restore`, and `match-settled` in separate processes, retaining the game between them. It checks the starting position, arrows, direct selection, return to the last move, move locking in history, and the saved game's identity.

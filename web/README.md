@@ -56,6 +56,11 @@ flowchart LR
 - The build writes generated data, compiled output, and the `site` bundle there. For a complete local cache, add `-Offline` to the build and `-o` to Maven.
 - [Working-file location](../docs/README.md#maintenance-rules)
 
+Use the MCP browser for visual acceptance. The Edge command-line examples
+below document the existing optional driver; run them only when that browser
+route is permitted. Record the method actually used and keep unexecuted
+rendering checks open. JVM and worker results qualify their own contracts.
+
 ```powershell
 $site = ./web/Build-ChessWeb.ps1 -WorkRoot $workRoot
 $report = Join-Path (Split-Path -Parent $site) 'web-parity.html'
@@ -90,7 +95,7 @@ Color, difficulty, and automation belong to the saved match slot. Changing the n
 - [Orientation verification](../docs/testing/README.md#board-orientation-in-a-game)
 
 - From the main menu, change the language in **Settings** and the display name in **Name**. Saving the language reopens the same menu, including when the browser stores a review.
-- **Profile** is available from the AI match and retains the match route after a change. The browser saves the profile locally, separately from matches.
+- Return to the main menu to edit **Name** or **Settings**, then reopen the saved match. The browser stores the profile separately, so the match checkpoint is preserved.
 - The default language is English, and a blank name shows **You** or **Tu** depending on the language. `ChessWebShellTest` verifies reload with mocked storage, history, and URL.
 - [Test strategy](../docs/testing/README.md)
 

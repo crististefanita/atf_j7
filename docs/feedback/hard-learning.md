@@ -38,7 +38,7 @@ four plies with native at five. Use these opposite examples to validate the
 actual reply after a selective change.
 
 The adaptive foreground policy is a separate implementation on the current
-main source. Its node reserve and any future learned ordering need their own
+`main` source. Its node reserve and any future learned ordering need their own
 source-qualified comparisons.
 
 ## Completed paired league
@@ -48,7 +48,7 @@ games in 1,000 opening pairs across 996 ancestry groups. Its estimated differenc
 was +4.34 Elo, with a 95% interval of −2.77 to +11.31. Assigning every unfinished
 game a loss or a win changes the central estimate to −15.82 or +24.53. Legal replay
 verified 238,591 decision receipts. Complete move sequences matched in 657 pairs.
-The model remains an experimental prior with an uncertain game-strength effect.
+The model remains an experimental ordering prior with an uncertain game-strength effect.
 
 These games used H5 and 44,000 additional nodes on the pinned research source.
 The larger adaptive main profile requires its own game-strength estimate.
