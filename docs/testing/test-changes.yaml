@@ -1030,3 +1030,11 @@ testChanges:
     test: ro.atf.chess.HardQuestAuditTest#adaptiveAndRepertoireAllowancesRemainDistinctAndStrict
     contract: "Retain frozen accuracy floors and objective-blind native Hard choices; enforce separate repertoire and adaptive ceilings with over-limit negatives"
     allowDelete: false
+
+  - id: J7-HINT-RECAPTURE-SCHEMA
+    base: "e70058747d428329eca86b48dca8142e9d241d47"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+    test: ro.atf.chess.MatchAiGovernanceTest#hardExactTranspositionCacheIsBoundedAndScalesWithTheHardNodeBudget
+    contract: "Advance the typed hint schema to include bounded recapture verification while retaining all exact-cache capacity, scaling and rejection assertions"
+    allowDelete: false
