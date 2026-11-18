@@ -131,3 +131,10 @@ istoric străin și revendicarea celor cincizeci de mutări. Păstrează decizii
 contexte identice. Verifică separat conversia efectivă până la mat sau remiză, față de certificatul
 care se termină cu dama sigură. Verificarea WDL la rădăcină pe loturi de transfer înghețate nu
 înlocuiește partidele complete sau dovezile Elo pereche.
+
+
+Separă contorul inițial FEN pentru remiză de cel al unei sesiuni noi construite numai din tablă.
+`ChessMatch.fromPosition` pornește la zero; `StudyFen` păstrează contorul de intrare. Prefixul
+legat de sursă nu poate furniza singur un contor inițial omis. Conversia calificată după captură
+are contoare egale după resetare; originile compuse arbitrare cer în continuare adaptorul
+explicit al contorului, urmărit în feedback.

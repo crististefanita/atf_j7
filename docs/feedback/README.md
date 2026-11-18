@@ -26,6 +26,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Hard · conversia după captura de pion | Avantajul după captură poate fi pierdut ulterior. | Verifică păstrarea avantajului pe poziții și replici noi. |
 | P1 | Transferul tactică → partidă | Hard ratează tactici fără obiectiv declarat. | Măsoară detectarea și păstrează contractul rezolvării cu obiectiv. |
 | P1 | Hard nativ · obiective materiale rămase | Rămân 79 de etape canonice neacceptate în 53 de probleme; `training-051` încă remizează cu `Ke6`. | Rezolvă `Rc8+` față de `Ke6` cu replici adverse libere, păstrând conversia calificată cu pioni, remizele apărate și catalogul complet. |
+| P2 | Studii native · contorul FEN inițial | O partidă nouă din tablă pornește contorul fără progres la zero, iar metadatele FEN ale oracolului păstrează valoarea inițială. | Adaugă inițializare nativă explicită din contorul FEN și cazuri 0/99/149 înainte de a declara paritate de remiză pentru origini compuse arbitrare. |
 | P2 | Progres · upgrade Android | Upgrade-ul semnat mai cere o probă de progres. | Păstrează ID-urile, rezolvările și punctele după upgrade și restart. |
 | P2 | Calitatea AI · evaluare material | Scorul material diferă de Stockfish. | Redu abaterea la aceleași bugete. |
 | P2 | Calibrarea problemelor | Benzile de dificultate importate se suprapun. | Verifică timpul și încercările pe un lot amestecat separat. |
@@ -248,5 +249,24 @@ egalității integrale a deciziilor native. YAML-ul structural nou descrie tempo
 escorta regelui, repetiția și promovarea sigură cu contraexemple; runtime nu conține chei
 didactice sau lookup FEN.
 [Procedura repetabilă pentru certificate și recepții](../testing/hard-puzzle-study.md#auditarea-certificatelor-planurilor-câștigătoare)
+
+</details>
+
+
+<details>
+<summary>P2 · Studii native · contorul inițial FEN pentru remiză</summary>
+
+`ChessMatch.fromPosition` primește tabla și pornește o partidă nouă cu contorul la zero;
+`StudyFen` păstrează separat contoarele FEN pentru oracol. Nu poate stabili astfel paritate
+nativ/oracol pentru regula celor cincizeci de mutări într-un FEN arbitrar. Cazul calificat
+după promovare nu este afectat: ultima captură resetează contorul, iar `…Ke4` îl duce la unu
+pe ambele trasee.
+
+Responsabilitatea aparține adaptorului sesiunii compuse, nu ponderilor evaluării. Păstrează
+explicit contorul inițial și testează table identice cu valorile 0/99/149, resetări prin
+capturi/pioni, reluarea partidei și refuzul unei recepții din alt contor. Păstrează recepțiile
+originale cu producătorul real; nu le modifica antetele pentru a fabrica paritate.
+[Constructorul nativ](../../chess-core/src/main/java/ro/atf/chess/ChessMatch.java)
+· [Helperul recepției FEN](../../atf-tests/src/test/java/ro/atf/chess/StudyFen.java)
 
 </details>
