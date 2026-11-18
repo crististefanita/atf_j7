@@ -72,7 +72,7 @@ exact și de repetiție și bugetul curent. Recepția validă și PV-ul legal nu
 de calitate. Păstrează variantele respinse chiar dacă totalul din catalog a crescut.
 
 Clasifică toate etapele încă neacceptate la ambele adâncimi ale oracolului. Pornește de la
-prima pierdere WDL reală, nu de la o stare ulterioară unei intervenții de referință. Salvează
+prima pierdere WDL reală, verificând și prefixele acceptate anterior, nu de la o stare ulterioară unei intervenții de referință. Salvează
 FEN-ul inițial, prefixul complet, mutarea jucată, cheia, căutarea efectivă și linia adversă a
 oracolului. Separă ratările didactice care păstrează victoria; nu da cheia memorată lui Hard.
 Prioritizează catalogul curent înaintea problemelor publice noi. Compozițiile noi de verificare

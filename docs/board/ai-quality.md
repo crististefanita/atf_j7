@@ -917,9 +917,9 @@ obiectiv declarat. [Comenzi și separarea solverelor](../testing/hard-puzzle-stu
 Stockfish H17/H19 evaluează acum toate cele 80 de etape canonice încă ratate, nu un eșantion
 favorabil. 57 pierd cel puțin 150‰ la ambele adâncimi; 22 păstrează victoria la ambele,
 deși ratează obiectivul didactic; una are pierdere mai mică sau dependentă de adâncime.
-Din cele 54 de prime ratări, 43 au deja pierdere mare la ambele adâncimi. Etapele ulterioare
+Din cele 54 de prime ratări didactice, 43 au pierdere WDL mare la ambele adâncimi. Pentru a le numi prime pierderi WDL cronologice, trebuie verificate și prefixele anterior acceptate. Etapele ulterioare
 unei intervenții de referință rămân dovezi condiționate, nu partide independente.
-Toate cheile didactice rămân sub limita existentă de pierdere mare la ambele adâncimi.
+Toate cele 80 de chei didactice inspectate rămân sub limita existentă de pierdere mare la ambele adâncimi.
 
 `training-051` rămâne la `Ke6`, nu `Rc8+` câștigător; ambele orizonturi confirmă victorie→remiză.
 Fixul de mat nu declară acest final rezolvat. Următorul caz compact este `training-107:1`:

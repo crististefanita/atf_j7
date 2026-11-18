@@ -230,7 +230,7 @@ adverse legale. Mecanismul și readmiterea generală respinsă aparțin [ghidulu
 
 Păstrează deschise 80 de etape neacceptate în 54 de probleme materiale: 57 au pierdere mare la
 ambele adâncimi Stockfish, 22 păstrează victoria, iar una e mai mică/dependentă de adâncime.
-Cele 43 de contexte confirmate la prima pierdere preced etapele condiționate ulterioare.
+Cele 43 de prime ratări didactice cu pierdere WDL confirmată preced etapele condiționate ulterioare. Verifică și prefixul acceptat înainte să declari prima pierdere WDL cronologică.
 `training-051` încă remizează cu `Ke6` în loc să câștige cu `Rc8+`; nu îl declara rezolvat prin fixul de mat.
 
 Începe studiul cauzal compact cu `training-107:1`: șase piese, `c5` față de `h8=Q`, H5,
