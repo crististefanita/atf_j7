@@ -80,3 +80,26 @@ sunt dovezi separate de transfer, nu adăugări în aplicație.
 
 [Inventar măsurat și mecanism curent](../board/ai-quality.md#readmiterea-calificată-a-rădăcinilor-pentru-mat)
 · [Lucrări deschise](../feedback/README.md#pe-scurt)
+
+
+## Politica încărcată și continuările extinse
+
+Leagă producătorul nativ de instantaneul `promotionExchangePolicy` efectiv încărcat, alături
+de politica adaptivă a nodurilor. Un YAML diagnostic schimbat este alt profil, chiar dacă
+revizia sursă și maximul de noduri coincid. Păstrează recepțiile vechi cu producătorul și
+cititorul originale; nu rescrie antetele istorice pentru a inventa o politică neîncărcată.
+
+Pentru excepția de promovare, cere dominanță exactă cu fereastră completă la ambele orizonturi
+pare încheiate, captură/recaptură legală și câștig material efectiv în PV-ul păstrat. Testează
+confirmarea întreruptă la limita de un nod, cu maxim și cache fixe. Dezactivarea funcționalității
+trebuie să refacă decizia completă, adâncimea, nodurile și PV-ul de referință. Respinge recepția
+care declară o politică străină chiar dacă amprentele fișierelor au fost recalculate.
+
+Îngheață contextele continuărilor și limita de semimutări înainte de rezultatele oracolului.
+Urmează mutarea nativă efectivă și replica adversă aleasă liber; înregistrează analizele ambelor
+brațe în fiecare poziție identică, plus martori de izolare Basic/Advanced. Evaluează fiecare
+rădăcină nativă la H17/H19, păstrează PGN-ul efectiv și explică terminarea sau limita diagnostică.
+Compară pierderea WDL ca `max(0, free expected score - forced expected score)` prin `StockfishStudyAudit`;
+scorurile exacte și PV-urile brute rămân imuabile. O etapă didactică rezolvată nu certifică
+transformarea avantajului în victorie. Păstrează prima pierdere nouă ca YAML contextual, cu
+originea completă, istoric, linie adversă și contraexemplu, separat de configurația tiparelor runtime.

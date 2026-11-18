@@ -9,7 +9,7 @@
 <details>
 <summary>Politici și limite ale căutării curente</summary>
 
-Nivelul adversarului și indiciul au adâncimi și bugete configurate separat. O căutare păstrează ultima adâncime evaluată complet. Căutarea Hard pentru mutarea curentă pornește cu 100.000 de noduri suplimentare și poate continua până la 200.000 prin politica adaptivă de mai jos. Acceptă rezultatul de la ultimul orizont numai dacă păstrează aceeași mutare lider ca adâncimea precedentă. În caz de schimbare a liderului, rămâne la ultima căutare completă și stabilă. Indiciul încearcă până la șapte semimutări, cu o frontieră tactică plafonată la două semimutări pentru capturi, promovări sau ieșirea din șah. Comparația dintre o captură de pion și una de piesă poate urmări suplimentar cel mult două semimutări de recaptură când luarea piesei permite replica unui pion cu șah. Vizitele folosesc bugetul existent al comparației; orizontul nominal complet rămâne neschimbat. Adâncimea completă și nodurile efective descriu căutarea realizată. În partide și lecții, evaluarea adaugă la material dezvoltarea pieselor, centrul, poziția regelui și perechea de nebuni. Ponderea termenilor se schimbă odată cu materialul rămas, astfel încât un rege activ să fie util în final. Căutarea verifică întâi capturile, promovările și mutările care activează piesele. Testele de tactică păstrează obiectivul lor explicit de material sau mat. [Politica de căutare](../../chess-core/src/main/resources/match-ai.yaml) · [Politica adaptivă](../../chess-core/src/main/resources/hard-adaptive.yaml)
+Nivelul adversarului și indiciul au adâncimi și bugete configurate separat. O căutare păstrează ultima adâncime evaluată complet. Căutarea Hard pentru mutarea curentă pornește cu 100.000 de noduri suplimentare și poate continua până la 200.000 prin politica adaptivă de mai jos. Acceptă rezultatul de la ultimul orizont numai dacă păstrează aceeași mutare lider ca adâncimea precedentă. În caz de schimbare a liderului, rămâne la ultima căutare completă și stabilă, exceptând [confirmarea limitată a promovării prin schimb închis](#confirmarea-promovării-prin-schimb-închis). Indiciul încearcă până la șapte semimutări, cu o frontieră tactică plafonată la două semimutări pentru capturi, promovări sau ieșirea din șah. Comparația dintre o captură de pion și una de piesă poate urmări suplimentar cel mult două semimutări de recaptură când luarea piesei permite replica unui pion cu șah. Vizitele folosesc bugetul existent al comparației; orizontul nominal complet rămâne neschimbat. Adâncimea completă și nodurile efective descriu căutarea realizată. În partide și lecții, evaluarea adaugă la material dezvoltarea pieselor, centrul, poziția regelui și perechea de nebuni. Ponderea termenilor se schimbă odată cu materialul rămas, astfel încât un rege activ să fie util în final. Căutarea verifică întâi capturile, promovările și mutările care activează piesele. Testele de tactică păstrează obiectivul lor explicit de material sau mat. [Politica de căutare](../../chess-core/src/main/resources/match-ai.yaml) · [Politica adaptivă](../../chess-core/src/main/resources/hard-adaptive.yaml)
 
 În finalul de turnuri, Hard folosește istoricul integral pentru a evalua repetițiile în arbore, inclusiv la rădăcină. Poate extinde căutarea cu o semimutare peste adâncimea profilului, până la adâncimea 7, în alocația adaptivă configurată. Extensia și fereastra de 50 cp pentru candidații rădăcină sunt fixate în `rook-endgame` din YAML. Guvernanța respinge extensii sau ferestre în afara limitelor validate.
 
@@ -21,7 +21,7 @@ Basic caută două semimutări în pozițiile obișnuite și trei în finalurile
 
 Indiciul folosește nucleul de căutare Hard independent de nivelul adversarului. Fiecare orizont complet evaluează toate mutările legale de la rădăcină prin aceeași frontieră tactică. Până la 150.000 de noduri din alocația unică de 200.000 verifică liderul și un candidat de la alt orizont complet. Ambele faze împart cache-ul exact și ordonarea. Replicile verificate cu o singură rădăcină păstrează o alocație inițială mai mare. O iterație mai adâncă întreruptă păstrează ultimul rezultat complet. Un lider schimbat la orizont impar cere confirmare la un orizont cu ture egale înainte de a înlocui rezultatul susținut. Lista arată cel mult trei prime mutări distincte, la maximum 25 cp sub lider. La mat rămân doar variantele cu același rezultat și aceeași distanță. Rejucarea folosește continuarea evaluată, fără o căutare nouă sau o replică adăugată fără evaluare. Estimarea statică explică tabla afișată și nu reordonează rezultatul căutării. [Citirea diferenței](README.md)
 
-La Hard, într-o poziție cu material egal, clasamentul disponibil după patru semimutări folosește și scorul aceleiași mutări la trei. Contribuția liniei mai scurte este limitată. Pentru o mutare liniștită, creditul scade când linia provizorie sugerează un câștig de peste un pion. Maturile și remizele evaluate păstrează scorul terminal. Dacă bugetul împiedică încheierea adâncimii șase sau liderul se schimbă la acea adâncime, motorul păstrează ultima căutare completă. Căutările explicite și comparațiile pentru îndrumare folosesc bugetele declarate.
+La Hard, într-o poziție cu material egal, clasamentul disponibil după patru semimutări folosește și scorul aceleiași mutări la trei. Contribuția liniei mai scurte este limitată. Pentru o mutare liniștită, creditul scade când linia provizorie sugerează un câștig de peste un pion. Maturile și remizele evaluate păstrează scorul terminal. Dacă adâncimea șase sau confirmarea liderului schimbat la acea adâncime nu se încheie, motorul păstrează ultima căutare completă. Căutările explicite și comparațiile pentru îndrumare folosesc bugetele declarate.
 
 Basic, Advanced și Hard împart catalogul documentat de deschideri. Replica verificată pentru un profil are prioritate, urmată de prima continuare documentată a poziției curente exacte. Drepturile de rocadă și en passant rămân parte din identitate. Alt răspuns uman selectează ramura corespunzătoare, iar ieșirea reală din teorie readuce căutarea obișnuită a profilului. Selecția este deterministă. Excluderile rezervate analizei își păstrează domeniul. Teoria de rezervă a jocului nu intră în generarea indiciilor; replicile verificate pentru îndrumare și continuările căutate își păstrează domeniul. Încărcarea verifică legalitatea, pozițiile duplicate și maturile într-o mutare. [Repertoriu YAML](../../chess-core/src/main/resources/ai-repertoire.yaml)
 
@@ -896,7 +896,7 @@ limitat la dovada matului, păstrează acești martori. Al doilea lot, cu 24 de 
 legale noi de turnuri/pioni, înghețat după algoritm și înaintea ieșirilor sale, nu are regresii
 WDL la H17/H19. Sunt poziții de verificare, nu probleme publice noi sau partide Elo.
 
-### Dovezi pe întregul catalog curent
+### Reperul calificării maturilor cu turnuri
 
 | Observație | Rezultat calificat |
 |---|---:|
@@ -937,3 +937,54 @@ Dovezi: `C:\work\sah\studii\2026-11-18-j7-rook-root-reentry`. README-ul indică 
 recepțiile canonice și de apărări libere, oracolul cu origini păstrate, cele 80 de lecții YAML
 și 43 de priorități la prima pierdere. Nu s-au schimbat lookup-uri FEN runtime, acceptarea
 catalogului, numărul public de probleme, politica nativă sau Elo-ul afișat.
+
+## Confirmarea promovării prin schimb închis
+
+`training-107:1` a expus o eroare de oprire, nu lipsa nodurilor. După `f6g7 f8d8`, H4
+clasează `h8=Q` la +167 cp și dă lui `c5` o limită superioară de −109. H5 preferă linia
+cooperantă `c5 Re8 h8=Q Rxh8 Kxh8` la +190. H6 încheiat inversează ordinea: `c5 Rd7+` este
+−115, iar `h8=Q Rxh8 Kxh8` este +183. Veto-ul final de stabilitate păstra anterior H5.
+
+[Politica promovării](../../chess-core/src/main/resources/hard-promotion-exchange.yaml)
+permite o singură excepție structurală. PV-ul efectiv trebuie să închidă promovarea, capturarea
+ei și o recaptură legală pe caseta promovării, păstrând câștigul material minim configurat.
+Comparațiile candidat/lider cu fereastră completă trebuie să fie exacte, pozitive și strict mai
+bune la ambele orizonturi pare, precedent și final. Verificarea folosește aceeași alocație nativă;
+confirmarea întreruptă păstrează liderul și adâncimea încheiată anterioare. Politica runtime nu
+citește chei didactice, FEN-uri, scoruri de oracol sau bonusuri. [Implementare](../../chess-core/src/main/java/ro/atf/chess/PromotionExchangePolicy.java)
+· [Componente](../../atf-tests/src/test/java/ro/atf/chess/PromotionExchangePolicyTest.java)
+
+| Observație | Rezultat calificat |
+|---|---:|
+| Alegerea efectivă a promovării | `h8=Q`, H6, 15.589 de noduri suplimentare |
+| Probleme native canonice complete | 1.184 → 1.185 / 1.238 |
+| Etape canonice acceptate | 2.223 → 2.224 / 2.303; zero pierdute |
+| Funcționalitate dezactivată | Aceleași mutări, adâncimi, noduri și PV-uri în toate cele 2.303 decizii de referință |
+| Compoziții tematice neatinse | 48 de poziții / 24 de familii geometrice; 12 alegeri schimbate, fără regresie WDL la H17/H19 |
+| Joc advers extins | 178 de semimutări efective în șase contexte și două brațe; 90 de puncte de decizie nativă |
+| Audit independent de oracol | 463 de interogări H17/H19 cu cache gol, comenzi brute, scoruri exacte și PV-uri legale |
+
+La baza diagnostică de 15.588 de noduri, confirmarea se întrerupe și rămâne `c5`/H5. La 15.589,
+comparațiile exacte se încheie și `h8=Q`/H6 îl înlocuiește. Ambele păstrează maximul de 200k și
+capacitatea cache-ului. Publicarea curentă respinge un instantaneu străin al politicii încărcate.
+Plafonul runtime rămâne adaptiv 100k→200k noduri suplimentare; H3 inițial rămâne nebugetat.
+Media pe catalog se schimbă de la 15.537,58 la 15.537,99 noduri suplimentare. Nu se declară un
+câștig de latență sau Elo. Basic și Advanced păstrează analiza completă în fiecare context comparat.
+
+**Recuperarea canonică nu înseamnă conversia partidei.** În joc liber, referința remizează prin
+repetiție după `c5`. Candidatul ajunge la `h8=Q Rxh8 Kxh8 Ke4`, apoi pierde victoria cu `Kg7`
+în loc de `a4`; ambele orizonturi confirmă 500‰ pierdut. Linia se încheie cu remiză și regi goi
+după 12 semimutări. Acesta este următorul studiu de conversie, nu o partidă rezolvată.
+`training-051` alege încă `Ke6`, nu `Rc8+` câștigător. Cele 79 de ratări canonice rămase cuprind
+56 de pierderi WDL mari, 22 de obiective ratate cu victoria păstrată și un caz mai mic/dependent
+de adâncime. Din cele 53 de prime ratări didactice, 42 au pierdere mare; verifică și prefixele
+acceptate înainte de a declara prima pierdere WDL cronologică. Verdictul „toate problemele
+rezolvate” rămâne FAIL pentru 53 de probleme.
+
+Trec cele 121 de verificări țintite de componentă/raport, benchmarkul portabil complet de mat
+și patru verificări ale dovezilor brute. Toate cele 1.000 de probleme de mat păstrează fiecare
+ramură adversă legală. Studiul extern `C:\work\sah\studii\2026-11-18-j7-hard-training107-promotion`
+conține Extent, PGN-urile efective, cele 79 de lecții contextuale păstrate și tiparele YAML
+reutilizabile de promovare/tempo. Tiparele runtime generalizează geometria; lecțiile externe
+păstrează contraexemplele și proveniența în loc să memoreze tacit mutările câștigătoare.
+[Procedura repetabilă a studiului](../testing/hard-puzzle-study.md)

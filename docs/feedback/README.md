@@ -25,7 +25,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Căutarea Hard · generalizare | Recaptura selectivă pierde pe deschideri independente. | Cere progres independent la bugetul fix. |
 | P1 | Hard · conversia după captura de pion | Avantajul după captură poate fi pierdut ulterior. | Verifică păstrarea avantajului pe poziții și replici noi. |
 | P1 | Transferul tactică → partidă | Hard ratează tactici fără obiectiv declarat. | Măsoară detectarea și păstrează contractul rezolvării cu obiectiv. |
-| P1 | Hard fără obiectiv declarat · readmiterea mutărilor candidate | Hard obișnuit lasă 82 de etape nerezolvate în 56 de probleme canonice. | Recuperează soluțiile de mat ratate în finaluri de turn fără regresii pe catalogul complet și cu replici adverse independente. |
+| P1 | Hard nativ · conversie materială | Rămân 79 de etape canonice neacceptate în 53 de probleme; promovarea recuperată încă ratează conversia ulterioară. | Verifică `a4` față de `Kg7` după promovarea închisă, apoi transferul fără pierderea etapelor acceptate sau a remizelor apărate. |
 | P2 | Progres · upgrade Android | Upgrade-ul semnat mai cere o probă de progres. | Păstrează ID-urile, rezolvările și punctele după upgrade și restart. |
 | P2 | Calitatea AI · evaluare material | Scorul material diferă de Stockfish. | Redu abaterea la aceleași bugete. |
 | P2 | Calibrarea problemelor | Benzile de dificultate importate se suprapun. | Verifică timpul și încercările pe un lot amestecat separat. |
@@ -224,25 +224,26 @@ Adaugă cazuri negative țintite pentru proză copiată, titluri de secțiuni co
 <details>
 <summary>P1 · Hard fără obiectiv declarat · obiective materiale și primele pierderi WDL</summary>
 
-Cele două probleme de mat omise sunt închise prin readmitere limitată și confirmare cu fereastră
-completă. Toate cele 1.000 de probleme de mat existente trec acum contra fiecărei continuări
-adverse legale. Mecanismul și readmiterea generală respinsă aparțin [ghidului AI](../board/ai-quality.md#readmiterea-calificată-a-rădăcinilor-pentru-mat).
+Păstrează deschise 79 de etape neacceptate în 53 de probleme materiale: 56 au pierdere mare
+la ambele orizonturi Stockfish, 22 păstrează victoria, iar una e mai mică/dependentă de adâncime.
+Cele 42 de prime ratări didactice cu pierdere mare confirmată preced etapele condiționate
+ulterioare. Verifică și prefixele acceptate înainte de a declara prima pierdere cronologică.
+`training-051` încă remizează cu `Ke6` în loc să câștige cu `Rc8+`.
 
-Păstrează deschise 80 de etape neacceptate în 54 de probleme materiale: 57 au pierdere mare la
-ambele adâncimi Stockfish, 22 păstrează victoria, iar una e mai mică/dependentă de adâncime.
-Cele 43 de prime ratări didactice cu pierdere WDL confirmată preced etapele condiționate ulterioare. Verifică și prefixul acceptat înainte să declari prima pierdere WDL cronologică.
-`training-051` încă remizează cu `Ke6` în loc să câștige cu `Rc8+`; nu îl declara rezolvat prin fixul de mat.
+**Urmează conversia după promovarea recuperată.** După `h8=Q Rxh8 Kxh8 Ke4`, compară
+`a4` și `Kg7` la orizonturi comune, cu replici adverse libere. Ambele adâncimi Stockfish
+confirmă că `Kg7` nativ pierde 500‰, iar `a4` păstrează victoria. Continuarea efectivă de
+12 semimutări se încheie cu remiză și regi goi; acceptarea canonică nu închide această lacună.
+Păstrează contraexemple cu opoziție corectă, curse de pioni și finaluri remize, `training-021/051/065`,
+plafonul de 200k și porțile native pentru catalogul complet și maturi înainte de promovare.
 
-Începe studiul cauzal compact cu `training-107:1`: șase piese, `c5` față de `h8=Q`, H5,
-14.652 de noduri suplimentare și 500‰ pierdut la H17/H19. Stabilește dacă scorul încheiat sau
-regula de oprire elimină promovarea; nodurile nefolosite nu explică singure cauza. Păstrează
-`training-021`, `training-065`, `training-051`, poarta completă de non-regresie canonică și
-benchmarkul portabil de mat. Verifică replica efectivă la orizont comun, apoi transferul pe
-familii neatinse din partidele existente, înaintea măsurării Elo.
-
-Păstrează acceptarea didactică exactă, separând alternativele care păstrează victoria de pierderile
-WDL reale. Lecțiile și istoriile rămân în studiul extern. Prioritizează înțelegerea și rezolvarea
-catalogului curent înaintea extinderii; nu s-au adăugat chei runtime sau probleme publice noi.
-[Procedură repetabilă](../testing/hard-puzzle-study.md)
+Continuă auditul înghețat al celor șase contexte dincolo de prima ratăre didactică. Păstrează
+FEN-ul inițial, istoricul efectiv complet, ambele decizii native, adversarul efectiv, scorurile
+H17/H19 și lecția YAML contextuală. Rularea curentă înregistrează 178 de semimutări efective și
+463 de interogări brute de oracol. Celelalte 79 de analize native sunt identice cu producătorul
+anterior; proveniența lor veche de oracol rămâne atașată. Nu se declară probleme publice noi,
+lookup-uri FEN runtime sau câștig Elo.
+[Mecanismul calificat al promovării și limitele sale](../board/ai-quality.md#confirmarea-promovării-prin-schimb-închis)
+· [Procedură repetabilă](../testing/hard-puzzle-study.md)
 
 </details>
