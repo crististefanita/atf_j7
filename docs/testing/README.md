@@ -104,6 +104,8 @@ Regulile efective rejucă fiecare cadru și întreaga continuare documentată.
 
 `HintRecaptureRegressionTest` protejează comparația forțantă captură de pion/piesă, indiciul corect precedent, identitatea cache-ului încălzit/rece/dezactivat, schimburile întrerupte și YAML plafonat. [Corecția Caro–Kann măsurată](../board/ai-quality.md#indiciul-carokann-și-verificarea-recapturii-după-pionul-cu-șah)
 
+`HintQueenRecaptureTest` protejează atacul italian de dezvoltare asupra damei, recaptura legală de pion, cache-ul separat al seminței/comparației, păstrarea orizontului complet la întrerupere, identitatea tablei manuale/atingerii și ofertele corecte de damă. Dezactivarea limitei trebuie să reproducă vechiul indiciu. [Corecția italiană măsurată](../board/ai-quality.md#recaptura-damei-și-continuitatea-indiciului-italian)
+
 ### Colecția offline de indicii
 
 `HintAuditSessionTest` validează planul versionat, reluarea întregului istoric,

@@ -186,3 +186,5 @@ Studiul pereche din 18 noiembrie rulează efectiv `GameReview.analyzeLine` pe tr
 ## Analiza după corecția indiciului
 
 Corecția țintită a indiciului Caro–Kann păstrează rezultatul efectiv `GameReview.analyzeLine` identic după proiecția JSON pe toate cele șaizeci de mutări rejucate. Cele nouă neconcordanțe anterioare H17/H19 de clasificare rămân deschise. `6.e6` este încă etichetată BEST, iar `5.Nc3` din Siciliană BLUNDER. Istoricul păstrat și indiciul live corectat nu trebuie prezentate drept corectare a comparației din analiză. Nu se emite Elo pentru studiu. [Constatări legate de sursă](ai-quality.md#indiciul-carokann-și-verificarea-recapturii-după-pionul-cu-șah)
+
+Corecția italiană ulterioară a indiciului cu recaptura damei păstrează de asemenea exact JSON-ul Game Review pe aceleași șaizeci de mutări. Cele două studii noi de șaisprezece semimutări păstrează toate mutările și lipsa ratingului; nu închid cele nouă lacune de clasificare pereche. [Sursa și auditul italian](ai-quality.md#recaptura-damei-și-continuitatea-indiciului-italian)
