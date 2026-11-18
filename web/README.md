@@ -133,7 +133,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - The final position shows the match result.
 
 - The lightbulb clears the current selection and shows the recommended move. The suggestion button opens the line on the preview board, where arrows step through the moves without changing the match.
-- **Calculated line**, puzzle replay and Analysis board previews inherit the visible source board's side before opening. Stepping or switching lines retains that ceiling; reopening measures the current source again. A shorter window may shrink the preview to keep controls visible. The explanation scrolls separately.
+- **Calculated line**, puzzle replay and Analysis board previews inherit the visible source board's side before opening. Stepping or switching lines retains that ceiling; reopening measures the current source again. The square follows the shared Analysis board limit. Extra content scrolls rather than imposing a second height reduction on the preview.
 - Closing returns to the history ply, and reopening the slot resumes at the end of the match with the hint hidden. The analysis board also offers opening theory.
 - At the current position, tapping the marked destination plays the legal hint when there is no board selection. The browser calculates analysis in a separate worker.
 - Changing the position or leaving the match invalidates the previous result. [Component and UI checks](../docs/testing/README.md#analysis-in-the-ai-game)
@@ -141,18 +141,20 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 ### The board in puzzles and matches
 
 - In a mobile AI match, the board and evaluation bar together use the available width inside the shared page insets when width limits the square's side. When analysis is enabled, the bar and its gap occupy a strip on the left.
-- In a shorter window, the available height leaves room for the score, history, and lightbulb. Navigating history and reopening the slot retain the board rectangle.
+- Analysis board is the sizing reference. `board-layout.css` owns one adaptive limit, bounded by the shared column and the reference screen's header, navigation, feedback and seat rows. The reference geometry stays unchanged. Navigating history and reopening a slot retain the square.
 - Between the game arrows, show only the move that produced the selected position, for example **1. e2–e4** or **1… e7–e5**. **Start** identifies the initial position. The first move is amber and the latest is turquoise; a single move combines both cues. Accessible labels name the boundary as well. Continuation stays outside this row. `MatchHistorySelection` owns the JVM cursor; Web and APK adapters share fourteen cases, including capture, castling, promotion, reopening and branching.
 - Openings supplies the title-and-Back header pattern; Analysis board supplies the compact navigation controls. `chess-controls.css` shares title scale, 48 px arrows and position styling. `line-navigation.mjs` projects the boundary of the selected line. Game, study and preview adapters keep their own wording, complete history and branch selectors; switching a line retains its owner's cursor. Puzzle navigation keeps its hint or Danger control. Back returns to the context that opened the screen, and options stay anchored to their own trigger.
 - Header titles align to the logical start even inside a centered catalog. In a game, automation precedes the rightmost options button. Shared menus align with the nearest edge of their trigger, open below or above according to the available space, and remain inside the visible viewport. Verify the beginning of the title text, not only its expanding container.
 - The first AI setup has Back even before a game exists. Back and Cancel leave the form through the same action and retain the saved game that opened it.
-- New game, saved games and study screens use `--play-column`, the same page insets and the base palette from Analysis board. Compact landscape reduces the page inset for every screen. The header does not acquire a wider canvas than its content. Board owners reserve room for their visible meter, score, history and explanations before sizing the square; a shared column does not remove those contextual reservations.
+- New game, saved games and study screens use `--play-column`, the same page insets and the base palette from Analysis board. Compact landscape reduces the page inset for every screen. The header does not acquire a wider canvas than its content. A visible evaluation bar uses the common 8 px rail and 5 px gap; the square uses the remaining width up to the shared limit.
 - A different game or study route resets inherited document scroll before displaying its content. Stepping through moves on the same screen preserves the page position; Back and Forward do not add a duplicate route entry.
-- A puzzle measures its square inside the remaining board-and-details area, after the header, score, turn and footer have taken their space. Keep two text lines available below the board and the 48 px controls visible; a fixed minimum square must not push the footer beyond a short window.
+- Puzzles, AI matches, reopened saved matches and Openings consume that same reference limit. Puzzle scores or longer explanations do not subtract a second height allowance. On short windows the page may scroll to its 48 px controls; text and controls must remain accessible without overlap or horizontal overflow.
 - [Compact RO/EN check](../docs/testing/README.md#analysis-in-the-ai-game)
 
-Puzzles size the board from the available space after reserving room for
-controls and the explanation. [Size verification](../docs/testing/README.md#web-engine-parity)
+`ChessWebBoardSizingTest` checks ten independent size fixtures, including rails,
+short windows and larger text. `BoardSizingGovernanceTest` keeps one CSS owner
+and prevents a second height reduction in its consumers. Browser MCP supplies
+the rendered comparison. [Size verification](../docs/testing/README.md#opening-the-web-menu)
 
 ## Saved and finished matches
 
@@ -307,7 +309,7 @@ For the public check, pass the URL from the README as the last argument and add 
 - **Analysis board** (`#analysis`) uses `AnalysisLine` for moves, branching, and the cursor. The evaluation bar sits on the left, and the selection stays visible in the history and controls row. Game Review returns to the selected position. **Continue as a saved game** reserves a free slot and keeps the orientation and AI reply setting.
 
 - In puzzles and matches, the three-line menu opens below its button without moving the board. Escape closes the menu and returns focus to the button.
-- Clicking outside closes it. The Openings board uses the same limit based on window size and reserves space for the evaluation bar, explanation, and controls.
+- Clicking outside closes it. The Openings board uses the Analysis board limit and shared evaluation rail. Longer explanations scroll independently.
 
 ### Explanations and upgrade progress
 

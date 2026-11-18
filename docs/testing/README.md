@@ -134,9 +134,9 @@ Every ply, including an opposing reply, requires the actual history-aware Hard a
 - For the initial color, `MatchSetupTest` and `ChessWebParityPublication#packagedWorkerResolvesAndSavesTheSharedColorChoices` use the same fixture with explicit outcomes for White, Black, and both random results. The report verifies the number of draws, orientation, turn, and color retention after reopening.
 - The test adapter also checks rejection of an AI reply from an expired revision. `ChessWebShellTest` compares the order and RO/EN option text with Android resources.
 
-`ChessWebStudyShellTest` checks without a browser that the boards in Puzzles and Games use the same CSS rule and keep controls within the game structure. In the browser probe, measure the board and visible control rectangles on both screens at 360 × 640 and 1280 × 900 CSS px with text at 130%. After the first move, verify that the board stays fixed, history fits, and the document needs no scrolling on these profiles. [Sizing rule](../../web/README.md#the-board-in-puzzles-and-matches)
+`ChessWebStudyShellTest` checks the common rule and control structure. `ChessWebBoardSizingTest` evaluates the actual CSS expressions against ten independent fixtures for screen width, height, rail and text scale, including rejected arithmetic inputs. `BoardSizingGovernanceTest` checks the single sizing owner and the consumers' scroll policy. These components qualify the contract; they do not replace browser layout measurement.
 
-The MCP probe measured the same side length on both screens, 324 px on the compact profile in RO and 469.8 px on desktop in EN. At 320 × 480 in RO, both boards retain a side length of 249.6 px and can scroll vertically to keep controls accessible.
+In Browser MCP, use Analysis board as the reference at the same viewport and text size. Compare Puzzles, AI, reopened Saved games and Openings at 360 × 640, 740 × 420 and 1280 × 900 CSS px. Measure the square, rail and controls before and after navigation. Extra content may scroll vertically; it must not squeeze the square again or overlap controls. Preserve 48 px targets, all eight ranks and no horizontal overflow. [Sizing rule](../../web/README.md#the-board-in-puzzles-and-matches)
 
 ### Menu and hint parity
 
@@ -215,13 +215,12 @@ receipts, distorted coordinates, and deviations from the common line.
   after measuring the usable space without the system bars and reserving room
   for players and controls. The measured Android profile leaves a 694 × 665 px
   rectangle for the board after reserving the evaluation bar and gap. The 665 px
-  side (332.5 dp) reaches the height limit. On the Web at 360 × 640 CSS px, the
-  350 px board, 8 px bar, and 2 px gap use the full usable width. The bar remains
-  visible along the full height to the left of the board. The hint button retains
-  a visible target of at least 48 units in each adapter. At 320 × 568 CSS px and
-  130% text, height limits the Web board to 279.6 CSS px. Verify that the arrows
-  preserve the coordinates and the hint button fits without scrolling. On the
-  Web, **Mate in 1** keeps its rectangle after solving, Next, and Back.
+  side (332.5 dp) reaches the height limit. The Web follows the shared Analysis
+  board reference instead of the native geometry. Its 8 px rail and 5 px gap
+  remain alongside the full square. Compare the Web result with Analysis at
+  the same viewport and text size. The hint retains a 48 px target; on short
+  pages, scroll to it without changing the square. **Mate in 1** keeps its
+  rectangle after solving, Next, and Back.
 
 </details>
 
