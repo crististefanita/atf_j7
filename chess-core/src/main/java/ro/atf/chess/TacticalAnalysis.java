@@ -192,6 +192,7 @@ public final class TacticalAnalysis {
     private static SearchBudget hintBudget(int nodes) {
         var budget = new SearchBudget(nodes, MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies(),
                 MatchAiPolicy.CURRENT.hardTranspositions.entryLimit(nodes));
+        budget.queenPieceRecaptureExtension = Math.min(1, MatchAiPolicy.CURRENT.hint.verificationRecapturePlies());
         budget.checkOrderBonus = MatchAiPolicy.CURRENT.hardOrdering.checkBonus();
         budget.quietMoveOrdering = new QuietMoveOrdering();
         return budget;
@@ -982,7 +983,7 @@ public final class TacticalAnalysis {
         // Cache only exact lines; the key preserves mate distance, objective, horizon and tactical extension.
         var key = budget != null && budget.transpositionLimit > 0
                 ? new SearchTranspositionKey(position.searchKey(), left, distance, objective, budget.tacticalExtension,
-                        budget.recaptureExtension, budget.queenRecaptureExtension) : null;
+                        budget.recaptureExtension, budget.queenRecaptureExtension, budget.queenPieceRecaptureExtension) : null;
         if (key != null) {
             var cached = budget.transpositions.get(key);
             if (budget.adaptive != null) budget.adaptive.lookup(cached != null);
@@ -1109,10 +1110,12 @@ public final class TacticalAnalysis {
     private static Line settle(ChessPosition position, int left, int distance, int alpha, int beta, SearchBudget budget,
                                int lastCapture, int recapturesLeft) {
         if (left == 0 && recapturesLeft < 0) {
-            // A queen capture is not a completed exchange while an opposing pawn can legally recapture it.
+            // A queen capture is not a completed exchange while the opponent can legally recapture it.
             // Resolve this once within the existing verification budget, rather than rejecting the queen offer.
-            recapturesLeft = budget.queenRecaptureExtension > 0 && pawnCanRecaptureQueen(position, lastCapture)
-                    ? budget.queenRecaptureExtension : 0;
+            recapturesLeft = budget.queenPieceRecaptureExtension > 0 && nonPawnCanRecaptureQueen(position, lastCapture)
+                    ? budget.queenPieceRecaptureExtension
+                    : budget.queenRecaptureExtension > 0 && pawnCanRecaptureQueen(position, lastCapture)
+                            ? budget.queenRecaptureExtension : 0;
             if (recapturesLeft > 0) budget.queenRecaptures++;
         }
         boolean recapturing = left == 0 && lastCapture >= 0 && recapturesLeft > 0;
@@ -1157,6 +1160,14 @@ public final class TacticalAnalysis {
                         && position.pieceAt(move.from()).kind() == Kind.PAWN);
     }
 
+    private static boolean nonPawnCanRecaptureQueen(ChessPosition position, int square) {
+        if (square < 0) return false;
+        var victim = position.pieceAt(square);
+        return victim != null && victim.kind() == Kind.QUEEN && victim.side() != position.turn()
+                && position.legalCapturesAndPromotions().stream().anyMatch(move -> move.to() == square
+                        && position.pieceAt(move.from()).kind() != Kind.PAWN);
+    }
+
     private static int captureOrder(ChessPosition position, Move move) {
         var victim = position.pieceAt(move.to());
         var attacker = position.pieceAt(move.from());
@@ -1171,7 +1182,8 @@ public final class TacticalAnalysis {
     }
 
     private record SearchTranspositionKey(ChessPosition.SearchKey position, int left, int distance, Objective objective,
-                                         int tacticalExtension, int recaptureExtension, int queenRecaptureExtension) { }
+                                         int tacticalExtension, int recaptureExtension, int queenRecaptureExtension,
+                                         int queenPieceRecaptureExtension) { }
 
     private record RookSearchPath(RookSearchPath previous, ChessPosition.SearchKey position) { }
 
@@ -1286,6 +1298,7 @@ public final class TacticalAnalysis {
         private final int tacticalExtension;
         private int recaptureExtension;
         private int queenRecaptureExtension;
+        private int queenPieceRecaptureExtension;
         private int queenRecaptures;
         private final int transpositionLimit;
         private int checkOrderBonus;

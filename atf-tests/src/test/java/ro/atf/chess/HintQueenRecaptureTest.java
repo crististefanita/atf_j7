@@ -18,7 +18,7 @@ class HintQueenRecaptureTest {
         var search = TacticalAnalysis.verifiedHints(game.position(), 200_000);
         check.same("The H17/H19 witness replaces Na4 by the developing queen attack", List.of(move("c3d5")),
                 search.lines().stream().map(TacticalAnalysis.Variation::move).toList());
-        check.same("The search retains its executed seed and selection horizons", List.of(4, 6, 200_000),
+        check.same("The search retains its executed seed and selection horizons", List.of(4, 5, 200_000),
                 List.of(search.seedDepth(), search.selectedDepth(), search.extraNodes()));
         check.same("A stored opening exception does not choose this recommendation", null, OpeningRepertoire.CURRENT.reply(game.position()));
         var hint = game.hintAt(game.ply()); hint.revealNext();
