@@ -222,12 +222,27 @@ Add focused negative cases for copied prose, disclosure captions, link captions 
 </details>
 
 <details>
-<summary>P1 · Native Hard · rook-root re-entry and puzzle transfer</summary>
+<summary>P1 · Native Hard · remaining material goals and first WDL losses</summary>
 
-Ordinary Hard completes 1,182/1,238 canonical exercises; 82 stages fail in 56 exercises. Fixed 200k/H6 recovers 0/82, 200k/H7 20/82 and 500k/H7 26/82. These are frozen-miss diagnostics, not complete-catalog candidate qualifications. Preserve the 500/500 and 300/300 solved mate chapters and the native/goal-solver distinction.
+The two omitted mates are closed by bounded, full-window-confirmed mate readmission. All
+1,000 existing mating exercises now pass against every legal defender continuation. Their
+mechanism and rejected general readmission belong to the [AI guide](../board/ai-quality.md#qualified-rook-mate-readmission).
 
-Prioritize `mate3-04iY6` and `mate3-019gx`: both lose a forced mate according to Stockfish H17/H19, even at 500k. The rook-endgame search permanently removes roots after short-horizon selection. An external re-entry prototype recovers both keys inside 200k but fails `training-051`, which the oracle grades as win→draw. Do not substitute more nodes for proving which roots disappeared or why. Require complete-catalog non-regression, retained rook/draw witnesses, unseen related families and actual free defenses before integration; measure paired ΔElo only after that gate.
+Keep the 80 unaccepted stages in 54 material exercises open: 57 have a large loss at both
+Stockfish depths, 22 preserve the win and one is smaller/depth-sensitive. The 43 confirmed
+first-loss contexts take priority over conditional later stages. `training-051` still draws
+with `Ke6` instead of winning with `Rc8+`; do not declare it fixed by the mate work.
 
-Five other inspected material stages preserve a win despite missing the educational goal. Keep exact-goal failure and verified WDL loss separate; do not relabel accepted variants, relax the goal or claim all puzzles solved. [Method, full inventory and evidence](../testing/hard-puzzle-study.md)
+Start the compact causal study with `training-107:1`: six pieces, `c5` versus `h8=Q`, H5,
+14,652 additional nodes, 500‰ lost at H17/H19. Establish whether the completed score or stopping
+rule discards promotion; unused nodes alone do not diagnose the cause. Retain `training-021`,
+`training-065`, `training-051`, the full canonical non-regression gate and the portable full-mate
+benchmark. Verify the actual opposing reply at a common horizon, then transfer to untouched
+existing-game families before measuring Elo.
+
+Preserve exact educational acceptance while distinguishing win-preserving alternatives from
+real WDL losses. Keep the contextual lessons and histories under the external study. Prioritize
+understanding and resolving the current catalog before extending it; no runtime key lookup or
+new public puzzles were added. [Repeatable procedure](../testing/hard-puzzle-study.md)
 
 </details>

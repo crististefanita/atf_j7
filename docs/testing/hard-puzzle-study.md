@@ -53,38 +53,32 @@ onto a composed position, altered clocks and cross-origin comparisons. A failed 
 curriculum stage may still preserve a win; distinguish that from a verified WDL loss before
 changing either the engine or the acceptance contract.
 
-## Measured baseline and next experiment
+## Qualification and next steps
 
-Producer `711dff3f1bbb4c14aad682e7c319988dd35fce49` measures 1,238 exercises and 2,303
-canonical player stages. The later receipt-reader correction changes no engine or search data.
+Use `RookRootReentryTest` for the two formerly omitted mate roots, both colors and all legal
+defenses. `NativeMateAudit` owns the shared native traversal. Run the complete portable
+benchmark from the external checkout to recompute every existing mating exercise:
 
-| Chapter | First accepted | Canonical complete | Accepted stages |
-|---|---:|---:|---:|
-| Mate in 1 | 500/500 | 500/500 | 500/500 |
-| Mate in 2 | 300/300 | 300/300 | 600/600 |
-| Mate in 3 | 198/200 | 198/200 | 598/600 |
-| Tactics | 93/100 | 85/100 | 201/221 |
-| Training | 94/114 | 77/114 | 273/330 |
-| Intermezzo | 24/24 | 22/24 | 49/52 |
-| Total | 1,209/1,238 | 1,182/1,238 | 2,221/2,303 |
+```powershell
+mvn test '-Dtest=NativeMateDefenseBenchmarkTest' "-Dchess.extent=$study/native-mates.html"
+```
 
-There are 82 failed stages in 56 incomplete exercises. On exactly those stages, fixed 200k/H6
-recovers none, 200k/H7 recovers 20, and 500k/H7 recovers 26. All twenty recoveries survive the
-larger profile. These arms do not remeasure successful stages or prove non-regression.
+It calls the ordinary opponent before consulting the educational acceptance result. Every
+legal defender move is explored, every actual native choice retains its depth, nodes and PV,
+and every terminal board must be mate within the original goal. It does not use a declared-goal
+solver or need an emulator. Keep the full canonical benchmark for material exercises separately.
 
-Eight failed stages selected before oracle analysis receive 50 raw H17/H19 FEN-origin queries.
-Both depths confirm that `mate3-04iY6` and `mate3-019gx` turn mate in three into a loss under
-all three budget overlays. `training-051` turns a win into a draw. The five other inspected
-stages preserve a win under the oracle despite failing the curriculum goal; do not label them
-five confirmed blunders or relax their goal silently.
+After a change, compare every previously accepted canonical stage and freeze untouched transfer
+families before inspecting outputs. Preserve an interrupted-confirmation negative, exact-cache
+and repetition controls, and the current budget. A valid receipt and a legal PV do not substitute
+for the quality verdict. Retain rejected variants even when their catalog total improved.
 
-The rook-endgame search retains only its scored shortlist as roots for the next horizon.
-A diagnostic prototype readmitting all legal roots recovers both mating keys at 40,478 and
-139,520 additional nodes, but still fails `training-051`. It remains external: three positions
-do not qualify transfer, complete-catalog non-regression, free-defense conversion or Elo.
-Use both mates, sound root exclusions, `training-051` and untouched rook families to test
-whether a bounded re-entry policy can preserve correctness without unmeasured regressions.
+Classify all still-unaccepted stages with both oracle depths. Start with the first actual WDL
+loss, not a later state reached only through a reference intervention. Save the initial FEN,
+complete prefix, played move, curriculum key, actual search and opposing oracle line. Keep
+win-preserving educational misses distinct; never feed a memorized key into ordinary Hard.
+Prioritize the current catalog before adding public exercises. New verification compositions
+are separate transfer evidence, not additions to the app.
 
-Evidence: `C:\work\sah\studii\2026-11-18-j7-sicilian-candidate-coverage`. Start with its README,
-then the full-catalog integrity/quality reports and the separate budget/oracle diagnostics.
-[Current closure criteria](../feedback/README.md#overview)
+[Current measured inventory and mechanism](../board/ai-quality.md#qualified-rook-mate-readmission)
+· [Open work](../feedback/README.md#overview)

@@ -869,3 +869,75 @@ quality still fails at the unchanged 150‰ boundary.
 Evidence: `C:\work\sah\studii\2026-11-18-j7-sicilian-candidate-coverage`.
 [Components](../../atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java) ·
 [Hint audit](../testing/hard-hint-study.md) · [Native puzzle baseline](../testing/hard-puzzle-study.md)
+
+## Qualified rook mate readmission
+
+The 18 November closed-mate producer `cc37530be13cf5ade582b3e1d42784fcc4b28e21`
+recovers `mate3-04iY6` (`Kc4`, replacing `Kxd4`) and `mate3-019gx` (`Ra4+`, replacing
+`Ra8+`). The selected proofs complete H5 at 19,865 and 75,415 additional nodes.
+Both forced mates are checked against every legal defense, including the color-reversed
+positions. Native analysis receives no quest ID, key, defense or declared mate length.
+
+Ordinary rook search keeps its validated shortlist and completes its configured horizon
+first. If it has no winning mate, roots omitted from that shortlist may re-enter for a
+mate proof. Checks are ordered first, and deeper odd proof horizons start beyond the
+already searched H3. A narrow mate-threshold search only nominates a candidate. It must
+then complete a full-window confirmation at the same proof horizon, using the same
+remaining allowance, cache and repetition context. Only a confirmed positive mate replaces
+the incumbent; a failed or interrupted proof leaves the completed choice intact. The
+selected report records H5 when H5 proved the mate, rather than borrowing the prior H7 label.
+
+At a 19,864-node adaptive base, confirmation is interrupted and `Kxd4`/H7 survives.
+At 19,865, the exact `Kc4`/H5 proof completes. The maximum remains 200k in both probes,
+so cache capacity and the shared ceiling remain fixed. Existing repetition and draw
+controls pass. [Implementation](../../chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java)
+· [Targeted component tests](../../atf-tests/src/test/java/ro/atf/chess/RookRootReentryTest.java)
+
+General readmission at every depth was rejected: it improved three catalog stages but
+lost wins in `held-rook-08` and `held-rook-12` at both Stockfish depths. Spending the budget
+on more roots prevented the old winning H7 response from completing. The qualified mate-only
+scope preserves these controls. A second cohort of 24 new legal rook/pawn compositions,
+frozen after the algorithm and before its outputs, has no root-WDL regression at H17/H19.
+They are verification positions, not new public puzzles or Elo games.
+
+### Complete current puzzle evidence
+
+| Observation | Qualified result |
+|---|---:|
+| Canonical native exercises complete | 1,184/1,238, previously 1,182 |
+| Canonical stages accepted | 2,223/2,303, previously 2,221 |
+| Previously accepted stages lost | 0 |
+| Existing mate-in-1 / mate-in-2 / mate-in-3 chapters | 500/500 · 300/300 · 200/200 |
+| All legal defending continuations in the mate chapters | 1,500 terminal branches, zero failed |
+| Current educational stages still unaccepted | 80 in 54 material exercises |
+
+The exhaustive mate audit retains the 1,000 actually selected initial moves, then records
+1,236 fresh native continuation decisions. Its independent receipt replay consumes every
+legal defender branch exactly once. The portable `NativeMateDefenseBenchmarkTest` independently
+recomputes all 2,236 native choices, with the same 1,500 mating leaves. It shares
+`NativeMateAudit` with the targeted tests; no emulator, external data directory or declared-goal
+solver is required. [Commands and distinction from objective-aware solvers](../testing/hard-puzzle-study.md)
+
+Stockfish H17/H19 now grades all 80 remaining canonical misses, not a selected sample.
+57 stages have a loss of at least 150‰ at both depths; 22 preserve the win at both depths
+despite missing the educational goal; one has a smaller or depth-sensitive loss.
+Among the 54 first missed stages, 43 already have a large loss at both depths. Later stages
+after a reference intervention remain marked conditional evidence, not independent games.
+All curriculum keys stay below the existing large-loss boundary at both depths.
+
+`training-051` remains `Ke6` instead of winning `Rc8+`; both oracle depths confirm win→draw.
+The mate fix does not claim this non-mating endgame solved. The next compact study case is
+`training-107:1`: six pieces, `c5` instead of `h8=Q`, H5 and 14,652 additional nodes,
+with a 500‰ loss at both depths. Isolate the completed score and stopping decision before
+changing weights or adding nodes. Preserve the unchanged winning alternatives and the mate gate.
+
+Full-catalog mean additional work rises from 14,371.56 to 15,537.58 nodes; p95 stays at
+100k and the maximum at 200k. These are deterministic work counts, not isolated latency or
+an Elo measurement. Ordinary native H3 remains separately unbudgeted. The 146 component/report
+checks pass; the new portable full-mate benchmark also passes. The all-exercises-solved
+quality verdict remains FAIL for the 54 incomplete material exercises.
+
+Evidence: `C:\work\sah\studii\2026-11-18-j7-rook-root-reentry`. Its README routes to
+Extent, all raw canonical and free-defense receipts, original-source oracle projections,
+80 contextual YAML lessons and the 43 first-loss priorities. No runtime FEN lookup,
+catalog acceptance rule, public puzzle count, native policy or Elo display was changed.
