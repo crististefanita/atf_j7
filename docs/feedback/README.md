@@ -9,8 +9,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
-| P1 | Hint · whole opposing continuation | The reported valuable-piece-for-pawn tail has no supplied position; legal PVs alone do not exclude a weak opposing reply. | Mine newly admitted games, grade every offered PV ply at H17/H19, retain a concrete witness and preserve sound sacrifices before changing search. |
-| P1 | Learning · per-move admission | Historical games without pre-move Hard and maximum public hint do not meet the current learning contract. | Keep only full White/Black journals with exact source, history, allowance and independent replay; retire noncompliant games. [Admission](../testing/learning-archive.md) |
+| P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation within 200k, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Documentation · translation safeguards | The paired gate checks structure and links while prose and examples still need semantic review. | Detect copied prose and changed examples with focused negatives while preserving technical literals and immutable evidence. |
@@ -33,6 +32,31 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P2 | AI quality · material evaluation | The material score differs from Stockfish. | Reduce the discrepancy with fixed search budgets. |
 | P2 | Puzzle calibration | Imported difficulty bands overlap. | Check attempts and time on a separate shuffled set. |
 | P2 | Android · separating screen transitions | The Android screen owns several session transitions. | Move transitions into a JVM-tested owner. |
+
+## Weak opposing replies inside public hints
+
+The new maximum-hint journal `learning-max-hint-20261118`, producer
+`8d564655b554d817fea4e3a04723a538ae5f3864`, records every actual White/Black move
+before play. After `1.e4`, offer two includes
+`…Nf6 Qf3 …Nc6 Bc4 …e6 Bxe6 …dxe6 Qxf6`. At White's `Bxe6` phase, independent
+free searches prefer `Nc3`: expected WDL is 382‰/399‰ at H17/H19 versus 0‰/0‰
+with `Bxe6` forced. The full hypothetical prefix, raw UCI and both horizons remain
+in `C:\work\sah\.studii\corpus\2026-11-18-v1\deep-oracle`.
+The repeated opening position in three traces is one context, not three families.
+
+This confirms a weak opposing continuation, not necessarily the user's exact
+unprovided position. The public hint was actually requested at 200k. Integrity
+still passes; absolute hint quality fails. Do not close this item by appending an
+unscored recapture, hiding the secondary offer or banning sacrifices. Compare
+complete roots and free opposing replies at common native horizons within the
+same total budget. Preserve `…Qg3 hxg3 …Rh1#` and the Italian/Caro/Sicilian
+controls. Mark an unproved horizon honestly; never label a legal PV optimal merely
+because its material ledger matches.
+
+Use the [admission contract](../testing/learning-archive.md) for future games.
+Historical game bodies without current admission are retired. Source fixtures,
+release evidence, unresolved problem definitions and original oracle references
+are separate from the active learning corpus.
 
 ## Evidence and Closure Checks
 

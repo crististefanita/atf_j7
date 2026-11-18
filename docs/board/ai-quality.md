@@ -78,7 +78,7 @@ After `1.e4`, the old hint ended at `…Nc6 Bb5 …Nd4 Bc4 …Nxc2+` before `Qxc
 
 The hint now charges the initial horizons, exchange frontier, and root comparison to one 200,000-node allowance. Capture and recapture use the same frontier when ranking alternatives. Alpha-beta cutoffs are bounds and cannot enter the exact-result cache. Playback preserves the scored line and the source checkpoint. A static replay estimate cannot silently replace that ranking.
 
-The controls include the queen sacrifice `Qxc8+` leading to mate in three and the knight sacrifice `Ng6+ hxg6 Rh4#`. A negative material balance alone cannot reject a sacrifice. Stockfish 19 checks the critical roots at depths 17 and 19 with the opponent's replies free. Cold-engine receipts, public replay, and the Extent reports are retained in `C:\work\sah\studii\2026-11-17-j7-hint-repair`. This correction does not establish a new Elo rating or guarantee optimal play in every position.
+Historical study `2026-11-17-j7-hint-repair` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 [Hint contracts](../../atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java) · [Read-only replay](../../atf-tests/src/test/java/ro/atf/chess/HintPreviewTest.java) · [Opening profiles](../../atf-tests/src/test/java/ro/atf/chess/OpeningPlayTest.java)
 
@@ -99,7 +99,7 @@ The Stockfish numbers compare the tested roots with opposing replies free. They 
 
 ## First move-by-move collection
 
-`opening-hints-v1` retains 24 path decisions and nine matched-position budget controls from [the audited source](https://github.com/crististefanita/chess/commit/a7e71d9412323603847c20da220c8554903ae9be). Independent replay validates 539 PV plies, 233 opposing-reply facts, clocks, rights, material, SAN PGN and receipt hashes. Twelve unavailable rank requests explicitly fall back to the first offered suggestion. The data is under `C:\work\sah\colectii\hint-hard\2026-11-17-v1`.
+Historical study `opening-hints-v1` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 The H17/H19 audit separates the first recommendation from the deliberately played rank. It finds five leader decisions with at least 150‰ expected-score loss at H19. One deliberately selected `Bg5` loses 484.5‰ while that position's leader loses 9‰. Neither number establishes an Elo rating. The first collection remains immutable when later algorithms are evaluated.
 
@@ -145,7 +145,7 @@ The November 18 calibration uses source `772251450f5d8cf337f8f31c18734f5601043e8
 
 The bootstrap uses openings as units with 20,000 samples. The cap is 220 plies; unfinished games remain distinct from draws. The difference from the configured anchor is +7 Elo, interval −143…+156. This is not a human rating or evidence of improvement over the previous Hard: the correction concerns hints and the native decision algorithm is unchanged. The app's anchors retain their governed evidence.
 
-The first run stopped after 49 games and a partial game because the validator rejected a legal rook repetition. After correcting the validator, the entire sample was restarted; the interrupted run is retained separately and excluded from the estimate. All 208 production classes were identical between those launches. Later, three hint-path collections were expressed compatibly with API 26 without changing the Hard decision. Evidence is under `C:\work\sah\studii\2026-11-17-j7-italian-calibration`; the qualified report is `league/qualified/qualified-extent.html`. [Native protocol and command](../testing/hard-audit.md)
+Historical study `2026-11-17-j7-italian-calibration` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 
 ## Native frontier study and quest audit
@@ -175,7 +175,7 @@ The puzzle benchmark incorrectly used the explicit 44k allowance for every adapt
 | Training | 94/114; 40/48 on the frozen sample | 39/48 |
 | Intermezzo | 24/24 | 24 |
 
-These are accepted first decisions, not complete native conversions of every puzzle. They neither measure Elo nor automatically train the engine. Evidence and two YAML lessons with replies and counterexamples are under `C:\work\sah\studii\2026-11-18-j7-native-italian`. [Position audit and negative contracts](../testing/hard-audit.md#position-only-puzzle-audit)
+Historical study `2026-11-18-j7-native-italian` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 ## Checks for every change
 
@@ -804,7 +804,7 @@ Replaying the same 60 historical checkpoints changes only this public decision. 
 
 Sixteen development histories exposed the rejected general scope. After freezing sixteen other PGN histories with a potential forcing-pawn context, two leaders improve at both oracle depths: H19 loss falls from 243.5‰ to 8‰ and from 88‰ to zero, without a new leader loss in that set. These are distinct historical game checkpoints, not sixteen statistically independent opening families. The first case retains a deficient secondary offer at 243.5‰; it remains open work. Actual Game Review preserves all sixty turns and its previous nine classification disagreements. A hint correction does not certify review grades.
 
-The source-qualified collection and rejected experiments are retained in `C:\work\sah\studii\2026-11-18-j7-caro-hint-recapture`. [Component and negative contracts](../../atf-tests/src/test/java/ro/atf/chess/HintRecaptureRegressionTest.java) · [Policy](../../chess-core/src/main/resources/match-ai.yaml) · [Audit and publication](../testing/hard-hint-study.md) · [Remaining quality gaps](../feedback/README.md)
+Historical study `2026-11-18-j7-caro-hint-recapture` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 ## Italian queen recapture and hint continuity
 
@@ -818,7 +818,7 @@ Producer `3b1e7ed1a4f2659b544d29732848d8078c5f3abc` replays the same sixty histo
 
 The rejected broad activation regressed an independent leader from 132‰ to 274‰ loss. Its sixteen inspected histories are development controls, not a fresh validation claim. After narrowing and freezing sixteen other opening histories, one leader improves from 339.5‰ to 17‰ and another declines from 0‰ to 13.5‰; no new leader crosses 150‰ there. The development set separately retains a 0‰ to 18.5‰ decrease. These targeted queen-pressure samples do not prove global strength or perfect secondary offers.
 
-Two fresh sixteen-ply thematic studies follow `Nd5` and the deliberately inferior `Na4` prefix with new Stockfish replies. Their 32 plies are reported separately from the matched sixty; overlapping prefixes are not independent games. The full collection validates 1190 raw H17/H19 requests, including diagnostic comparison roots. All five games are capped with result `*`, so neither new Elo nor native ΔElo is measured. Evidence, rejected prototypes and study-only lessons remain under `C:\work\sah\studii\2026-11-18-j7-italian-nd5-hint`. [Audit and publication](../testing/hard-hint-study.md) · [Remaining gaps](../feedback/README.md)
+Historical study `2026-11-18-j7-italian-nd5-hint` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 The first opposing PV reply at the target improves from 273‰ to 13.5‰ loss at H19. At the later corrected Italian leader, however, reply loss rises from 24.5‰ to 86‰. Both stay below the frozen large-loss boundary; neither proves an optimal full continuation.
 
@@ -834,7 +834,7 @@ The earlier frontier prototypes are rejected. Resolving a checking queen capture
 
 Producer `b90f181b707a3a7dd4c67147a31208534b69f0e2` retains all native reports and the other 59 complete hints. Sixty-four geometrically selected PGN histories have identical old/new outputs; the first sixteen receive H17/H19 root checks. This establishes preservation, not activation or independent gains. Two new twenty-ply thematic studies follow forced `…Nbd7` and inferior `…Nc6` prefixes, then six fresh played plies each. They overlap the inspected Sicilian prefix and do not form a strength league. The audit validates 284 new raw requests and retains original identities for 85 unchanged oracle projections from the earlier 1190-request bundle. All 100 current native receipts are newly captured; old native receipts are never relabeled as current. [Audit contract](../testing/hard-hint-study.md)
 
-Evidence and study-only lessons remain in `C:\work\sah\studii\2026-11-18-j7-sicilian-knight-hint`. The 110 component/report checks pass, and the original engine genuinely fails the new target assertion. The capped paths produce no new Elo or native ΔElo. [Remaining model and offer gaps](../feedback/README.md)
+Historical study `2026-11-18-j7-sicilian-knight-hint` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 ## Sicilian four-root coverage
 
@@ -866,9 +866,7 @@ producer as well as history, depth and options. Mixing valid raw requests from t
 rejected. The 119 component/report checks and scoped qualification pass; absolute hint
 quality still fails at the unchanged 150‰ boundary.
 
-Evidence: `C:\work\sah\studii\2026-11-18-j7-sicilian-candidate-coverage`.
-[Components](../../atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java) ·
-[Hint audit](../testing/hard-hint-study.md) · [Native puzzle baseline](../testing/hard-puzzle-study.md)
+Historical study `2026-11-18-j7-sicilian-candidate-coverage` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 ## Qualified rook mate readmission
 
@@ -937,10 +935,7 @@ an Elo measurement. Ordinary native H3 remains separately unbudgeted. The 146 co
 checks pass; the new portable full-mate benchmark also passes. The all-exercises-solved
 quality verdict remains FAIL for the 54 incomplete material exercises.
 
-Evidence: `C:\work\sah\studii\2026-11-18-j7-rook-root-reentry`. Its README routes to
-Extent, all raw canonical and free-defense receipts, original-source oracle projections,
-80 contextual YAML lessons and the 43 first-loss priorities. No runtime FEN lookup,
-catalog acceptance rule, public puzzle count, native policy or Elo display was changed.
+Historical study `2026-11-18-j7-rook-root-reentry` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 ## Closed promotion confirmation
 
@@ -987,12 +982,7 @@ of `a4`; both oracle horizons confirm 500‰ loss. That line finishes as a bare-
 misses include 42 large losses; accepted prefixes still need checking before claiming first
 chronological WDL loss. The all-exercises-solved verdict remains FAIL for 53 exercises.
 
-The 121 focused component/report checks, portable full-mate benchmark and four raw-evidence
-checks pass. All 1,000 mate exercises retain every legal defender branch. The external study
-`C:\work\sah\studii\2026-11-18-j7-hard-training107-promotion` contains Extent, actual PGNs,
-the retained 79 contextual lessons and reusable promotion/tempo YAML patterns. Runtime patterns
-generalize geometry; the external study lessons preserve counterexamples and provenance rather
-than silently memorizing winning moves. [Repeatable study procedure](../testing/hard-puzzle-study.md)
+Historical study `2026-11-18-j7-hard-training107-promotion` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 ## Bounded pawn-ending conversion
 
@@ -1040,6 +1030,4 @@ checks and four raw-evidence checks pass. Native JSON decoding is shared by the 
 their retained certificate, and replay rejects substituted work, history, opposing coverage,
 strategy or evaluation. [Repeatable audit contract](../testing/hard-puzzle-study.md#auditing-winning-plan-certificates)
 
-Evidence and reusable lessons live under `C:\work\sah\studii\2026-11-18-j7-hard-promotion-conversion`:
-Extent, PGNs to actual result, source-bound raw oracle/native records and structural YAML.
-Runtime configuration contains no FEN, curriculum key, oracle score or learned-move lookup.
+Historical study `2026-11-18-j7-hard-promotion-conversion` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.

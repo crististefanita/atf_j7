@@ -58,7 +58,7 @@ The November 18 collection uses producer `e320379212dbb55afb392351da559b1cf949ac
 
 The quality benchmark therefore fails; the evidence benchmark passes. The live playing engine is unchanged. The applicable native Elo remains 1,507, conservative 95% interval 1,357–1,656, from the separately qualified 100 games. No Elo is inferred from the three unfinished paths.
 
-Raw data, both Extent verdicts, review observations and study-only YAML lessons are retained under `C:\work\sah\studii\2026-11-18-j7-h6-recapture-hint-games`. The node-limited opponent used to produce moves is separate from the full-depth oracle used to grade them.
+Historical study `2026-11-18-j7-h6-recapture-hint-games` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
 ## Follow-up
 
