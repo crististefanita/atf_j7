@@ -94,9 +94,9 @@ Preserve the completed Caro and Italian controls, sound sacrifices, exact-cache 
 
 This round adds sixty-four geometrically selected histories without any output change; it proves preservation only. The first sixteen are graded by the oracle. The new source-bound audit captures all 100 native phases, retaining 85 original oracle projections and validating 284 new requests. Preserve original receipt identities and exact-query joins; do not relabel evidence or count overlapping prefixes as independent games.
 
-Paired capture and raw Stockfish replay now cover sixty matched historical plies and two distinct sixteen-ply thematic studies. The new comparison audit includes diagnostic roots. The selected study has 1190 validated raw receipts; legal replay and receipt integrity do not imply chess-quality PASS.
+The earlier Italian collection and its rejected queen-pressure scope remain historical evidence in the AI guide. Legal replay and receipt integrity do not imply chess-quality PASS.
 
-Sixteen inspected queen-pressure histories exposed the rejected broad scope and became development controls. Sixteen subsequently frozen opening histories retain a 322.5‰ leader improvement and a 13.5‰ decrease, with no new 150‰ leader loss. The development set separately retains an 18.5‰ decrease. Do not retune on these observations and call them unseen. Expand to untouched families with wrong secondary offers and misleading review grades; retain failures, source identity and exact histories. Capped overlapping studies do not measure Elo. [Paired audit](../testing/hard-hint-study.md)
+In that preceding collection, sixteen inspected queen-pressure histories exposed the rejected broad scope and became development controls. Sixteen subsequently frozen opening histories retain a 322.5‰ leader improvement and a 13.5‰ decrease, with no new 150‰ leader loss. The development set separately retains an 18.5‰ decrease. Do not retune on these observations and call them unseen. Expand to untouched families with wrong secondary offers and misleading review grades; retain failures, source identity and exact histories. Capped overlapping studies do not measure Elo. [Paired audit](../testing/hard-hint-study.md)
 
 </details>
 
