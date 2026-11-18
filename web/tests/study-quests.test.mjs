@@ -140,6 +140,9 @@ async function mountPuzzle(state, call, locale = 'ro') {
         textWrites = 0;
         hidden = false;
         open = false;
+        width = 328.8;
+        style = { setProperty(name, value) { this[name] = value; } };
+        getBoundingClientRect() { return { width: this.width }; }
         classList = { add() {} };
         get textContent() { return this.#text; }
         set textContent(value) {
@@ -378,6 +381,8 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     await setImmediate();
     assert.equal(at('explanation').open, true);
     assert.equal(at('explanation').attributes.has('data-replay'), true);
+    assert.equal(at('explanation').style['--replay-board-side'], '328.8px');
+    at('board').width = 560;
     assert.equal(at('replay-actions').hidden, false);
     assert.equal(at('replay-previous').disabled, false);
     assert.equal(at('replay-next').disabled, true);
@@ -395,6 +400,11 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     assert.equal(replayReports.at(-1).sideToMove, 'WHITE');
     assert.equal(at('danger-reason').hidden, true);
     assert.match(markup, /id="quest-study-replay-details"[^]*?<\/div>\s*<\/div>\s*<nav id="quest-study-replay-actions"/);
+    assert.equal(at('explanation').style['--replay-board-side'], '328.8px', 'replaying keeps the opening size');
+    at('explain-close').events.get('click')();
+    at('hint').events.get('click')();
+    await setImmediate();
+    assert.equal(at('explanation').style['--replay-board-side'], '560px', 'reopening measures the current source');
     const css = await readFile(new URL('../src/main/web/study-quests.css', import.meta.url), 'utf8');
     const shared = await readFile(new URL('../src/main/web/game-review.css', import.meta.url), 'utf8');
     assert.match(shared, /grid-template-rows:\s*repeat\(8, minmax\(0, 1fr\)\)/);
@@ -408,4 +418,22 @@ test('Puzzle replay keeps its actions outside the scrollable text and retains ei
     assert.match(compact, /#quest-study-hint-label\s*\{[^}]*max-inline-size:\s*none;/);
     assert.match(compact, /\[data-replay\] \.quest-study-dialog\s*\{\s*padding-inline:\s*0;/);
     assert.match(css, /\.quest-study-board-and-details,[^}]*grid-template-rows:\s*auto minmax\(2lh, 1fr\);/);
+});
+
+test('A puzzle lesson captures the source when replay opens inside the same dialog', async () => {
+    const board = ' '.repeat(64);
+    const { at } = await mountPuzzle({ ...tacticsState, hintAction: 'EXPLAIN' }, action => {
+        if (action === 'hint') return { type: 'finish', en: 'Win the rook', ro: 'Câștigă turnul', hasReplay: true };
+        assert.equal(action, 'explain');
+        return { type: 'replay', initial: 0, depth: null, lesson: 'FORK', frames: [{ board, sideToMove: 'WHITE', material: 0 }] };
+    });
+    at('hint').events.get('click')();
+    await setImmediate();
+    assert.equal(at('explanation').open, true);
+    assert.equal(at('explanation').style['--replay-board-side'], undefined);
+    at('board').width = 315.8;
+    at('explain-replay').events.get('click')();
+    await setImmediate();
+    assert.equal(at('explanation').open, true);
+    assert.equal(at('explanation').style['--replay-board-side'], '315.8px');
 });

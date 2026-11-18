@@ -185,7 +185,7 @@ analizei în partidă și pe Tabla de analiză.
 
 - În proba de interfață, deschideți meniul principal cu o analiză deja importată. Titlul rămâne singur în antet, iar analiza se poate deschide din zona de import.
 - Începeți o partidă cu bifa oprită și verificați absența panoului. Porniți una cu analiză și comparați dreptunghiurile barei și tablei de la poziția de start.
-- Declanșați becul din rândul istoricului și parcurgeți o semimutare în previzualizare, apoi verificați poziția și revenirea focusului. La redeschidere, verificați bifa salvată, orientarea și încadrarea la text mărit.
+- Declanșați becul din rândul istoricului și parcurgeți o semimutare în previzualizare, apoi verificați poziția și revenirea focusului. Comparați laturile tablei de origine și ale redării pentru **Linie calculată**, redarea puzzle-ului și Tabla de analiză la 360 × 640, 1280 × 900 și 740 × 420 CSS px. Verificați 64 de casete pătrate, comenzile vizibile, absența depășirii orizontale și o nouă măsurare a originii la redeschidere. Componentele acoperă capturarea înaintea ascunderii barei, geometria invalidă și parcurgerea fără recapturare. La redeschiderea partidei, verificați bifa salvată, orientarea și încadrarea la text mărit.
 - [Contractul Web](../../web/README.md#analiza-în-partida-cu-ai)
 
 - Pentru proba pereche RO/EN, porniți din aceeași partidă după **1.e4 e5**.

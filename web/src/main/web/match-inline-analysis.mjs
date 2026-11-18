@@ -1,4 +1,5 @@
 import { analysisHintDescription, analysisScore, renderAnalysisEvidence, renderAnalysisMeter } from './study-analysis.mjs';
+import { rememberBoardSize } from './study-board-size.mjs';
 
 export function createInlineAnalysisSession({ createWorker, publish }) {
     let current;
@@ -160,7 +161,10 @@ export function bindInlineMatchAnalysis({ find, locale, createWorker, createBoar
         for (const [index, button] of Array.from(branches.children).entries()) button.setAttribute('aria-pressed', index === preview.branch);
         renderAnalysisEvidence(find('match-inline-evidence'), preview, owner.match.sideToMove, locale,
             title => makeButton(title, () => session.command('preview-proof')));
-        if (!dialog.open) dialog.showModal();
+        if (!dialog.open) {
+            rememberBoardSize(find('match-board'), dialog);
+            dialog.showModal();
+        }
     }
 
     label(meter, words.meter);

@@ -213,7 +213,9 @@ async function mountAnalysis(openingState, locale = 'en') {
         events = new Map();
         classList = { add() {}, toggle() {} };
         dataset = {};
-        style = {};
+        style = { setProperty(name, value) { this[name] = value; } };
+        width = 328.8;
+        getBoundingClientRect() { return { width: this.width }; }
         hidden = false;
         scrollLeft = 0;
         append(...items) {
@@ -256,7 +258,7 @@ async function mountAnalysis(openingState, locale = 'en') {
         },
     });
     await view.open();
-    return { root, view, commands };
+    return { root, view, commands, setFrame(value) { openingState = value; } };
 }
 
 test('Analysis places evaluation to the left and all history controls in APK order', async () => {
@@ -313,6 +315,25 @@ test('Selecting an offscreen analysis move scrolls only the strip in either dire
     assert.equal(strip.scrollLeft, 0);
     assert.equal(strip.children[0].attributes.get('aria-current'), 'step');
     assert.equal(root.scrollLeft, 0);
+});
+
+test('Analysis replay captures the source before hiding its meter and keeps the size through stepping', async () => {
+    const normal = frame(1, 0, { analysis: false, promotions: [], history: [], sideToMove: 'WHITE' });
+    const { root, view, setFrame } = await mountAnalysis(normal);
+    const board = root.children.find(item => item.className === 'analysis-study-stage').children[0].children[1].children[1];
+    board.width = 315.8;
+    const preview = { kind: 'THEORY', ply: 0, total: 2, branch: 0, branches: ['e2e4'], sideToMove: 'WHITE' };
+    setFrame({ ...normal, preview });
+    await view.seek(0);
+    assert.equal(root.style['--replay-board-side'], '315.8px');
+    board.width = 560;
+    await view.seek(1);
+    assert.equal(root.style['--replay-board-side'], '315.8px', 'the preview cannot capture its own enlarged container');
+    setFrame(normal);
+    await view.seek(0);
+    setFrame({ ...normal, preview });
+    await view.seek(0);
+    assert.equal(root.style['--replay-board-side'], '560px', 'opening again uses the current normal board');
 });
 
 test('Analysis options use the shared anchored menu and preserve the board on dismissal in RO and EN', async () => {

@@ -145,7 +145,7 @@
 .quest-study #quest-study-explanation[data-replay] .quest-study-replay-body { container-type: size; }
 .quest-study #quest-study-replay-board {
   width: 100%;
-  width: min(100%, max(0px, 100cqb - 2lh));
+  width: min(100%, var(--replay-board-side, var(--play-board-limit)), max(0px, 100cqb - 2lh));
   margin-inline: auto;
 }
 .quest-study .quest-study-details,
@@ -220,7 +220,7 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-block-size: 0;
-  width: min(100%, 38rem);
+  width: min(100%, calc(var(--replay-board-side, 37rem) + 1rem));
   margin-inline: auto;
   padding: .35rem .5rem;
 }

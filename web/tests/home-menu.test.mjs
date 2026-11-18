@@ -178,7 +178,8 @@ test('Inline analysis projects the score, lamp and playable theory for the displ
         const events = new Map();
         const attributes = new Map();
         return {
-            children: [], dataset: {}, style: {}, textContent: '', hidden: true, open: false,
+            children: [], dataset: {}, style: { setProperty(name, value) { this[name] = value; } }, textContent: '', hidden: true, open: false,
+            width: 328.8, getBoundingClientRect() { return { width: this.width }; },
             addEventListener: (type, handler) => events.set(type, handler),
             setAttribute: (name, value) => attributes.set(name, String(value)),
             getAttribute: name => attributes.get(name) ?? null,
@@ -267,6 +268,8 @@ test('Inline analysis projects the score, lamp and playable theory for the displ
     const line = { kind: 'THEORY', ply: 0, total: 6, branch: 0, branches: ['e2e4', 'd2d4'], name, eco: 'C50' };
     answer({ ...shown, preview: line });
     assert.equal(dialog.open, true);
+    assert.equal(dialog.style['--replay-board-side'], '328.8px', 'capture the board, excluding its evaluation rail');
+    find('match-board').width = 560;
     assert.match(find('match-inline-evidence').textContent, /Partida italiană · C50/);
     assert.equal(find('match-inline-previous').disabled, true);
     assert.equal(boards.at(-1).locked, true);
@@ -275,12 +278,19 @@ test('Inline analysis projects the score, lamp and playable theory for the displ
     assert.equal(worker.messages.at(-1).action, 'preview-seek');
     assert.equal(worker.messages.at(-1).index, 1);
     answer({ ...shown, preview: { ...line, ply: 1, lastMove: 'e2e4' } });
+    assert.equal(dialog.style['--replay-board-side'], '328.8px', 'stepping does not enlarge the preview');
     assert.match(find('match-inline-position').textContent, /Pasul 1 din 6 · e2–e4/);
     find('match-inline-close').click();
     assert.equal(worker.messages.at(-1).action, 'preview-close');
     answer(shown);
     assert.equal(dialog.open, false);
     assert.equal(session.revealedMove(), 'e2e4');
+
+    replay.click();
+    answer({ ...shown, preview: line });
+    assert.equal(dialog.style['--replay-board-side'], '560px', 'a new preview captures the current viewport');
+    find('match-inline-close').click();
+    answer(shown);
 
     session.show({ ...enabled, reviewCheckpoint: '3|WHITE|BASIC|1|d2d4', viewPly: 1, revision: 10 }, 'ai-slot');
     assert.equal(worker.stopped, true);

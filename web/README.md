@@ -134,7 +134,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - Poziția finală arată rezultatul partidei.
 
 - Becul eliberează selecția curentă și arată mutarea recomandată. Butonul sugestiei deschide linia pe tabla de previzualizare, unde săgețile parcurg mutările fără să modifice partida.
-- În previzualizare, tabla își păstrează poziția și pătratele egale. Comenzile rămân la vedere, iar explicația se derulează separat.
+- **Linie calculată**, redarea puzzle-ului și previzualizările din Tabla de analiză preiau latura tablei vizibile înainte de deschidere. Parcurgerea sau schimbarea liniilor păstrează acest plafon; redeschiderea măsoară din nou tabla de origine. O fereastră mai scundă poate micșora previzualizarea pentru a păstra comenzile la vedere. Explicația se derulează separat.
 - Închiderea revine la semimutarea din istoric, iar redeschiderea slotului revine la capătul partidei cu indiciul ascuns. Tabla de analiză oferă și teoria deschiderilor.
 - La poziția curentă, atingerea destinației marcate joacă indiciul legal când selecția tablei este liberă. Browserul calculează analiza într-un worker separat.
 - Schimbarea poziției sau ieșirea din partidă invalidează rezultatul anterior. [Probele de componentă și interfață](../docs/testing/README.md#analiza-în-partida-cu-ai)

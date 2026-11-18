@@ -1,4 +1,5 @@
 import { attachOptionsMenu } from './options-menu.mjs';
+import { rememberBoardSize } from './study-board-size.mjs';
 
 const copy = {
     en: {
@@ -370,13 +371,14 @@ export function createAnalysisStudy({ root, locale, call, home, board, openRevie
         root.classList.add('analysis-study');
         root.setAttribute('aria-label', words.title);
         root.replaceChildren(header, stage, status, feedback, announcement, error, variants, navigation, replayDetails, promotion, saveDialog);
-        return { title, back: backButton, reset, menu, options, toggle, review, saveGame, top, bottom, widget, meter, fill, status, score, feedback,
+        return { title, back: backButton, reset, menu, options, toggle, review, saveGame, top, bottom, host, widget, meter, fill, status, score, feedback,
             announcement, error, replay, replayDetails, variants, evidence, history, previous, next, latest, hint, playback,
             promotion, promotionChoices, saveDialog,
             promptContinuation };
     }
 
     function render(next) {
+        if (next.preview && !state?.preview) rememberBoardSize(controls.host, root);
         state = next;
         const preview = next.preview;
         if (preview) controls.options.close();
