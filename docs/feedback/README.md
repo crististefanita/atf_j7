@@ -91,6 +91,31 @@ Integrity, exposed-tail quality and review-recommendation quality are separate
 Extent verdicts. The first passes; the latter two fail. Local review ratings are
 not measured Elo, and three capped paths have no rating. [Contract and components](../testing/learning-archive.md#post-game-review-and-hint-endpoints)
 
+## Resolved Caro–Kann queen recapture
+
+The maximum public hint after `e4 c6 d4 d5 Nc3` now scores the legal `Qxd4`
+response to its old final `…Qxd4`. The repaired leader remains `…dxe4`, with a
+newly calculated continuation; no decorative move is appended. Both-color frontier,
+cache/bound and pinned-piece controls preserve the sound queen sacrifice. A shallow
+Sicilian challenger initially regressed, so the final change starts only at the
+completed seed horizon and preserves selective-offer eligibility.
+
+The frozen comparison contains 108 contexts, including 32 new contexts from known
+opening ancestry. Only this case and its color control change their complete
+HintSearch; no public leader changes. All 554 cold Stockfish H17/H19 queries are
+retained, with no newly bad leader or extra offer. The six already-bad leaders in
+that comparison remain open; this is preservation plus a tail repair, not absolute
+hint quality. The complete native analyses stay identical on all 2,303 catalog
+stages, so this change does not measure a Hard Elo gain.
+
+The original `…Qxd4` receipt above remains a historical counterexample. The other
+bad exposed tail (`…Nh6`), weak internal opposing replies and Game Review calibration
+remain open. Do not transfer the 200k hint verdict to the separate 85k review policy.
+Current evidence and new complete game journals are in
+`C:\work\sah\.studii\experiments\2026-11-18-qxd4` and
+`C:\work\sah\.studii\corpus\2026-11-18-qxd4-final`.
+[Behavior and components](../board/ai-quality.md#queen-recaptures-at-the-hint-frontier)
+
 ## Evidence and Closure Checks
 
 <details>

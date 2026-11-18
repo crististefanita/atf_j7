@@ -33,6 +33,26 @@ The bar and first line of text use a separate estimate for the current position.
 
 </details>
 
+## Queen recaptures at the hint frontier
+
+A completed verification PV that ends with a queen taking a pawn must include a
+legal non-pawn recapture in its score before that exchange can support the hint.
+Reconfirmation begins only at the already completed seed horizon or deeper; a
+preliminary shallow challenger cannot change that frontier. Every compared root
+is recalculated at the same horizon, and all attempts consume the same public
+200k allowance. An interrupted comparison retains the last completed ranking.
+Earlier equal-turn support and cache entries from another frontier mode cannot
+corroborate the new result. Selective verification cannot certify extra equivalent
+offers merely because their new provisional scores are close.
+
+This is a search correction, not an appended display move, sacrifice ban or
+position-specific opening exception. Pinned recaptures remain illegal, and
+`…Qxg3+ hxg3 …Rh1#` must remain a proved mate. Ordinary opponent decisions and
+Game Review keep their separate policies. The [component contracts](../../atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java)
+cover the actual Caro–Kann prefix, both-color frontier responses, cache modes,
+bounded scores and a Sicilian counterexample. [Learning evidence](../testing/learning-archive.md)
+keeps native strength and hint quality distinct.
+
 ## Adaptive foreground budget
 
 `hard-adaptive.yaml` configures a base allowance of 100,000 and a maximum of

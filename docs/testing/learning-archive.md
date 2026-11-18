@@ -81,3 +81,20 @@ requires every game's review and readable analysis, both review branches, all
 public tails and the raw oracle phases. Integrity, exposed-tail quality and
 recommendation quality are separate Extent verdicts. Native logistic points and
 Stockfish WDL are different models; label disagreements are calibration findings.
+
+## Reconfirming a queen capture
+
+Retain the original producer and original bad PV as a counterexample. Record a
+new hint from the corrected source with its actual total node use; do not amend
+historical journals or relabel the teacher. Compare every offered root on the
+frozen regression contexts and fresh contexts before promoting a frontier change.
+Do not activate a new tactical mode from a shallow preliminary comparison below
+the completed seed horizon. Cache identity and equal-turn support must distinguish
+the modes. A selectively searched extra candidate is not automatically equivalent.
+
+Native Hard catalog replay is a separate measurement. Equality of complete native
+analyses—including choices, depths, costs and PVs—demonstrates preservation, not
+an Elo gain. Two full-strength Stockfish games are diagnostic games, not a rated
+league. Preserve every pre-move Hard/hint pair, both colors, and attach the full
+native review before the independent oracle completes. Pending oracle phases
+remain pending; integrity and absolute chess quality keep separate Extent verdicts.
