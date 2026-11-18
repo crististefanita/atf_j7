@@ -47,3 +47,39 @@ verificarea fișierelor păstrate, referințelor Git și proceselor active.
 
 Folosește [protocolul indiciilor](hard-hint-study.md) pentru interpretarea oracolului
 și [protocolul ligii native](hard-audit.md#elo-și-partidele-neterminate) pentru putere.
+
+## Analiza finală și capetele indiciilor
+
+Atașează fiecărei partide salvate analiza nativă completă, într-un `review.json`
+separat. Folosește `GameReview.analyze` pentru un rezultat efectiv și `analyzeLine`
+pentru un traseu plafonat; plafonarea nu devine partidă finalizată. Păstrează toate
+mutările, culorile, etichetele, perspectiva scorului, adâncimile încheiate, liniile
+jucată/recomandată, explicațiile și cache-ul legat de checkpoint. Traseele plafonate
+nu au rating. Estimările locale după o partidă terminată nu sunt Elo măsurat și
+trebuie să păstreze rolurile efective ale actorilor.
+
+[`LearningReviewAudit`](../../atf-tests/src/test/java/ro/atf/chess/LearningReviewAudit.java)
+leagă jurnalul original de identitatea separată a analizorului, politica încărcată,
+checkpoint-ul final, rezultat și progresul cronologic neîntrerupt. Respinge mutările
+lipsă, rulările reetichetate și scorurile lizibile diferite de cache. Căutarea
+analizei este configurată la 85k noduri suplimentare; API-ul nu expune consumul
+efectiv pe mutare. Separă acest plafon de indiciul public original de 200k.
+
+Compară fiecare ramură jucată și recomandată, la fiecare semimutare ipotetică, cu
+dovezi independente H17/H19. Fazele existente ale oracolului se pot referi doar cu
+identitatea inițială și istoric complet, origine, rădăcină, binar și opțiuni identice.
+Fazele noi își păstrează identitatea proprie. Nu reeticheta rezultatele moștenite.
+
+Pentru fiecare indiciu public, verifică exact ultima mutare și poziția finală.
+Enumeră capturile **legale** ale ultimei piese importante, inclusiv replica mai bună
+de după capătul afișat. Un pion legat nu este recaptură legală. Expunerea singură
+nu înseamnă sacrificiu greșit: păstrează `…Qg3 hxg3 …Rh1#` drept control corect.
+Reține scorurile libere și impuse și evaluează ultima mutare înaintea interpretării
+replicii. Coada Caro–Kann `…Qxd4`, damă contra pion, este un contraexemplu confirmat,
+fără a justifica interzicerea schimburilor sau a tuturor sacrificiilor.
+
+[`LearningPostgameBenchmarkTest`](../../atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java)
+cere analiza nativă și forma lizibilă pentru fiecare partidă, ambele ramuri, toate
+capetele publice și fazele brute ale oracolului. Integritatea, calitatea capetelor
+expuse și calitatea recomandărilor au verdicte Extent separate. Punctele logistice
+native și WDL Stockfish au modele diferite; etichetele divergente cer calibrare.

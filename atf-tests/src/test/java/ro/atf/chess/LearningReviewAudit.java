@@ -88,6 +88,21 @@ final class LearningReviewAudit {
         return new Snapshot(review.turns(),review.opening(),review.bookPlies(),review.initialWhitePoints(),player(review.white()),player(review.black()),java.util.Collections.unmodifiableList(why));
     }
     static String digest(Body body){return HardLeagueAudit.digest(HardLeagueAudit.canonical(LearningGameAudit.mapper().valueToTree(body)).getBytes(java.nio.charset.StandardCharsets.UTF_8));}
+
+    /** Compare separately validated cold receipts without rewriting either run's identity. */
+    static double oracleLoss(com.fasterxml.jackson.databind.JsonNode free,com.fasterxml.jackson.databind.JsonNode forced) {
+        require(free!=null&&forced!=null,"Missing independently validated oracle phase");
+        var a=free.path("query");var b=forced.path("query");var ai=free.path("identity");var bi=forced.path("identity");
+        require(a.path("root").isNull()&&b.path("root").isTextual(),"Foreign free/forced roles");
+        require(a.path("history").isArray()&&a.path("history").equals(b.path("history"))&&a.path("initialFen").isTextual()&&a.path("initialFen").equals(b.path("initialFen")),"Foreign full history or origin");
+        require((a.path("depth").asInt()==17||a.path("depth").asInt()==19)&&a.path("depth").equals(b.path("depth")),"Different oracle horizons");
+        require(ai.path("source").isObject()&&ai.path("source").equals(bi.path("source")),"Different measured producer");
+        require(a.path("binarySha256").asText().matches("[a-f0-9]{64}")&&a.path("binarySha256").equals(b.path("binarySha256"))&&a.path("binarySha256").equals(ai.path("binarySha256"))&&a.path("binarySha256").equals(bi.path("binarySha256")),"Different oracle binary");
+        var options=a.path("options");
+        require(options.equals(b.path("options"))&&options.equals(ai.path("options"))&&options.equals(bi.path("options"))&&options.path("Threads").asInt()==1&&options.path("Hash").asInt()==32&&options.path("UCI_LimitStrength").isBoolean()&&!options.path("UCI_LimitStrength").asBoolean()&&options.path("UCI_ShowWDL").asBoolean(),"Different cold oracle configuration");
+        double x=free.path("expectedPermille").asDouble(-1),y=forced.path("expectedPermille").asDouble(-1);
+        require(x>=0&&x<=1000&&y>=0&&y<=1000,"Missing validated WDL scale");return Math.max(0,x-y);
+    }
     private static Player player(GameReview.Player p){return new Player(p.accuracy().isPresent()?p.accuracy().getAsInt():null,p.rating().orElse(null),p.ratedMoves(),p.grades());}
     private static Mode mode(ChessMatch game){return game.result()==ChessMatch.Result.IN_PROGRESS?Mode.CAPPED_LINE:Mode.FINISHED_GAME;}
     private static void require(boolean condition,String message){if(!condition)throw new IllegalArgumentException(message);}

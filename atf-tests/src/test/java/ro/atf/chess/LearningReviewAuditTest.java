@@ -60,6 +60,26 @@ class LearningReviewAuditTest {
     }
 
     private static ChessPosition.Move move(String uci){return ChessPosition.Move.fromUci(uci);}
+    @Test void independentlyValidatedColdPhasesKeepTheirOwnRunsAndRejectForeignContexts(Checks check)throws Exception {
+        var json=LearningGameAudit.mapper();
+        var free=json.readTree("""
+                {"identity":{"run":"old","source":{"revision":"same"},"binarySha256":"%s","options":{"Threads":1,"Hash":32,"UCI_LimitStrength":false,"UCI_ShowWDL":true}},
+                "query":{"initialFen":"origin","history":["e2e4"],"root":null,"depth":19,"binarySha256":"%s","options":{"Threads":1,"Hash":32,"UCI_LimitStrength":false,"UCI_ShowWDL":true}},"expectedPermille":600}
+                """.formatted("a".repeat(64),"a".repeat(64)));
+        var forced=free.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)forced.path("identity")).put("run","new");
+        ((com.fasterxml.jackson.databind.node.ObjectNode)forced.path("query")).put("root","e7e5");((com.fasterxml.jackson.databind.node.ObjectNode)forced).put("expectedPermille",200);
+        check.same("The original runs stay distinct while the cold context agrees",400.0,LearningReviewAudit.oracleLoss(free,forced));
+        check.same("The inherited receipt identity is untouched","old",free.path("identity").path("run").asText());
+        for(String field:List.of("depth","initialFen","history","binarySha256","root")) {
+            var bad=forced.deepCopy();var query=(com.fasterxml.jackson.databind.node.ObjectNode)bad.path("query");
+            if(field.equals("depth"))query.put(field,17);else if(field.equals("history"))query.putArray(field).add("d2d4");else if(field.equals("root"))query.putNull(field);else query.put(field,"foreign");
+            check.rejects("A different "+field+" cannot reuse a cold oracle score",IllegalArgumentException.class,()->LearningReviewAudit.oracleLoss(free,bad));
+        }
+        var source=forced.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)source.path("identity").path("source")).put("revision","foreign");
+        check.rejects("Another measured producer is rejected",IllegalArgumentException.class,()->LearningReviewAudit.oracleLoss(free,source));
+        var hash=forced.deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)hash.path("query").path("options")).put("Hash",64);
+        check.rejects("Another cache configuration is rejected",IllegalArgumentException.class,()->LearningReviewAudit.oracleLoss(free,hash));
+    }
     private static List<LearningGameAudit.Envelope> journal(String prefix) {
         var rows=new ArrayList<LearningGameAudit.Envelope>();var start=ChessMatch.start(new MatchSetup(ChessPosition.Side.WHITE,MatchSetup.Level.HARD,true));
         var session=new LearningGameAudit(SOURCE,"fixture","rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",start,rows::add,g->{

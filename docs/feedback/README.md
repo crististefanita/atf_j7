@@ -13,7 +13,8 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Documentație · protejarea traducerilor | Poarta bilingvă verifică structura și linkurile, iar proza și exemplele cer în continuare revizuire semantică. | Detectează proza copiată și exemplele schimbate prin cazuri negative țintite, păstrând literalii tehnici și dovezile imuabile. |
-| P1 | Game Review · clasificarea mutărilor | Nouă neconcordanțe persistă la ambele adâncimi ale oracolului, inclusiv pierdere mare ratată și gafă falsă. | Reproduce și corectează clasificarea fără a schimba istoricul, inventa Elo sau substitui dovezile analizei cu scorul indiciului. |
+| P1 | Game Review · clasificarea mutărilor | Cinci etichete native de eroare însoțesc pierderi ale mutării jucate sub 50‰ la ambele adâncimi, pe corpusul nou admis. | Izolează efectele modelului de scor și ale orizontului fără a schimba istoricul, inventa Elo sau substitui dovezile analizei cu scorul indiciului. |
+| P1 | Game Review · liniile recomandate | Nouă dintre cele 76 de recomandări noi pierd cel puțin 150‰ la ambele H17/H19. | Repară comparațiile complete rădăcină/replică la același orizont și păstrează mutările efective bune, cache-ul analizei și familiile independente. [Cazuri măsurate](#calibrarea-analizei-complete-pe-corpusul-admis) |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
 | P1 | Italiană · schimbul neîncheiat nativ | Recaptura țintită repară perechea H6 izolată, dar decizia completă și martorii regresează. | Rezolvă decizia completă în 200k, păstrând 019/021/022 și transferul independent înainte de duel. |
 | P1 | Indiciu · lider, alternative și replici adverse | Rejucarea corectată păstrează pierderi mari în 8/60 prime indicii, 11/82 variante oferite și 9/82 prime replici adverse. | Repară sugestiile publice complete și replicile calculate la orizonturi comune, păstrând alegerile native corecte și familiile independente. |
@@ -57,6 +58,40 @@ Folosește [contractul de admitere](../testing/learning-archive.md) pentru parti
 viitoare. Partidele istorice fără admiterea actuală se retrag. Fixture-urile sursă,
 dovezile edițiilor, definițiile problemelor deschise și referințele originale ale
 oracolului sunt separate de corpusul activ de învățare.
+
+## Calibrarea analizei complete pe corpusul admis
+
+Toate cele cinci partide păstrează acum `review.json`, `analysis.json` lizibil și
+un README propriu. Analiza adăugată are producătorul separat
+`87ccb91bb169ed95ed7c0dc4b3e58ab67ce7e6df`; jurnalele Hard/hint originale rămân
+identice la nivel de octet. Sunt 76 de mutări analizate, 152 de ramuri jucate/recomandate
+și 745 de semimutări ipotetice ale analizei. Oracolul adaugă 854 de cereri reci
+H17/H19 și referă 1.090 de cereri originale cu context identic, fără a le reeticheta
+rularea. Analiza nativă păstrează plafonul configurat efectiv de 85k, separat de
+indiciul public original de 200k.
+
+Nouă recomandări au pierdere mare stabilă față de oracol. În Caro–Kann, analiza
+preferă `…Qa5` în locul mutării corecte jucate `…d5`, la mutarea a patra, cu
+pierdere 299/318‰. După `Nc3`, recomandă `…e5` în locul mutării jucate `…dxe4`,
+cu pierdere 472/448,5‰. În conversia de pioni, alternativa analizei pierde
+500/500‰, iar `a4` jucat păstrează câștigul. Sunt rezultate complete ale analizei
+înregistrate, nu scoruri de rădăcini alese manual. Păstrează acest P1 deschis până
+când analiza efectivă repară recomandările și transferă independent. Nu eticheta
+toate recomandările drept optime doar fiindcă alegerea Hard originală era bună.
+
+Cele 118 capete de hint conțin nouă piese importante expuse legal, dar numai două
+combină expunerea cu pierdere mare stabilă a ultimei mutări. În Caro–Kann,
+`…Qxd4` ia un pion, permite `Qxd4` și pierde 518,5/513‰; după recaptură, ultimul
+jucător care mutase are scor așteptat 0‰ la ambele adâncimi. `…Nh6` permite
+`Bxh6` și pierde 308,5/290‰. Păstrează schimburile care nu pierd WDL și martorul
+corect `…Qxg3+ hxg3 …Rh1#`, care reține 1.000‰ după captura pionului.
+Capetele complete și toate recapturile legale ale pieselor importante rămân lângă
+analiză în `C:\work\sah\.studii\corpus\2026-11-18-v1\postgame-audit`.
+
+Integritatea, calitatea capetelor expuse și calitatea recomandărilor analizei au
+verdicte Extent separate. Prima trece; ultimele două eșuează. Ratingurile locale
+ale analizei nu sunt Elo măsurat, iar cele trei trasee plafonate nu au rating.
+[Contract și componente](../testing/learning-archive.md#analiza-finală-și-capetele-indiciilor)
 
 ## Dovezi și verificări de închidere
 
