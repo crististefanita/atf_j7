@@ -9,7 +9,7 @@
 <details>
 <summary>Current search policies and bounds</summary>
 
-The opponent levels and hint have separately configured depths and budgets. A search keeps the last depth it evaluated completely. Hard's foreground game search starts with 100,000 additional nodes and can continue to 200,000 with the adaptive policy below. It accepts the final horizon's result only if it keeps the same leading move as the previous depth. If the leader changes, the engine stays with the last complete, stable search. The hint attempts up to seven plies, with a bounded two-ply frontier for captures, promotions, or escaping check. A comparison between pawn and piece captures can additionally follow at most two recapture plies when the piece capture permits a checking pawn reply. These visits use the existing comparison allowance; the nominal completed horizon is unchanged. Its completed depth and actual nodes describe the search achieved. In games and lessons, evaluation accounts for piece development, the center, king position, and the bishop pair in addition to material. The weights change according to the remaining material so an active king becomes useful in the endgame. The search checks captures, promotions, and moves that activate pieces first. Tactical tests keep their explicit material or checkmate objective. [Search policy](../../chess-core/src/main/resources/match-ai.yaml) · [Adaptive policy](../../chess-core/src/main/resources/hard-adaptive.yaml)
+The opponent levels and hint have separately configured depths and budgets. A search keeps the last depth it evaluated completely. Hard's foreground game search starts with 100,000 additional nodes and can continue to 200,000 with the adaptive policy below. It accepts the final horizon's result only if it keeps the same leading move as the previous depth. If the leader changes, the engine stays with the last complete, stable search unless the bounded [closed-promotion confirmation](#closed-promotion-confirmation) succeeds. The hint attempts up to seven plies, with a bounded two-ply frontier for captures, promotions, or escaping check. A comparison between pawn and piece captures can additionally follow at most two recapture plies when the piece capture permits a checking pawn reply. These visits use the existing comparison allowance; the nominal completed horizon is unchanged. Its completed depth and actual nodes describe the search achieved. In games and lessons, evaluation accounts for piece development, the center, king position, and the bishop pair in addition to material. The weights change according to the remaining material so an active king becomes useful in the endgame. The search checks captures, promotions, and moves that activate pieces first. Tactical tests keep their explicit material or checkmate objective. [Search policy](../../chess-core/src/main/resources/match-ai.yaml) · [Adaptive policy](../../chess-core/src/main/resources/hard-adaptive.yaml)
 
 In rook endgames, Hard uses the full history to evaluate repetitions throughout the tree, including at the root. It can extend the search by one ply beyond the profile depth, up to depth 7, within the configured adaptive allowance. The extension and the 50 cp window for root candidates are set under `rook-endgame` in YAML. Governance rejects extensions or windows outside the validated limits.
 
@@ -900,7 +900,7 @@ scope preserves these controls. A second cohort of 24 new legal rook/pawn compos
 frozen after the algorithm and before its outputs, has no root-WDL regression at H17/H19.
 They are verification positions, not new public puzzles or Elo games.
 
-### Complete current puzzle evidence
+### Rook-mate qualification baseline
 
 | Observation | Qualified result |
 |---|---:|
@@ -941,3 +941,52 @@ Evidence: `C:\work\sah\studii\2026-11-18-j7-rook-root-reentry`. Its README route
 Extent, all raw canonical and free-defense receipts, original-source oracle projections,
 80 contextual YAML lessons and the 43 first-loss priorities. No runtime FEN lookup,
 catalog acceptance rule, public puzzle count, native policy or Elo display was changed.
+
+## Closed promotion confirmation
+
+`training-107:1` exposed a stopping defect, not a lack of nodes. After `f6g7 f8d8`, H4
+ranks `h8=Q` at +167 cp and gives `c5` an upper bound of −109. H5 prefers the cooperative
+`c5 Re8 h8=Q Rxh8 Kxh8` at +190. The completed H6 reverses that order: `c5 Rd7+` is
+−115, while `h8=Q Rxh8 Kxh8` is +183. The final stability veto previously kept H5.
+
+The [promotion policy](../../chess-core/src/main/resources/hard-promotion-exchange.yaml)
+allows one structural exception. The actual PV must close a promotion, its capture and a
+legal recapture on the promotion square, retaining at least the configured material gain.
+Full-window candidate/incumbent comparisons must be exact, positive and strictly better
+at both prior-even and final-even horizons. All verification uses the same native allowance;
+incomplete confirmation preserves the old leader and completed depth. No curriculum key,
+FEN, oracle score or bonus is read by the runtime policy. [Implementation](../../chess-core/src/main/java/ro/atf/chess/PromotionExchangePolicy.java)
+· [Components](../../atf-tests/src/test/java/ro/atf/chess/PromotionExchangePolicyTest.java)
+
+| Observation | Qualified result |
+|---|---:|
+| Actual promotion choice | `h8=Q`, H6, 15,589 additional nodes |
+| Canonical native exercises complete | 1,184 → 1,185 / 1,238 |
+| Canonical stages accepted | 2,223 → 2,224 / 2,303; zero losses |
+| Feature disabled | Identical move, depth, nodes and PV on all 2,303 reference decisions |
+| Untouched thematic compositions | 48 positions / 24 geometry families; 12 changed choices, no WDL regression at H17/H19 |
+| Extended opposing play | 178 actual plies across six contexts and two arms; 90 native decision checkpoints |
+| Independent oracle audit | 463 cold H17/H19 queries, with raw commands, exact scores and legal PVs |
+
+At 15,588 diagnostic base nodes, confirmation is interrupted and `c5`/H5 remains. At 15,589,
+the exact comparisons finish and `h8=Q`/H6 replaces it. Both keep the 200k maximum and cache
+capacity. A foreign loaded-policy snapshot is rejected by the current catalog publisher.
+The runtime ceiling stays adaptive 100k→200k additional nodes; initial H3 remains unbudgeted.
+Mean catalog work changes from 15,537.58 to 15,537.99 additional nodes. No latency or Elo gain
+is claimed. Basic and Advanced retain their complete analyses at each compared context.
+
+**Canonical recovery is not game conversion.** In free play the reference draws by repetition
+after `c5`. The candidate reaches `h8=Q Rxh8 Kxh8 Ke4`, then loses the win with `Kg7` instead
+of `a4`; both oracle horizons confirm 500‰ loss. That line finishes as a bare-king draw after
+12 plies. This is the next conversion study, not a solved game. `training-051` still chooses
+`Ke6` instead of winning `Rc8+`. The 79 remaining canonical misses comprise 56 large WDL losses,
+22 win-preserving goal misses and one smaller/depth-sensitive case. Their 53 first educational
+misses include 42 large losses; accepted prefixes still need checking before claiming first
+chronological WDL loss. The all-exercises-solved verdict remains FAIL for 53 exercises.
+
+The 121 focused component/report checks, portable full-mate benchmark and four raw-evidence
+checks pass. All 1,000 mate exercises retain every legal defender branch. The external study
+`C:\work\sah\studii\2026-11-18-j7-hard-training107-promotion` contains Extent, actual PGNs,
+the retained 79 contextual lessons and reusable promotion/tempo YAML patterns. Runtime patterns
+generalize geometry; the external study lessons preserve counterexamples and provenance rather
+than silently memorizing winning moves. [Repeatable study procedure](../testing/hard-puzzle-study.md)

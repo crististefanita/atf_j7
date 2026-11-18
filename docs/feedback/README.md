@@ -25,7 +25,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Hard search · generalization | Selective recapture regresses on independent openings. | Require independent gains at the fixed budget. |
 | P1 | Hard · conversion after a pawn capture | The pawn capture can lose its advantage later. | Verify conversion on new positions and distinct replies. |
 | P1 | Transfer from tactics to games | Hard misses tactics without a declared objective. | Measure discovery and preserve the solver contract. |
-| P1 | Hard without a declared objective · root re-entry | Ordinary Hard leaves 82 stages unresolved across 56 canonical exercises. | Recover the missed rook-endgame mates with complete-catalog non-regression and independent opposing replies. |
+| P1 | Native Hard · material conversion | 79 canonical stages remain unaccepted in 53 exercises; the promotion recovery still fails later conversion. | Verify `a4` versus `Kg7` after the closed promotion, then transfer without losing accepted stages or defended draws. |
 | P2 | Progress · Android upgrade | A signed upgrade still needs a progress probe. | Keep IDs, solutions and points across upgrade and restart. |
 | P2 | AI quality · material evaluation | The material score differs from Stockfish. | Reduce the discrepancy with fixed search budgets. |
 | P2 | Puzzle calibration | Imported difficulty bands overlap. | Check attempts and time on a separate shuffled set. |
@@ -224,24 +224,25 @@ Add focused negative cases for copied prose, disclosure captions, link captions 
 <details>
 <summary>P1 · Native Hard · remaining material goals and first WDL losses</summary>
 
-The two omitted mates are closed by bounded, full-window-confirmed mate readmission. All
-1,000 existing mating exercises now pass against every legal defender continuation. Their
-mechanism and rejected general readmission belong to the [AI guide](../board/ai-quality.md#qualified-rook-mate-readmission).
+Keep 79 unaccepted stages in 53 material exercises open: 56 have a large loss at both
+Stockfish horizons, 22 preserve the win and one is smaller/depth-sensitive. The 42 first
+educational misses with a confirmed large loss precede conditional later stages. Check
+accepted prefixes before calling a loss chronologically first. `training-051` still draws
+with `Ke6` instead of winning with `Rc8+`.
 
-Keep the 80 unaccepted stages in 54 material exercises open: 57 have a large loss at both
-Stockfish depths, 22 preserve the win and one is smaller/depth-sensitive. The 43 first educational misses with a confirmed WDL loss take priority over conditional later stages. Check accepted prefixes before claiming the chronological first WDL loss. `training-051` still draws
-with `Ke6` instead of winning with `Rc8+`; do not declare it fixed by the mate work.
+**Next: conversion after the recovered promotion.** After `h8=Q Rxh8 Kxh8 Ke4`, compare
+`a4` and `Kg7` at common horizons with free opposing replies. Both Stockfish depths confirm
+that the native `Kg7` loses 500‰, while `a4` preserves the win. The 12-ply actual continuation
+ends in a bare-king draw; canonical acceptance must not close this conversion gap. Preserve
+correct opposition, pawn-race and drawn-ending counterexamples, `training-021/051/065`, the
+200k ceiling and the complete native catalog/mate gates before promotion.
 
-Start the compact causal study with `training-107:1`: six pieces, `c5` versus `h8=Q`, H5,
-14,652 additional nodes, 500‰ lost at H17/H19. Establish whether the completed score or stopping
-rule discards promotion; unused nodes alone do not diagnose the cause. Retain `training-021`,
-`training-065`, `training-051`, the full canonical non-regression gate and the portable full-mate
-benchmark. Verify the actual opposing reply at a common horizon, then transfer to untouched
-existing-game families before measuring Elo.
-
-Preserve exact educational acceptance while distinguishing win-preserving alternatives from
-real WDL losses. Keep the contextual lessons and histories under the external study. Prioritize
-understanding and resolving the current catalog before extending it; no runtime key lookup or
-new public puzzles were added. [Repeatable procedure](../testing/hard-puzzle-study.md)
+Continue the frozen six-context audit beyond the first educational mismatch. Retain the
+initial FEN, complete actual history, both native decisions, actual opponent, H17/H19 scores
+and contextual YAML lesson. The current run records 178 actual plies and 463 raw oracle queries.
+The other 79 native stage analyses are identical to the previous producer; their old oracle
+provenance stays attached. No extra public puzzles, runtime FEN lookup or Elo gain is claimed.
+[Qualified promotion mechanism and limits](../board/ai-quality.md#closed-promotion-confirmation)
+· [Repeatable procedure](../testing/hard-puzzle-study.md)
 
 </details>

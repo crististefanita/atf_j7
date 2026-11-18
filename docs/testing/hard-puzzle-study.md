@@ -82,3 +82,26 @@ are separate transfer evidence, not additions to the app.
 
 [Current measured inventory and mechanism](../board/ai-quality.md#qualified-rook-mate-readmission)
 · [Open work](../feedback/README.md#overview)
+
+
+## Loaded policy and extended continuations
+
+Bind the native producer to its actual `promotionExchangePolicy` snapshot as well as the
+adaptive node policy. Changing diagnostic YAML makes a separate profile, even when source
+revision and maximum nodes match. Preserve old receipts with their original producer and
+reader; do not rewrite historical headers to claim a policy that was not loaded.
+
+For a promotion exception, require exact full-window dominance at both completed even
+horizons, legal capture/recapture and actual material gain in the retained PV. Test interrupted
+confirmation at a one-node boundary with fixed maximum and cache. Disabling the feature must
+restore the complete reference decision, depth, node count and PV. Reject a receipt declaring
+a foreign policy even if its file digests have been recomputed.
+
+Freeze the continuation contexts and ply limit before looking at oracle results. Follow the
+actual native move and a freely chosen opposing reply; record both reference and candidate
+analyses at each identical position, plus Basic/Advanced isolation controls. Grade every native
+root at H17/H19, retain the actual PGN and explain termination or the diagnostic cap. Compare
+WDL loss as `max(0, free expected score - forced expected score)` through `StockfishStudyAudit`;
+raw exact scores and PVs remain immutable. A solved curriculum stage cannot certify conversion
+of that advantage. Keep the newly exposed first loss as contextual YAML with its full origin,
+history, adversarial line and counterexample, separate from runtime pattern configuration.
