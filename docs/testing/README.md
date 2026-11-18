@@ -106,6 +106,8 @@ Regulile efective rejucă fiecare cadru și întreaga continuare documentată.
 
 `HintQueenRecaptureTest` protejează atacul italian de dezvoltare asupra damei, recaptura legală de pion, cache-ul separat al seminței/comparației, păstrarea orizontului complet la întrerupere, identitatea tablei manuale/atingerii și ofertele corecte de damă. Dezactivarea limitei trebuie să reproducă vechiul indiciu. [Corecția italiană măsurată](../board/ai-quality.md#recaptura-damei-și-continuitatea-indiciului-italian)
 
+`HintPinSupportTest` guvernează departajările defensive ale scorurilor exacte egale, apărarea sigură a unei piese ușoare legate relativ, contraexemplele, ambele culori, prioritatea numerică, istoricul păstrat și calea comună de indiciu manual/partidă. Ținta rămâne H5 la 200k, cu −21/−21 cp neschimbat. [Audit sicilian](../board/ai-quality.md#egalități-exacte-în-siciliană-și-apărarea-piesei-legate)
+
 ### Colecția offline de indicii
 
 `HintAuditSessionTest` validează planul versionat, reluarea întregului istoric,
