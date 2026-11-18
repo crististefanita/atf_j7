@@ -38,6 +38,7 @@ class ChessWebQuestStudyTest {
                 "Leaving a pending defense cancels stale callbacks and reopening resumes the saved reply",
                 "A failed write keeps the prior board and an externally changed puzzle blocks stale commands",
                 "Home summary reads saved totals without mounting the quest board",
+                "Puzzle headers retain localized contextual Back before the title in both languages",
                 "Wrong material check stays in the current puzzle and keeps the Web controls usable",
                 "Puzzle hints announce the APK turn, piece, destination and promotion once in RO and EN",
                 "Puzzle options match the APK and Escape returns focus to the chapters",

@@ -66,11 +66,26 @@ test('Menus clamp sideways, flip above and retain scroll space for every option'
     const anchor = { left: 260, right: 308, top: 350, bottom: 398 };
     const panel = { width: 300, height: 600 };
     const value = optionsMenuPlacement(anchor, panel, viewport);
-    assert.deepEqual(value, { left: 12, top: 8, maxWidth: 304, maxHeight: 338 });
+    assert.deepEqual(value, { left: 8, top: 8, maxWidth: 304, maxHeight: 338 });
     assert.ok(value.maxHeight < panel.height);
     const overflow = optionsMenuPlacement({ left: 8, right: 56, top: 20, bottom: 68 },
         { width: 500, height: 800 }, viewport);
     assert.deepEqual(overflow, { left: 8, top: 72, maxWidth: 304, maxHeight: 340 });
+});
+
+test('Right-side menus align to their trigger edge instead of centering or extending past the toolbar', () => {
+    for (const [width, height] of [[320, 568], [360, 640], [740, 420], [1280, 900]]) {
+        for (const scale of [1, 1.3]) {
+            const right = Math.min(width - 8, width / 2 + 280);
+            const anchor = { left: right - 48, right, top: 8, bottom: 56 };
+            const panel = { width: 220 * scale, height: 280 * scale };
+            const result = optionsMenuPlacement(anchor, panel, { width, height });
+            assert.equal(result.left + Math.min(panel.width, result.maxWidth), anchor.right);
+            assert.equal(result.top, anchor.bottom + 4);
+            assert.ok(result.left >= 8);
+            assert.ok(result.top + Math.min(panel.height, result.maxHeight) <= height - 8);
+        }
+    }
 });
 
 test('Zoomed visual viewport offsets constrain the menu in the actually visible region', () => {

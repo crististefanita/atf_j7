@@ -70,6 +70,7 @@ class ChessWebShellTest {
                 "Profile persistence respects the native validator and write failures",
                 "Board piece renderer reuses the same Staunton SVG on a move and clears it on capture",
                 "Home name and settings share the native dialog and stored profile",
-                "Language reload retains Home with a saved review and preserves the AI profile route"), passed);
+                "Language reload retains Home with a saved review and preserves the AI profile route",
+                "Fresh AI setup exposes Back without borrowing a saved game or review context"), passed);
     }
 }

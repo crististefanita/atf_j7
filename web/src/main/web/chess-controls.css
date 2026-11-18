@@ -2,12 +2,15 @@
   --chess-screen-title: 1.19rem;
   --chess-control-size: 48px;
   --chess-position-size: .85rem;
+  --chess-header-gap: .35rem;
+  --chess-page-insets: calc(2 * var(--play-page-padding));
 }
-[data-chess-header] { display: flex; flex-wrap: nowrap; align-items: center; gap: .35rem; min-block-size: var(--chess-control-size); }
-[data-chess-header] :is(h1, h2, h3) { min-inline-size: 0; flex: 1; margin: 0; line-height: 1.25; }
+[data-chess-header] { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--chess-header-gap); min-block-size: var(--chess-control-size); }
+body:not(.home-active) main > [data-chess-header] { max-inline-size: var(--play-column); margin-inline: auto; }
+[data-chess-header] :is(h1, h2, h3) { min-inline-size: 0; flex: 1; margin: 0; line-height: 1.25; text-align: start; }
 [data-chess-header] :is(h2, h3) { font-size: var(--chess-screen-title); }
 body:not(.home-active) [data-chess-header] h1 { font-size: var(--chess-screen-title); }
-[data-chess-header] > .options-anchor { margin-inline-start: auto; }
+[data-chess-header] > .options-anchor { margin-inline-start: auto; justify-self: end; }
 [data-chess-header] > button[data-chess-back] {
   display: inline-grid; place-items: center; flex: 0 0 var(--chess-control-size);
   inline-size: var(--chess-control-size); min-block-size: var(--chess-control-size);
@@ -28,7 +31,7 @@ button[data-chess-back]:enabled:hover, [data-chess-navigation] > button[data-che
 [data-chess-lines] button { min-block-size: var(--chess-control-size); }
 .match-actions { min-block-size: var(--play-action-size); }
 @media (max-height: 480px) {
-  main:has(> .match:not([hidden])) { padding-block: .25rem; }
+  :root { --play-page-padding: .25rem; }
   main > .match { margin-block-start: 0; }
 }
 @media (max-width: 480px) { :root { --chess-screen-title: 1rem; } }

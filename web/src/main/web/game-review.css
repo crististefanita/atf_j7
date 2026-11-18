@@ -1,12 +1,13 @@
 :root {
   color-scheme: dark;
   font: 100%/1.4 system-ui, sans-serif;
-  background: #181b1a;
-  color: #edf1e8;
-  --muted: #bec8bc;
-  --border: #435047;
-  --accent: #b8db8c;
-  --surface: #232a25;
+  --chess-page-background: #262522;
+  background: var(--chess-page-background);
+  color: #f5f3ec;
+  --muted: #c0bfb4;
+  --border: #706c5f;
+  --accent: #b8d88a;
+  --surface: #302e2a;
   scrollbar-gutter: stable;
   --play-page-padding: clamp(.5rem, 2vw, 1.25rem);
   --play-room-padding: clamp(.5rem, 2vw, 1rem);
@@ -25,7 +26,7 @@
 [hidden] { display: none !important; }
 body { margin: 0; }
 main { margin: auto; max-width: 70rem; padding: var(--play-page-padding); }
-body.home-active { background: #262522; color: #f5f3ec; }
+body.home-active { background: var(--chess-page-background); color: #f5f3ec; }
 body.home-active main { max-width: 42rem; padding: 22px 20px 20px; }
 body.home-active h1 { font-size: 1.875rem; }
 .home-menu h2 { margin-block: 1rem .3125rem; font-size: .875rem; font-weight: normal; color: #c0bfb4; }
@@ -40,9 +41,9 @@ body.home-active h1 { font-size: 1.875rem; }
 .home-profile { grid-template-columns: minmax(0, 1fr) auto; }
 .review-import-tools { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-block-start: 1rem; }
 .study-totals { margin: 0 .875rem .35rem; color: #b8d88a; font-size: .82rem; }
-body.study-active { background: #262522; color: #f5f3ec; }
+body.study-active { background: var(--chess-page-background); color: #f5f3ec; }
 body.study-active main > header { display: none; }
-.study-surface { --study-top-gap: .75rem; max-width: 42rem; margin: var(--study-top-gap) auto 0; }
+.study-surface { --study-top-gap: 0px; max-width: var(--play-column); margin: var(--study-top-gap) auto 0; }
 .study-surface .board { width: 100%; margin-inline: auto; }
 .study-surface button.square[aria-disabled="true"] { cursor: default; }
 .study-board { position: relative; }
@@ -80,7 +81,7 @@ main:has(> .match:not([hidden])) > header {
   max-inline-size: var(--play-column);
   min-block-size: var(--play-action-size);
   margin-inline: auto;
-  gap: .25rem .5rem;
+  gap: .25rem var(--chess-header-gap);
 }
 main:has(> .match:not([hidden])) > header h1 { font-size: var(--chess-screen-title); line-height: 1.25; overflow-wrap: anywhere; }
 .match-options-button {
@@ -151,8 +152,8 @@ main:has(> .match:not([hidden])) > header h1 { font-size: var(--chess-screen-tit
 .match .movement { margin-block-start: .25rem; }
 .match :is(.movement, .analysis-progress) button { min-block-size: var(--play-action-size); }
 .match .turn { margin-block-start: .2rem; }
-.ai-setup { max-width: 30rem; margin: .9rem auto 0; }
-.match-list { max-width: 42rem; margin: .9rem auto 0; }
+.ai-setup { max-width: var(--play-column); margin: .9rem auto 0; }
+.match-list { max-width: var(--play-column); margin: .9rem auto 0; }
 #match-rows { display: grid; gap: .4rem; list-style: none; margin: 0; padding: 0; }
 .match-row { display: grid; width: 100%; text-align: start; gap: .15rem; background: var(--surface); }
 .match-row .match-subtitle, .match-row time, #empty-list { color: var(--muted); }
@@ -371,12 +372,6 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
   #continue-match { padding: .2rem .35rem; font-size: .8rem; line-height: 1.1; }
 }
 @media (max-width: 480px) {
-  :root:has(main > .match[data-mode="AI"]:not([hidden])) {
-    scrollbar-gutter: auto;
-    scrollbar-width: none;
-  }
-  main:has(> .match[data-mode="AI"]:not([hidden])) { padding: .15rem 0; }
-  main:has(> .match[data-mode="AI"]:not([hidden])) > header { margin-inline: .5rem; }
   .match[data-mode="AI"] > .match-board-frame {
     --match-meter-width: 8px;
     --match-meter-gap: 2px;
@@ -393,7 +388,6 @@ button:focus-visible, input:focus-visible, #why-title:focus-visible, .board:focu
   .match[data-mode="AI"] #match-board { grid-column: 2; inline-size: 100%; }
 }
 @media (max-width: 340px) {
-  main:has(> .match:not([hidden])) { padding-block: .15rem; }
   main:has(> .match:not([hidden])) > header h1 { font-size: var(--chess-screen-title); }
   .match-automatic { max-inline-size: 6.25rem; font-size: .72rem; }
 }

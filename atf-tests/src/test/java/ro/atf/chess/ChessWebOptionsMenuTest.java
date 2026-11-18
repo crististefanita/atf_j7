@@ -35,6 +35,7 @@ class ChessWebOptionsMenuTest {
         check.same("Every required menu contract appears in the component transcript", List.of(
                 "Menu geometry stays beside its trigger on compact and desktop at 100 and 130 percent",
                 "Menus clamp sideways, flip above and retain scroll space for every option",
+                "Right-side menus align to their trigger edge instead of centering or extending past the toolbar",
                 "Zoomed visual viewport offsets constrain the menu in the actually visible region",
                 "A menu outside the trigger parent follows the trigger instead of the document bottom",
                 "Options focus and Escape preserve the page position and return to their own trigger",

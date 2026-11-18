@@ -140,10 +140,14 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 
 ### The board in puzzles and matches
 
-- In a mobile AI match, the board and evaluation bar together use the full usable width when width limits the square's side. When analysis is enabled, the bar and its gap occupy a strip on the left.
+- In a mobile AI match, the board and evaluation bar together use the available width inside the shared page insets when width limits the square's side. When analysis is enabled, the bar and its gap occupy a strip on the left.
 - In a shorter window, the available height leaves room for the score, history, and lightbulb. Navigating history and reopening the slot retain the board rectangle.
 - Between the game arrows, show only the move that produced the selected position, for example **1. e2–e4** or **1… e7–e5**. **Start** identifies the initial position. The first move is amber and the latest is turquoise; a single move combines both cues. Accessible labels name the boundary as well. Continuation stays outside this row. `MatchHistorySelection` owns the JVM cursor; Web and APK adapters share fourteen cases, including capture, castling, promotion, reopening and branching.
 - Openings supplies the title-and-Back header pattern; Analysis board supplies the compact navigation controls. `chess-controls.css` shares title scale, 48 px arrows and position styling. `line-navigation.mjs` projects the boundary of the selected line. Game, study and preview adapters keep their own wording, complete history and branch selectors; switching a line retains its owner's cursor. Puzzle navigation keeps its hint or Danger control. Back returns to the context that opened the screen, and options stay anchored to their own trigger.
+- Header titles align to the logical start even inside a centered catalog. In a game, automation precedes the rightmost options button. Shared menus align with the nearest edge of their trigger, open below or above according to the available space, and remain inside the visible viewport. Verify the beginning of the title text, not only its expanding container.
+- The first AI setup has Back even before a game exists. Back and Cancel leave the form through the same action and retain the saved game that opened it.
+- New game, saved games and study screens use `--play-column`, the same page insets and the base palette from Analysis board. Compact landscape reduces the page inset for every screen. The header does not acquire a wider canvas than its content. Board owners reserve room for their visible meter, score, history and explanations before sizing the square; a shared column does not remove those contextual reservations.
+- A different game or study route resets inherited document scroll before displaying its content. Stepping through moves on the same screen preserves the page position; Back and Forward do not add a duplicate route entry.
 - [Compact RO/EN check](../docs/testing/README.md#analysis-in-the-ai-game)
 
 Puzzles size the board from the available space after reserving room for
