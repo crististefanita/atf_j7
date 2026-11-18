@@ -33,6 +33,27 @@ Bara și prima linie de text folosesc o estimare separată pentru poziția curen
 
 </details>
 
+## Recaptura damei la frontiera indiciului
+
+O variantă de verificare încheiată cu dama luând un pion trebuie să includă în
+scor recaptura legală cu altă piesă decât pionul înainte de a susține schimbul.
+Reconfirmarea începe abia la orizontul deja încheiat al căutării inițiale sau mai
+adânc; un candidat superficial provizoriu nu poate schimba frontiera respectivă.
+Toate rădăcinile comparate se recalculează la același orizont, iar toate încercările
+consumă același plafon public de 200k. Întreruperea păstrează ultimul clasament
+încheiat. Sprijinul anterior la ture egale și cache-ul altui mod de frontieră nu
+pot confirma rezultatul nou. Verificarea selectivă nu certifică variante echivalente
+suplimentare doar fiindcă noile scoruri provizorii sunt apropiate.
+
+Este o corecție a căutării, nu o mutare adăugată afișajului, o interdicție a
+sacrificiilor sau o excepție pentru o poziție din deschidere. Recapturile cu piese
+legate rămân ilegale, iar `…Qxg3+ hxg3 …Rh1#` trebuie să rămână mat demonstrat.
+Deciziile adversarului și Game Review își păstrează politicile separate.
+[Contractele de componentă](../../atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java)
+acoperă prefixul Caro–Kann real, răspunsurile în ambele culori, modurile cache,
+limitele scorurilor și un contraexemplu sicilian. [Dovezile de învățare](../testing/learning-archive.md)
+păstrează separarea dintre forța nativă și calitatea indiciului.
+
 ## Buget adaptiv în prim-plan
 
 `hard-adaptive.yaml` configurează o alocație de bază de 100.000 și un maxim de

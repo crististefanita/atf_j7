@@ -83,3 +83,21 @@ cere analiza nativă și forma lizibilă pentru fiecare partidă, ambele ramuri,
 capetele publice și fazele brute ale oracolului. Integritatea, calitatea capetelor
 expuse și calitatea recomandărilor au verdicte Extent separate. Punctele logistice
 native și WDL Stockfish au modele diferite; etichetele divergente cer calibrare.
+
+## Reconfirmarea unei capturi cu dama
+
+Păstrează producătorul inițial și varianta greșită originală drept contraexemplu.
+Înregistrează un indiciu nou din sursa corectată, cu consumul total real; nu modifica
+jurnalele istorice și nu reeticheta oracolul. Compară toate rădăcinile oferite pe
+contextele de regresie înghețate și pe contexte noi înaintea promovării frontierei.
+Nu activa modul tactic nou dintr-o comparație preliminară sub orizontul inițial
+încheiat. Identitatea cache și sprijinul la ture egale trebuie să distingă modurile.
+Un candidat suplimentar căutat selectiv nu devine automat echivalent.
+
+Rejucarea catalogului Hard nativ este o măsurare separată. Egalitatea analizelor
+native complete—alegeri, adâncimi, costuri și variante—demonstrează păstrarea lor,
+nu o creștere Elo. Două partide cu Stockfish la putere completă sunt diagnostice,
+nu o ligă evaluată. Păstrează fiecare pereche Hard/indiciu înaintea mutării, în
+ambele culori, și atașează analiza nativă completă înainte să termine oracolul.
+Fazele încă necalculate rămân în așteptare; integritatea și calitatea șahului au
+verdicte Extent separate.

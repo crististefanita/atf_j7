@@ -93,6 +93,33 @@ verdicte Extent separate. Prima trece; ultimele două eșuează. Ratingurile loc
 ale analizei nu sunt Elo măsurat, iar cele trei trasee plafonate nu au rating.
 [Contract și componente](../testing/learning-archive.md#analiza-finală-și-capetele-indiciilor)
 
+## Recaptura damei din Caro–Kann rezolvată
+
+Indiciul public maxim după `e4 c6 d4 d5 Nc3` include acum în scor răspunsul legal
+`Qxd4` la vechea mutare finală `…Qxd4`. Liderul corectat rămâne `…dxe4`, cu o
+continuare calculată din nou; nu se adaugă o mutare decorativă. Martorii frontierei
+în ambele culori, ai cache-ului/limitelor și ai pieselor legate păstrează sacrificiul
+corect de damă. Un candidat sicilian superficial regresa inițial, așa că soluția
+finală începe abia la orizontul inițial încheiat și păstrează eligibilitatea
+variantelor verificate selectiv.
+
+Comparația înghețată cuprinde 108 contexte, inclusiv 32 noi din familii de deschidere
+cunoscute. Doar acest caz și martorul cu culorile inversate își schimbă HintSearch
+integral; niciun lider public nu se schimbă. Sunt păstrate toate cele 554 de cereri
+reci Stockfish H17/H19, fără lider rău sau variantă suplimentară rea nouă. Cei șase
+lideri deja greșiți din comparație rămân deschiși; avem păstrare și repararea unui
+capăt de linie, nu calitate absolută a indiciilor. Analizele native complete rămân
+identice în toate cele 2.303 etape ale catalogului, deci schimbarea nu măsoară o
+creștere Elo Hard.
+
+Recepția originală `…Qxd4` de mai sus rămâne contraexemplu istoric. Celălalt capăt
+expus greșit (`…Nh6`), replicile adverse interne slabe și calibrarea Game Review
+rămân deschise. Nu transfera verdictul indiciului de 200k politicii separate de
+85k a analizei finale. Dovezile curente și jurnalele partidelor complete noi sunt în
+`C:\work\sah\.studii\experiments\2026-11-18-qxd4` și
+`C:\work\sah\.studii\corpus\2026-11-18-qxd4-final`.
+[Comportament și componente](../board/ai-quality.md#recaptura-damei-la-frontiera-indiciului)
+
 ## Dovezi și verificări de închidere
 
 <details>
