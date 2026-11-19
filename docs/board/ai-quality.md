@@ -38,6 +38,14 @@ Bara și prima linie de text folosesc o estimare separată pentru poziția curen
 
 </details>
 
+## Dezvoltarea Nimzo verificată
+
+După `1.d4 Nf6 2.c4 e6 3.Nc3`, teoria jocului știa deja `…Bb4`, iar îndrumarea compara doar `…Nc6` și `…Be7`. Lărgirea listei generice singură a coborât orizontul complet de la H6 la H5 și a fost respinsă. Corecția calificată folosește [repertoriul verificat](../../chess-core/src/main/resources/ai-repertoire.yaml) existent pentru poziția exactă, cu aceeași identitate a rocadei și culorii la mutare, fără bonus pozițional ori replică adversă prestabilită.
+
+La Stockfish 19 rece H17/H19, `…Bb4` pierde 0/0‰ față de căutarea liberă, iar `…Be7` pierde 249,5/249,5‰. Linia publică efectivă este recalculată la H6 în aceeași alocație ordinară de 200k: `…Bb4 Nf3 …Nc6 a3 …Bxc3+ bxc3`. Toate cele șase semimutări ipotetice au faze independente libere/forțate și nicio pierdere stabilă de minimum 150‰; pierderea maximă este 63/63‰ la `a3`. Martorul francez `…Be7` pierde 36/77,5‰ și rămâne legal: nu este o interdicție globală a dezvoltării nebunului. [Contracte native, oracol și domeniu](../../atf-tests/src/test/java/ro/atf/chess/NimzoRepertoireTest.java)
+
+Poziția verificată informează și Game Review, care continuă să evalueze mutarea jucată efectiv prin propria politică. Liniile Franceză/Spaniolă și sacrificiile corecte își păstrează gărzile. Vechiul [scop nativ Nimzo](../../atf-tests/src/test/java/ro/atf/chess/NimzoHintBenchmarkTest.java) trece acum și este acoperit în suita de componente. Recepțiile vechi greșite rămân contraexemple imuabile; erorile ulterioare ale replicilor libere, calibrarea scorului și Elo global sunt obligații separate. Jocul Native alegea deja `…Bb4` aici, deci această corecție nu dovedește creșterea forței de joc.
+
 ## Recaptura damei la frontiera indiciului
 
 O variantă de verificare încheiată cu dama luând un pion trebuie să includă în
