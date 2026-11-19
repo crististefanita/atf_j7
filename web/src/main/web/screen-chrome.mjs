@@ -1,12 +1,12 @@
-import { chrome, backTargets } from './chrome-contract.mjs';
+import { chrome, backTargets, reviewBackTargets } from './chrome-contract.mjs';
 
 const labels = {
     en: { HOME: 'Back to main menu', PUZZLES: 'Back to puzzle chapters', OPENINGS: 'Back to openings', SOURCE: 'Back to the previous screen' },
     ro: { HOME: 'Înapoi la meniul principal', PUZZLES: 'Înapoi la capitole', OPENINGS: 'Înapoi la deschideri', SOURCE: 'Înapoi la ecranul anterior' },
 };
 
-export function backLabel(page, locale) {
-    const target = backTargets[page];
+export function backLabel(page, locale, reviewing = false) {
+    const target = (reviewing ? reviewBackTargets : backTargets)[page];
     if (!target) throw new RangeError('Unknown chess screen: ' + page);
     return labels[locale === 'ro' ? 'ro' : 'en'][target];
 }

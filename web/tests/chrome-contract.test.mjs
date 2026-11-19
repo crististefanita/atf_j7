@@ -41,6 +41,9 @@ test('The same popup fixtures stay beside their trigger and retain scroll space'
 test('Contextual Back destinations remain identical without replacing route callbacks', () => {
     assert.deepEqual(backTargets, cases.pages);
     for (const page of Object.keys(cases.pages)) for (const locale of ['en','ro']) assert(backLabel(page,locale).length > 0);
+    assert.equal(backLabel('OPENING','en',true), backLabel('ANALYSIS','en'));
+    assert.equal(backLabel('OPENING','ro',true), backLabel('ANALYSIS','ro'));
+    assert.equal(backLabel('OPENING','en',false), 'Back to openings');
     assert.equal(backLabel('PUZZLE','en'),'Back to puzzle chapters');
     assert.equal(backLabel('PUZZLES','ro'),'Înapoi la meniul principal');
     assert.throws(() => backLabel('UNKNOWN','en'),RangeError);

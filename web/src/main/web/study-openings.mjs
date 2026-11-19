@@ -378,7 +378,7 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
     workspace.hidden = !lesson;
     catalog.hidden = Boolean(lesson);
     heading.textContent = lesson?.title ?? text.title;
-    backButton.setAttribute('aria-label', backLabel(lesson ? 'OPENING' : 'OPENINGS', locale));
+    backButton.setAttribute('aria-label', backLabel(lesson ? 'OPENING' : 'OPENINGS', locale, Boolean(lesson?.reviewing)));
     if (lesson) {
       if (frameKey(lesson) !== frameKey(before) || lesson.hint !== before?.hint || !lesson.aiEnabled) variant = -1;
       drawLesson();

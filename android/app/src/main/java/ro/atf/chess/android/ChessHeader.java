@@ -16,14 +16,17 @@ import ro.atf.chess.UiChrome;
 /** Native adapter for Back, adjacent title and right-aligned contextual actions. */
 final class ChessHeader extends LinearLayout {
     private final TextView title;
+    private final UiChrome.Page page;
+    private final ImageButton leading;
 
     ChessHeader(Context context, UiChrome.Page page, int backId, CharSequence text, Runnable back) {
         super(context);
+        this.page = page;
         setGravity(Gravity.CENTER_VERTICAL);
         setBaselineAligned(false);
         setMinimumHeight(dp(UiChrome.TARGET));
         setPadding(dp(UiChrome.INSET), 0, dp(UiChrome.INSET), 0);
-        var leading = action(context, backId, R.drawable.match_chevron, backLabel(page), view -> back.run());
+        leading = action(context, backId, R.drawable.match_chevron, backLabel(page.back()), view -> back.run());
         leading.setScaleX(-1);
         addView(leading, new LayoutParams(dp(UiChrome.TARGET), dp(UiChrome.TARGET)));
         title = new TextView(context);
@@ -45,6 +48,10 @@ final class ChessHeader extends LinearLayout {
 
     TextView title() { return title; }
 
+    void setReviewing(boolean reviewing) {
+        leading.setContentDescription(getContext().getString(backLabel(UiChrome.back(page, reviewing))));
+    }
+
     void addAction(View action) { addView(action, new LayoutParams(dp(UiChrome.TARGET), dp(UiChrome.TARGET))); }
 
     static ImageButton action(Context context, int id, int icon, int description, View.OnClickListener listener) {
@@ -61,8 +68,8 @@ final class ChessHeader extends LinearLayout {
         return button;
     }
 
-    private static int backLabel(UiChrome.Page page) {
-        return switch (page.back()) {
+    private static int backLabel(UiChrome.Back destination) {
+        return switch (destination) {
             case HOME -> R.string.chrome_back_home;
             case PUZZLES -> R.string.chrome_back_puzzles;
             case OPENINGS -> R.string.chrome_back_openings;

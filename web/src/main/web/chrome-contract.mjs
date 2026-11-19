@@ -13,3 +13,16 @@ export const backTargets = Object.freeze({
     CALCULATED: 'SOURCE',
     MATING: 'SOURCE'
 });
+export const reviewBackTargets = Object.freeze({
+    MATCH: 'HOME',
+    SAVED: 'HOME',
+    FINISHED: 'HOME',
+    SETUP: 'HOME',
+    PUZZLES: 'HOME',
+    PUZZLE: 'PUZZLES',
+    OPENINGS: 'HOME',
+    OPENING: 'SOURCE',
+    ANALYSIS: 'SOURCE',
+    CALCULATED: 'SOURCE',
+    MATING: 'SOURCE'
+});

@@ -26,6 +26,10 @@ public final class UiChrome {
 
     private UiChrome() { }
 
+    public static Back back(Page page, boolean reviewing) {
+        return page == Page.OPENING && reviewing ? Back.SOURCE : page.back();
+    }
+
     public static Rail navigation(int available) {
         return navigation(available, 1);
     }

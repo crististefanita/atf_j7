@@ -26,6 +26,8 @@ class UiChromeParityTest {
         for (var entry : cases.pages().entrySet()) {
             check.same(entry.getKey() + " has a contextual Back destination", entry.getValue(), UiChrome.Page.valueOf(entry.getKey()).back().name());
         }
+        check.same("Opening history Back returns to the played position", UiChrome.Back.SOURCE, UiChrome.back(UiChrome.Page.OPENING, true));
+        check.same("Live opening Back returns to the catalog", UiChrome.Back.OPENINGS, UiChrome.back(UiChrome.Page.OPENING, false));
         check.same("Every screen is represented", UiChrome.Page.values().length, cases.pages().size());
         for (var p : cases.profiles()) {
             var rail = UiChrome.navigation(p.width());

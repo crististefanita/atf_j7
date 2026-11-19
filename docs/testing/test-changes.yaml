@@ -188,7 +188,7 @@ testChanges:
     base: "d08d487dc463d5321da6a4691123c808dfd73406"
     from: atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
-    test: ro.atf.chess.MainMenuLayoutTest#offersChaptersAndLocalPlayInBothLanguages
+    test: ro.atf.chess.MainMenuLayoutTest#gameListsFollowThePuzzleMenuAndKeepBackOutsideTheScroll
     contract: "Keep the home groups and add the localized Settings control beside Profile"
     allowDelete: false
 
@@ -1712,16 +1712,8 @@ testChanges:
   - id: J7-CHROME-PUZZLEEXPLAINLAYOUTTEST-JAVA-EN
     base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
     from: atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
-    test: ro.atf.chess.UiChromeParityTest#sharedProfilesKeepTheRailCenteredAndMenusAtTheirTrigger
-    contract: "Preserve six chapters, every replay control, all game rows and Back visibility; relocate Back beside the title and retain actual native image checks with shared geometry and contextual destinations"
-    allowDelete: false
-
-  - id: J7-CHROME-STUDY-QUESTS-TEST-MJS-EN
-    base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
-    from: web/tests/study-quests.test.mjs
-    replacement: atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
-    test: ro.atf.chess.UiChromeParityTest#generatedWebPolicyAndExecutableAdapterUseTheSameCases
+    replacement: atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java
+    test: ro.atf.chess.PuzzleExplainLayoutTest#keepsTheFullWidthReplayBodyBetweenTheHeaderAndTheFixedControls
     contract: "Preserve six chapters, every replay control, all game rows and Back visibility; relocate Back beside the title and retain actual native image checks with shared geometry and contextual destinations"
     allowDelete: false
 
