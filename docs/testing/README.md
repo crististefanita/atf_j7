@@ -323,6 +323,34 @@ receipts, distorted coordinates, and deviations from the common line.
 
 </details>
 
+<details>
+<summary>Recreating an open replay at font 1.3</summary>
+
+Use the signed build with `-Distribution -ReplayRotationOnly -SourceCommit <sha>`.
+The compact EN/RO probe rotates each already open surface 0° → 90° → 0°,
+requiring a different resumed Activity at each turn. It checks the revealed
+AI suggestion, the selected calculated/theory branch, every branch cursor,
+the mating ply, the historical source board and unchanged stored game.
+Back returns to the recreated source window. Geometry is measured again from
+that source in the new orientation; its old portrait pixel size is not reused.
+
+Publish separately with `AndroidSanityPublication#publishOpenReplayRotationSanity`,
+`-Dchess.android.receipt=<run>` and a fresh `-Dchess.extent=<report>`.
+Admission requires 32 native checks per locale, eight ordered recreation
+markers per process, the measured 1.3 font/profile, matching signed APK bytes
+and sixteen distinct embedded captures across EN/RO. Component negatives reject
+missing steps, substituted assertions, duplicate rotations and another profile.
+This probe does not certify process death or TalkBack focus/speech.
+
+The small versioned `ReplayCheckpoint` contains source identity, ordered UCI
+lines, selected suggestion/branch and independent cursors. The Activity saves
+it before pause cancels the worker, and recomputes the source analysis after
+recreation. Restoration requires the exact source and all line signatures;
+a changed position, continuation or mode rejects stale state. No Activity,
+Dialog or worker is retained, and restoring never plays on the saved game.
+
+</details>
+
 ### Updating the Web bundle
 
 In the component test, verify that the addresses in `index.html` point to the

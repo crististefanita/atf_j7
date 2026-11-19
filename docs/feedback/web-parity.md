@@ -44,15 +44,6 @@ Before publishing a new engine, use a deterministic portable digest and verify i
 
 ## WEB-02 · Adapters and Shared Layout
 
-**P2 · Rotation while a replay is open.** The signed API 28 matrix now covers
-three profiles in EN/RO at font 1.3, including observed 90° landscape rotation,
-navigation and Back to the source window. It starts each case in its target
-orientation. Add a separate recreation probe with a dialog already open:
-retain its selected branch, ply and source cursor through both turns, then
-verify Back and the source rectangle. Do not infer TalkBack focus or speech
-from the input-window focus check.
-[Native replay protocol](../testing/README.md#native-source-sized-replay-sanity)
-
 **P2 · Use compact landscape width more effectively.** At 740 × 420 dp and
 font 1.3, the mating source and replay both measure 285 native pixels at
 320 dpi (142.5 dp). Navigation fits without page scrolling, but the vertical

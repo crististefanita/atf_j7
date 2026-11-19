@@ -81,6 +81,7 @@ public final class AnalysisActivity extends LocalizedActivity {
         blackBelow = state == null ? initial.blackBelow() : state.getBoolean(BLACK_BELOW);
         analysisEnabled = state == null || state.getBoolean(ANALYSIS_ENABLED, true);
         setContentView(buildScreen());
+        if (state != null) analysis.restoreState(state.getString("analysisReplay"));
     }
 
     private View buildScreen() {
@@ -302,7 +303,7 @@ public final class AnalysisActivity extends LocalizedActivity {
     }
 
     @Override protected void onResume() { super.onResume(); render(); }
-    @Override protected void onPause() { analysis.cancel(); super.onPause(); }
+    @Override protected void onPause() { analysis.suspend(); super.onPause(); }
     @Override protected void onDestroy() {
         if (reviewDialog != null) reviewDialog.dismiss();
         reviewWorker.shutdownNow();
@@ -315,6 +316,7 @@ public final class AnalysisActivity extends LocalizedActivity {
         state.putInt(PLY, study.ply());
         state.putBoolean(BLACK_BELOW, blackBelow);
         state.putBoolean(ANALYSIS_ENABLED, analysisEnabled);
+        state.putString("analysisReplay", analysis.savedState());
         super.onSaveInstanceState(state);
     }
 }
