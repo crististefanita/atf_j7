@@ -1,0 +1,38 @@
+:root {
+  --chess-screen-title: 1.1875rem;
+  --chess-control-size: 48px;
+  --chess-position-size: .85rem;
+  --chess-header-gap: 6px;
+  --chess-header-inset: 8px;
+  --chess-navigation-max: 384px;
+  --chess-page-insets: calc(2 * var(--play-page-padding));
+}
+[data-chess-header] { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--chess-header-gap); min-block-size: var(--chess-control-size); padding-inline: var(--chess-header-inset); }
+body:not(.home-active) main > [data-chess-header] { max-inline-size: var(--play-column); margin-inline: auto; }
+[data-chess-header] :is(h1, h2, h3) { min-inline-size: 0; flex: 1; margin: 0; line-height: 1.25; text-align: start; }
+[data-chess-header] :is(h2, h3) { font-size: var(--chess-screen-title); }
+body:not(.home-active) [data-chess-header] h1 { font-size: var(--chess-screen-title); }
+[data-chess-header] > .options-anchor { margin-inline-start: auto; justify-self: end; }
+[data-chess-header] > button[data-chess-back] {
+  display: inline-grid; place-items: center; flex: 0 0 var(--chess-control-size);
+  inline-size: var(--chess-control-size); min-block-size: var(--chess-control-size);
+  padding: 0; border: 0; background: transparent; color: #f5f3ec; font-size: 1.55rem;
+}
+[data-chess-navigation] { gap: 0; min-block-size: var(--chess-control-size); background: #2b2926; border-radius: .35rem; inline-size: min(100%, var(--chess-navigation-max)); margin-inline: auto; }
+[data-chess-navigation] > button[data-chess-arrow] {
+  inline-size: var(--chess-control-size); min-inline-size: var(--chess-control-size); min-block-size: var(--chess-control-size);
+  flex: 0 0 var(--chess-control-size); padding: 0; border: 0; background: transparent; color: #c0bfb4; font-size: 1.55rem;
+}
+button[data-chess-back]:enabled:hover, [data-chess-navigation] > button[data-chess-arrow]:enabled:hover { background: #373632; }
+[data-chess-navigation] > button[data-chess-arrow]:disabled { color: #74736b; }
+[data-chess-position] { margin: 0; min-inline-size: 0; text-align: center; font-size: var(--chess-position-size); font-variant-numeric: tabular-nums; }
+[data-chess-navigation] > [data-chess-position] { min-block-size: var(--chess-control-size); display: grid; place-items: center; }
+[data-chess-position]:is([data-boundary="START"], [data-boundary="FIRST"]) { color: #e4be7a; }
+[data-chess-position]:is([data-boundary="LAST"], [data-boundary="ONLY"]) { color: #57e0b4; }
+[data-chess-lines] { flex-wrap: wrap; }
+[data-chess-lines] button { min-block-size: var(--chess-control-size); }
+.match-actions { min-block-size: var(--play-action-size); }
+@media (max-height: 480px) {
+  :root { --play-page-padding: .25rem; }
+  main > .match { margin-block-start: 0; }
+}

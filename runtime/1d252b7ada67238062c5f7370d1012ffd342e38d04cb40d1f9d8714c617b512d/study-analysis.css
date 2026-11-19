@@ -1,0 +1,182 @@
+.analysis-study {
+  --analysis-page-padding: var(--play-page-padding);
+  display: flex;
+  flex-direction: column;
+  min-block-size: calc(100dvh - 2 * var(--analysis-page-padding) - var(--study-top-gap));
+  max-width: var(--play-column);
+  margin-inline: auto;
+  color: #f5f3ec;
+}
+
+.analysis-study-header,
+.analysis-study-panel,
+.analysis-study-navigation,
+.analysis-study-variants {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.analysis-study-header { min-height: 3rem; }
+.analysis-study-header h2 { flex: 1; margin: 0; font-size: var(--chess-screen-title); line-height: 1.25; }
+.analysis-study-header > button,
+.analysis-study-navigation .analysis-study-icon,
+.analysis-study-menu > button {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 48px;
+  min-block-size: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #f5f3ec;
+  font-size: min(1.55rem, 28px);
+}
+
+.analysis-study-header > button:hover,
+.analysis-study-navigation .analysis-study-icon:hover,
+.analysis-study-menu > button:hover {
+  background: #373632;
+}
+
+.analysis-study-menu-items {
+  inline-size: min(20rem, calc(100vw - 2rem));
+  padding: .35rem;
+  background: #302e2a;
+  border: 1px solid #706c5f;
+  border-radius: .5rem;
+}
+
+.analysis-study-menu-items :is(label, button) {
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: 3rem;
+  padding: .4rem .65rem;
+  gap: .5rem;
+  border: 0;
+  background: transparent;
+  font-size: clamp(.9375rem, 4vw, 1.085rem);
+  line-height: 1.3;
+  text-align: start;
+}
+
+.analysis-study-menu-items :is(label, button):hover { background: #45443d; }
+.analysis-study-stage {
+  --analysis-meter-width: var(--board-meter-size);
+  --analysis-meter-gutter: var(--board-meter-gutter);
+  --analysis-caption-height: var(--board-seat-size);
+  flex: 1 0 auto;
+  min-block-size: var(--board-stage-min);
+  display: grid;
+  place-items: center;
+  container-type: inline-size;
+}
+
+.analysis-study-stage:has(.analysis-study-meter[hidden]) { --analysis-meter-gutter: 0px; }
+.analysis-study-stack {
+  inline-size: min(100%, calc(var(--play-board-limit) + var(--analysis-meter-gutter)));
+}
+.analysis-study-replay .analysis-study-stack {
+  max-inline-size: var(--replay-board-side, 100%);
+}
+.analysis-study-replay {
+  block-size: calc(100dvh - 2 * var(--analysis-page-padding));
+  min-block-size: 0;
+}
+.analysis-study-replay .analysis-study-stage { flex: none; min-block-size: 0; }
+.analysis-study-replay .analysis-study-variants { flex: none; flex-wrap: nowrap; }
+.analysis-study-replay .analysis-study-variants button { flex: 1; min-inline-size: 0; min-block-size: 48px; }
+.analysis-study-replay .analysis-study-toolbar { flex: none; }
+.analysis-study-replay-details {
+  flex: 1 1 0; min-block-size: 0; overflow: auto;
+  overscroll-behavior: contain; padding-inline: .5rem;
+}
+
+.analysis-study-side {
+  margin: 0 0 0 var(--analysis-meter-gutter);
+  block-size: var(--analysis-caption-height);
+  overflow-wrap: anywhere;
+  font-size: .94rem;
+}
+
+.analysis-study-side.active { color: #b8d88a; }
+.analysis-study-panel {
+  align-items: stretch;
+  gap: max(0px, var(--analysis-meter-gutter) - var(--analysis-meter-width));
+}
+
+.analysis-study-board { flex: 1; min-inline-size: 0; }
+.analysis-study-board.board { inline-size: 100%; margin: 0; border-radius: 0; }
+.analysis-study-meter {
+  position: relative;
+  flex: 0 0 var(--analysis-meter-width);
+}
+.analysis-study-meter-fill { transition: height .12s ease; }
+.analysis-study-status,
+.analysis-study-score,
+.analysis-study-evidence,
+.analysis-study-error { margin: 0; text-align: center; }
+.analysis-study-status { min-block-size: var(--board-feedback-size); font-size: .875rem; white-space: pre-line; }
+.analysis-study-feedback { min-block-size: var(--board-feedback-size); font-size: .875rem; text-align: center; }
+.analysis-study-score { color: #c0bfb4; }
+.analysis-study-feedback button {
+  display: block;
+  max-inline-size: 100%;
+  min-block-size: 1.25rem;
+  margin-inline: auto;
+  padding: 0 .35rem;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: #57e0b4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-study-error { color: #ffb591; }
+.analysis-study-navigation { justify-content: center; }
+.analysis-study-toolbar { gap: 0; min-inline-size: 0; background: #2b2926; }
+.analysis-study-toolbar > button { flex: 0 0 min(15%, 48px); min-inline-size: 0; }
+.analysis-study-variants { justify-content: center; flex-wrap: wrap; }
+.analysis-study-playback { flex: 1; margin: 0; font-size: .85rem; text-align: center; }
+.analysis-study-history { display: flex; flex: 1; min-inline-size: 0; overflow-x: auto; scrollbar-width: none; }
+.analysis-study-history button {
+  flex: 0 0 auto;
+  min-inline-size: 48px;
+  min-block-size: 48px;
+  padding-inline: .45rem;
+  border: 0;
+  background: transparent;
+  font-size: .75rem;
+  white-space: nowrap;
+}
+
+.analysis-study :is([aria-current="step"], [aria-pressed="true"]) { background: #3d4933; color: #d9f0c2; }
+.analysis-study dialog { max-inline-size: min(30rem, calc(100vw - 2rem)); }
+.analysis-study dialog h3 { margin-block-start: 0; }
+.analysis-study dialog .analysis-study-navigation { margin-block: .5rem; }
+
+@media (orientation: portrait) and (max-width: 500px) {
+  .analysis-study-header { gap: .2rem; }
+  .analysis-study-header h2 { font-size: var(--chess-screen-title); }
+  body.study-active main:has(.analysis-study-replay) { padding-inline: 0; }
+  .analysis-study-replay {
+    --study-top-gap: 0px;
+  }
+  .analysis-study-replay .analysis-study-stage {
+    flex: none;
+    min-block-size: 0;
+    container-type: inline-size;
+  }
+  .analysis-study-replay .analysis-study-variants { flex: none; flex-wrap: nowrap; gap: .2rem; padding-inline: .35rem; }
+  .analysis-study-replay .analysis-study-variants button { flex: 1; min-inline-size: 0; min-block-size: 48px; font-size: .85rem; }
+  .analysis-study-replay-details {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    padding-inline: .5rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .analysis-study-replay .analysis-study-toolbar { flex: none; }
+}

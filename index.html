@@ -5,16 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Play chess against AI, solve puzzles, and study openings.">
   <title>Chess Lab</title>
-  <link rel="stylesheet" href="runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/game-review.css">
-  <link rel="stylesheet" href="runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-openings.css">
-  <link rel="stylesheet" href="runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-analysis.css">
-  <link rel="stylesheet" href="runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/study-quests.css">
-  <script type="module" src="runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b/game-review.mjs"></script>
+  <link rel="stylesheet" href="runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/game-review.css">
+  <link rel="stylesheet" href="runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-openings.css">
+  <link rel="stylesheet" href="runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-analysis.css">
+  <link rel="stylesheet" href="runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-quests.css">
+  <link rel="stylesheet" href="runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/chess-controls.css">
+  <link rel="stylesheet" href="runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/board-layout.css">
+  <script type="module" src="runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/game-review.mjs"></script>
 </head>
 <body>
   <main>
-    <header>
+    <header data-chess-header>
+      <button id="return-menu" data-chess-back type="button" hidden>‹</button>
+      <button id="archive-review-back" data-chess-back type="button" hidden>‹</button>
+      <button id="review-close" data-chess-back type="button" hidden>‹</button>
       <button id="close-why" class="review-icon" type="button" aria-label="Close explanation" aria-describedby="review-why-context" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
+      <h1 id="title">Chess Lab</h1>
+      <div class="header-actions">
+        <label id="match-automatic-option" class="match-automatic" hidden>
+          <input id="match-automatic" type="checkbox"><span id="match-automatic-label">Let AI play its moves</span>
+        </label>
+        <button id="why-actions" class="review-icon" type="button" aria-label="Review actions" aria-expanded="false" aria-controls="review-menu" hidden><svg class="dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+      </div>
       <div id="match-options-anchor" class="options-anchor" hidden>
         <button id="match-options-button" class="match-options-button review-icon" type="button" aria-label="Game options" aria-controls="match-options" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -28,16 +40,6 @@
           <button id="menu-draw" type="button" hidden>Offer draw</button>
           <button id="menu-resign" type="button" hidden>Resign game</button>
         </div>
-      </div>
-      <h1 id="title">Chess Lab</h1>
-      <div class="header-actions">
-        <label id="match-automatic-option" class="match-automatic" hidden>
-          <input id="match-automatic" type="checkbox"><span id="match-automatic-label">Let AI play its moves</span>
-        </label>
-        <button id="return-menu" type="button" hidden>Back</button>
-        <button id="archive-review-back" type="button" hidden>Close</button>
-        <button id="review-close" type="button" hidden>Close</button>
-        <button id="why-actions" class="review-icon" type="button" aria-label="Review actions" aria-expanded="false" aria-controls="review-menu" hidden><svg class="dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
       </div>
     </header>
     <div id="home-menu" class="home-menu" hidden>
@@ -121,18 +123,19 @@
         <div id="match-inline-meter" class="match-inline-meter chess-evaluation-meter" role="meter" aria-label="Evaluation for White" aria-valuemin="0" aria-valuemax="100" hidden><span></span></div>
         <div id="match-board" class="board match-board study-board" role="group"></div>
       </div>
-      <p id="match-turn" class="turn" aria-live="polite"></p>
-      <p id="match-profile" class="turn" hidden></p>
+      <div class="match-caption">
+        <p id="match-turn" class="turn" aria-live="polite"></p>
+        <p id="match-profile" class="turn" hidden></p>
+      </div>
       <div id="match-inline-analysis" class="match-inline-analysis" hidden>
         <output id="match-inline-score" aria-live="polite"></output>
         <button id="match-inline-replay" type="button" aria-haspopup="dialog" hidden></button>
         <output id="match-inline-announcement" class="visually-hidden" aria-atomic="true"></output>
       </div>
-      <nav id="match-history" class="movement" aria-label="Game history" hidden>
-        <button id="match-previous" type="button" aria-label="Previous move">‹</button>
-        <output id="match-ply" aria-live="polite"></output>
-        <button id="match-next" type="button" aria-label="Next move">›</button>
-        <button id="continue-match" type="button" hidden>Continue from here</button>
+      <nav id="match-history" class="movement" data-chess-navigation aria-label="Game history" hidden>
+        <button id="match-previous" data-chess-arrow type="button" aria-label="Previous move">‹</button>
+        <output id="match-ply" aria-live="polite" aria-atomic="true" dir="ltr"></output>
+        <button id="match-next" data-chess-arrow type="button" aria-label="Next move">›</button>
         <button id="match-inline-hint" class="review-icon" type="button" aria-label="Show AI line" hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6m-5 4h4M8 14a6 6 0 1 1 8 0c-.7.5-1 1-1 2H9c0-1-.3-1.5-1-2Z"/></svg>
         </button>
@@ -142,6 +145,7 @@
         <select id="promote"></select>
       </div>
       <div class="movement match-actions">
+        <button id="continue-match" type="button" hidden>Continue from here</button>
         <button id="retry-bot" type="button" hidden>Retry AI move</button>
         <button id="open-match-analysis" type="button">Analysis board</button>
         <button id="analyze" type="button">Analyze game</button>
@@ -153,20 +157,18 @@
       </div>
     </section>
     <dialog id="match-inline-preview" aria-labelledby="match-inline-preview-title">
-      <header>
+      <header data-chess-header>
+        <button id="match-inline-close" data-chess-back class="review-icon" type="button" aria-label="Return to the position" autofocus>‹</button>
         <h2 id="match-inline-preview-title">Calculated line</h2>
-        <button id="match-inline-close" class="review-icon" type="button" aria-label="Return to the position" autofocus>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 6-12 12M6 6l12 12"/></svg>
-        </button>
       </header>
       <div id="match-inline-preview-board"></div>
-      <div class="match-inline-preview-navigation">
-        <button id="match-inline-previous" type="button" aria-label="Previous move">‹</button>
+      <div class="match-inline-preview-navigation" data-chess-navigation>
+        <button id="match-inline-previous" data-chess-arrow type="button" aria-label="Previous move">‹</button>
         <output id="match-inline-position" aria-live="polite"></output>
-        <button id="match-inline-next" type="button" aria-label="Next move">›</button>
+        <button id="match-inline-next" data-chess-arrow type="button" aria-label="Next move">›</button>
       </div>
       <div class="match-inline-preview-details">
-        <div id="match-inline-branches" class="analysis-study-variants"></div>
+        <div id="match-inline-branches" class="analysis-study-variants" data-chess-lines></div>
         <p id="match-inline-evidence" class="analysis-study-evidence"></p>
       </div>
     </dialog>
