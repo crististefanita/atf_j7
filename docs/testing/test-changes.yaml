@@ -1,21 +1,4 @@
 testChanges:
-  - id: J7-PROJECT-SIGNING-EN
-    base: "975139ec679367789c964c28200f291c7e6f62a5"
-    from: scripts/Initialize-J7Signing.ps1
-    replacement: atf-tests/src/test/java/ro/atf/chess/SignedSourceReplayReceiptTest.java
-    test: ro.atf.chess.SignedSourceReplayReceiptTest#projectSigningRecordIsRelativeAndContainsNoPlaintextPassword
-    contract: "Preserve explicit certificate rotation, partial-record refusal, DPAPI and ACL protection; support the user-requested encrypted project record with relative paths and no plaintext credential"
-    allowDelete: false
-
-  - id: J7-PROJECT-SIGNING-RO
-    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
-    from: scripts/Initialize-J7Signing.ps1
-    replacement: atf-tests/src/test/java/ro/atf/chess/SignedSourceReplayReceiptTest.java
-    test: ro.atf.chess.SignedSourceReplayReceiptTest#projectSigningRecordIsRelativeAndContainsNoPlaintextPassword
-    contract: "Preserve explicit certificate rotation, partial-record refusal, DPAPI and ACL protection; support the user-requested encrypted project record with relative paths and no plaintext credential"
-    allowDelete: false
-
-
   - id: J7-ENLARGED-REPLAY-NATIVE-EN
     base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java

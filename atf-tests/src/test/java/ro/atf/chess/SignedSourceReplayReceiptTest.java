@@ -83,7 +83,7 @@ class SignedSourceReplayReceiptTest {
                         && initializer.contains("IsPathRooted($record.store)") && initializer.contains("[switch]$StartNewIdentity"));
         String ignore = Files.readString(directory.resolve(".gitignore"));
         check.same("Only the named encrypted record is allowed through the directory ignore", true,
-                ignore.startsWith("*\n") && ignore.contains("!password.dpapi") && !ignore.contains("!*.log"));
+                ignore.lines().findFirst().orElse("").equals("*") && ignore.contains("!password.dpapi") && !ignore.contains("!*.log"));
     }
 
     private boolean read(String content, String profile, String locale) throws Exception {
