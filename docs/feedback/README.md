@@ -470,3 +470,14 @@ cu șah, apărare liniștită mai puternică, pioni legați, repetiție și prag
 buget. Prefixul vizibil poate omite sufixul numai dacă dovada integrală evaluată
 rămâne în audit și după restart. Reparația Native H6 focalizată nu este implementarea
 completă a cerinței de prezentare pentru coaching.
+
+Tratează 200k drept alocația obișnuită de coaching, fără să declari încheiat un schimb
+încă deschis doar fiindcă a fost atinsă. Politica YAML propusă trebuie să separe această
+alocație de un plafon mai mare al dovezii forțate și să taxeze lucrul cumulat. Alocă
+rezervă cât există recapturi relevante sau evadări legale în șah și compară alternativele
+sub aceeași politică. La repetiție, rezultat terminal, anulare sau plafon final,
+păstrează motivul distinct. Un sufix incomplet nu poate deveni scor exact în cache
+sau etichetă BEST. Nu urmări șahuri arbitrare la infinit și nu obliga adversarul să
+recaptureze când are o apărare legală mai puternică. Admiterea cere lanțuri componente
+de recapturi și evadări, negative la prag/anulare/cache și decizii complete independente
+înainte ca această funcționalitate să fie declarată implementată.

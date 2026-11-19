@@ -1091,7 +1091,8 @@ păstrează istoriile integrale originale și recepțiile brute reci; alternativ
 calul este o rejucare explicit separată, niciodată înlocuitorul mutării istorice de pion.
 [Componentele](../../atf-tests/src/test/java/ro/atf/chess/HardContinuationWitnessTest.java)
 protejează îmbunătățirea și resping adâncimea sau producătorul substituit. Engleza
-`…Qf6` față de `…Nc6`, Franceza `Bb5+ …c6` și Gambitul Damei `…Qa5` rămân deschise.
+`…Qf6` față de `…Nc6` și Gambitul Damei `…Qa5` rămân deschise. Reparația nativă
+franceză este calificată separat mai jos; indiciul și analiza încă necesită reparație.
 
 Închiderea tactică uniformă de o semimutare a fost respinsă: 24 de etape canonice
 câștigate și 40 pierdute, deși repară alegerea franceză izolată. Continuarea fiecărei
@@ -1144,6 +1145,13 @@ un test local al schimbului, nu afirmația că toate celelalte tactici sunt epui
 | Martor Scandinavă | `Ne4` păstrat; 25,5/110,5‰ |
 | Regresie Gambitul Damei | `Bg3` păstrat; prototipul larg respins alegea `Bd6` |
 | Negativ la limita de lucru | Un nod neplătit păstrează orizontul complet anterior |
+| Rejucarea canonică integrală | Toate cele 2.303 rezultate de acceptare și mutările alese rămân identice cu sursa Native calificată anterior |
+| Poziții din partidele curente/anterioare | 236 rejucări, trei alegeri schimbate, un câștig mare în Franceză și nicio pierdere mare nouă |
+
+Comparația pozițiilor reutilizează familii de deschideri cunoscute, fără să fie ligă
+independentă. Două schimbări franceze mai mici includ o degradare H19 de 2,5‰; nu
+descrie rezultatul drept uniform mai bun. Suita finală de componente are 473 de
+reușite și patru omiteri explicite. Ambele scopuri separate de coaching francez rămân FAIL.
 
 [Componentele franceze și scopurile de calitate](../../atf-tests/src/test/java/ro/atf/chess/FrenchRecaptureTest.java)
 păstrează istoriile originale, bilanțul material, ambele culori, căutări întrerupte
