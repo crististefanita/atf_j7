@@ -64,7 +64,7 @@ class MainMenuLayoutTest {
                         labels("values-ro/strings.xml", List.of("manual_analysis")).getFirst()));
         var buttons = read("layout/puzzle_menu.xml").getElementsByTagName("Button");
         var entries = new ArrayList<String>();
-        for (int index = 0; index < buttons.getLength() - 1; index++) {
+        for (int index = 0; index < buttons.getLength(); index++) {
             var button = (Element) buttons.item(index);
             entries.add(button.getAttribute("android:text").replace("@string/", ""));
         }
@@ -85,22 +85,14 @@ class MainMenuLayoutTest {
 
     @Test void gameListsFollowThePuzzleMenuAndKeepBackOutsideTheScroll(Checks check) throws Exception {
         var page = read("layout/match_list.xml");
-        var heading = (Element) page.getElementsByTagName("TextView").item(0);
-        var puzzleHeading = (Element) read("layout/puzzle_menu.xml").getElementsByTagName("TextView").item(0);
-        check.same("Game lists use the Puzzles title alignment and size",
-                List.of(puzzleHeading.getAttribute("android:gravity"), puzzleHeading.getAttribute("android:textSize")),
-                List.of(heading.getAttribute("android:gravity"), heading.getAttribute("android:textSize")));
-        check.same("The list title uses the shared heading style", "@style/MenuHeading", heading.getAttribute("style"));
-        var headings = read("values-v28/menu_styles.xml").getElementsByTagName("style");
-        var titleStyle = (Element) headings.item(0);
-        var titleAttribute = (Element) titleStyle.getElementsByTagName("item").item(0);
-        check.same("API 28 and later expose the title as an accessibility heading",
-                List.of("MenuHeading", "android:accessibilityHeading", "true"),
-                List.of(titleStyle.getAttribute("name"), titleAttribute.getAttribute("name"), titleAttribute.getTextContent()));
+        var header = (Element) page.getElementsByTagName("FrameLayout").item(0);
         var scroll = (Element) page.getElementsByTagName("ScrollView").item(0);
-        var back = (Element) page.getElementsByTagName("Button").item(0);
-        check.same("Back is outside the weighted scroll area", List.of(true, "1", "@style/ChapterEntry"),
-                List.of(scroll.getParentNode().isSameNode(back.getParentNode()), scroll.getAttribute("android:layout_weight"), back.getAttribute("style")));
+        check.same("The contextual header is outside the weighted scroll area", List.of("@+id/match_list_header", true, "1"),
+                List.of(header.getAttribute("android:id"), scroll.getParentNode().isSameNode(header.getParentNode()), scroll.getAttribute("android:layout_weight")));
+        String adapter = java.nio.file.Files.readString(ProjectRoot.locate().resolve("android/app/src/main/java/ro/atf/chess/android/MatchListActivity.java"));
+        check.same("Both list modes use the same Back and title adapter", true, adapter.contains("new ChessHeader(")
+                && adapter.contains("UiChrome.Page.FINISHED") && adapter.contains("UiChrome.Page.SAVED") && adapter.contains("this::finish"));
+        check.same("No duplicate footer Back remains", 0, page.getElementsByTagName("Button").getLength());
         var row = read("layout/match_list_row.xml");
         check.same("Rows retain one focusable target and a vertical layout", List.of("@style/MatchListRow", "true", "vertical"),
                 List.of(row.getAttribute("style"), row.getAttribute("android:focusable"), row.getAttribute("android:orientation")));

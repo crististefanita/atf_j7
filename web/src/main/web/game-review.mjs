@@ -1,3 +1,4 @@
+import { installChrome, compactAutomation, backLabel, matchBackPage } from './screen-chrome.mjs';
 import { createReviewWorkspace, showReviewPiece } from './review-workspace.mjs';
 import { createHomeMenu, homeLabels, homeLocale, reloadProfileLanguage } from './home-menu.mjs';
 import { bindBoardSelection, boardPlacement, mountStudyArrow, studyMarkers, studySquareDescription } from './study-board.mjs';
@@ -209,6 +210,7 @@ const studyPanels = Object.fromEntries(Object.entries(studyRoutes).map(([route, 
     })];
 }));
 
+installChrome(document);
 document.documentElement.lang = locale;
 for (const id of ['archive-label', 'why', 'why-title', 'played', 'recommended', 'history-label', 'seek-label',
     'open-review', 'flip-match', 'match-automatic-label',
@@ -226,6 +228,7 @@ for (const id of ['return-menu', 'archive-review-back', 'review-close']) {
     find(id).textContent = '‹';
     find(id).setAttribute('aria-label', words[id]);
 }
+compactAutomation(window, find('match-automatic'), find('match-automatic-label'), words['match-automatic-label']);
 find('open-match-analysis').textContent = homeLabels[locale]['home-analysis'];
 matchOptionsButton.setAttribute('aria-label', words['match-options-title']);
 matchOptions.setAttribute('aria-label', words['match-options-title']);
@@ -793,6 +796,7 @@ function showMode(nextMode, addHistory = false) {
     const studying = Object.hasOwn(studyPanels, mode);
     find('title').textContent = mode === 'home' ? 'Chess Lab' : studying ? homeLabels[locale][studyRoutes[mode][0]] : words[title[mode] ?? 'title'];
     document.title = mode === 'home' ? 'Chess Lab' : `Chess Lab · ${find('title').textContent}`;
+    find('return-menu').setAttribute('aria-label', backLabel(matchBackPage(mode, setupVisible, setupBackMode), locale));
     find('return-menu').hidden = !pageBackVisible(mode, { matchRoute, setupVisible, hasReview: Boolean(view) });
     find('archive-review-back').hidden = mode !== 'archive-review';
     find('ai-setup').hidden = mode !== 'ai' || !setupVisible;

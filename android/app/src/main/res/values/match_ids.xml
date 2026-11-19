@@ -22,4 +22,16 @@
     <item name="opening_message" type="id" />
     <item name="opening_theory_hint" type="id" />
     <item name="opening_toggle_ai" type="id" />
+    <item type="id" name="screen_title" />
+    <item type="id" name="screen_back" />
+    <item type="id" name="match_back_home" />
+    <item type="id" name="match_header_title" />
+    <item type="id" name="puzzle_back" />
+    <item type="id" name="puzzles_home" />
+    <item type="id" name="setup_home" />
+    <item type="id" name="match_list_title" />
+    <item type="id" name="match_list_back" />
+    <item type="id" name="quest_payoff_title" />
+    <item type="id" name="quest_payoff_close" />
+    <item type="id" name="match_toolbar" />
 </resources>

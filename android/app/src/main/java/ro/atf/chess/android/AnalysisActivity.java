@@ -96,22 +96,14 @@ public final class AnalysisActivity extends LocalizedActivity {
                 return insets;
             });
         }
-        var header = new LinearLayout(this);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        var back = button(R.drawable.match_chevron, R.string.manual_close, view -> finish());
-        back.setScaleX(-1);
-        addHeaderAction(header, back);
-        var title = text(19);
-        title.setText(R.string.manual_analysis);
-        title.setGravity(Gravity.CENTER_VERTICAL);
-        BoardCaption.reserve(title, 2);
-        header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
+        var header = new ChessHeader(this, ro.atf.chess.UiChrome.Page.ANALYSIS, R.id.screen_back,
+                getString(R.string.manual_analysis), this::finish);
         var reset = button(android.R.drawable.ic_menu_revert, R.string.manual_reset, view -> select(entry));
         reset.setId(R.id.manual_reset_line);
-        addHeaderAction(header, reset);
-        var menu = button(R.drawable.match_more, R.string.manual_options, this::showOptions);
+        header.addAction(reset);
+        var menu = button(R.drawable.puzzle_menu, R.string.manual_options, this::showOptions);
         menu.setId(R.id.manual_options);
-        addHeaderAction(header, menu);
+        header.addAction(menu);
         screen.addView(header);
         top = text(15);
         bottom = text(15);
@@ -127,7 +119,7 @@ public final class AnalysisActivity extends LocalizedActivity {
         screen.addView(status);
         screen.addView(analysis);
         history = new MatchHistoryView(this, this::notation, ply -> select(study.seek(ply)), analysis.bulb());
-        screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
+        screen.addView(new CenteredControls(this, history), new LinearLayout.LayoutParams(-1, -2));
         return screen;
     }
 
@@ -139,11 +131,6 @@ public final class AnalysisActivity extends LocalizedActivity {
         button.setContentDescription(getString(label));
         button.setOnClickListener(action);
         return button;
-    }
-
-    private void addHeaderAction(LinearLayout header, ImageButton button) {
-        int touchTarget = Math.round(48 * getResources().getDisplayMetrics().density);
-        header.addView(button, new LinearLayout.LayoutParams(touchTarget, touchTarget));
     }
 
     private TextView text(int size) {

@@ -1,3 +1,4 @@
+import { backLabel } from './screen-chrome.mjs';
 import { boardPlacement } from './study-board.mjs';
 import { renderLinePosition } from './line-navigation.mjs';
 
@@ -221,7 +222,7 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
   const heading = element('h2', text.title);
   heading.tabIndex = -1;
   const backButton = button('‹', back);
-  backButton.setAttribute('aria-label', text.back);
+  backButton.setAttribute('aria-label', backLabel('OPENINGS', locale));
   const header = element('header', null, 'opening-header');
   header.setAttribute('data-chess-header', '');
   backButton.setAttribute('data-chess-back', '');
@@ -377,6 +378,7 @@ export function createOpeningStudy({ root, locale, call, home, board }) {
     workspace.hidden = !lesson;
     catalog.hidden = Boolean(lesson);
     heading.textContent = lesson?.title ?? text.title;
+    backButton.setAttribute('aria-label', backLabel(lesson ? 'OPENING' : 'OPENINGS', locale));
     if (lesson) {
       if (frameKey(lesson) !== frameKey(before) || lesson.hint !== before?.hint || !lesson.aiEnabled) variant = -1;
       drawLesson();

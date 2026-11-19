@@ -220,8 +220,8 @@ const tacticsState = { type: 'puzzle', chapter: 'tactics', id: 'tactic-006', ran
     totals: { solved: 5, total: 100, points: 50 }, milestone: { next: 15, reached: true } };
 
 test('Puzzle headers retain localized contextual Back before the title in both languages', async () => {
-    for (const [locale, title, back, home] of [['en', 'Puzzles', 'Back to puzzles', 'Main menu'],
-        ['ro', 'Probleme', 'Înapoi la probleme', 'Meniu principal']]) {
+    for (const [locale, title, back, home] of [['en', 'Puzzles', 'Back to puzzle chapters', 'Back to main menu'],
+        ['ro', 'Probleme', 'Înapoi la capitole', 'Înapoi la meniul principal']]) {
         let leaves = 0;
         const { at, markup, focused, exits } = await mountPuzzle(tacticsState, action => {
             assert.equal(action, 'leave');

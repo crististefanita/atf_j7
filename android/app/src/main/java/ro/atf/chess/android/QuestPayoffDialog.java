@@ -97,7 +97,10 @@ final class QuestPayoffDialog {
                 return insets;
             });
         }
-        TextView title = screen.findViewById(R.id.quest_payoff_title);
+        var header = new ChessHeader(context, ro.atf.chess.UiChrome.Page.MATING, R.id.quest_payoff_close, titleText, dialog::dismiss);
+        header.title().setId(R.id.quest_payoff_title);
+        ((android.view.ViewGroup) screen.findViewById(R.id.quest_payoff_header)).addView(header);
+        TextView title = header.title();
         title.setText(titleText);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) title.setAccessibilityHeading(true);
         screen.findViewById(R.id.quest_payoff_close).setOnClickListener(view -> dialog.dismiss());

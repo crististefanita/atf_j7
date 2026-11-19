@@ -36,7 +36,7 @@
 - The arrow's geometric tip ends 12% of the square's side length before the destination's center, along the move's direction. The origin, head size and width keep the same proportions on APK and Web. Android uses the measured cell centers through [`HintArrow`](../../chess-core/src/main/java/ro/atf/chess/HintArrow.java), including when integer pixel rounding gives adjacent cells slightly different widths.
 - The screen reader announces the color and piece for **Hint**, then includes the destination for **Show move**. When you reach a milestone, the checkmate confirmation also announces it. The progress bar keeps the milestone visible when you return.
 - In **Mate in 1**, **Explain** opens the checkmate position on a separate board. In **Mate in 2** and **Mate in 3**, the arrows navigate the line one ply at a time. While solving, the line starts at the current position. After solving, it starts from the beginning and shows the played finish, including an accepted alternative mate. The last step explains the check and the escape squares.
-- In the explanation, the current move appears first below the fixed board, above the scrollable reason. **Danger**, between the arrows, outlines the mated king or the captured piece's square and announces the reason. For a capture, it calculates the minimum material gain that remains after any legal reply. A recapture that removes the gain, an opposing checkmate, and stalemate suppress the marker. The arrows clear it whenever the position changes. The **OK** button in the header returns to the puzzle with progress and points preserved.
+- In the explanation, the current move appears first below the fixed board, above the scrollable reason. **Danger**, between the arrows, outlines the mated king or the captured piece's square and announces the reason. For a capture, it calculates the minimum material gain that remains after any legal reply. A recapture that removes the gain, an opposing checkmate, and stalemate suppress the marker. The arrows clear it whenever the position changes. The Back arrow beside the title returns to the puzzle with progress and points preserved.
 
 - The two-step hint model follows Daily Puzzle. The explanation remains a separate action, as does explicitly revealing the solution in Lichess Training. [Chess.com Daily Puzzle](https://support.chess.com/en/articles/8708990-how-does-the-daily-puzzle-work) · [Lichess Puzzle Training](https://lichess.org/training/daily)
 
@@ -263,3 +263,7 @@ flowchart LR
 - The bar shows progress in the open chapter. The milestones at 5, 15, 30, 50, 75, and the end of the chapter are recalculated from the solved IDs. When you reach a milestone, the screen confirms the achievement and shows the next target. The bar and text use the same total after resuming. The idea of visible targets comes from Puzzle Journey. [Chess.com Puzzle Points](https://support.chess.com/en/articles/9681952-what-are-puzzle-points-on-chess-com)
 
 - [Chess rules and starting position](https://handbook.fide.com/chapter/e012023)
+
+## Header and navigation
+
+Back sits beside the title; contextual options stay at the right. The same contract applies to chapters, saved games, openings and replay. Move controls remain centered without changing board or cursor state. [Shared policy and checks](../testing/README.md#shared-screen-chrome)

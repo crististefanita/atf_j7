@@ -825,3 +825,28 @@ On API 28, TalkBack 7.2 synthesized position 3 of 4 and White's score of zero pe
 `HintCandidateCoverageTest` checks the four Sicilian roots, raw scores, queen safety, counterexamples, fallback and small budgets. `StockfishFenAuditTest` checks FEN origin, clocks and rejection of borrowed projections. [Procedure, inventory and limits](hard-puzzle-study.md)
 
 `NativeMateDefenseBenchmarkTest` recomputes all mating exercises offline against every legal defense and shares `NativeMateAudit` with the focused components. [Commands and limits](hard-puzzle-study.md#qualification-and-next-steps)
+
+## Shared screen chrome
+
+One Java policy, `UiChrome`, owns the logical control sizes, contextual Back destinations and centered navigation rail. `ChessHeader` and `CenteredControls` apply it on Android; `GenerateUiChrome` exports its constants and destinations to the Web adapter. Titles start beside Back, wrap to two lines and retain a 48 dp/CSS px Back target. Options stay at the right end, and the popup follows its trigger within the viewport. A short popup uses its own scroll area.
+
+The game checkbox shows **AI** on compact widths while retaining its full accessible name and checked state. The move rail is centered and bounded at 384 logical pixels. Owners keep their callbacks, selected variant, per-line cursor and saved game. Enlarging text never shrinks the touch target. Back from a replay returns to its source; Back from a puzzle returns to chapters; Back from a chapter list returns home.
+
+`ui-chrome-cases.json` is executed by `UiChromeParityTest` on the JVM and `chrome-contract.test.mjs` on Web. It covers narrow, compact, fractional-density, landscape, desktop and short windows, including 1.3× text. Generation drift, wrong destinations and offscreen popup geometry fail components. Native sanity covers the actual header, captures and callbacks; MCP covers the rendered Web adapter. Keep these observations distinct from pure geometry checks.
+
+`GenerateUiChrome` must reproduce the tracked module exactly before qualification. An engine compilation failure cannot be hidden by a successful UI package: for UI-only reuse, record the qualified engine commit and digest separately. [APK–Web matrix](../../web/parity.md) · [Release process](../release/README.md)
+
+```mermaid
+flowchart LR
+    Policy["Java chrome policy"] -->|native bounds| Android["Android views"]
+    Policy -->|generated constants| Web["Web DOM and CSS"]
+    Cases["Shared cases"] -->|JVM checks| Android
+    Cases -->|Node checks| Web
+```
+
+<details>
+<summary>Legend — shared policy and adapter evidence</summary>
+
+The policy supplies dimensions and destinations. Shared cases check both projections; native and MCP captures verify the rendered result. Game rules, AI budgets and storage remain with their existing owners.
+
+</details>

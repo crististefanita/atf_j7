@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import ro.atf.chess.PuzzleChromeLayout;
 
@@ -26,6 +27,7 @@ final class PuzzleChrome extends FrameLayout {
     private static final int STROKE = 0xff3c4a3d;
     private final LinearLayout content;
     private final FrameLayout options;
+    private final ScrollView optionsScroller;
     private final Button flip;
     private final ImageButton menu;
     private final TextView rank;
@@ -35,32 +37,30 @@ final class PuzzleChrome extends FrameLayout {
     private View navigation;
     private View details;
 
-    PuzzleChrome(LinearLayout content, int title, Runnable turnBoard, Runnable goHome) {
+    PuzzleChrome(LinearLayout content, int title, Runnable turnBoard, Runnable goHome, Runnable goChapters) {
         super(content.getContext());
         this.content = content;
         setBackgroundColor(BACKGROUND);
         content.setBackgroundColor(BACKGROUND);
         addView(content, new LayoutParams(-1, -1));
 
-        var header = new LinearLayout(getContext());
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(dp(8), 0, dp(14), 0);
+        var header = new ChessHeader(getContext(), ro.atf.chess.UiChrome.Page.PUZZLE, R.id.puzzle_back,
+                getContext().getString(title), goChapters);
         menu = icon(R.id.puzzle_options, R.drawable.puzzle_menu, R.string.puzzle_options, false, false);
         menu.setOnClickListener(view -> showOptions());
-        header.addView(menu, new LinearLayout.LayoutParams(dp(48), dp(48)));
-        var label = text(19, TEXT);
+        var label = header.title();
         label.setId(R.id.puzzle_chapter);
         label.setText(title);
         label.setGravity(Gravity.CENTER_VERTICAL);
         label.setTypeface(label.getTypeface(), android.graphics.Typeface.BOLD);
         label.setMaxLines(PuzzleChromeLayout.TITLE_LINES);
         label.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        label.setPadding(dp(4), 0, dp(6), 0);
-        header.addView(label, new LinearLayout.LayoutParams(0, -1, 1));
+
         rank = text(12, MUTED);
         rank.setId(R.id.puzzle_rank);
         rank.setSingleLine(true);
         header.addView(rank);
+        header.addAction(menu);
         int headerHeight = PuzzleChromeLayout.fit(0, dp(48), label.getLineHeight(), 0, 0, 0).headerHeight();
         content.addView(header, new LinearLayout.LayoutParams(-1, headerHeight));
 
@@ -91,9 +91,11 @@ final class PuzzleChrome extends FrameLayout {
         var home = option(R.id.puzzle_main_menu, R.string.puzzle_main_menu, goHome);
         panel.addView(home);
         optionHeight = Math.max(dp(48), Math.max(home.getLineHeight(), flip.getLineHeight()) + dp(12));
-        var panelPosition = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.LEFT);
-        panelPosition.setMargins(dp(14), 0, dp(14), dp(12));
-        options.addView(panel, panelPosition);
+        var panelPosition = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.LEFT);
+        optionsScroller = new ScrollView(getContext());
+        optionsScroller.addView(panel);
+        options.addView(optionsScroller, panelPosition);
+        options.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> placeOptions());
         addView(options, new LayoutParams(-1, -1));
     }
 
@@ -141,12 +143,30 @@ final class PuzzleChrome extends FrameLayout {
     }
 
     private void showOptions() {
-        navigation.setVisibility(INVISIBLE);
-        details.setVisibility(INVISIBLE);
         options.setVisibility(VISIBLE);
+        options.post(this::placeOptions);
         content.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
         flip.requestFocus();
         flip.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
+    }
+
+    private void placeOptions() {
+        View panel = optionsScroller.getChildAt(0);
+        if (options.getVisibility() != VISIBLE || panel.getMeasuredWidth() == 0) return;
+        int[] anchor = new int[2], origin = new int[2];
+        menu.getLocationOnScreen(anchor);
+        options.getLocationOnScreen(origin);
+        int left = anchor[0] - origin[0], top = anchor[1] - origin[1];
+        var fit = ro.atf.chess.UiChrome.options(options.getWidth(), options.getHeight(), left, top,
+                left + menu.getWidth(), top + menu.getHeight(), panel.getMeasuredWidth(), panel.getMeasuredHeight(), dp(4), dp(8));
+        var position = (FrameLayout.LayoutParams) optionsScroller.getLayoutParams();
+        if (position.leftMargin != fit.left() || position.topMargin != fit.top() || position.width != fit.width() || position.height != fit.height()) {
+            position.leftMargin = fit.left();
+            position.topMargin = fit.top();
+            position.width = fit.width();
+            position.height = fit.height();
+            optionsScroller.setLayoutParams(position);
+        }
     }
 
     boolean dismissOptions() {

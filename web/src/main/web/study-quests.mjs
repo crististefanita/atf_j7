@@ -1,3 +1,4 @@
+import { backLabel } from './screen-chrome.mjs';
 import { attachOptionsMenu } from './options-menu.mjs';
 import { rememberBoardSize } from './study-board-size.mjs';
 import { renderLinePosition } from './line-navigation.mjs';
@@ -714,8 +715,10 @@ export function createQuestStudy({ root, locale, call, home, board, storage = gl
     at('home').setAttribute('aria-label', words.home);
     at('explain-close').textContent = '‹';
     at('explain-close').setAttribute('aria-label', words.close);
-    at('back').setAttribute('aria-label', locale === 'ro' ? 'Înapoi la probleme' : 'Back to puzzles');
+    at('back').setAttribute('aria-label', backLabel('PUZZLE', locale));
+    at('home').setAttribute('aria-label', backLabel('PUZZLES', locale));
     handler('back', () => void showMenu());
+
     handler('game-home', () => void goHome());
     handler('error-home', () => void goHome());
     root.addEventListener('keydown', event => {

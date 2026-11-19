@@ -24,11 +24,13 @@ class PuzzleExplainLayoutTest {
                 List.of("@+id/quest_payoff_header", "@+id/quest_payoff_body", "@+id/quest_payoff_actions"),
                 children.stream().map(view -> android(view, "id")).toList());
         var header = children.getFirst();
-        var close = children(header).getLast();
-        check.same("The title can wrap and the dedicated close action keeps the localized OK and 48 dp target",
-                List.of("2", "Button", "@android:string/ok", "48dp", "48dp"),
-                List.of(android(children(header).getFirst(), "maxLines"), close.getTagName(),
-                        android(close, "text"), android(close, "minWidth"), android(close, "minHeight")));
+        check.same("The replay hosts the common contextual header", "FrameLayout", header.getTagName());
+        String adapter = java.nio.file.Files.readString(ProjectRoot.locate().resolve("android/app/src/main/java/ro/atf/chess/android/QuestPayoffDialog.java"));
+        String chrome = java.nio.file.Files.readString(ProjectRoot.locate().resolve("android/app/src/main/java/ro/atf/chess/android/ChessHeader.java"));
+        check.same("Back retains the close action and the source destination", true,
+                adapter.contains("UiChrome.Page.MATING") && adapter.contains("R.id.quest_payoff_close") && adapter.contains("dialog::dismiss"));
+        check.same("The common title wraps at two lines and Back keeps the shared touch target", true,
+                chrome.contains("title.setMaxLines(2)") && chrome.contains("dp(UiChrome.TARGET), dp(UiChrome.TARGET)"));
         var body = children.get(1);
         check.same("The replay body receives the full width and only the remaining height",
                 List.of("FrameLayout", "match_parent", "0dp", "1"),
