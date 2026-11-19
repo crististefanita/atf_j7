@@ -76,7 +76,10 @@ function drawCue(state) {
     const a = source.getBoundingClientRect();
     const b = destination.getBoundingClientRect();
     const unit = a.width;
-    if (!unit || !bounds.width || !bounds.height) return;
+    if (unit <= 0 || a.height <= 0 || b.width <= 0 || b.height <= 0 || bounds.width <= 0 || bounds.height <= 0) {
+        cue.hidden = true;
+        return;
+    }
     const dx = b.x + b.width / 2 - a.x - unit / 2;
     const dy = b.y + b.height / 2 - a.y - a.height / 2;
     const shape = hintArrow(dx, dy, unit);
