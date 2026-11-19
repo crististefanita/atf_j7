@@ -224,6 +224,8 @@ wrong profile fail closed in `AndroidSourceReplayReceiptTest`.
 Next/Previous also require the expected displayed ply, branch selection and
 the actual mating move; unchanged coordinates alone cannot satisfy navigation.
 This development sanity does not qualify a signed release APK.
+Use `-Dchess.extent=<report>` for a fresh explicit report path. Report durations
+refer to receipt validation/publication; native action latency is not measured.
 
 On API 28, the full framebuffer may letterbox a different logical aspect
 ratio. `FramebufferProjection` accepts a mapping only when Android's primary

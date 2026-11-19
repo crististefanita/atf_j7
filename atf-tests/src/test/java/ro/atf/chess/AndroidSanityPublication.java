@@ -165,6 +165,7 @@ class AndroidSanityPublication {
             var identity = new ArrayList<>(run.identity());
             identity.add(new ReportField("Logical profile", profile + " dp · " + locale));
             identity.add(new ReportField("Native profile", markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: replayProfile=").toString()));
+            identity.add(new ReportField("Timing scope", "Report durations measure receipt validation/publication; native action latency was not measured by this probe."));
             var projection = markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: framebufferProjection=");
             if (projection.size() > 1 || run.execution().path("api").asText().equals("28") && projection.size() != 1) identity.clear();
             if (!identity.isEmpty() && !projection.isEmpty()) identity.add(new ReportField("Verified compositor projection", projection.toString()));
@@ -172,7 +173,7 @@ class AndroidSanityPublication {
             runs.add(new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), identity, run.frames(), run.nativeMarkers()));
         }
         publishNativeRuns("source-sized-replay", "Keep source-sized native boards and fixed controls across replay navigation",
-                root.resolve("android-source-sized-replay.html"), runs, null, true);
+                Path.of(System.getProperty("chess.extent", root.resolve("android-source-sized-replay.html").toString())), runs, null, true);
     }
 
     private record MenuCheckpoint(String action, String assertion, String frame) { }
