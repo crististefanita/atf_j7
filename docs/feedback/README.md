@@ -473,6 +473,11 @@ destination and explicit comparison now share that qualified proof decision.
 Review also retains its incumbent on an actual exact-score tie. The English replay's
 `Nf3`/`e4` tie is +21 after closure, not the old +651. Keep its six teacher phases and
 component negative: lexical ordering alone produced an independently worse recommendation.
+The final 106-position replay activates reserve in 44 hints and 66 reviews, with no
+incomplete result. Its 43 changed root recommendations have 252 H17/H19 phases. No new
+loss reaches 150‰; the largest increases are 73.5/54‰. These smaller regressions remain
+calibration debt, alongside the two French benchmark failures. A closed tactical frontier
+does not certify globally optimal play or replace a fresh complete-game Elo measurement.
 
 Do not infer Elo or broad independent transfer from the composed forcing controls.
 Fresh complete games still need every pre-move maximum hint, post-game review and cold
