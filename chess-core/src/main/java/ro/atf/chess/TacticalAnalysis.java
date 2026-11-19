@@ -88,11 +88,14 @@ public final class TacticalAnalysis {
         if(!CoachingProof.needed(position,List.of(seed.best(),seed.played())))return seed;
         var reference=OpeningRepertoire.CURRENT.reviewReply(position);
         var required=new java.util.HashSet<Move>();required.add(played);
+        required.add(seed.best().move());
         if(reference!=null&&!draws.contains(reference))required.add(reference);
         var verified=CoachingProof.compare(position,position.legalMoves(),seed.depth(),draws,proofPolicy,required,1);
         var work=verified.work().afterOrdinary(seed.ordinaryNodes());
         if(!work.complete())throw new CoachingProof.Incomplete(work);
         var ranked=verified.lines();var best=ranked.get(0);
+        var incumbent=ranked.stream().filter(v->v.move().equals(seed.best().move())).findFirst().orElseThrow();
+        if(incumbent.score()==best.score())best=incumbent;
         var book=ranked.stream().filter(v->v.move().equals(reference)&&!draws.contains(v.move())).findFirst().orElse(null);
         if(book!=null&&best.ending()==Ending.HORIZON&&book.ending()==Ending.HORIZON&&best.score()-book.score()<=180)best=book;
         var chosen=ranked.stream().filter(v->v.move().equals(played)).findFirst().orElseThrow();

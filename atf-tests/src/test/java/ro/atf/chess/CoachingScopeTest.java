@@ -60,6 +60,29 @@ class CoachingScopeTest {
         check.rejects("The Nc6 phase cannot qualify Nbd7",IllegalArgumentException.class,()->StockfishStudyAudit.validate(rows.get("pin-b8c6-H19").path("query"),row.path("identity"),row));
     }
 
+    @Test void anExactReviewTieRetainsTheQualifiedRootAndItsNewClosedScore(Checks check)throws Exception {
+        String history="c2c4 e7e5 b1c3 g8f6 g2g3 d7d5 c4d5 f6d5 f1g2 d5b6";
+        var board=ChessMatch.restore("2|analysis|"+history).position();var root=Move.fromUci("g1f3");
+        var review=TacticalAnalysis.review(board,root,Set.of(),GameReviewPolicy.CURRENT.search);
+        check.same("An arbitrary lexical root order cannot change an exact tie",root,review.best().move());
+        check.same("The recommendation keeps the actually completed played score",review.played().score(),review.best().score());
+        check.same("The new score is closed rather than the former optimistic +651",21,review.best().score());
+        try(var in=getClass().getResourceAsStream("/coaching-review-tie-witnesses.yaml")) {
+            var data=LearningGameAudit.mapper().readTree(in);String sha=HardLeagueAudit.digest(HardLeagueAudit.canonical(data).getBytes(StandardCharsets.UTF_8));
+            require(sha.equals("3a8a196688530f1d8f7f1e689b184fe270d52cf0f59c9694be5d1d33fb428ea3"),"Changed review tie evidence");
+            var rows=new HashMap<String,JsonNode>();
+            for(var e:data.path("raw")) {
+                var r=e.path("body");require(HardLeagueAudit.digest(HardLeagueAudit.canonical(r).getBytes(StandardCharsets.UTF_8)).equals(e.path("digest").asText()),"Changed raw review phase");
+                StockfishStudyAudit.validate(r.path("query"),r.path("identity"),r);
+                require(r.path("query").path("history").equals(LearningGameAudit.mapper().valueToTree(Arrays.asList(history.split(" ")))),"Foreign review history");
+                rows.put(r.path("query").path("root").asText("free")+"-"+r.path("query").path("depth").asInt(),r);
+            }
+            require(rows.size()==6,"Missing review phase");
+            for(int d:List.of(17,19))check.same("H"+d+" protects the original zero-loss root against a lexical tie reversal",true,
+                    StockfishStudyAudit.loss(rows.get("free-"+d),rows.get("g1f3-"+d))<2&&StockfishStudyAudit.loss(rows.get("free-"+d),rows.get("e2e4-"+d))>100);
+        }
+    }
+
     private static Map<String,JsonNode> teacher()throws Exception {
         try(var in=CoachingScopeTest.class.getResourceAsStream("/coaching-scope-witnesses.yaml")) {
             var data=LearningGameAudit.mapper().readTree(in);var rows=new HashMap<String,JsonNode>();
