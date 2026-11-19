@@ -4,8 +4,9 @@
 
 Partidele pentru învățare stau în `C:\work\sah\.studii`, în afara checkout-ului.
 Înaintea fiecărei mutări efective, a albului **și** a negrului, sunt obligatorii
-calculul Hard nativ și un indiciu public separat, cerut la maximum 200.000 de
-noduri totale. Calculul poate termina sub plafon. Alocația nativă și estimarea
+calculul Hard nativ și un indiciu public separat, cerut la maximum 200.000 de noduri
+obișnuite, plus rezerva dovezii taxată separat când este necesară. Calculul poate
+termina sub aceste plafoane. Alocația nativă și estimarea
 afișată rămân separate. Regula include prefixele din teorie și replicile oracolului.
 
 [`LearningGameAudit`](../../atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java)
@@ -62,8 +63,9 @@ trebuie să păstreze rolurile efective ale actorilor.
 leagă jurnalul original de identitatea separată a analizorului, politica încărcată,
 checkpoint-ul final, rezultat și progresul cronologic neîntrerupt. Respinge mutările
 lipsă, rulările reetichetate și scorurile lizibile diferite de cache. Căutarea
-analizei este configurată la 85k noduri suplimentare; API-ul nu expune consumul
-efectiv pe mutare. Separă acest plafon de indiciul public original de 200k.
+obișnuită a analizei este configurată la 85k noduri suplimentare. Recepția dovezii
+păstrează consumul obișnuit și rezerva; mutările vechi fără recepție nu primesc un
+consum inventat. Separă aceste valori de alocația obișnuită de 200k a indiciului.
 
 Compară fiecare ramură jucată și recomandată, la fiecare semimutare ipotetică, cu
 dovezi independente H17/H19. Fazele existente ale oracolului se pot referi doar cu

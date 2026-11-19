@@ -1151,7 +1151,7 @@ un test local al schimbului, nu afirmația că toate celelalte tactici sunt epui
 Comparația pozițiilor reutilizează familii de deschideri cunoscute, fără să fie ligă
 independentă. Două schimbări franceze mai mici includ o degradare H19 de 2,5‰; nu
 descrie rezultatul drept uniform mai bun. Suita finală de componente are 473 de
-reușite și patru omiteri explicite. Ambele scopuri separate de coaching francez rămân FAIL.
+reușite și patru omiteri explicite. Corecția ulterioară de coaching de mai jos închide cele două scopuri franceze.
 
 [Componentele franceze și scopurile de calitate](../../atf-tests/src/test/java/ro/atf/chess/FrenchRecaptureTest.java)
 păstrează istoriile originale, bilanțul material, ambele culori, căutări întrerupte
@@ -1162,9 +1162,9 @@ ordonarea, orizontul și distanța de mat. [Dovezile reci portabile](../../atf-t
 conțin 32 de faze brute și regresia găsită în studiu. Nu sunt carte de deschidere
 la execuție sau suprascriere învățată după FEN.
 
-Indiciul public și Game Review își păstrează politicile independente. Mai cer propria
-corecție: indiciul poate folosi `…Nd7` slab, iar analiza poate numi `Bb5+` BEST.
-Scopurile lor benchmark executabile rămân eșecuri separate. Verificarea dinamică a
+Indiciul public și Game Review își păstrează politicile obișnuite independente. Corecția
+contrajocului după șah scurt înlocuiește `…Nd7` slab și nu mai clasifică `Bb5+` BEST.
+Fostele scopuri benchmark rulează acum în suita normală de componente. Verificarea dinamică a
 frontierei este implementată mai jos. Prefixul vizibil mai scurt și dovada ascunsă
 accesibilă separat rămân [lucru de prezentare](../feedback/README.md#dovada-tactică-și-liniile-afișate).
 
@@ -1218,7 +1218,7 @@ valori de transpoziție între modurile dovezii sau istorii. Repetiția se verif
 efectiv explorat; indiciile poziționale nu inventează istoricul anterior al partidei.
 
 PV-ul legal integral și recepția lucrului rămân accesibile auditului. Cache-ul de analiză
-v2 le păstrează după restart și respinge dovada altei poziții. Versiunea v1 rămâne lizibilă,
+v3 le păstrează după restart și respinge dovada altei poziții. Versiunile v1/v2 rămân lizibile,
 fără dovadă inventată. Adaptoarele native disting verificarea incompletă de finalul
 partidei și nu salvează o analiză generată parțial.
 
@@ -1238,5 +1238,33 @@ suplimentară de 160/111,5‰. Șase faze brute și o componentă păstrează eg
 fără restaurarea scorului vechi.
 [Controalele de stabilitate](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
 păstrează ambele orizonturi și negativul confirmării întrerupte. Completarea certifică
-domeniul declarat al căutării, nu șah optim sau creștere Elo. Feedback-ul apărării liniștite
-franceze și al calibrării analizei rămâne deschis.
+domeniul declarat al căutării, nu șah optim sau creștere Elo.
+
+## Contrajoc liber după o linie scurtă cu șah
+
+[FrenchCoachingTest](../../atf-tests/src/test/java/ro/atf/chess/FrenchCoachingTest.java) guvernează
+`Bb5+` față de `Nc4`, ambele culori, negativul nodului lipsă, cache v2 real și faze noi
+Stockfish H17/H19. Numele deschiderii, FEN-ul și apărările prescrise nu intră în regula motorului.
+
+Indiciul termina deja o comparație mai adâncă, dar folosea vechiul veto H4 după pierderea
+materialului de către liderul cu șah. Acum plătește comparația liberă H5 și, numai când
+aceasta arată cel puțin pierderea unei piese ușoare pentru pion și peste pragul existent de
+25cp, confirmarea liberă H6. Analiza verifică liderul scurt cu șah la H5; cazurile obișnuite
+folosesc în continuare garda orizonturilor pare. Candidatul trebuie să reziste la H6 în
+fereastra existentă de echivalență. Ambele căutări complete împart rezerva finită existentă;
+întreruperea nu publică scor final de indiciu sau analiză. Rămân disponibile toate apărările
+legale, inclusiv mutările liniștite.
+
+`Counterplay` păstrează cele patru PV-uri evaluate, ambele bilanțuri materiale, rădăcina
+aleasă și pragurile efective. Corecția nu restaurează scorul vechi, nu adaugă compensație și
+nu elimină global veto-ul stabilității. Indiciul martor alege `Nc4` la −17cp, H6, cu 272.932
+noduri suplimentare de dovadă peste lucrul obișnuit de 200k. Analiza compară toate mutările
+legale, păstrează candidatul stabil de cal în intervalul de 25cp și clasifică șahul jucat cu
+nebunul folosind linia efectiv refutată. Pierderea față de profesor scade de la 475,5/453‰
+la 5,5/5,5‰.
+
+Cache-ul de analiză v3 păstrează dovada contrajocului și citește în continuare v1/v2.
+Câmpurile opționale absente rămân absente în JSON-ul istoric, păstrând amprentele recepțiilor.
+Învățarea din partide complete cere în continuare hint obișnuit maxim înaintea fiecărei
+mutări, analiză finală completă și evaluarea independentă a profesorului. O partidă de
+diagnostic nu măsoară Elo.

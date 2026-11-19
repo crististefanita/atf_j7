@@ -11,6 +11,24 @@ public final class CoachingProof {
     static final Policy CURRENT=Policy.read(ChessYaml.resource("coaching-proof.yaml"));
 
     public enum Status { COMPLETE, NODE_LIMIT, FORCING_LIMIT }
+    /** Two deeper free-reply comparisons, rather than a fixed refutation appended to a PV. */
+    public record Counterplay(int earlierPlies,TacticalAnalysis.Variation earlierIncumbent,
+                              TacticalAnalysis.Variation earlierChallenger,TacticalAnalysis.Variation incumbent,
+                              TacticalAnalysis.Variation challenger,ChessPosition.Move selected,int leaderScore,
+                              int minGainCp,int minMaterialLoss) {
+        public Counterplay {
+            if(earlierPlies<5||minGainCp<0||minMaterialLoss<1||earlierIncumbent==null||earlierChallenger==null||incumbent==null||challenger==null
+                    ||!earlierIncumbent.move().equals(incumbent.move())||!earlierChallenger.move().equals(challenger.move())
+                    ||incumbent.move().equals(challenger.move())||selected==null||leaderScore<Math.max(incumbent.score(),challenger.score())||!selected.equals(accepts(earlierIncumbent,earlierChallenger,incumbent,challenger,leaderScore,minGainCp,minMaterialLoss)?challenger.move():incumbent.move()))
+                throw new IllegalArgumentException("Invalid free-counterplay confirmation");
+        }
+        public boolean accepted(){return selected.equals(challenger.move());}
+        private static boolean accepts(TacticalAnalysis.Variation before,TacticalAnalysis.Variation alternative,
+                                       TacticalAnalysis.Variation now,TacticalAnalysis.Variation next,int best,int gap,int loss) {
+            return before.materialChange()<=-loss&&now.materialChange()<=-loss
+                    &&alternative.score()-before.score()>gap&&next.score()-now.score()>gap&&best-next.score()<=gap;
+        }
+    }
     public record Confirmation(int plies,Move incumbent,Move challenger,Move selected,int incumbentScore,int challengerScore,
                                int earlierIncumbentScore,int earlierChallengerScore,int minGainCp) {
         public Confirmation {
@@ -20,21 +38,30 @@ public final class CoachingProof {
     }
     public record Work(Status status, int nodes, int allocatedNodes, int ceiling, int ordinaryPlies,
                        int forcingPlies, int captureReplies, int checkEvasions, int repeatedDraws,
-                       String positionKey,List<Move> roots,int ordinaryNodes,int boundedRoots,Confirmation confirmation,int tacticalPlies) {
+                       String positionKey,List<Move> roots,int ordinaryNodes,int boundedRoots,Confirmation confirmation,int tacticalPlies,Counterplay counterplay) {
+        public Work(Status status,int nodes,int allocatedNodes,int ceiling,int ordinaryPlies,int forcingPlies,int captureReplies,int checkEvasions,int repeatedDraws,
+                    String positionKey,List<Move> roots,int ordinaryNodes,int boundedRoots,Confirmation confirmation,int tacticalPlies) {
+            this(status,nodes,allocatedNodes,ceiling,ordinaryPlies,forcingPlies,captureReplies,checkEvasions,repeatedDraws,positionKey,roots,ordinaryNodes,boundedRoots,confirmation,tacticalPlies,null);
+        }
         public Work {
             roots=List.copyOf(roots);
             if(status==null||nodes<0||nodes>allocatedNodes||allocatedNodes>ceiling||ceiling<1||ceiling>5_000_000||ordinaryPlies<1
                     ||ordinaryPlies>MatchAiPolicy.MAX_PLIES||forcingPlies<0||forcingPlies>48||captureReplies<0
                     ||checkEvasions<0||repeatedDraws<0||positionKey==null||positionKey.isBlank()||roots.isEmpty()
                     ||new HashSet<>(roots).size()!=roots.size()||ordinaryNodes<0||boundedRoots<0||boundedRoots>roots.size()||tacticalPlies<0||tacticalPlies>2
-                    ||confirmation!=null&&(!completeStatus(status)||confirmation.plies()>=ordinaryPlies||!roots.contains(confirmation.incumbent())||!roots.contains(confirmation.challenger())))throw new IllegalArgumentException("Invalid tactical work receipt");
+                    ||confirmation!=null&&(!completeStatus(status)||confirmation.plies()>=ordinaryPlies||!roots.contains(confirmation.incumbent())||!roots.contains(confirmation.challenger()))
+                    ||counterplay!=null&&(!completeStatus(status)||counterplay.earlierPlies()+1!=ordinaryPlies||!roots.contains(counterplay.incumbent().move())||!roots.contains(counterplay.challenger().move())))throw new IllegalArgumentException("Invalid tactical work receipt");
         }
         private static boolean completeStatus(Status status){return status==Status.COMPLETE;}
         public boolean complete(){return status==Status.COMPLETE;}
         public int totalNodes(){return ordinaryNodes+nodes;}
-        Work afterOrdinary(int nodes){return new Work(status,this.nodes,allocatedNodes,ceiling,ordinaryPlies,forcingPlies,captureReplies,checkEvasions,repeatedDraws,positionKey,roots,nodes,boundedRoots,confirmation,tacticalPlies);}
+        Work afterOrdinary(int nodes){return new Work(status,this.nodes,allocatedNodes,ceiling,ordinaryPlies,forcingPlies,captureReplies,checkEvasions,repeatedDraws,positionKey,roots,nodes,boundedRoots,confirmation,tacticalPlies,counterplay);}
         void validate(ChessPosition position,int depth) {
             if(!positionKey.equals(position.searchKey().toString())||ordinaryPlies!=depth||!position.legalMoves().containsAll(roots))throw new IllegalArgumentException("Foreign tactical proof context");
+            if(counterplay!=null)for(var line:List.of(counterplay.earlierIncumbent(),counterplay.earlierChallenger(),counterplay.incumbent(),counterplay.challenger())) {
+                var end=position;for(var move:line.line())end=end.play(move);
+                if(line.materialChange()!=material(end,position.turn())-material(position,position.turn()))throw new IllegalArgumentException("Foreign counterplay material ledger");
+            }
         }
     }
     record Policy(int maxNodes,int allocationStep,int maxForcingPlies) {
@@ -83,6 +110,46 @@ public final class CoachingProof {
     }
 
     private CoachingProof() { }
+
+    static boolean shortCheckingLine(ChessPosition board,TacticalAnalysis.Variation line,int depth) {
+        return depth<=MatchAiPolicy.BASE_PLIES+1&&line.ending()==TacticalAnalysis.Ending.HORIZON
+                &&line.signedMatePlies()==0&&board.playGenerated(line.move()).isCheck();
+    }
+
+    static Result counterplay(ChessPosition board,List<Move> roots,Move incumbent,int tactical,Policy policy,Set<Move> draws,Set<Move> required) {
+        int earlierDepth=MatchAiPolicy.BASE_PLIES+2,depth=earlierDepth+1;
+        var exact=new HashSet<>(required);exact.add(incumbent);
+        var early=compare(board,roots,earlierDepth,draws,policy,exact,tactical);
+        if(!early.work().complete())return early;
+        var candidate=early.lines().get(0);exact.add(candidate.move());
+        int gap=MatchAiPolicy.CURRENT.hint.maxLossCp(),loss=value(ChessPosition.Kind.KNIGHT)-value(ChessPosition.Kind.PAWN);
+        var initial=variation(early,incumbent);
+        if(candidate.move().equals(incumbent))return early;
+        if(initial.materialChange()>-loss||candidate.score()-initial.score()<=gap) {
+            var stable=confirmLeader(board,early,incumbent,policy);
+            return new Result(stable.work().complete()?early.lines():List.of(),stable.work());
+        }
+        int remaining=policy.maxNodes()-early.work().nodes();
+        if(remaining==0)return new Result(List.of(),combine(early.work(),early.work(),Status.NODE_LIMIT,policy,0,null));
+        var late=compare(board,roots,depth,draws,new Policy(remaining,Math.min(policy.allocationStep(),remaining),policy.maxForcingPlies()),exact,tactical);
+        if(!late.work().complete())return new Result(List.of(),combine(early.work(),late.work(),late.work().status(),policy,late.work().nodes(),null));
+        Counterplay facts=null;var old=variation(late,incumbent);
+        if(!candidate.move().equals(incumbent)) {
+            var before=variation(early,incumbent);var next=variation(late,candidate.move());
+            boolean accepted=Counterplay.accepts(before,candidate,old,next,late.lines().get(0).score(),gap,loss);
+            facts=new Counterplay(earlierDepth,before,candidate,old,next,accepted?next.move():incumbent,late.lines().get(0).score(),gap,loss);
+        }
+        // Keep the stable H5 candidate when H6 differs only within the existing equivalence window.
+        return new Result(late.lines(),combine(early.work(),late.work(),Status.COMPLETE,policy,late.work().nodes(),facts));
+    }
+    static Move selected(Result result) {
+        var work=result.work();return work.counterplay()!=null?work.counterplay().selected():work.confirmation()!=null?work.confirmation().selected():result.lines().get(0).move();
+    }
+    private static TacticalAnalysis.Variation variation(Result result,Move root){return result.lines().stream().filter(v->v.move().equals(root)).findFirst().orElseThrow();}
+    private static Work combine(Work early,Work late,Status status,Policy policy,int laterNodes,Counterplay counterplay) {
+        int nodes=early.nodes()+laterNodes;int allocation=(int)Math.min(policy.maxNodes(),((long)nodes+policy.allocationStep()-1)/policy.allocationStep()*policy.allocationStep());
+        return new Work(status,nodes,allocation,policy.maxNodes(),late.ordinaryPlies(),Math.max(early.forcingPlies(),late.forcingPlies()),early.captureReplies()+(laterNodes==0?0:late.captureReplies()),early.checkEvasions()+(laterNodes==0?0:late.checkEvasions()),early.repeatedDraws()+(laterNodes==0?0:late.repeatedDraws()),early.positionKey(),early.roots(),0,late.boundedRoots(),null,early.tacticalPlies(),counterplay);
+    }
 
     static boolean needed(ChessPosition start,List<TacticalAnalysis.Variation> lines) {
         for(var line:lines) {

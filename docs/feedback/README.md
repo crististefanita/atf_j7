@@ -465,10 +465,14 @@ obligatorii taxate, respingând rezultatele incomplete ale indiciului/analizei. 
 [contractul implementării](../board/ai-quality.md#frontiera-dinamică-de-coaching). Separă
 lucrările rămase:
 
+Cele două defecte franceze sunt reparate prin comparația taxată a contrajocului liber la
+două orizonturi: `Nc4` înlocuiește `Bb5+` în ambele mecanisme, cu pierdere H17/H19 sub 50‰,
+iar scopurile originale de calitate intră în suita normală de componente.
+[Componentele contrajocului](../../atf-tests/src/test/java/ro/atf/chess/FrenchCoachingTest.java)
+păstrează ambele culori, cele patru PV-uri evaluate, negativul nodului lipsă și compatibilitatea cache v1/v2/v3.
+
 - Previzualizarea arată încă dovada integrală; prefixul vizibil mai scurt și sufixul de
   verificare accesibil separat cer teste proprii de prezentare și restart.
-- Franceza `Bb5+` și apărarea liniștită slabă rămân defecte de calitate. Recapturile
-  continue nu repară singure apărarea liniștită dincolo de orizont; păstrează ambele FAIL-uri benchmark.
 - Păstrează garda orizonturilor pare: prototipul fără gardă înlocuia `Nxd7` calificat
   independent cu `Bxe4`, crescând pierderea de la 43,5/8 la 335/243,5‰ la H17/H19.
   Garda finală trebuie să păstreze scorul închis efectiv, să taxeze confirmarea și
@@ -486,10 +490,10 @@ decizie calificată a dovezii.
 Analiza păstrează și liderul la egalitate numerică exactă. Egalitatea `Nf3`/`e4` din Engleză
 este +21 după închidere, fără vechiul +651. Păstrează cele șase faze ale profesorului și
 negativul de componentă: ordinea lexicală producea singură o recomandare independent mai slabă.
-Replay-ul final pe 106 poziții activează rezerva în 44 de indicii și 66 de analize, fără
+Replay-ul calificării precedente pe 106 poziții activează rezerva în 44 de indicii și 66 de analize, fără
 rezultat incomplet. Cele 43 de recomandări schimbate au 252 de faze H17/H19. Nicio pierdere
 nouă nu atinge 150‰; maximele suplimentare sunt 73,5/54‰. Aceste degradări mici rămân
-datorie de calibrare, alături de cele două benchmark-uri franceze eșuate. Frontiera tactică
+datorie de calibrare. Totalurile istorice nu califică un evaluator ulterior. Frontiera tactică
 închisă nu certifică joc global optim și nu înlocuiește măsurarea Elo în partide complete noi.
 
 Nu deduce Elo sau transfer independent larg din controalele forțate compuse. Partidele
