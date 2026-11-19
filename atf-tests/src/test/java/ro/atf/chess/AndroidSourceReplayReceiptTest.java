@@ -38,13 +38,13 @@ class AndroidSourceReplayReceiptTest {
         check.same("An unequal source/replay side fails despite a claimed PASS", false,
                 read("side", valid.replace("\t316\t316\ttrue", "\t316\t300\ttrue")));
         check.same("A different density cannot borrow the requested dimensions", false,
-                read("density", valid.replace("@160", "@320")));
+                read("density", valid.replace("@320", "@160")));
         check.same("A different language cannot borrow this profile", false,
                 read("locale", valid.replace("language=en", "language=ro")));
         check.same("No profile marker is not evidence of the requested viewport", false,
                 read("profile", valid.replaceAll("(?m)^INSTRUMENTATION_RESULT: replayProfile=.*\\R", "")));
         check.same("Duplicate display markers are ambiguous", false,
-                read("profiles", valid + "INSTRUMENTATION_RESULT: replayProfile=360x640@160, font=1.0, language=en\n"));
+                read("profiles", valid + "INSTRUMENTATION_RESULT: replayProfile=720x1280@320, font=1.0, language=en\n"));
     }
 
     private boolean read(String name, String content) throws Exception {
@@ -58,7 +58,7 @@ class AndroidSourceReplayReceiptTest {
                 INSTRUMENTATION_RESULT: phase=source-sized-replay
                 INSTRUMENTATION_RESULT: pid=123
                 INSTRUMENTATION_RESULT: result=PASS
-                INSTRUMENTATION_RESULT: replayProfile=360x640@160, font=1.0, language=en
+                INSTRUMENTATION_RESULT: replayProfile=720x1280@320, font=1.0, language=en
                 INSTRUMENTATION_CODE: -1
                 """);
         for (int id = 0; id < AndroidSanityPublication.SOURCE_REPLAY_CHECKS.size(); id++) {

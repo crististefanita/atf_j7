@@ -138,7 +138,13 @@ class AndroidSanityPublication {
         var evidence = readPhase(receipt, "source-sized-replay", SOURCE_REPLAY_CHECKS.size(), SOURCE_REPLAY_CHECKS, null);
         var markers = Files.isRegularFile(receipt) ? Files.readAllLines(receipt) : List.<String>of();
         var observed = markerValues(markers, "INSTRUMENTATION_RESULT: replayProfile=");
-        var expected = List.of(profile + "@160, font=1.0, language=" + locale);
+        String nativeSize = switch (profile) {
+            case "360x640" -> "720x1280";
+            case "740x420" -> "1480x840";
+            case "1280x900" -> "2560x1800";
+            default -> throw new IllegalArgumentException("Unknown logical replay profile: " + profile);
+        };
+        var expected = List.of(nativeSize + "@320, font=1.0, language=" + locale);
         if (observed.equals(expected)) return evidence;
         var rows = new ArrayList<>(evidence.rows());
         rows.add(new AtfAssertion("Native source-sized profile", expected.toString(), observed.toString(), false));

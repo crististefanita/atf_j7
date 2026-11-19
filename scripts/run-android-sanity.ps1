@@ -374,7 +374,9 @@ try {
         $runId = [guid]::NewGuid().ToString('N')
         try {
             foreach ($profile in '360x640', '740x420', '1280x900') {
-                Set-DisplayProfile @{size=$profile; density='160'; font='1.0'}
+                $dimensions = $profile.Split('x')
+                $nativeSize = "$([int]$dimensions[0] * 2)x$([int]$dimensions[1] * 2)"
+                Set-DisplayProfile @{size=$nativeSize; density='320'; font='1.0'}
                 foreach ($locale in 'en','ro') {
                     $directory = Join-Path $run "$profile-$locale"
                     $null = New-Item -ItemType Directory $directory
