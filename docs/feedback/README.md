@@ -611,8 +611,11 @@ checks legality, both horizons, changed outcomes, foreign phases and missing rec
 [NimzoHintBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/NimzoHintBenchmarkTest.java)
 remains an explicit failing native quality goal; a legal PV and an intact archive
 must not turn this into a repaired-engine PASS. Audit every continuation and
-valuable-piece recapture before narrowing the next change. Whole-game oracle
-coverage and the final review are being completed in `C:\work\sah\.studii`.
+valuable-piece recapture before narrowing the next change. The complete audit retains 1,462 original cold oracle queries plus the final-review additions. There are 80 offered hints and 479 hypothetical hint plies: 43 have stable large loss, including 17 opposing replies and six offered roots (one first choice). The native 63-ply final review has four large-loss recommendations, 42 bad hypothetical review plies, three error labels on independently small losses and two missed large losses. Evidence integrity passes; native quality remains FAIL.
+
+At actual ply 34, the first preview ends `…Rxf6 Ne4 …Rf7 dxc5 …b6 Be3 …bxc5 Bxc5`. The final `Bxc5` loses 504‰ at both horizons, but the apparent `…Qxc5` recapture is a trap refuted by `Nxc5`; it preserves White's win. Free opposing play instead uses the quiet `…Ne5`. White could preserve the win with `Rf1` before `Bxc5`. The same witness now retains both teacher identities and tests a foreign reply even when its envelope is rehashed. Do not append `…Qxc5` as a presumed forced continuation or ban bishop sacrifices to hide the actual free-reply defect.
+
+The first large losses in actual Native Hard play are `…Nd7` at ply 18 (259/159‰) and `…Nf6` at 20 (224/202.5‰), with `…Qc7` preferred independently. Both actual decisions consumed 200k additional nodes and retained H5. These are search decisions, not evidence that simply varying a book improves Elo. All original journals, full-review branches, endpoint replies and final Extent reports remain in `C:\work\sah\.studii\corpus\2026-11-19-nimzo-variety` and the companion `experiments\2026-11-19-opening-variety` study.
 
 Opening variety itself is covered by
 [OpeningVarietyTest](../../atf-tests/src/test/java/ro/atf/chess/OpeningVarietyTest.java)
