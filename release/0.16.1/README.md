@@ -2,7 +2,7 @@
 
 ## Overview
 
-The candidate aligns Web and Android navigation. Publication follows qualification.
+Web and Android share the same header and navigation policy.
 
 ## Improvements
 

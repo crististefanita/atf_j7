@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "puzzle-ux",
+  "device": "127.0.0.1:5571",
+  "api": "28",
+  "apkSha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06",
+  "sourceCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a",
+  "variant": "release",
+  "assertions": 6,
+  "receiptSha256": "67c37561fc7084094f80a4f34aa9be22f12d223e3db3f7439797034556ffedc5",
+  "captureSha256": {
+    "puzzle-ux-mate-one.png": "5f2b49d2b84c96560d9729b25ce4908a9d8db81ea5d098a3310e0bc2d9a9a519",
+    "puzzle-ux-mate-two.png": "350213ff824a39f8a36ae38248d8da5e71ac80fb447e8df081ea61ed607dc08e",
+    "puzzle-ux-mate-three.png": "a99772cb87ba8b00026ebd921b542edd04b3dc645decc2a0c194b69b8d14f918",
+    "puzzle-ux-tactics.png": "8ede8de8aa2cc01424b1c5b339874a55aec63550831ff5e85d8fd945840fe9a2",
+    "puzzle-ux-training.png": "bd61dbc6e0bc44c7ad11003d9551827b5045637eb2573d06723b4e8c16c5d100",
+    "puzzle-ux-intermezzo.png": "e1ae2fcd3e3a1c33e5f9019285609024baf0b8ff0c06f70c675b8c6c2c92d184"
+  },
+  "runId": "3dc1c2a8d1ac44c2b791da4034d5f1c8",
+  "extentSha256": "b76cbe3c9593e62b647b99c0d9294c44e81f87d893e3c5c2369314d26193d7c8"
+}

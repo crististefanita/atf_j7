@@ -44,8 +44,6 @@ Before publishing a new engine, use a deterministic portable digest and verify i
 
 ## WEB-02 · Adapters and Shared Layout
 
-**P1 · APK–Web headers and navigation.** APK still uses large returns below lists, a left-side game menu and separate header implementations. Extract one native adapter with Back beside its title, options on the right and centered move navigation. Require the same component cases for both adapters, preserved Back destinations, cursors and contextual commands, then native and MCP captures at font 1.3.
-
 **P2 · Use compact landscape width more effectively.** At 740 × 420 dp and
 font 1.3, the mating source and replay both measure 285 native pixels at
 320 dpi (142.5 dp). Navigation fits without page scrolling, but the vertical
@@ -62,6 +60,8 @@ board's full history list and its separate oracle. Keep completed hint/score
 readiness and the displayed position as independent checks; a timeout must
 not stand in for a wrong UI oracle.
 [Current cursor](../../chess-core/src/main/java/ro/atf/chess/MatchHistorySelection.java)
+
+**P2 · Native compact accessibility readiness.** The legacy compact replay stops at a visible Game Review command because its accessibility-node snapshot reports it unavailable. Retain that failed observation; refresh and verify the actual node before any click, without increasing the timeout. Game Review at 360 × 640 dp and 1.3× text, and the separate RO/EN rotation probe, passed on the same signed APK. These checks do not close the legacy helper's failure. Web Openings at 740 × 420 still needs about 37 CSS pixels of document scrolling; keep it in the compact-landscape work above.
 
 <details>
 <summary>Adapter ownership and input</summary>

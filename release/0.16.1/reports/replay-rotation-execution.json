@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "report": "android-replay-rotation.html",
+  "extentSha256": "3f7d21887c80171c1d0df7f0f3c21875bc2cfc27d8a9c7bda49f22838eea5dd9",
+  "sourceCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a",
+  "nativeAssertions": 64,
+  "phases": {
+    "ro": {
+      "status": "PASS",
+      "scope": "open-replay-rotation",
+      "device": "127.0.0.1:5571",
+      "api": "28",
+      "apkSha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06",
+      "sourceCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a",
+      "variant": "release",
+      "assertions": 32,
+      "receiptSha256": "3b1fcc67a0a560bb8046dbe3bf65a1f9b4fe976d639052f5ac8820f54a6d18f1",
+      "captureSha256": {
+        "rotation-inline.png": "5113637a6227d2a48f032648902ce2a17e770c4117e716e59c24c4890b408517",
+        "rotation-calculated.png": "df98e804a7a7caa97fe3428ed881a27194cf15481b059f28d555833d572281a5",
+        "rotation-theory.png": "88b0cebca14698d0d4767a97cc49e19eb24296b34da8087a3d0d3166426553b3",
+        "rotation-mating.png": "d0d5e08a4679ce281f467ac3e40d9ee7ea092022024cc5e9b20239dc8f42a693",
+        "rotated-inline.png": "f68b344b3a6a25e426c7d9a7d9960971d170e0e5876174133fbd745730555239",
+        "rotated-calculated.png": "620e094e749be8e89f8623ec668b858634a2723abfceb572f053d00f0c8b9e18",
+        "rotated-theory.png": "db121a5a90f7f63c772a58aceac5659016665835f24d46cb98ab7cbd896935cd",
+        "rotated-mating.png": "b20d41cb75d31763cdf0ef5ebc0b3215322420f233e99396fefe1c1c615b31f1"
+      },
+      "runId": "c5d008206d6d46b292af6e46f474f434",
+      "signingCertificateSha256": "e49cc581c12594496e0b2b911aba9a09d04893c661f1ad5316d00377dc8a7772",
+      "testCertificateSha256": "e49cc581c12594496e0b2b911aba9a09d04893c661f1ad5316d00377dc8a7772",
+      "installedApkSha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06"
+    },
+    "en": {
+      "status": "PASS",
+      "scope": "open-replay-rotation",
+      "device": "127.0.0.1:5571",
+      "api": "28",
+      "apkSha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06",
+      "sourceCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a",
+      "variant": "release",
+      "assertions": 32,
+      "receiptSha256": "906e9cae03b6968a12ddeee7212d32f0bfd318127b1767a3910b57111051cc73",
+      "captureSha256": {
+        "rotation-inline.png": "a51535b1ac9f3dd0657ef8d895170e4ba0acc0931c2c1ec2822ea59fddda39be",
+        "rotation-calculated.png": "f27ce398f0aa8feb37c3c45a283d79149f03731110d2a74a3c3b2a6a6e0e8312",
+        "rotation-theory.png": "807d2bde33f8f08fc7d51551623f8b25eda3685735ece1d8ecb84662177a1274",
+        "rotation-mating.png": "8403b811969a4be118eabb7b752ecc7e10e45bac07b54014611aee2def5eba77",
+        "rotated-inline.png": "88b0f7234dcb21b598e348e4283ec2e5180f771f94f4668fb23571698fc925e2",
+        "rotated-calculated.png": "a5daa3159aea783bf8190a4e3f842c4c934ca31ea36c6020dbae8aacb265a5d8",
+        "rotated-theory.png": "e829c923b7147a58e0fdc9609fba6c857b2c937546c01c0841d61634be7fe7da",
+        "rotated-mating.png": "46d64c4439ac60820849ce9bc984062200abb5f0955e0eec68e15ff20f780292"
+      },
+      "runId": "c5d008206d6d46b292af6e46f474f434",
+      "signingCertificateSha256": "e49cc581c12594496e0b2b911aba9a09d04893c661f1ad5316d00377dc8a7772",
+      "testCertificateSha256": "e49cc581c12594496e0b2b911aba9a09d04893c661f1ad5316d00377dc8a7772",
+      "installedApkSha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06"
+    }
+  }
+}

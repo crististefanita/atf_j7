@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "scope": "match-archive",
+  "device": "127.0.0.1:5571",
+  "api": "28",
+  "apkSha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06",
+  "sourceCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a",
+  "variant": "release",
+  "assertions": 2,
+  "receiptSha256": "6018cdf321d51b247241488bf18e7ecd1a053a360ac70433a0061b817fbb37a5",
+  "captureSha256": {
+    "match-archive.png": "935dc86bd6b7be8057fe6af97b03830259978c4c5e4c880954c258af92fde124",
+    "finished-games.png": "e694364f4c365107a2b0e5a9730b90976ea738ea915f26423c57ee8cddbbce51"
+  },
+  "extentSha256": "85cb0085ce1fbe701550aa8a09d18fc56315498fed625b5def80d8e86c3c4920"
+}

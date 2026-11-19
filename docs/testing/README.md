@@ -840,6 +840,8 @@ The game checkbox shows **AI** on compact widths while retaining its full access
 
 `ui-chrome-cases.json` is executed by `UiChromeParityTest` on the JVM and `chrome-contract.test.mjs` on Web. It covers narrow, compact, fractional-density, landscape, desktop and short windows, including 1.3× text. Generation drift, wrong destinations and offscreen popup geometry fail components. Native sanity covers the actual header, captures and callbacks; MCP covers the rendered Web adapter. Keep these observations distinct from pure geometry checks.
 
+The native popup must measure its intrinsic content before choosing anchored bounds, then use an explicit child layout inside its own scroll area. Check closed guidance before opening an overlay; once open, compare unchanged board bounds and only unoccluded pixels. Keep enlarged captions top-aligned so an internal viewport cannot start midway through reserved text. **AndroidAdapterApiTest** rejects the observed **Stream.toList()** call in adapter and instrumentation Java; **Collectors.toList()** remains compatible with the API 28 probe. This narrow source guard complements native execution.
+
 `GenerateUiChrome` must reproduce the tracked module exactly before qualification. An engine compilation failure cannot be hidden by a successful UI package: for UI-only reuse, record the qualified engine commit and digest separately. [APK–Web matrix](../../web/parity.md) · [Release process](../release/README.md)
 
 ```mermaid
