@@ -522,3 +522,12 @@ rămâne FAIL; nu schimba aserțiunea zero erori pentru a accepta numărul obser
 Analiza finală și toate ramurile ei păstrează un audit separat al oracolului.
 Dovezi: `C:\work\sah\.studii\corpus\2026-11-19-french-coaching-quiet`; producător
 `098848be9612e68e370d3495df4dc679a0f7aedd`, jurnalul și recepțiile de lucru originale intacte.
+
+Analiza finală auditează ambele ramuri ale tuturor celor 55 de mutări. Păstrează o
+recomandare inferioară (mutarea 26, pierdere 267,5/289,5‰) și șapte etichete native
+de eroare pe mutări care pierd sub 50‰ la ambele adâncimi. Toate cele 77 de capete
+de indiciu sunt verificate independent: niciunul nu expune piesa importantă finală
+unei recapturi legale, dar 14 ultime mutări rămân inferioare la ambele adâncimi.
+Aceasta nu califică întregul PV: benchmarkul calității analizei finale rămâne FAIL
+pentru recomandarea respectivă. Repară separat comparațiile cu replici libere și
+clasificarea; nu ascunde replicile interne slabe doar fiindcă piesa finală e sigură.
