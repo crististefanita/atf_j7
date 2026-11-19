@@ -1774,11 +1774,3 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#documentedArchitectureRejectsMissingSourcesExtraModulesAndScopeDrift
     contract: "Rename only the project architecture heading to Chess; preserve the executable build topology, ownership routes and all missing-source/module/scope negative cases."
     allowDelete: false
-
-  - id: CHESS-DOCUMENTATION-ROUTES-EN
-    base: "b51e17e7752cc0c0a3ec7be9500a362f4d3b20d2"
-    from: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
-    test: ro.atf.chess.DocumentationGovernanceTest#movingTheMotorLinkOutOfTheArchitectureMapDoesNotSatisfyTheContract
-    contract: "Rename only the project architecture heading to Chess; preserve the executable build topology, ownership routes and all missing-source/module/scope negative cases."
-    allowDelete: false
