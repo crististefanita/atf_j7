@@ -156,3 +156,21 @@ their original producer and diagnostic status; a replay or annotation correction
 cannot upgrade them into current-source observed play. Derive descriptive opening
 labels from actual case IDs; append a source-bound correction if frozen prose was
 wrong, preserving all original journal, PGN and oracle hashes.
+
+## Root and full-line admission
+
+A repaired first move is a separate verdict from its scored continuation.
+`CoachingLineEvidence` binds the exact native body to the trusted teacher identity,
+all planned free/forced H17/H19 queries, raw UCI and every actual hypothetical prefix.
+It rejects missing, duplicate, foreign or unused phases before computing quality.
+An incomplete native body cannot qualify even when its digest is freshly issued.
+
+`ScotchPromotionEvidenceTest` retains a rejected H7 experiment: Re8+ passes the
+independent root floor, while two later Black choices fail and one White defense
+has conflicting depth grades. Whole-line admission requires both a qualified root
+and no stable large loss or depth dispute. Rehashing an edited summary is not a raw
+UCI verification. Shortening an inventory cannot conceal the last move.
+
+Keep the original runtime benchmarks executable, including the real one-turn
+`GameReview.analyzeLine` classification. A passing evidence validator proves that
+the promotion gate rejects a bad experiment; it does not qualify the engine.

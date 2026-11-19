@@ -831,3 +831,9 @@ transfer counterexamples and the legal mirrored admission. `ScotchWitnessTest` r
 the next independent root/checkmate witness. `RuyComparisonBenchmarkTest` and
 `ScotchContinuationBenchmarkTest` keep unresolved continuation quality explicitly red;
 they are not ordinary green component assertions or emulator journeys. [Audit method](learning-archive.md)
+
+`ScotchPromotionEvidenceTest` covers whole-line promotion and source substitution
+offline, using all 28 raw H17/H19 phases of a rejected repair. It shares
+`CoachingLineEvidence` with study publication. `ScotchReviewClassificationBenchmarkTest`
+adds the actual one-turn review classification to the unresolved runtime goals.
+[Root and full-line admission](learning-archive.md#root-and-full-line-admission)
