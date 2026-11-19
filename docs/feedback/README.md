@@ -459,3 +459,14 @@ stronger defense, pinned recapturers, repetition and exact budget-boundary failu
 The visible prefix may omit the verification suffix only when its complete scored
 proof remains available in audit and survives restart. The focused Native H6 repair
 is not a completed implementation of this coaching presentation requirement.
+
+Treat 200k as the ordinary coaching allowance, not a reason to declare a pending
+exchange finished. The proposed YAML policy must separate that allowance from a
+larger forcing-proof ceiling and charge their combined work. Allocate reserve only
+while relevant recaptures or legal check evasions are pending, and compare alternatives
+under the same policy. At a repetition, terminal result, cancellation or hard ceiling,
+record the distinct reason. An unfinished suffix must not become an exact cached score
+or a BEST classification. Do not pursue arbitrary checks forever or make the opponent
+recapture automatically when a stronger legal defense exists. Admission needs continuous
+recapture and check-evasion component chains, exact boundary/cancellation/cache negatives,
+and independent completed decisions before this feature is called implemented.

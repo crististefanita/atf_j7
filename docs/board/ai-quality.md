@@ -1089,7 +1089,8 @@ retain original full histories and raw cold receipts; the new knight alternative
 an explicitly separate replay, never a replacement for the historical pawn move.
 [Components](../../atf-tests/src/test/java/ro/atf/chess/HardContinuationWitnessTest.java)
 protect that improvement and reject substituted depth or producer. English
-`…Qf6` versus `…Nc6`, French `Bb5+ …c6` and Queen's Gambit `…Qa5` remain open.
+`…Qf6` versus `…Nc6` and Queen's Gambit `…Qa5` remain open. The French native
+repair is qualified separately below; its hint and review still need repair.
 
 Uniform one-ply tactical closure was rejected: 24 gained and 40 lost canonical
 stages, despite repairing the isolated French choice. Continuing every checked
@@ -1141,6 +1142,13 @@ a local exchange test, not a claim that every other tactical move is exhausted.
 | Scandinavian control | `Ne4` retained; 25.5/110.5‰ |
 | Queen's Gambit regression | `Bg3` retained; the rejected wider prototype chose `Bd6` |
 | Work-boundary negative | One unpaid node keeps the previous complete horizon |
+| Full canonical replay | All 2,303 acceptance outcomes and selected moves unchanged versus the preceding qualified Native source |
+| Current/prior game frames | 236 replays, three changed choices, one large French gain and no new large loss |
+
+The frame comparison reuses known opening ancestry and is not an independent league.
+Two smaller French changes include an H19 deterioration of 2.5‰; do not describe the
+result as uniformly better. The final component suite has 473 passes and four
+explicit skips. Both separate French coaching quality goals still fail.
 
 [French components and quality goals](../../atf-tests/src/test/java/ro/atf/chess/FrenchRecaptureTest.java)
 retain the original histories, material ledgers, both colors, actual interrupted
