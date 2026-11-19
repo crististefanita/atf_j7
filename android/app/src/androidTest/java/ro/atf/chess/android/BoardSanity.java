@@ -175,9 +175,16 @@ public final class BoardSanity extends Instrumentation {
         captureFrame("source-ai", "The AI board and fixed controls fit without page scrolling", image ->
                 sourceRootFits(game, board) && hintBoardCornersAreRendered(image, source));
         verifySourceReplay(game, source, "calculated");
-        closeActivity(game);
-
-        var study = startActivitySync(new Intent(getTargetContext(), AnalysisActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        tap(game.findViewById(R.id.match_history_previous));
+        tap(game.findViewById(R.id.match_history_previous));
+        var monitor = addMonitor(AnalysisActivity.class.getName(), null, false);
+        Activity study;
+        try {
+            tap(game.findViewById(R.id.match_actions));
+            clickMenuItem(game.getString(R.string.manual_analysis));
+            study = waitForMonitorWithTimeout(monitor, 7000);
+        } finally { removeMonitor(monitor); }
+        if (study == null) throw new AssertionError("The game menu did not open Analysis board");
         waitForIdleSync();
         var studyBoard = findBoard(viewsOf(study));
         awaitSourceAnalysis(study);
@@ -186,6 +193,7 @@ public final class BoardSanity extends Instrumentation {
         compare("Study hint reveal preserves the source board rectangle", studySource, screenBounds(studyBoard));
         verifySourceReplay(study, studySource, "theory");
         closeActivity(study);
+        closeActivity(game);
 
         if (!store.matches().leaveMatch()) throw new AssertionError("Could not leave isolated match");
         var quest = QuestCatalog.loadMateInTwo().get(0);
