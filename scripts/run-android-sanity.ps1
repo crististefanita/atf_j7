@@ -372,6 +372,7 @@ try {
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
     if ($ReplayViewportOnly) {
         $original = Read-DisplayProfile
+        $original | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'original-display.json') -Encoding utf8NoBOM
         $runId = [guid]::NewGuid().ToString('N')
         try {
             foreach ($profile in '360x640', '740x420', '1280x900') {
@@ -389,7 +390,10 @@ try {
                     Invoke-FocusedSanity $directory 'source-sized-replay' 20 $runId
                 }
             }
-        } finally { Set-DisplayProfile $original }
+        } finally {
+            Set-DisplayProfile $original
+            Read-DisplayProfile | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'restored-display.json') -Encoding utf8NoBOM
+        }
         return
     }
     if ($ReplayCompactOnly) {

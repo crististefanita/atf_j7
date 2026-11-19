@@ -45,6 +45,8 @@
 Calculated line, Mating line and AI/theory previews capture the visible source
 square when they open. Navigation changes pieces and text without measuring
 the preview as a new source. Reopening captures the current source again.
+`MatchViewport` selects compact native seat rows on narrow portrait windows
+and windows up to 480 dp high, leaving more height for the same square.
 
 ```mermaid
 flowchart LR
