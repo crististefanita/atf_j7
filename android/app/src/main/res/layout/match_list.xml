@@ -3,9 +3,7 @@
     android:background="#262522" android:orientation="vertical">
     <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical" android:padding="24dp">
-        <TextView android:id="@+id/match_list_title" style="@style/MenuHeading"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:textColor="#f5f3ec"
-            android:textSize="30sp" android:textStyle="bold" />
+        <FrameLayout android:id="@+id/match_list_header" android:layout_width="match_parent" android:layout_height="wrap_content" />
         <ScrollView android:id="@+id/match_list_scroll" android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" android:layout_marginTop="12dp">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -14,6 +12,5 @@
                 <TextView android:id="@+id/match_list_empty" style="@style/MenuSection" android:gravity="center" android:visibility="gone" />
             </LinearLayout>
         </ScrollView>
-        <Button android:id="@+id/match_list_back" style="@style/ChapterEntry" android:text="@string/match_list_back" />
     </LinearLayout>
 </LinearLayout>

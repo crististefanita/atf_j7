@@ -2,9 +2,7 @@
     android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:gravity="center_vertical" android:orientation="vertical" android:padding="24dp">
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:gravity="center" android:text="@string/menu_puzzles" android:textColor="#f5f3ec"
-            android:textSize="30sp" android:textStyle="bold" />
+        <FrameLayout android:id="@+id/puzzles_header" android:layout_width="match_parent" android:layout_height="wrap_content" />
         <TextView android:id="@+id/quest_totals" style="@style/ChapterTotals" android:textColor="#b8d88a" />
         <TextView android:id="@+id/menu_streak" style="@style/ChapterTotals" android:layout_width="wrap_content"
             android:layout_gravity="center_horizontal" android:visibility="gone" />
@@ -21,6 +19,5 @@
         <Button android:id="@+id/chapter_intermezzo" style="@style/ChapterEntry" android:text="@string/open_intermezzo" />
         <TextView style="@style/ChapterTotals" android:text="@string/intermezzo_lesson" />
         <TextView android:id="@+id/chapter_intermezzo_totals" style="@style/ChapterTotals" />
-        <Button android:id="@+id/puzzles_home" style="@style/ChapterEntry" android:text="@string/main_menu" />
     </LinearLayout>
 </ScrollView>

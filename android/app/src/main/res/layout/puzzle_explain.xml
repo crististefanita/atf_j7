@@ -6,37 +6,7 @@
     android:background="#1C211D"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/quest_payoff_header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:minHeight="48dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="8dp">
-
-        <TextView
-            android:id="@+id/quest_payoff_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:includeFontPadding="false"
-            android:maxLines="2"
-            android:textColor="#EFF2EC"
-            android:textSize="19sp"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/quest_payoff_close"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?android:attr/selectableItemBackground"
-            android:minWidth="48dp"
-            android:minHeight="48dp"
-            android:text="@android:string/ok"
-            android:textColor="#D4EAA7" />
-    </LinearLayout>
+    <FrameLayout android:id="@+id/quest_payoff_header" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
     <FrameLayout
         android:id="@+id/quest_payoff_body"

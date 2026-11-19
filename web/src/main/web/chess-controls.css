@@ -1,11 +1,13 @@
 :root {
-  --chess-screen-title: 1.19rem;
+  --chess-screen-title: 1.1875rem;
   --chess-control-size: 48px;
   --chess-position-size: .85rem;
-  --chess-header-gap: .35rem;
+  --chess-header-gap: 6px;
+  --chess-header-inset: 8px;
+  --chess-navigation-max: 384px;
   --chess-page-insets: calc(2 * var(--play-page-padding));
 }
-[data-chess-header] { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--chess-header-gap); min-block-size: var(--chess-control-size); }
+[data-chess-header] { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--chess-header-gap); min-block-size: var(--chess-control-size); padding-inline: var(--chess-header-inset); }
 body:not(.home-active) main > [data-chess-header] { max-inline-size: var(--play-column); margin-inline: auto; }
 [data-chess-header] :is(h1, h2, h3) { min-inline-size: 0; flex: 1; margin: 0; line-height: 1.25; text-align: start; }
 [data-chess-header] :is(h2, h3) { font-size: var(--chess-screen-title); }
@@ -16,7 +18,7 @@ body:not(.home-active) [data-chess-header] h1 { font-size: var(--chess-screen-ti
   inline-size: var(--chess-control-size); min-block-size: var(--chess-control-size);
   padding: 0; border: 0; background: transparent; color: #f5f3ec; font-size: 1.55rem;
 }
-[data-chess-navigation] { gap: 0; min-block-size: var(--chess-control-size); background: #2b2926; border-radius: .35rem; }
+[data-chess-navigation] { gap: 0; min-block-size: var(--chess-control-size); background: #2b2926; border-radius: .35rem; inline-size: min(100%, var(--chess-navigation-max)); margin-inline: auto; }
 [data-chess-navigation] > button[data-chess-arrow] {
   inline-size: var(--chess-control-size); min-inline-size: var(--chess-control-size); min-block-size: var(--chess-control-size);
   flex: 0 0 var(--chess-control-size); padding: 0; border: 0; background: transparent; color: #c0bfb4; font-size: 1.55rem;
@@ -34,4 +36,3 @@ button[data-chess-back]:enabled:hover, [data-chess-navigation] > button[data-che
   :root { --play-page-padding: .25rem; }
   main > .match { margin-block-start: 0; }
 }
-@media (max-width: 480px) { :root { --chess-screen-title: 1rem; } }

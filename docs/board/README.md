@@ -262,3 +262,7 @@ flowchart LR
 - Bara arată progresul în capitolul deschis. Pragurile 5, 15, 30, 50, 75 și finalul capitolului se recalculează din ID-urile rezolvate. La atingerea unui prag, ecranul confirmă realizarea și afișează următoarea țintă. Bara și textul pornesc de la același total după reluare. Ideea țintelor vizibile vine din Puzzle Journey. [Chess.com Puzzle Points](https://support.chess.com/en/articles/9681952-what-are-puzzle-points-on-chess-com)
 
 - [Regulile de șah și poziția inițială](https://handbook.fide.com/chapter/e012023)
+
+## Antet și navigare
+
+Înapoi stă lângă titlu; opțiunile contextuale rămân în dreapta. Același contract se aplică la capitole, partide salvate, deschideri și reluare. Comenzile mutărilor rămân centrate fără schimbarea tablei sau cursorului. [Politică și verificări comune](../testing/README.md#antet-și-navigare-comune)

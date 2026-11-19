@@ -48,8 +48,10 @@ public final class MatchListActivity extends LocalizedActivity {
         }
         boolean finished = getIntent().getBooleanExtra(FINISHED, false);
         var store = new ChessProgressStore(this).matches();
-        TextView title = page.findViewById(R.id.match_list_title);
-        title.setText(finished ? R.string.match_archive : R.string.match_saved_games);
+        var header = new ChessHeader(this, finished ? ro.atf.chess.UiChrome.Page.FINISHED : ro.atf.chess.UiChrome.Page.SAVED,
+                R.id.match_list_back, getString(finished ? R.string.match_archive : R.string.match_saved_games), this::finish);
+        header.title().setId(R.id.match_list_title);
+        ((android.view.ViewGroup) page.findViewById(R.id.match_list_header)).addView(header);
         LinearLayout rows = page.findViewById(R.id.match_list_rows);
         if (finished) showFinished(rows, store);
         else showSaved(rows, store);

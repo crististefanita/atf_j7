@@ -323,4 +323,10 @@
     <string name="game_review_mistake">Mistake</string>
     <string name="game_review_miss">Miss</string>
     <string name="game_review_blunder">Blunder</string>
+    <string name="chrome_back_home">Back to main menu</string>
+    <string name="chrome_back_puzzles">Back to puzzle chapters</string>
+    <string name="chrome_back_openings">Back to openings</string>
+    <string name="chrome_back_source">Back to the previous screen</string>
+    <string name="chrome_match_title">Play against AI</string>
+    <string name="chrome_automatic_short">AI</string>
 </resources>

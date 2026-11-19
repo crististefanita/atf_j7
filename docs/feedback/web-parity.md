@@ -44,6 +44,8 @@ Clasele JVM se compilează, iar adaptorul Android se compilează separat. Păstr
 
 ## WEB-02 · Adaptoare și afișaj comun
 
+**P1 · Antete și navigare APK–Web.** APK încă folosește întoarceri mari sub liste, meniul partidei în stânga și antete separate. Extrageți un adaptor nativ comun, cu Back lângă titlu, opțiuni la dreapta și navigare centrată. Cereți aceleași cazuri de componentă pentru adaptoare, păstrarea destinațiilor Back, a cursorilor și a comenzilor contextuale, apoi capturi native și MCP la font 1.3.
+
 **P2 · Folosirea mai bună a lățimii peisaj compacte.** La 740 × 420 dp și
 font 1.3, sursa și redarea matului măsoară ambele 285 pixeli nativi la
 320 dpi (142,5 dp). Navigarea încape fără derularea paginii, dar stiva

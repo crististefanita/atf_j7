@@ -891,23 +891,21 @@ public final class BoardSanity extends Instrumentation {
         var label = (TextView) last.findViewById(R.id.match_row_label);
         var summary = (TextView) last.findViewById(R.id.match_row_details);
         var title = (TextView) list.findViewById(R.id.match_list_title);
-        var back = (Button) list.findViewById(R.id.match_list_back);
+        var back = (android.widget.ImageButton) list.findViewById(R.id.match_list_back);
         runOnMainSync(() -> scroll.scrollTo(0, scroll.getChildAt(0).getHeight()));
         waitForIdleSync();
-        var rightHalfOfTitle = screenBounds(title);
-        rightHalfOfTitle.left = rightHalfOfTitle.centerX();
         var group = screenBounds(rows);
         int lowerEdge = group.bottom - 3;
         captureFrame(frame, "The last game shows its title, moves and local time with Back visible", image -> fullyVisible(last) && fullyVisible(back)
                 && fullyVisible(badge) && badge.getText().length() > 0
-                && screenBounds(last).bottom <= screenBounds(back).top
+                && screenBounds(back).bottom <= screenBounds(scroll).top
                 // The rounded corner must be painted at the bottom, even if the view tree has already scrolled.
                 && image.getPixel(group.left + 3, lowerEdge) == image.getPixel(group.left - 3, lowerEdge)
-                && hasColor(image, rightHalfOfTitle, title.getCurrentTextColor(), 32)
+                && hasColor(image, title, title.getCurrentTextColor(), 32)
                 && hasColor(image, label, label.getCurrentTextColor(), 32)
                 && hasColor(image, summary, summary.getCurrentTextColor(), 24)
                 && hasColor(image, badge, badge.getCurrentTextColor(), 24)
-                && hasColor(image, back, back.getCurrentTextColor(), 32));
+                && hasColor(image, back, back.getImageTintList().getDefaultColor(), 32));
     }
 
     private void checkManualAnalysis() throws Exception {

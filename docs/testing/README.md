@@ -823,3 +823,28 @@ Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scor
 `HintCandidateCoverageTest` verifică cele patru rădăcini siciliene, scorurile brute, siguranța damei, contraexemplele, fallback-ul și bugetele mici. `StockfishFenAuditTest` verifică originea FEN, contoarele și respingerea proiecțiilor împrumutate. [Procedură, inventar și limite](hard-puzzle-study.md)
 
 `NativeMateDefenseBenchmarkTest` recalculează offline toate problemele de mat contra tuturor apărărilor legale și reutilizează `NativeMateAudit` cu componentele țintite. [Comenzi și limite](hard-puzzle-study.md#calificare-și-pașii-următori)
+
+## Antet și navigare comune
+
+Politica Java `UiChrome` deține dimensiunile logice ale comenzilor, destinațiile contextuale Înapoi și zona centrată de navigare. `ChessHeader` și `CenteredControls` o aplică pe Android; `GenerateUiChrome` exportă constantele și destinațiile către adapterul Web. Titlurile încep lângă Înapoi, ocupă cel mult două rânduri și păstrează ținta Înapoi de 48 dp/pixeli CSS. Opțiunile stau în dreapta, iar meniul urmărește butonul în interiorul ferestrei. Un meniu scund are propria derulare.
+
+Bifa din joc afișează **AI** pe lățimi compacte și păstrează numele accesibil complet și starea selectată. Navigarea mutărilor este centrată și limitată la 384 de pixeli logici. Ecranele păstrează comenzile, varianta selectată, cursorul fiecărei linii și partida salvată. Mărirea textului nu micșorează ținta tactilă. Înapoi din reluare revine la sursă; din problemă revine la capitole; din lista capitolelor revine acasă.
+
+`ui-chrome-cases.json` este executat de `UiChromeParityTest` pe JVM și de `chrome-contract.test.mjs` pe Web. Acoperă ferestre înguste, compacte, cu densitate fracționară, peisaj, desktop și scunde, inclusiv text 1,3×. Deriva generării, destinațiile greșite și meniul în afara ferestrei resping componentele. Sanity nativ verifică antetul real, capturile și comenzile; MCP verifică adapterul Web randat. Separă aceste observații de geometria pură.
+
+`GenerateUiChrome` trebuie să reproducă exact modulul urmărit înainte de calificare. Eșecul compilării motorului nu poate fi ascuns de împachetarea UI: la reutilizare exclusiv UI, consemnează separat commitul și amprenta motorului calificat. [Matrice APK–Web](../../web/parity.md) · [Proces de release](../release/README.md)
+
+```mermaid
+flowchart LR
+    Policy["Politică Java pentru antet"] -->|limite native| Android["Vederi Android"]
+    Policy -->|constante generate| Web["DOM și CSS Web"]
+    Cases["Cazuri comune"] -->|verificări JVM| Android
+    Cases -->|verificări Node| Web
+```
+
+<details>
+<summary>Legendă — politică comună și dovezi din adaptere</summary>
+
+Politica furnizează dimensiuni și destinații. Cazurile comune verifică ambele proiecții; capturile native și MCP verifică randarea. Regulile jocului, bugetele AI și salvarea rămân la responsabilii existenți.
+
+</details>

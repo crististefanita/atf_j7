@@ -82,22 +82,9 @@ final class AnalysisReplayDialog {
         var screen = column(context);
         dialog = fullScreen(context, screen);
 
-        var header = new LinearLayout(context);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        var close = arrow(context, R.id.hint_preview_return, R.string.hint_preview_return, false);
-        close.setOnClickListener(ignored -> {
-            onReturn.run();
-            dialog.dismiss();
-        });
-        header.addView(close, touchTarget(context));
-        var title = label(View.NO_ID, 19, PRIMARY);
-        title.setText(mode.title);
-        title.setSingleLine();
-        title.setEllipsize(TextUtils.TruncateAt.END);
-        title.setTypeface(null, Typeface.BOLD);
-        if (Build.VERSION.SDK_INT >= 28) title.setAccessibilityHeading(true);
-        header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        if (action != null) header.addView(action, touchTarget(context));
+        var header = new ChessHeader(context, ro.atf.chess.UiChrome.Page.CALCULATED, R.id.hint_preview_return,
+                context.getString(mode.title), () -> { onReturn.run(); dialog.dismiss(); });
+        if (action != null) header.addAction(action);
         screen.addView(header, new LinearLayout.LayoutParams(-1, -2));
         dialog.setOnCancelListener(ignored -> onReturn.run());
 
@@ -123,7 +110,7 @@ final class AnalysisReplayDialog {
         navigation.addView(previous, touchTarget(context));
         navigation.addView(step, new LinearLayout.LayoutParams(0, -2, 1));
         navigation.addView(next, touchTarget(context));
-        controls.addView(navigation, new LinearLayout.LayoutParams(-1, -2));
+        controls.addView(new CenteredControls(context, navigation), new LinearLayout.LayoutParams(-1, -2));
 
         var details = column(context);
         details.setPadding(dp(context, 16), dp(context, 6), dp(context, 16), dp(context, 16));

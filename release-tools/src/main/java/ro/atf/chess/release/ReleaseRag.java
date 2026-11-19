@@ -36,6 +36,12 @@ public final class ReleaseRag {
     private static final Route RELEASE = new Route("release-tools/", "docs/release/README.md", "## Calificare și publicare",
             "DocumentationGovernanceTest, ReleaseGovernanceTest și ExtentGovernanceTest");
     private static final List<Route> ROUTES = List.of(
+            new Route("chess-core/src/main/java/ro/atf/chess/UiChrome.java", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
+            new Route("web/src/main/web/chess-controls.css", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
+            new Route("web/src/main/web/chrome-contract.mjs", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
+            new Route("web/src/main/web/screen-chrome.mjs", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
+            new Route("web/tools/GenerateUiChrome.java", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
+            new Route("atf-tests/src/test/resources/ui-chrome-cases.json", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
             uiMenus("web/src/main/web/index.html"),
             uiMenus("web/src/main/web/home-menu.mjs"),
             uiMenus("web/src/main/web/game-review.mjs"),

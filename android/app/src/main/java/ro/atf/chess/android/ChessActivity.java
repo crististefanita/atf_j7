@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -224,6 +225,8 @@ public final class ChessActivity extends BackNavigableActivity {
 
     private void showPuzzles() {
         var menu = openMenu(MenuPage.PUZZLES, R.layout.puzzle_menu);
+        var header = new ChessHeader(this, ro.atf.chess.UiChrome.Page.PUZZLES, R.id.puzzles_home, getString(R.string.menu_puzzles), this::showMenu);
+        ((ViewGroup) menu.findViewById(R.id.puzzles_header)).addView(header);
         for (int index = 0; index < chapters.size(); index++) {
             int destination = index;
             var chapter = chapters.get(index);
@@ -238,6 +241,8 @@ public final class ChessActivity extends BackNavigableActivity {
 
     private void showMatchSetup() {
         var menu = openMenu(MenuPage.MATCH_SETUP, R.layout.match_setup);
+        var header = new ChessHeader(this, ro.atf.chess.UiChrome.Page.SETUP, R.id.setup_home, getString(R.string.chrome_match_title), this::showMenu);
+        ((ViewGroup) menu.findViewById(R.id.setup_header)).addView(header);
         Spinner colors = menu.findViewById(R.id.match_color);
         Spinner levels = menu.findViewById(R.id.match_level);
         CheckBox analysis = menu.findViewById(R.id.match_analysis_option);
@@ -346,9 +351,14 @@ public final class ChessActivity extends BackNavigableActivity {
     private LinearLayout buildMatchBoardScreen() {
         boolean compact = compactMatchLayout();
         var screen = screen();
-        var toolbar = getLayoutInflater().inflate(R.layout.match_toolbar, screen, false);
+        var toolbar = new ChessHeader(this, ro.atf.chess.UiChrome.Page.MATCH, R.id.match_back_home,
+                getString(archivedMatch == null ? R.string.chrome_match_title : R.string.match_archive), this::leaveBoard);
+        toolbar.setId(R.id.match_toolbar);
+        toolbar.title().setId(R.id.match_header_title);
+        getLayoutInflater().inflate(R.layout.match_toolbar, toolbar);
         toolbar.findViewById(R.id.match_actions).setOnClickListener(this::showMatchActions);
         automaticAi = toolbar.findViewById(R.id.match_automatic_ai);
+        if (getResources().getConfiguration().screenWidthDp <= ro.atf.chess.UiChrome.COMPACT_WIDTH) automaticAi.setText(R.string.chrome_automatic_short);
         automaticAi.setOnClickListener(view -> setManualAi(!automaticAi.isChecked()));
         screen.addView(toolbar);
 
@@ -370,7 +380,7 @@ public final class ChessActivity extends BackNavigableActivity {
         screen.addView(status, new LinearLayout.LayoutParams(-1, -2));
         if (matchAnalysis != null) screen.addView(matchAnalysis);
         history = new MatchHistoryView(this, this::notation, this::reviewMatch, true, matchAnalysis == null ? null : matchAnalysis.bulb());
-        screen.addView(history, new LinearLayout.LayoutParams(-1, -2));
+        screen.addView(new CenteredControls(this, history), new LinearLayout.LayoutParams(-1, -2));
         return screen;
     }
 
@@ -380,7 +390,7 @@ public final class ChessActivity extends BackNavigableActivity {
         puzzleChrome = new PuzzleChrome(page, chapters.get(chapterIndex).label(), () -> {
             blackBelow = !blackBelow;
             render();
-        }, () -> leaveChapter(true));
+        }, () -> leaveChapter(true), this::leaveBoard);
         applyScreenInsets(puzzleChrome);
 
         topPlayer = playerLabel();

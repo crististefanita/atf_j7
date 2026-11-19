@@ -102,7 +102,7 @@ public final class OpeningActivity extends BackNavigableActivity {
         closePractice();
         lesson = null;
         var root = screen();
-        root.addView(header(getString(R.string.openings_title)));
+        root.addView(header(getString(R.string.openings_title), ro.atf.chess.UiChrome.Page.OPENINGS));
         var scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         var cards = column();
@@ -165,7 +165,7 @@ public final class OpeningActivity extends BackNavigableActivity {
         theoryHint = QuestHint.NONE;
         offLine = false;
         var root = screen();
-        root.addView(header(localized(next.practice().opening().title())));
+        root.addView(header(localized(next.practice().opening().title()), ro.atf.chess.UiChrome.Page.OPENING));
         root.addView(navigation());
 
         top = seat();
@@ -185,7 +185,7 @@ public final class OpeningActivity extends BackNavigableActivity {
         scheduleReply();
     }
 
-    private LinearLayout navigation() {
+    private View navigation() {
         var row = new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setBaselineAligned(false);
@@ -205,7 +205,7 @@ public final class OpeningActivity extends BackNavigableActivity {
         center.leftMargin = center.rightMargin = dp(CONTROL_GAP);
         row.addView(progress, center);
         row.addView(nextButton, new LinearLayout.LayoutParams(dp(TOUCH_SIZE), dp(TOUCH_SIZE)));
-        return row;
+        return new CenteredControls(this, row);
     }
 
     private Button arrow(int id, int description, String glyph, Runnable action) {
@@ -213,6 +213,10 @@ public final class OpeningActivity extends BackNavigableActivity {
         arrow.setId(id);
         arrow.setText(glyph);
         arrow.setTextSize(24);
+        arrow.setPadding(0, 0, 0, 0);
+        arrow.setMinimumWidth(0);
+        arrow.setMinWidth(0);
+        arrow.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x224f6a54), null, null));
         arrow.setContentDescription(getString(description));
         arrow.setOnClickListener(view -> action.run());
         return arrow;
@@ -458,24 +462,8 @@ public final class OpeningActivity extends BackNavigableActivity {
         label.setTextColor(toMove ? ACCENT : MUTED);
     }
 
-    private LinearLayout header(String title) {
-        var header = new LinearLayout(this);
-        header.setPadding(dp(10), 0, dp(10), 0);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        var back = button(R.string.opening_back);
-        back.setText("‹");
-        back.setTextSize(24);
-        back.setContentDescription(getString(R.string.opening_back));
-        back.setOnClickListener(view -> back());
-        var backLayout = new LinearLayout.LayoutParams(dp(TOUCH_SIZE), dp(TOUCH_SIZE));
-        backLayout.rightMargin = dp(CONTROL_GAP);
-        header.addView(back, backLayout);
-        var label = text(title, 21, PRIMARY);
-        label.setIncludeFontPadding(false);
-        label.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        if (Build.VERSION.SDK_INT >= 28) label.setAccessibilityHeading(true);
-        header.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
-        return header;
+    private ChessHeader header(String title, ro.atf.chess.UiChrome.Page page) {
+        return new ChessHeader(this, page, R.id.screen_back, title, this::back);
     }
 
     private TextView seat() {
