@@ -53,6 +53,7 @@ public final class OpeningActivity extends BackNavigableActivity {
     private BoardView board;
     private TextView top;
     private TextView bottom;
+    private ChessHeader chrome;
     private TextView progress;
     private TextView message;
     private Button previousButton;
@@ -367,6 +368,7 @@ public final class OpeningActivity extends BackNavigableActivity {
         var practice = practice();
         var phase = practice.phase();
         boolean reviewing = lesson.reviewing();
+        chrome.setReviewing(reviewing);
         int ply = lesson.shownPly();
         boolean playable = lesson.canPlay();
         progress.setText(getString(R.string.opening_progress_label, ply, practice.opening().steps().size(),
@@ -463,7 +465,8 @@ public final class OpeningActivity extends BackNavigableActivity {
     }
 
     private ChessHeader header(String title, ro.atf.chess.UiChrome.Page page) {
-        return new ChessHeader(this, page, R.id.screen_back, title, this::back);
+        chrome = new ChessHeader(this, page, R.id.screen_back, title, this::back);
+        return chrome;
     }
 
     private TextView seat() {

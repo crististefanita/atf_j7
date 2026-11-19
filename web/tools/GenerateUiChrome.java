@@ -10,11 +10,14 @@ public final class GenerateUiChrome {
         if (args.length != 1) throw new IllegalArgumentException("Supply the generated module path");
         String backs = Arrays.stream(UiChrome.Page.values())
                 .map(page -> "    " + page.name() + ": '" + page.back().name() + "'").collect(Collectors.joining(",\n"));
+        String reviewBacks = Arrays.stream(UiChrome.Page.values())
+                .map(page -> "    " + page.name() + ": '" + UiChrome.back(page, true).name() + "'").collect(Collectors.joining(",\n"));
         String module = "// Generated from ro.atf.chess.UiChrome by web/tools/GenerateUiChrome.java.\n"
                 + "export const chrome = Object.freeze({ target: " + UiChrome.TARGET + ", title: " + UiChrome.TITLE
                 + ", gap: " + UiChrome.GAP + ", inset: " + UiChrome.INSET + ", navigationMax: " + UiChrome.NAVIGATION_MAX
                 + ", compactWidth: " + UiChrome.COMPACT_WIDTH + " });\n"
-                + "export const backTargets = Object.freeze({\n" + backs + "\n});\n";
+                + "export const backTargets = Object.freeze({\n" + backs + "\n});\n"
+                + "export const reviewBackTargets = Object.freeze({\n" + reviewBacks + "\n});\n";
         Files.writeString(Path.of(args[0]), module);
     }
 }
