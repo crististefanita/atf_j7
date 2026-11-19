@@ -757,3 +757,10 @@ Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scor
 `HintCandidateCoverageTest` verifică cele patru rădăcini siciliene, scorurile brute, siguranța damei, contraexemplele, fallback-ul și bugetele mici. `StockfishFenAuditTest` verifică originea FEN, contoarele și respingerea proiecțiilor împrumutate. [Procedură, inventar și limite](hard-puzzle-study.md)
 
 `NativeMateDefenseBenchmarkTest` recalculează offline toate problemele de mat contra tuturor apărărilor legale și reutilizează `NativeMateAudit` cu componentele țintite. [Comenzi și limite](hard-puzzle-study.md#calificare-și-pașii-următori)
+
+Corecția ofertei acceptate din Spaniolă este protejată de `RuyReplyTest`, inclusiv
+contraexemplele scandinave de transfer și admiterea legală în oglindă.
+`ScotchWitnessTest` păstrează următorul martor independent de rădăcină și mat.
+`RuyComparisonBenchmarkTest` și `ScotchContinuationBenchmarkTest` păstrează explicit
+roșie calitatea continuărilor încă nerezolvate; nu sunt aserțiuni verzi de componentă
+sau parcursuri în emulator. [Metoda auditului](learning-archive.md)

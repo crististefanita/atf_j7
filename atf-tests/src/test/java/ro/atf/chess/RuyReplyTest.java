@@ -37,6 +37,13 @@ class RuyReplyTest {
         var data=fixture();var teacher=rows(data.path("cold"));
         for(var label:List.of("ruy-reply","ruy-mirror-reply")) {
             var q=teacher.get(label+"-free-H19").path("query");var board=position(q);
+            if(label.contains("mirror")) {
+                var parent=ChessPosition.fromFen(q.path("initialFen").asText());for(int i=0;i<q.path("history").size()-1;i++)parent=parent.play(m(q.path("history").get(i).asText()));
+                var legacy=JSON.treeToValue(data.path("legacyHint"),TacticalAnalysis.HintSearch.class).lines().getFirst();
+                var mirrored=legacy.line().stream().map(v->new Move(v.from()^56,v.to()^56,v.promotion())).toList();
+                check.same("The same accepted-offer admission works when Black owns the preview",true,
+                        CoachingProof.needed(parent,List.of(new TacticalAnalysis.Variation(mirrored,legacy.score(),legacy.materialChange(),legacy.ending()))));
+            }
             String castle=label.contains("mirror")?"e1g1":"e8g8",offer=label.contains("mirror")?"c1e3":"c8e6";
             var proof=CoachingProof.compare(board,List.of(m(offer),m(castle)),5,Set.of(),CoachingProof.CURRENT);
             check.same(label+" completes with all replies free",true,proof.work().complete());
