@@ -832,6 +832,12 @@ the next independent root/checkmate witness. `RuyComparisonBenchmarkTest` and
 `ScotchContinuationBenchmarkTest` keep unresolved continuation quality explicitly red;
 they are not ordinary green component assertions or emulator journeys. [Audit method](learning-archive.md)
 
+`ScotchPromotionEvidenceTest` covers whole-line promotion and source substitution
+offline, using all 28 raw H17/H19 phases of a rejected repair. It shares
+`CoachingLineEvidence` with study publication. `ScotchReviewClassificationBenchmarkTest`
+adds the actual one-turn review classification to the unresolved runtime goals.
+[Root and full-line admission](learning-archive.md#root-and-full-line-admission)
+
 ## Shared screen chrome
 
 One Java policy, `UiChrome`, owns the logical control sizes, contextual Back destinations and centered navigation rail. `ChessHeader` and `CenteredControls` apply it on Android; `GenerateUiChrome` exports its constants and destinations to the Web adapter. Titles start beside Back, wrap to two lines and retain a 48 dp/CSS px Back target. Options stay at the right end, and the popup follows its trigger within the viewport. A short popup uses its own scroll area.

@@ -565,3 +565,28 @@ At that same move the native review selects `…dxc3` and calls the actually pla
 `…Re8+` BLUNDER with 298 native points lost. Forced H17/H19 checks of Re8+ lose only
 7.5/8‰. Repairing shortlist coverage alone cannot close this: review already covers
 all legal roots but misranks them. Preserve the separate review-root benchmark.
+
+The next study reconfirmed Re8+ with cold H17/H19 searches, including the color
+mirror. No runtime correction qualified. A positional prototype selected Re8+ at
+H7, yet its free continuation `Re8+ Be3 dxc3 b3 Rxe3+ fxe3 Qxf6` failed:
+`…dxc3` lost 450.5/450‰, and `…Rxe3+` lost 536/668.5‰. White's `b3` was disputed
+(32.5/200.5‰), not an independently qualified defense. A correct first move did
+not establish understanding of the position. The prototype stays outside main.
+
+Use [ScotchPromotionEvidenceTest](../../atf-tests/src/test/java/ro/atf/chess/ScotchPromotionEvidenceTest.java)
+and its source-bound full-line witness to prevent a root-only closure. Negative
+controls reject edited scores with recomputed digests, substituted depths, missing
+or duplicated phases, a consistently relabeled run, shortened inventory and a
+freshly pinned incomplete native body. The separate
+[actual Game Review goal](../../atf-tests/src/test/java/ro/atf/chess/ScotchReviewClassificationBenchmarkTest.java)
+still fails on the BLUNDER classification. These audit components passing must
+never be reported as a repaired chess decision.
+
+Next isolate `…dxe3` versus `…dxc3` after **Re8+ Be3**, with White's **O-O** free.
+After the rejected **…dxc3 b3** branch, compare **…Qxf6** against **…Rxe3+** and
+include **Qf3**, the later legal castling and free checks. Preserve the sound bishop
+and queen sacrifices, French and Ruy controls. Do not give a king shelter from a
+castling move that has not actually been searched, or buy a correct root through
+an overvalued rook sacrifice. Even an isolated H9 comparison at 20M nodes stopped
+without a score; more work alone did not qualify this repair. The runtime keeps
+its existing budgets and evaluation. Evidence: `C:\work\sah\.studii\experiments\2026-11-19-scotch-re8`.
