@@ -267,7 +267,12 @@ public final class BoardSanity extends Instrumentation {
         int close = mate ? R.id.quest_payoff_close : R.id.hint_preview_return;
         var boardNode = reviewNode(board, 2500);
         var bounds = nodeBounds(boardNode);
-        var controls = List.of(nodeBounds(reviewNode(close, 2500)), nodeBounds(reviewNode(previous, 2500)), nodeBounds(reviewNode(next, 2500)));
+        var controls = new ArrayList<Rect>(List.of(nodeBounds(reviewNode(close, 2500)),
+                nodeBounds(reviewNode(previous, 2500)), nodeBounds(reviewNode(next, 2500))));
+        if (!mate) for (int id : List.of(R.id.hint_compare_best, R.id.hint_compare_other, R.id.hint_compare_third)) {
+            var choice = visibleReviewNode(id);
+            if (choice != null) controls.add(nodeBounds(choice));
+        }
         int target = Math.round(48 * activity.getResources().getDisplayMetrics().density);
         var window = activeWindowBounds();
         if (boardNode == null || boardNode.getChildCount() != 64 || bounds.isEmpty()
@@ -275,7 +280,13 @@ public final class BoardSanity extends Instrumentation {
                 || !window.contains(rect) || rect.width() < target || rect.height() < target || Rect.intersects(bounds, rect))) {
             throw new AssertionError("Replay or fixed controls leave the native window: " + bounds + ", " + controls + " in " + window);
         }
-        return List.of(bounds, controls.get(0), controls.get(1), controls.get(2));
+        for (int index = 0; index < controls.size(); index++) for (int other = index + 1; other < controls.size(); other++) {
+            if (Rect.intersects(controls.get(index), controls.get(other))) throw new AssertionError("Replay controls overlap: " + controls);
+        }
+        var geometry = new ArrayList<Rect>();
+        geometry.add(bounds);
+        geometry.addAll(controls);
+        return List.copyOf(geometry);
     }
 
     private boolean talkBackReview() { return phase != null && phase.startsWith("talkback-review-"); }
