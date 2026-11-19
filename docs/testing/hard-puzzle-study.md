@@ -138,3 +138,7 @@ Separă contorul inițial FEN pentru remiză de cel al unei sesiuni noi construi
 legat de sursă nu poate furniza singur un contor inițial omis. Conversia calificată după captură
 are contoare egale după resetare; originile compuse arbitrare cer în continuare adaptorul
 explicit al contorului, urmărit în feedback.
+
+Statusul reperului și promovarea candidatului sunt operații separate. Măsoară catalogul nativ obișnuit înainte să consulți cheile, separă dovada matului cu toate apărările de etapele materiale canonice și păstrează neterminatele ca intervale de rezultat în estimarea pereche a ratingului. [Instantaneul măsurat](hard-status.md) înregistrează sursa și protocolul reale; actualizarea statusului nu schimbă bugetele runtime, acceptanța catalogului sau ratingurile afișate.
+
+Indiciul indisponibil are eșec tipizat, fără linie sau scor final de coaching, și propriul verdict de completare. Nu trebuie să înlocuiască sau să anuleze profilul independent de joc. Păstrează prefixul durabil și fiecare tentativă inițială eșuată la recuperarea tehnică explicită; declară resetarea sesiunii profesorului. Integritatea rezultatului poate trece în timp ce completarea coachingului eșuează. O astfel de partidă nu este observație cu hint complet admisă în corpusul de învățare.

@@ -4,6 +4,7 @@
 
 Alegeți cel mai mic nivel de testare care poate observa schimbarea. Construiți dintr-o copie a sursei în TMP.
 
+- [Statusul măsurat al Hard nativ](hard-status.md) separă dovada matelor cu toate apărările, conversia materială și instantaneul Elo pe perechi.
 - [Suitele JVM](#suite-jvm) verifică regulile, adaptoarele și guvernanța fără emulator.
 - [Sanity Android](#sanity-android) și [paritatea Web](#paritatea-web-a-motorului) acoperă, când e nevoie, randarea, ciclul de viață și tehnologiile asistive reale.
 - [Dovezile Extent](#raportare-extent) leagă aserțiunile de rulare. [Calificarea](../release/README.md#calificare-și-publicare) guvernează promovarea.
