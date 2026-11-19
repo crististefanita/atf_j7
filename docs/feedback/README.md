@@ -13,14 +13,16 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Documentație · protejarea traducerilor | Poarta bilingvă verifică structura și linkurile, iar proza și exemplele cer în continuare revizuire semantică. | Detectează proza copiată și exemplele schimbate prin cazuri negative țintite, păstrând literalii tehnici și dovezile imuabile. |
-| P1 | Game Review · clasificarea mutărilor | Cinci etichete native de eroare însoțesc pierderi ale mutării jucate sub 50‰ la ambele adâncimi, pe corpusul nou admis. | Izolează efectele modelului de scor și ale orizontului fără a schimba istoricul, inventa Elo sau substitui dovezile analizei cu scorul indiciului. |
-| P1 | Game Review · liniile recomandate | Nouă dintre cele 76 de recomandări noi pierd cel puțin 150‰ la ambele H17/H19. | Repară comparațiile complete rădăcină/replică la același orizont și păstrează mutările efective bune, cache-ul analizei și familiile independente. [Cazuri măsurate](#calibrarea-analizei-complete-pe-corpusul-admis) |
+| P1 | Game Review · clasificarea mutărilor | Ultimul corpus cu 106 semimutări are 11 etichete native de eroare pe pierderi sub 50‰ la ambele adâncimi și o pierdere mare omisă. | Izolează modelul de scor și efectele orizontului fără istoric schimbat, Elo inventat sau scoruri ale indiciului puse în locul analizei. |
+| P1 | Game Review · liniile recomandate | Zece din 106 recomandări proaspete pierd cel puțin 150‰ la H17/H19; ambele ramuri ale analizei sunt auditate integral. | Repară comparațiile complete rădăcină/replică la același orizont și păstrează mutările efective bune și istoricul din cache. [Cazuri măsurate](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră) |
 | P2 | Game Review · NVDA | Vorbirea RO repeta poziția și scorul. | Confirmă un singur anunț în RO și EN și revenirea focusului. |
 | P1 | Italiană · schimbul neîncheiat nativ | Recaptura țintită repară perechea H6 izolată, dar decizia completă și martorii regresează. | Rezolvă decizia completă în 200k, păstrând 019/021/022 și transferul independent înainte de duel. |
-| P1 | Indiciu · lider, alternative și replici adverse | Rejucarea corectată păstrează pierderi mari în 8/60 prime indicii, 11/82 variante oferite și 9/82 prime replici adverse. | Repară sugestiile publice complete și replicile calculate la orizonturi comune, păstrând alegerile native corecte și familiile independente. |
-| P2 | Audit indicii · transfer mai larg | Captura pereche nativ/indiciu și rejucarea brută H17/H19 acoperă acum trei rejucări și două ramuri tematice noi. | Îngheață istorii independente noi și verifică transferul corecțiilor dincolo de traseele inspectate. |
+| P1 | Indiciu · lider, alternative și replici adverse | Ultimele partide legate de sursă păstrează pierderi mari în 6/106 prime indicii, 11/143 variante și 14/140 prime replici adverse. | Repară continuările evaluate complete la orizonturi comune; toate cele 759 de semimutări ipotetice și recapturile legale de piese importante rămân evaluate independent. |
+| P2 | Audit indicii · transfer mai larg | Încă două partide ajung la mat, cu 106 perechi native/indiciu pre-move, incluzând martorul sacrificiului corect. | Adaugă ascendențe de deschidere excluse și partide efective cu candidatul; rejucarea traseelor inspectate nu dovedește familii noi sau Elo. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
 | P2 | Android · gestul predictiv | Gestul predictiv mai cere un dispozitiv compatibil. | Verifică anularea și reluarea pe API 33+. |
+| P1 | Hard nativ · pierderi în jocuri încheiate | `g4` din Scandinavă este protejat de noua regresie `Ne4`; Engleza `…Qf6`, Franceza `Bb5+` și Gambitul Damei `…Qa5` rămân. | Compară replicile libere complete la un orizont comun; păstrează catalogul, sacrificiile corecte și Basic/Advanced înainte de promovare. [Pașii următori](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră) |
+| P2 | Frontieră tactică · șah la limită | O frontieră în șah poate încă să se oprească fără evadare legală; extensia generală pierde 13 contracte existente. | Rezolvă cauza precisă în aceeași alocație taxată; păstrează eșecurile benchmark explicite până trec calitatea și transferul. |
 | P1 | Calibrarea profilurilor AI | Intervalele Elo încă se suprapun. | Adaugă jocuri pereche pentru a restrânge incertitudinea. |
 | P1 | Forța Hard adaptiv | Căutarea pornește cu 100.000 de noduri și o rezervă până la 200.000. | Compară cele trei moduri pe partide excluse din ajustare și verifică replica adversă. |
 | P1 | Învățarea Hard din PGN-uri | Modelul de ordonare antrenat pe pierderi păstrează toate mutările finale în 36 de familii noi. | Adaugă mutări bune păstrate și sacrificii, apoi verifică ordonarea și deciziile complete. |
@@ -401,3 +403,33 @@ originale cu producătorul real; nu le modifica antetele pentru a fabrica parita
 · [Helperul recepției FEN](../../atf-tests/src/test/java/ro/atf/chess/StudyFen.java)
 
 </details>
+
+## Pierderi native din partide încheiate și martori de frontieră
+
+Lotul curent folosește producătorul `37c5f65`, nu consumatorul Native PVS ulterior.
+Engleza se încheie în 51 de semimutări, iar Scandinava în 52, ambele pierdute de Hard
+nativ contra Stockfish complet; martorul sacrificiului corect de damă se încheie în
+trei. Toate cele 106 semimutări efective păstrează ambele căutări pre-move și analiza
+nativă completă. Cele 4.104 cereri reci ale oracolului acoperă toate cele 759 de
+semimutări ipotetice publice, fiecare ramură a analizei și recapturile pieselor
+importante. Admiterea integrității nu șterge 77 de semimutări PV slabe, cinci capete
+de indiciu cu expunere incorectă și zece recomandări greșite ale analizei.
+
+Rejucarea Native PVS păstrează toate cele 2.303 rezultate canonice și cele 212 analize
+complete Basic/Advanced. Repară `g4` din Scandinavă în `Ne4`, cu pierdere independentă
+526,5/620 → 25,5/110,5‰. Cele 236 de cadre curente/anterioare comparate nu au o pierdere
+mare nouă confirmată; al doilea câștig este o alegere Native de control pe o poziție
+jucată efectiv de Stockfish. Nu este a doua partidă efectivă îmbunătățită. Două alegeri
+franceze anterioare au și diferențe mici de scor, inclusiv o degradare de 2,5/4,5‰.
+Lucrul mediu pe catalog crește cu aproximativ 8,1%; nu pretindem câștig de viteză,
+adâncime sau Elo. [Metodă și limite](../board/ai-quality.md#verificarea-mutărilor-secundare-native)
+
+**Următoarea prioritate chirurgicală:** rezolvă `Bb5+ …c6 Nc4 …Qd7 Nf5 …exf5` din
+Franceză ca o comparație evaluată complet și păstrează Engleza `…Qf6` față de `…Nc6`
+liber ca probă de transfer. Închiderea uniformă de o semimutare câștigă 24 de etape,
+dar pierde 40; repetarea ei sau simpla schimbare a răspunsului așteptat nu este o
+reparație acceptabilă. Păstrează apărările libere la orizont comun, `training-021/051/065`,
+toate capitolele de mat, recapturile restrânse de dame și sacrificiul corect de damă.
+Testele frontierei în șah rămân explicit marcate benchmark. [Contractul de admitere](../testing/learning-archive.md#studii-de-continuare-până-la-rezultat)
+explică identitățile originale și remizele automate față de cele revendicabile.
+Dovezile rămân în `C:\work\sah\.studii\experiments\2026-11-19-hard-continuation`.

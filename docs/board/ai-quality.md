@@ -1059,3 +1059,44 @@ acoperire adversă, strategie sau evaluare substituite.
 [Contractul repetabil al auditului](../testing/hard-puzzle-study.md#auditarea-certificatelor-planurilor-câștigătoare)
 
 Studiul istoric `2026-11-18-j7-hard-promotion-conversion` a fost retras din arhiva activă de învățare. Inventarul retragerii este `C:\work\sah\.studii\metadata\retired-studies.json`; istoricul sursă rămâne în referințele Git fixate. Folosește [contractul actual de admitere](../testing/learning-archive.md) și jurnalele noi în locul partidelor șterse. Scorurile istorice de mai sus nu reprezintă o estimare Elo nouă pe sursa actuală.
+
+## Verificarea mutărilor secundare native
+
+Hard nativ verifică mutările secundare cu o fereastră nulă în căutarea alpha-beta
+obișnuită. Un rezultat care îmbunătățește alpha în interiorul ferestrei părintelui este
+recăutat cu fereastra completă înainte de a furniza varianta principală. Un fail-high
+rămâne limită inferioară, iar un fail-low limită superioară. Cache-ul numai cu valori
+exacte și taxarea nodurilor își păstrează contractele. Modul este activ numai în
+căutarea Hard obișnuită din afara teoriei; indiciul, analiza finală, Basic, Advanced și
+căutarea specială de turnuri își păstrează politicile. [Referința primară a căutării](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp)
+
+[Componentele cu minimax independent](../../atf-tests/src/test/java/ro/atf/chess/HardPrincipalVariationTest.java)
+compară cinci poziții legale la H1/H2/H3, cu ambele moduri, cache rece/cald și revenire
+după fail-high/fail-low. Rejucarea diagnostică a întregului catalog păstrează rezultatul
+acceptat al tuturor celor 2.303 etape canonice: zero câștigate și zero pierdute. Schimbă
+o singură mutare selectată și 843 de analize complete. Lucrul suplimentar mediu crește
+de la 15.537,99 la 16.798,86 noduri; 19 orizonturi sunt mai scurte și cinci mai adânci.
+Aceasta nu este o creștere generală de viteză sau adâncime.
+
+Pe cele 106 poziții observate din Engleză, Scandinavă și martorul sacrificiului corect
+de damă, rejucarea schimbă o singură mutare selectată. La semimutarea 12 din Scandinavă,
+`g4` pierde 526,5/620‰ la Stockfish H17/H19, iar `Ne4` pierde 25,5/110,5‰. Orizontul
+obișnuit selectat este H4, nu vechiul H5, în aceeași alocație de 200k. Cele șase
+pierderi native mari stabile devin cinci, fără o pierdere mare nouă confirmată în acest
+lot. Basic și Advanced păstrează toate cele 212 analize complete comparate. Este un
+rezultat local de calitate, nu o creștere Elo măsurată sau dovadă pe familii nevăzute.
+
+[Martorii portabili noi](../../atf-tests/src/test/resources/hard-continuation-witnesses.yaml)
+păstrează istoriile integrale originale și recepțiile brute reci; alternativa nouă cu
+calul este o rejucare explicit separată, niciodată înlocuitorul mutării istorice de pion.
+[Componentele](../../atf-tests/src/test/java/ro/atf/chess/HardContinuationWitnessTest.java)
+protejează îmbunătățirea și resping adâncimea sau producătorul substituit. Engleza
+`…Qf6` față de `…Nc6`, Franceza `Bb5+ …c6` și Gambitul Damei `…Qa5` rămân deschise.
+
+Închiderea tactică uniformă de o semimutare a fost respinsă: 24 de etape canonice
+câștigate și 40 pierdute, deși repară alegerea franceză izolată. Continuarea fiecărei
+frontiere în șah rămâne experimentală: scopurile mici de legalitate se îmbunătățesc,
+dar 13 contracte componente existente eșuează. [Scopurile de calitate ale frontierei](../../atf-tests/src/test/java/ro/atf/chess/TacticalFrontierCheckTest.java)
+păstrează evadările obligatorii și comparațiile epuizate vizibile în suita benchmark;
+nu sunt numărate tacit ca PASS în componentele obișnuite. Păstrează sacrificiile
+corecte și toți martorii schimburilor de dame înainte de a lărgi această frontieră.

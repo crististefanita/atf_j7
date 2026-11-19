@@ -115,3 +115,27 @@ validă YAML 1.2. `HardLearningWitnessTest` îl validează offline și respinge
 substituirile; `HardLearningWitnessBenchmarkTest` recalculează alegerea nativă
 curentă și păstrează fiecare abatere roșie până la corectare. O alternativă nouă
 cere dovezi noi de oracol. Pozițiile sunt contraexemple, nu intrări în cartea de joc.
+
+## Studii de continuare până la rezultat
+
+Colectarea din 19 noiembrie înregistrează Engleza și Scandinava de la tabla inițială
+până la mat, plus martorul sacrificiului corect de damă. Toate cele 106 semimutări
+efective au propriul calcul Hard și indiciul public maxim înainte de joc, inclusiv
+mutările teoretice și Stockfish. Cele 759 de semimutări ipotetice publice au 2.692 de
+cereri reci distincte H17/H19. Analizele native complete folosesc un analizor identificat
+separat. Fiecare ramură de analiză și capăt cu piesă importantă expusă cere propria
+acoperire cu oracolul.
+
+Folosește repetiția automată de cinci ori și regula celor 75 de mutări când colectorul
+nu implementează revendicarea remizei de către jucător. O remiză doar revendicabilă
+prin trei repetiții/50 de mutări nu trebuie să taie un joc nativ în desfășurare. Un
+traseu plafonat folosește în continuare `analyzeLine` și nu are rating de joc încheiat.
+Instrumentele externe sunt înghețate cu studiul; schimbările sursei live cer o rejucare
+explicită și propria identitate de execuție, nu jurnale editate.
+
+Păstrează integritatea și calitatea absolută în rapoarte Extent separate. O regresie
+componentă trecută sau echivalența cu minimax nu șterg greșelile arhivate, nu califică
+o familie nouă de deschidere și nu stabilesc Elo. Salvează un martor mic al primei
+pierderi, cu context integral, în resursele testelor; păstrează PGN-ul, toate observațiile
+pre-move și analizele complete în corpusul extern. Nu transforma cheile în mutări
+forțate la execuție.
