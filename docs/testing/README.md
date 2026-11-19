@@ -831,6 +831,13 @@ contraexemplele scandinave de transfer și admiterea legală în oglindă.
 roșie calitatea continuărilor încă nerezolvate; nu sunt aserțiuni verzi de componentă
 sau parcursuri în emulator. [Metoda auditului](learning-archive.md)
 
+`ScotchPromotionEvidenceTest` acoperă offline promovarea liniei complete și
+substituirea sursei, cu toate cele 28 de faze brute H17/H19 ale unei reparații respinse.
+Reutilizează `CoachingLineEvidence` la publicarea studiului.
+`ScotchReviewClassificationBenchmarkTest` adaugă clasificarea efectivă pe o mutare
+la scopurile runtime nerezolvate.
+[Admiterea rădăcinii și a liniei complete](learning-archive.md#admiterea-rădăcinii-și-a-liniei-complete)
+
 ## Antet și navigare comune
 
 Politica Java `UiChrome` deține dimensiunile logice ale comenzilor, destinațiile contextuale Înapoi și zona centrată de navigare. `ChessHeader` și `CenteredControls` o aplică pe Android; `GenerateUiChrome` exportă constantele și destinațiile către adapterul Web. Titlurile încep lângă Înapoi, ocupă cel mult două rânduri și păstrează ținta Înapoi de 48 dp/pixeli CSS. Opțiunile stau în dreapta, iar meniul urmărește butonul în interiorul ferestrei. Un meniu scund are propria derulare.

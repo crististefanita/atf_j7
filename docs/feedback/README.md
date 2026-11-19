@@ -581,3 +581,28 @@ BLUNDER, cu 298 puncte native pierdute. Verificările forțate H17/H19 ale Re8+ 
 doar 7,5/8‰. Acoperirea listei scurte nu închide singură defectul: analiza acoperă
 și așa toate rădăcinile legale, dar le ordonează greșit. Păstrează benchmarkul separat
 al rădăcinii din analiză.
+
+Studiul următor a reconfirmat Re8+ prin căutări reci H17/H19, inclusiv cu culorile
+inversate. Nicio corecție runtime nu s-a calificat. Prototipul pozițional selecta
+Re8+ la H7, dar continuarea liberă `Re8+ Be3 dxc3 b3 Rxe3+ fxe3 Qxf6` a eșuat:
+`…dxc3` pierde 450,5/450‰, iar `…Rxe3+` pierde 536/668,5‰. `b3` al albului rămâne
+disputat (32,5/200,5‰), nu o apărare calificată independent. Prima mutare corectă
+nu dovedește înțelegerea poziției. Prototipul rămâne în afara main.
+
+Folosește [ScotchPromotionEvidenceTest](../../atf-tests/src/test/java/ro/atf/chess/ScotchPromotionEvidenceTest.java)
+și martorul complet legat de sursă pentru a preveni închiderea doar pe rădăcină.
+Negativele resping scoruri editate și reamprentate, adâncimi substituite, faze lipsă
+sau duplicate, o rulare reetichetată consecvent, inventarul scurtat și corpul nativ
+incomplet chiar când primește o amprentă nouă. Scopul separat pentru
+[Game Review efectiv](../../atf-tests/src/test/java/ro/atf/chess/ScotchReviewClassificationBenchmarkTest.java)
+rămâne FAIL pe clasificarea BLUNDER. Componentele verzi ale auditului nu trebuie
+raportate drept decizie șahistă reparată.
+
+Izolează în continuare `…dxe3` versus `…dxc3` după **Re8+ Be3**, cu **O-O** liber
+pentru alb. După ramura respinsă **…dxc3 b3**, compară **…Qxf6** cu **…Rxe3+** și
+include **Qf3**, rocada legală ulterioară și șahurile libere. Păstrează sacrificiile
+corecte de nebun și damă, Franceza și Spaniola. Nu acorda regelui adăpostul unei
+rocade încă necăutate și nu cumpăra rădăcina corectă printr-un sacrificiu de turn
+supraevaluat. Chiar comparația izolată H9 la 20M de noduri s-a oprit fără scor;
+lucrul suplimentar nu a calificat reparația. Runtime-ul păstrează bugetele și evaluarea
+existente. Dovezi: `C:\work\sah\.studii\experiments\2026-11-19-scotch-re8`.
