@@ -261,12 +261,18 @@ public final class BoardSanity extends Instrumentation {
         awaitSourceAnalysis(game);
         tap(game.findViewById(R.id.match_hint));
         var source = sourceBoardState(game);
-        String inline = ((TextView) game.findViewById(R.id.match_analysis)).getText().toString();
+        String inline = ((TextView) game.findViewById(R.id.match_analysis)).getText().toString().replace('\n', ' ');
         for (int rotation : new int[]{1, 0}) {
             game = rotateOpenReplay(game, rotation, 0);
             compare("Inline hint survives rotation " + rotation, List.of(inline, source, true),
-                    List.of(((TextView) game.findViewById(R.id.match_analysis)).getText().toString(), sourceBoardState(game),
+                    List.of(((TextView) game.findViewById(R.id.match_analysis)).getText().toString().replace('\n', ' '), sourceBoardState(game),
                             game.findViewById(R.id.match_hint).isSelected()));
+            if (rotation == 1) {
+                final Activity rotatedGame = game;
+                var bounds = screenBounds(findBoard(viewsOf(game)));
+                captureFrame("rotated-inline", "Inline hint fits in rotated landscape", image ->
+                        sourceRootFits(rotatedGame, findBoard(viewsOf(rotatedGame))) && hintBoardCornersAreRendered(image, bounds));
+            }
         }
         final Activity inlineGame = game;
         var inlineBounds = screenBounds(findBoard(viewsOf(game)));
@@ -310,6 +316,10 @@ public final class BoardSanity extends Instrumentation {
             sourceReplayGeometry(puzzle, true);
             compare("Mating replay keeps the rotated source side " + rotation,
                     screenBounds(findBoard(viewsOf(puzzle))).width(), nodeBounds(visibleReviewNode(R.id.quest_payoff_board)).width());
+            if (rotation == 1) {
+                var bounds = nodeBounds(visibleReviewNode(R.id.quest_payoff_board));
+                captureFrame("rotated-mating", "Mating replay fits in rotated landscape", image -> hintBoardCornersAreRendered(image, bounds));
+            }
         }
         var mateBounds = nodeBounds(visibleReviewNode(R.id.quest_payoff_board));
         captureFrame("rotation-mating", "Mating replay fits after both recreations", image -> hintBoardCornersAreRendered(image, mateBounds));
@@ -340,6 +350,10 @@ public final class BoardSanity extends Instrumentation {
             sourceReplayGeometry(activity, false);
             compare(owner + " replay keeps the rotated source side " + rotation,
                     screenBounds(findBoard(viewsOf(activity))).width(), nodeBounds(visibleReviewNode(R.id.hint_preview_board)).width());
+            if (rotation == 1) {
+                var bounds = nodeBounds(visibleReviewNode(R.id.hint_preview_board));
+                captureFrame("rotated-" + owner, owner + " replay fits in rotated landscape", image -> hintBoardCornersAreRendered(image, bounds));
+            }
         }
         var bounds = nodeBounds(visibleReviewNode(R.id.hint_preview_board));
         captureFrame("rotation-" + owner, owner + " replay fits after both recreations", image -> hintBoardCornersAreRendered(image, bounds));

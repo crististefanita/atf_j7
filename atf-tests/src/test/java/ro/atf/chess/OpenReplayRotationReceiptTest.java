@@ -15,7 +15,7 @@ class OpenReplayRotationReceiptTest {
     @TempDir Path folder;
 
     @Test void requiresEveryRecreationAndTheExactEnlargedProfile(Checks check) throws Exception {
-        check.same("The phase requires the complete 28 native observations", 28, AndroidSanityPublication.OPEN_REPLAY_ROTATION_CHECKS.size());
+        check.same("The phase requires the complete 32 native observations", 32, AndroidSanityPublication.OPEN_REPLAY_ROTATION_CHECKS.size());
         for (String locale : List.of("en", "ro")) {
             String valid = receipt(locale);
             check.same("Complete rotation evidence passes in " + locale, true, read(valid, locale));

@@ -174,13 +174,16 @@ class AndroidSanityPublication {
 
     private static List<String> openReplayRotationChecks() {
         var checks = new ArrayList<String>();
-        for (int rotation : List.of(1, 0)) checks.add("Inline hint survives rotation " + rotation);
+        checks.add("Inline hint survives rotation 1");
+        checks.add("Inline hint fits in rotated landscape");
+        checks.add("Inline hint survives rotation 0");
         checks.add("Inline hint fits after both recreations");
         for (String owner : List.of("calculated", "theory")) {
             for (int rotation : List.of(1, 0)) {
                 checks.add(owner + " selected branch and cursor survive rotation " + rotation);
                 checks.add(owner + " inactive branch cursor survives rotation " + rotation);
                 checks.add(owner + " replay keeps the rotated source side " + rotation);
+                if (rotation == 1) checks.add(owner + " replay fits in rotated landscape");
             }
             checks.add(owner + " replay fits after both recreations");
             checks.add(owner + " Back restores the recreated source window");
@@ -190,6 +193,7 @@ class AndroidSanityPublication {
         for (int rotation : List.of(1, 0)) {
             checks.add("Mating cursor survives rotation " + rotation);
             checks.add("Mating replay keeps the rotated source side " + rotation);
+            if (rotation == 1) checks.add("Mating replay fits in rotated landscape");
         }
         checks.add("Mating replay fits after both recreations");
         checks.add("Mating Back returns to its unchanged source");
@@ -225,7 +229,11 @@ class AndroidSanityPublication {
                             new Frame("rotation-inline.png", "Revealed AI hint after two recreations"),
                             new Frame("rotation-calculated.png", "Calculated variation and its own cursor"),
                             new Frame("rotation-theory.png", "Theory variation and its own cursor"),
-                            new Frame("rotation-mating.png", "Mating cursor after two recreations")));
+                            new Frame("rotation-mating.png", "Mating cursor after two recreations"),
+                            new Frame("rotated-inline.png", "Revealed AI hint in landscape"),
+                            new Frame("rotated-calculated.png", "Calculated variation in landscape"),
+                            new Frame("rotated-theory.png", "Theory variation in landscape"),
+                            new Frame("rotated-mating.png", "Mating cursor in landscape")));
             var evidence = signedSourceEvidence(readOpenReplayRotationPhase(receipt, locale), run.execution());
             var identity = new ArrayList<>(run.identity());
             identity.add(new ReportField("Native rotation", "360×640 dp ↔ 640×360 dp · font 1.3 · " + locale));

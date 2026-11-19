@@ -249,7 +249,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
                 ForEach-Object { "puzzle-ux-$_" }
         }
         { $_ -in 'source-sized-replay','source-sized-replay-enlarged' } { $frames = @('source-ai', 'source-calculated', 'source-theory', 'source-mating') }
-        'open-replay-rotation' { $frames = @('rotation-inline', 'rotation-calculated', 'rotation-theory', 'rotation-mating') }
+        'open-replay-rotation' { $frames = @('rotation-inline', 'rotation-calculated', 'rotation-theory', 'rotation-mating', 'rotated-inline', 'rotated-calculated', 'rotated-theory', 'rotated-mating') }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
@@ -419,7 +419,7 @@ try {
                 $clear = Invoke-Device @('shell','pm','clear',$app)
                 if ($clear -cnotcontains 'Success') { throw 'Could not reset the rotation fixture.' }
                 $instrument = @('shell','am','instrument','-w','-r','-e','puzzleLanguage',$locale,'-e','replayRotation','0','-e','externalFrames','true')
-                Invoke-FocusedSanity $directory 'open-replay-rotation' 28 $runId
+                Invoke-FocusedSanity $directory 'open-replay-rotation' 32 $runId
             }
         } finally {
             Set-DisplayProfile $original
