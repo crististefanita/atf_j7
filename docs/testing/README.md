@@ -184,6 +184,41 @@ may scroll; the board and controls remain fixed. Native compilation and pure
 layout components prepare APK parity but do not qualify Android rendering.
 [Shared replay contract](../board/README.md#source-sized-replay)
 
+### Native source-sized replay sanity
+
+Use `run-android-sanity.ps1 -ReplayViewportOnly` from an external build copy,
+with the shared emulator lease and explicit ADB server/serial. Build both
+`:app:assembleSanity` and `:app:assembleSanityAndroidTest`; compiling only the
+application does not verify the instrumentation's dialog entry points.
+
+The focused phase runs Calculated line, Analysis hints and Mating line in
+EN/RO at 360 × 640, 740 × 420 and 1280 × 900 native display pixels, 160 dpi,
+font scale 1.0. Android system bars reduce the usable content window; these
+display dimensions are not a claim of identical Web CSS viewports.
+The runner restores the previous size, density and font in `finally` and
+releases its own lease. The isolated package leaves the normal app untouched.
+
+Each run requires twenty ordered checks: source side, all ranks, fixed
+48 dp controls, Next/Previous, a real calculated/theory branch and return.
+`ReplayViewportFixture` is shared with the JVM component that verifies two
+legal calculated alternatives. Readiness follows the enabled hint and its
+completed score, independently of whether history shows one move or a list.
+Never inject an extra candidate into the UI to make a navigation probe pass.
+
+Publish from the external full checkout, with `<run>` set to the runner's
+printed directory:
+
+```powershell
+mvn -B -ntp test '-Dtest=AndroidSanityPublication#publishSourceReplaySanity' `
+    '-Dchess.android.receipt=<run>'
+```
+
+`android-source-sized-replay.html` embeds the native checks and four captures
+per profile/language. It verifies the run, process, APK, receipt/capture hashes
+and exact display marker. Missing, substituted or duplicate assertions and a
+wrong profile fail closed in `AndroidSourceReplayReceiptTest`.
+This development sanity does not qualify a signed release APK.
+
 <details>
 <summary>Shared cases, screens, and receipts</summary>
 

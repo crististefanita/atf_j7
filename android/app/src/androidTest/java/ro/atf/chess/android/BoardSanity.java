@@ -115,7 +115,8 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         if (!runId.isEmpty()) receipt.putString("runId", runId);
         try {
-            if ("openings".equals(phase)) checkOpenings();
+            if ("source-sized-replay".equals(phase)) checkSourceSizedReplay();
+            else if ("openings".equals(phase)) checkOpenings();
             else if ("game-review".equals(phase)) checkGameReview();
             else if ("game-review-why".equals(phase)) checkReviewExplanation();
             else if ("game-review-why-restore".equals(phase)) checkReviewExplanationRestore();
@@ -151,6 +152,130 @@ public final class BoardSanity extends Instrumentation {
             }
             finish(Activity.RESULT_CANCELED, receipt);
         }
+    }
+
+    private void checkSourceSizedReplay() throws Exception {
+        enableReviewNodeIds();
+        replayCapture = displayCaptureGeometry();
+        var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
+        var locale = AppLanguage.fromTag(puzzleLanguage).orElseThrow();
+        if (!new AppLanguagePreference(new AndroidGamePreferences(settings)).save(locale)) throw new AssertionError("Could not select language");
+        var store = new ChessProgressStore(getTargetContext());
+        var saved = ChessMatch.restore(ro.atf.chess.capture.ReplayViewportFixture.CALCULATED);
+        if (!store.matches().saveMatch(saved, false)) throw new AssertionError("Could not seed analysis");
+        var game = launch();
+        var config = game.getResources().getConfiguration();
+        receipt.putString("replayProfile", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
+                + "@" + config.densityDpi + ", font=" + config.fontScale + ", language=" + config.getLocales().get(0).getLanguage());
+        var board = findBoard(viewsOf(game));
+        awaitSourceAnalysis(game);
+        var source = screenBounds(board);
+        tap(game.findViewById(R.id.match_hint));
+        compare("AI hint reveal preserves the source board rectangle", source, screenBounds(board));
+        captureFrame("source-ai", "The AI board and fixed controls fit without page scrolling", image ->
+                sourceRootFits(game, board) && hintBoardCornersAreRendered(image, source));
+        verifySourceReplay(game, source, "calculated");
+        closeActivity(game);
+
+        var study = startActivitySync(new Intent(getTargetContext(), AnalysisActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        waitForIdleSync();
+        var studyBoard = findBoard(viewsOf(study));
+        awaitSourceAnalysis(study);
+        var studySource = screenBounds(studyBoard);
+        tap(study.findViewById(R.id.match_hint));
+        compare("Study hint reveal preserves the source board rectangle", studySource, screenBounds(studyBoard));
+        verifySourceReplay(study, studySource, "theory");
+        closeActivity(study);
+
+        if (!store.matches().leaveMatch()) throw new AssertionError("Could not leave isolated match");
+        var quest = QuestCatalog.loadMateInTwo().get(0);
+        var order = List.of(quest.id());
+        if (!store.quests().save(store.quests().read(order).select(quest.id()), store.quests().readRewards(), 2)) {
+            throw new AssertionError("Could not seed mating stage");
+        }
+        var puzzle = launch();
+        var puzzleBoard = findBoard(viewsOf(puzzle));
+        var mateSource = screenBounds(puzzleBoard);
+        tap(puzzle.findViewById(R.id.quest_guidance_label));
+        tap(guidance(puzzle, R.string.show_solution));
+        tap(guidance(puzzle, R.string.why_mate));
+        var geometry = sourceReplayGeometry(puzzle, true);
+        compare("Mating replay keeps the measured source side", mateSource.width(), geometry.get(0).width());
+        captureFrame("source-mating", "Mating replay renders all ranks with accessible fixed controls", image ->
+                hintBoardCornersAreRendered(image, geometry.get(0)));
+        clickReviewIcon(R.id.quest_payoff_next);
+        compare("Mating Next keeps the board and control rectangles", geometry, sourceReplayGeometry(puzzle, true));
+        clickReviewIcon(R.id.quest_payoff_previous);
+        compare("Mating Previous keeps the board and control rectangles", geometry, sourceReplayGeometry(puzzle, true));
+        clickReviewIcon(R.id.quest_payoff_close);
+        compare("Mating return restores the source rectangle", mateSource, screenBounds(puzzleBoard));
+        closeActivity(puzzle);
+    }
+
+    private void awaitSourceAnalysis(Activity activity) {
+        long deadline = SystemClock.uptimeMillis() + 12000;
+        boolean[] ready = {false};
+        do {
+            runOnMainSync(() -> {
+                View bulb = activity.findViewById(R.id.match_hint);
+                TextView panel = activity.findViewById(R.id.match_analysis);
+                ready[0] = bulb != null && bulb.isEnabled() && !bulb.isSelected() && panel != null && panel.getContentDescription() != null;
+            });
+            if (ready[0]) return;
+            SystemClock.sleep(40);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("Source analysis did not become ready");
+    }
+
+    private boolean sourceRootFits(Activity activity, BoardView board) {
+        var content = screenBounds(activity.findViewById(android.R.id.content));
+        int target = Math.round(48 * activity.getResources().getDisplayMetrics().density);
+        return fullyVisible(board) && board.getChildCount() == 64 && board.getWidth() == board.getHeight()
+                && List.of(R.id.match_hint, R.id.match_history_previous, R.id.match_history_next).stream().allMatch(id -> {
+                    var bounds = screenBounds(activity.findViewById(id));
+                    return content.contains(bounds) && bounds.width() >= target && bounds.height() >= target;
+                }) && viewsOf(activity).stream().filter(ScrollView.class::isInstance).noneMatch(view -> {
+                    var scroll = (ScrollView) view;
+                    return scroll.indexOfChild(board) >= 0 || screenBounds(scroll).contains(screenBounds(board));
+                });
+    }
+
+    private void verifySourceReplay(Activity activity, Rect source, String owner) throws Exception {
+        tap(activity.findViewById(R.id.match_analysis));
+        var geometry = sourceReplayGeometry(activity, false);
+        receipt.putString(owner + "SourceBounds", source.flattenToString());
+        receipt.putString(owner + "ReplayBounds", geometry.get(0).flattenToString());
+        compare(owner + " replay keeps the measured source side", source.width(), geometry.get(0).width());
+        captureFrame("source-" + owner, owner + " replay renders all ranks with accessible fixed controls", image ->
+                hintBoardCornersAreRendered(image, geometry.get(0)));
+        clickReviewIcon(R.id.hint_preview_next);
+        compare(owner + " Next keeps the board and control rectangles", geometry, sourceReplayGeometry(activity, false));
+        clickReviewIcon(R.id.hint_preview_previous);
+        compare(owner + " Previous keeps the board and control rectangles", geometry, sourceReplayGeometry(activity, false));
+        var alternate = visibleReviewNode(R.id.hint_compare_other);
+        if (alternate == null || !alternate.isEnabled()) throw new AssertionError("Fixture must expose an alternative branch");
+        clickReviewIcon(R.id.hint_compare_other);
+        compare(owner + " branch keeps the board and control rectangles", geometry, sourceReplayGeometry(activity, false));
+        clickReviewIcon(R.id.hint_preview_return);
+        compare(owner + " return restores the source rectangle", source, screenBounds(findBoard(viewsOf(activity))));
+    }
+
+    private List<Rect> sourceReplayGeometry(Activity activity, boolean mate) throws Exception {
+        int board = mate ? R.id.quest_payoff_board : R.id.hint_preview_board;
+        int previous = mate ? R.id.quest_payoff_previous : R.id.hint_preview_previous;
+        int next = mate ? R.id.quest_payoff_next : R.id.hint_preview_next;
+        int close = mate ? R.id.quest_payoff_close : R.id.hint_preview_return;
+        var boardNode = reviewNode(board, 2500);
+        var bounds = nodeBounds(boardNode);
+        var controls = List.of(nodeBounds(reviewNode(close, 2500)), nodeBounds(reviewNode(previous, 2500)), nodeBounds(reviewNode(next, 2500)));
+        int target = Math.round(48 * activity.getResources().getDisplayMetrics().density);
+        var window = activeWindowBounds();
+        if (boardNode == null || boardNode.getChildCount() != 64 || bounds.isEmpty()
+                || bounds.width() != bounds.height() || !window.contains(bounds) || controls.stream().anyMatch(rect -> rect.isEmpty()
+                || !window.contains(rect) || rect.width() < target || rect.height() < target || Rect.intersects(bounds, rect))) {
+            throw new AssertionError("Replay or fixed controls leave the native window: " + bounds + ", " + controls + " in " + window);
+        }
+        return List.of(bounds, controls.get(0), controls.get(1), controls.get(2));
     }
 
     private boolean talkBackReview() { return phase != null && phase.startsWith("talkback-review-"); }
@@ -2203,7 +2328,7 @@ public final class BoardSanity extends Instrumentation {
 
         var capture = QuestCatalog.loadTactics().stream().filter(row -> row.id().equals("tactic-002")).findFirst().orElseThrow();
         var payoff = QuestPayoff.forQuest(capture);
-        runOnMainSync(() -> QuestPayoffDialog.open(activity, payoff, true));
+        runOnMainSync(() -> QuestPayoffDialog.open(activity, payoff, true, findBoard(viewsOf(activity)).getWidth()));
         clickReviewIcon(R.id.quest_payoff_danger);
         String captureReason = activity.getString(R.string.quest_danger_capture, "h1", "+5");
         captureFrame("puzzle-danger-capture", "The retained capture marks h1 with five pawn units after any reply", image ->
@@ -2237,7 +2362,7 @@ public final class BoardSanity extends Instrumentation {
     private void checkDefenseStudy(Activity activity) throws Exception {
         var quest = QuestCatalog.loadTraining().stream().filter(row -> row.id().equals("training-001")).findFirst().orElseThrow();
         var study = QuestPayoff.forExplanation(quest);
-        runOnMainSync(() -> QuestPayoffDialog.open(activity, study, false));
+        runOnMainSync(() -> QuestPayoffDialog.open(activity, study, false, findBoard(viewsOf(activity)).getWidth()));
         var key = reviewNode(R.id.quest_payoff_move, 2500);
         var playable = QuestPayoff.forQuest(quest);
         compare("The defense study starts just after the key and leaves the playable result separate", true,
