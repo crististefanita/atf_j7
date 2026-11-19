@@ -234,6 +234,13 @@ rectangle. Pixel checks use that verified rectangle and preserve the original
 PNG. A crop, missing/foreign viewport or unsupported rotation fails closed;
 the older `ScreenCaptureGeometry` aspect-ratio checks remain unchanged.
 
+API 28 reports `deviceSize` and `physicalFrame` in the post-orientation
+coordinate space. Do not rotate them a second time. After launching the target,
+wait for the current resumed activity, its display rotation and InputReader's
+viewport to agree before calibrating touch or screenshots. A portrait launcher
+can recreate the target; a stale activity must not supply views or labels.
+[Android display projection](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-9.0.0_r61/services/core/java/com/android/server/display/DisplayDevice.java#L147-L208).
+
 For enlarged text and physical rotation, build the signed app **and** its
 instrumentation with `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`.
 On a clean emulator use `-Distribution -ReplayEnlargedOnly -SourceCommit <sha>`.
@@ -241,6 +248,8 @@ This retains the three logical profiles and both locales at font 1.3. The
 portrait case is rotation 0; the two landscape cases require observed rotation
 90, with the unrotated display dimensions reversed before freezing rotation.
 Requested settings alone cannot qualify a physical turn.
+Each case starts and stabilizes at its declared orientation. This matrix does
+not rotate an already open replay dialog or certify its state restoration.
 
 The enlarged phase retains the twenty geometry/cursor checks and adds Back
 return checks for calculated, theory and mating dialogs. Back must restore the

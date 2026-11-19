@@ -170,7 +170,7 @@ public final class BoardSanity extends Instrumentation {
         var store = new ChessProgressStore(getTargetContext());
         var saved = ChessMatch.restore(ro.atf.chess.capture.ReplayViewportFixture.CALCULATED);
         if (!store.matches().saveMatch(saved, false)) throw new AssertionError("Could not seed analysis");
-        var game = launchSourceReplay();
+        var game = launchSourceReplay(true);
         var config = game.getResources().getConfiguration();
         receipt.putString("replayProfile", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
                 + "@" + config.densityDpi + ", font=" + config.fontScale + ", language=" + config.getLocales().get(0).getLanguage());
@@ -208,7 +208,7 @@ public final class BoardSanity extends Instrumentation {
         if (!store.quests().save(store.quests().read(order).select(quest.id()), store.quests().readRewards(), 2)) {
             throw new AssertionError("Could not seed mating stage");
         }
-        var puzzle = launchSourceReplay();
+        var puzzle = launchSourceReplay(false);
         var puzzleBoard = findBoard(viewsOf(puzzle));
         var mateSource = screenBounds(puzzleBoard);
         tap(puzzle.findViewById(R.id.quest_guidance_label));
@@ -243,18 +243,28 @@ public final class BoardSanity extends Instrumentation {
         if (sourceReplayPhase() && activity instanceof ChessActivity) sourceReplayActivity = activity;
     }
 
-    private Activity launchSourceReplay() throws Exception {
+    private Activity launchSourceReplay(boolean analysisRequired) throws Exception {
         sourceReplayActivity = null;
         Activity launched = launch();
         if (!enlargedReplayPhase()) return launched;
         if (!getUiAutomation().setRotation(replayRotation)) throw new AssertionError("Could not freeze the target replay rotation");
-        long deadline = SystemClock.uptimeMillis() + 5000;
+        long deadline = SystemClock.uptimeMillis() + 12000;
         do {
             waitForIdleSync();
             Activity current = sourceReplayActivity;
             boolean[] ready = {false};
-            if (current != null) runOnMainSync(() -> ready[0] = !current.isDestroyed() && !current.isFinishing()
-                    && current.hasWindowFocus() && sourceDisplay().getRotation() == replayRotation);
+            if (current != null) runOnMainSync(() -> {
+                var config = current.getResources().getConfiguration();
+                View content = current.findViewById(android.R.id.content);
+                boolean landscape = replayRotation == 1;
+                ready[0] = !current.isDestroyed() && !current.isFinishing() && !current.isChangingConfigurations()
+                        && current.hasWindowFocus() && sourceDisplay().getRotation() == replayRotation
+                        && config.orientation == (landscape ? android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                                : android.content.res.Configuration.ORIENTATION_PORTRAIT)
+                        && content != null && content.isLaidOut() && !content.isLayoutRequested()
+                        && (content.getWidth() > content.getHeight()) == landscape
+                        && (!analysisRequired || sourceAnalysisReady(current));
+            });
             if (ready[0]) {
                 try {
                     calibrateSourceReplayDisplay();
@@ -297,15 +307,17 @@ public final class BoardSanity extends Instrumentation {
         long deadline = SystemClock.uptimeMillis() + 12000;
         boolean[] ready = {false};
         do {
-            runOnMainSync(() -> {
-                View bulb = activity.findViewById(R.id.match_hint);
-                TextView panel = activity.findViewById(R.id.match_analysis);
-                ready[0] = bulb != null && bulb.isEnabled() && !bulb.isSelected() && panel != null && panel.getContentDescription() != null;
-            });
+            runOnMainSync(() -> ready[0] = sourceAnalysisReady(activity));
             if (ready[0]) return;
             SystemClock.sleep(40);
         } while (SystemClock.uptimeMillis() < deadline);
         throw new AssertionError("Source analysis did not become ready");
+    }
+
+    private boolean sourceAnalysisReady(Activity activity) {
+        View bulb = activity.findViewById(R.id.match_hint);
+        TextView panel = activity.findViewById(R.id.match_analysis);
+        return bulb != null && bulb.isEnabled() && !bulb.isSelected() && panel != null && panel.getContentDescription() != null;
     }
 
     private boolean sourceRootFits(Activity activity, BoardView board) {
