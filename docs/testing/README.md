@@ -229,6 +229,11 @@ Acest sanity de dezvoltare nu califică APK-ul semnat al unei ediții.
 Folosiți `-Dchess.extent=<raport>` pentru un fișier nou ales explicit. Duratele
 raportului descriu validarea/publicarea recepțiilor; latența acțiunilor native nu este măsurată.
 
+Rulați publicarea Android explicită într-o comandă JUnit separată, cu o cale
+nouă de raport. Nu o combinați cu testele de componentă sub același
+`chess.extent`: fiecare deține propria sesiune, iar admiterea fișierului existent
+trebuie să refuze suprascrierea unui raport cu celălalt.
+
 În API 28, framebufferul complet poate include benzi în jurul unui ecran
 logic cu alt raport de aspect. `FramebufferProjection` acceptă maparea doar
 când viewportul primar Android corespunde ecranului curent și întregului
@@ -236,6 +241,39 @@ dreptunghi de conținut centrat. Verificările pixelilor folosesc dreptunghiul
 validat și păstrează PNG-ul original. Decuparea, viewportul lipsă/străin sau
 rotația nesuportată produc FAIL; verificările de aspect existente din
 `ScreenCaptureGeometry` rămân neschimbate.
+
+API 28 raportează `deviceSize` și `physicalFrame` în coordonatele de după
+orientare. Nu le rotiți încă o dată. După lansarea aplicației, așteptați
+concordanța activității reluate curente, rotației displayului și viewportului
+InputReader înainte de calibrarea atingerii sau capturilor. Launcherul portret
+poate recrea aplicația; o activitate veche nu poate furniza vederile sau etichetele.
+[Proiecția displayului Android](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-9.0.0_r61/services/core/java/com/android/server/display/DisplayDevice.java#L147-L208).
+
+Pentru text mărit și rotație fizică, construiți APK-ul semnat **și** instrumentarea
+cu `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`.
+Pe un emulator curat folosiți `-Distribution -ReplayEnlargedOnly -SourceCommit <sha>`.
+Proba păstrează cele trei profiluri logice și ambele limbi la font 1.3. Cazul
+portret cere rotație 0; cele două cazuri peisaj cer rotație observată 90,
+cu dimensiunile displayului nerotit inversate înainte de blocarea rotației.
+Setarea cerută singură nu califică rotirea fizică.
+Fiecare caz pornește și se stabilizează în orientarea declarată. Matricea nu
+rotește un dialog de redare deja deschis și nu califică restaurarea stării sale.
+
+Faza mărită păstrează cele douăzeci de verificări ale geometriei și cursorului
+și adaugă revenirea cu Back din dialogurile calculat, teoretic și de mat.
+Back trebuie să restaureze dreptunghiul sursei și focusul de intrare în
+fereastra sursă; aceasta nu califică focusul de accesibilitate TalkBack.
+Textul suplimentar rămâne în viewportul explicației; tabla și comenzile
+tactile rămân în afara derulării paginii. Runnerul restaurează dimensiunea,
+densitatea, fontul și setările rotației utilizatorului în `finally`.
+
+Publicați cu `AndroidSanityPublication#publishSignedSourceReplaySanity` și
+același director al recepțiilor. Sunt obligatorii varianta release, certificatul
+comun aplicație/test și octeții APK-ului instalat, markerii exacți de font,
+rotație și profil, douăzeci și trei de aserțiuni ordonate și patru capturi
+legate de fiecare limbă/profil. Intrarea separată
+`publishEnlargedSourceReplaySanity` este numai pentru dezvoltare și nu
+califică un APK semnat. [Identitatea de semnare](../release/README.md#calificare-și-publicare).
 
 <details>
 <summary>Cazuri comune, ecrane și recepții</summary>

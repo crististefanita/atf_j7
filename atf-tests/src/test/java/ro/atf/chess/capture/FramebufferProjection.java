@@ -3,7 +3,7 @@ package ro.atf.chess.capture;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 
-/** Calibrates an unrotated API 28 framebuffer only from the primary Android input viewport. */
+/** Calibrates API 28 pixels from the primary viewport, including an explicitly observed quarter turn. */
 public record FramebufferProjection(int logicalWidth, int logicalHeight, int physicalWidth, int physicalHeight,
                                     int left, int top, int right, int bottom) {
     private static final Pattern VIEWPORT = Pattern.compile("Viewport: displayId=0, orientation=(\\d), (?:uniqueId='[^']*', )?"
@@ -24,14 +24,21 @@ public record FramebufferProjection(int logicalWidth, int logicalHeight, int phy
     }
 
     public static FramebufferProjection fromInputDump(String dump, int width, int height, int physicalWidth, int physicalHeight) {
+        return fromInputDump(dump, width, height, physicalWidth, physicalHeight, 0);
+    }
+
+    public static FramebufferProjection fromInputDump(String dump, int width, int height, int physicalWidth, int physicalHeight,
+                                                     int rotation) {
+        if (rotation != 0 && rotation != 1) throw new IllegalArgumentException("Only observed rotations 0 and 90 are supported");
         var found = new HashSet<FramebufferProjection>();
         var matches = VIEWPORT.matcher(dump);
         while (matches.find()) {
             int[] value = new int[12];
             for (int group = 1; group <= 11; group++) value[group] = Integer.parseInt(matches.group(group));
-            if (value[1] != 0 || value[2] != 0 || value[3] != 0 || value[4] != width || value[5] != height
+            // DisplayDevice.populateViewportLocked reports dimensions and physicalFrame post-orientation.
+            if (value[1] != rotation || value[2] != 0 || value[3] != 0 || value[4] != width || value[5] != height
                     || value[10] != physicalWidth || value[11] != physicalHeight) {
-                throw new IllegalArgumentException("Input viewport does not match the current unrotated display");
+                throw new IllegalArgumentException("Input viewport does not match the observed display and rotation");
             }
             found.add(new FramebufferProjection(width, height, physicalWidth, physicalHeight, value[6], value[7], value[8], value[9]));
         }

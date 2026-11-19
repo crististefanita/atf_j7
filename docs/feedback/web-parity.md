@@ -44,14 +44,23 @@ Clasele JVM se compilează, iar adaptorul Android se compilează separat. Păstr
 
 ## WEB-02 · Adaptoare și afișaj comun
 
-**P2 · Redare semnată la text mărit și rotație fizică.** Repetați faza nativă
-la dimensiunea sursei pe APK-ul semnat, adăugați text 1.3× și o rotație reală
-de 90°, apoi verificați atingerea, Back și revenirea focusului. Matricea de
-dezvoltare acoperă trei ferestre logice în EN/RO la font 1.0; calibrarea
-compozitorului API 28 cere deocamdată un viewport primar nerotit. Păstrați
-laturile exacte sursă/redare, cursorul care avansează, variantele fixe și
-capturile legate de execuție; matricea nu dovedește randarea semnată sau rotită.
+**P2 · Rotație cu redarea deja deschisă.** Matricea semnată API 28 acoperă acum
+trei profiluri în EN/RO la font 1.3, inclusiv rotație peisaj observată de 90°,
+navigare și Back în fereastra sursă. Fiecare caz pornește în orientarea sa.
+Adăugați separat proba recreării cu dialogul deja deschis: păstrați varianta,
+semimutarea și cursorul sursei prin ambele rotiri, apoi verificați Back și
+dreptunghiul sursei. Focusul ferestrei de intrare nu dovedește focusul sau
+vorbirea TalkBack.
 [Protocolul nativ](../testing/README.md#sanity-nativ-la-dimensiunea-sursei)
+
+**P2 · Folosirea mai bună a lățimii peisaj compacte.** La 740 × 420 dp și
+font 1.3, sursa și redarea matului măsoară ambele 285 pixeli nativi la
+320 dpi (142,5 dp). Navigarea încape fără derularea paginii, dar stiva
+verticală lasă multă lățime nefolosită. Explorați o așezare peisaj comună,
+cu explicația lângă tablă, păstrând dimensiunea sursă/redare și comenzile
+de 48 dp. Cereți dreptunghiuri în componente RO/EN și capturi native înainte
+de schimbarea contractului actual fără salturi.
+[Controalele explicației](../../atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java)
 
 **P2 · Oracolele vechi ale istoricului nativ.** `awaitHiddenAnalysis` încă
 verifică un copil de istoric per semimutare. Aliniați `analysis-prepare/restore`

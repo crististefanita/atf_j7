@@ -101,6 +101,8 @@ public final class BoardSanity extends Instrumentation {
     private ro.atf.chess.capture.FramebufferProjection framebufferProjection;
     private String runId;
     private String puzzleLanguage;
+    private int replayRotation = -1;
+    private volatile Activity sourceReplayActivity;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -108,6 +110,7 @@ public final class BoardSanity extends Instrumentation {
         runId = arguments.getString("runId", "");
         externalFrames = "true".equals(arguments.getString("externalFrames"));
         puzzleLanguage = arguments.getString("puzzleLanguage", "ro");
+        replayRotation = Integer.parseInt(arguments.getString("replayRotation", "-1"));
         start();
     }
 
@@ -116,7 +119,7 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         if (!runId.isEmpty()) receipt.putString("runId", runId);
         try {
-            if ("source-sized-replay".equals(phase)) checkSourceSizedReplay();
+            if (sourceReplayPhase()) checkSourceSizedReplay();
             else if ("openings".equals(phase)) checkOpenings();
             else if ("game-review".equals(phase)) checkGameReview();
             else if ("game-review-why".equals(phase)) checkReviewExplanation();
@@ -157,25 +160,17 @@ public final class BoardSanity extends Instrumentation {
 
     private void checkSourceSizedReplay() throws Exception {
         enableReviewNodeIds();
-        replayCapture = displayCaptureGeometry();
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
-            try (var input = new ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand("dumpsys input"));
-                 var output = new java.io.ByteArrayOutputStream()) {
-                byte[] buffer = new byte[8192];
-                for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
-                framebufferProjection = ro.atf.chess.capture.FramebufferProjection.fromInputDump(
-                        output.toString(java.nio.charset.StandardCharsets.UTF_8.name()), replayCapture.logicalWidth(), replayCapture.logicalHeight(),
-                        replayCapture.physicalWidth(), replayCapture.physicalHeight());
-                receipt.putString("framebufferProjection", framebufferProjection.toString());
-            }
+        if (enlargedReplayPhase() && (replayRotation < 0 || replayRotation > 1)) {
+            throw new AssertionError("The enlarged probe requires an explicit physical rotation");
         }
+        if (!enlargedReplayPhase()) calibrateSourceReplayDisplay();
         var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
         var locale = AppLanguage.fromTag(puzzleLanguage).orElseThrow();
         if (!new AppLanguagePreference(new AndroidGamePreferences(settings)).save(locale)) throw new AssertionError("Could not select language");
         var store = new ChessProgressStore(getTargetContext());
         var saved = ChessMatch.restore(ro.atf.chess.capture.ReplayViewportFixture.CALCULATED);
         if (!store.matches().saveMatch(saved, false)) throw new AssertionError("Could not seed analysis");
-        var game = launch();
+        var game = launchSourceReplay(true);
         var config = game.getResources().getConfiguration();
         receipt.putString("replayProfile", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
                 + "@" + config.densityDpi + ", font=" + config.fontScale + ", language=" + config.getLocales().get(0).getLanguage());
@@ -213,7 +208,7 @@ public final class BoardSanity extends Instrumentation {
         if (!store.quests().save(store.quests().read(order).select(quest.id()), store.quests().readRewards(), 2)) {
             throw new AssertionError("Could not seed mating stage");
         }
-        var puzzle = launch();
+        var puzzle = launchSourceReplay(false);
         var puzzleBoard = findBoard(viewsOf(puzzle));
         var mateSource = screenBounds(puzzleBoard);
         tap(puzzle.findViewById(R.id.quest_guidance_label));
@@ -232,22 +227,97 @@ public final class BoardSanity extends Instrumentation {
                 List.of(sourceReplayGeometry(puzzle, true), payoffShows(visibleReviewNode(R.id.quest_payoff_move), puzzle, quest.defenseAfter(0))));
         clickReviewIcon(R.id.quest_payoff_close);
         compare("Mating return restores the source rectangle", mateSource, screenBounds(puzzleBoard));
+        if (enlargedReplayPhase()) {
+            tap(guidance(puzzle, R.string.why_mate));
+            boolean returned = replayBackReturns(puzzle, R.id.quest_payoff_board);
+            compare("Mating Back restores the source window and board", List.of(mateSource, true),
+                    List.of(screenBounds(puzzleBoard), returned));
+        }
         closeActivity(puzzle);
+    }
+
+    private boolean sourceReplayPhase() { return "source-sized-replay".equals(phase) || enlargedReplayPhase(); }
+
+    @Override public void callActivityOnResume(Activity activity) {
+        super.callActivityOnResume(activity);
+        if (sourceReplayPhase() && activity instanceof ChessActivity) sourceReplayActivity = activity;
+    }
+
+    private Activity launchSourceReplay(boolean analysisRequired) throws Exception {
+        sourceReplayActivity = null;
+        Activity launched = launch();
+        if (!enlargedReplayPhase()) return launched;
+        if (!getUiAutomation().setRotation(replayRotation)) throw new AssertionError("Could not freeze the target replay rotation");
+        long deadline = SystemClock.uptimeMillis() + 12000;
+        do {
+            waitForIdleSync();
+            Activity current = sourceReplayActivity;
+            boolean[] ready = {false};
+            if (current != null) runOnMainSync(() -> {
+                var config = current.getResources().getConfiguration();
+                View content = current.findViewById(android.R.id.content);
+                boolean landscape = replayRotation == 1;
+                ready[0] = !current.isDestroyed() && !current.isFinishing() && !current.isChangingConfigurations()
+                        && current.hasWindowFocus() && sourceDisplay().getRotation() == replayRotation
+                        && config.orientation == (landscape ? android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                                : android.content.res.Configuration.ORIENTATION_PORTRAIT)
+                        && content != null && content.isLaidOut() && !content.isLayoutRequested()
+                        && (content.getWidth() > content.getHeight()) == landscape
+                        && (!analysisRequired || sourceAnalysisReady(current));
+            });
+            if (ready[0]) {
+                try {
+                    calibrateSourceReplayDisplay();
+                    if (current == sourceReplayActivity) return current;
+                } catch (IllegalArgumentException settlingViewport) {
+                    // Display rotation can precede InputReader's viewport update.
+                    // Retry the observation, retaining the same strict calibration.
+                }
+            }
+            SystemClock.sleep(50);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("The resumed target activity did not reach its physical replay rotation");
+    }
+
+    private void calibrateSourceReplayDisplay() throws Exception {
+        replayCapture = displayCaptureGeometry();
+        receipt.putString("replayRotation", Integer.toString(sourceDisplay().getRotation()));
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.P) return;
+        try (var input = new ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand("dumpsys input"));
+             var output = new java.io.ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
+            String dump = output.toString(java.nio.charset.StandardCharsets.UTF_8.name());
+            receipt.putString("replayInputViewport", java.util.Arrays.stream(dump.split("\\r?\\n")).filter(line -> line.contains("Viewport: displayId=0"))
+                    .map(String::trim).distinct().collect(java.util.stream.Collectors.joining(" | ")));
+            framebufferProjection = ro.atf.chess.capture.FramebufferProjection.fromInputDump(
+                    dump, replayCapture.logicalWidth(), replayCapture.logicalHeight(),
+                    replayCapture.physicalWidth(), replayCapture.physicalHeight(), sourceDisplay().getRotation());
+            receipt.putString("framebufferProjection", framebufferProjection.toString());
+        }
+    }
+
+    private boolean enlargedReplayPhase() { return "source-sized-replay-enlarged".equals(phase); }
+
+    private android.view.Display sourceDisplay() {
+        return ((WindowManager) getTargetContext().getSystemService(android.content.Context.WINDOW_SERVICE)).getDefaultDisplay();
     }
 
     private void awaitSourceAnalysis(Activity activity) {
         long deadline = SystemClock.uptimeMillis() + 12000;
         boolean[] ready = {false};
         do {
-            runOnMainSync(() -> {
-                View bulb = activity.findViewById(R.id.match_hint);
-                TextView panel = activity.findViewById(R.id.match_analysis);
-                ready[0] = bulb != null && bulb.isEnabled() && !bulb.isSelected() && panel != null && panel.getContentDescription() != null;
-            });
+            runOnMainSync(() -> ready[0] = sourceAnalysisReady(activity));
             if (ready[0]) return;
             SystemClock.sleep(40);
         } while (SystemClock.uptimeMillis() < deadline);
         throw new AssertionError("Source analysis did not become ready");
+    }
+
+    private boolean sourceAnalysisReady(Activity activity) {
+        View bulb = activity.findViewById(R.id.match_hint);
+        TextView panel = activity.findViewById(R.id.match_analysis);
+        return bulb != null && bulb.isEnabled() && !bulb.isSelected() && panel != null && panel.getContentDescription() != null;
     }
 
     private boolean sourceRootFits(Activity activity, BoardView board) {
@@ -288,6 +358,26 @@ public final class BoardSanity extends Instrumentation {
                 List.of(branchGeometry, sourceReplayGeometry(activity, false), branchStart, sourceReplayStep(), selected));
         clickReviewIcon(R.id.hint_preview_return);
         compare(owner + " return restores the source rectangle", source, screenBounds(findBoard(viewsOf(activity))));
+        if (enlargedReplayPhase()) {
+            tap(activity.findViewById(R.id.match_analysis));
+            boolean returned = replayBackReturns(activity, R.id.hint_preview_board);
+            compare(owner + " Back restores the source window and board", List.of(source, true),
+                    List.of(screenBounds(findBoard(viewsOf(activity))), returned));
+        }
+    }
+
+    private boolean replayBackReturns(Activity source, int replayBoard) throws Exception {
+        if (reviewNode(replayBoard, 2500) == null) throw new AssertionError("Replay must be open before pressing Back");
+        if (!getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)) {
+            throw new AssertionError("Android rejected the system Back action");
+        }
+        long deadline = SystemClock.uptimeMillis() + 2500;
+        do {
+            waitForIdleSync();
+            if (source.hasWindowFocus() && visibleReviewNode(replayBoard) == null) return true;
+            SystemClock.sleep(25);
+        } while (SystemClock.uptimeMillis() < deadline);
+        return false;
     }
 
     private String sourceReplayStep() {
@@ -3575,7 +3665,7 @@ public final class BoardSanity extends Instrumentation {
         if (phase.startsWith("analysis-compact-") || "analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
                 || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
                 || "puzzle-ux".equals(phase) || "active-match-restore".equals(phase) || "pending-bot-restore".equals(phase)
-                || "source-sized-replay".equals(phase) || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
+                || sourceReplayPhase() || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }
