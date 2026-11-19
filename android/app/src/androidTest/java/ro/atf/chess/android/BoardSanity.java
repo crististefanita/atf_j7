@@ -254,8 +254,11 @@ public final class BoardSanity extends Instrumentation {
              var output = new java.io.ByteArrayOutputStream()) {
             byte[] buffer = new byte[8192];
             for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
+            String dump = output.toString(java.nio.charset.StandardCharsets.UTF_8.name());
+            receipt.putString("replayInputViewport", dump.lines().filter(line -> line.contains("Viewport: displayId=0"))
+                    .map(String::trim).distinct().collect(java.util.stream.Collectors.joining(" | ")));
             framebufferProjection = ro.atf.chess.capture.FramebufferProjection.fromInputDump(
-                    output.toString(java.nio.charset.StandardCharsets.UTF_8.name()), replayCapture.logicalWidth(), replayCapture.logicalHeight(),
+                    dump, replayCapture.logicalWidth(), replayCapture.logicalHeight(),
                     replayCapture.physicalWidth(), replayCapture.physicalHeight(), sourceDisplay().getRotation());
             receipt.putString("framebufferProjection", framebufferProjection.toString());
         }
