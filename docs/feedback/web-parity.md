@@ -44,13 +44,13 @@ Before publishing a new engine, use a deterministic portable digest and verify i
 
 ## WEB-02 · Adapters and Shared Layout
 
-**P2 · Signed replay at enlarged text and physical rotation.** Repeat the
-source-sized native phase on the signed release, add 1.3× text and a real
-90° display rotation, then verify touch, Back and focus restoration. The
-development matrix covers three logical windows in EN/RO at font 1.0; its
-API 28 compositor calibration currently requires an unrotated primary viewport.
-Retain the exact source/preview sides, changing cursor, fixed branch controls
-and bound captures; do not infer signed or rotated rendering from that matrix.
+**P2 · Rotation while a replay is open.** The signed API 28 matrix now covers
+three profiles in EN/RO at font 1.3, including observed 90° landscape rotation,
+navigation and Back to the source window. It starts each case in its target
+orientation. Add a separate recreation probe with a dialog already open:
+retain its selected branch, ply and source cursor through both turns, then
+verify Back and the source rectangle. Do not infer TalkBack focus or speech
+from the input-window focus check.
 [Native replay protocol](../testing/README.md#native-source-sized-replay-sanity)
 
 **P2 · Legacy analysis history oracles.** `awaitHiddenAnalysis` still checks

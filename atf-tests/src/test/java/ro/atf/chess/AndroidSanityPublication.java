@@ -188,6 +188,11 @@ class AndroidSanityPublication {
             identity.add(new ReportField("Logical profile", profile + " dp · " + locale));
             identity.add(new ReportField("Native profile", markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: replayProfile=").toString()));
             identity.add(new ReportField("Physical rotation", markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: replayRotation=").toString()));
+            if (signed) {
+                identity.add(new ReportField("Signing certificate SHA-256", run.execution().path("signingCertificateSha256").asText()));
+                identity.add(new ReportField("Instrumentation certificate SHA-256", run.execution().path("testCertificateSha256").asText()));
+                identity.add(new ReportField("Installed APK SHA-256", run.execution().path("installedApkSha256").asText()));
+            }
             identity.add(new ReportField("Qualification scope", signed ? "Signed release APK with matching instrumentation signer and installed bytes"
                     : "Development sanity only; not a signed release qualification"));
             identity.add(new ReportField("Timing scope", "Report durations measure receipt validation/publication; native action latency was not measured by this probe."));

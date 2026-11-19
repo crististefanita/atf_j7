@@ -227,6 +227,11 @@ This development sanity does not qualify a signed release APK.
 Use `-Dchess.extent=<report>` for a fresh explicit report path. Report durations
 refer to receipt validation/publication; native action latency is not measured.
 
+Run an explicit Android publisher in its own JUnit invocation, with a fresh
+report path. Do not combine it with component tests under the same
+`chess.extent`: both own their report session, and existing-output admission
+must reject overwriting one report with the other.
+
 On API 28, the full framebuffer may letterbox a different logical aspect
 ratio. `FramebufferProjection` accepts a mapping only when Android's primary
 input viewport matches the current display and its complete centered content
