@@ -180,8 +180,13 @@ public final class TacticalAnalysis {
     }
     static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers,
                                     List<ChessPosition> repetitionHistory,int quietPlies) {
+        return botAnalysis(position, level, gap, repetitionOffers, repetitionHistory, quietPlies, 0);
+    }
+
+    static SearchReport botAnalysis(ChessPosition position, MatchSetup.Level level, int gap, Set<Move> repetitionOffers,
+                                    List<ChessPosition> repetitionHistory, int quietPlies, long openingChoice) {
         boolean hard = level == MatchSetup.Level.HARD;
-        var repertoire = gap == 0 ? OpeningRepertoire.CURRENT.playReply(position, level) : null;
+        var repertoire = gap == 0 ? OpeningRepertoire.CURRENT.playReply(position, level, openingChoice) : null;
         var root = new RootSearch(position, repetitionOffers);
         var moves = repertoire == null ? position.legalMoves() : List.of(repertoire);
         int depth = level == MatchSetup.Level.BASIC && !bareKingMateEndgame(position)

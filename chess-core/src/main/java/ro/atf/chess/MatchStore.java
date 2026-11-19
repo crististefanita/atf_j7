@@ -42,6 +42,7 @@ public final class MatchStore {
     private static final String MATCH_ID = "match-id";
     private static final String MATCH_CREATION = "match-creation";
     private static final String MATCH_CREATION_SEQUENCE = "match-creation-sequence";
+    private static final String AI_OPENING_SEQUENCE = "ai-opening-sequence";
     private static final String MATCH_ARCHIVED = "match-archived";
     private static final String ARCHIVE_ORDER = "match-archive-order";
     private static final String ARCHIVE_USES_AI = "uses-ai";
@@ -103,6 +104,13 @@ public final class MatchStore {
     public int slotForNewMatch() {
         int available = freeMatchSlot();
         return available != 0 ? available : MatchSlots.forNewGame(this::hasMatch, this::matchCreationOrder);
+    }
+
+    /** Preparation consumes nothing; the new AI game and its choice commit atomically. */
+    public ChessMatch prepareAiMatch(MatchSetup setup) {
+        long sequence = preferences.getLong(AI_OPENING_SEQUENCE, 0);
+        if (sequence < 0 || sequence == Long.MAX_VALUE) throw new IllegalStateException("Invalid AI opening sequence");
+        return ChessMatch.start(setup, sequence + 1);
     }
 
     private boolean canReuseArchivedSlot(int slot) {
@@ -174,6 +182,9 @@ public final class MatchStore {
                 .putBoolean(MatchSlots.key(MATCH_MANUAL_AI, slot), manualAi).putInt(ACTIVE_MATCH_SLOT, slot)
                 .putBoolean(RESUME_MATCH, true).remove(RESUME_CHAPTER);
         if (fresh) {
+            if (effectiveOrigin != GameOrigin.LOCAL && match.openingChoice() > 0) {
+                edit.putLong(AI_OPENING_SEQUENCE, Math.max(preferences.getLong(AI_OPENING_SEQUENCE, 0), match.openingChoice()));
+            }
             long creation = preferences.getLong(MATCH_CREATION_SEQUENCE, MatchSlots.LIMIT) + 1;
             edit.putLong(MATCH_CREATION_SEQUENCE, creation).putLong(MatchSlots.key(MATCH_CREATION, slot), creation)
                     .putLong(MatchSlots.key(MATCH_STARTED_AT, slot), recordedAt);

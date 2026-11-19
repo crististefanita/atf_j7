@@ -8,6 +8,8 @@ Alegeți cel mai mic nivel de testare care poate observa schimbarea. Construiți
 - [Sanity Android](#sanity-android) și [paritatea Web](#paritatea-web-a-motorului) acoperă, când e nevoie, randarea, ciclul de viață și tehnologiile asistive reale.
 - [Dovezile Extent](#raportare-extent) leagă aserțiunile de rulare. [Calificarea](../release/README.md#calificare-și-publicare) guvernează promovarea.
 
+Variația deschiderilor este guvernată de [OpeningVarietyTest](../../atf-tests/src/test/java/ro/atf/chess/OpeningVarietyTest.java): întregul catalog redactat, decizii native la toate nivelurile, eșecuri de persistare atomică, salvări vechi, istoric și înlocuirea sloturilor. Indiciul aceleiași poziții și analiza finală trebuie să fie identice între alegerile partidelor. O partidă auditată nouă măsoară separat calitatea transferului față de aceste contracte deterministe de componentă.
+
 ## Alegerea nivelului
 
 - **Componentă** pentru reguli, progres, persistență, ordonare și layout măsurabil. Folosiți store-ul real cu preferințe în memorie și aserțiuni pe valori observabile.

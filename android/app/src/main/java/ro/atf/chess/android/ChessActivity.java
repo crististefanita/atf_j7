@@ -262,7 +262,7 @@ public final class ChessActivity extends BackNavigableActivity {
     }
 
     private void newMatch(MatchSetup setup) {
-        openMatch(store.matches().slotForNewMatch(), ChessMatch.start(setup), setup.humanSide() == Side.BLACK, false, false, true);
+        openMatch(store.matches().slotForNewMatch(), store.matches().prepareAiMatch(setup), setup.humanSide() == Side.BLACK, false, false, true);
     }
 
     private void selectMatch(int slot) {

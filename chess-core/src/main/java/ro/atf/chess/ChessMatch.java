@@ -19,6 +19,7 @@ public final class ChessMatch {
     private static final String ANALYSIS_FORMAT = "2|analysis|";
     private static final String SETUP_FORMAT = "3|";
     private static final String DECISION_FORMAT = "4|";
+    private static final String OPENING_FORMAT = "5|";
     private static final MatchSetup DEFAULT_SETUP = new MatchSetup(Side.WHITE, MatchSetup.Level.BASIC, false);
     private final List<ChessPosition> positions;
     private final List<Move> moves;
@@ -26,17 +27,24 @@ public final class ChessMatch {
     private final MatchSetup setup;
     private final Result result;
     private final Decision decision;
+    private final long openingChoice;
 
     private ChessMatch(List<ChessPosition> positions, List<Move> moves, int quietPlies, MatchSetup setup) {
         this(positions, moves, quietPlies, setup, null);
     }
 
     private ChessMatch(List<ChessPosition> positions, List<Move> moves, int quietPlies, MatchSetup setup, Decision decision) {
+        this(positions, moves, quietPlies, setup, decision, 0);
+    }
+
+    private ChessMatch(List<ChessPosition> positions, List<Move> moves, int quietPlies, MatchSetup setup, Decision decision, long openingChoice) {
+        if (openingChoice < 0) throw new IllegalArgumentException("Negative opening choice");
         this.positions = positions;
         this.moves = moves;
         this.quietPlies = quietPlies;
         this.setup = setup;
         this.decision = decision;
+        this.openingChoice = openingChoice;
         result = decision == null ? evaluateResult() : decision == Decision.DRAW ? Result.AGREED_DRAW
                 : setup.humanSide() == Side.WHITE ? Result.BLACK_WINS : Result.WHITE_WINS;
     }
@@ -49,6 +57,11 @@ public final class ChessMatch {
 
     public static ChessMatch start(MatchSetup setup) {
         return new ChessMatch(List.of(ChessPosition.initial()), List.of(), 0, setup);
+    }
+
+    /** Stable through restart and history branches; zero retains legacy deterministic play. */
+    public static ChessMatch start(MatchSetup setup, long openingChoice) {
+        return new ChessMatch(List.of(ChessPosition.initial()), List.of(), 0, setup, null, openingChoice);
     }
 
     static ChessMatch fromPosition(ChessPosition position) { return fromPosition(position, DEFAULT_SETUP); }
@@ -67,6 +80,7 @@ public final class ChessMatch {
     public Move moveAt(int ply) { return ply == 0 ? null : moves.get(ply - 1); }
     public Result result() { return result; }
     public MatchSetup setup() { return setup; }
+    public long openingChoice() { return openingChoice; }
     public boolean analysisEnabled() { return setup.analysisEnabled(); }
     public boolean awaitingBot() { return result == Result.IN_PROGRESS && position().turn() != setup.humanSide(); }
     public boolean resigned() { return decision == Decision.RESIGN; }
@@ -86,11 +100,11 @@ public final class ChessMatch {
     }
 
     private ChessMatch finish(Decision reason) {
-        return new ChessMatch(positions, moves, quietPlies, setup, reason);
+        return new ChessMatch(positions, moves, quietPlies, setup, reason, openingChoice);
     }
 
     ChessMatch forAnalysis() {
-        return decision == null ? this : new ChessMatch(positions, moves, quietPlies, setup);
+        return decision == null ? this : new ChessMatch(positions, moves, quietPlies, setup, null, openingChoice);
     }
 
     /** Analyzes the displayed position from the point of view of the side to move. */
@@ -118,7 +132,7 @@ public final class ChessMatch {
         nextPositions.add(after);
         var nextMoves = new ArrayList<>(moves);
         nextMoves.add(move);
-        return new ChessMatch(nextPositions, nextMoves, resetsQuietCount(before, move) ? 0 : quietPlies + 1, setup);
+        return new ChessMatch(nextPositions, nextMoves, resetsQuietCount(before, move) ? 0 : quietPlies + 1, setup, null, openingChoice);
     }
 
     /** Starts a new continuation using exactly the history leading to the selected position. */
@@ -127,12 +141,12 @@ public final class ChessMatch {
         if (ply == ply()) return this;
         int quiet = 0;
         for (int index = ply - 1; index >= 0 && !resetsQuietCount(positionAt(index), moves.get(index)); index--) quiet++;
-        return new ChessMatch(List.copyOf(positions.subList(0, ply + 1)), List.copyOf(moves.subList(0, ply)), quiet, setup);
+        return new ChessMatch(List.copyOf(positions.subList(0, ply + 1)), List.copyOf(moves.subList(0, ply)), quiet, setup, null, openingChoice);
     }
 
     ChessMatch withAnalysis(boolean enabled) {
         if (analysisEnabled() == enabled) return this;
-        return new ChessMatch(positions, moves, quietPlies, new MatchSetup(setup.humanSide(), setup.level(), enabled), decision);
+        return new ChessMatch(positions, moves, quietPlies, new MatchSetup(setup.humanSide(), setup.level(), enabled), decision, openingChoice);
     }
 
     private static boolean resetsQuietCount(ChessPosition position, Move move) {
@@ -160,10 +174,21 @@ public final class ChessMatch {
             if (index > 0) encoded.append(' ');
             encoded.append(moves.get(index).uci());
         }
-        return decision == null ? encoded.toString() : DECISION_FORMAT + decision.name() + "|" + encoded;
+        String payload = openingChoice == 0 ? encoded.toString() : OPENING_FORMAT + openingChoice + "|" + encoded;
+        return decision == null ? payload : DECISION_FORMAT + decision.name() + "|" + payload;
     }
 
     public static ChessMatch restore(String checkpoint) {
+        if (checkpoint.startsWith(OPENING_FORMAT)) {
+            var fields = checkpoint.split("\\|", 3);
+            if (fields.length != 3 || !fields[1].matches("[1-9][0-9]{0,18}")
+                    || !(fields[2].startsWith(FORMAT) || fields[2].startsWith(ANALYSIS_FORMAT) || fields[2].startsWith(SETUP_FORMAT))) {
+                throw new IllegalArgumentException("Invalid opening checkpoint");
+            }
+            long choice = Long.parseLong(fields[1]);
+            var original = restore(fields[2]);
+            return new ChessMatch(original.positions, original.moves, original.quietPlies, original.setup, null, choice);
+        }
         if (checkpoint.startsWith(DECISION_FORMAT)) {
             var fields = checkpoint.split("\\|", 3);
             if (fields.length != 3 || fields[2].startsWith(DECISION_FORMAT)) throw new IllegalArgumentException("Invalid match decision checkpoint");
@@ -221,7 +246,7 @@ public final class ChessMatch {
         var policy = MatchAiPolicy.CURRENT.repetition;
         var repetitionOffers = cycle ? repetitionOffers(board) : Set.<Move>of();
         var search = TacticalAnalysis.botAnalysis(board, level, cycle ? policy.maxScoreLossCp() : 0, repetitionOffers,
-                searchHistory(),quietPlies);
+                searchHistory(),quietPlies,openingChoice);
         Move chosen = null;
         int fewestVisits = Integer.MAX_VALUE;
         int mostActivity = Integer.MIN_VALUE;
