@@ -410,7 +410,7 @@ public final class BoardSanity extends Instrumentation {
         int caption = mate ? R.id.quest_payoff_move : R.id.hint_preview_step;
         var label = visibleReviewNode(caption);
         if (label == null || !label.refresh()) throw new AssertionError("Missing replay caption");
-        text.append(label.getText()).append('|');
+        text.append(label.getText().toString().replace('\n', ' ')).append('|');
         for (int index = 0; index < board.getChildCount(); index++) {
             var cell = board.getChild(index);
             if (cell == null || !cell.refresh()) throw new AssertionError("Stale replay square " + index);
