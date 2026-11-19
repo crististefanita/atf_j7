@@ -3,7 +3,7 @@
 ## Pe scurt
 
 Acest director documentează adoptarea bibliotecilor ATF în testele Chess Lab.
-Implementarea și regresiile generice aparțin J0; J7 verifică integrarea proprie.
+Implementarea și regresiile generice aparțin J0; Chess verifică integrarea proprie.
 
 ## Proveniență
 
@@ -63,6 +63,6 @@ J0 deține contractele exemplelor de bibliotecă. [Ghidurile executabile J0](htt
 
 ## Mentenanță și feedback
 
-Raportați integrarea Chess Lab în [feedback-ul J7](../docs/feedback/README.md).
+Raportați integrarea Chess Lab în [feedback-ul Chess](../docs/feedback/README.md).
 Pentru un defect al bibliotecii, izolați proba la ownerul J0 și repetați
 acceptanța consumatorului după înlocuirea perechii.

@@ -56,6 +56,8 @@ rescrieți un artefact calificat.
    Când se schimbă ediția, verificați APK-ul complet din README-ul EN de pe
    `main` și confirmați că ruta RO indică aceeași ediție.
 
+Construiți cele două worktree-uri secvențial când folosesc același depozit Maven local: inițializarea de la root instalează binarele ATF, iar Windows poate bloca un JAR deja încărcat de celălalt JVM. Directoarele target independente nu izolează acel depozit. Buildurile paralele cer depozite locale pregătite separat și proveniență verificată a bibliotecilor.
+
 ```powershell
 java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate documentation-pair . $enCommit $roCommit
 git push --atomic origin "${enCommit}:refs/heads/main" "${roCommit}:refs/heads/main_RO"
@@ -104,7 +106,7 @@ Dot-source scriptul în sesiunea de build pentru a încărca `J7_SIGNING_STORE` 
   [Testele negative](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
   verifică poarta.
 
-  J7 păstrează și înregistrarea criptată cerută explicit în proiect,
+  Chess păstrează și înregistrarea criptată cerută explicit în proiect,
   [`.atf-signing`](../../.atf-signing/README.md). Un director existent este
   încărcat automat; `-ProjectIdentity -StartNewIdentity` inițializează unul
   lipsă numai după aprobarea explicită a schimbării certificatului. Căile din

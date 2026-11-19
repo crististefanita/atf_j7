@@ -1766,3 +1766,11 @@ testChanges:
     test: ro.atf.chess.PuzzleChromeResourcesTest#exposesStableLocalizedPuzzleOptionsAndNavigation
     contract: "Retain all original IDs and localized actions; add an explicit status target so native pixel evidence checks the first explanation line"
     allowDelete: false
+
+  - id: CHESS-DOCUMENTATION-ARCHITECTURE-RO
+    base: "1c8f36b664f0e5bf51d0115a275938c2efd8378b"
+    from: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#documentedArchitectureRejectsMissingSourcesExtraModulesAndScopeDrift
+    contract: "Redenumeste doar titlul arhitecturii proiectului in Chess; pastreaza topologia executabila, rutele catre owneri si toate cazurile negative pentru surse, module si scope."
+    allowDelete: false

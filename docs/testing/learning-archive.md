@@ -1,5 +1,13 @@
 # Admiterea în arhiva de învățare
 
+## Pe scurt
+
+Acest ghid deține admiterea și reutilizarea dovezilor de învățare offline. Separă jurnalul reproductibil de calitatea șahistică și de creșterea măsurată a forței.
+
+- Legați fiecare decizie de surse, configurație și istoricul legal complet.
+- Păstrați neschimbate rezultatele oracolului și recepțiile originale; analizați separat eșecurile.
+- Admiteți un tipar numai după contraexemple și transfer pe familii excluse.
+
 ## Dovezile obligatorii
 
 Partidele pentru învățare stau în `C:\work\sah\.studii`, în afara checkout-ului.
@@ -181,3 +189,40 @@ rezumat editat nu verifică UCI-ul brut. Inventarul scurtat nu poate ascunde ult
 Păstrează benchmarkurile runtime originale executabile, inclusiv clasificarea prin
 `GameReview.analyzeLine` efectiv pe o mutare. Validatorul de dovezi verde demonstrează
 respingerea experimentului slab de către poartă; nu califică motorul.
+
+## Studii de ordonare învățată
+
+Modelele de ordonare prioritizează mutări legale; nu furnizează soluția cunoscută a unui puzzle și nu schimbă oracolul de acceptare. Păstrați pozițiile echivalente ca origine în aceeași partiție. Comparați ordonarea, deciziile complete, replicile adverse și partidele finale la același buget declarat. Studiul istoric de 44k de mai jos nu măsoară profilul adaptiv curent din prim-plan.
+
+<details>
+<summary>Studiul liniar istoric și liga încheiată</summary>
+
+Identificatorul studiului cu sursă verificată: `2026-11-17-j7-hard-learned-order`. Păstrați motorul, modelul, pozițiile de start și culorile originale.
+
+Modelul liniar cu nouă trăsături a fost ajustat pe 58 de alternative confirmate
+din 30 de familii de deschidere. Validarea cu o familie exclusă pe rând preferă
+alternativa etichetată în 28/58 de cazuri. Pe 36 de familii independente,
+ordonarea schimbă 34 de liste de rădăcini, trei lideri inițiali și zece consumuri
+de noduri. Alternativa etichetată precede mutarea arhivată în 12/36 de cazuri,
+față de 11/36 cu ordonarea nativă. Ambele brațe aleg alternativa etichetată în
+șase decizii complete. Toate mutările finale coincid.
+
+Reverificarea cronologică a analizat 140 de decizii anterioare și a corectat o
+etichetă. În `loss-005`, `Be2 …dxc4` pierde la semimutarea 15, iar `exd5`
+recuperează 319,5/402,5 miimi WDL la adâncimile Stockfish 17/19. Lotul inițial
+rămâne înghețat, iar poziția corectată este testată separat. Ambele ordonări
+aleg `cxd5` în acea poziție.
+
+Modelul de ordonare a obținut 818 victorii, 273 de remize, 793 de înfrângeri
+și 116 partide neterminate în 1.000 de perechi de deschideri din 996 de familii.
+Diferența estimată a fost +4,34 Elo, cu interval de 95% între −2,77 și +11,31.
+Atribuirea unei înfrângeri sau unei victorii fiecărei partide neterminate schimbă
+estimarea centrală la −15,82 sau +24,53. Rejucarea legală a verificat 238.591
+de recepții de decizie. Secvențele complete de mutări coincid în 657 de perechi.
+Modelul rămâne o preferință experimentală de ordonare, cu efect incert asupra forței de joc.
+
+Aceste partide au folosit H5 și 44.000 de noduri suplimentare pe sursa de
+cercetare înghețată. Profilul main adaptiv, cu buget mai mare, cere propria
+estimare a forței de joc.
+
+</details>

@@ -135,7 +135,7 @@ node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> --import <pagini-TMP> 
 
 Șase exerciții introductive locale au fost înlocuite cu poziții atestate. Cele noi ocupă aceleași locuri și păstrează distribuția culorilor. În cele 17 poziții a căror rezolvare se salvează după mutarea-cheie, **Explicația** deschide studiul apărării. Reia cheia, replica adversă și continuarea din [catalogul studiilor](../../chess-core/src/main/resources/quest-defense-studies.yaml).
 
-Din cele 183 de continuări, 130 provin din linia publicată, 43 din comparația cu Stockfish și verificarea pe tablă, patru din partidele J7 păstrate și șase din exercițiile de înlocuire. Pentru o linie obținută cu Stockfish, prezentați replica ca variantă verificată. Dovada că un câștig persistă la o replică imediată se aplică poziției de la capătul liniei.
+Din cele 183 de continuări, 130 provin din linia publicată, 43 din comparația cu Stockfish și verificarea pe tablă, patru din partidele Chess păstrate și șase din exercițiile de înlocuire. Pentru o linie obținută cu Stockfish, prezentați replica ca variantă verificată. Dovada că un câștig persistă la o replică imediată se aplică poziției de la capătul liniei.
 
 | Exercițiu | Lecție | Câștig la capătul liniei |
 |---|---|---:|
