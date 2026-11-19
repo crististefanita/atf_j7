@@ -24,6 +24,7 @@ param(
     [switch]$PuzzleDangerOnly,
     [switch]$PuzzleUxOnly,
     [switch]$ReplayViewportOnly,
+    [switch]$ReplayEnlargedOnly,
     [ValidateSet('ro','en')][string]$PuzzleLanguage = 'ro',
     [switch]$IncludeOpenings,
     [switch]$IncludeGameReview,
@@ -51,7 +52,7 @@ if ($ReplayCompactOnly -and (!$Distribution -or $AnalysisOnly -or $OpeningsOnly 
         $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
     throw 'ReplayCompactOnly selects both compact locales on the signed APK.'
 }
-$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly, $PuzzleUxOnly, $ReplayViewportOnly).Where({ $_ })
+$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly, $PuzzleUxOnly, $ReplayViewportOnly, $ReplayEnlargedOnly).Where({ $_ })
 if ($puzzleProbes.Count -gt 1 -or ($puzzleProbes.Count -eq 1 -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or
         $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or $MatchMenusOnly -or $IncludeOpenings -or
         $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive))) {
@@ -142,7 +143,10 @@ function Read-DisplayProfile {
     if ($size -notmatch '(?m)^Physical size:\s*\d+x\d+' -or $density -notmatch '(?m)^Physical density:\s*\d+' -or
             ($size -match 'Override' -and !$overrideSize) -or ($density -match 'Override' -and !$overrideDensity) -or
             $font -notmatch '^(null|\d+(\.\d+)?)$') { throw 'Unexpected Android display settings.' }
-    [pscustomobject]@{size=$overrideSize; density=$overrideDensity; font=$font}
+    $auto = (Invoke-Device @('shell','settings','get','system','accelerometer_rotation') | Out-String).Trim()
+    $rotation = (Invoke-Device @('shell','settings','get','system','user_rotation') | Out-String).Trim()
+    if ($auto -notmatch '^(null|0|1)$' -or $rotation -notmatch '^(null|[0-3])$') { throw 'Unexpected Android rotation settings.' }
+    [pscustomobject]@{size=$overrideSize; density=$overrideDensity; font=$font; autoRotation=$auto; userRotation=$rotation}
 }
 
 function Set-DisplayProfile($Profile) {
@@ -150,6 +154,12 @@ function Set-DisplayProfile($Profile) {
     $density = if ($Profile.density) { $Profile.density } else { 'reset' }
     Invoke-Device @('shell','wm','size',$size) | Out-Null
     Invoke-Device @('shell','wm','density',$density) | Out-Null
+    foreach ($setting in @(@('user_rotation','userRotation'),@('accelerometer_rotation','autoRotation'))) {
+        if ($null -ne $Profile.($setting[1])) {
+            if ($Profile.($setting[1]) -ceq 'null') { Invoke-Device @('shell','settings','delete','system',$setting[0]) | Out-Null }
+            else { Invoke-Device @('shell','settings','put','system',$setting[0],$Profile.($setting[1])) | Out-Null }
+        }
+    }
     if ($Profile.font -ceq 'null') {
         Invoke-Device @('shell','settings','delete','system','font_scale') | Out-Null
     } else {
@@ -158,7 +168,9 @@ function Set-DisplayProfile($Profile) {
     $deadline = [datetime]::UtcNow.AddSeconds(4)
     do {
         $actual = Read-DisplayProfile
-        if ($actual.size -ceq $Profile.size -and $actual.density -ceq $Profile.density -and $actual.font -ceq $Profile.font) { return }
+        if ($actual.size -ceq $Profile.size -and $actual.density -ceq $Profile.density -and $actual.font -ceq $Profile.font -and
+                ($null -eq $Profile.autoRotation -or $actual.autoRotation -ceq $Profile.autoRotation) -and
+                ($null -eq $Profile.userRotation -or $actual.userRotation -ceq $Profile.userRotation)) { return }
         Start-Sleep -Milliseconds 150
     } while ([datetime]::UtcNow -lt $deadline)
     throw "Android display mismatch. Requested $($Profile | ConvertTo-Json -Compress); observed $($actual | ConvertTo-Json -Compress)."
@@ -233,7 +245,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
             $frames = @('mate-one', 'mate-two', 'mate-three', 'tactics', 'training', 'intermezzo') |
                 ForEach-Object { "puzzle-ux-$_" }
         }
-        'source-sized-replay' { $frames = @('source-ai', 'source-calculated', 'source-theory', 'source-mating') }
+        { $_ -in 'source-sized-replay','source-sized-replay-enlarged' } { $frames = @('source-ai', 'source-calculated', 'source-theory', 'source-mating') }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
@@ -241,7 +253,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
         if ($Phase -like 'analysis-compact-*' -or $Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux',
-                'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore','source-sized-replay') {
+                'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore','source-sized-replay','source-sized-replay-enlarged') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
             if ($marker.Count -eq 0) { throw "Native capture fingerprint is missing: $file." }
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
@@ -258,6 +270,11 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
             throw "Unexpected run identity in Android phase $Phase."
         }
         $execution.runId = $RunId
+    }
+    if ($Distribution -and $ReplayEnlargedOnly) {
+        $execution.signingCertificateSha256 = $certificate
+        $execution.testCertificateSha256 = $testCertificate
+        $execution.installedApkSha256 = ($onDevice -split '\s+')[0]
     }
     $execution | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Directory 'execution.json') -Encoding utf8NoBOM
 }
@@ -349,6 +366,22 @@ try {
     $api = (Invoke-Device @('shell','getprop','ro.build.version.sdk') | Out-String).Trim()
     $hash = (Get-FileHash -LiteralPath $apk).Hash.ToLowerInvariant()
     if ($Distribution) {
+        if ($ReplayEnlargedOnly) {
+            $sdk = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { $env:ANDROID_SDK_ROOT }
+            if (!$sdk) { throw 'Signed replay requires ANDROID_HOME or ANDROID_SDK_ROOT.' }
+            $signer = Get-ChildItem (Join-Path $sdk 'build-tools') -Directory | Sort-Object { [version]$_.Name } -Descending |
+                Select-Object -First 1 -ExpandProperty FullName
+            $signer = Join-Path $signer 'apksigner.bat'
+            $certificates = foreach ($binary in @($apk,$tests)) {
+                $signature = @(& $signer verify --verbose --print-certs $binary 2>&1)
+                if ($LASTEXITCODE) { throw 'APK signature verification failed.' }
+                $digest = @($signature | Where-Object { $_ -cmatch '^Signer #1 certificate SHA-256 digest: [a-f0-9]{64}$' })
+                if ($digest.Count -ne 1) { throw 'Expected one APK signing certificate.' }
+                ($digest[0] -split ': ')[1]
+            }
+            $certificate, $testCertificate = $certificates
+            if ($certificate -cne $testCertificate) { throw 'Instrumentation must share the release signing identity.' }
+        }
         $existing = Invoke-Device @('shell','pm','list','packages',$app)
         if ($existing -contains "package:$app" -or $existing -contains "package:$app.test") { throw 'Distribution sanity requires a fresh emulator package.' }
         Invoke-Device @('install',$apk)
@@ -370,7 +403,7 @@ try {
     $runner = "$app.test/ro.atf.chess.android.BoardSanity"
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
-    if ($ReplayViewportOnly) {
+    if ($ReplayViewportOnly -or $ReplayEnlargedOnly) {
         $original = Read-DisplayProfile
         $original | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'original-display.json') -Encoding utf8NoBOM
         $runId = [guid]::NewGuid().ToString('N')
@@ -379,15 +412,19 @@ try {
                 $dimensions = $profile.Split('x')
                 $scale = if ($profile -ceq '1280x900') { 1.5 } else { 2 }
                 $nativeSize = "$([int]([int]$dimensions[0] * $scale))x$([int]([int]$dimensions[1] * $scale))"
-                Set-DisplayProfile @{size=$nativeSize; density="$([int](160 * $scale))"; font='1.0'}
+                $rotation = if ($ReplayEnlargedOnly -and $profile -cne '360x640') { '1' } else { '0' }
+                if ($rotation -ceq '1') { $nativeSize = ($nativeSize.Split('x')[1],$nativeSize.Split('x')[0]) -join 'x' }
+                Set-DisplayProfile @{size=$nativeSize; density="$([int](160 * $scale))"; font=$(if ($ReplayEnlargedOnly) {'1.3'} else {'1.0'})}
                 foreach ($locale in 'en','ro') {
                     $directory = Join-Path $run "$profile-$locale"
                     $null = New-Item -ItemType Directory $directory
                     $clear = Invoke-Device @('shell','pm','clear',$app)
                     if ($clear -cnotcontains 'Success') { throw 'Could not reset the isolated replay fixture.' }
                     $instrument = @('shell','am','instrument','-w','-r','-e','puzzleLanguage',$locale)
+                    if ($ReplayEnlargedOnly) { $instrument += @('-e','replayRotation',$rotation) }
                     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
-                    Invoke-FocusedSanity $directory 'source-sized-replay' 20 $runId
+                    $phase = if ($ReplayEnlargedOnly) {'source-sized-replay-enlarged'} else {'source-sized-replay'}
+                    Invoke-FocusedSanity $directory $phase $(if ($ReplayEnlargedOnly) {23} else {20}) $runId
                 }
             }
         } finally {

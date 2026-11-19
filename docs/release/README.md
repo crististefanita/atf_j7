@@ -101,6 +101,15 @@ Dot-source the script in the build session to load `J7_SIGNING_STORE` and `J7_SI
   [Negative tests](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
   verify the gate.
 
+  J7 also keeps the explicitly requested encrypted project record in
+  [`.atf-signing`](../../.atf-signing/README.md). An existing directory is loaded
+  automatically; `-ProjectIdentity -StartNewIdentity` provisions a missing one
+  only after explicit approval of the signing transition. Paths in its manifest
+  are relative. The PKCS12 password stays DPAPI-protected for the original
+  Windows account; logs and plaintext passwords are excluded from Git.
+  A different Windows account requires separate recovery, not silent rotation.
+  Both records retain the certificate comparison and `CLEAN_INSTALL` requirement.
+
 - Without an explicit baseline, `verify-signing-continuity.ps1` looks for
   certificate evidence in the current release folder. When recovering a missing
   key, initialization also reads the catalog and stops rotation if current-release

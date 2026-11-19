@@ -101,6 +101,7 @@ public final class BoardSanity extends Instrumentation {
     private ro.atf.chess.capture.FramebufferProjection framebufferProjection;
     private String runId;
     private String puzzleLanguage;
+    private int replayRotation = -1;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -108,6 +109,7 @@ public final class BoardSanity extends Instrumentation {
         runId = arguments.getString("runId", "");
         externalFrames = "true".equals(arguments.getString("externalFrames"));
         puzzleLanguage = arguments.getString("puzzleLanguage", "ro");
+        replayRotation = Integer.parseInt(arguments.getString("replayRotation", "-1"));
         start();
     }
 
@@ -116,7 +118,7 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         if (!runId.isEmpty()) receipt.putString("runId", runId);
         try {
-            if ("source-sized-replay".equals(phase)) checkSourceSizedReplay();
+            if (sourceReplayPhase()) checkSourceSizedReplay();
             else if ("openings".equals(phase)) checkOpenings();
             else if ("game-review".equals(phase)) checkGameReview();
             else if ("game-review-why".equals(phase)) checkReviewExplanation();
@@ -157,7 +159,16 @@ public final class BoardSanity extends Instrumentation {
 
     private void checkSourceSizedReplay() throws Exception {
         enableReviewNodeIds();
+        if (replayRotation >= 0) {
+            if (replayRotation > 1 || !getUiAutomation().setRotation(replayRotation)) {
+                throw new AssertionError("Could not freeze the requested replay rotation");
+            }
+            long deadline = SystemClock.uptimeMillis() + 5000;
+            while (sourceDisplay().getRotation() != replayRotation && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(50);
+            if (sourceDisplay().getRotation() != replayRotation) throw new AssertionError("The physical display did not rotate");
+        }
         replayCapture = displayCaptureGeometry();
+        receipt.putString("replayRotation", Integer.toString(sourceDisplay().getRotation()));
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
             try (var input = new ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand("dumpsys input"));
                  var output = new java.io.ByteArrayOutputStream()) {
@@ -165,7 +176,7 @@ public final class BoardSanity extends Instrumentation {
                 for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
                 framebufferProjection = ro.atf.chess.capture.FramebufferProjection.fromInputDump(
                         output.toString(java.nio.charset.StandardCharsets.UTF_8.name()), replayCapture.logicalWidth(), replayCapture.logicalHeight(),
-                        replayCapture.physicalWidth(), replayCapture.physicalHeight());
+                        replayCapture.physicalWidth(), replayCapture.physicalHeight(), sourceDisplay().getRotation());
                 receipt.putString("framebufferProjection", framebufferProjection.toString());
             }
         }
@@ -232,7 +243,23 @@ public final class BoardSanity extends Instrumentation {
                 List.of(sourceReplayGeometry(puzzle, true), payoffShows(visibleReviewNode(R.id.quest_payoff_move), puzzle, quest.defenseAfter(0))));
         clickReviewIcon(R.id.quest_payoff_close);
         compare("Mating return restores the source rectangle", mateSource, screenBounds(puzzleBoard));
+        if (enlargedReplayPhase()) {
+            tap(puzzle.findViewById(R.id.quest_guidance_label));
+            tap(guidance(puzzle, R.string.why_mate));
+            getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
+            waitForIdleSync();
+            compare("Mating Back restores the source window and board", List.of(mateSource, true),
+                    List.of(screenBounds(puzzleBoard), puzzle.hasWindowFocus() && visibleReviewNode(R.id.quest_payoff_board) == null));
+        }
         closeActivity(puzzle);
+    }
+
+    private boolean sourceReplayPhase() { return "source-sized-replay".equals(phase) || enlargedReplayPhase(); }
+
+    private boolean enlargedReplayPhase() { return "source-sized-replay-enlarged".equals(phase); }
+
+    private android.view.Display sourceDisplay() {
+        return ((WindowManager) getTargetContext().getSystemService(android.content.Context.WINDOW_SERVICE)).getDefaultDisplay();
     }
 
     private void awaitSourceAnalysis(Activity activity) {
@@ -288,6 +315,14 @@ public final class BoardSanity extends Instrumentation {
                 List.of(branchGeometry, sourceReplayGeometry(activity, false), branchStart, sourceReplayStep(), selected));
         clickReviewIcon(R.id.hint_preview_return);
         compare(owner + " return restores the source rectangle", source, screenBounds(findBoard(viewsOf(activity))));
+        if (enlargedReplayPhase()) {
+            tap(activity.findViewById(R.id.match_analysis));
+            getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
+            waitForIdleSync();
+            compare(owner + " Back restores the source window and board", List.of(source, true),
+                    List.of(screenBounds(findBoard(viewsOf(activity))), activity.hasWindowFocus()
+                            && visibleReviewNode(R.id.hint_preview_board) == null));
+        }
     }
 
     private String sourceReplayStep() {
@@ -3575,7 +3610,7 @@ public final class BoardSanity extends Instrumentation {
         if (phase.startsWith("analysis-compact-") || "analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
                 || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
                 || "puzzle-ux".equals(phase) || "active-match-restore".equals(phase) || "pending-bot-restore".equals(phase)
-                || "source-sized-replay".equals(phase) || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
+                || sourceReplayPhase() || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }

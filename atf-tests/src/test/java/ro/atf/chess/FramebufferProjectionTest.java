@@ -34,4 +34,24 @@ class FramebufferProjectionTest {
         check.same("The established portrait mapping is unchanged", "[0, 0, 1080, 1920]",
                 Arrays.toString(portrait.project(0, 0, 720, 1280)));
     }
+
+    @Test void quarterTurnRequiresTheObservedRotationAndUncroppedPhysicalFrame(Checks check) {
+        String rotated = "Viewport: displayId=0, orientation=1, logicalFrame=[0, 0, 1480, 840], "
+                + "physicalFrame=[234, 420, 846, 1500], deviceSize=[1080, 1920]";
+        // A crop with the right aspect ratio must never become a complete display.
+        check.rejects("Centered but incomplete rotated frame fails", IllegalArgumentException.class,
+                () -> FramebufferProjection.fromInputDump(rotated, 1480, 840, 1920, 1080, 1));
+        String full = "Viewport: displayId=0, orientation=1, logicalFrame=[0, 0, 1920, 1080], "
+                + "physicalFrame=[0, 0, 1080, 1920], deviceSize=[1080, 1920]";
+        var projection = FramebufferProjection.fromInputDump(full, 1920, 1080, 1920, 1080, 1);
+        check.same("The physically rotated screenshot retains every pixel", "[0, 0, 1920, 1080]",
+                Arrays.toString(projection.project(0, 0, 1920, 1080)));
+        check.same("An unrotated raster cannot substitute for a quarter turn", false, projection.accepts(1080, 1920));
+        check.rejects("Unobserved rotation cannot be inferred from dimensions", IllegalArgumentException.class,
+                () -> FramebufferProjection.fromInputDump(full, 1920, 1080, 1920, 1080));
+        check.rejects("A requested turn cannot accept a stale viewport", IllegalArgumentException.class,
+                () -> FramebufferProjection.fromInputDump(full.replace("orientation=1", "orientation=0"), 1920, 1080, 1920, 1080, 1));
+        for (int unsupported : new int[]{-1, 2, 3}) check.rejects("Unsupported rotation " + unsupported, IllegalArgumentException.class,
+                () -> FramebufferProjection.fromInputDump(full, 1920, 1080, 1920, 1080, unsupported));
+    }
 }

@@ -234,6 +234,28 @@ rectangle. Pixel checks use that verified rectangle and preserve the original
 PNG. A crop, missing/foreign viewport or unsupported rotation fails closed;
 the older `ScreenCaptureGeometry` aspect-ratio checks remain unchanged.
 
+For enlarged text and physical rotation, build the signed app **and** its
+instrumentation with `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`.
+On a clean emulator use `-Distribution -ReplayEnlargedOnly -SourceCommit <sha>`.
+This retains the three logical profiles and both locales at font 1.3. The
+portrait case is rotation 0; the two landscape cases require observed rotation
+90, with the unrotated display dimensions reversed before freezing rotation.
+Requested settings alone cannot qualify a physical turn.
+
+The enlarged phase retains the twenty geometry/cursor checks and adds Back
+return checks for calculated, theory and mating dialogs. Back must restore the
+source rectangle and input focus to the source window; this does not certify
+TalkBack accessibility focus. All text growth stays within the explanation
+viewport, while board and touch controls remain outside page scrolling.
+The runner restores size, density, font and user rotation settings in `finally`.
+
+Publish with `AndroidSanityPublication#publishSignedSourceReplaySanity` and the
+same receipt directory. It requires a release variant, matching app/test signer
+and installed APK bytes, exact font/rotation/profile markers, twenty-three
+ordered assertions and four bound captures per locale/profile. The separate
+`publishEnlargedSourceReplaySanity` entry point is development-only and cannot
+qualify a signed APK. [Signing identity](../release/README.md#qualification-and-publication).
+
 <details>
 <summary>Shared cases, screens, and receipts</summary>
 
