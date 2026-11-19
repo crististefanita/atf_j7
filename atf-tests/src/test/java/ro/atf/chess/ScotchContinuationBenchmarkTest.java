@@ -8,6 +8,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Tag("benchmark")
 @ExtendWith(ExtentAudit.class)
 class ScotchContinuationBenchmarkTest {
+    @Test void reviewCannotPreferThePawnGrabToTheTeacherWinningCheck(Checks check)throws Exception {
+        var data=ScotchWitnessTest.fixture();var board=ScotchWitnessTest.position(data);var move=ChessPosition.Move.fromUci(data.path("rootPair").path("winning").asText());
+        var review=TacticalAnalysis.review(board,move,java.util.Set.of(),GameReviewPolicy.CURRENT.search);
+        check.same("Review must resolve the winning check before it can mark the actual Re8+ as a blunder",move,review.best().move());
+    }
     @Test void theWinningCheckCannotBeOmittedFromTheRootComparison(Checks check)throws Exception {
         var data=ScotchWitnessTest.fixture();var hint=TacticalAnalysis.verifiedHints(ScotchWitnessTest.position(data));
         var move=ChessPosition.Move.fromUci(data.path("rootPair").path("winning").asText());

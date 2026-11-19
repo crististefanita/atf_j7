@@ -22,19 +22,21 @@ class ScotchWitnessTest {
             var rootFree=rows.get(data.path("rootPair").path("free").path(""+d).asText());var rootForced=rows.get(data.path("rootPair").path("forced").path(""+d).asText());
             check.same("The original root has an independent winning check",data.path("rootPair").path("winning").asText(),rootFree.path("pv").get(0).asText());
             check.same("The root recommendation itself loses a substantial winning margin",true,StockfishStudyAudit.loss(rootFree,rootForced)>150);
+            check.same("The actually played Re8+ has a small independent loss at both depths",true,
+                    StockfishStudyAudit.loss(rootFree,rows.get(data.path("rootPair").path("played").path(""+d).asText()))<50);
         }
     }
     static JsonNode fixture()throws Exception {
         try(var in=ScotchWitnessTest.class.getResourceAsStream("/scotch-continuation-witness.yaml")) {
             var data=LearningGameAudit.mapper().readTree(in);
-            if(!HardLeagueAudit.digest(HardLeagueAudit.canonical(data).getBytes(StandardCharsets.UTF_8)).equals("5ee046834819445030ef48e425b94378be5af8a6f1532de22331f3212e431cd5"))throw new IllegalArgumentException("Changed Scotch witness");
+            if(!HardLeagueAudit.digest(HardLeagueAudit.canonical(data).getBytes(StandardCharsets.UTF_8)).equals("71ed25de1c0f1a26451da637a8dc17ffff09ed6a3f43cbeccb738ad514cb00d3"))throw new IllegalArgumentException("Changed Scotch witness");
             rows(data);return data;
         }
     }
     static Map<String,JsonNode> rows(JsonNode data) {
         var rows=new HashMap<String,JsonNode>();for(var env:data.path("raw")){var r=env.path("body");if(!env.path("digest").asText().equals(HardLeagueAudit.digest(HardLeagueAudit.canonical(r).getBytes(StandardCharsets.UTF_8)))||rows.putIfAbsent(r.path("key").asText(),r)!=null)throw new IllegalArgumentException("Changed or duplicated Scotch phase");}
         for(var q:data.path("plan").path("queries"))StockfishStudyAudit.validate(q.path("query"),data.path("plan").path("identity"),rows.get(q.path("key").asText()));
-        if(rows.size()!=8)throw new IllegalArgumentException("Missing mate or pawn-grab phase");return rows;
+        if(rows.size()!=10)throw new IllegalArgumentException("Missing mate or pawn-grab phase");return rows;
     }
     static ChessPosition position(JsonNode data){var p=ChessPosition.fromFen(data.path("initialFen").asText());for(var m:moves(data.path("history")))p=p.play(m);return p;}
     static List<ChessPosition.Move> moves(JsonNode data){var result=new ArrayList<ChessPosition.Move>();for(var m:data)result.add(new ChessPosition.Move(m.path("from").asInt(),m.path("to").asInt(),m.path("promotion").isNull()?null:ChessPosition.Kind.valueOf(m.path("promotion").asText())));return List.copyOf(result);}
