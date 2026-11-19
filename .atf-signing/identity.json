@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "alias": "chesslab-release",
+  "store": "chesslab-release.p12",
+  "credential": "password.dpapi",
+  "certificateSha256": "e49cc581c12594496e0b2b911aba9a09d04893c661f1ad5316d00377dc8a7772",
+  "previousPublishedCertificateSha256": "4bc8b9639475dbf550b066f74a8493d20c713aed77388d52f7526b227051d247",
+  "cleanInstallRequired": true,
+  "createdUtc": "2026-11-19T10:25:21.3343972Z",
+  "protection": "Windows DPAPI for current user; private directory ACL"
+}

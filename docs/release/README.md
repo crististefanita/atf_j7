@@ -102,6 +102,15 @@ Dot-source scriptul în sesiunea de build pentru a încărca `J7_SIGNING_STORE` 
   [Testele negative](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
   verifică poarta.
 
+  J7 păstrează și înregistrarea criptată cerută explicit în proiect,
+  [`.atf-signing`](../../.atf-signing/README.md). Un director existent este
+  încărcat automat; `-ProjectIdentity -StartNewIdentity` inițializează unul
+  lipsă numai după aprobarea explicită a schimbării certificatului. Căile din
+  manifest sunt relative. Parola PKCS12 rămâne protejată prin DPAPI pentru
+  contul Windows original; logurile și parolele în clar sunt excluse din Git.
+  Alt cont Windows cere recuperare separată, fără rotație implicită.
+  Ambele forme păstrează comparația certificatelor și cerința `CLEAN_INSTALL`.
+
 - Fără un baseline explicit, `verify-signing-continuity.ps1` caută dovada
   certificatului în dosarul ediției curente. La recuperarea unei chei absente,
   inițializarea citește și ea catalogul și oprește rotația dacă dovada ediției curente lipsește.

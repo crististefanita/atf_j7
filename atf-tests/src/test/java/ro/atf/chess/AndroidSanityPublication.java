@@ -114,6 +114,10 @@ class AndroidSanityPublication {
 
     private record Frame(String file, String title) { }
     static final List<String> SOURCE_REPLAY_CHECKS = sourceReplayChecks();
+    static final List<String> SIGNED_SOURCE_REPLAY_CHECKS = SOURCE_REPLAY_CHECKS.stream().flatMap(label -> {
+        if (!label.endsWith("return restores the source rectangle")) return java.util.stream.Stream.of(label);
+        return java.util.stream.Stream.of(label, label.substring(0, label.indexOf(' ')) + " Back restores the source window and board");
+    }).toList();
 
     private static List<String> sourceReplayChecks() {
         var checks = new ArrayList<String>();
@@ -135,45 +139,75 @@ class AndroidSanityPublication {
     }
 
     static PhaseEvidence readSourceReplayPhase(Path receipt, String profile, String locale) throws IOException {
-        var evidence = readPhase(receipt, "source-sized-replay", SOURCE_REPLAY_CHECKS.size(), SOURCE_REPLAY_CHECKS, null);
+        return readSourceReplayPhase(receipt, profile, locale, false);
+    }
+
+    static PhaseEvidence readSourceReplayPhase(Path receipt, String profile, String locale, boolean signed) throws IOException {
+        var required = signed ? SIGNED_SOURCE_REPLAY_CHECKS : SOURCE_REPLAY_CHECKS;
+        var evidence = readPhase(receipt, signed ? "source-sized-replay-enlarged" : "source-sized-replay", required.size(), required, null);
         var markers = Files.isRegularFile(receipt) ? Files.readAllLines(receipt) : List.<String>of();
         var observed = markerValues(markers, "INSTRUMENTATION_RESULT: replayProfile=");
-        String nativeSize = switch (profile) {
-            case "360x640" -> "720x1280@320";
-            case "740x420" -> "1480x840@320";
-            case "1280x900" -> "1920x1350@240";
-            default -> throw new IllegalArgumentException("Unknown logical replay profile: " + profile);
-        };
-        var expected = List.of(nativeSize + ", font=1.0, language=" + locale);
-        if (observed.equals(expected)) return evidence;
+        var display = ro.atf.chess.capture.ReplayViewportProfile.of(profile, signed);
+        var expected = List.of(display.marker(locale));
+        var rotation = markerValues(markers, "INSTRUMENTATION_RESULT: replayRotation=");
+        boolean rotated = !signed || rotation.equals(List.of(Integer.toString(display.rotation())));
+        if (observed.equals(expected) && rotated) return evidence;
         var rows = new ArrayList<>(evidence.rows());
-        rows.add(new AtfAssertion("Native source-sized profile", expected.toString(), observed.toString(), false));
+        rows.add(new AtfAssertion("Native source-sized profile", expected + (signed ? " rotation=" + display.rotation() : ""),
+                observed + (signed ? " rotation=" + rotation : ""), false));
         return new PhaseEvidence(evidence.pid(), rows, false);
     }
 
     @Test void publishSourceReplaySanity() throws Exception {
+        publishSourceReplaySanity(false, false);
+    }
+
+    @Test void publishSignedSourceReplaySanity() throws Exception {
+        publishSourceReplaySanity(true, true);
+    }
+
+    @Test void publishEnlargedSourceReplaySanity() throws Exception {
+        publishSourceReplaySanity(true, false);
+    }
+
+    private void publishSourceReplaySanity(boolean enlarged, boolean signed) throws Exception {
         Path root = Path.of(System.getProperty("chess.android.receipt"));
+        String scope = enlarged ? "source-sized-replay-enlarged" : "source-sized-replay";
+        var required = enlarged ? SIGNED_SOURCE_REPLAY_CHECKS : SOURCE_REPLAY_CHECKS;
         var runs = new ArrayList<BoundRun>();
         for (String profile : List.of("360x640", "740x420", "1280x900")) for (String locale : List.of("en", "ro")) {
-            Path receipt = root.resolve(profile + "-" + locale).resolve("source-sized-replay.txt");
-            var run = boundRun("source-sized-replay", "THEN source-sized replay fits " + profile + " in " + locale,
-                    receipt, SOURCE_REPLAY_CHECKS.size(), SOURCE_REPLAY_CHECKS, "source-sized replay", List.of(
+            Path receipt = root.resolve(profile + "-" + locale).resolve(scope + ".txt");
+            var run = boundRun(scope, "THEN source-sized replay fits " + profile + " in " + locale,
+                    receipt, required.size(), required, "source-sized replay", List.of(
                             new Frame("source-ai.png", "AI hint with fixed source board"),
                             new Frame("source-calculated.png", "Calculated line"), new Frame("source-theory.png", "Analysis hint"),
                             new Frame("source-mating.png", "Mating line")));
-            var evidence = readSourceReplayPhase(receipt, profile, locale);
+            var evidence = readSourceReplayPhase(receipt, profile, locale, enlarged);
             var identity = new ArrayList<>(run.identity());
             identity.add(new ReportField("Logical profile", profile + " dp · " + locale));
             identity.add(new ReportField("Native profile", markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: replayProfile=").toString()));
+            identity.add(new ReportField("Physical rotation", markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: replayRotation=").toString()));
+            identity.add(new ReportField("Qualification scope", signed ? "Signed release APK with matching instrumentation signer and installed bytes"
+                    : "Development sanity only; not a signed release qualification"));
             identity.add(new ReportField("Timing scope", "Report durations measure receipt validation/publication; native action latency was not measured by this probe."));
             var projection = markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: framebufferProjection=");
             if (projection.size() > 1 || run.execution().path("api").asText().equals("28") && projection.size() != 1) identity.clear();
             if (!identity.isEmpty() && !projection.isEmpty()) identity.add(new ReportField("Verified compositor projection", projection.toString()));
             if (run.identity().isEmpty()) identity.clear();
+            if (signed && !signedSourceIdentity(run.execution())) identity.clear();
             runs.add(new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), identity, run.frames(), run.nativeMarkers()));
         }
-        publishNativeRuns("source-sized-replay", "Keep source-sized native boards and fixed controls across replay navigation",
-                Path.of(System.getProperty("chess.extent", root.resolve("android-source-sized-replay.html").toString())), runs, null, true);
+        publishNativeRuns(scope, "Keep source-sized native boards and fixed controls across replay navigation",
+                Path.of(System.getProperty("chess.extent", root.resolve("android-" + scope + ".html").toString())), runs, null, true);
+    }
+
+    static boolean signedSourceIdentity(JsonNode execution) {
+        String certificate = execution.path("signingCertificateSha256").asText();
+        return execution.path("variant").asText().equals("release") && certificate.matches("[a-f0-9]{64}")
+                && execution.path("apkSha256").asText().matches("[a-f0-9]{64}")
+                && execution.path("sourceCommit").asText().matches("[a-f0-9]{40}")
+                && execution.path("testCertificateSha256").asText().equals(certificate)
+                && execution.path("installedApkSha256").asText().equals(execution.path("apkSha256").asText());
     }
 
     private record MenuCheckpoint(String action, String assertion, String frame) { }

@@ -3,21 +3,23 @@
 param(
     [string]$DataRoot = 'C:\work\chess_back',
     [string]$JavaHome = 'C:\tools\Java21\jdk-21.0.12.1+1',
+    [switch]$ProjectIdentity,
     [switch]$StartNewIdentity
 )
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
+$ProjectIdentity = $ProjectIdentity -or (Test-Path -LiteralPath (Join-Path $projectRoot '.atf-signing') -PathType Container)
 $dataRoot = [IO.Path]::GetFullPath($DataRoot)
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')
-if ($dataRoot.Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase) -or
+if (!$ProjectIdentity -and ($dataRoot.Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase) -or
     $dataRoot.StartsWith($projectRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or
     $dataRoot.Equals($tempRoot, [StringComparison]::OrdinalIgnoreCase) -or
-    $dataRoot.StartsWith($tempRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+    $dataRoot.StartsWith($tempRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase))) {
     throw 'Signing data must stay outside the source checkout and the operating-system temporary directory.'
 }
 
-$directory = Join-Path $dataRoot 'infrastructure/signing'
+$directory = if ($ProjectIdentity) { Join-Path $projectRoot '.atf-signing' } else { Join-Path $dataRoot 'infrastructure/signing' }
 $store = Join-Path $directory 'chesslab-release.p12'
 $credential = Join-Path $directory 'password.dpapi'
 $identity = Join-Path $directory 'identity.json'
@@ -76,8 +78,8 @@ if ($present.Count -eq 0) {
         $record = [ordered]@{
             schemaVersion = 1
             alias = 'chesslab-release'
-            store = $store
-            credential = $credential
+            store = if ($ProjectIdentity) { 'chesslab-release.p12' } else { $store }
+            credential = if ($ProjectIdentity) { 'password.dpapi' } else { $credential }
             certificateSha256 = (Get-FileHash -LiteralPath $certificate -Algorithm SHA256).Hash.ToLowerInvariant()
             previousPublishedCertificateSha256 = $previousFingerprint
             cleanInstallRequired = [bool]$previousFingerprint
@@ -93,7 +95,9 @@ if ($present.Count -eq 0) {
     }
 } else {
     $record = Get-Content -Raw -LiteralPath $identity | ConvertFrom-Json
-    if ($record.alias -ne 'chesslab-release' -or $record.store -ne $store -or $record.credential -ne $credential -or
+    $recordStore = if ([IO.Path]::IsPathRooted($record.store)) { $record.store } else { Join-Path $directory $record.store }
+    $recordCredential = if ([IO.Path]::IsPathRooted($record.credential)) { $record.credential } else { Join-Path $directory $record.credential }
+    if ($record.alias -ne 'chesslab-release' -or $recordStore -ne $store -or $recordCredential -ne $credential -or
         $record.certificateSha256 -ne (Get-FileHash -LiteralPath $certificate -Algorithm SHA256).Hash.ToLowerInvariant()) {
         throw 'Existing J7 signing identity does not match its certificate manifest.'
     }
