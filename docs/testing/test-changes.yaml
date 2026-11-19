@@ -1250,8 +1250,8 @@ testChanges:
     contract: "Preserve all existing archive and hypothetical-ply checks; add a separate native quality verdict with portable source-bound oracle witnesses, leaving unresolved quality failures visible"
     allowDelete: false
 
-  - id: J7-HINT-CENTER-RO
-    base: "bb640e7f49aca39865cecd327e0e0cfc552a6487"
+  - id: J7-HINT-CENTER-EN
+    base: "48292c53df6ba51a9158633c8cf7bdd372fc3e48"
     from: atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java
     test: ro.atf.chess.HintArrowTest#webSvgAndReviewCanvasKeepTheNativeGeometry
@@ -1320,4 +1320,68 @@ testChanges:
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
     contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-EN-HintFrontierTest
+    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-EN-HintPinSupportTest
+    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-EN-HintCandidateCoverageTest
+    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-EN-AiOpeningRegressionTest
+    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    from: atf-tests/src/test/java/ro/atf/chess/AiOpeningRegressionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-RO-HintFrontierTest
+    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    from: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-RO-HintPinSupportTest
+    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-RO-HintCandidateCoverageTest
+    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    from: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-RO-AiOpeningRegressionTest
+    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    from: atf-tests/src/test/java/ro/atf/chess/AiOpeningRegressionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
     allowDelete: false

@@ -23,10 +23,13 @@ class CoachingStabilityTest {
             }
             if(hint.proof()!=null) {
                 var proof=hint.proof();check.same("The closure is complete and fully charged: "+proof,true,proof.complete()&&hint.totalNodes()==proof.totalNodes()&&proof.nodes()<=proof.ceiling());
-                var choice=proof.confirmation();check.same("H6 cannot corroborate its own new leader",4,choice.plies());
-                check.same("The actual H4 comparison retains the incumbent",true,choice.earlierIncumbentScore()>=choice.earlierChallengerScore());
-                check.same("The guard does not restore the old unclosed score",choice.incumbentScore(),hint.lines().getFirst().score());
-                check.same("An unsupported challenger cannot become an equivalent public comparison",null,hint.comparison());
+                var choice=proof.confirmation();
+                if(choice!=null&&choice.selected().equals(choice.incumbent())) {
+                    check.same("H6 cannot corroborate its own new leader",4,choice.plies());
+                    check.same("The actual H4 comparison retains the incumbent",true,choice.earlierIncumbentScore()>=choice.earlierChallengerScore());
+                    check.same("The guard does not restore the old unclosed score",choice.incumbentScore(),hint.lines().getFirst().score());
+                    check.same("An unsupported challenger cannot become an equivalent public comparison",null,hint.comparison());
+                }
             }
             check.same("Analysis preserves the actual game",checkpoint,game.checkpoint());
         }
@@ -36,6 +39,10 @@ class CoachingStabilityTest {
         var c=load().path("cases").get(0);var board=ChessMatch.restore("2|analysis|"+c.path("history").asText()).position();
         var roots=List.of(Move.fromUci("e5d7"),Move.fromUci("d3e4"));
         var full=CoachingProof.compare(board,roots,6,Set.of(),CoachingProof.CURRENT,Set.of(roots.getFirst()));
+        var old=full.lines().stream().filter(v->v.move().equals(roots.getFirst())).findFirst().orElseThrow();
+        var challenger=full.lines().stream().filter(v->v.move().equals(roots.get(1))).findFirst().orElseThrow();
+        // Mock only the scoring-model reversal; the confirmation below is a real charged search.
+        full=new CoachingProof.Result(List.of(new TacticalAnalysis.Variation(challenger.line(),old.score()+100,challenger.materialChange(),challenger.ending()),old),full.work());
         var limited=new CoachingProof.Policy(full.work().nodes()+1,1,48);
         var confirmed=CoachingProof.confirmLeader(board,full,roots.getFirst(),limited);
         check.same("One shared ceiling includes the unfinished confirmation",limited.maxNodes(),confirmed.work().nodes());

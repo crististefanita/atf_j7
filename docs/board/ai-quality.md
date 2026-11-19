@@ -1178,7 +1178,7 @@ contractul. Căutarea adversarului nativ și politicile Basic/Advanced nu folose
 
 [coaching-proof.yaml](../../chess-core/src/main/resources/coaching-proof.yaml) configurează
 rezerva maximă, pasul de alocare și limita de siguranță a șirului forțat. Rezerva implicită
-este de un milion de noduri, alocate la nevoie în pași de 25.000. Se adaugă alocației
+este de cinci milioane de noduri, alocate la nevoie în pași de 25.000. Se adaugă alocației
 obișnuite a indiciului de 200k sau celei configurate pentru analiză. `extraNodes` rămâne
 lucrul obișnuit; `proof.nodes`, `proof.ordinaryNodes` și `totalNodes` arată explicit suma.
 Nu descrie decizia completă de coaching ca fiind plafonată la 200k.
@@ -1189,18 +1189,26 @@ Fiecare rădăcină comparată folosește același orizont obișnuit complet și
 forțată. Indiciile păstrează domeniul rădăcinilor oferite/comparate; analiza compară toate
 mutările legale și evaluează integral mutarea jucată. Rădăcinile necompetitive pot primi
 limite superioare, însă numai liniile exacte intră în clasamentul întors. Primele două
-valori rămân exacte. La frontieră, capturile și promovările continuă fără vechiul prag de
-una/două semimutări; în șah se caută toate evadările legale, fără evaluare statică pe loc.
+valori rămân exacte. La frontieră se păstrează alocația tactică inițială: două semimutări
+pentru indicii, una pentru analiză. Apoi recapturile legale pe ultima casetă și evadările
+obligatorii continuă până la încheiere, fără oprire după una/două replici. Recepția separă
+alocația inițială. În șah se caută toate evadările legale, fără evaluare statică pe loc.
 Șahurile liniștite opționale dincolo de orizontul obișnuit nu sunt o promisiune a acestei
 căutări de liniștire. [Referința din amonte](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp)
 descrie aceeași distincție între capturi și evadările obligatorii.
 
-Un lider nou al indiciului cere și sprijin la orizontul par complet anterior, plătit din
-aceeași rezervă. Altfel, rădăcina stabilită păstrează linia și scorul nou calculate,
+Un lider nou al indiciului cere un câștig peste pragul existent de echivalență de 25cp și
+sprijin la orizontul par complet anterior, plătit din aceeași rezervă. Recepția salvează
+pragul efectiv; restaurarea nu îl reinterpretează folosind o configurație ulterioară.
+Altfel, rădăcina stabilită păstrează linia și scorul nou calculate,
 închise; vechiul PV neîncheiat nu este restaurat. Recepția păstrează ambele scoruri,
 comparația anterioară și rădăcina aleasă. Un challenger nesusținut nu este prezentat ca
 echivalent. Protecția păstrează un martor independent în care modelul forțat fără gardă
 prefera `Bxe4` în loc de `Nxd7` și pierdea 335/243,5‰ WDL.
+Alt martor rece H17/H19 respinge inversarea mică din Siciliană de la `…Nbd7` la `…Nc6`:
+ultima pierde 302,5/358‰ față de alegerea liberă a profesorului. Nu se inventează un bonus
+de centipioni pentru apărarea stabilită. Comparația explicită reutilizează aceeași dovadă
+publică sau omite perechea contradictorie. Vechiul fixture de egalitate exactă este depășit.
 
 Dovada separă rezultatele COMPLETE, NODE_LIMIT și FORCING_LIMIT. Adâncimea obișnuită
 rămâne distinctă de extensia forțată. Un plafon sau o confirmare neîncheiată nu întorc
@@ -1219,6 +1227,11 @@ continue, pragul exact de noduri, legături, en passant, evadări, anulare, publ
 restart și compatibilitate v1. [Controalele profesorului rece](../../atf-tests/src/test/java/ro/atf/chess/CoachingProofOracleTest.java)
 păstrează recepțiile Stockfish H17/H19, matul cu sacrificiu corect de damă și contraexemplul
 promovării cu pat. [Controalele de stabilitate](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
-păstrează ambele orizonturi și negativul confirmării întrerupte. Completarea certifică
+păstrează ambele orizonturi și negativul confirmării întrerupte.
+[Controalele domeniului](../../atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java) păstrează
+12 faze reci suplimentare, ieșirea reală din deschidere care cere 1.037.401 noduri de rezervă,
+eligibilitatea indiciilor și valorile reale ale remizelor. O frontieră închisă poate schimba
+scorurile numerice; testele verifică dovada nouă evaluată, fără valoarea veche optimistă.
+Completarea certifică
 domeniul declarat al căutării, nu șah optim sau creștere Elo. Feedback-ul apărării liniștite
 franceze și al calibrării analizei rămâne deschis.

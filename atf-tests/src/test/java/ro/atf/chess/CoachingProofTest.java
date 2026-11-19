@@ -201,10 +201,14 @@ class CoachingProofTest {
 
     private static Move m(String uci){return Move.fromUci(uci);}
     private static int reference(ChessPosition board,int left,int distance,int forcing) {
+        return reference(board,left,distance,forcing,-1);
+    }
+    private static int reference(ChessPosition board,int left,int distance,int forcing,int target) {
         var legal=board.legalMoves();if(legal.isEmpty())return board.isCheck()?distance-100000:0;
         if(left==0&&forcing==0)throw new AssertionError("Independent test horizon did not settle");
         boolean check=board.isCheck();var moves=left==0&&!check?board.legalCapturesAndPromotions():legal;
+        if(left==0&&!check&&forcing<=10)moves=moves.stream().filter(m->m.to()==target&&MatchMaterial.victim(board,m)!=null).toList();
         int best=left==0&&!check?TacticalAnalysis.positionValue(board,board.turn()):-100001;
-        for(var m:moves)best=Math.max(best,-reference(board.play(m),Math.max(0,left-1),distance+1,left==0?forcing-1:forcing));return best;
+        for(var m:moves)best=Math.max(best,-reference(board.play(m),Math.max(0,left-1),distance+1,left==0?forcing-1:forcing,m.to()));return best;
     }
 }

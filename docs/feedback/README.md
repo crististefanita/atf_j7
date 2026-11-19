@@ -460,7 +460,7 @@ evaluată. Mock-urile acoperă lucrul întrerupt, rulările străine și fazele 
 deciziile șahistice păstrează dovada independentă Stockfish H17/H19. Separarea UI
 rămâne deschisă până trec contractele dovezii și prezentării.
 
-Rezerva din motor închide acum frontiera deschisă prin capturi continue și evadări
+Rezerva din motor închide acum frontiera deschisă prin recapturi continue și evadări
 obligatorii taxate, respingând rezultatele incomplete ale indiciului/analizei. Vezi
 [contractul implementării](../board/ai-quality.md#frontiera-dinamică-de-coaching). Separă
 lucrările rămase:
@@ -475,6 +475,14 @@ lucrările rămase:
   să nu publice scor dacă aceasta se întrerupe.
 - Cache-urile v1 rămân lizibile, fără recepția forțată nouă. Distinge analiza istorică
   de evaluatorul nou calificat când revizitezi rezultate vechi păstrate în cache.
+
+Plafonul YAML de cinci milioane de noduri crește în pași de 25k. O ieșire normală din
+teoria Italianei cere 1.037.401 noduri de rezervă; negativul cu buget mic trebuie să rămână
+incomplet, fără restaurarea scorului inițial. Păstrează auditabile pragul de schimbare a
+liderului de 25cp și verificarea orizontului par anterior. Inversarea siciliană `…Nc6` era
+independent mai slabă decât `…Nbd7` la ambele adâncimi ale profesorului; o egalitate de scor
+inventată nu este o corecție. Becul, destinația și comparația explicită folosesc aceeași
+decizie calificată a dovezii.
 
 Nu deduce Elo sau transfer independent larg din controalele forțate compuse. Partidele
 noi complete cer în continuare hint maxim înaintea fiecărei mutări, analiză finală și
