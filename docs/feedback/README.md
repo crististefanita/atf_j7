@@ -453,10 +453,13 @@ and mandatory evasions, and rejects incomplete hint/review results. See the
 [implementation contract](../board/ai-quality.md#dynamic-coaching-frontier). Keep these
 remaining items distinct:
 
+The two French defects are repaired by the charged two-horizon free-counterplay comparison:
+`Nc4` replaces `Bb5+` in both coaches, with H17/H19 loss below 50‰ and the original
+quality goals moved into the regular component suite. [Counterplay components](../../atf-tests/src/test/java/ro/atf/chess/FrenchCoachingTest.java)
+retain both colors, all four scored PVs, one-node-short negatives and cache v1/v2/v3 compatibility.
+
 - The preview still shows the full scored proof; a shorter visible prefix and an explicit
   verification-suffix view need their own presentation and restart tests.
-- French `Bb5+` and the weak quiet defense remain quality failures. Continuous recaptures
-  alone do not repair a quiet defense beyond the ordinary horizon; keep both benchmark FAILs.
 - Preserve the equal-turn guard: the first unguarded prototype switched the independently
   qualified `Nxd7` to `Bxe4`, increasing loss from 43.5/8 to 335/243.5‰ at H17/H19.
   The final guard must retain the actually closed incumbent score, charge its confirmation,
@@ -473,10 +476,10 @@ destination and explicit comparison now share that qualified proof decision.
 Review also retains its incumbent on an actual exact-score tie. The English replay's
 `Nf3`/`e4` tie is +21 after closure, not the old +651. Keep its six teacher phases and
 component negative: lexical ordering alone produced an independently worse recommendation.
-The final 106-position replay activates reserve in 44 hints and 66 reviews, with no
+The preceding qualification's 106-position replay activates reserve in 44 hints and 66 reviews, with no
 incomplete result. Its 43 changed root recommendations have 252 H17/H19 phases. No new
 loss reaches 150‰; the largest increases are 73.5/54‰. These smaller regressions remain
-calibration debt, alongside the two French benchmark failures. A closed tactical frontier
+calibration debt. These historical counts do not qualify a later evaluator. A closed tactical frontier
 does not certify globally optimal play or replace a fresh complete-game Elo measurement.
 
 Do not infer Elo or broad independent transfer from the composed forcing controls.

@@ -1148,7 +1148,7 @@ a local exchange test, not a claim that every other tactical move is exhausted.
 The frame comparison reuses known opening ancestry and is not an independent league.
 Two smaller French changes include an H19 deterioration of 2.5‰; do not describe the
 result as uniformly better. The final component suite has 473 passes and four
-explicit skips. Both separate French coaching quality goals still fail.
+explicit skips. The subsequent coaching repair below closes the two French quality goals.
 
 [French components and quality goals](../../atf-tests/src/test/java/ro/atf/chess/FrenchRecaptureTest.java)
 retain the original histories, material ledgers, both colors, actual interrupted
@@ -1159,9 +1159,9 @@ ordering, horizon and mate-distance ownership. [Portable cold evidence](../../at
 contains 32 raw phases and the regression discovered during this study. It is not a
 runtime opening book or a learned FEN override.
 
-The public hint and Game Review keep their independent policies. They still need
-their own repair: the hint can use weak `…Nd7`, and review can call `Bb5+` BEST.
-Their executable benchmark goals remain separate failures. Dynamic frontier verification
+The public hint and Game Review keep their independent ordinary policies. The short-check
+counterplay repair below replaces weak `…Nd7` and stops grading `Bb5+` BEST. The former
+benchmark goals now run in the regular component suite. Dynamic frontier verification
 is implemented below. A shorter visible prefix with a separately browsable hidden proof
 remains [presentation work](../feedback/README.md#tactical-proof-and-displayed-lines).
 
@@ -1215,8 +1215,8 @@ any grades or graph. Cancellation propagates without a partial value cache. Ther
 transposition-value reuse across proof modes or histories. Repetition is checked on the
 actual explored path; position-only hints do not invent preexisting match history.
 
-The complete legal PV and work receipt remain available to audit. Review cache v2 retains
-them across restart and rejects a receipt for another position. Legacy v1 remains readable
+The complete legal PV and work receipt remain available to audit. Review cache v3 retains
+them across restart and rejects a receipt for another position. Legacy v1/v2 remain readable
 with no fabricated proof. Native adapters distinguish incomplete verification from game
 over and never save a partially generated review.
 
@@ -1235,5 +1235,30 @@ artifact. Lexical root ordering must not switch to `e4`: cold H17/H19 gives that
 restoring the old score.
 [Stability controls](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
 retain both horizons and the interrupted-confirmation negative. Completion certifies the
-declared search scope, not optimal chess or an Elo improvement. The French quiet-defense
-and review-calibration feedback remains open.
+declared search scope, not optimal chess or an Elo improvement.
+
+## Free counterplay after a short checking line
+
+[FrenchCoachingTest](../../atf-tests/src/test/java/ro/atf/chess/FrenchCoachingTest.java) protects
+`Bb5+` versus `Nc4`, both colors, missing-node negatives, real v2 cache bytes and fresh
+Stockfish H17/H19 phases. No opening name, FEN or prescribed defense enters the runtime rule.
+
+The hint already completed a deeper comparison but used the old H4 veto after the checking
+incumbent lost material. It now pays for a free-reply H5 comparison and, only when that
+shows at least a minor-for-pawn loss and more than the existing 25cp gain, a free-reply H6
+confirmation. Review scouts the short checking leader at H5; ordinary cases still use
+the equal-turn guard. The candidate must survive H6 within the existing equivalence
+window. Both complete searches share the existing finite reserve; interruption publishes
+no final hint or review score. Every legal defense remains available, including quiet moves.
+
+`Counterplay` retains all four scored PVs, both material ledgers, selected root and actual
+thresholds. The repair does not restore an old score, add compensation or globally remove
+the stability veto. The witness hint selects `Nc4` at −17cp, H6, with 272,932 additional
+proof nodes beyond its 200k ordinary work. Review compares every legal root, retains the
+stable knight candidate within 25cp and classifies the played bishop check using its
+actually refuted line. Independent teacher loss falls from 475.5/453‰ to 5.5/5.5‰.
+
+Review cache v3 persists counterplay evidence and still reads v1/v2. Missing optional
+counterplay fields stay absent in historical JSON, preserving original receipt digests.
+Complete-game learning continues to require a maximum ordinary hint before every move,
+a complete final review and independent teacher grading. One diagnostic game is not Elo.
