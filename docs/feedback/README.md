@@ -470,6 +470,9 @@ without restoring the seed score. Keep the 25cp leader-change threshold and the 
 even-horizon check auditable. The Sicilian `…Nc6` reversal was independently worse than
 `…Nbd7` at both teacher depths; no fabricated score tie is an acceptable fix. The bulb,
 destination and explicit comparison now share that qualified proof decision.
+Review also retains its incumbent on an actual exact-score tie. The English replay's
+`Nf3`/`e4` tie is +21 after closure, not the old +651. Keep its six teacher phases and
+component negative: lexical ordering alone produced an independently worse recommendation.
 
 Do not infer Elo or broad independent transfer from the composed forcing controls.
 Fresh complete games still need every pre-move maximum hint, post-game review and cold

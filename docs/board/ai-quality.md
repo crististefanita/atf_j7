@@ -1228,6 +1228,11 @@ retain Stockfish H17/H19 receipts, sound queen mate and the promotion-stalemate 
 12 additional cold phases, the real opening requiring 1,037,401 reserve nodes, original
 hint eligibility and actual draw values. A newly resolved frontier may change numerical
 scores; tests compare the new scored proof instead of preserving an optimistic old value.
+Review preserves its established recommendation on an actual exact-score tie. The English
+replay exposed `Nf3` and `e4` both at +21 after closure, replacing the old +651 horizon
+artifact. Lexical root ordering must not switch to `e4`: cold H17/H19 gives that switch
+160/111.5‰ more loss. Six retained raw phases and a component guard the tie without
+restoring the old score.
 [Stability controls](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
 retain both horizons and the interrupted-confirmation negative. Completion certifies the
 declared search scope, not optimal chess or an Elo improvement. The French quiet-defense
