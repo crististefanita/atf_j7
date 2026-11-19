@@ -8,6 +8,8 @@ Choose the lowest test level that can observe the change. Build from a copy of t
 - [Android sanity](#android-sanity) and [Web parity](#web-engine-parity) cover rendering, lifecycle, and real assistive technology when needed.
 - [Extent evidence](#extent-reporting) ties assertions to the run. [Qualification](../release/README.md#qualification-and-publication) governs promotion.
 
+Opening variety is governed by [OpeningVarietyTest](../../atf-tests/src/test/java/ro/atf/chess/OpeningVarietyTest.java): complete authored-pool coverage, native decisions for all levels, atomic persistence failures, legacy checkpoints, history and slot replacement. The same-position hint and final review must remain identical across game choices. A new audited game measures transfer quality separately from these deterministic component contracts.
+
 ## Choosing the Test Level
 
 - **Component** for rules, progress, persistence, ordering, and measurable layout. Use the real store with in-memory preferences and assert observable values.

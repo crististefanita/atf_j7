@@ -31,6 +31,7 @@ final class OpeningTheory {
     }
 
     private final Map<SearchKey, List<Theory>> byPosition;
+    private final Map<SearchKey, List<Move>> playMoves;
 
     private OpeningTheory(List<OpeningCatalog.Opening> lessons, List<OpeningIndex.BookLine> book) {
         var authored = new HashMap<SearchKey, Map<List<Move>, Theory>>();
@@ -43,6 +44,12 @@ final class OpeningTheory {
                         .putIfAbsent(moves, new Theory(lesson.eco(), lesson.title(), lesson.variation(), steps));
             }
         }
+        // Distinct authored moves govern play, independently of the hint display limit.
+        // Shared lesson prefixes must not weight the same move more than once.
+        var playing = new HashMap<SearchKey, List<Move>>();
+        authored.forEach((key, paths) -> playing.put(key, paths.values().stream()
+                .map(path -> path.steps().get(0).move()).distinct().collect(Collectors.toUnmodifiableList())));
+        playMoves = Map.copyOf(playing);
         // Apply the display limit per position, after indexing every documented lesson.
         var choices = new HashMap<SearchKey, List<Theory>>();
         authored.forEach((key, paths) -> choices.put(key, paths.values().stream().limit(MAX_PATHS)
@@ -57,6 +64,10 @@ final class OpeningTheory {
 
     List<Theory> choices(ChessPosition position) {
         return byPosition.getOrDefault(position.searchKey(), List.of());
+    }
+
+    List<Move> playMoves(ChessPosition position) {
+        return playMoves.getOrDefault(position.searchKey(), List.of());
     }
 
     private static Map<SearchKey, Map<Move, Reference>> references(List<OpeningIndex.BookLine> book) {

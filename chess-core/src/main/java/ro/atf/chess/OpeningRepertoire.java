@@ -28,10 +28,17 @@ final class OpeningRepertoire {
 
     /** Live play follows documented theory; coaching still compares positions through search. */
     Move playReply(ChessPosition position, Level level) {
+        return playReply(position, level, 0);
+    }
+
+    Move playReply(ChessPosition position, Level level, long openingChoice) {
+        if (openingChoice < 0) throw new IllegalArgumentException("Negative opening choice");
         var verified = reply(position, level);
         if (verified != null) return verified;
         if (entries.stream().anyMatch(entry -> entry.reviewOnly() && entry.levels().contains(level)
                 && entry.position().sameForRepetition(position))) return null;
+        var moves = OpeningTheory.CURRENT.playMoves(position);
+        if (openingChoice > 0 && !moves.isEmpty()) return moves.get((int) ((openingChoice - 1) % moves.size()));
         var paths = OpeningTheory.CURRENT.choices(position);
         return paths.isEmpty() ? null : paths.get(0).move();
     }

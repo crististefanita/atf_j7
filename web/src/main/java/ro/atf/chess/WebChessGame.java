@@ -38,7 +38,7 @@ final class WebChessGame {
         if (newMode != null) {
             GameOrigin choice = GameOrigin.valueOf(newMode);
             var match = choice == GameOrigin.LOCAL ? ChessMatch.start()
-                    : ChessMatch.start(new MatchSetup(ColorChoice.valueOf(colorChoice).resolve(WebChessGame::randomBlack),
+                    : matches().prepareAiMatch(new MatchSetup(ColorChoice.valueOf(colorChoice).resolve(WebChessGame::randomBlack),
                             Level.valueOf(level), analysis));
             return startMatch(match, choice);
         }
