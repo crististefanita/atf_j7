@@ -23,7 +23,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
 | P1 | Native Hard · finished-game losses | Scandinavian `g4` is protected by the new `Ne4` regression; French `Nc4` is now protected by complete H6 recapture evidence; English `…Qf6` and Queen's Gambit `…Qa5` remain. | Compare complete free replies at a common horizon; preserve the catalog, sound sacrifices and Basic/Advanced before promotion. [Next work](#finished-game-native-losses-and-frontier-controls) |
 | P2 | Tactical frontier · check at the limit | A checked frontier may still stop without a legal evasion; the broad extension fails 13 existing contracts. | Resolve the precise cause within one charged allowance; keep the explicit benchmark failures until quality and transfer pass. |
-| P1 | Coaching · hidden recapture proof | A displayed line may stop before its capture is answered; requested verification must not silently borrow an unscored reply. | Search legal recaptures inside the same allowance, retain the complete scored proof separately from the shorter visible line and govern interruption, pins, sound sacrifices and restart. [Contract](#tactical-proof-and-displayed-lines) |
+| P1 | Coaching · hidden recapture proof | Engine-side forcing verification and its work receipt are implemented; the visible preview still shows the complete scored line. | Project a shorter visible prefix while retaining the complete scored proof, shared recommendation and restart identity. Do not hide decisive replies. [Contract](#tactical-proof-and-displayed-lines) |
 | P1 | French coaching · hint and review | Native Hard now chooses the verified knight move, but the public hint still prefers `Bb5+` and review can call it BEST. | Close the complete opposing continuation and the review score at their own budgets; both executable quality goals must pass without changing history. [Native repair and scope](../board/ai-quality.md#closing-a-pawn-recapture-at-the-completed-horizon) |
 | P1 | AI profile calibration | The Elo intervals still overlap. | Add paired games to narrow the rating uncertainty. |
 | P1 | Hard adaptive strength | Foreground search uses 100,000 nodes and a reserve to 200,000. | Compare the three modes on held-out games and verify the opposing reply. |
@@ -441,32 +441,44 @@ alternatives; preserve pins, en passant, promotion, mate and the sound queen off
 The French `Nxf5 …exf5` witness is exactly a piece-for-pawn capture followed by a pawn
 recapture. Preserve its SAN and both material ledgers; do not misclassify `Nxf5` as a quiet move.
 
-First implement engine-side proof ownership and negative component cases, then
-project the visible prefix without mutating the underlying proof or saved history.
+Engine-side proof ownership and negative components are implemented. Project the
+visible prefix without mutating the underlying proof or saved history.
 The bulb, played destination and final analysis must refer to that same scored
 recommendation. Component mocks cover interrupted work, foreign runs and missing
 phases; actual chess decisions retain independent Stockfish H17/H19 evidence.
 UI separation remains open until those proof and presentation contracts pass.
 
-The dynamic forcing-chain requirement is also open: continue relevant legal
-recaptures and mandatory check evasions until a stable position or actual terminal
-result, including repetition. Allocate a bounded configurable reserve when that
-chain is pending; do not call a budget cutoff a completed exchange. Keep ordinary
-search depth distinct from additional forcing depth and keep every visit charged.
-If the ceiling is reached, report incomplete proof rather than a certified final
-score. Component cases must cover multiple recaptures, checking recaptures, a quiet
-stronger defense, pinned recapturers, repetition and exact budget-boundary failure.
-The visible prefix may omit the verification suffix only when its complete scored
-proof remains available in audit and survives restart. The focused Native H6 repair
-is not a completed implementation of this coaching presentation requirement.
+The engine-side reserve now resolves a pending frontier with charged continuous recaptures
+and mandatory evasions, and rejects incomplete hint/review results. See the
+[implementation contract](../board/ai-quality.md#dynamic-coaching-frontier). Keep these
+remaining items distinct:
 
-Treat 200k as the ordinary coaching allowance, not a reason to declare a pending
-exchange finished. The proposed YAML policy must separate that allowance from a
-larger forcing-proof ceiling and charge their combined work. Allocate reserve only
-while relevant recaptures or legal check evasions are pending, and compare alternatives
-under the same policy. At a repetition, terminal result, cancellation or hard ceiling,
-record the distinct reason. An unfinished suffix must not become an exact cached score
-or a BEST classification. Do not pursue arbitrary checks forever or make the opponent
-recapture automatically when a stronger legal defense exists. Admission needs continuous
-recapture and check-evasion component chains, exact boundary/cancellation/cache negatives,
-and independent completed decisions before this feature is called implemented.
+- The preview still shows the full scored proof; a shorter visible prefix and an explicit
+  verification-suffix view need their own presentation and restart tests.
+- French `Bb5+` and the weak quiet defense remain quality failures. Continuous recaptures
+  alone do not repair a quiet defense beyond the ordinary horizon; keep both benchmark FAILs.
+- Preserve the equal-turn guard: the first unguarded prototype switched the independently
+  qualified `Nxd7` to `Bxe4`, increasing loss from 43.5/8 to 335/243.5‰ at H17/H19.
+  The final guard must retain the actually closed incumbent score, charge its confirmation,
+  and publish no score if confirmation is interrupted.
+- Legacy v1 review caches remain readable but have no new forcing receipt. Distinguish
+  historical analysis from a newly qualified evaluator when revisiting old cached results.
+
+The five-million-node YAML ceiling grows in 25k steps. A normal Italian theory exit
+requires 1,037,401 reserve nodes; its smaller-budget negative must remain incomplete,
+without restoring the seed score. Keep the 25cp leader-change threshold and the prior
+even-horizon check auditable. The Sicilian `…Nc6` reversal was independently worse than
+`…Nbd7` at both teacher depths; no fabricated score tie is an acceptable fix. The bulb,
+destination and explicit comparison now share that qualified proof decision.
+Review also retains its incumbent on an actual exact-score tie. The English replay's
+`Nf3`/`e4` tie is +21 after closure, not the old +651. Keep its six teacher phases and
+component negative: lexical ordering alone produced an independently worse recommendation.
+The final 106-position replay activates reserve in 44 hints and 66 reviews, with no
+incomplete result. Its 43 changed root recommendations have 252 H17/H19 phases. No new
+loss reaches 150‰; the largest increases are 73.5/54‰. These smaller regressions remain
+calibration debt, alongside the two French benchmark failures. A closed tactical frontier
+does not certify globally optimal play or replace a fresh complete-game Elo measurement.
+
+Do not infer Elo or broad independent transfer from the composed forcing controls.
+Fresh complete games still need every pre-move maximum hint, post-game review and cold
+teacher phases under their actual producer, with the reserve receipt retained.

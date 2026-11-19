@@ -18,7 +18,7 @@ final class HardHintAuditedGame {
         this(match, HardMoveAudit::capture, board -> {
             var search = TacticalAnalysis.verifiedHints(board, 200_000);
             return new HintAuditSession.Search(search.lines(), search.comparison() == null ? List.of() : search.comparison().result().ranked(),
-                    search.extraNodes(), search.selectedDepth(), search.seedDepth(), search.comparison() == null ? 0 : search.comparison().depth());
+                    search.extraNodes(), search.selectedDepth(), search.seedDepth(), search.comparison() == null ? 0 : search.comparison().depth(),search.proof());
         });
     }
 
@@ -35,8 +35,9 @@ final class HardHintAuditedGame {
             var match = game.match();
             var hard = game.analyze();
             var hint = Objects.requireNonNull(hints.apply(match.position()));
+            if(hint.proof()!=null&&!hint.proof().complete())throw new CoachingProof.Incomplete(hint.proof());
             validateHint(match.position(), hint);
-            var estimate = MatchEvaluation.forPosition(match.position(), hint.lines().getFirst());
+            var estimate = hint.proof()==null?MatchEvaluation.forPosition(match.position(),hint.lines().getFirst()):MatchEvaluation.from(match.position().turn(),hint.lines().getFirst());
             pending = new Entry(match.checkpoint(), HintAuditSession.fen(match), hard, hint, estimate);
         }
         return pending;
@@ -58,6 +59,7 @@ final class HardHintAuditedGame {
 
     static void validateHint(ChessPosition board, HintAuditSession.Search hint) {
         require(hint.extraNodes() >= 0 && hint.extraNodes() <= 200_000, "Hint exceeded its independent total allowance");
+        HintAuditSession.validateProof(board,hint.proof(),hint.extraNodes(),hint.selectedDepth());
         require(hint.selectedDepth() > 0 && hint.selectedDepth() <= MatchAiPolicy.MAX_PLIES
                 && hint.seedDepth() > 0 && hint.seedDepth() <= MatchAiPolicy.MAX_PLIES
                 && hint.comparisonDepth() >= 0 && hint.comparisonDepth() <= MatchAiPolicy.MAX_PLIES, "Missing hint horizons");

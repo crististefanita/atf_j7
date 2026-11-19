@@ -155,8 +155,8 @@ class AiOpeningRegressionTest {
         var reply = Move.fromUci("f8g7");
         var drawn = TacticalAnalysis.review(position, reply, Set.of(reply), GameReviewPolicy.CURRENT.search);
         check.same("An automatic draw is evaluated at its actual zero score", 0, drawn.played().score());
-        check.same("A better search result can outrank the drawn repertoire move", true,
-                !drawn.best().move().equals(reply) && drawn.best().score() > 0);
+        check.same("A draw is compared with the actually completed alternatives, not the older optimistic frontier",
+                Math.max(0,drawn.alternativeScore()),drawn.best().score());
     }
 
     @Test void reviewOnlyRepliesStayOutOfLivePlayAndDoNotExtendToTheNextPosition(Checks check) {

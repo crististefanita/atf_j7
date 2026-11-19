@@ -1342,3 +1342,146 @@ testChanges:
     test: ro.atf.chess.HintArrowTest#webSvgAndReviewCanvasKeepTheNativeGeometry
     contract: "Retain every scale, orientation, measured-cell, invalid-geometry and native-adapter check; move only the destination clearance to twelve percent and execute matching SVG and Canvas coordinates"
     allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-EN-1
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-EN-2
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/HintAuditSession.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-EN-3
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/HintAuditSessionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-EN-4
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-RO-1
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-RO-2
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintAuditSession.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-RO-3
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintAuditSessionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-RO-4
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-EN-HINTFRONTIERTEST
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-EN-HINTPINSUPPORTTEST
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-EN-HINTCANDIDATECOVERAGETEST
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-EN-AIOPENINGREGRESSIONTEST
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/AiOpeningRegressionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-RO-HINTFRONTIERTEST
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-RO-HINTPINSUPPORTTEST
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-RO-HINTCANDIDATECOVERAGETEST
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-SCOPE-RO-AIOPENINGREGRESSIONTEST
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/AiOpeningRegressionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+    test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
+    contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
+    allowDelete: false
+
+  - id: J7-COACHING-CREDIT-EN
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+    test: ro.atf.chess.HintCreditRegressionTest#historicalCreditCannotReintroduceTheRefutedItalianBishopOffer
+    contract: "Retain every move, sacrifice, history and budget assertion; preserve both exact challenger scores in the charged confirmation when an unsupported reversal cannot honestly be displayed as a weaker comparison"
+    allowDelete: false
+  - id: J7-COACHING-CREDIT-RO
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+    test: ro.atf.chess.HintCreditRegressionTest#historicalCreditCannotReintroduceTheRefutedItalianBishopOffer
+    contract: "Retain every move, sacrifice, history and budget assertion; preserve both exact challenger scores in the charged confirmation when an unsupported reversal cannot honestly be displayed as a weaker comparison"
+    allowDelete: false

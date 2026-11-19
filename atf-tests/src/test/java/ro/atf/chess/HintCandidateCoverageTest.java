@@ -16,16 +16,18 @@ class HintCandidateCoverageTest {
 
     @Test void comparesAllFourSicilianRootsAtOneCompletedHorizonAndOneCeiling(Checks check) {
         var game=ChessMatch.restore("2|analysis|"+HISTORY);var before=game.checkpoint();var board=game.position();
-        var hint=TacticalAnalysis.verifiedHints(board,200_000);var comparison=hint.comparison();
-        check.same("The whole calculation retains its executed seed/selection/comparison/budget",List.of(3,5,5,200_000),List.of(hint.seedDepth(),hint.selectedDepth(),comparison.depth(),hint.extraNodes()));
-        check.same("All four roots are retained as scored diagnostic evidence",Set.of("b8c6","b8d7","d8b6","f8e7"),comparison.result().ranked().stream().map(v->v.move().uci()).collect(Collectors.toSet()));
-        check.same("Coverage adds no oracle score or positional bonus",Map.of("b8d7",-21,"b8c6",-21,"f8e7",-25,"d8b6",-29),comparison.result().ranked().stream().collect(Collectors.toMap(v->v.move().uci(),TacticalAnalysis.Variation::score)));
+        var hint=TacticalAnalysis.verifiedHints(board,200_000);var proof=hint.proof();
+        check.same("The whole calculation retains its executed seed/selection/ordinary budget",List.of(3,5,200_000),List.of(hint.seedDepth(),hint.selectedDepth(),hint.extraNodes()));
+        check.same("All four roots remain in the completed receipt",Set.of("b8c6","b8d7","d8b6","f8e7"),proof.roots().stream().map(Move::uci).collect(Collectors.toSet()));
+        var raw=CoachingProof.compare(board,proof.roots(),hint.selectedDepth(),Set.of(),CoachingProof.CURRENT);
+        check.same("Coverage adds no oracle score, stale tie or positional bonus",Map.of("b8d7",-35,"b8c6",-23,"f8e7",-36,"d8b6",-46),raw.lines().stream().collect(Collectors.toMap(v->v.move().uci(),TacticalAnalysis.Variation::score)));
+        check.same("The stability choice preserves its actual raw score",proof.confirmation().incumbentScore(),hint.lines().getFirst().score());
         check.same("A theory challenger is compared rather than copied as the answer",move("f8e7"),OpeningRepertoire.CURRENT.playReply(board,MatchSetup.Level.HARD));
         check.same("The accepted best public line remains the qualified knight defense",List.of("b8d7"),hint.lines().stream().map(v->v.move().uci()).toList());
-        for(var line:comparison.result().ranked()) {
+        for(var line:raw.lines()) {
             var end=board;for(var action:line.line())end=end.play(action);
             check.same("The scored challenger PV is legal: "+line.move().uci(),line.materialChange(),HintAuditSession.materialChangeCp(board,end));
-            check.same("Each challenger reaches the actual shared horizon",true,line.line().size()>=comparison.depth());
+            check.same("Each challenger reaches the actual shared horizon",true,line.line().size()>=hint.selectedDepth());
         }
         var publicHint=game.hintAt(game.ply());publicHint.revealNext();
         check.same("Bulb and destination still use the same scored leader",List.of(hint.lines().getFirst().move(),hint.lines().getFirst().move()),List.of(publicHint.revealed().move(),publicHint.moveForTap(board,-1,hint.lines().getFirst().move().to())));

@@ -32,7 +32,7 @@ public final class TacticalAnalysis {
 
         /** Positive for a winning mate, negative for a losing mate, zero if none is proved. */
         public int signedMatePlies() {
-            return Math.abs(score) >= MATE - MatchAiPolicy.MAX_PLIES - 4
+            return Math.abs(score) >= MATE - 64
                     ? Integer.signum(score) * (MATE - Math.abs(score)) : 0;
         }
     }
@@ -75,9 +75,36 @@ public final class TacticalAnalysis {
         }
     }
 
-    record ReviewSearch(Variation best, Variation played, int alternativeScore, int depth, boolean onlyProvedMate) { }
+    record ReviewSearch(Variation best, Variation played, int alternativeScore, int depth, boolean onlyProvedMate,
+                        CoachingProof.Work proof,int ordinaryNodes) {
+        ReviewSearch(Variation best,Variation played,int alternativeScore,int depth,boolean onlyProvedMate){this(best,played,alternativeScore,depth,onlyProvedMate,null,0);}
+    }
 
     static ReviewSearch review(ChessPosition position, Move played, Set<Move> draws, MatchAiPolicy.Search policy) {
+        return review(position,played,draws,policy,CoachingProof.CURRENT);
+    }
+    static ReviewSearch review(ChessPosition position,Move played,Set<Move> draws,MatchAiPolicy.Search policy,CoachingProof.Policy proofPolicy) {
+        var seed=reviewSeed(position,played,draws,policy);
+        if(!CoachingProof.needed(position,List.of(seed.best(),seed.played())))return seed;
+        var reference=OpeningRepertoire.CURRENT.reviewReply(position);
+        var required=new java.util.HashSet<Move>();required.add(played);
+        required.add(seed.best().move());
+        if(reference!=null&&!draws.contains(reference))required.add(reference);
+        var verified=CoachingProof.compare(position,position.legalMoves(),seed.depth(),draws,proofPolicy,required,1);
+        var work=verified.work().afterOrdinary(seed.ordinaryNodes());
+        if(!work.complete())throw new CoachingProof.Incomplete(work);
+        var ranked=verified.lines();var best=ranked.get(0);
+        var incumbent=ranked.stream().filter(v->v.move().equals(seed.best().move())).findFirst().orElseThrow();
+        if(incumbent.score()==best.score())best=incumbent;
+        var book=ranked.stream().filter(v->v.move().equals(reference)&&!draws.contains(v.move())).findFirst().orElse(null);
+        if(book!=null&&best.ending()==Ending.HORIZON&&book.ending()==Ending.HORIZON&&best.score()-book.score()<=180)best=book;
+        var chosen=ranked.stream().filter(v->v.move().equals(played)).findFirst().orElseThrow();
+        int other=ranked.stream().filter(v->!v.move().equals(played)).mapToInt(Variation::score).max().orElse(-LIMIT);
+        boolean onlyMate=chosen.signedMatePlies()>0&&ranked.stream().noneMatch(v->!v.move().equals(played)&&v.signedMatePlies()>0);
+        return new ReviewSearch(best,chosen,other,seed.depth(),onlyMate,work,seed.ordinaryNodes());
+    }
+
+    private static ReviewSearch reviewSeed(ChessPosition position, Move played, Set<Move> draws, MatchAiPolicy.Search policy) {
         var root = new RootSearch(position, draws);
         var reference = OpeningRepertoire.CURRENT.reviewReply(position);
         if (reference != null && draws.contains(reference)) reference = null;
@@ -100,7 +127,7 @@ public final class TacticalAnalysis {
                 break;
             }
         }
-        return result;
+        return new ReviewSearch(result.best(),result.played(),result.alternativeScore(),result.depth(),result.onlyProvedMate(),null,policy.extraNodes()-budget.remaining);
     }
 
     private static void completeReviewLine(RootSearch root, List<Variation> lines, Move move, int depth, SearchBudget budget) {
@@ -308,14 +335,44 @@ public final class TacticalAnalysis {
         return verifiedHints(position).lines();
     }
 
-    record HintSearch(List<Variation> lines, SearchReport comparison, int extraNodes, int seedDepth, int selectedDepth) { }
+    record HintSearch(List<Variation> lines, SearchReport comparison, int extraNodes, int seedDepth, int selectedDepth,
+                      CoachingProof.Work proof) {
+        HintSearch(List<Variation> lines,SearchReport comparison,int extraNodes,int seedDepth,int selectedDepth){this(lines,comparison,extraNodes,seedDepth,selectedDepth,null);}
+        HintSearch {lines=List.copyOf(lines);if(proof!=null&&!proof.complete()&&(!lines.isEmpty()||comparison!=null))throw new IllegalArgumentException("Incomplete hint cannot publish scores");}
+        int totalNodes(){return extraNodes+(proof==null?0:proof.nodes());}
+    }
 
     static HintSearch verifiedHints(ChessPosition position) {
         return verifiedHints(position, MatchAiPolicy.CURRENT.hint.search().extraNodes());
     }
 
-    /** A complete decision, including its comparison, under one immutable experiment ceiling. */
+    /** Ordinary search keeps its ceiling; tactical verification has a separately configured, audited reserve. */
     static HintSearch verifiedHints(ChessPosition position, int totalNodes) {
+        var seed=seedHints(position,totalNodes);
+        var scope=new ArrayList<>(seed.lines());
+        if(seed.comparison()!=null)scope.addAll(seed.comparison().result().ranked());
+        if(seed.lines().isEmpty()||!CoachingProof.needed(position,scope))return seed;
+        return certifyHints(position,seed,CoachingProof.CURRENT);
+    }
+
+    static HintSearch certifyHints(ChessPosition position,HintSearch seed,CoachingProof.Policy policy) {
+        var roots=new java.util.LinkedHashSet<Move>();
+        for(var line:seed.lines())roots.add(line.move());
+        if(seed.comparison()!=null)for(var line:seed.comparison().result().ranked())roots.add(line.move());
+        var proof=CoachingProof.compare(position,List.copyOf(roots),seed.selectedDepth(),Set.of(),policy,Set.copyOf(roots),MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies());
+        if(proof.work().complete()) {
+            var ranked=new ArrayList<>(proof.lines());HintPinSupport.sort(position,ranked);proof=new CoachingProof.Result(ranked,proof.work());
+        }
+        proof=CoachingProof.confirmLeader(position,proof,seed.lines().get(0).move(),policy);
+        var work=proof.work().afterOrdinary(seed.extraNodes());
+        if(!work.complete())return new HintSearch(List.of(),null,seed.extraNodes(),seed.seedDepth(),0,work);
+        var result=new Result(proof.lines());
+        var comparison=proof.lines().size()<2?null:new SearchReport(result,seed.selectedDepth(),0);
+        var eligible=hintLines(result,MatchAiPolicy.CURRENT.hint).stream().filter(v->v.move().equals(result.ranked().get(0).move())||seed.lines().stream().anyMatch(original->original.move().equals(v.move()))).collect(Collectors.toList());
+        return new HintSearch(eligible,comparison,seed.extraNodes(),seed.seedDepth(),seed.selectedDepth(),work);
+    }
+
+    private static HintSearch seedHints(ChessPosition position, int totalNodes) {
         if (totalNodes < 1_000 || totalNodes > 200_000) throw new IllegalArgumentException("Hint budget must be between 1,000 and 200,000 total nodes");
         var policy = MatchAiPolicy.CURRENT.hint;
         var repertoire = OpeningRepertoire.CURRENT.reply(position);
@@ -456,6 +513,17 @@ public final class TacticalAnalysis {
         var roots = alternative == null ? legal : List.of(preferred, alternative);
         var comparison = verifyHintRoots(position, roots, policy.verificationNodes(), policy.search().maxPlies()).search();
         var lines = comparison.result().ranked();
+        var publicHint=verifiedHints(position);
+        if(publicHint.proof()!=null&&publicHint.proof().roots().contains(preferred)
+                    &&(alternative==null||publicHint.proof().roots().contains(alternative))) {
+                if(!publicHint.proof().complete()||publicHint.comparison()==null)return java.util.Optional.empty();
+                comparison=publicHint.comparison();lines=comparison.result().ranked().stream()
+                        .filter(v->alternative==null||v.move().equals(preferred)||v.move().equals(alternative)).collect(Collectors.toList());
+        } else if(CoachingProof.needed(position,lines)) {
+                var proof=CoachingProof.compare(position,roots,comparison.depth(),Set.of(),CoachingProof.CURRENT,Set.of(preferred));
+                if(!proof.work().complete())return java.util.Optional.empty();
+                lines=proof.lines();
+        }
         if (alternative == null && !lines.isEmpty()) {
             var selected = lines.stream().filter(line -> line.move().equals(preferred)).findFirst().orElseThrow();
             var other = lines.stream().filter(line -> !line.move().equals(preferred)).findFirst().orElseThrow();
@@ -822,7 +890,7 @@ public final class TacticalAnalysis {
                 || previous.line().size() != completed || previous.materialChange() < 0) return false;
         var before = position;
         for (Move move : previous.line().subList(0, completed - 1)) before = before.playGenerated(move);
-        Move last = previous.line().getLast();
+        Move last = previous.line().get(previous.line().size()-1);
         var piece = before.pieceAt(last.from());
         var victim = MatchMaterial.victim(before, last);
         if (piece.kind() == Kind.PAWN || piece.kind() == Kind.KING || last.promotion() != null
@@ -842,8 +910,8 @@ public final class TacticalAnalysis {
                 || candidate.ranked().isEmpty() || candidate.ranked().get(0).score() <= closed.score()) return false;
         var before = position;
         for (Move move : previous.line()) before = before.playGenerated(move);
-        Move reply = closed.moves().getLast();
-        if (reply.to() != previous.line().getLast().to() || before.pieceAt(reply.from()).kind() != Kind.PAWN
+        Move reply = closed.moves().get(closed.moves().size()-1);
+        if (reply.to() != previous.line().get(previous.line().size()-1).to() || before.pieceAt(reply.from()).kind() != Kind.PAWN
                 || !before.legalCapturesAndPromotions().contains(reply)) return false;
         var after = before.playGenerated(reply);
         return !after.isCheck() && after.legalCapturesAndPromotions().stream().noneMatch(move -> move.to() == reply.to()
@@ -1144,7 +1212,7 @@ public final class TacticalAnalysis {
         // Bounds from discarded children do not invalidate an improving value inside this node's window.
         Line result = best.withExact(!cutoff && best.score() > initialAlpha);
         if (budget != null && budget.principalVariationSearch && left >= 2 && !result.moves().isEmpty()) {
-            budget.prefer(position.searchKey(), result.moves().getFirst());
+            budget.prefer(position.searchKey(), result.moves().get(0));
         }
         if (key != null) {
             if (result.exact()) budget.remember(key, result);

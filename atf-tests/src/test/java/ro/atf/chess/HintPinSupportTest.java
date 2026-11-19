@@ -18,22 +18,26 @@ class HintPinSupportTest {
         var game = ChessMatch.restore("3|WHITE|HARD|1|" + HISTORY); var original = game.checkpoint();
         var search = TacticalAnalysis.verifiedHints(game.position(), 200_000);
         check.same("The first suggestion reinforces Nf6 with Nbd7", List.of("b8d7"), search.lines().stream().map(v -> v.move().uci()).toList());
-        check.same("The executed seed / comparison / selection and whole budget stay explicit", List.of(3, 5, 5, 200_000),
-                List.of(search.seedDepth(), search.comparison().depth(), search.selectedDepth(), search.extraNodes()));
-        var compared = search.comparison().result().ranked();
-        check.same("The two knight roots retain their raw H5 tie in the wider comparison", List.of(-21, -21), compared.stream().limit(2).map(Variation::score).toList());
-        check.same("The formerly misleading root stays available before the additional challengers", List.of("b8d7", "b8c6"), compared.stream().limit(2).map(v -> v.move().uci()).toList());
+        check.same("The executed seed / closed selection and ordinary budget stay explicit", List.of(3, 5, 200_000),
+                List.of(search.seedDepth(), search.selectedDepth(), search.extraNodes()));
+        var proof=search.proof();var choice=proof.confirmation();
+        check.same("The reserve finishes a real common-horizon comparison",true,proof.complete()&&choice!=null);
+        check.same("The new frontier no longer fabricates the obsolete raw H5 tie",List.of(-35,-23),List.of(choice.incumbentScore(),choice.challengerScore()));
+        check.same("A small model change cannot silently replace the independently qualified defense",move("b8d7"),choice.selected());
+        check.same("Retaining the defense also retains its actual closed score",choice.incumbentScore(),search.lines().getFirst().score());
+        check.same("The comparison cannot call the retained weaker local score the stronger one",null,search.comparison());
         var hint = game.hintAt(game.ply()); hint.revealNext();
-        check.same("Bulb, comparison and destination use the same calculated move", List.of(move("b8d7"), move("b8d7"), move("b8d7")),
-                List.of(hint.revealed().move(), hint.compare(game.position()).orElseThrow().stronger().move(), hint.moveForTap(game.position(), -1, move("b8d7").to())));
+        check.same("Bulb and destination use the same calculated move", List.of(move("b8d7"), move("b8d7")),
+                List.of(hint.revealed().move(),hint.moveForTap(game.position(), -1, move("b8d7").to())));
+        check.same("No contradictory bulb comparison is displayed",true,hint.compare(game.position()).isEmpty());
         var preview = hint.preview(game.position()).orElseThrow();
         while (preview.hasNext()) preview.next();
         check.same("The preview appends no unscored reply", false, preview.addedDefense());
         check.same("The game history is conserved", original, game.checkpoint());
         var manual = ChessMatch.restore("2|analysis|" + HISTORY);
         check.same("The manual board reuses the exact strongest-hint kernel", hint.first(), manual.hintAt(manual.ply()).first());
-        var pair = TacticalAnalysis.compareHints(game.position(), move("b8c6"), move("b8d7")).orElseThrow();
-        check.same("A fresh explicit comparison uses the same tie preference", move("b8d7"), pair.stronger().move());
+        check.same("A fresh explicit comparison cannot resurrect the obsolete tie or contradict the bulb",true,
+                TacticalAnalysis.compareHints(game.position(), move("b8c6"), move("b8d7")).isEmpty());
     }
 
     @Test void thePreferenceNeedsAnExistingPinAndASafeAdditionalDefender(Checks check) {
