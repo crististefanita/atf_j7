@@ -80,6 +80,12 @@ class FrenchRecaptureTest {
         var data=load();var p=phase(data,"french-original-root");var hint=TacticalAnalysis.verifiedHints(game(p).position(),200000);String move=hint.lines().getFirst().move().uci();
         for(int d:List.of(17,19))check.same("Current public hint "+move+" H"+d+" loss="+loss(data,p,move,d),true,loss(data,p,move,d)<150);
     }
+    @Test @Tag("benchmark") void theReviewMustNotCallTheConfirmedLossTheBestMove(Checks check)throws Exception {
+        var data=load();var p=phase(data,"french-original-root");var before=game(p);var review=TacticalAnalysis.review(before.position(),Move.fromUci("f1b5"),before.automaticDrawMoves(),GameReviewPolicy.CURRENT.search);String move=review.best().move().uci();
+        for(int d:List.of(17,19))check.same("Review recommendation="+move+" H"+d+" loss="+loss(data,p,move,d),true,loss(data,p,move,d)<150);
+        check.same("Bb5+ cannot retain the best score after its verified refutation",true,review.played().score()<review.best().score());
+    }
+
     private static TacticalAnalysis.Variation variation(String moves){return new TacticalAnalysis.Variation(Arrays.stream(moves.split(" ")).map(Move::fromUci).toList(),153,100,TacticalAnalysis.Ending.HORIZON);}
     private static JsonNode load()throws Exception{try(var in=FrenchRecaptureTest.class.getResourceAsStream("/french-recapture-witnesses.yaml")){require(in!=null,"Missing frontier witnesses");var d=LearningGameAudit.mapper().readTree(in.readAllBytes());require(hash(d).equals(SHA),"Changed frontier witnesses");validate(d);return d;}}
     private static void validate(JsonNode data) {
