@@ -85,11 +85,11 @@ class FrenchRecaptureTest {
         var changed=data.deepCopy();var body=(com.fasterxml.jackson.databind.node.ObjectNode)changed.path("raw").get(0).path("body");body.put("expectedPermille",999);
         check.rejects("A rewritten score cannot certify the exchange",IllegalArgumentException.class,()->validate(changed));
     }
-    @Test @Tag("benchmark") void thePublicHintMustAlsoAvoidTheConfirmedBadBishopCheck(Checks check)throws Exception {
+    @Test void thePublicHintMustAlsoAvoidTheConfirmedBadBishopCheck(Checks check)throws Exception {
         var data=load();var p=phase(data,"french-original-root");var hint=TacticalAnalysis.verifiedHints(game(p).position(),200000);String move=hint.lines().getFirst().move().uci();
         for(int d:List.of(17,19))check.same("Current public hint "+move+" H"+d+" loss="+loss(data,p,move,d),true,loss(data,p,move,d)<150);
     }
-    @Test @Tag("benchmark") void theReviewMustNotCallTheConfirmedLossTheBestMove(Checks check)throws Exception {
+    @Test void theReviewMustNotCallTheConfirmedLossTheBestMove(Checks check)throws Exception {
         var data=load();var p=phase(data,"french-original-root");var before=game(p);var review=TacticalAnalysis.review(before.position(),Move.fromUci("f1b5"),before.automaticDrawMoves(),GameReviewPolicy.CURRENT.search);String move=review.best().move().uci();
         for(int d:List.of(17,19))check.same("Review recommendation="+move+" H"+d+" loss="+loss(data,p,move,d),true,loss(data,p,move,d)<150);
         check.same("Bb5+ cannot retain the best score after its verified refutation",true,review.played().score()<review.best().score());

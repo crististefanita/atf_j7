@@ -4,8 +4,9 @@
 
 Learning games live under `C:\work\sah\.studii`, outside the checkout. Every actual
 White **and** Black move must have a pre-move native Hard calculation and a separate
-public hint requested at the maximum 200,000 total nodes. Work may finish below
-that allowance. The native allowance and displayed estimate remain separate.
+public hint requested at the maximum 200,000 ordinary nodes, plus its separately
+charged proof reserve when needed. Work may finish below those allowances.
+The native allowance and displayed estimate remain separate.
 Opening prefixes, theory moves and oracle replies have the same requirement.
 
 [`LearningGameAudit`](../../atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java)
@@ -60,8 +61,9 @@ rating estimates are not a measured Elo and must preserve the actual actor roles
 binds the original journal to a separate reviewer identity, loaded review policy,
 final checkpoint, result and uninterrupted chronological progress. It rejects
 missing moves, relabeled runs and readable scores that disagree with the cache.
-The configured review search is 85k additional nodes; the API does not expose
-actual per-turn work. Keep that limit distinct from the original 200k public hint.
+The configured ordinary review search is 85k additional nodes. A proof receipt retains
+consumed ordinary and reserve work; legacy turns without a receipt have no invented
+per-turn count. Keep these separate from the ordinary 200k public hint allowance.
 
 Compare every played and recommended review branch at each hypothetical ply with
 independent H17/H19 evidence. Existing oracle phases may be referenced only with
@@ -132,3 +134,10 @@ component regression or minimax equivalence does not erase the archived mistakes
 qualify a new opening family or establish Elo. Store a small full-context first-loss
 witness in the test resources; keep the PGN, all pre-move observations and complete
 reviews in the external corpus. Never turn those keys into runtime move overrides.
+
+A new-opening collection need not invent a sound-queen game to match a historical
+fixture. The postgame benchmark requires exactly one separate sound-sacrifice tail
+when that case was actually collected and zero otherwise; all public tails, native
+reviews, source hashes, raw phases and quality floors remain mandatory. Keep the
+sound sacrifice protected by its component witnesses and preserve the original
+collection control when replaying that collection.
