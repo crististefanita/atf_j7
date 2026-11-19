@@ -80,6 +80,29 @@ flowchart LR
 
 </details>
 
+Rotation keeps the chosen variation and every line cursor. The recreated
+APK source captures its new board side before reopening the same continuation.
+An inline AI hint stays inline; Back closes the replay and restores its source.
+
+```mermaid
+flowchart LR
+    Open[Open replay] -->|pause| Save[Save source, full lines and cursors]
+    Save -->|rotation| Recreate[Recreate source and recompute analysis]
+    Recreate -->|validate| Match{Exact source and lines?}
+    Match -->|yes| Restore[Restore branch and cursors]
+    Match -->|no| Reject[Discard stale replay]
+```
+
+<details>
+<summary>Legend · Restoration · source identity and independent cursors</summary>
+
+- `ReplayCheckpoint` validates the source, mode, ordered UCI signatures, branch and cursor bounds.
+- `MatchAnalysisView` owns calculation cancellation and exact-line restoration.
+- `ChessActivity` and `AnalysisActivity` save small values in instance state; no UI object is retained.
+
+</details>
+
+
 ## Rules and puzzles
 
 - [`chess-rules.yaml`](../../chess-core/src/main/resources/chess-rules.yaml) declares piece vectors, sliding or jumping movement, pawn direction, captures, promotion, and the setup for both types of castling. The engine applies obstacles, alternating turns, king safety, and expiry of en passant rights. The safety conditions remain mandatory when loading the standard profile.

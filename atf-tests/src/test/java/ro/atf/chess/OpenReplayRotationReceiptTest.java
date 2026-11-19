@@ -30,8 +30,20 @@ class OpenReplayRotationReceiptTest {
             check.same("Another source width cannot qualify", false, read(valid.replace("720x1280", "800x1280"), locale));
             check.same("Duplicate rotation markers fail closed", false,
                     read(valid + "INSTRUMENTATION_RESULT: rotation_01=ChessActivity recreated at 1\n", locale));
+            check.same("Requested rotation cannot replace the actual observed turn", false,
+                    read(valid.replace("ChessActivity recreated at 1", "ChessActivity recreated at 0"), locale));
             check.same("A native FAIL remains FAIL", false, read(valid.replace("result=PASS", "result=FAIL"), locale));
         }
+    }
+
+    @Test void multilineCaptionsCannotDisappearFromTheAuditedAssertionCount(Checks check) throws Exception {
+        String valid = receipt("en");
+        check.same("A complete single-row caption remains auditable", true,
+                read(valid.replace("\ttrue\ttrue\ttrue", "\t3/3 White d1-d8 Mate\t3/3 White d1-d8 Mate\ttrue"), "en"));
+        check.same("Raw caption line breaks cannot borrow a global native PASS", false,
+                read(valid.replace("\ttrue\ttrue\ttrue", "\t3/3 White d1-d8\nMate\t3/3 White d1-d8\nMate\ttrue"), "en"));
+        check.same("A tab embedded in a value cannot fabricate another valid row", false,
+                read(valid.replace("\ttrue\ttrue\ttrue", "\tcaption\tMate\tcaption\tMate\ttrue"), "en"));
     }
 
     private boolean read(String text, String locale) throws Exception {
