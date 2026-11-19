@@ -1,0 +1,28 @@
+{
+  "producer" : "95a5f6648a5631908b1eae7208309b1f3fedeb65",
+  "fen" : "3rk3/8/8/2p5/3p4/2P5/3R4/3QK3 w - - 0 1",
+  "played" : "d2d4",
+  "encoded" : "AAAAAgAsOG1KajNRbjR4aEZmUlJ1cmdLWlRwMzRwZCtQUUNUNmxKNk94b3V0eTcwRT0AAAAAAAAAAfT/////AAAAAAAAAAAA/////wAAAAAAAAAAAAAAAAEABGQyZDQABEJFU1QAAAH0AAAB9AAAAAAAAAH0AAAAAQAAAAAAAAADAARkMmQ0AARjNWQ0AARjM2Q0AAAAAwAEZDJkNAAEYzVkNAAEYzNkNAEACENPTVBMRVRFAAAACQAAYagATEtAAAAAAQAAAAQAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAIAglNlYXJjaEtleVtmaXJzdD03MDM2ODc0NDU5MTM2MCwgc2Vjb25kPTEyMzE0NTMwMjMxMTE2OCwgdGhpcmQ9MTc5MiwgZm91cnRoPTM1NTM2MjE1ODA5NzIwMzIsIHR1cm49MCwgY2FzdGxlUmlnaHRzPTAsIGVuUGFzc2FudD0tMV0AAAABAARkMmQ0AA==",
+  "encodedSha256" : "ffa7c3584f386718119bc5b90b70e88e92cb2d8045e128523157f19627b75561",
+  "proof" : {
+    "status" : "COMPLETE",
+    "nodes" : 9,
+    "allocatedNodes" : 25000,
+    "ceiling" : 5000000,
+    "ordinaryPlies" : 1,
+    "forcingPlies" : 4,
+    "captureReplies" : 8,
+    "checkEvasions" : 0,
+    "repeatedDraws" : 0,
+    "positionKey" : "SearchKey[first=70368744591360, second=123145302311168, third=1792, fourth=3553621580972032, turn=0, castleRights=0, enPassant=-1]",
+    "roots" : [ {
+      "from" : 11,
+      "to" : 27,
+      "promotion" : null
+    } ],
+    "ordinaryNodes" : 0,
+    "boundedRoots" : 0,
+    "confirmation" : null,
+    "tacticalPlies" : 2
+  }
+}

@@ -108,11 +108,16 @@ final class LearningGameAudit {
                 .addMixIn(TacticalAnalysis.HintSearch.class,OptionalProof.class)
                 .addMixIn(GameReview.Turn.class,OptionalProof.class)
                 .addMixIn(HintAuditSession.Search.class,OptionalProof.class)
-                .addMixIn(HintAuditSession.Decision.class,OptionalProof.class);
+                .addMixIn(HintAuditSession.Decision.class,OptionalProof.class)
+                .addMixIn(CoachingProof.Work.class,OptionalCounterplay.class);
     }
     private abstract static class OptionalProof {
         @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
         abstract CoachingProof.Work proof();
+    }
+    private abstract static class OptionalCounterplay {
+        @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+        abstract CoachingProof.Counterplay counterplay();
     }
     private static void requireZeroClock(String fen) {var fields=fen.trim().split("\\s+");require(fields.length==6&&fields[4].equals("0"),"Use an explicit zero-clock study origin until composed FEN-clock restoration is qualified");}
     private static void require(boolean condition,String message){if(!condition)throw new IllegalArgumentException(message);}

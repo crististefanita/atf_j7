@@ -9,7 +9,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 
 | Prioritate | Zonă | Observație | Criteriu de închidere |
 |---|---|---|---|
-| P1 | Indiciu · continuarea adversă completă | A doua variantă nouă după `1.e4` conține `Bxe6` slab; jocul advers liber preferă `Nc3`, cu pierdere 382/399‰ la H17/H19. | Repară continuarea completă evaluată în 200k, verifică fiecare semimutare PV pe familii independente și păstrează sacrificiile corecte. [Martor](#replici-adverse-slabe-în-indiciile-publice) |
+| P1 | Indiciu · continuarea adversă completă | A doua variantă nouă după `1.e4` conține `Bxe6` slab; jocul advers liber preferă `Nc3`, cu pierdere 382/399‰ la H17/H19. | Repară continuarea completă evaluată cu 200k lucru obișnuit și rezerva finită de dovadă taxată separat, verifică fiecare semimutare PV pe familii independente și păstrează sacrificiile corecte. [Martor](#replici-adverse-slabe-în-indiciile-publice) |
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
 | P2 | Documentație · protejarea traducerilor | Poarta bilingvă verifică structura și linkurile, iar proza și exemplele cer în continuare revizuire semantică. | Detectează proza copiată și exemplele schimbate prin cazuri negative țintite, păstrând literalii tehnici și dovezile imuabile. |
@@ -24,7 +24,6 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Hard nativ · pierderi în jocuri încheiate | `g4` din Scandinavă este protejat de noua regresie `Ne4`; Franceza `Nc4` este acum protejată de dovada recapturii la H6 complet; Engleza `…Qf6` și Gambitul Damei `…Qa5` rămân. | Compară replicile libere complete la un orizont comun; păstrează catalogul, sacrificiile corecte și Basic/Advanced înainte de promovare. [Pașii următori](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră) |
 | P2 | Frontieră tactică · șah la limită | O frontieră în șah poate încă să se oprească fără evadare legală; extensia generală pierde 13 contracte existente. | Rezolvă cauza precisă în aceeași alocație taxată; păstrează eșecurile benchmark explicite până trec calitatea și transferul. |
 | P1 | Coaching · dovada recapturii ascunse | Verificarea forțată din motor și recepția lucrului sunt implementate; previzualizarea încă arată linia integrală evaluată. | Proiectează prefixul vizibil mai scurt păstrând dovada integrală, recomandarea comună și identitatea după restart. Nu ascunde replici decisive. [Contract](#dovada-tactică-și-liniile-afișate) |
-| P1 | Coaching francez · indiciu și analiză | Hard nativ alege acum mutarea verificată a calului, dar indiciul public preferă încă `Bb5+`, iar analiza o poate numi BEST. | Închide continuarea adversă completă și scorul analizei în bugetele proprii; ambele scopuri executabile trebuie să treacă fără istoric schimbat. [Reparația nativă și limite](../board/ai-quality.md#închiderea-recapturii-de-pion-la-orizontul-complet) |
 | P1 | Calibrarea profilurilor AI | Intervalele Elo încă se suprapun. | Adaugă jocuri pereche pentru a restrânge incertitudinea. |
 | P1 | Forța Hard adaptiv | Căutarea pornește cu 100.000 de noduri și o rezervă până la 200.000. | Compară cele trei moduri pe partide excluse din ajustare și verifică replica adversă. |
 | P1 | Învățarea Hard din PGN-uri | Modelul de ordonare antrenat pe pierderi păstrează toate mutările finale în 36 de familii noi. | Adaugă mutări bune păstrate și sacrificii, apoi verifică ordonarea și deciziile complete. |
@@ -426,8 +425,8 @@ franceze anterioare au și diferențe mici de scor, inclusiv o degradare de 2,5/
 Lucrul mediu pe catalog crește cu aproximativ 8,1%; nu pretindem câștig de viteză,
 adâncime sau Elo. [Metodă și limite](../board/ai-quality.md#verificarea-mutărilor-secundare-native)
 
-Comparația franceză nativă este închisă prin [contractul recapturii complete](../board/ai-quality.md#închiderea-recapturii-de-pion-la-orizontul-complet). Păstrează deschise defectele separate ale indiciului și analizei
-și Engleza `…Qf6` față de `…Nc6` liber ca transfer. Închiderea uniformă de o semimutare câștigă 24 de etape,
+Comparația franceză nativă este închisă prin [contractul recapturii complete](../board/ai-quality.md#închiderea-recapturii-de-pion-la-orizontul-complet). Defectele separate ale indiciului și analizei
+sunt acum acoperite de componentele contrajocului liber; păstrează Engleza `…Qf6` față de `…Nc6` liber ca transfer. Închiderea uniformă de o semimutare câștigă 24 de etape,
 dar pierde 40; repetarea ei sau simpla schimbare a răspunsului așteptat nu este o
 reparație acceptabilă. Păstrează apărările libere la orizont comun, `training-021/051/065`,
 toate capitolele de mat, recapturile restrânse de dame și sacrificiul corect de damă.
@@ -465,10 +464,14 @@ obligatorii taxate, respingând rezultatele incomplete ale indiciului/analizei. 
 [contractul implementării](../board/ai-quality.md#frontiera-dinamică-de-coaching). Separă
 lucrările rămase:
 
+Cele două defecte franceze sunt reparate prin comparația taxată a contrajocului liber la
+două orizonturi: `Nc4` înlocuiește `Bb5+` în ambele mecanisme, cu pierdere H17/H19 sub 50‰,
+iar scopurile originale de calitate intră în suita normală de componente.
+[Componentele contrajocului](../../atf-tests/src/test/java/ro/atf/chess/FrenchCoachingTest.java)
+păstrează ambele culori, cele patru PV-uri evaluate, negativul nodului lipsă și compatibilitatea cache v1/v2/v3.
+
 - Previzualizarea arată încă dovada integrală; prefixul vizibil mai scurt și sufixul de
   verificare accesibil separat cer teste proprii de prezentare și restart.
-- Franceza `Bb5+` și apărarea liniștită slabă rămân defecte de calitate. Recapturile
-  continue nu repară singure apărarea liniștită dincolo de orizont; păstrează ambele FAIL-uri benchmark.
 - Păstrează garda orizonturilor pare: prototipul fără gardă înlocuia `Nxd7` calificat
   independent cu `Bxe4`, crescând pierderea de la 43,5/8 la 335/243,5‰ la H17/H19.
   Garda finală trebuie să păstreze scorul închis efectiv, să taxeze confirmarea și
@@ -486,12 +489,45 @@ decizie calificată a dovezii.
 Analiza păstrează și liderul la egalitate numerică exactă. Egalitatea `Nf3`/`e4` din Engleză
 este +21 după închidere, fără vechiul +651. Păstrează cele șase faze ale profesorului și
 negativul de componentă: ordinea lexicală producea singură o recomandare independent mai slabă.
-Replay-ul final pe 106 poziții activează rezerva în 44 de indicii și 66 de analize, fără
+Replay-ul calificării precedente pe 106 poziții activează rezerva în 44 de indicii și 66 de analize, fără
 rezultat incomplet. Cele 43 de recomandări schimbate au 252 de faze H17/H19. Nicio pierdere
 nouă nu atinge 150‰; maximele suplimentare sunt 73,5/54‰. Aceste degradări mici rămân
-datorie de calibrare, alături de cele două benchmark-uri franceze eșuate. Frontiera tactică
+datorie de calibrare. Totalurile istorice nu califică un evaluator ulterior. Frontiera tactică
 închisă nu certifică joc global optim și nu înlocuiește măsurarea Elo în partide complete noi.
 
 Nu deduce Elo sau transfer independent larg din controalele forțate compuse. Partidele
 noi complete cer în continuare hint maxim înaintea fiecărei mutări, analiză finală și
 fazele profesorului rece sub producătorul real, cu recepția rezervei păstrată.
+
+## Audit nou de deschidere după reparația franceză
+
+Evaluatorul corectat a jucat o partidă completă de Spaniolă, cu indicii maxime salvate
+înaintea tuturor celor 55 de semimutări efective, inclusiv teoria și mutările oracolului.
+Hard nativ a furnizat 22 de mutări efective; Stockfish 23, iar zece provin din prefixul
+de teorie declarat. Este o partidă observată, nu un meci Elo sau o rejucare redenumită.
+
+Cele 77 de oferte de indiciu conțin 398 de semimutări ipotetice, verificate independent
+la H17/H19 cu istoric complet: 40 pierd cel puțin 150‰ la ambele adâncimi, inclusiv
+19 replici adverse. Șase rădăcini oferite și un prim indiciu depășesc pragul. Cele 55 de
+alegeri native înregistrate nu au pierdere mare stabilă în această partidă. Verdictele
+de calitate sunt separate; integritatea recepțiilor nu califică indiciile.
+
+Prioritizează replica liberă slabă, nu o excepție de deschidere: după ramura salvată
+`8.Ng5`, indiciul folosește `…Be6`, cu pierdere 509,5/511‰ față de jocul liber. Mai devreme,
+în altă previzualizare, `…d5` pierde 428,5/443‰ când este disponibil `…Nxe4`. Păstrează
+ambele istorii ipotetice complete, compară replicile libere la orizont comun și păstrează
+componentele franceze, italiene, Caro–Kann și sacrificiile corecte. Scopul executabil
+`LearningArchiveBenchmarkTest.maximumHintsHaveNoStableLargeLossInEitherSideOfThePreview`
+rămâne FAIL; nu schimba aserțiunea zero erori pentru a accepta numărul observat.
+Analiza finală și toate ramurile ei păstrează un audit separat al oracolului.
+Dovezi: `C:\work\sah\.studii\corpus\2026-11-19-french-coaching-quiet`; producător
+`098848be9612e68e370d3495df4dc679a0f7aedd`, jurnalul și recepțiile de lucru originale intacte.
+
+Analiza finală auditează ambele ramuri ale tuturor celor 55 de mutări. Păstrează o
+recomandare inferioară (mutarea 26, pierdere 267,5/289,5‰) și șapte etichete native
+de eroare pe mutări care pierd sub 50‰ la ambele adâncimi. Toate cele 77 de capete
+de indiciu sunt verificate independent: niciunul nu expune piesa importantă finală
+unei recapturi legale, dar 14 ultime mutări rămân inferioare la ambele adâncimi.
+Aceasta nu califică întregul PV: benchmarkul calității analizei finale rămâne FAIL
+pentru recomandarea respectivă. Repară separat comparațiile cu replici libere și
+clasificarea; nu ascunde replicile interne slabe doar fiindcă piesa finală e sigură.

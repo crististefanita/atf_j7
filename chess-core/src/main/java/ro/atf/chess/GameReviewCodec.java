@@ -22,7 +22,7 @@ import ro.atf.chess.GameReview.Rating;
 
 /** Versioned analysis cache bound to the exact completed checkpoint. */
 public final class GameReviewCodec {
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
     static final int MAX_LINE_LENGTH = 64;
 
     private GameReviewCodec() { }
@@ -72,7 +72,7 @@ public final class GameReviewCodec {
     static GameReview decodeLine(ChessMatch match, String encoded, String digest) {
         try (var in = new DataInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(encoded)))) {
             int version=in.readInt();
-            if ((version!=1&&version!=VERSION) || !digest.equals(in.readUTF())) {
+            if ((version<1||version>VERSION) || !digest.equals(in.readUTF())) {
                 throw new IllegalArgumentException("Review belongs to another checkpoint or version");
             }
             var opening = in.readBoolean() ? new GameReview.Opening(in.readUTF(), in.readUTF()) : null;
@@ -92,7 +92,7 @@ public final class GameReviewCodec {
                 var grade = Grade.valueOf(in.readUTF());
                 int best = in.readInt(), played = in.readInt(), loss = in.readInt(), graph = in.readInt();
                 int depth = in.readInt(), sacrifice = in.readInt();
-                var bestLine=readLine(in);var playedLine=readLine(in);var proof=version==1?null:readProof(in);
+                var bestLine=readLine(in);var playedLine=readLine(in);var proof=version==1?null:readProof(in,version);
                 if(proof!=null)proof.validate(match.positionAt(ply-1),depth);
                 turns.add(new GameReview.Turn(ply, side, move, grade, best, played, loss, graph, depth,bestLine,playedLine,sacrifice,proof));
             }
@@ -118,15 +118,20 @@ public final class GameReviewCodec {
         out.writeUTF(p.positionKey());out.writeInt(p.roots().size());for(var move:p.roots())out.writeUTF(move.uci());
         var choice=p.confirmation();out.writeBoolean(choice!=null);
         if(choice!=null){out.writeInt(choice.plies());out.writeUTF(choice.incumbent().uci());out.writeUTF(choice.challenger().uci());out.writeUTF(choice.selected().uci());for(int n:new int[]{choice.incumbentScore(),choice.challengerScore(),choice.earlierIncumbentScore(),choice.earlierChallengerScore(),choice.minGainCp()})out.writeInt(n);}
+        var reply=p.counterplay();out.writeBoolean(reply!=null);
+        if(reply!=null){out.writeInt(reply.earlierPlies());for(var line:List.of(reply.earlierIncumbent(),reply.earlierChallenger(),reply.incumbent(),reply.challenger()))writeVariation(out,line);out.writeUTF(reply.selected().uci());out.writeInt(reply.leaderScore());out.writeInt(reply.minGainCp());out.writeInt(reply.minMaterialLoss());}
     }
-    private static CoachingProof.Work readProof(DataInputStream in)throws IOException {
+    private static CoachingProof.Work readProof(DataInputStream in,int version)throws IOException {
         if(!in.readBoolean())return null;var status=CoachingProof.Status.valueOf(in.readUTF());
         int nodes=in.readInt(),allocated=in.readInt(),ceiling=in.readInt(),ordinary=in.readInt(),forcing=in.readInt(),captures=in.readInt(),evasions=in.readInt(),draws=in.readInt(),base=in.readInt(),bounded=in.readInt(),tactical=in.readInt();
         String position=in.readUTF();int count=in.readInt();if(count<1||count>512)throw new IllegalArgumentException("Invalid proof root count");
         var roots=new ArrayList<Move>();for(int i=0;i<count;i++)roots.add(Move.fromUci(in.readUTF()));
         var choice=in.readBoolean()?new CoachingProof.Confirmation(in.readInt(),Move.fromUci(in.readUTF()),Move.fromUci(in.readUTF()),Move.fromUci(in.readUTF()),in.readInt(),in.readInt(),in.readInt(),in.readInt(),in.readInt()):null;
-        return new CoachingProof.Work(status,nodes,allocated,ceiling,ordinary,forcing,captures,evasions,draws,position,roots,base,bounded,choice,tactical);
+        var reply=version>=3&&in.readBoolean()?new CoachingProof.Counterplay(in.readInt(),readVariation(in),readVariation(in),readVariation(in),readVariation(in),Move.fromUci(in.readUTF()),in.readInt(),in.readInt(),in.readInt()):null;
+        return new CoachingProof.Work(status,nodes,allocated,ceiling,ordinary,forcing,captures,evasions,draws,position,roots,base,bounded,choice,tactical,reply);
     }
+    private static void writeVariation(DataOutputStream out,TacticalAnalysis.Variation line)throws IOException {out.writeInt(line.score());out.writeInt(line.materialChange());out.writeUTF(line.ending().name());writeLine(out,line.line());}
+    private static TacticalAnalysis.Variation readVariation(DataInputStream in)throws IOException {int score=in.readInt(),material=in.readInt();var ending=TacticalAnalysis.Ending.valueOf(in.readUTF());return new TacticalAnalysis.Variation(readLine(in),score,material,ending);}
 
     private static void writePlayer(DataOutputStream out, Player player) throws IOException {
         out.writeInt(player.accuracy().orElse(-1));
