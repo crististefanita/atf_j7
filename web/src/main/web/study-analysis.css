@@ -80,6 +80,18 @@
 .analysis-study-replay .analysis-study-stack {
   max-inline-size: var(--replay-board-side, 100%);
 }
+.analysis-study-replay {
+  block-size: calc(100dvh - 2 * var(--analysis-page-padding));
+  min-block-size: 0;
+}
+.analysis-study-replay .analysis-study-stage { flex: none; min-block-size: 0; }
+.analysis-study-replay .analysis-study-variants { flex: none; flex-wrap: nowrap; }
+.analysis-study-replay .analysis-study-variants button { flex: 1; min-inline-size: 0; min-block-size: 48px; }
+.analysis-study-replay .analysis-study-toolbar { flex: none; }
+.analysis-study-replay-details {
+  flex: 1 1 0; min-block-size: 0; overflow: auto;
+  overscroll-behavior: contain; padding-inline: .5rem;
+}
 
 .analysis-study-side {
   margin: 0 0 0 var(--analysis-meter-gutter);
@@ -151,7 +163,6 @@
   body.study-active main:has(.analysis-study-replay) { padding-inline: 0; }
   .analysis-study-replay {
     --study-top-gap: 0px;
-    min-block-size: calc(100dvh - 2 * var(--analysis-page-padding));
   }
   .analysis-study-replay .analysis-study-stage {
     flex: none;

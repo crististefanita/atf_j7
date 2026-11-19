@@ -352,7 +352,7 @@ public final class ChessActivity extends BackNavigableActivity {
             selected = -1;
             options = List.of();
             renderMatch();
-        }) : null;
+        }, () -> board.getWidth()) : null;
         topCaptures = new MatchCapturesView(this, R.id.match_top_captures);
         bottomCaptures = new MatchCapturesView(this, R.id.match_bottom_captures);
         var panel = new BoardPanel(this, matchSeat(topPlayer, topCaptures, compact), board, matchSeat(bottomPlayer, bottomCaptures, compact),
@@ -482,7 +482,7 @@ public final class ChessActivity extends BackNavigableActivity {
         if (quest.objective() == QuestCatalog.Objective.MATERIAL) {
             var study = QuestFinishStudy.forStage(quest, quest.playerMoves() - 1);
             if (study == null || completedQuest == null && step.stage() != study.stage()) {
-                QuestPayoffDialog.open(this, QuestPayoff.forExplanation(quest), blackBelow);
+                QuestPayoffDialog.open(this, QuestPayoff.forExplanation(quest), blackBelow, board.getWidth());
             } else showFinishStudy(quest, study, false);
             return;
         }
@@ -502,7 +502,7 @@ public final class ChessActivity extends BackNavigableActivity {
                     : getString(R.string.mate_exit_occupied, square, getString(BoardView.kindLabel(exit.ownBlocker().kind())));
             message.append('\n').append(detail);
         }
-        QuestPayoffDialog.openMate(this, QuestReplay.mate(authored, step, completedQuest), blackBelow, message.toString());
+        QuestPayoffDialog.openMate(this, QuestReplay.mate(authored, step, completedQuest), blackBelow, message.toString(), board.getWidth());
     }
 
     private void showFinishStudy(QuestCatalog.Quest quest, QuestFinishStudy study, boolean triedAlternative) {
@@ -511,10 +511,10 @@ public final class ChessActivity extends BackNavigableActivity {
         if (triedAlternative) explanation = (romanian ? study.alternativeRo() : study.alternativeEn()) + "\n\n" + explanation;
         String label = getString(R.string.tactics_alternative_line, study.notation());
         var dialog = new AlertDialog.Builder(this).setTitle(R.string.why_tactic).setMessage(explanation)
-                .setNeutralButton(label, (ignored, choice) -> QuestPayoffDialog.openAlternative(this, study.replay(quest), blackBelow, label))
+                .setNeutralButton(label, (ignored, choice) -> QuestPayoffDialog.openAlternative(this, study.replay(quest), blackBelow, label, board.getWidth()))
                 .setPositiveButton(android.R.string.ok, null);
         if (!triedAlternative) dialog.setNegativeButton(R.string.tactics_puzzle_replay,
-                (ignored, choice) -> QuestPayoffDialog.open(this, QuestPayoff.forExplanation(quest), blackBelow));
+                (ignored, choice) -> QuestPayoffDialog.open(this, QuestPayoff.forExplanation(quest), blackBelow, board.getWidth()));
         dialog.show();
     }
 

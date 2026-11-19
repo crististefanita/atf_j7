@@ -172,7 +172,7 @@ public final class OpeningActivity extends BackNavigableActivity {
         bottom = seat();
         board = new BoardView(this, this::tap, true);
         board.setId(R.id.opening_board);
-        analysis = new MatchAnalysisView(this, this::notation, this::showAiHint);
+        analysis = new MatchAnalysisView(this, this::notation, this::showAiHint, () -> board.getWidth());
         analysis.setIncludeFontPadding(false);
         analysis.setTextSize(12);
         analysis.evaluationBar().setBlackBelow(next.practice().learner() == Side.BLACK);

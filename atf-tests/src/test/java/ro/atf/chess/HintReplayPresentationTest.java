@@ -78,7 +78,8 @@ class HintReplayPresentationTest {
         check.same("The native adapter uses the same defended replay model as the Web worker", true,
                 calculated.contains("HintPreview.openDefended(root, line)") && worker.contains("HintPreview.openDefended(root, line)"));
         check.same("Calculated hints use the measured fullscreen workspace with fixed controls", true,
-                surface.contains("new GameReviewWorkspace(context, board, controls, scroll)") && workspace.contains("GameReviewLayout.fit("));
+                surface.contains("new GameReviewWorkspace(context, board, controls, scroll, sourceBoardSide)")
+                        && workspace.contains("ReplayBoardLayout.fit(") && workspace.contains("GameReviewLayout.fit("));
         check.same("The replay has a header return action and stable two-line move caption", true,
                 surface.contains("R.id.hint_preview_return") && surface.contains("BoardCaption.reserve(step, 2)"));
         check.same("The calculated adapter has no independent alert or screen-fraction sizing policy", false,

@@ -134,7 +134,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - Poziția finală arată rezultatul partidei.
 
 - Becul eliberează selecția curentă și arată mutarea recomandată. Butonul sugestiei deschide linia pe tabla de previzualizare, unde săgețile parcurg mutările fără să modifice partida.
-- **Linie calculată**, redarea puzzle-ului și previzualizările din Tabla de analiză preiau latura tablei vizibile înainte de deschidere. Parcurgerea sau schimbarea liniilor păstrează acest plafon; redeschiderea măsoară din nou tabla de origine. Pătratul urmează limita comună din Tabla de analiză. Conținutul suplimentar se derulează, fără o a doua reducere a tablei după înălțime.
+- **Linie calculată**, **Linia de mat** și previzualizările din Tabla de analiză preiau latura tablei vizibile înainte de deschidere. Pașii și schimbările de variantă păstrează pătratul; redeschiderea măsoară sursa din nou. Rânduri fixe pentru antet și navigare încadrează tabla. Explicația se derulează în spațiul rămas, fără suprapuneri sau derularea întregului dialog.
 - Închiderea revine la semimutarea din istoric, iar redeschiderea slotului revine la capătul partidei cu indiciul ascuns. Tabla de analiză oferă și teoria deschiderilor.
 - La poziția curentă, atingerea destinației marcate joacă indiciul legal când selecția tablei este liberă. Browserul calculează analiza într-un worker separat.
 - Schimbarea poziției sau ieșirea din partidă invalidează rezultatul anterior. [Probele de componentă și interfață](../docs/testing/README.md#analiza-în-partida-cu-ai)
@@ -149,7 +149,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - Prima configurare AI are Back chiar înainte să existe o partidă. Back și Anulează părăsesc formularul prin aceeași acțiune și păstrează partida salvată din care a fost deschis.
 - Partidă nouă, Partide salvate și ecranele de studiu folosesc `--play-column`, aceleași margini ale paginii și paleta de bază din Tabla de analiză. Pe landscape compact, marginea paginii se reduce pentru toate ecranele. Antetul nu primește o suprafață mai lată decât conținutul. Bara de evaluare vizibilă ocupă 8 px și un interval de 5 px; pătratul folosește lățimea rămasă până la limita comună.
 - O altă rută de joc sau studiu resetează derularea moștenită a documentului înainte de afișarea conținutului. Parcurgerea mutărilor în același ecran păstrează poziția paginii; Back și Forward nu adaugă o intrare duplicată în istoricul rutelor.
-- Problemele, partidele AI, partidele salvate redeschise și Deschiderile consumă aceeași limită de referință. Scorul problemelor sau explicațiile mai lungi nu scad încă o rezervă de înălțime. În ferestre scunde, pagina se poate derula până la comenzile de 48 px; textul și comenzile rămân accesibile, fără suprapuneri sau depășire orizontală.
+- Problemele, partidele AI, partidele salvate redeschise și Deschiderile consumă aceeași limită de referință. Scorul problemelor sau explicațiile mai lungi nu scad încă o rezervă de înălțime. Ferestrele standard AI și de probleme păstrează tabla și comenzile de 48 px în fereastră; detaliile problemelor se derulează intern. Indiciul AI își rezervă rândul înainte de afișare. În ferestre scunde, tura și profilul împart un rând, cu text accesibil complet și elipsă vizuală la nevoie. Continuarea își păstrează spațiul și când este ascunsă.
 - [Proba compactă RO/EN](../docs/testing/README.md#analiza-în-partida-cu-ai)
 
 `ChessWebBoardSizingTest` verifică zece cazuri independente pentru dimensiuni,

@@ -39,6 +39,44 @@
 
 - Modelul de ajutor în două trepte pornește de la Daily Puzzle. Explicația rămâne o acțiune separată, la fel ca dezvăluirea explicită a soluției în antrenamentul Lichess. [Chess.com Daily Puzzle](https://support.chess.com/en/articles/8708990-how-does-the-daily-puzzle-work) · [Lichess Puzzle Training](https://lichess.org/training/daily)
 
+### Redare la dimensiunea sursei
+
+Linia calculată, Linia de mat și previzualizările AI/teorie capturează pătratul
+sursei vizibile la deschidere. Navigarea schimbă piesele și textul fără să
+măsoare previzualizarea ca sursă nouă. Redeschiderea măsoară sursa curentă.
+
+```mermaid
+flowchart LR
+    Source[Tabla sursă vizibilă] -->|măsoară latura curentă| Capture[Capturare o dată la deschidere]
+    Capture -->|pixeli CSS| Web[Latură Web în pixeli CSS]
+    Capture -->|pixeli nativi| APK[APK ReplayBoardLayout]
+    Web -->|rânduri limitate| Frame[Tablă și rânduri de comenzi fixe]
+    APK -->|dimensiuni măsurate| Frame
+    Frame -->|spațiul rămas| Details[Înălțime rămasă pentru explicația derulabilă]
+    Step[Pas sau variantă] -->|refolosește latura| Position[Poziție și text]
+    Position -->|actualizează piesele și textul| Frame
+```
+
+<details>
+<summary>Legendă · Sursă, adaptoare și rânduri fixe</summary>
+
+- Web păstrează `--replay-board-side`; rândurile fixe împiedică textul să
+  suprapună tabla sau săgețile. Rândul indiciului AI și locul continuării se
+  rezervă înaintea acțiunii. Metadatele împart un rând în ferestre scunde.
+  Coloanele folosesc `minmax(0, 1fr)` pentru ca bara de derulare a explicației
+  să nu lărgească zona tablei și să-i deplaseze centrul între pași.
+- Android transmite `board.getWidth()` prin `MatchAnalysisView` și intrarea
+  redării problemei. `ReplayBoardLayout` păstrează latura măsurată, alocă
+  comenzile fixe și oferă restul explicației. O fereastră rotită sau mai îngustă
+  limitează pătratul la noua zonă utilă; sursa nemăsurată folosește un calcul
+  limitat de fereastră. Analiza generală a partidei își păstrează propria regulă.
+- Comparați pixeli CSS utili și unități logice native, inclusiv marginile
+  platformei. Contractul este afișarea echivalentă și navigarea stabilă,
+  fără a cere aceiași pixeli fizici pe ecrane diferite. Componentele califică
+  geometria; sanity-ul nativ califică randarea APK. [Verificare](../testing/README.md#analiza-în-partida-cu-ai)
+
+</details>
+
 ## Reguli și probleme
 
 - [`chess-rules.yaml`](../../chess-core/src/main/resources/chess-rules.yaml) declară vectorii pieselor, deplasarea pe rază sau prin salt, sensul pionului, captura, promovarea și configurația celor două rocade. Motorul aplică blocajele, alternarea culorilor, protecția regelui și expirarea dreptului en passant. Condițiile de siguranță rămân obligatorii la încărcarea profilului standard.

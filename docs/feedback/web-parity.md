@@ -44,6 +44,17 @@ Clasele JVM se compilează, iar adaptorul Android se compilează separat. Păstr
 
 ## WEB-02 · Adaptoare și afișaj comun
 
+**P2 · Randarea APK a redării la dimensiunea sursei.** Adaptorul nativ transmite
+latura măsurată către redările calculate/de teorie și de mat. Componentele
+acoperă geometria fixă, textul lung și redimensionarea; APK-ul sanity extern se
+construiește. Calificați cadrele native prin probele existente Analysis, Manual
+Analysis și Puzzle Mate Replay: comparați sursa/redarea, dreptunghiurile după
+Înainte/Înapoi și schimbarea variantei, toate cele opt rânduri și accesul la
+comenzi în profil compact RO/EN. Păstrați verdictul nativ separat de cele nouă
+comparații Web pentru profil și flux.
+[Contractul sursei](../board/README.md#redare-la-dimensiunea-sursei) ·
+[Componente de geometrie](../../atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java)
+
 <details>
 <summary>Responsabilitatea adaptoarelor și intrările</summary>
 

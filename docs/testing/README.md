@@ -136,7 +136,7 @@ Fiecare semimutare, inclusiv replica adversarului, cere analiza efectivă Hard c
 
 `ChessWebStudyShellTest` verifică regula comună și structura comenzilor. `ChessWebBoardSizingTest` evaluează expresiile CSS reale pe zece cazuri independente de lățime, înălțime, bară și text, inclusiv intrări aritmetice respinse. `BoardSizingGovernanceTest` verifică proprietarul unic al dimensiunii și derularea consumatorilor. Componentele califică acest contract; ele nu înlocuiesc măsurarea în browser.
 
-În Browser MCP, folosiți Tabla de analiză ca reper la aceeași fereastră și mărime a textului. Comparați Probleme, AI, Partide salvate redeschise și Deschideri la 360 × 640, 740 × 420 și 1280 × 900 CSS px. Măsurați pătratul, bara și comenzile înainte și după navigare. Conținutul suplimentar se poate derula vertical; el nu micșorează din nou pătratul și nu suprapune comenzile. Păstrați țintele de 48 px, toate cele opt rânduri și absența depășirii orizontale. [Regula de dimensionare](../../web/README.md#tabla-din-probleme-și-din-partidă)
+În Browser MCP, folosiți Tabla de analiză ca reper la aceeași fereastră și mărime a textului. Comparați Probleme, AI, Partide salvate redeschise și Deschideri la 360 × 640, 740 × 420 și 1280 × 900 CSS px. Măsurați pătratul, bara și comenzile înainte și după navigare. Paginile standard AI și de probleme nu cer derularea documentului; explicațiile se derulează în propria zonă. Păstrați țintele de 48 px, toate cele opt rânduri și absența depășirii orizontale. [Regula de dimensionare](../../web/README.md#tabla-din-probleme-și-din-partidă)
 
 ### Paritatea meniurilor și indiciilor
 
@@ -170,6 +170,19 @@ Comparați același checkpoint și aceeași semimutare în JVM și în worker. F
 `MatchHistorySelectionTest` verifică cursorul pentru o singură mutare prin paisprezece cazuri comune. Componenta Web acoperă ambele formate de transport, anunțurile neschimbate, creșterea istoricului, ramificarea și cursoarele expirate. Workerul compilat verifică paritatea proiecției și orientarea. În Browser MCP, parcurgeți Start, prima mutare, o mutare intermediară și ultima pe profil compact, landscape și desktop; verificați o singură etichetă între săgeți, indiciile limitelor și dreptunghiul tablei neschimbat. Adaptorul APK folosește cursorul comun în partidă și păstrează banda istoricului din Tabla de analiză.
 
 `NavigationGovernanceTest` înregistrează stilurile comune pentru titlu, Back și navigare, adaptoarele care consumă proiecția liniei și colecțiile de variante care trebuie păstrate. Probele de componentă păstrează istoricul complet din Tabla de analiză, ramurile din deschideri și linia calculată și comenzile indiciu/Pericol ale problemelor. Proba Web randată vizitează Partide, Probleme, Deschideri și Tabla de analiză, inclusiv revenirea contextuală prin Back; capturile Web nu dovedesc randarea Android.
+
+`ReplayBoardLayoutTest` verifică latura sursei în adaptorul nativ, comenzile fixe,
+explicațiile lungi, redimensionarea și geometria lipsă. `ChessWebStudyShellTest#replayChromeKeepsFixedSlots`
+publică verificările CSS în Extent; adaptoarele simulate verifică separat
+capturarea înainte de ascunderea sursei, variantele independente, pașii și redeschiderea.
+În Browser MCP, deschideți Linie calculată, Linia de mat și o previzualizare din
+Tabla de analiză pe fiecare profil de mai sus. Comparați laturile sursei și
+redării, apoi dreptunghiurile tablei și săgeților după Înainte, Înapoi,
+schimbarea variantei și revenire. Înregistrați înălțimea documentului,
+derularea dialogului și capturile încorporate. Explicația se poate derula;
+tabla și comenzile rămân fixe. Compilarea nativă și componentele de geometrie
+pregătesc paritatea APK, fără să califice randarea Android.
+[Contractul comun de redare](../board/README.md#redare-la-dimensiunea-sursei)
 
 <details>
 <summary>Cazuri comune, ecrane și recepții</summary>
@@ -219,7 +232,7 @@ substituite, coordonatele deformate și abaterea de la linia comună.
   analiză, separat de geometria nativă. Bara de 8 px și intervalul de 5 px
   rămân de-a lungul întregului pătrat. Comparați rezultatul Web cu reperul la
   aceeași fereastră și mărime a textului. Becul păstrează ținta de 48 px; pe
-  pagini scunde, derulați până la el fără schimbarea pătratului. **Mat în 1**
+  pagini scunde, păstrați-l în fereastră fără schimbarea pătratului. **Mat în 1**
   păstrează dreptunghiul după rezolvare, Next și Back.
 
 </details>

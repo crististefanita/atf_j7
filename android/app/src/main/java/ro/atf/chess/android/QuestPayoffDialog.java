@@ -44,21 +44,21 @@ final class QuestPayoffDialog {
     private final ImageButton next;
     private QuestReplay replay;
 
-    static void open(Context context, QuestPayoff payoff, boolean blackBelow) {
+    static void open(Context context, QuestPayoff payoff, boolean blackBelow, int sourceBoardSide) {
         int title = payoff.defenseStudy() != null ? R.string.tactics_defense_study : R.string.why_tactic;
         var initial = QuestReplay.at(payoff, payoff.defenseStudy() != null ? 1 : payoff.plies());
-        new QuestPayoffDialog(context, initial, blackBelow, context.getString(title), null);
+        new QuestPayoffDialog(context, initial, blackBelow, context.getString(title), null, sourceBoardSide);
     }
 
-    static void openAlternative(Context context, QuestPayoff payoff, boolean blackBelow, String label) {
-        new QuestPayoffDialog(context, QuestReplay.at(payoff, 1), blackBelow, label, null);
+    static void openAlternative(Context context, QuestPayoff payoff, boolean blackBelow, String label, int sourceBoardSide) {
+        new QuestPayoffDialog(context, QuestReplay.at(payoff, 1), blackBelow, label, null, sourceBoardSide);
     }
 
-    static void openMate(Context context, QuestReplay replay, boolean blackBelow, String explanation) {
-        new QuestPayoffDialog(context, replay, blackBelow, context.getString(R.string.mate_replay_title), explanation);
+    static void openMate(Context context, QuestReplay replay, boolean blackBelow, String explanation, int sourceBoardSide) {
+        new QuestPayoffDialog(context, replay, blackBelow, context.getString(R.string.mate_replay_title), explanation, sourceBoardSide);
     }
 
-    private QuestPayoffDialog(Context context, QuestReplay initial, boolean blackBelow, String titleText, String mateExplanation) {
+    private QuestPayoffDialog(Context context, QuestReplay initial, boolean blackBelow, String titleText, String mateExplanation, int sourceBoardSide) {
         this.context = context;
         this.replay = initial;
         this.payoff = initial.payoff();
@@ -117,7 +117,7 @@ final class QuestPayoffDialog {
         details.addView(captions);
         int movePreview = move.getLineHeight() * 2 + move.getPaddingTop() + move.getPaddingBottom() + captions.getPaddingTop();
         FrameLayout body = screen.findViewById(R.id.quest_payoff_body);
-        body.addView(new BoardDetails(new BoardPanel(context, null, board, null, null), details, movePreview),
+        body.addView(new BoardDetails(new BoardPanel(context, null, board, null, null), details, movePreview, sourceBoardSide),
                 new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         previous = screen.findViewById(R.id.quest_payoff_previous);
         previous.setOnClickListener(view -> {

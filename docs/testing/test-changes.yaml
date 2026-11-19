@@ -1,4 +1,52 @@
 testChanges:
+  - id: J7-REPLAY-SOURCE-EN
+    base: "aecf2b013fd4d49fc63395593ca00f0e70a828d1"
+    from: atf-tests/src/test/java/ro/atf/chess/HintReplayPresentationTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java
+    test: ro.atf.chess.ReplayBoardLayoutTest#nativeOwnersPassTheMeasuredBoardAtTheTimeOfOpening
+    contract: "Retain legal replay, independent branches and shared native surface checks; require actual source geometry at opening for calculated, theory and mating previews"
+    allowDelete: false
+
+  - id: J7-REPLAY-VIEWPORT-EN
+    base: "aecf2b013fd4d49fc63395593ca00f0e70a828d1"
+    from: atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+    test: ro.atf.chess.BoardSizingGovernanceTest#explanationsScrollInsideTheViewportWithoutSqueezingTheSquare
+    contract: "Keep the Analysis reference and 48 px controls; replace document growth with an internal explanation viewport, without a second height reduction of the square"
+    allowDelete: false
+
+  - id: J7-REPLAY-COMPONENTS-EN
+    base: "aecf2b013fd4d49fc63395593ca00f0e70a828d1"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    test: ro.atf.chess.ChessWebStudyShellTest#replayChromeKeepsFixedSlots
+    contract: "Retain every route, worker and publication probe; add Extent-backed checks for fixed replay chrome, stable hint and continuation slots and compact metadata"
+    allowDelete: false
+
+  - id: J7-REPLAY-SOURCE-RO
+    base: "e67811de29a4ac97c918099ce6612d0f9def0538"
+    from: atf-tests/src/test/java/ro/atf/chess/HintReplayPresentationTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java
+    test: ro.atf.chess.ReplayBoardLayoutTest#nativeOwnersPassTheMeasuredBoardAtTheTimeOfOpening
+    contract: "Retain legal replay, independent branches and shared native surface checks; require actual source geometry at opening for calculated, theory and mating previews"
+    allowDelete: false
+
+  - id: J7-REPLAY-VIEWPORT-RO
+    base: "e67811de29a4ac97c918099ce6612d0f9def0538"
+    from: atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+    test: ro.atf.chess.BoardSizingGovernanceTest#explanationsScrollInsideTheViewportWithoutSqueezingTheSquare
+    contract: "Keep the Analysis reference and 48 px controls; replace document growth with an internal explanation viewport, without a second height reduction of the square"
+    allowDelete: false
+
+  - id: J7-REPLAY-COMPONENTS-RO
+    base: "e67811de29a4ac97c918099ce6612d0f9def0538"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    test: ro.atf.chess.ChessWebStudyShellTest#replayChromeKeepsFixedSlots
+    contract: "Retain every route, worker and publication probe; add Extent-backed checks for fixed replay chrome, stable hint and continuation slots and compact metadata"
+    allowDelete: false
+
   - id: J7-HOME-SETTINGS-LAYOUT
     base: "d08d487dc463d5321da6a4691123c808dfd73406"
     from: atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
@@ -1024,7 +1072,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-NATIVE-QUEST-BUDGET-AUDIT
-    base: "e5d9bc853b66ee49b1f318913f0cc09a18cdca63"
+    base: "6d1498686addf53005f294102868b420e49fc045"
     from: atf-tests/src/test/java/ro/atf/chess/HardQuestTransferBenchmarkTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/HardQuestAuditTest.java
     test: ro.atf.chess.HardQuestAuditTest#adaptiveAndRepertoireAllowancesRemainDistinctAndStrict
@@ -1032,7 +1080,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-HINT-RECAPTURE-SCHEMA
-    base: "eaa4381ffacc08492c2a226bcdb57440228718ec"
+    base: "e70058747d428329eca86b48dca8142e9d241d47"
     from: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
     test: ro.atf.chess.MatchAiGovernanceTest#hardExactTranspositionCacheIsBoundedAndScalesWithTheHardNodeBudget
@@ -1134,16 +1182,16 @@ testChanges:
     contract: "Reuse the unchanged hint legality, horizon, material and node checks; require pre-move Hard and an explicitly requested maximum public hint for every actual White and Black move"
     allowDelete: false
 
-  - id: J7-QUEEN-CHAIN-RO
-    base: "6dac924470bf61c7193985001abd2f0905a2bea9"
+  - id: J7-QUEEN-CHAIN-EN
+    base: "87e9d8c81daa9462413e40db98d507721a4191a6"
     from: atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
     test: ro.atf.chess.HintQueenPieceRecaptureTest#theQueenExchangeMustFinishBeforeJudgingTheBishopOffer
     contract: "Preserve Caro, legal recaptures, warm/cold caches and the sound queen mate; add the full queen exchange and reject restoration of an unresolved seed"
     allowDelete: false
 
-  - id: J7-NATIVE-LOSS-WITNESSES-RO
-    base: "6dac924470bf61c7193985001abd2f0905a2bea9"
+  - id: J7-NATIVE-LOSS-WITNESSES-EN
+    base: "87e9d8c81daa9462413e40db98d507721a4191a6"
     from: atf-tests/src/test/java/ro/atf/chess/LearningArchiveBenchmarkTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/HardLearningWitnessTest.java
     test: ro.atf.chess.HardLearningWitnessTest#permanentLossesRetainTheirCompleteLegalContextAndRawTeacher
