@@ -10,6 +10,8 @@ Alegeți cel mai mic nivel de testare care poate observa schimbarea. Construiți
 
 Variația deschiderilor este guvernată de [OpeningVarietyTest](../../atf-tests/src/test/java/ro/atf/chess/OpeningVarietyTest.java): întregul catalog redactat, decizii native la toate nivelurile, eșecuri de persistare atomică, salvări vechi, istoric și înlocuirea sloturilor. Indiciul aceleiași poziții și analiza finală trebuie să fie identice între alegerile partidelor. O partidă auditată nouă măsoară separat calitatea transferului față de aceste contracte deterministe de componentă.
 
+Schimbările repertoriului cer propria verificare a domeniului: fixează rădăcina verificată independent și toate semimutările PV oferite, compară replicile adverse libere la H17/H19, păstrează orizontul și alocația de noduri și include un context unde aceeași mutare de piesă este bună. O corecție de poziție exactă nu trebuie raportată drept câștig general de căutare ori Elo. [Exemplu nativ și dovadă independentă](../../atf-tests/src/test/java/ro/atf/chess/NimzoRepertoireTest.java)
+
 ## Alegerea nivelului
 
 - **Componentă** pentru reguli, progres, persistență, ordonare și layout măsurabil. Folosiți store-ul real cu preferințe în memorie și aserțiuni pe valori observabile.
