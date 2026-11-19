@@ -1243,6 +1243,8 @@ declared search scope, not optimal chess or an Elo improvement.
 `Bb5+` versus `Nc4`, both colors, missing-node negatives, real v2 cache bytes and fresh
 Stockfish H17/H19 phases. No opening name, FEN or prescribed defense enters the runtime rule.
 
+The rule applies to noncapturing, nonpromoting checks. Immediate sacrifices such as sound
+Traxler `…Bxf2+` retain their existing evaluation; the wider prototype regressed that control.
 The hint already completed a deeper comparison but used the old H4 veto after the checking
 incumbent lost material. It now pays for a free-reply H5 comparison and, only when that
 shows at least a minor-for-pawn loss and more than the existing 25cp gain, a free-reply H6

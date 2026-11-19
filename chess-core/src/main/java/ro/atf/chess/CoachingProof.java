@@ -113,7 +113,8 @@ public final class CoachingProof {
 
     static boolean shortCheckingLine(ChessPosition board,TacticalAnalysis.Variation line,int depth) {
         return depth<=MatchAiPolicy.BASE_PLIES+1&&line.ending()==TacticalAnalysis.Ending.HORIZON
-                &&line.signedMatePlies()==0&&board.playGenerated(line.move()).isCheck();
+                &&line.signedMatePlies()==0&&MatchMaterial.victim(board,line.move())==null
+                &&line.move().promotion()==null&&board.playGenerated(line.move()).isCheck();
     }
 
     static Result counterplay(ChessPosition board,List<Move> roots,Move incumbent,int tactical,Policy policy,Set<Move> draws,Set<Move> required) {
