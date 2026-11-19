@@ -9,7 +9,7 @@ const close = (actual, expected, label) => assert.ok(Math.abs(actual - expected)
 const center = cell => [cell.x + cell.width / 2, cell.y + cell.height / 2];
 const number = value => (Math.abs(value) < 1e-10 ? 0 : value).toFixed(6);
 
-function canvasArrow(example) {
+function canvasArrow(example, visible = true) {
     const points = [];
     const calls = {};
     const context = {
@@ -50,6 +50,11 @@ function canvasArrow(example) {
     } finally {
         Object.assign(globalThis, previous);
     }
+    if (!visible) {
+        assert.equal(points.length, 0, example.id + ' does not paint an unmeasured destination');
+        assert.equal(find('review-cue').hidden, true, example.id + ' hides stale cue pixels until cells are measured');
+        return;
+    }
     assert.equal(points.length, 7, example.id + ' retains the complete arrow polygon');
     assert.equal(context.strokeStyle, '#173b31', example.id + ' retains the outline');
     assert.equal(context.fillStyle, '#57e0b4', example.id + ' retains the hint color');
@@ -85,6 +90,10 @@ for (const example of examples) {
     const svgGap = Math.hypot(destinationX - actualX, destinationY - actualY);
     close(svgGap, .20, example.id + ' SVG destination-center gap');
     result.push({ id: example.id, canvasX: number(canvasX), canvasY: number(canvasY), svgGap: number(svgGap) });
+}
+for (const dimension of ['width', 'height']) {
+    const collapsed = { ...examples[0], destination: { ...examples[0].destination, [dimension]: 0 } };
+    canvasArrow(collapsed, false);
 }
 for (const unit of [0, -1, NaN, Infinity]) assert.throws(() => hintArrow(100, 0, unit), RangeError);
 for (const [dx, dy] of [[0, 0], [10, 0], [NaN, 0], [0, Infinity]]) assert.throws(() => hintArrow(dx, dy, 50), RangeError);

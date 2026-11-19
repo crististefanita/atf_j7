@@ -101,7 +101,7 @@ final class BoardView extends ViewGroup {
         super.dispatchDraw(canvas);
         if (hintOrigin == null || hintDestination == null || hintOrigin == hintDestination) return;
         float unit = hintOrigin.getWidth();
-        if (unit == 0) return;
+        if (unit <= 0 || hintOrigin.getHeight() <= 0 || hintDestination.getWidth() <= 0 || hintDestination.getHeight() <= 0) return;
         float x = hintOrigin.getLeft() + unit / 2;
         float y = hintOrigin.getTop() + hintOrigin.getHeight() / 2f;
         float dx = hintDestination.getLeft() + hintDestination.getWidth() / 2f - x;
