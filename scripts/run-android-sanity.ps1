@@ -243,6 +243,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         if ($Phase -like 'analysis-compact-*' -or $Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux',
                 'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore','source-sized-replay') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
+            if ($marker.Count -eq 0) { throw "Native capture fingerprint is missing: $file." }
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
                 throw "Pulled PNG does not match the native capture: $file."
             }

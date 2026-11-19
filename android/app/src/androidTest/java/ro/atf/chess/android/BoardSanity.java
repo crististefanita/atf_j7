@@ -3546,7 +3546,7 @@ public final class BoardSanity extends Instrumentation {
         if (phase.startsWith("analysis-compact-") || "analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
                 || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
                 || "puzzle-ux".equals(phase) || "active-match-restore".equals(phase) || "pending-bot-restore".equals(phase)
-                || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
+                || "source-sized-replay".equals(phase) || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }
