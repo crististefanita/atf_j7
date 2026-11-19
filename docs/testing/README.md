@@ -229,6 +229,11 @@ Acest sanity de dezvoltare nu califică APK-ul semnat al unei ediții.
 Folosiți `-Dchess.extent=<raport>` pentru un fișier nou ales explicit. Duratele
 raportului descriu validarea/publicarea recepțiilor; latența acțiunilor native nu este măsurată.
 
+Rulați publicarea Android explicită într-o comandă JUnit separată, cu o cale
+nouă de raport. Nu o combinați cu testele de componentă sub același
+`chess.extent`: fiecare deține propria sesiune, iar admiterea fișierului existent
+trebuie să refuze suprascrierea unui raport cu celălalt.
+
 În API 28, framebufferul complet poate include benzi în jurul unui ecran
 logic cu alt raport de aspect. `FramebufferProjection` acceptă maparea doar
 când viewportul primar Android corespunde ecranului curent și întregului
