@@ -1,4 +1,56 @@
 testChanges:
+  - id: J7-NATIVE-SOURCE-REPLAY-EN
+    base: "529975c0f5b573a4cb53fec66a5f0ca7143864c6"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidSourceReplayReceiptTest.java
+    test: ro.atf.chess.AndroidSourceReplayReceiptTest#requiresEachNativeGeometryAssertionAndTheActualProfile
+    contract: "Retain existing native probes, update both source-side dialog calls and require twenty source, navigation, branch, return and viewport assertions in a dedicated native phase"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "AI hint reveal preserves the source board rectangle"
+
+  - id: J7-NATIVE-SOURCE-REPORT-EN
+    base: "529975c0f5b573a4cb53fec66a5f0ca7143864c6"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidSourceReplayReceiptTest.java
+    test: ro.atf.chess.AndroidSourceReplayReceiptTest#requiresEachNativeGeometryAssertionAndTheActualProfile
+    contract: "Retain every previous native publisher and fail closed for missing, substituted or duplicate replay assertions and incorrect profile metadata before publishing the six native runs"
+    allowDelete: false
+
+  - id: J7-NATIVE-SOURCE-RUNNER-EN
+    base: "529975c0f5b573a4cb53fec66a5f0ca7143864c6"
+    from: scripts/run-android-sanity.ps1
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidSourceReplayReceiptTest.java
+    test: ro.atf.chess.AndroidSourceReplayReceiptTest#requiresEachNativeGeometryAssertionAndTheActualProfile
+    contract: "Retain all existing phases, shared lease and cleanup; add a focused EN/RO three-profile replay phase with twenty mandatory checks and restore the original display in finally"
+    allowDelete: false
+
+  - id: J7-NATIVE-SOURCE-REPLAY-RO
+    base: "1d0c2c92f44790e2be6221ef7a6b1295f5e9a7ad"
+    from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidSourceReplayReceiptTest.java
+    test: ro.atf.chess.AndroidSourceReplayReceiptTest#requiresEachNativeGeometryAssertionAndTheActualProfile
+    contract: "Retain existing native probes, update both source-side dialog calls and require twenty source, navigation, branch, return and viewport assertions in a dedicated native phase"
+    allowDelete: false
+    nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+    nativeProbe: "AI hint reveal preserves the source board rectangle"
+
+  - id: J7-NATIVE-SOURCE-REPORT-RO
+    base: "1d0c2c92f44790e2be6221ef7a6b1295f5e9a7ad"
+    from: atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidSourceReplayReceiptTest.java
+    test: ro.atf.chess.AndroidSourceReplayReceiptTest#requiresEachNativeGeometryAssertionAndTheActualProfile
+    contract: "Retain every previous native publisher and fail closed for missing, substituted or duplicate replay assertions and incorrect profile metadata before publishing the six native runs"
+    allowDelete: false
+
+  - id: J7-NATIVE-SOURCE-RUNNER-RO
+    base: "1d0c2c92f44790e2be6221ef7a6b1295f5e9a7ad"
+    from: scripts/run-android-sanity.ps1
+    replacement: atf-tests/src/test/java/ro/atf/chess/AndroidSourceReplayReceiptTest.java
+    test: ro.atf.chess.AndroidSourceReplayReceiptTest#requiresEachNativeGeometryAssertionAndTheActualProfile
+    contract: "Retain all existing phases, shared lease and cleanup; add a focused EN/RO three-profile replay phase with twenty mandatory checks and restore the original display in finally"
+    allowDelete: false
+
   - id: J7-REPLAY-SOURCE-EN
     base: "aecf2b013fd4d49fc63395593ca00f0e70a828d1"
     from: atf-tests/src/test/java/ro/atf/chess/HintReplayPresentationTest.java

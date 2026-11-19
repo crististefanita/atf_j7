@@ -44,16 +44,22 @@ Clasele JVM se compilează, iar adaptorul Android se compilează separat. Păstr
 
 ## WEB-02 · Adaptoare și afișaj comun
 
-**P2 · Randarea APK a redării la dimensiunea sursei.** Adaptorul nativ transmite
-latura măsurată către redările calculate/de teorie și de mat. Componentele
-acoperă geometria fixă, textul lung și redimensionarea; APK-ul sanity extern se
-construiește. Calificați cadrele native prin probele existente Analysis, Manual
-Analysis și Puzzle Mate Replay: comparați sursa/redarea, dreptunghiurile după
-Înainte/Înapoi și schimbarea variantei, toate cele opt rânduri și accesul la
-comenzi în profil compact RO/EN. Păstrați verdictul nativ separat de cele nouă
-comparații Web pentru profil și flux.
-[Contractul sursei](../board/README.md#redare-la-dimensiunea-sursei) ·
-[Componente de geometrie](../../atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java)
+**P2 · Redare semnată la text mărit și rotație fizică.** Repetați faza nativă
+la dimensiunea sursei pe APK-ul semnat, adăugați text 1.3× și o rotație reală
+de 90°, apoi verificați atingerea, Back și revenirea focusului. Matricea de
+dezvoltare acoperă trei ferestre logice în EN/RO la font 1.0; calibrarea
+compozitorului API 28 cere deocamdată un viewport primar nerotit. Păstrați
+laturile exacte sursă/redare, cursorul care avansează, variantele fixe și
+capturile legate de execuție; matricea nu dovedește randarea semnată sau rotită.
+[Protocolul nativ](../testing/README.md#sanity-nativ-la-dimensiunea-sursei)
+
+**P2 · Oracolele vechi ale istoricului nativ.** `awaitHiddenAnalysis` încă
+verifică un copil de istoric per semimutare. Aliniați `analysis-prepare/restore`
+și variantele compacte la cursorul comun cu o singură mutare afișată în joc.
+Păstrați lista completă a Tablei de analiză și oracolul său separat. Verificați
+independent indiciul/evaluarea finalizate și poziția afișată; un timeout nu
+trebuie să înlocuiască diagnosticul unui oracol UI greșit.
+[Cursorul curent](../../chess-core/src/main/java/ro/atf/chess/MatchHistorySelection.java)
 
 <details>
 <summary>Responsabilitatea adaptoarelor și intrările</summary>

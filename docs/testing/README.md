@@ -185,6 +185,58 @@ tabla și comenzile rămân fixe. Compilarea nativă și componentele de geometr
 pregătesc paritatea APK, fără să califice randarea Android.
 [Contractul comun de redare](../board/README.md#redare-la-dimensiunea-sursei)
 
+### Sanity nativ la dimensiunea sursei
+
+Folosiți `run-android-sanity.ps1 -ReplayViewportOnly` din copia externă de build,
+cu registrul comun de rezervare și serverul/serialul ADB explicite. Construiți
+atât `:app:assembleSanity`, cât și `:app:assembleSanityAndroidTest`; compilarea
+aplicației singure nu verifică apelurile dialogurilor din instrumentare.
+
+Faza focalizată deschide Linie calculată, indiciile din Tabla de analiză și
+Linia de mat în EN/RO, pe profiluri logice de 360 × 640, 740 × 420 și
+1280 × 900 dp: 720 × 1280 și 1480 × 840 pixeli nativi la 320 dpi, respectiv
+1920 × 1350 la 240 dpi, font 1.0. Profilul mare rămâne sub limita de lățime
+a emulatorului API 28; dimensiunile limitate tacit sunt respinse la preflight.
+Barele Android reduc fereastra utilă; aceste dimensiuni nu afirmă identitatea
+cu viewporturile CSS din Web. Folosiți profiluri Android calibrate prin densitate,
+fără a trata pixelii CSS din Web drept pixeli fizici ai dispozitivului.
+Runnerul restaurează dimensiunea, densitatea și fontul în `finally` și
+eliberează propria rezervare. Pachetul izolat păstrează aplicația obișnuită.
+
+Fiecare execuție cere douăzeci de verificări ordonate: latura sursei, toate
+liniile tablei, comenzile fixe de 48 dp, Înainte/Înapoi, o variantă calculată
+și una teoretică reale și revenirea. `ReplayViewportFixture` este comun cu
+testul JVM care verifică două alternative calculate legale. Proba așteaptă
+indiciul activ și evaluarea finalizată, independent de afișarea istoricului
+ca mutare unică sau listă. Nu injectați o variantă suplimentară în interfață
+pentru a face proba de navigare să treacă.
+
+Publicați din checkoutul extern complet, cu `<run>` egal cu directorul
+afișat de runner:
+
+```powershell
+mvn -B -ntp test '-Dtest=AndroidSanityPublication#publishSourceReplaySanity' `
+    '-Dchess.android.receipt=<run>'
+```
+
+`android-source-sized-replay.html` include verificările native și patru capturi
+per profil/limbă. Verifică execuția, procesul, APK-ul, hashurile recepției și
+capturilor și profilul exact. Aserțiunile lipsă, înlocuite sau duplicate și un
+profil greșit produc FAIL în `AndroidSourceReplayReceiptTest`.
+Înainte/Înapoi cer și semimutarea afișată corectă, selectarea variantei și
+mutarea efectivă de mat; coordonatele neschimbate nu sunt suficiente.
+Acest sanity de dezvoltare nu califică APK-ul semnat al unei ediții.
+Folosiți `-Dchess.extent=<raport>` pentru un fișier nou ales explicit. Duratele
+raportului descriu validarea/publicarea recepțiilor; latența acțiunilor native nu este măsurată.
+
+În API 28, framebufferul complet poate include benzi în jurul unui ecran
+logic cu alt raport de aspect. `FramebufferProjection` acceptă maparea doar
+când viewportul primar Android corespunde ecranului curent și întregului
+dreptunghi de conținut centrat. Verificările pixelilor folosesc dreptunghiul
+validat și păstrează PNG-ul original. Decuparea, viewportul lipsă/străin sau
+rotația nesuportată produc FAIL; verificările de aspect existente din
+`ScreenCaptureGeometry` rămân neschimbate.
+
 <details>
 <summary>Cazuri comune, ecrane și recepții</summary>
 

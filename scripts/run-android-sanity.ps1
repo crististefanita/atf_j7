@@ -23,6 +23,7 @@ param(
     [switch]$PuzzleMateReplayOnly,
     [switch]$PuzzleDangerOnly,
     [switch]$PuzzleUxOnly,
+    [switch]$ReplayViewportOnly,
     [ValidateSet('ro','en')][string]$PuzzleLanguage = 'ro',
     [switch]$IncludeOpenings,
     [switch]$IncludeGameReview,
@@ -50,7 +51,7 @@ if ($ReplayCompactOnly -and (!$Distribution -or $AnalysisOnly -or $OpeningsOnly 
         $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
     throw 'ReplayCompactOnly selects both compact locales on the signed APK.'
 }
-$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly, $PuzzleUxOnly).Where({ $_ })
+$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly, $PuzzleUxOnly, $ReplayViewportOnly).Where({ $_ })
 if ($puzzleProbes.Count -gt 1 -or ($puzzleProbes.Count -eq 1 -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or
         $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or $MatchMenusOnly -or $IncludeOpenings -or
         $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive))) {
@@ -160,7 +161,7 @@ function Set-DisplayProfile($Profile) {
         if ($actual.size -ceq $Profile.size -and $actual.density -ceq $Profile.density -and $actual.font -ceq $Profile.font) { return }
         Start-Sleep -Milliseconds 150
     } while ([datetime]::UtcNow -lt $deadline)
-    throw 'Android did not reach the requested display profile.'
+    throw "Android display mismatch. Requested $($Profile | ConvertTo-Json -Compress); observed $($actual | ConvertTo-Json -Compress)."
 }
 
 function Receive-Frame([string]$Name, [string]$Directory = $run) {
@@ -232,6 +233,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
             $frames = @('mate-one', 'mate-two', 'mate-three', 'tactics', 'training', 'intermezzo') |
                 ForEach-Object { "puzzle-ux-$_" }
         }
+        'source-sized-replay' { $frames = @('source-ai', 'source-calculated', 'source-theory', 'source-mating') }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
@@ -239,8 +241,9 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
         if ($Phase -like 'analysis-compact-*' -or $Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux',
-                'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore') {
+                'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore','source-sized-replay') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
+            if ($marker.Count -eq 0) { throw "Native capture fingerprint is missing: $file." }
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
                 throw "Pulled PNG does not match the native capture: $file."
             }
@@ -367,6 +370,32 @@ try {
     $runner = "$app.test/ro.atf.chess.android.BoardSanity"
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
+    if ($ReplayViewportOnly) {
+        $original = Read-DisplayProfile
+        $original | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'original-display.json') -Encoding utf8NoBOM
+        $runId = [guid]::NewGuid().ToString('N')
+        try {
+            foreach ($profile in '360x640', '740x420', '1280x900') {
+                $dimensions = $profile.Split('x')
+                $scale = if ($profile -ceq '1280x900') { 1.5 } else { 2 }
+                $nativeSize = "$([int]([int]$dimensions[0] * $scale))x$([int]([int]$dimensions[1] * $scale))"
+                Set-DisplayProfile @{size=$nativeSize; density="$([int](160 * $scale))"; font='1.0'}
+                foreach ($locale in 'en','ro') {
+                    $directory = Join-Path $run "$profile-$locale"
+                    $null = New-Item -ItemType Directory $directory
+                    $clear = Invoke-Device @('shell','pm','clear',$app)
+                    if ($clear -cnotcontains 'Success') { throw 'Could not reset the isolated replay fixture.' }
+                    $instrument = @('shell','am','instrument','-w','-r','-e','puzzleLanguage',$locale)
+                    if ($Distribution) { $instrument += @('-e','externalFrames','true') }
+                    Invoke-FocusedSanity $directory 'source-sized-replay' 20 $runId
+                }
+            }
+        } finally {
+            Set-DisplayProfile $original
+            Read-DisplayProfile | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'restored-display.json') -Encoding utf8NoBOM
+        }
+        return
+    }
     if ($ReplayCompactOnly) {
         Invoke-ReplayCompactSanity $run
         return

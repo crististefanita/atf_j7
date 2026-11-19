@@ -45,6 +45,8 @@
 Linia calculată, Linia de mat și previzualizările AI/teorie capturează pătratul
 sursei vizibile la deschidere. Navigarea schimbă piesele și textul fără să
 măsoare previzualizarea ca sursă nouă. Redeschiderea măsoară sursa curentă.
+`MatchViewport` selectează chenarele native compacte în ferestrele portret
+înguste și în ferestrele de cel mult 480 dp înălțime, lăsând mai mult loc tablei.
 
 ```mermaid
 flowchart LR
