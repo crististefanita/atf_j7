@@ -2485,14 +2485,18 @@ public final class BoardSanity extends Instrumentation {
         var panel = puzzleControl(activity, R.id.puzzle_options_panel);
         var flip = puzzleControl(activity, R.id.puzzle_flip_board);
         var menu = puzzleControl(activity, R.id.puzzle_main_menu);
+        var anchor = screenBounds(puzzleControl(activity, R.id.puzzle_options));
+        var menuBounds = screenBounds(panel);
         boolean optionsFit = fullyVisible(panel) && fullyVisible(flip) && fullyVisible(menu) && flip.isEnabled() && menu.isEnabled()
-                && bounds.bottom <= screenBounds(panel).top && !previous.isShown() && !next.isShown();
+                && menuBounds.top >= anchor.bottom && Math.abs(menuBounds.right - anchor.right) <= 1
+                && previous.isShown() && next.isShown() && bounds.equals(screenBounds(board));
         if (!closed || !flipsInPlace || !opens || !backCloses || !optionsFit) {
             throw new AssertionError(checkpoint.name() + ": closed controls=" + closed + ", flip=" + flipsInPlace
                     + ", options opens=" + opens + ", Back closes=" + backCloses + ", menu fits=" + optionsFit);
         }
         captureFrame(checkpoint.frame(), checkpoint.name() + " keeps the board fixed with puzzle options open", image ->
-                bounds.equals(screenBounds(board)) && allBoardCornersRendered(image, board)
+                bounds.equals(screenBounds(board)) && uncoveredBoardCornersRendered(image, board, panel)
+                        && renderedPuzzleText(image, activity.findViewById(R.id.puzzle_status))
                         && pointBounds.equals(screenBounds(points)) && expectedPoints.contentEquals(points.getText())
                         && seriesBounds.equals(screenBounds(series)) && expectedSeries.contentEquals(series.getText())
                         && activity.getString(R.string.reward_streak, rewards.streak()).equals(series.getContentDescription())
@@ -2581,6 +2585,15 @@ public final class BoardSanity extends Instrumentation {
         compare("Closing the three-move replay keeps the solved puzzle and its award", true,
                 solved.currentSolved() && solved.equals(store.read(threeOrder)) && scored.equals(store.readRewards())
                         && scored.points().containsKey(three.id()));
+    }
+
+    private boolean uncoveredBoardCornersRendered(Bitmap image, BoardView board, View overlay) {
+        var unobscured = List.of("a1", "h1", "a8", "h8").stream()
+                .filter(square -> !Rect.intersects(screenBounds(cell(board, square)), screenBounds(overlay))).toList();
+        return unobscured.size() >= 2 && unobscured.stream().allMatch(square -> {
+            int color = BoardSquare.isLight(BoardSquare.parse(square)) ? 0xffedf0d5 : 0xff769556;
+            return hasColor(image, cell(board, square), color, 24);
+        });
     }
 
     private boolean allBoardCornersRendered(Bitmap image, BoardView board) {

@@ -398,6 +398,8 @@ public final class ChessActivity extends BackNavigableActivity {
         board = new BoardView(this, this::tap);
         var panel = new BoardPanel(this, topPlayer, board, null, null);
         status = boardStatus(3);
+        status.setId(R.id.puzzle_status);
+        status.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
         questDetails = new ScrollView(this);
         questDetails.setScrollbarFadingEnabled(false);
         var captions = new LinearLayout(this);

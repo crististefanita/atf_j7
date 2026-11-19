@@ -11,4 +11,5 @@
     <item name="puzzle_chapter" type="id" />
     <item name="puzzle_rank" type="id" />
     <item name="puzzle_turn" type="id" />
+    <item name="puzzle_status" type="id" />
 </resources>

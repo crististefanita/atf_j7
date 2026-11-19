@@ -19,16 +19,18 @@ class MatchToolbarResourcesTest {
         Document toolbar = resource("layout/match_toolbar.xml");
         var row = toolbar.getDocumentElement();
         var menu = (Element) row.getElementsByTagName("ImageButton").item(0);
-        var slot = (Element) row.getElementsByTagName("FrameLayout").item(0);
-        var automatic = (Element) slot.getElementsByTagName("CheckBox").item(0);
-        check.same("The hamburger and native checkbox share one horizontal header", "horizontal", attr(row, "orientation"));
+        var automatic = (Element) row.getElementsByTagName("CheckBox").item(0);
+        String header = java.nio.file.Files.readString(ProjectRoot.locate().resolve("android/app/src/main/java/ro/atf/chess/android/ChessHeader.java"));
+        check.same("The actions are merged into the shared native header", "merge", row.getTagName());
+        check.same("The title takes remaining width before the right-side actions", true,
+                header.contains("new LayoutParams(0, -2, 1)") && header.contains("UiChrome.TARGET"));
         check.same("The menu keeps a 48 dp touch target and the common three-line glyph",
                 List.of("48dp", "48dp", "@drawable/puzzle_menu"),
                 List.of(attr(menu, "layout_width"), attr(menu, "layout_height"), attr(menu, "src")));
-        check.same("The caption is constrained to the remaining width and the row can grow with the font",
-                List.of("0dp", "1", "wrap_content", "wrap_content", "48dp", ""),
-                List.of(attr(slot, "layout_width"), attr(slot, "layout_weight"), attr(row, "layout_height"),
-                        attr(automatic, "layout_height"), attr(automatic, "minHeight"), attr(automatic, "maxLines")));
+        check.same("The caption can grow at enlarged text and preserves a minimum 48 dp target",
+                List.of("wrap_content", "wrap_content", "48dp", ""),
+                List.of(attr(automatic, "layout_width"), attr(automatic, "layout_height"), attr(automatic, "minHeight"), attr(automatic, "maxLines")));
+        check.same("The compact caption retains the full accessible action", "@string/match_automatic_ai", attr(automatic, "contentDescription"));
         check.same("The native controls expose localized accessible labels",
                 List.of("@string/match_actions", "@string/match_automatic_ai"),
                 List.of(attr(menu, "contentDescription"), attr(automatic, "text")));
