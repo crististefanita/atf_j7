@@ -9,6 +9,8 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 
 | Prioritate | Zonă | Observație | Criteriu de închidere |
 |---|---|---|---|
+| P1 | Scoțiană · șah câștigător și mat advers | La mutarea 20, indiciul compară `…dxc3` și `…gxf6`, omite `…Re8+` și pierde 314/348,5‰. Mai târziu în PV, `Bxb2` înlocuiește matul alb în trei prin `Bxh7+`. | Readmite rădăcina câștigătoare și caută replicile adverse libere, inclusiv șahurile liniștite ulterioare; păstrează sacrificiul corect de nebun, gărzile rădăcinilor și limitele negative de lucru. Scopurile de rădăcină în indiciu, analiză și continuare rămân FAIL. [Martori](#scoțiană-șah-câștigător-și-mat-advers) |
+| P1 | Comparație indiciu · PV diagnostic complet | Linia publică reparată din Spaniolă nu are pierdere mare, dar comparația respinsă `Ng5 …O-O Nc3` păstrează o mutare slabă de 346/378,5‰. | Auditează continuările comparative alături de indiciile oferite; repară linia cu replici libere și păstrează benchmarkul comparației FAIL până la calificarea ambelor orizonturi. [Mecanism](../board/ai-quality.md#oferte-adverse-liniștite-în-interiorul-indiciului) |
 | P1 | Indiciu · continuarea adversă completă | A doua variantă nouă după `1.e4` conține `Bxe6` slab; jocul advers liber preferă `Nc3`, cu pierdere 382/399‰ la H17/H19. | Repară continuarea completă evaluată cu 200k lucru obișnuit și rezerva finită de dovadă taxată separat, verifică fiecare semimutare PV pe familii independente și păstrează sacrificiile corecte. [Martor](#replici-adverse-slabe-în-indiciile-publice) |
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
@@ -531,3 +533,51 @@ unei recapturi legale, dar 14 ultime mutări rămân inferioare la ambele adânc
 Aceasta nu califică întregul PV: benchmarkul calității analizei finale rămâne FAIL
 pentru recomandarea respectivă. Repară separat comparațiile cu replici libere și
 clasificarea; nu ascunde replicile interne slabe doar fiindcă piesa finală e sigură.
+
+Oferta liniștită a nebunului din Spaniolă este reparată în indiciul oferit: închiderea
+completă a capturilor elimină previzualizarea optimistă `Ng5` și oferă
+`Nc3 …O-O d3 …Be6 Be3`. Toate cele cinci semimutări oferite au pierdere sub 50‰ la
+H17/H19 rece. Aceeași `…Be6` este corectă în martorul italian; o listă de mutări
+interzise nu repară mecanismul. Păstrează componentele franceze și sacrificiile
+corecte. Continuarea comparativă slabă rămâne deficit separat, cu benchmark
+executabil și faze brute de oracol. O partidă nouă trebuie să păstreze fiecare indiciu
+anterior mutării și analiza finală sub producătorul efectiv; nu redenumi partida
+anterioară de 55 de semimutări din Spaniolă ca joc curent.
+
+## Scoțiană șah câștigător și mat advers
+
+Sursa restrânsă `e4bdd31af382297360e825bb1a47729e20c5cbbc` a trecut poarta celor 106
+poziții istorice: trei recomandări schimbate, 18 faze noi de oracol, zero rezultate
+incomplete și zero regresii mari noi ale rădăcinilor. Scoțiana de 52 de semimutări
+este joc nou observat: zece mutări de teorie declarată, 21 efectiv jucate de Hard și
+21 Stockfish, până la matul negru. Fiecare tură are indiciul maxim calculat anterior.
+Toate cele 52 de obiecte de indiciu coincid cu reperul pe pozițiile noi; admiterea
+completă a capturilor nu s-a activat. Este conservare, nu dovadă independentă de forță.
+
+Cele 66 de oferte publice au 377 de semimutări ipotetice și 1.282 de interogări H17/H19.
+Douăzeci și șapte pierd stabil cel puțin 150‰, inclusiv douăsprezece replici adverse;
+trei prime indicii pierd substanțial. Două dintre cele 52 de alegeri native au pierdere
+mare; doar una a fost efectiv jucată de Hard, cealaltă este alegere umbră la tura
+oracolului. Analiza finală păstrează toate cele 52 de ture și ambele ramuri: trei
+rădăcini recomandate pierd mult, 39 de semimutări din ramuri sunt slabe, trei etichete
+native de eroare au pierdere mică de oracol și o pierdere mare nu are etichetă de eroare.
+Toate cele 66 de capete sunt verificate: zero piese importante expuse nesustenabil,
+dar cinci ultime mutări rămân inferioare. Partida nu stabilește Elo sau indicii global optime.
+
+[ScotchWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/ScotchWitnessTest.java)
+păstrează zece faze brute, istoricul real/ipotetic complet și identitatea originală.
+La mutarea reală, Stockfish liber alege `…Re8+`; lista de verificare îl omite. Mai
+târziu, albul liber dovedește `Bxh7+ Kxh7 Qh5+ Kg8 Qh8#` la ambele adâncimi.
+`Bxb2` ratează acel mat, dar păstrează șanse de câștig; nu îl descrie drept sacrificiu
+pierzător. Sacrificiul corect de nebun pentru pion trebuie păstrat în modificările viitoare.
+[ScotchContinuationBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/ScotchContinuationBenchmarkTest.java)
+păstrează scopuri FAIL separate pentru rădăcina indiciului, selecția rădăcinii în analiză
+și continuarea adversă completă. Nu repara doar sufixul afișat, nu interzice capturile, nu forța o singură
+apărare și nu rescrie istoricul. Verifică rădăcina și replicile libere la orizontul real.
+Dovezi în `C:\work\sah\.studii\corpus\2026-11-19-ruy-qualified-coaching`.
+
+La aceeași mutare, analiza nativă selectează `…dxc3` și numește `…Re8+` efectiv jucat
+BLUNDER, cu 298 puncte native pierdute. Verificările forțate H17/H19 ale Re8+ pierd
+doar 7,5/8‰. Acoperirea listei scurte nu închide singură defectul: analiza acoperă
+și așa toate rădăcinile legale, dar le ordonează greșit. Păstrează benchmarkul separat
+al rădăcinii din analiză.

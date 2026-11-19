@@ -824,6 +824,13 @@ Pe API 28, TalkBack 7.2 a sintetizat o dată pe limbă poziția 3 din 4 și scor
 
 `NativeMateDefenseBenchmarkTest` recalculează offline toate problemele de mat contra tuturor apărărilor legale și reutilizează `NativeMateAudit` cu componentele țintite. [Comenzi și limite](hard-puzzle-study.md#calificare-și-pașii-următori)
 
+Corecția ofertei acceptate din Spaniolă este protejată de `RuyReplyTest`, inclusiv
+contraexemplele scandinave de transfer și admiterea legală în oglindă.
+`ScotchWitnessTest` păstrează următorul martor independent de rădăcină și mat.
+`RuyComparisonBenchmarkTest` și `ScotchContinuationBenchmarkTest` păstrează explicit
+roșie calitatea continuărilor încă nerezolvate; nu sunt aserțiuni verzi de componentă
+sau parcursuri în emulator. [Metoda auditului](learning-archive.md)
+
 ## Antet și navigare comune
 
 Politica Java `UiChrome` deține dimensiunile logice ale comenzilor, destinațiile contextuale Înapoi și zona centrată de navigare. `ChessHeader` și `CenteredControls` o aplică pe Android; `GenerateUiChrome` exportă constantele și destinațiile către adapterul Web. Titlurile încep lângă Înapoi, ocupă cel mult două rânduri și păstrează ținta Înapoi de 48 dp/pixeli CSS. Opțiunile stau în dreapta, iar meniul urmărește butonul în interiorul ferestrei. Un meniu scund are propria derulare.
