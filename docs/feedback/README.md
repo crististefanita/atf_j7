@@ -9,6 +9,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
+| P1 | Hint comparison · whole diagnostic PV | The repaired Ruy public line has no large loss, but the rejected `Ng5 …O-O Nc3` comparison still contains a 346/378.5‰ weak move. | Audit comparison continuations as well as offered hints; repair the full free-reply line and keep the explicit comparison benchmark FAIL until both horizons qualify it. [Mechanism](../board/ai-quality.md#quiet-opposing-offers-inside-a-hint) |
 | P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation with 200k ordinary work and its separately charged finite proof reserve, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
@@ -517,3 +518,12 @@ still inferior at both oracle depths. This does not certify the whole PV: the
 finished-review quality benchmark remains FAIL for that recommendation. Repair
 free-reply comparisons and classification separately; never hide the internal
 weak replies just because the final piece is safe.
+
+The Ruy quiet bishop offer is repaired for the offered hint: full capture closure
+removes the optimistic `Ng5` preview and offers `Nc3 …O-O d3 …Be6 Be3`. All five
+actual offered plies have cold H17/H19 loss below 50‰. The same `…Be6` is sound in
+the Italian control, so a move blacklist is not a repair. Preserve the French and
+sound-sacrifice components. The weaker compared continuation remains separate
+quality debt, with an executable benchmark and raw teacher phases. A new complete
+game must retain every pre-move hint and its full final analysis under the actual
+producer; do not relabel the previous 55-ply Ruy game as current play.

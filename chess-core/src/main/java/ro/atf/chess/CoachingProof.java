@@ -48,7 +48,7 @@ public final class CoachingProof {
             if(status==null||nodes<0||nodes>allocatedNodes||allocatedNodes>ceiling||ceiling<1||ceiling>5_000_000||ordinaryPlies<1
                     ||ordinaryPlies>MatchAiPolicy.MAX_PLIES||forcingPlies<0||forcingPlies>48||captureReplies<0
                     ||checkEvasions<0||repeatedDraws<0||positionKey==null||positionKey.isBlank()||roots.isEmpty()
-                    ||new HashSet<>(roots).size()!=roots.size()||ordinaryNodes<0||boundedRoots<0||boundedRoots>roots.size()||tacticalPlies<0||tacticalPlies>2
+                    ||new HashSet<>(roots).size()!=roots.size()||ordinaryNodes<0||boundedRoots<0||boundedRoots>roots.size()||tacticalPlies<0||tacticalPlies>48
                     ||confirmation!=null&&(!completeStatus(status)||confirmation.plies()>=ordinaryPlies||!roots.contains(confirmation.incumbent())||!roots.contains(confirmation.challenger()))
                     ||counterplay!=null&&(!completeStatus(status)||counterplay.earlierPlies()+1!=ordinaryPlies||!roots.contains(counterplay.incumbent().move())||!roots.contains(counterplay.challenger().move())))throw new IllegalArgumentException("Invalid tactical work receipt");
         }
@@ -153,6 +153,14 @@ public final class CoachingProof {
     }
 
     static boolean needed(ChessPosition start,List<TacticalAnalysis.Variation> lines) {
+        return frontierNeeded(start,lines)||interiorOffer(start,lines);
+    }
+
+    static int verificationPlies(ChessPosition start,List<TacticalAnalysis.Variation> lines,Policy policy,int ordinary) {
+        return interiorOffer(start,lines)?policy.maxForcingPlies():ordinary;
+    }
+
+    private static boolean frontierNeeded(ChessPosition start,List<TacticalAnalysis.Variation> lines) {
         for(var line:lines) {
             if(line.ending()!=TacticalAnalysis.Ending.HORIZON||line.line().isEmpty())continue;
             var before=start;for(var move:line.line().subList(0,line.line().size()-1))before=before.playGenerated(move);
@@ -162,6 +170,24 @@ public final class CoachingProof {
             boolean capture=MatchMaterial.victim(before,last)!=null;
             boolean important=before.pieceAt(last.from()).kind()!=ChessPosition.Kind.PAWN||last.promotion()!=null;
             if((capture||important)&&after.legalCapturesAndPromotions().stream().anyMatch(m->m.to()==last.to()&&MatchMaterial.victim(after,m)!=null))return true;
+        }
+        return false;
+    }
+
+    private static boolean interiorOffer(ChessPosition start,List<TacticalAnalysis.Variation> lines) {
+        for(var line:lines) {
+            if(line.ending()!=TacticalAnalysis.Ending.HORIZON||line.line().isEmpty())continue;
+            var before=start;
+            for(int i=0;i<line.line().size()-1;i++) {
+                var move=line.line().get(i);var after=before.playGenerated(move);
+                boolean capture=MatchMaterial.victim(before,move)!=null;
+                boolean important=before.pieceAt(move.from()).kind()!=ChessPosition.Kind.PAWN||move.promotion()!=null;
+                // A quiet opposing offer inside the preview also needs freely searched alternatives.
+                boolean opposingOffer=i%2==1&&!capture&&important&&move.promotion()==null&&!after.isCheck();
+                if(opposingOffer&&after.legalCapturesAndPromotions().stream()
+                        .anyMatch(m->m.to()==move.to()&&MatchMaterial.victim(after,m)!=null))return true;
+                before=after;
+            }
         }
         return false;
     }
@@ -214,7 +240,7 @@ public final class CoachingProof {
             if(count>=3){budget.repeated++;return new Node(0,List.of(),TacticalAnalysis.Ending.HORIZON);}
             boolean frontier=left==0,check=position.isCheck();
             var moves=frontier&&!check?position.legalCapturesAndPromotions():legal;
-            if(frontier&&!check&&forcing>=budget.tactical) {
+            if(frontier&&!check&&forcing>=budget.tactical&&budget.tactical<budget.policy.maxForcingPlies()) {
                 moves=new ArrayList<>(moves);
                 moves.removeIf(m->m.to()!=target||MatchMaterial.victim(position,m)==null);
             }
