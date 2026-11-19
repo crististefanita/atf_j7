@@ -1726,3 +1726,27 @@ testChanges:
     allowDelete: false
     nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
     nativeProbe: "The last game shows its title, moves and local time with Back visible"
+
+  - id: J7-CHROME-RELEASE-ANDROID-EN
+    base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
+    from: android/app/build.gradle
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#releaseCatalogKeepsTheCurrentAndOneComparisonVersion
+    contract: "Advance only the patch metadata; preserve the source boundaries, test selection and SDK contract and keep the published link separate until promotion"
+    allowDelete: false
+
+  - id: J7-CHROME-RELEASE-ROOT-POM-EN
+    base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
+    from: pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance only the patch metadata; preserve the source boundaries, test selection and SDK contract and keep the published link separate until promotion"
+    allowDelete: false
+
+  - id: J7-CHROME-RELEASE-TEST-POM-EN
+    base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
+    from: atf-tests/pom.xml
+    replacement: atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java
+    test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
+    contract: "Advance only the patch metadata; preserve the source boundaries, test selection and SDK contract and keep the published link separate until promotion"
+    allowDelete: false
