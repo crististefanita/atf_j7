@@ -2476,6 +2476,11 @@ public final class BoardSanity extends Instrumentation {
         flipPuzzle(activity);
         boolean flipsInPlace = !puzzleOptionsVisible(activity) && bounds.equals(screenBounds(board))
                 && !a1.equals(screenBounds(cell(board, "a1"))) && activeColor.contentEquals(turn.getText());
+        var closedFrame = awaitRenderedFrame(image -> allBoardCornersRendered(image, board)
+                && renderedPuzzleText(image, activity.findViewById(R.id.puzzle_status))
+                && renderedPuzzleText(image, points) && renderedPuzzleText(image, series));
+        boolean closedPixels = closedFrame != null;
+        if (closedFrame != null) closedFrame.recycle();
         tap(puzzleControl(activity, R.id.puzzle_options));
         boolean opens = puzzleOptionsVisible(activity);
         sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
@@ -2490,18 +2495,18 @@ public final class BoardSanity extends Instrumentation {
         boolean optionsFit = fullyVisible(panel) && fullyVisible(flip) && fullyVisible(menu) && flip.isEnabled() && menu.isEnabled()
                 && menuBounds.top >= anchor.bottom && Math.abs(menuBounds.right - anchor.right) <= 1
                 && previous.isShown() && next.isShown() && bounds.equals(screenBounds(board));
-        if (!closed || !flipsInPlace || !opens || !backCloses || !optionsFit) {
-            throw new AssertionError(checkpoint.name() + ": closed controls=" + closed + ", flip=" + flipsInPlace
+        if (!closed || !closedPixels || !flipsInPlace || !opens || !backCloses || !optionsFit) {
+            throw new AssertionError(checkpoint.name() + ": closed controls=" + closed + ", closed pixels=" + closedPixels + ", flip=" + flipsInPlace
                     + ", options opens=" + opens + ", Back closes=" + backCloses + ", menu fits=" + optionsFit);
         }
         captureFrame(checkpoint.frame(), checkpoint.name() + " keeps the board fixed with puzzle options open", image ->
-                bounds.equals(screenBounds(board)) && uncoveredBoardCornersRendered(image, board, panel)
+                closedPixels && bounds.equals(screenBounds(board)) && uncoveredBoardCornersRendered(image, board, panel)
                         && renderedPuzzleText(image, activity.findViewById(R.id.puzzle_status))
                         && pointBounds.equals(screenBounds(points)) && expectedPoints.contentEquals(points.getText())
                         && seriesBounds.equals(screenBounds(series)) && expectedSeries.contentEquals(series.getText())
                         && activity.getString(R.string.reward_streak, rewards.streak()).equals(series.getContentDescription())
                         && renderedPuzzleText(image, flip) && renderedPuzzleText(image, menu)
-                        && renderedPuzzleText(image, points) && renderedPuzzleText(image, series));
+                        );
         tap(menu);
         if (activity.findViewById(R.id.open_puzzles) == null) throw new AssertionError("Puzzle menu choice did not return home");
     }
