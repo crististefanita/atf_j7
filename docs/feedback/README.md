@@ -483,6 +483,9 @@ liderului de 25cp și verificarea orizontului par anterior. Inversarea sicilian�
 independent mai slabă decât `…Nbd7` la ambele adâncimi ale profesorului; o egalitate de scor
 inventată nu este o corecție. Becul, destinația și comparația explicită folosesc aceeași
 decizie calificată a dovezii.
+Analiza păstrează și liderul la egalitate numerică exactă. Egalitatea `Nf3`/`e4` din Engleză
+este +21 după închidere, fără vechiul +651. Păstrează cele șase faze ale profesorului și
+negativul de componentă: ordinea lexicală producea singură o recomandare independent mai slabă.
 
 Nu deduce Elo sau transfer independent larg din controalele forțate compuse. Partidele
 noi complete cer în continuare hint maxim înaintea fiecărei mutări, analiză finală și

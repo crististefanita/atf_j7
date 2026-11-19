@@ -1231,6 +1231,11 @@ promovării cu pat.
 12 faze reci suplimentare, ieșirea reală din deschidere care cere 1.037.401 noduri de rezervă,
 eligibilitatea indiciilor și valorile reale ale remizelor. O frontieră închisă poate schimba
 scorurile numerice; testele verifică dovada nouă evaluată, fără valoarea veche optimistă.
+Analiza păstrează recomandarea stabilită la o egalitate numerică exactă. Replay-ul Englezei
+a găsit `Nf3` și `e4` la +21 după închidere, înlocuind artefactul vechi de orizont +651.
+Ordinea lexicală nu poate schimba recomandarea în `e4`: H17/H19 rece arată o pierdere
+suplimentară de 160/111,5‰. Șase faze brute și o componentă păstrează egalitatea reală,
+fără restaurarea scorului vechi.
 [Controalele de stabilitate](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
 păstrează ambele orizonturi și negativul confirmării întrerupte. Completarea certifică
 domeniul declarat al căutării, nu șah optim sau creștere Elo. Feedback-ul apărării liniștite
