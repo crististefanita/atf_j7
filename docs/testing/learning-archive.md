@@ -155,3 +155,11 @@ inclusiv capturile pe casete diferite. Păstrează verdicte distincte pentru ind
 public, comparațiile diagnostice și analiza finală. Auditează fiecare semimutare
 ipotetică oferită, în ambele culori, nu doar prima mutare sau ultima piesă expusă.
 O piesă finală sigură nu dovedește corectitudinea alegerilor adverse anterioare.
+
+Nu admite un domeniu nou doar dintr-un număr verde de componente. Păstrează primele
+pierderi de transfer ca negative de componentă, fixează runtime-ul calificat după
+poarta de transfer, apoi colectează partida observată următoare. Partidele candidaților
+respinși păstrează producătorul original și statutul diagnostic; o rejucare sau o
+corecție de adnotare nu le transformă în joc observat al sursei curente. Derivă
+etichetele deschiderilor din ID-urile cazurilor reale; adaugă corecție legată de sursă
+dacă proza fixată era greșită, păstrând amprentele jurnalului, PGN-ului și oracolului.

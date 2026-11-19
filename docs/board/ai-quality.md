@@ -1279,7 +1279,8 @@ acum acest caz chiar dacă la capăt nu există recaptură. Caută toate replici
 orizontul comun declarat, inclusiv rocada, și taxează rezerva finită existentă.
 Nu interzice `…Be6` după mutare, FEN sau numele deschiderii.
 
-Pentru oferta adversă liniștită a unei piese capturabile, verificarea forțată păstrează
+Pentru oferta adversă liniștită a unei piese pe care PV-ul afișat chiar o capturează
+la mutarea imediat următoare, verificarea forțată păstrează
 toate capturile și promovările legale până la liniștire, inclusiv pe casete diferite.
 Vechiul domeniu de două semimutări putea rata `…Bxb3`, recaptura și apoi `…Nxd4`;
 reparația doar a primei replici lăsa altă greșeală ipotetică grosolană. Calea obișnuită
@@ -1307,3 +1308,12 @@ păstrează executabil deficitul separat de calitate. O comparație nu devine li
 jucabilă doar fiindcă scorul rădăcinii este mai mic; păstrează verdictul independent.
 H7 cu toate capturile epuizează alocația de cinci milioane în acest studiu; nu pretindem
 scor H7 sau creștere Elo.
+
+Admiterea largă bazată doar pe o piesă adversă capturabilă a fost respinsă. Schimba
+nouă rădăcini pe 106 poziții istorice și introducea trei pierderi mari în indicii și
+analiza Scandinavă. Dependența acceptată contează: o piesă atacată, dar ignorată de
+PV, nu poate autoriza domeniul nou. Patruzeci și opt de faze noi de transfer protejează
+atacul calificat `…Qh5` împotriva substituției inferioare `…Bxf3` în două poziții.
+Contraexemplele sunt componente permanente. Partida Pirc a variantei largi rămâne
+diagnostică sub producătorul original și nu califică revizia restrânsă. Pornește
+colecția nouă observată a acesteia numai după poarta de transfer.
