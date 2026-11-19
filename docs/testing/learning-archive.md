@@ -141,3 +141,18 @@ when that case was actually collected and zero otherwise; all public tails, nati
 reviews, source hashes, raw phases and quality floors remain mandatory. Keep the
 sound sacrifice protected by its component witnesses and preserve the original
 collection control when replaying that collection.
+
+Admission also inspects quiet opposing piece offers inside a PV. Their completed
+proof records the actual full capture scope and charges every visit, including
+different-square captures. Keep the public hint, its diagnostic comparisons and
+the final review under distinct quality verdicts. Audit every offered hypothetical
+ply in both colors, not only the first move or the last exposed piece. A safe last
+piece is not evidence that the preceding opposing choices were sound.
+
+Do not admit a new scope from a green component count alone. Preserve first-loss
+transfer counterexamples as components, freeze the qualified runtime after its
+transfer gate, then collect the next observed game. Rejected-candidate games keep
+their original producer and diagnostic status; a replay or annotation correction
+cannot upgrade them into current-source observed play. Derive descriptive opening
+labels from actual case IDs; append a source-bound correction if frozen prose was
+wrong, preserving all original journal, PGN and oracle hashes.

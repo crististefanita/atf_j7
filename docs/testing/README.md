@@ -826,6 +826,12 @@ On API 28, TalkBack 7.2 synthesized position 3 of 4 and White's score of zero pe
 
 `NativeMateDefenseBenchmarkTest` recomputes all mating exercises offline against every legal defense and shares `NativeMateAudit` with the focused components. [Commands and limits](hard-puzzle-study.md#qualification-and-next-steps)
 
+The Ruy accepted-offer fix is protected by `RuyReplyTest`, including the Scandinavian
+transfer counterexamples and the legal mirrored admission. `ScotchWitnessTest` retains
+the next independent root/checkmate witness. `RuyComparisonBenchmarkTest` and
+`ScotchContinuationBenchmarkTest` keep unresolved continuation quality explicitly red;
+they are not ordinary green component assertions or emulator journeys. [Audit method](learning-archive.md)
+
 ## Shared screen chrome
 
 One Java policy, `UiChrome`, owns the logical control sizes, contextual Back destinations and centered navigation rail. `ChessHeader` and `CenteredControls` apply it on Android; `GenerateUiChrome` exports its constants and destinations to the Web adapter. Titles start beside Back, wrap to two lines and retain a 48 dp/CSS px Back target. Options stay at the right end, and the popup follows its trigger within the viewport. A short popup uses its own scroll area.

@@ -92,7 +92,8 @@ public final class TacticalAnalysis {
         required.add(seed.best().move());
         if(reference!=null&&!draws.contains(reference))required.add(reference);
         var verified=counterplay?CoachingProof.counterplay(position,position.legalMoves(),seed.best().move(),1,proofPolicy,draws,required)
-                :CoachingProof.compare(position,position.legalMoves(),seed.depth(),draws,proofPolicy,required,1);
+                :CoachingProof.compare(position,position.legalMoves(),seed.depth(),draws,proofPolicy,required,
+                        CoachingProof.verificationPlies(position,List.of(seed.best(),seed.played()),proofPolicy,1));
         var work=verified.work().afterOrdinary(seed.ordinaryNodes());
         if(!work.complete())throw new CoachingProof.Incomplete(work);
         var ranked=verified.lines();var best=ranked.get(0);
@@ -362,7 +363,9 @@ public final class TacticalAnalysis {
         var roots=new java.util.LinkedHashSet<Move>();
         for(var line:seed.lines())roots.add(line.move());
         if(seed.comparison()!=null)for(var line:seed.comparison().result().ranked())roots.add(line.move());
-        var proof=CoachingProof.compare(position,List.copyOf(roots),seed.selectedDepth(),Set.of(),policy,Set.copyOf(roots),MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies());
+        var scope=new ArrayList<>(seed.lines());if(seed.comparison()!=null)scope.addAll(seed.comparison().result().ranked());
+        int tactical=CoachingProof.verificationPlies(position,scope,policy,MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies());
+        var proof=CoachingProof.compare(position,List.copyOf(roots),seed.selectedDepth(),Set.of(),policy,Set.copyOf(roots),tactical);
         if(proof.work().complete()) {
             var ranked=new ArrayList<>(proof.lines());HintPinSupport.sort(position,ranked);proof=new CoachingProof.Result(ranked,proof.work());
         }

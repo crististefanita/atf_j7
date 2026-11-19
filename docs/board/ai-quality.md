@@ -1264,3 +1264,55 @@ Review cache v3 persists counterplay evidence and still reads v1/v2. Missing opt
 counterplay fields stay absent in historical JSON, preserving original receipt digests.
 Complete-game learning continues to require a maximum ordinary hint before every move,
 a complete final review and independent teacher grading. One diagnostic game is not Elo.
+
+## Quiet opposing offers inside a hint
+
+A safe last square does not certify the interior of a preview. In the Ruy López,
+`Ng5 …Be6 Nxe6 …fxe6 Bxe6` relied on a weak quiet opposing bishop offer. The scoped
+proof now admits that case even though its endpoint has no recapture. It searches
+all replies at the declared common horizon, including castling, and charges the
+existing finite reserve. It never bans `…Be6` by move, FEN or opening name.
+
+For an interior quiet offer of a non-pawn that the displayed PV actually captures
+on the very next move, forcing verification retains
+all legal captures and promotions until quiet, including captures on different
+squares. The former two-ply capture scope could miss `…Bxb3`, a recapture and then
+`…Nxd4`; repairing only the first reply left another serious hypothetical mistake.
+The ordinary same-square recapture path remains available outside this admission.
+`tacticalPlies` records the real capture scope up to the configured forcing ceiling
+(48), rather than falsely recording two plies. At that ceiling any pending capture
+or check is incomplete; filtering it away cannot fabricate a quiet result. Node and
+forcing limits publish no final score. Existing v1/v2 caches and v3 work receipts
+remain readable; the new full-scope receipt has its own round-trip component.
+
+The corrected offered line is `Nc3 …O-O d3 …Be6 Be3`, −13 cp at H5, with 241,995
+charged proof nodes beyond the 200k ordinary allowance. Every one of its five moves
+has cold H17/H19 loss below 50‰. The rejected `Ng5` comparison now begins with
+`…O-O`, without the earlier +67 score or material bonus. Equal-turn confirmation
+and the 25cp threshold are retained. The French knight tempo, queen sacrifice and
+Traxler sacrifice remain independent components, not rewritten expected moves.
+
+[Components](../../atf-tests/src/test/java/ro/atf/chess/RuyReplyTest.java) retain full
+history, both colors, legal free defenses, the sound Italian `…Be6`, actual node and
+forcing exhaustion, foreign context rejection and cache identity. Raw teacher
+witnesses bind every observed hypothetical context; they are never runtime lessons.
+The diagnostic `Ng5` line still contains weak `Nc3` after castling (346/378.5‰).
+[RuyComparisonBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/RuyComparisonBenchmarkTest.java)
+keeps that separate quality gap executable. A comparison is not an optimal playable
+line merely because its root score is lower; retain its independent oracle verdict.
+H7 with full captures exhausts the five-million-node proof allowance in this study;
+no H7 score or Elo improvement is claimed.
+
+The broader admission based only on a capturable opposing piece was rejected. It
+changed nine roots on 106 historical positions and introduced three large losses in
+Scandinavian hint/review. The accepted dependency matters: an attacked piece that
+the PV ignores cannot authorize this new scope. Forty-eight fresh transfer phases
+protect the qualified `…Qh5` attack against the inferior `…Bxf3` substitution at two
+positions. These are permanent component counterexamples. The broad Pirc game
+remains diagnostic under its original producer, and cannot qualify the narrowed
+revision. Start its new observed collection only after the transfer gate.
+
+Only the twelve raw phases needed by those three counterexamples are embedded in
+the offline component fixture; all forty-eight transfer phases and the complete
+original replay stay external. The reduced fixture preserves the original plan and
+raw-archive hashes, full move history and original observation identity.
