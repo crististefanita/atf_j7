@@ -147,7 +147,7 @@ In Browser MCP, use Analysis board as the reference at the same viewport and tex
   130% text, a scrolled origin and long lists.
 - `HintReplayPresentationTest` checks the shared replay layout, independent line
   cursors and the Android adapter. The selected history position is preserved.
-- [`HintArrowTest`](../../atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java) checks the tip's actual position against the destination center for short and long horizontal, vertical, diagonal and knight moves, in both orientations and at different cell sizes. It compares the JVM model, Web SVG and mocked review Canvas on the same measured-cell cases, including odd-sized boards with rounded cell edges. The expected gap is 20% of the cell side; the Android adapter delegates to the tested model.
+- [`HintArrowTest`](../../atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java) checks the tip's actual position against the destination center for short and long horizontal, vertical, diagonal and knight moves, in both orientations and at different cell sizes. It compares the JVM model, Web SVG and mocked review Canvas on the same measured-cell cases, including odd-sized boards with rounded cell edges. The expected gap is 12% of the cell side; the Android adapter delegates to the tested model.
 - `WebUiParityGovernanceTest` requires RAG to cite these component checks and
   the owning section. An unknown surface remains flagged for review.
 

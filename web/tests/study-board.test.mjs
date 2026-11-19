@@ -141,7 +141,7 @@ test('Study draws the native origin and destination cue in both board orientatio
     assert.equal(black.transform, 'translate(3.5 1.5) rotate(90)');
     assert.equal(white.path, black.path);
     const tip = Number(/ L ([\d.]+) 0 /.exec(white.path)[1]);
-    assert.ok(Math.abs((2 - tip) - .20) < 1e-10, 'The tip stops one fifth of a square before the destination center');
+    assert.ok(Math.abs((2 - tip) - .12) < 1e-10, 'The tip stops twelve percent of a square before the destination center');
     const knight = studyArrow('b1', 'c3', false);
     assert.match(knight.transform, /^translate\(1\.5 7\.5\) rotate\(-63\./);
     assert.equal(studyArrow('e2', undefined, false), null);

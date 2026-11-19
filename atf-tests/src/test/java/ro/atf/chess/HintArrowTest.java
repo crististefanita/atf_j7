@@ -37,11 +37,11 @@ class HintArrowTest {
             double dx = b.centerX() - a.centerX();
             double dy = b.centerY() - a.centerY();
             double distance = Math.hypot(dx, dy);
-            double fraction = 1 - .20 * a.width() / distance;
+            double fraction = 1 - .12 * a.width() / distance;
             check.same(example.id() + " tip reaches the expected measured-cell position",
                     point(a.centerX() + fraction * dx, a.centerY() + fraction * dy), point(x, y));
-            check.same(example.id() + " leaves one fifth of a cell before its destination center",
-                    "0.200000", number(Math.hypot(b.centerX() - x, b.centerY() - y) / a.width()));
+            check.same(example.id() + " leaves twelve percent of a cell before its destination center",
+                    "0.120000", number(Math.hypot(b.centerX() - x, b.centerY() - y) / a.width()));
             check.same(example.id() + " keeps the origin contour clear", "0.310000", number(arrow.start() / a.width()));
             check.same(example.id() + " retains the head and stroke proportions", List.of("0.170000", "0.029000", "0.106000", "0.027000"),
                     List.of(number((arrow.tip() - arrow.head()) / a.width()), number(arrow.halfShaft() / a.width()),
@@ -74,7 +74,7 @@ class HintArrowTest {
             check.same(example.id() + " Canvas tip matches native coordinates",
                     point(example.shape().tip() * Math.cos(example.shape().radians()), example.shape().tip() * Math.sin(example.shape().radians())),
                     List.of(row.path("canvasX").asText(), row.path("canvasY").asText()));
-            check.same(example.id() + " SVG retains its destination-center clearance", "0.200000", row.path("svgGap").asText());
+            check.same(example.id() + " SVG retains its destination-center clearance", "0.120000", row.path("svgGap").asText());
         }
     }
 
