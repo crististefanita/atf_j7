@@ -171,7 +171,6 @@ public final class BoardSanity extends Instrumentation {
         var saved = ChessMatch.restore(ro.atf.chess.capture.ReplayViewportFixture.CALCULATED);
         if (!store.matches().saveMatch(saved, false)) throw new AssertionError("Could not seed analysis");
         var game = launchSourceReplay();
-        if (enlargedReplayPhase()) calibrateSourceReplayDisplay();
         var config = game.getResources().getConfiguration();
         receipt.putString("replayProfile", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
                 + "@" + config.densityDpi + ", font=" + config.fontScale + ", language=" + config.getLocales().get(0).getLanguage());
@@ -210,7 +209,6 @@ public final class BoardSanity extends Instrumentation {
             throw new AssertionError("Could not seed mating stage");
         }
         var puzzle = launchSourceReplay();
-        if (enlargedReplayPhase()) calibrateSourceReplayDisplay();
         var puzzleBoard = findBoard(viewsOf(puzzle));
         var mateSource = screenBounds(puzzleBoard);
         tap(puzzle.findViewById(R.id.quest_guidance_label));
@@ -245,7 +243,7 @@ public final class BoardSanity extends Instrumentation {
         if (sourceReplayPhase() && activity instanceof ChessActivity) sourceReplayActivity = activity;
     }
 
-    private Activity launchSourceReplay() {
+    private Activity launchSourceReplay() throws Exception {
         sourceReplayActivity = null;
         Activity launched = launch();
         if (!enlargedReplayPhase()) return launched;
@@ -257,7 +255,15 @@ public final class BoardSanity extends Instrumentation {
             boolean[] ready = {false};
             if (current != null) runOnMainSync(() -> ready[0] = !current.isDestroyed() && !current.isFinishing()
                     && current.hasWindowFocus() && sourceDisplay().getRotation() == replayRotation);
-            if (ready[0]) return current;
+            if (ready[0]) {
+                try {
+                    calibrateSourceReplayDisplay();
+                    if (current == sourceReplayActivity) return current;
+                } catch (IllegalArgumentException settlingViewport) {
+                    // Display rotation can precede InputReader's viewport update.
+                    // Retry the observation, retaining the same strict calibration.
+                }
+            }
             SystemClock.sleep(50);
         } while (SystemClock.uptimeMillis() < deadline);
         throw new AssertionError("The resumed target activity did not reach its physical replay rotation");

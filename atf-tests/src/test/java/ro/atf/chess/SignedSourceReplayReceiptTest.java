@@ -75,6 +75,11 @@ class SignedSourceReplayReceiptTest {
     @Test void projectSigningRecordIsRelativeAndContainsNoPlaintextPassword(Checks check) throws Exception {
         Path root = ProjectRoot.locate();
         Path directory = root.resolve(".atf-signing");
+        try (var files = Files.list(directory)) {
+            check.same("The signing record contains no build artifacts, temporary certificates or logs",
+                    java.util.Set.of(".gitignore", "README.md", "identity.json", "certificate.der", "chesslab-release.p12", "password.dpapi"),
+                    files.map(path -> path.getFileName().toString()).collect(java.util.stream.Collectors.toSet()));
+        }
         var manifest = new ObjectMapper().readTree(directory.resolve("identity.json").toFile());
         check.same("The encrypted key remains relocatable between worktrees", "chesslab-release.p12", manifest.path("store").asText());
         check.same("Only the DPAPI-wrapped password is named by the manifest", "password.dpapi", manifest.path("credential").asText());

@@ -9,7 +9,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
-$ProjectIdentity = $ProjectIdentity -or (Test-Path -LiteralPath (Join-Path $projectRoot '.atf-signing') -PathType Container)
+$ProjectIdentity = $ProjectIdentity -or (!$PSBoundParameters.ContainsKey('DataRoot') -and
+    (Test-Path -LiteralPath (Join-Path $projectRoot '.atf-signing') -PathType Container))
 $dataRoot = [IO.Path]::GetFullPath($DataRoot)
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')
 if (!$ProjectIdentity -and ($dataRoot.Equals($projectRoot, [StringComparison]::OrdinalIgnoreCase) -or
@@ -114,7 +115,7 @@ $passwordPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure
 $plainPassword = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPointer)
 $previousStore = $env:J7_SIGNING_STORE
 $previousPassword = $env:J7_SIGNING_PASSWORD
-$verificationCertificate = Join-Path $directory ('verify-' + [guid]::NewGuid().ToString('N') + '.der')
+$verificationCertificate = Join-Path $logDirectory ('verify-' + [guid]::NewGuid().ToString('N') + '.der')
 try {
     $env:J7_SIGNING_PASSWORD = $plainPassword
     $keytool = Join-Path $JavaHome 'bin/keytool.exe'

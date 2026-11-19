@@ -8,6 +8,7 @@ protected with Windows DPAPI. No plaintext password belongs in the repository.
 
 - Load with `. ./scripts/Initialize-J7Signing.ps1 -ProjectIdentity` in the
   same Windows user context that protected `password.dpapi`.
+  An explicit `-DataRoot` selects the external record instead of auto-detection.
 - `-StartNewIdentity` is required only when provisioning a missing identity
   after a published certificate. Existing or partial records are never overwritten.
 - `identity.json` retains the previous published certificate. This identity
