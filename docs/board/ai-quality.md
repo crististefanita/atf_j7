@@ -1226,12 +1226,12 @@ partidei și nu salvează o analiză generată parțial.
 continue, pragul exact de noduri, legături, en passant, evadări, anulare, publicare incompletă,
 restart și compatibilitate v1. [Controalele profesorului rece](../../atf-tests/src/test/java/ro/atf/chess/CoachingProofOracleTest.java)
 păstrează recepțiile Stockfish H17/H19, matul cu sacrificiu corect de damă și contraexemplul
-promovării cu pat. [Controalele de stabilitate](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
-păstrează ambele orizonturi și negativul confirmării întrerupte.
+promovării cu pat.
 [Controalele domeniului](../../atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java) păstrează
 12 faze reci suplimentare, ieșirea reală din deschidere care cere 1.037.401 noduri de rezervă,
 eligibilitatea indiciilor și valorile reale ale remizelor. O frontieră închisă poate schimba
 scorurile numerice; testele verifică dovada nouă evaluată, fără valoarea veche optimistă.
-Completarea certifică
+[Controalele de stabilitate](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
+păstrează ambele orizonturi și negativul confirmării întrerupte. Completarea certifică
 domeniul declarat al căutării, nu șah optim sau creștere Elo. Feedback-ul apărării liniștite
 franceze și al calibrării analizei rămâne deschis.
