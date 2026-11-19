@@ -14,7 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class NimzoWitnessTest {
-    @Test void offeredBishopRetreatLosesAgainstTheIndependentNimzoDevelopment(Checks check) throws Exception {
+    @Test void offeredBishopDevelopmentLosesAgainstTheIndependentNimzoMove(Checks check) throws Exception {
         var data = fixture();
         var rows = rows(data);
         var position = position(data);
