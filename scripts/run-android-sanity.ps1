@@ -146,7 +146,8 @@ function Read-DisplayProfile {
     $auto = (Invoke-Device @('shell','settings','get','system','accelerometer_rotation') | Out-String).Trim()
     $rotation = (Invoke-Device @('shell','settings','get','system','user_rotation') | Out-String).Trim()
     if ($auto -notmatch '^(null|0|1)$' -or $rotation -notmatch '^(null|[0-3])$') { throw 'Unexpected Android rotation settings.' }
-    [pscustomobject]@{size=$overrideSize; density=$overrideDensity; font=$font; autoRotation=$auto; userRotation=$rotation}
+    [pscustomobject]@{size=$overrideSize; density=$overrideDensity; font=$(if ($font -ceq 'null') {'1.0'} else {$font});
+        fontSetting=$font; autoRotation=$auto; userRotation=$rotation}
 }
 
 function Set-DisplayProfile($Profile) {

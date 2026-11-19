@@ -1,5 +1,7 @@
 # Identitatea de semnare Android
 
+## Prezentare
+
 Înregistrarea din proiect a fost cerută explicit pentru J7. Conține cheia
 PKCS12 criptată, certificatul public, un manifest cu căi relative și parola
 protejată prin Windows DPAPI. Parola în clar nu se păstrează în repository.

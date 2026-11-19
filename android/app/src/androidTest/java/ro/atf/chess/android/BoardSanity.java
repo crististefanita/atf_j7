@@ -244,12 +244,10 @@ public final class BoardSanity extends Instrumentation {
         clickReviewIcon(R.id.quest_payoff_close);
         compare("Mating return restores the source rectangle", mateSource, screenBounds(puzzleBoard));
         if (enlargedReplayPhase()) {
-            tap(puzzle.findViewById(R.id.quest_guidance_label));
             tap(guidance(puzzle, R.string.why_mate));
-            getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
-            waitForIdleSync();
+            boolean returned = replayBackReturns(puzzle, R.id.quest_payoff_board);
             compare("Mating Back restores the source window and board", List.of(mateSource, true),
-                    List.of(screenBounds(puzzleBoard), puzzle.hasWindowFocus() && visibleReviewNode(R.id.quest_payoff_board) == null));
+                    List.of(screenBounds(puzzleBoard), returned));
         }
         closeActivity(puzzle);
     }
@@ -317,12 +315,24 @@ public final class BoardSanity extends Instrumentation {
         compare(owner + " return restores the source rectangle", source, screenBounds(findBoard(viewsOf(activity))));
         if (enlargedReplayPhase()) {
             tap(activity.findViewById(R.id.match_analysis));
-            getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
-            waitForIdleSync();
+            boolean returned = replayBackReturns(activity, R.id.hint_preview_board);
             compare(owner + " Back restores the source window and board", List.of(source, true),
-                    List.of(screenBounds(findBoard(viewsOf(activity))), activity.hasWindowFocus()
-                            && visibleReviewNode(R.id.hint_preview_board) == null));
+                    List.of(screenBounds(findBoard(viewsOf(activity))), returned));
         }
+    }
+
+    private boolean replayBackReturns(Activity source, int replayBoard) throws Exception {
+        if (reviewNode(replayBoard, 2500) == null) throw new AssertionError("Replay must be open before pressing Back");
+        if (!getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)) {
+            throw new AssertionError("Android rejected the system Back action");
+        }
+        long deadline = SystemClock.uptimeMillis() + 2500;
+        do {
+            waitForIdleSync();
+            if (source.hasWindowFocus() && visibleReviewNode(replayBoard) == null) return true;
+            SystemClock.sleep(25);
+        } while (SystemClock.uptimeMillis() < deadline);
+        return false;
     }
 
     private String sourceReplayStep() {
