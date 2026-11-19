@@ -695,6 +695,7 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void checkMatchArchive() throws Exception {
+        replayCapture = displayCaptureGeometry();
         var mate = ChessMatch.restore("1|f2f3 e7e5 g2g4 d8h4");
         seedGame(1, mate);
         seedGame(2, ChessMatch.start(new MatchSetup(Side.WHITE, MatchSetup.Level.ADVANCED, false)).offerDraw());
@@ -713,6 +714,7 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private void checkMatchSlots() throws Exception {
+        replayCapture = displayCaptureGeometry();
         var levels = MatchSetup.Level.values();
         for (int slot = 1; slot <= MatchSlots.LIMIT; slot++) {
             var match = ChessMatch.start(new MatchSetup(Side.WHITE, levels[(slot - 1) % levels.length], false));
@@ -900,7 +902,7 @@ public final class BoardSanity extends Instrumentation {
                 && fullyVisible(badge) && badge.getText().length() > 0
                 && screenBounds(back).bottom <= screenBounds(scroll).top
                 // The rounded corner must be painted at the bottom, even if the view tree has already scrolled.
-                && image.getPixel(group.left + 3, lowerEdge) == image.getPixel(group.left - 3, lowerEdge)
+                && capturePixel(image, group.left + 3, lowerEdge) == capturePixel(image, group.left - 3, lowerEdge)
                 && hasColor(image, title, title.getCurrentTextColor(), 32)
                 && hasColor(image, label, label.getCurrentTextColor(), 32)
                 && hasColor(image, summary, summary.getCurrentTextColor(), 24)
@@ -3859,6 +3861,17 @@ public final class BoardSanity extends Instrumentation {
         } catch (NoSuchAlgorithmException impossible) {
             throw new IllegalStateException(impossible);
         }
+    }
+
+    private int capturePixel(Bitmap image, int x, int y) {
+        if (framebufferProjection != null) {
+            int[] mapped = framebufferProjection.project(x, y, x + 1, y + 1);
+            return image.getPixel(mapped[0], mapped[1]);
+        }
+        if (replayCapture == null) return image.getPixel(x, y);
+        int pixelX = (int) ((long) x * image.getWidth() / replayCapture.logicalWidth());
+        int pixelY = (int) ((long) y * image.getHeight() / replayCapture.logicalHeight());
+        return image.getPixel(pixelX, pixelY);
     }
 
     private boolean hasColor(Bitmap image, View view, int color, int required) {
