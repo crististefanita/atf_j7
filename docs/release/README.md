@@ -18,6 +18,8 @@ Check the available version in the README from `origin/main`. If the local branc
 7. After signing and qualification, push the candidate tag without rewriting history and publish the GitHub asset. Keep `currentVersion`, the comparison list, and the main README on the latest verified release until the new asset exists. Then promote the catalog and README on both branches. Keep only the new and immediately preceding releases on GitHub Releases and locally. Retire the other releases and folders after the new asset and README route pass verification. Keep the Git tags.
 8. Read the README from `main` on GitHub and download the APK from the displayed URL. Use `ReleaseGate publication` to verify the tag, channel, HTTP status, byte count, SHA-256, and CRC. Save the evidence, push the reports commit, and repeat the download from the final version of the README.
 
+- Keep the public and authenticated download receipts separately. The GitHub metadata must identify the qualified producer under `targetCommit`; the public receipt records the actual HTTP status, complete bytes, digest and CRC from the canonical README asset route. A successful authenticated download alone does not complete publication governance.
+
 - After publishing a draft, read the release again by tag and identify the asset by ID. GitHub may return an interim route with the “untagged” segment in the upload response. Use only the canonical route from the published release metadata in the README and verify the complete download.
 
 - Send the notes from the UTF-8 file. For REST, send the UTF-8 bytes of the JSON and reread the published release body by tag. Compare the text with the source and check that the evidence link opens the release folder.

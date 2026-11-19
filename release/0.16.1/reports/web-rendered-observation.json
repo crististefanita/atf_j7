@@ -1,0 +1,38 @@
+{
+  "observed": {
+    "board": {
+      "height": 315.8000183105469,
+      "width": 315.8000183105469,
+      "x": 21,
+      "y": 122.0999984741211
+    },
+    "document": {
+      "height": 640,
+      "width": 345
+    },
+    "menu": {
+      "height": 214.40000915527344,
+      "width": 313,
+      "x": 15.800000190734863,
+      "y": 60
+    },
+    "scripts": [
+      "https://crististefanita.github.io/chess/runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/game-review.mjs"
+    ],
+    "url": "https://crististefanita.github.io/chess/#analysis",
+    "viewport": {
+      "height": 640,
+      "width": 360
+    }
+  },
+  "beforeMenu": {
+    "board": {
+      "x": 21,
+      "y": 122.0999984741211,
+      "width": 315.8000183105469,
+      "height": 315.8000183105469
+    }
+  },
+  "journey": "Published main README → browser game → Analysis board → options",
+  "observedUtc": "2026-11-19T15:56:41.291Z"
+}

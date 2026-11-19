@@ -1,0 +1,12 @@
+{
+  "observedUtc": "2026-11-19T15:53:52.0742354Z",
+  "status": "PASS",
+  "gitTags": "Retained",
+  "retained": [
+    "v0.16.1",
+    "v0.16.0"
+  ],
+  "retiredRelease": "v0.15.3",
+  "verifiedDownloadBeforeRetirement": true,
+  "retiredReleaseId": 448690095
+}

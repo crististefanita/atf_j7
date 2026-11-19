@@ -53,6 +53,8 @@ with explanation beside the board, keeping source/replay sizing aligned and
 changing the current no-jump contract.
 [Puzzle explanation controls](../../atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java)
 
+**P2 · Native menu run identity.** Propagate one generated run ID through the Saved/Finished menu instrumentation, execution receipts and Extent. The current focused observations passed with the qualified source and APK, but lack this binding and therefore remain outside strict supplemental qualification. Add negative receipt cases for missing and substituted run IDs before admitting them to that gate.
+
 **P2 · Legacy analysis history oracles.** `awaitHiddenAnalysis` still checks
 one history child per ply. Align `analysis-prepare/restore` and their compact
 variants with the shared single-move game cursor. Preserve the Analysis

@@ -26,6 +26,14 @@ Strict qualification binds 534 component cases and 30 Game Review assertions to 
 - [Pinned Web workflow and 30 served assets](web-publication.json)
 - [Qualified engine reused by the UI-only Web package](web-engine-provenance.json)
 - [Advisory RAG context for the candidate diff](rag.txt)
+- [Complete authenticated download from the published README](distribution-verification.json)
+- [Real browser MCP download — identical complete APK](browser-download.json)
+- [Published compact Web geometry observed in MCP](web-rendered-observation.json)
+- [Current and previous release retention](release-retention.json)
+
+- [Publication governance — 19 passing checks](publication-governance.html)
+- [Romanian documentation governance — 18 passing checks](publication-documentation-ro.html)
+- [Governance receipts and tested input identities](publication-governance-execution.json)
 
 ## Scope and Remaining Work
 
