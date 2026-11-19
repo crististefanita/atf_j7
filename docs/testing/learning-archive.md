@@ -148,3 +148,10 @@ sacrificiu corect când acel caz a fost efectiv colectat și zero altfel; toate 
 publice, analizele native, amprentele surselor, fazele brute și pragurile de calitate
 rămân obligatorii. Păstrează sacrificiul corect prin martorii de componentă și
 controlul colecției originale când rejoci acea colecție.
+
+Admiterea verifică și ofertele adverse liniștite de piese din interiorul PV-ului.
+Dovada completă înregistrează domeniul real al capturilor și taxează fiecare vizită,
+inclusiv capturile pe casete diferite. Păstrează verdicte distincte pentru indiciul
+public, comparațiile diagnostice și analiza finală. Auditează fiecare semimutare
+ipotetică oferită, în ambele culori, nu doar prima mutare sau ultima piesă expusă.
+O piesă finală sigură nu dovedește corectitudinea alegerilor adverse anterioare.

@@ -9,6 +9,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 
 | Prioritate | Zonă | Observație | Criteriu de închidere |
 |---|---|---|---|
+| P1 | Comparație indiciu · PV diagnostic complet | Linia publică reparată din Spaniolă nu are pierdere mare, dar comparația respinsă `Ng5 …O-O Nc3` păstrează o mutare slabă de 346/378,5‰. | Auditează continuările comparative alături de indiciile oferite; repară linia cu replici libere și păstrează benchmarkul comparației FAIL până la calificarea ambelor orizonturi. [Mecanism](../board/ai-quality.md#oferte-adverse-liniștite-în-interiorul-indiciului) |
 | P1 | Indiciu · continuarea adversă completă | A doua variantă nouă după `1.e4` conține `Bxe6` slab; jocul advers liber preferă `Nc3`, cu pierdere 382/399‰ la H17/H19. | Repară continuarea completă evaluată cu 200k lucru obișnuit și rezerva finită de dovadă taxată separat, verifică fiecare semimutare PV pe familii independente și păstrează sacrificiile corecte. [Martor](#replici-adverse-slabe-în-indiciile-publice) |
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
 | P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
@@ -531,3 +532,13 @@ unei recapturi legale, dar 14 ultime mutări rămân inferioare la ambele adânc
 Aceasta nu califică întregul PV: benchmarkul calității analizei finale rămâne FAIL
 pentru recomandarea respectivă. Repară separat comparațiile cu replici libere și
 clasificarea; nu ascunde replicile interne slabe doar fiindcă piesa finală e sigură.
+
+Oferta liniștită a nebunului din Spaniolă este reparată în indiciul oferit: închiderea
+completă a capturilor elimină previzualizarea optimistă `Ng5` și oferă
+`Nc3 …O-O d3 …Be6 Be3`. Toate cele cinci semimutări oferite au pierdere sub 50‰ la
+H17/H19 rece. Aceeași `…Be6` este corectă în martorul italian; o listă de mutări
+interzise nu repară mecanismul. Păstrează componentele franceze și sacrificiile
+corecte. Continuarea comparativă slabă rămâne deficit separat, cu benchmark
+executabil și faze brute de oracol. O partidă nouă trebuie să păstreze fiecare indiciu
+anterior mutării și analiza finală sub producătorul efectiv; nu redenumi partida
+anterioară de 55 de semimutări din Spaniolă ca joc curent.

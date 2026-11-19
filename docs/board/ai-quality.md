@@ -1270,3 +1270,40 @@ Câmpurile opționale absente rămân absente în JSON-ul istoric, păstrând am
 Învățarea din partide complete cere în continuare hint obișnuit maxim înaintea fiecărei
 mutări, analiză finală completă și evaluarea independentă a profesorului. O partidă de
 diagnostic nu măsoară Elo.
+
+## Oferte adverse liniștite în interiorul indiciului
+
+O ultimă casetă sigură nu califică interiorul previzualizării. În Spaniolă,
+`Ng5 …Be6 Nxe6 …fxe6 Bxe6` se baza pe oferta adversă slabă a nebunului. Dovada admite
+acum acest caz chiar dacă la capăt nu există recaptură. Caută toate replicile la
+orizontul comun declarat, inclusiv rocada, și taxează rezerva finită existentă.
+Nu interzice `…Be6` după mutare, FEN sau numele deschiderii.
+
+Pentru oferta adversă liniștită a unei piese capturabile, verificarea forțată păstrează
+toate capturile și promovările legale până la liniștire, inclusiv pe casete diferite.
+Vechiul domeniu de două semimutări putea rata `…Bxb3`, recaptura și apoi `…Nxd4`;
+reparația doar a primei replici lăsa altă greșeală ipotetică grosolană. Calea obișnuită
+a recapturilor pe aceeași casetă rămâne disponibilă în afara acestei admiteri.
+`tacticalPlies` arată domeniul real al capturilor până la plafonul forțat configurat
+(48), fără să raporteze fals două semimutări. La plafon, orice captură sau șah rămas
+înseamnă dovadă incompletă; filtrarea nu poate inventa liniștirea. Limitele de noduri
+și de forțare nu publică scor final. Cache-urile v1/v2 și recepțiile v3 rămân lizibile;
+recepția nouă cu domeniu complet are propria componentă de round-trip.
+
+Linia oferită corectată este `Nc3 …O-O d3 …Be6 Be3`, −13 cp la H5, cu 241.995 noduri
+de dovadă taxate dincolo de alocația obișnuită de 200k. Fiecare dintre cele cinci mutări
+are pierdere sub 50‰ în căutări reci H17/H19. Comparația respinsă `Ng5` începe acum cu
+`…O-O`, fără scorul anterior +67 sau bonus material. Confirmarea la orizonturi pare
+și pragul de 25cp rămân. Tempo-ul calului francez, sacrificiul de damă și cel Traxler
+rămân componente independente, fără răspunsuri așteptate rescrise.
+
+[Componentele](../../atf-tests/src/test/java/ro/atf/chess/RuyReplyTest.java) păstrează
+istoricul complet, ambele culori, apărările libere legale, `…Be6` italian corect,
+epuizarea reală a nodurilor și a forțării, respingerea contextului străin și identitatea
+cache-ului. Martorii bruți leagă fiecare context ipotetic; nu sunt lecții de runtime.
+Linia diagnostică `Ng5` păstrează încă `Nc3` slab după rocadă (346/378,5‰).
+[RuyComparisonBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/RuyComparisonBenchmarkTest.java)
+păstrează executabil deficitul separat de calitate. O comparație nu devine linie optimă
+jucabilă doar fiindcă scorul rădăcinii este mai mic; păstrează verdictul independent.
+H7 cu toate capturile epuizează alocația de cinci milioane în acest studiu; nu pretindem
+scor H7 sau creștere Elo.
