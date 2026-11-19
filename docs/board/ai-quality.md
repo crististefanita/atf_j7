@@ -1311,3 +1311,8 @@ protect the qualified `…Qh5` attack against the inferior `…Bxf3` substitutio
 positions. These are permanent component counterexamples. The broad Pirc game
 remains diagnostic under its original producer, and cannot qualify the narrowed
 revision. Start its new observed collection only after the transfer gate.
+
+Only the twelve raw phases needed by those three counterexamples are embedded in
+the offline component fixture; all forty-eight transfer phases and the complete
+original replay stay external. The reduced fixture preserves the original plan and
+raw-archive hashes, full move history and original observation identity.
