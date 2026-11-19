@@ -660,14 +660,25 @@ public final class TacticalAnalysis {
                         && !best.ranked().get(0).move().equals(pawnCandidate)) {
                     budget.reserve = Math.min(exchangeNodes, budget.remaining);
                 }
-                var candidate = deepen(root, moves, depth, budget, gap, confirmation);
+                boolean closePawnReply = prioritizeChecks && depth == policy.maxPlies()
+                        && completed == depth - 1 && unresolvedPawnRecapture(root.position(), best.ranked().get(0), completed);
+                var evidence = closePawnReply ? new HashMap<Move, Line>() : null;
+                if (prioritizeChecks && !budget.reuseFrontierWork
+                        && unresolvedPawnRecapture(root.position(), best.ranked().get(0), completed)
+                        && (completed > MatchAiPolicy.BASE_PLIES || root.position().playGenerated(best.ranked().get(0).move()).isCheck())) {
+                    budget.reuseFrontierWork();
+                    if (budget.adaptive != null) budget.adaptive.exchangeProof(true);
+                }
+                var candidate = deepen(root, moves, depth, budget, gap, confirmation, evidence);
                 if (budget.adaptive != null) budget.adaptive.completed(depth);
                 if (prioritizeChecks && candidate.ranked().get(0).signedMatePlies() > 0) {
                     // The earlier horizons already had a chance to prove a shorter mate.
                     return new SearchReport(candidate, depth, policy.extraNodes() - budget.remaining);
                 }
                 if (prioritizeChecks && depth == policy.maxPlies()
-                        && !stableHardLeader(moves.get(0), candidate)) {
+                        && !stableHardLeader(moves.get(0), candidate)
+                        && !closedPawnRecapture(root.position(), best.ranked().get(0), candidate,
+                                evidence == null ? null : evidence.get(moves.get(0)))) {
                     var promotion = confirmPromotionExchange(root, best.ranked().get(0).move(),
                             candidate.ranked().get(0), depth, budget);
                     if (promotion == null) break;
@@ -803,6 +814,40 @@ public final class TacticalAnalysis {
             if (move.from() == capture.to() || move.to() == capture.to()) return false;
         }
         return true;
+    }
+
+    /** An odd-horizon piece-for-pawn capture is unresolved while a legal pawn recapture remains. */
+    static boolean unresolvedPawnRecapture(ChessPosition position, Variation previous, int completed) {
+        if (completed < MatchAiPolicy.BASE_PLIES || completed % 2 == 0 || previous.ending() != Ending.HORIZON
+                || previous.line().size() != completed || previous.materialChange() < 0) return false;
+        var before = position;
+        for (Move move : previous.line().subList(0, completed - 1)) before = before.playGenerated(move);
+        Move last = previous.line().getLast();
+        var piece = before.pieceAt(last.from());
+        var victim = MatchMaterial.victim(before, last);
+        if (piece.kind() == Kind.PAWN || piece.kind() == Kind.KING || last.promotion() != null
+                || victim == null || victim.kind() != Kind.PAWN) return false;
+        var after = before.playGenerated(last);
+        return !after.isCheck() && after.legalCapturesAndPromotions().stream().anyMatch(reply -> reply.to() == last.to()
+                && after.pieceAt(reply.from()).kind() == Kind.PAWN);
+    }
+
+    /** Only a completed common-horizon comparison may displace the normal stability guard. */
+    private static boolean closedPawnRecapture(ChessPosition position, Variation previous, Result candidate, Line closed) {
+        if (closed == null || !closed.exact() || closed.ending() != Ending.HORIZON
+                || !unresolvedPawnRecapture(position, previous, previous.line().size())
+                || closed.moves().size() != previous.line().size() + 1
+                || !closed.moves().subList(0, previous.line().size()).equals(previous.line())
+                || closed.balance() - material(position) >= 0 || closed.score() >= previous.score()
+                || candidate.ranked().isEmpty() || candidate.ranked().get(0).score() <= closed.score()) return false;
+        var before = position;
+        for (Move move : previous.line()) before = before.playGenerated(move);
+        Move reply = closed.moves().getLast();
+        if (reply.to() != previous.line().getLast().to() || before.pieceAt(reply.from()).kind() != Kind.PAWN
+                || !before.legalCapturesAndPromotions().contains(reply)) return false;
+        var after = before.playGenerated(reply);
+        return !after.isCheck() && after.legalCapturesAndPromotions().stream().noneMatch(move -> move.to() == reply.to()
+                && MatchMaterial.victim(after, move) != null);
     }
 
     static boolean stableHardLeader(Move previousLeader, Result deeper) {
@@ -1028,8 +1073,11 @@ public final class TacticalAnalysis {
                         budget.recaptureExtension, budget.queenRecaptureExtension, budget.queenPieceRecaptureExtension) : null;
         if (key != null) {
             var cached = budget.transpositions.get(key);
-            if (budget.adaptive != null) budget.adaptive.lookup(cached != null);
+            var bound = budget.reuseFrontierWork ? budget.bounds.get(key) : null;
+            boolean boundedCutoff = bound != null && bound.cuts(alpha, beta);
+            if (budget.adaptive != null) budget.adaptive.lookup(cached != null || boundedCutoff);
             if (cached != null) return cached;
+            if (boundedCutoff) return bound.line().withExact(false);
         }
         if (left == 0) {
             Line result = budget == null || budget.tacticalExtension == 0 ? leaf(position, distance, position.hasLegalMove(), objective)
@@ -1052,7 +1100,8 @@ public final class TacticalAnalysis {
                 for (Move move : moves) {
                     boolean givesCheck = position.playGenerated(move).isCheck();
                     detected.put(move, givesCheck);
-                    int score = moveOrder(position, move) + (givesCheck ? budget.checkOrderBonus : 0)
+                    int score = moveOrder(position, move) + (budget.reuseFrontierWork && move.equals(budget.preferred.get(position.searchKey())) ? 1_000_000 : 0)
+                            + (givesCheck ? budget.checkOrderBonus : 0)
                             + (givesCheck ? 0 : budget.quietMoveOrdering.bonus(position, move, false));
                     order.put(move, score);
                 }
@@ -1094,7 +1143,13 @@ public final class TacticalAnalysis {
         }
         // Bounds from discarded children do not invalidate an improving value inside this node's window.
         Line result = best.withExact(!cutoff && best.score() > initialAlpha);
-        if (key != null && result.exact()) budget.remember(key, result);
+        if (budget != null && budget.principalVariationSearch && left >= 2 && !result.moves().isEmpty()) {
+            budget.prefer(position.searchKey(), result.moves().getFirst());
+        }
+        if (key != null) {
+            if (result.exact()) budget.remember(key, result);
+            else if (budget.reuseFrontierWork) budget.rememberBound(key, result, initialAlpha, beta);
+        }
         return result;
     }
 
@@ -1344,8 +1399,13 @@ public final class TacticalAnalysis {
         }
     }
 
+    private record SearchBound(Line line, boolean lower) {
+        boolean cuts(int alpha, int beta) { return lower ? line.score() >= beta : line.score() <= alpha; }
+    }
+
     private static final class SearchBudget {
         private boolean principalVariationSearch;
+        private boolean reuseFrontierWork;
         private final int allocated;
         private HardAdaptivePolicy.Budget adaptive;
         private int adaptiveOffset;
@@ -1359,6 +1419,8 @@ public final class TacticalAnalysis {
         private final int transpositionLimit;
         private int checkOrderBonus;
         private final Map<SearchTranspositionKey, Line> transpositions;
+        private final Map<SearchTranspositionKey, SearchBound> bounds;
+        private final Map<ChessPosition.SearchKey, Move> preferred;
         private QuietMoveOrdering quietMoveOrdering;
 
         SearchBudget(int remaining, int tacticalExtension) {
@@ -1371,10 +1433,36 @@ public final class TacticalAnalysis {
             this.tacticalExtension = tacticalExtension;
             this.transpositionLimit = transpositionLimit;
             this.transpositions = transpositionLimit > 0 ? new HashMap<>() : Map.of();
+            this.bounds = transpositionLimit > 0 ? new HashMap<>() : Map.of();
+            this.preferred = transpositionLimit > 0 ? new HashMap<>() : Map.of();
         }
 
         void remember(SearchTranspositionKey key, Line line) {
-            if (transpositions.containsKey(key) || transpositions.size() < transpositionLimit) transpositions.putIfAbsent(key, line);
+            bounds.remove(key);
+            if (transpositions.containsKey(key) || transpositions.size() + bounds.size() < transpositionLimit) transpositions.putIfAbsent(key, line);
+        }
+
+        void rememberBound(SearchTranspositionKey key, Line line, int alpha, int beta) {
+            if (transpositions.containsKey(key) || line.score() > alpha && line.score() < beta) return;
+            boolean lower = line.score() >= beta;
+            var previous = bounds.get(key);
+            if (previous != null && previous.lower() == lower
+                    && (lower ? previous.line().score() >= line.score() : previous.line().score() <= line.score())) return;
+            if (previous != null || transpositions.size() + bounds.size() < transpositionLimit) {
+                bounds.put(key, new SearchBound(line.withExact(false), lower));
+            }
+        }
+
+        void reuseFrontierWork() {
+            // Distance + remaining depth identifies the old horizon; its exact entries cannot hit the next one.
+            transpositions.clear();bounds.clear();reuseFrontierWork = true;
+        }
+
+        void prefer(ChessPosition.SearchKey key, Move move) {
+            // Ordering observations are bounded separately and never supply a score or a cutoff.
+            if (preferred.containsKey(key) || preferred.size() < Math.min(4096, transpositionLimit)) {
+                preferred.put(key, move);
+            }
         }
 
         void visit() {

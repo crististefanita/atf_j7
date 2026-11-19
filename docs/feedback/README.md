@@ -21,8 +21,10 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P2 | Audit indicii · transfer mai larg | Încă două partide ajung la mat, cu 106 perechi native/indiciu pre-move, incluzând martorul sacrificiului corect. | Adaugă ascendențe de deschidere excluse și partide efective cu candidatul; rejucarea traseelor inspectate nu dovedește familii noi sau Elo. |
 | P2 | Probleme · focus TalkBack în opțiuni | Opțiunile problemelor mai cer dovada focusului. | Înregistrează traseul focusului în ambele limbi. |
 | P2 | Android · gestul predictiv | Gestul predictiv mai cere un dispozitiv compatibil. | Verifică anularea și reluarea pe API 33+. |
-| P1 | Hard nativ · pierderi în jocuri încheiate | `g4` din Scandinavă este protejat de noua regresie `Ne4`; Engleza `…Qf6`, Franceza `Bb5+` și Gambitul Damei `…Qa5` rămân. | Compară replicile libere complete la un orizont comun; păstrează catalogul, sacrificiile corecte și Basic/Advanced înainte de promovare. [Pașii următori](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră) |
+| P1 | Hard nativ · pierderi în jocuri încheiate | `g4` din Scandinavă este protejat de noua regresie `Ne4`; Franceza `Nc4` este acum protejată de dovada recapturii la H6 complet; Engleza `…Qf6` și Gambitul Damei `…Qa5` rămân. | Compară replicile libere complete la un orizont comun; păstrează catalogul, sacrificiile corecte și Basic/Advanced înainte de promovare. [Pașii următori](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră) |
 | P2 | Frontieră tactică · șah la limită | O frontieră în șah poate încă să se oprească fără evadare legală; extensia generală pierde 13 contracte existente. | Rezolvă cauza precisă în aceeași alocație taxată; păstrează eșecurile benchmark explicite până trec calitatea și transferul. |
+| P1 | Coaching francez · indiciu și analiză | Hard nativ alege acum mutarea verificată a calului, dar indiciul public preferă încă `Bb5+`, iar analiza o poate numi BEST. | Închide continuarea adversă completă și scorul analizei în bugetele proprii; ambele scopuri executabile trebuie să treacă fără istoric schimbat. [Reparația nativă și limite](../board/ai-quality.md#închiderea-recapturii-de-pion-la-orizontul-complet) |
+| P1 | Coaching · dovada recapturii ascunse | Linia afișată poate opri schimbul înainte de răspuns; verificarea cerută nu trebuie să împrumute tacit o replică neevaluată. | Caută recapturile legale în aceeași alocație, păstrează dovada evaluată integrală separat de prefixul vizibil și guvernează întreruperea, legăturile, sacrificiile și restartul. [Contract](#dovada-tactică-și-liniile-afișate) |
 | P1 | Calibrarea profilurilor AI | Intervalele Elo încă se suprapun. | Adaugă jocuri pereche pentru a restrânge incertitudinea. |
 | P1 | Forța Hard adaptiv | Căutarea pornește cu 100.000 de noduri și o rezervă până la 200.000. | Compară cele trei moduri pe partide excluse din ajustare și verifică replica adversă. |
 | P1 | Învățarea Hard din PGN-uri | Modelul de ordonare antrenat pe pierderi păstrează toate mutările finale în 36 de familii noi. | Adaugă mutări bune păstrate și sacrificii, apoi verifică ordonarea și deciziile complete. |
@@ -424,12 +426,47 @@ franceze anterioare au și diferențe mici de scor, inclusiv o degradare de 2,5/
 Lucrul mediu pe catalog crește cu aproximativ 8,1%; nu pretindem câștig de viteză,
 adâncime sau Elo. [Metodă și limite](../board/ai-quality.md#verificarea-mutărilor-secundare-native)
 
-**Următoarea prioritate chirurgicală:** rezolvă `Bb5+ …c6 Nc4 …Qd7 Nf5 …exf5` din
-Franceză ca o comparație evaluată complet și păstrează Engleza `…Qf6` față de `…Nc6`
-liber ca probă de transfer. Închiderea uniformă de o semimutare câștigă 24 de etape,
+Comparația franceză nativă este închisă prin [contractul recapturii complete](../board/ai-quality.md#închiderea-recapturii-de-pion-la-orizontul-complet). Păstrează deschise defectele separate ale indiciului și analizei
+și Engleza `…Qf6` față de `…Nc6` liber ca transfer. Închiderea uniformă de o semimutare câștigă 24 de etape,
 dar pierde 40; repetarea ei sau simpla schimbare a răspunsului așteptat nu este o
 reparație acceptabilă. Păstrează apărările libere la orizont comun, `training-021/051/065`,
 toate capitolele de mat, recapturile restrânse de dame și sacrificiul corect de damă.
 Testele frontierei în șah rămân explicit marcate benchmark. [Contractul de admitere](../testing/learning-archive.md#studii-de-continuare-până-la-rezultat)
 explică identitățile originale și remizele automate față de cele revendicabile.
 Dovezile rămân în `C:\work\sah\.studii\experiments\2026-11-19-hard-continuation`.
+
+
+## Dovada tactică și liniile afișate
+
+Cerut pe 19 noiembrie: replica finală de verificare poate rămâne în afara previzualizării
+obișnuite când este necesară doar pentru a stabili rezultatul schimbului. Sunt necesare
+două reprezentări explicite: prefixul vizibil și dovada tactică integrală evaluată.
+Păstrează auditabile originea, istoricul integral, recaptura legală, scorul înainte/după,
+orizontul obișnuit complet, lungimea dovezii, lucrul consumat și cauza opririi. Nu adăuga
+o replică decorativă și nu înlocui scorul după afișare. Dovada lipsă sau întreruptă
+rămâne necunoscută; nu poate certifica un câștig material.
+
+O singură recaptură automată nu ajunge când adversarul are o apărare liniștită mai
+puternică, mai multe recapturi legale sau un sacrificiu câștigător. Caută alternativele
+legale; păstrează legăturile, en passant, promovarea, matul și sacrificiul corect de
+damă. Martorul francez `Nxf5 …exf5` este exact o captură piesă–pion urmată de recaptură
+de pion. Păstrează SAN-ul și ambele bilanțuri materiale; nu clasifica `Nxf5` drept
+mutare liniștită.
+
+Implementează întâi proprietatea dovezii în motor și cazurile componente negative,
+apoi proiectează prefixul vizibil fără să modifici dovada sau istoricul salvat.
+Becul, destinația jucată și analiza finală trebuie să indice aceeași recomandare
+evaluată. Mock-urile acoperă lucrul întrerupt, rulările străine și fazele lipsă;
+deciziile șahistice păstrează dovada independentă Stockfish H17/H19. Separarea UI
+rămâne deschisă până trec contractele dovezii și prezentării.
+
+Cerința șirului forțat dinamic este de asemenea deschisă: continuă recapturile legale
+relevante și evadările obligatorii până la poziție stabilă sau rezultat efectiv,
+inclusiv repetiție. Alocă o rezervă configurabilă plafonată cât șirul este deschis;
+nu numi schimb încheiat o oprire la buget. Separă orizontul obișnuit de adâncimea
+forțată suplimentară și taxează fiecare vizită. La plafon, raportează dovadă incompletă,
+nu scor final certificat. Componentele trebuie să acopere recapturi multiple, recapturi
+cu șah, apărare liniștită mai puternică, pioni legați, repetiție și pragul exact de
+buget. Prefixul vizibil poate omite sufixul numai dacă dovada integrală evaluată
+rămâne în audit și după restart. Reparația Native H6 focalizată nu este implementarea
+completă a cerinței de prezentare pentru coaching.

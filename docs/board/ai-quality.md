@@ -1100,3 +1100,63 @@ dar 13 contracte componente existente eșuează. [Scopurile de calitate ale fron
 păstrează evadările obligatorii și comparațiile epuizate vizibile în suita benchmark;
 nu sunt numărate tacit ca PASS în componentele obișnuite. Păstrează sacrificiile
 corecte și toți martorii schimburilor de dame înainte de a lărgi această frontieră.
+
+
+## Închiderea recapturii de pion la orizontul complet
+
+Martorul francez este `Bb5+ …c6 Nc4 …Qd7 Nxf5 …exf5`. `Nxf5` capturează un pion
+existent; nu este o mutare liniștită. La H5 rădăcina izolată a nebunului are +153 cp
+și se oprește la captură. La același H6 cu fereastră completă, nebunul are −204 cp,
+cu `…exf5` inclus, iar `Nc4` are −97 cp. Stockfish rece H17/H19 măsoară pierderea
+475,5/453‰ pentru nebun și 5,5/5,5‰ pentru alternativa forțată cu calul.
+
+Creșterea căutării neschimbate la 300k–500k fixe, în diagnostic, nu încheie H6.
+Primul prototip cu ordonare/cache mai larg încheie H6, dar întoarce tot nebunul H5
+din cauza veto-ului de stabilitate; introduce și o regresie în Gambitul Damei.
+Activarea largă a fost respinsă, iar martorul a fost adăugat înainte de restrângerea
+implementării. Acestea sunt bugete diagnostice, nu o politică nouă de producție.
+
+Scopul acceptat reutilizează lucrul pentru o captură piesă–pion la orizont impar,
+fără mat dovedit, care permite recaptură legală de pion. Activarea timpurie H3 cere
+suplimentar șah la prima mutare. Orizonturile impare complete ulterioare pot activa
+același lucru. Schimbul neîncheiat deschide rezerva adaptivă existentă; baza rămâne
+100k și maximul 200k. Observațiile de ordonare sunt plafonate la 4.096, nu furnizează
+scor și sunt folosite numai în acest mod. Valorile exacte și limitele etichetate
+separat împart plafonul cache-ului încărcat. O limită taie numai fereastra alpha/beta
+potrivită și nu devine valoare exactă. Cheia păstrează poziția, adâncimea rămasă,
+distanța, obiectivul și modurile frontierei. Intrările exacte vechi nu pot corespunde
+altui orizont obișnuit; reutilizarea păstrează ordonarea și elimină valorile depășite.
+[Referința căutării](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp)
+
+Veto-ul obișnuit de stabilitate rămâne. Excepția restrânsă cere o comparație **completă**
+a rădăcinilor la același orizont și o linie exactă a liderului vechi care prelungește
+PV-ul anterior cu recaptura legală de pion. Materialul trebuie să treacă de la câștig
+nepierzător la pierdere, iar liderul nou complet să depășească liderul vechi închis.
+O altă recaptură legală pe aceeași casetă sau șahul rezultat lasă dovada deschisă.
+Dovada lipsă, din alt prefix, limitată sau întreruptă nu poate ocoli protecția. Este
+un test local al schimbului, nu afirmația că toate celelalte tactici sunt epuizate.
+
+| Probă | Rezultat |
+|---|---|
+| Franceză originală | `Nc4`, H6 obișnuit complet, 175.874 noduri suplimentare |
+| Franceză oglindită | `…Nc5`, H6 obișnuit complet, 173.121 noduri suplimentare |
+| Pierderea rădăcinii forțate independente | 5,5/5,5‰ la H17/H19 |
+| Martor Scandinavă | `Ne4` păstrat; 25,5/110,5‰ |
+| Regresie Gambitul Damei | `Bg3` păstrat; prototipul larg respins alegea `Bd6` |
+| Negativ la limita de lucru | Un nod neplătit păstrează orizontul complet anterior |
+
+[Componentele franceze și scopurile de calitate](../../atf-tests/src/test/java/ro/atf/chess/FrenchRecaptureTest.java)
+păstrează istoriile originale, bilanțul material, ambele culori, căutări întrerupte
+reale, mock-uri de limită/prefix străin, legături, recapturi ulterioare și recapturi
+cu șah. [Componentele cache-ului](../../atf-tests/src/test/java/ro/atf/chess/FrontierCacheTest.java)
+compară ambele ferestre cu minimax exhaustiv independent și guvernează cache-ul,
+ordonarea, orizontul și distanța de mat. [Dovezile reci portabile](../../atf-tests/src/test/resources/french-recapture-witnesses.yaml)
+conțin 32 de faze brute și regresia găsită în studiu. Nu sunt carte de deschidere
+la execuție sau suprascriere învățată după FEN.
+
+Indiciul public și Game Review își păstrează politicile independente. Mai cer propria
+corecție: indiciul poate folosi `…Nd7` slab, iar analiza poate numi `Bb5+` BEST.
+Scopurile lor benchmark executabile rămân eșecuri separate. Cerința de indiciu vizibil
+mai scurt, cu dovadă ascunsă integrală și rezervă dinamică pentru șirul forțat, rămâne
+[lucru explicit la coaching](../feedback/README.md#dovada-tactică-și-liniile-afișate),
+nu o funcționalitate UI implementată sau o creștere Elo măsurată.
