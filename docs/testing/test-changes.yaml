@@ -7,7 +7,7 @@ testChanges:
     contract: "Retain all previous source geometry, cursor, capture and profile controls; add exact font 1.3, observed 90-degree rotation, Back window focus, verified full framebuffer and separate signed APK identity admission"
     allowDelete: false
     nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
-    nativeProbe: "calculated Back restores the source window and board"
+    nativeProbe: "Mating Back restores the source window and board"
 
   - id: J7-ENLARGED-REPLAY-PUBLICATION-EN
     base: "975139ec679367789c964c28200f291c7e6f62a5"
@@ -49,7 +49,7 @@ testChanges:
     contract: "Retain all previous source geometry, cursor, capture and profile controls; add exact font 1.3, observed 90-degree rotation, Back window focus, verified full framebuffer and separate signed APK identity admission"
     allowDelete: false
     nativePath: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
-    nativeProbe: "calculated Back restores the source window and board"
+    nativeProbe: "Mating Back restores the source window and board"
 
   - id: J7-ENLARGED-REPLAY-PUBLICATION-RO
     base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
