@@ -8,7 +8,7 @@ public record HintArrow(double start, double tip, double head, double halfShaft,
             throw new IllegalArgumentException("Expected finite square centers and a positive square size");
         }
         double start = unit * .31;
-        double tip = Math.hypot(dx, dy) - unit * .20;
+        double tip = Math.hypot(dx, dy) - unit * .12;
         double head = tip - unit * .17;
         if (!Double.isFinite(tip) || head <= start) {
             throw new IllegalArgumentException("Distinct displayed square centers are required");

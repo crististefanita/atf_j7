@@ -147,7 +147,7 @@ Fiecare semimutare, inclusiv replica adversarului, cere analiza efectivă Hard c
   compacte și desktop, text 130%, origine derulată și liste lungi.
 - `HintReplayPresentationTest` verifică afișajul comun, cursoarele independente
   ale liniilor și adaptorul Android. Poziția selectată în istoric se păstrează.
-- [`HintArrowTest`](../../atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java) verifică poziția efectivă a vârfului față de centrul destinației pentru mutări orizontale, verticale, diagonale și de cal, scurte și lungi, în ambele orientări și la dimensiuni diferite ale celulelor. Compară modelul JVM, SVG-ul Web și Canvas-ul de analiză simulat pe aceleași cazuri de celule măsurate, inclusiv table cu latura impară și margini de celule rotunjite. Distanța așteptată este 20% din latura celulei; adaptorul Android delegă modelului testat.
+- [`HintArrowTest`](../../atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java) verifică poziția efectivă a vârfului față de centrul destinației pentru mutări orizontale, verticale, diagonale și de cal, scurte și lungi, în ambele orientări și la dimensiuni diferite ale celulelor. Compară modelul JVM, SVG-ul Web și Canvas-ul de analiză simulat pe aceleași cazuri de celule măsurate, inclusiv table cu latura impară și margini de celule rotunjite. Distanța așteptată este 12% din latura celulei; adaptorul Android delegă modelului testat.
 - `WebUiParityGovernanceTest` cere ca RAG să citeze aceste componente și secțiunea
   responsabilă. O suprafață necunoscută rămâne semnalată pentru revizuire.
 
