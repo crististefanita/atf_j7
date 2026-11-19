@@ -14,4 +14,4 @@ Acest registru deține dovezile încă necesare înaintea promovării unei ordon
 
 Păstrați atât `learned-0007` (`Rb1`, câștig), cât și `learned-0015` (`Qxb5 …axb5`, pierdere). Comparațiile candidat/reper inspectate au atins patru, respectiv cinci semimutări, deci nu izolează efectul ordonării. Verificați replica adversă liberă la un orizont complet comun înaintea generalizării.
 
-[Protocol AI](../board/ai-quality.md#verificări-pentru-fiecare-schimbare) · [Profil adaptiv](../board/ai-quality.md#buget-adaptiv-în-prim-plan)
+[Protocol AI](../board/ai-quality.md#control-la-fiecare-schimbare) · [Profil adaptiv](../board/ai-quality.md#buget-adaptiv-în-prim-plan)
