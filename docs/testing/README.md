@@ -184,6 +184,56 @@ may scroll; the board and controls remain fixed. Native compilation and pure
 layout components prepare APK parity but do not qualify Android rendering.
 [Shared replay contract](../board/README.md#source-sized-replay)
 
+### Native source-sized replay sanity
+
+Use `run-android-sanity.ps1 -ReplayViewportOnly` from an external build copy,
+with the shared emulator lease and explicit ADB server/serial. Build both
+`:app:assembleSanity` and `:app:assembleSanityAndroidTest`; compiling only the
+application does not verify the instrumentation's dialog entry points.
+
+The focused phase runs Calculated line, Analysis hints and Mating line in
+EN/RO at 360 × 640, 740 × 420 and 1280 × 900 logical dp profiles, using
+720 × 1280 and 1480 × 840 native pixels at 320 dpi, and 1920 × 1350 at 240 dpi,
+font 1.0. The largest profile stays below the API 28 emulator's width cap;
+silently clamped dimensions fail admission.
+Android system bars reduce the usable content window; these display sizes
+are not a claim of identical Web CSS viewports. Use density-calibrated Android
+profiles instead of treating Web CSS pixels as physical device pixels.
+The runner restores the previous size, density and font in `finally` and
+releases its own lease. The isolated package leaves the normal app untouched.
+
+Each run requires twenty ordered checks: source side, all ranks, fixed
+48 dp controls, Next/Previous, a real calculated/theory branch and return.
+`ReplayViewportFixture` is shared with the JVM component that verifies two
+legal calculated alternatives. Readiness follows the enabled hint and its
+completed score, independently of whether history shows one move or a list.
+Never inject an extra candidate into the UI to make a navigation probe pass.
+
+Publish from the external full checkout, with `<run>` set to the runner's
+printed directory:
+
+```powershell
+mvn -B -ntp test '-Dtest=AndroidSanityPublication#publishSourceReplaySanity' `
+    '-Dchess.android.receipt=<run>'
+```
+
+`android-source-sized-replay.html` embeds the native checks and four captures
+per profile/language. It verifies the run, process, APK, receipt/capture hashes
+and exact display marker. Missing, substituted or duplicate assertions and a
+wrong profile fail closed in `AndroidSourceReplayReceiptTest`.
+Next/Previous also require the expected displayed ply, branch selection and
+the actual mating move; unchanged coordinates alone cannot satisfy navigation.
+This development sanity does not qualify a signed release APK.
+Use `-Dchess.extent=<report>` for a fresh explicit report path. Report durations
+refer to receipt validation/publication; native action latency is not measured.
+
+On API 28, the full framebuffer may letterbox a different logical aspect
+ratio. `FramebufferProjection` accepts a mapping only when Android's primary
+input viewport matches the current display and its complete centered content
+rectangle. Pixel checks use that verified rectangle and preserve the original
+PNG. A crop, missing/foreign viewport or unsupported rotation fails closed;
+the older `ScreenCaptureGeometry` aspect-ratio checks remain unchanged.
+
 <details>
 <summary>Shared cases, screens, and receipts</summary>
 

@@ -113,6 +113,69 @@ class AndroidSanityPublication {
             "Training reopens its second unsolved puzzle after process restart");
 
     private record Frame(String file, String title) { }
+    static final List<String> SOURCE_REPLAY_CHECKS = sourceReplayChecks();
+
+    private static List<String> sourceReplayChecks() {
+        var checks = new ArrayList<String>();
+        checks.add("AI hint reveal preserves the source board rectangle");
+        checks.add("The AI board and fixed controls fit without page scrolling");
+        for (String owner : List.of("calculated", "theory")) {
+            if (owner.equals("theory")) checks.add("Study hint reveal preserves the source board rectangle");
+            checks.add(owner + " replay keeps the measured source side");
+            checks.add(owner + " replay renders all ranks with accessible fixed controls");
+            for (String action : List.of("Next", "Previous", "branch")) checks.add(owner + " " + action + " keeps the board and control rectangles");
+            checks.add(owner + " return restores the source rectangle");
+        }
+        checks.add("Mating replay keeps the measured source side");
+        checks.add("Mating replay renders all ranks with accessible fixed controls");
+        checks.add("Mating Next keeps the board and control rectangles");
+        checks.add("Mating Previous keeps the board and control rectangles");
+        checks.add("Mating return restores the source rectangle");
+        return List.copyOf(checks);
+    }
+
+    static PhaseEvidence readSourceReplayPhase(Path receipt, String profile, String locale) throws IOException {
+        var evidence = readPhase(receipt, "source-sized-replay", SOURCE_REPLAY_CHECKS.size(), SOURCE_REPLAY_CHECKS, null);
+        var markers = Files.isRegularFile(receipt) ? Files.readAllLines(receipt) : List.<String>of();
+        var observed = markerValues(markers, "INSTRUMENTATION_RESULT: replayProfile=");
+        String nativeSize = switch (profile) {
+            case "360x640" -> "720x1280@320";
+            case "740x420" -> "1480x840@320";
+            case "1280x900" -> "1920x1350@240";
+            default -> throw new IllegalArgumentException("Unknown logical replay profile: " + profile);
+        };
+        var expected = List.of(nativeSize + ", font=1.0, language=" + locale);
+        if (observed.equals(expected)) return evidence;
+        var rows = new ArrayList<>(evidence.rows());
+        rows.add(new AtfAssertion("Native source-sized profile", expected.toString(), observed.toString(), false));
+        return new PhaseEvidence(evidence.pid(), rows, false);
+    }
+
+    @Test void publishSourceReplaySanity() throws Exception {
+        Path root = Path.of(System.getProperty("chess.android.receipt"));
+        var runs = new ArrayList<BoundRun>();
+        for (String profile : List.of("360x640", "740x420", "1280x900")) for (String locale : List.of("en", "ro")) {
+            Path receipt = root.resolve(profile + "-" + locale).resolve("source-sized-replay.txt");
+            var run = boundRun("source-sized-replay", "THEN source-sized replay fits " + profile + " in " + locale,
+                    receipt, SOURCE_REPLAY_CHECKS.size(), SOURCE_REPLAY_CHECKS, "source-sized replay", List.of(
+                            new Frame("source-ai.png", "AI hint with fixed source board"),
+                            new Frame("source-calculated.png", "Calculated line"), new Frame("source-theory.png", "Analysis hint"),
+                            new Frame("source-mating.png", "Mating line")));
+            var evidence = readSourceReplayPhase(receipt, profile, locale);
+            var identity = new ArrayList<>(run.identity());
+            identity.add(new ReportField("Logical profile", profile + " dp · " + locale));
+            identity.add(new ReportField("Native profile", markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: replayProfile=").toString()));
+            identity.add(new ReportField("Timing scope", "Report durations measure receipt validation/publication; native action latency was not measured by this probe."));
+            var projection = markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: framebufferProjection=");
+            if (projection.size() > 1 || run.execution().path("api").asText().equals("28") && projection.size() != 1) identity.clear();
+            if (!identity.isEmpty() && !projection.isEmpty()) identity.add(new ReportField("Verified compositor projection", projection.toString()));
+            if (run.identity().isEmpty()) identity.clear();
+            runs.add(new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), identity, run.frames(), run.nativeMarkers()));
+        }
+        publishNativeRuns("source-sized-replay", "Keep source-sized native boards and fixed controls across replay navigation",
+                Path.of(System.getProperty("chess.extent", root.resolve("android-source-sized-replay.html").toString())), runs, null, true);
+    }
+
     private record MenuCheckpoint(String action, String assertion, String frame) { }
     private record BoundRun(String scope, String title, Path receipt, PhaseEvidence evidence,
                             JsonNode execution, List<ReportField> identity, List<Frame> frames, List<String> nativeMarkers) { }
@@ -697,7 +760,7 @@ class AndroidSanityPublication {
                             + (anchor == null ? "" : " · match run " + anchor.execution().path("runId").asText()),
                     sameExecution));
             if (runs.size() > 1) {
-                checks.add(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs", String.join(" → ", pids), restarted));
+                checks.add(new AtfAssertion("Instrumentation process IDs", runs.size() + " distinct Android PIDs", String.join(" → ", pids), restarted));
             }
             publish(phase, "Verify native provenance", checks, complete);
             if (sameExecution && sharedRunId) {

@@ -44,15 +44,22 @@ Before publishing a new engine, use a deterministic portable digest and verify i
 
 ## WEB-02 · Adapters and Shared Layout
 
-**P2 · APK source-sized replay rendering.** The native adapter passes the
-measured source side to calculated/theory and mating replays. Components cover
-fixed geometry, long text and resize clamping; the external sanity APK builds.
-Qualify native frames with the existing Analysis, Manual Analysis and Puzzle
-Mate Replay probes: compare source/replay sides, Next/Previous and branch
-rectangles, all eight ranks and control access in compact RO/EN. Keep this
-native verdict separate from the nine Web profile/flow comparisons.
-[Source contract](../board/README.md#source-sized-replay) ·
-[Layout components](../../atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java)
+**P2 · Signed replay at enlarged text and physical rotation.** Repeat the
+source-sized native phase on the signed release, add 1.3× text and a real
+90° display rotation, then verify touch, Back and focus restoration. The
+development matrix covers three logical windows in EN/RO at font 1.0; its
+API 28 compositor calibration currently requires an unrotated primary viewport.
+Retain the exact source/preview sides, changing cursor, fixed branch controls
+and bound captures; do not infer signed or rotated rendering from that matrix.
+[Native replay protocol](../testing/README.md#native-source-sized-replay-sanity)
+
+**P2 · Legacy analysis history oracles.** `awaitHiddenAnalysis` still checks
+one history child per ply. Align `analysis-prepare/restore` and their compact
+variants with the shared single-move game cursor. Preserve the Analysis
+board's full history list and its separate oracle. Keep completed hint/score
+readiness and the displayed position as independent checks; a timeout must
+not stand in for a wrong UI oracle.
+[Current cursor](../../chess-core/src/main/java/ro/atf/chess/MatchHistorySelection.java)
 
 <details>
 <summary>Adapter ownership and input</summary>
