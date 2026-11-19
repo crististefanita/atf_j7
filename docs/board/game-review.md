@@ -39,7 +39,7 @@ flowchart LR
 
 ## Evaluating a ply
 
-- A ply is a move by one side. Before each ply, the engine retrieves the position and history. At the search root, it identifies moves that immediately lead to an automatic draw by material, repetition, or the number of plies without a pawn move or capture. Analysis compares the best line found and the played move at the same completed depth. The search starts at three plies and attempts to reach six, with a tactical extension and a budget of 85,000 additional nodes per position. When an iteration exceeds the budget, the previous iteration's result is retained. [Search](../../chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java) · [Configuration](../../chess-core/src/main/resources/game-review.yaml)
+- A ply is a move by one side. Before each ply, the engine retrieves the position and history. At the search root, it identifies moves that immediately lead to an automatic draw by material, repetition, or the number of plies without a pawn move or capture. Analysis compares the best line found and the played move at the same completed depth. The search starts at three plies and attempts to reach six, with a tactical extension and an ordinary budget of 85,000 additional nodes per position. When an iteration exceeds the budget, the previous iteration's result is retained. [Search](../../chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java) · [Configuration](../../chess-core/src/main/resources/game-review.yaml)
 
 ```mermaid
 flowchart LR
@@ -75,6 +75,8 @@ loss = max(0, points(recommendation) - points(played move))
 - For example, if the recommendation scores +220 cp and the played move scores 0 cp, the values are 731‰ and 500‰. The loss is **231‰**. On the graph, 500‰ means balance. For a move by Black, the plotted value is `1000 − points(played move)`, so the upper side always favors White. The first point uses the evaluation of the recommendation in the starting position. [Calculation and graph](../../chess-core/src/main/java/ro/atf/chess/GameReview.java) · [Android display](../../android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java)
 
 - In exact positions from the verified repertoire, the report recommends the repertoire reply and evaluates both lines at the same completed depth. A proven terminal line or automatic draw at the root keeps priority. If the local evaluation of the played move exceeds the recommendation score, the loss stays zero. [Repertoire](../../chess-core/src/main/resources/ai-repertoire.yaml)
+
+- A triggered unresolved frontier may use the separately accounted `CoachingProof` reserve. Its node ceiling and incomplete status remain separate from the ordinary review budget and inherited H3 bootstrap. Retain the full work receipt after restart. [Reserve and exact-score contract](ai-quality.md#dynamic-coaching-frontier)
 
 ## Grades and accuracy
 

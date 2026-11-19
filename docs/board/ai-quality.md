@@ -2,7 +2,8 @@
 
 ## Overview
 
-- **Current policy.** The opponent, hint, and evaluation bar have separate budgets. Hard foreground search starts with 100,000 additional nodes and can use an adaptive reserve up to 200,000. The hint has one 200,000-node ceiling, including the initial horizons, tactical frontier, and up to 150,000 nodes for comparing alternatives. [Search configuration](../../chess-core/src/main/resources/match-ai.yaml)
+- **Current policy.** Opponent, hint and evaluation-bar work have separate budgets. Hard foreground search starts with 100,000 additional nodes and can continue adaptively to 200,000. [Search configuration](../../chess-core/src/main/resources/match-ai.yaml)
+- **Hint budgets.** Ordinary hint search has a 200,000-node allowance, including its horizons, tactical frontier and comparison allocation. A triggered forcing proof has a separately charged reserve capped at 5,000,000 nodes by [coaching-proof.yaml](../../chess-core/src/main/resources/coaching-proof.yaml). This is not a total 200k decision cap; retain the completion status and both work counters. [Proof contract](#dynamic-coaching-frontier)
 - **Acceptance.** `MatchAiGovernanceTest` and `HardAdaptivePolicyTest` check the policies and `ChessBenchmarkSuite` measures decisions against a fixed oracle. Historical comparisons below belong to the measured version.
 - **Displayed Elo.** The [Game Review contract](game-review.md) defines grades, accuracy, and the displayed estimates. The app reads its rating anchors from the release configuration. [Rating anchors](../../chess-core/src/main/resources/game-review.yaml)
 
@@ -106,7 +107,7 @@ The adaptive profile's game-strength estimate requires its own paired league.
 
 After `1.e4`, the old hint ended at `…Nc6 Bb5 …Nd4 Bc4 …Nxc2+` before `Qxc2`. The preview appended that recapture after ranking, while the public selector retained the losing leader. The initial-board variation had the same defect with `Bxd7+`. Both failures are search regressions with legal moves.
 
-The hint now charges the initial horizons, exchange frontier, and root comparison to one 200,000-node allowance. Capture and recapture use the same frontier when ranking alternatives. Alpha-beta cutoffs are bounds and cannot enter the exact-result cache. Playback preserves the scored line and the source checkpoint. A static replay estimate cannot silently replace that ranking.
+Ordinary hint search charges its initial horizons, exchange frontier and root comparison to one 200,000-node allowance. The separately charged forcing reserve follows the [dynamic coaching contract](#dynamic-coaching-frontier). Capture and recapture use the same frontier when ranking alternatives. Alpha-beta cutoffs are bounds and cannot enter the exact-result cache. Playback preserves the scored line and the source checkpoint. A static replay estimate cannot silently replace that ranking.
 
 Historical study `2026-11-17-j7-hint-repair` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
 
@@ -118,12 +119,12 @@ The hint retains the incumbent and a challenger observed at another completed ho
 
 An H6 reversal must use earlier H4 evidence. H5 uses H4 and H7 uses H6. The current even-horizon table cannot corroborate itself. An unsupported reversal retains the actual seed depth and publishes no accepted comparison. Search and comparison depths remain distinct from the number of replayed plies.
 
-| Position | J7 common-horizon comparison | Published result at 200k | Stockfish 19 H19 expected score |
+| Position | Chess common-horizon comparison | Published result at 200k | Stockfish 19 H19 expected score |
 |---|---|---|---|
 | `e4 c5 Nf3 d6 d4` | H6, `…cxd4 −48` versus `…Nd7 −82 cp` | Keep `…cxd4`; exclude `…Nd7` from equivalent suggestions | 477‰ versus 268‰ |
 | `e4 c6 d4` | H5, `…d5 +1` versus `…d6 −33 cp` | Replace `…d6` with `…d5` | 468‰ versus 383.5‰ |
 
-The Stockfish numbers compare the tested roots with opposing replies free. They are not J7 centipawns or Elo. On the matched 200k controls, 13 of 14 existing leaders stayed the same and the main Caro–Kann leader improved. A first candidate regressed the Catalan and the pre-`Nxc2` control and was rejected. Correcting self-corroboration preserved both incumbents. The initially sealed four-position transfer sample retained its leaders. After inspection it becomes regression evidence, without establishing a general strength gain. A separately added control after `e4 e5` changes `Nf3` to `Nc3`: Stockfish H19 gives +27 versus +4 cp, or 523‰ versus 503‰. This balanced theoretical alternative has a measured 20‰ loss and is reported separately from the 14 matched controls.
+The Stockfish numbers compare the tested roots with opposing replies free. They are not Chess centipawns or Elo. On the matched 200k controls, 13 of 14 existing leaders stayed the same and the main Caro–Kann leader improved. A first candidate regressed the Catalan and the pre-`Nxc2` control and was rejected. Correcting self-corroboration preserved both incumbents. The initially sealed four-position transfer sample retained its leaders. After inspection it becomes regression evidence, without establishing a general strength gain. A separately added control after `e4 e5` changes `Nf3` to `Nc3`: Stockfish H19 gives +27 versus +4 cp, or 523‰ versus 503‰. This balanced theoretical alternative has a measured 20‰ loss and is reported separately from the 14 matched controls.
 
 [Audit protocol and collection](../testing/hint-audit.md) · [Frontier contracts](../../atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java)
 
@@ -163,7 +164,7 @@ The rejected probes showed that broad filtering can starve the seed or regress a
 
 Earlier-horizon credit cannot sustain an immediate material offer contradicted by raw H4 evidence. Search retains the exact values and bounds observed before credit pruning; it does not add another search. Only a credit-backed incumbent offering net material outside the raw window is demoted. The balanced `…Bxb5` exchange and still-uncertain historical challengers remain available. Public suggestions stay distinct from comparison candidates. Fallback scores exclude ordering credit; preference can use evidence from other horizons and does not promise numeric sorting by those raw scores.
 
-At Italian S5 the 200k hint recommends only `…Qg6`. Cold Stockfish 19 with free replies confirms at H19 `…Bxf2+` −311 cp / 0‰, `…Qg6` −49 cp / 444‰ and `…Nge7` −169 cp / 30.5‰. H17 preserves the order. In the distinct Traxler context the same `…Bxf2+` remains Stockfish's free leader at H17/H19 and J7 preserves it; non-mating sacrifices are not banned. The color-inverted Italian position retains the `Qg3` defense.
+At Italian S5 the 200k hint recommends only `…Qg6`. Cold Stockfish 19 with free replies confirms at H19 `…Bxf2+` −311 cp / 0‰, `…Qg6` −49 cp / 444‰ and `…Nge7` −169 cp / 30.5‰. H17 preserves the order. In the distinct Traxler context the same `…Bxf2+` remains Stockfish's free leader at H17/H19 and Chess preserves it; non-mating sacrifices are not banned. The color-inverted Italian position retains the `Qg3` defense.
 
 Among 44 identical-position, identical-budget hint requests, only the Italian S5 leader changes. Sicilian and Caro–Kann leaders stay unchanged; four new histories retain their leaders and alternatives. All 24 compared native Hard decisions keep move, depth and nodes. These samples do not qualify every offered alternative: Sicilian `Bg5` remains open. [Credit regressions](../../atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java)
 
@@ -218,18 +219,18 @@ Historical study `2026-11-18-j7-native-italian` has been retired from the active
 mvn test '-Dtest=ChessBenchmarkSuite' "-Dchess.stockfish=$stockfish" '-Dchess.extent=target/match-ai-benchmark.html'
 ```
 
-- Set `$stockfish` to the Stockfish 19 executable. The check starts one search at the depth fixed in YAML for the full position and another for the J7 move, with one thread, 16 MiB of hash, and memory reset between searches. The Stockfish expected score is `W + D/2` per thousand. The difference between searches is floored at zero when the restricted search finds a better evaluation. The report also shows the UCI score for each move to expose mates or differences when the expected score is already saturated. [Set and thresholds](../../atf-tests/src/test/resources/match-ai-benchmark.yaml) · [Stockfish 19](https://github.com/official-stockfish/Stockfish/releases/tag/sf_19) · [Stockfish WDL scores](https://official-stockfish.github.io/docs/stockfish-wiki/Useful-data.html)
+- Set `$stockfish` to the Stockfish 19 executable. The check starts one search at the depth fixed in YAML for the full position and another for the Chess move, with one thread, 16 MiB of hash, and memory reset between searches. The Stockfish expected score is `W + D/2` per thousand. The difference between searches is floored at zero when the restricted search finds a better evaluation. The report also shows the UCI score for each move to expose mates or differences when the expected score is already saturated. [Set and thresholds](../../atf-tests/src/test/resources/match-ai-benchmark.yaml) · [Stockfish 19](https://github.com/official-stockfish/Stockfish/releases/tag/sf_19) · [Stockfish WDL scores](https://official-stockfish.github.io/docs/stockfish-wiki/Useful-data.html)
 
 - These set scores measure move choice in fixed positions. For an Elo estimate, use game pairs from the same openings with reversed colors, fixed time, and a confidence interval. Keep game results separate from this position report.
 
 ## Offline league
 
-| Profile | Maximum depth | Additional nodes |
+| Profile | Maximum depth | Ordinary additional nodes |
 |---|---:|---:|
 | Basic | 3 | 0 |
 | Advanced | 4 | 10,000 |
 | Hard foreground | 6, with a stable leader | 100,000 base, up to 200,000 adaptively |
-| Hint | Up to 7, plus a bounded two-ply tactical frontier and up to two scoped recapture plies | 200,000 total, including up to 150,000 to compare alternatives |
+| Hint | Up to 7 ordinary plies; forcing proof when triggered | 200,000 ordinary; [separate proof reserve](#dynamic-coaching-frontier) |
 
 - Governance requires strictly increasing depth and budget across opponent profiles. The hint uses at least Hard's configured depth and its own bounded allowance. In king-and-rook or king-and-queen endgames, all levels, the hint, and the bar use the same evaluation of the distance between the kings and the defending king's space. Tests verify conversion of the advantage into checkmate with both colors and preservation of White's perspective on the display.
 
@@ -305,7 +306,7 @@ W, D, L, and U denote wins, draws, losses, and unfinished games for the first pr
 | Hard – Advanced | 14 / 7 / 2 / 1 | +191 | +104 … +307 |
 | Hard – Basic | 22 / 0 / 1 / 1 | +470 | +191 … ∞ |
 
-Hard won all eight Pirc and Benoni games from both sides against Basic and Advanced. In the Alekhine Hard–Advanced game, it played `Nc3` after ply 44 and left the cycle that had previously led to a draw at 52. Stockfish reports +6.71 for the exit, with game history and a WDL loss of 0‰. The game reached the 160-ply cap. Stockfish shows −5.19 for White at the end of the check. In the reversed-color game, Hard won at ply 108. The [historical 0.7.0 replay](https://github.com/crististefanita/atf_j7/blob/v0.7.0/release/0.7.0/reports/league.tsv) stays in the Git tag, outside the short release catalog.
+Hard won all eight Pirc and Benoni games from both sides against Basic and Advanced. In the Alekhine Hard–Advanced game, it played `Nc3` after ply 44 and left the cycle that had previously led to a draw at 52. Stockfish reports +6.71 for the exit, with game history and a WDL loss of 0‰. The game reached the 160-ply cap. Stockfish shows −5.19 for White at the end of the check. In the reversed-color game, Hard won at ply 108. The [historical 0.7.0 replay](https://github.com/crististefanita/chess/blob/6889d5c927635a8c83ddef28db985bc2fc6efec5/release/0.7.0/reports/league.tsv) stays in the Git tag, outside the short release catalog.
 
 </details>
 
@@ -401,7 +402,7 @@ A more aggressive sort of all root moves by captures and activity also scored 19
 <details>
 <summary>Stockfish conditions, estimates, and study limits</summary>
 
-On the 0.9.0 source, three sessions used the same 12 positions with colors reversed, for 24 games per profile per session. Stockfish 19 stayed at `UCI_Elo 1500`, one thread, and a request for 6,000 nodes per move. The cap stayed at 160 plies, and the J7 profiles retained their budgets.
+On the 0.9.0 source, three sessions used the same 12 positions with colors reversed, for 24 games per profile per session. Stockfish 19 stayed at `UCI_Elo 1500`, one thread, and a request for 6,000 nodes per move. The cap stayed at 160 plies, and the Chess profiles retained their budgets.
 
 | Profile | W / D / L / U | Estimate under the protocol | Empirical 95% interval | Session estimates |
 |---|---:|---:|---:|---:|
@@ -489,7 +490,7 @@ On the same 12 starting positions, the average hint loss against Stockfish at de
 <details>
 <summary>Opening coverage, gates, and observed scores</summary>
 
-The Stockfish suite confirms the legality of all taught moves and checks Hard and the hint in one position from each lesson. The UCI sequences are pinned in YAML. Governance checks lesson coverage, both colors to move, and whether every sequence matches the taught line. Extent shows the J7 and Stockfish moves and both scores for each case. Quality gates use average loss and the number of cases with a loss of at least 150‰. [Positions and thresholds](../../atf-tests/src/test/resources/opening-ai-benchmark.yaml)
+The Stockfish suite confirms the legality of all taught moves and checks Hard and the hint in one position from each lesson. The UCI sequences are pinned in YAML. Governance checks lesson coverage, both colors to move, and whether every sequence matches the taught line. Extent shows the Chess and Stockfish moves and both scores for each case. Quality gates use average loss and the number of cases with a loss of at least 150‰. [Positions and thresholds](../../atf-tests/src/test/resources/opening-ai-benchmark.yaml)
 
 | Profile | Initial average loss | After the first expansion of the lessons | Cases ≥150‰ before / after |
 |---|---:|---:|---:|
@@ -551,7 +552,7 @@ We ran the same league on 12 new openings with both colors and 24 games for ever
 | Hard–Basic | 20/3/1/0 | 22/1/1/0 | +374 → +470 |
 | Hard–Advanced | 21/1/0/2 | 23/1/0/0 | +470 → +669 |
 
-These conversions report relative scores within the J7 league. External Elo uses the separate anchor protocol. On the existing frozen set, the improvement was smaller: one draw became a win in Hard–Advanced. Transfer floors stayed unchanged: M1 500/500, M2 300/300, M3 194/200, tactics 87/100, training 39/48, and Intermezzo 24/24. The governance test checks the factor, cap, and disabled state and rejects out-of-range values.
+These conversions report relative scores within the Chess league. External Elo uses the separate anchor protocol. On the existing frozen set, the improvement was smaller: one draw became a win in Hard–Advanced. Transfer floors stayed unchanged: M1 500/500, M2 300/300, M3 194/200, tactics 87/100, training 39/48, and Intermezzo 24/24. The governance test checks the factor, cap, and disabled state and rejects out-of-range values.
 
 Extent reports and TSV replays for the candidate, baseline, and doubled capacity stayed in `C:\Users\Cristi\AppData\Local\Temp\j7-hard-tt-*`, outside the release artifacts. [Official Stockfish terminology for transpositions and search](https://official-stockfish.github.io/docs/stockfish-wiki/Terminology.html) explains how a transposition table reuses positions. Elo improvement for this implementation remains unverified.
 

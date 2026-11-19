@@ -850,6 +850,8 @@ The game checkbox shows **AI** on compact widths while retaining its full access
 
 The native popup must measure its intrinsic content before choosing anchored bounds, then use an explicit child layout inside its own scroll area. Check closed guidance before opening an overlay; once open, compare unchanged board bounds and only unoccluded pixels. Keep enlarged captions top-aligned so an internal viewport cannot start midway through reserved text. **AndroidAdapterApiTest** rejects the observed **Stream.toList()** call in adapter and instrumentation Java; **Collectors.toList()** remains compatible with the API 28 probe. This narrow source guard complements native execution.
 
+For paired rendering, use `1.e4 c5 2.c3 h5` to return from opening history to the played Alapin line, and `1.f3 e5 2.g4 Qh4#` for review and Why. Each adapter records its source position, selected variant, cursor, legal controls and returned state. A shared fixture or worker result does not qualify an absent native/browser observation.
+
 `GenerateUiChrome` must reproduce the tracked module exactly before qualification. An engine compilation failure cannot be hidden by a successful UI package: for UI-only reuse, record the qualified engine commit and digest separately. [APK–Web matrix](../../web/parity.md) · [Release process](../release/README.md)
 
 ```mermaid

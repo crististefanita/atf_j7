@@ -1,5 +1,13 @@
 # Learning archive admission
 
+## Overview
+
+This guide owns admission and reuse of offline learning evidence. It separates a reproducible journal from chess quality and a measured strength gain.
+
+- Bind every decision to its source, configuration and full legal history.
+- Keep oracle results and original receipts unchanged; analyze failures separately.
+- Admit a pattern only after counterexamples and excluded-family transfer checks.
+
 ## Required evidence
 
 Learning games live under `C:\work\sah\.studii`, outside the checkout. Every actual
@@ -174,3 +182,37 @@ UCI verification. Shortening an inventory cannot conceal the last move.
 Keep the original runtime benchmarks executable, including the real one-turn
 `GameReview.analyzeLine` classification. A passing evidence validator proves that
 the promotion gate rejects a bad experiment; it does not qualify the engine.
+
+## Learned ordering studies
+
+Ordering models rank legal moves; they do not provide a known puzzle solution or change the acceptance oracle. Keep ancestry-equivalent positions in the same partition. Compare ordering, complete decisions, opposing replies and final games at the same declared budget. The historical 44k study below does not measure the current adaptive foreground profile.
+
+<details>
+<summary>Historical linear study and completed league</summary>
+
+Source-qualified study identifier: `2026-11-17-j7-hard-learned-order`. Preserve its original engine, model, start positions and color assignments.
+
+The nine-feature linear model was fitted to 58 confirmed alternatives from 30
+opening families. Leave-one-family-out validation prefers the labelled alternative
+in 28/58 cases. On 36 independent families, the ordering changes 34 root lists,
+three initial leaders, and ten node counts. The labelled alternative precedes the
+archived move in 12/36 cases, compared with 11/36 for native ordering. Both arms
+choose the labelled alternative in six complete decisions. All final moves match.
+
+Chronological rechecking reviewed 140 earlier decisions and corrected one label.
+In `loss-005`, `Be2 …dxc4` loses at ply 15, while `exd5` recovers
+319.5/402.5 per mille WDL at Stockfish depths 17/19. The original set remains
+frozen, and the corrected row is tested separately. Both orderings choose
+`cxd5` on that position.
+
+The ordering model scored 818 wins, 273 draws, 793 losses, and 116 unfinished
+games in 1,000 opening pairs across 996 ancestry groups. Its estimated difference
+was +4.34 Elo, with a 95% interval of −2.77 to +11.31. Assigning every unfinished
+game a loss or a win changes the central estimate to −15.82 or +24.53. Legal replay
+verified 238,591 decision receipts. Complete move sequences matched in 657 pairs.
+The model remains an experimental ordering prior with an uncertain game-strength effect.
+
+These games used H5 and 44,000 additional nodes on the pinned research source.
+The larger adaptive main profile requires its own game-strength estimate.
+
+</details>

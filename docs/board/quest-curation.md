@@ -135,7 +135,7 @@ node scripts/verify-mate-in-two.cjs <cale-catre-chess.js> --import <pagini-TMP> 
 
 Six local introductory exercises were replaced with documented positions. The new ones occupy the same places and preserve the color distribution. For the 17 positions where completion is saved after the key move, **Explanation** opens the defense study. It replays the key, the opponent's reply, and the continuation from the [study catalog](../../chess-core/src/main/resources/quest-defense-studies.yaml).
 
-Of the 183 continuations, 130 come from the published line, 43 from comparison with Stockfish and board verification, four from retained J7 matches, and six from the replacement exercises. For a line obtained with Stockfish, present the reply as a verified line. Proof that a gain survives an immediate reply applies to the position at the end of the line.
+Of the 183 continuations, 130 come from the published line, 43 from comparison with Stockfish and board verification, four from retained Chess matches, and six from the replacement exercises. For a line obtained with Stockfish, present the reply as a verified line. Proof that a gain survives an immediate reply applies to the position at the end of the line.
 
 | Exercise | Lesson | Gain at the end of the line |
 |---|---|---:|

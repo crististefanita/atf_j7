@@ -410,7 +410,7 @@ class DocumentationGovernanceTest {
     }
 
     @Test void documentedArchitectureRejectsMissingSourcesExtraModulesAndScopeDrift(Checks check) throws Exception {
-        var readme = List.of("## J7 Architecture",
+        var readme = List.of("## Chess Architecture",
                 "- **Maven** compiles `atf-tests`, `chess-core/src/main/java`, `chess-core/src/main/resources` and `release-tools/src/main/java`.",
                 "- **Gradle** builds `:app` from `chess-core/src/main/java` and",
                 "  `chess-core/src/main/resources`.",
@@ -458,7 +458,7 @@ class DocumentationGovernanceTest {
     private record BuildDeclarations(String reactorPom, String testsPom, String gradleSettings, String gradleApp) { }
 
     private static List<String> architectureDrift(List<String> readme, BuildDeclarations declarations) throws Exception {
-        var architecture = readme.stream().dropWhile(line -> !line.equals("## J7 Architecture")).skip(1)
+        var architecture = readme.stream().dropWhile(line -> !line.equals("## Chess Architecture")).skip(1)
                 .takeWhile(line -> !line.startsWith("## ")).toList();
         var parser = DocumentBuilderFactory.newDefaultInstance();
         parser.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -520,7 +520,7 @@ class DocumentationGovernanceTest {
     }
 
     @Test void movingTheMotorLinkOutOfTheArchitectureMapDoesNotSatisfyTheContract(Checks check) {
-        var readme = List.of("## J7 Architecture",
+        var readme = List.of("## Chess Architecture",
                 "| [Android](android/app/src/main) | APK |",
                 "| [Tests](atf-tests) | JVM |",
                 "| [Release](release-tools/src/main) | RAG |",
@@ -531,15 +531,15 @@ class DocumentationGovernanceTest {
                 "- [Release](docs/release/README.md#qualification-and-publication)",
                 "- [Feedback](docs/feedback/README.md)");
         check.same("A generic link cannot replace the engine row in the architecture section",
-                List.of("J7 Architecture → chess-core/src/main"), missingReadmeRoutes(readme));
+                List.of("Chess Architecture → chess-core/src/main"), missingReadmeRoutes(readme));
     }
 
     private static List<String> missingReadmeRoutes(List<String> lines) {
         var missing = new ArrayList<String>();
-        var architecture = lines.stream().dropWhile(line -> !line.equals("## J7 Architecture")).skip(1)
+        var architecture = lines.stream().dropWhile(line -> !line.equals("## Chess Architecture")).skip(1)
                 .takeWhile(line -> !line.startsWith("## ")).filter(line -> line.startsWith("|")).toList();
         for (String owner : List.of("chess-core/src/main", "android/app/src/main", "atf-tests", "release-tools/src/main", "lib/README.md")) {
-            if (!linksTo(architecture, owner)) missing.add("J7 Architecture → " + owner);
+            if (!linksTo(architecture, owner)) missing.add("Chess Architecture → " + owner);
         }
         for (String guide : List.of("docs/testing/README.md", "docs/release/README.md", "docs/feedback/README.md")) {
             if (!linksTo(lines, guide)) missing.add("README.md → " + guide);

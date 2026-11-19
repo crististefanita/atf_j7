@@ -7,6 +7,13 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 [Reviewing test moves between suites](../testing/README.md#test-changes-against-a-git-baseline) describes the Git baseline and coverage evidence.
 
+- [Native strength and hint/review comparisons](#finished-game-native-losses-and-frontier-controls)
+- [Learned-ordering transfer still needed](hard-learning.md)
+- [APK/Web parity and rendered evidence](web-parity.md)
+
+<details>
+<summary>Priority register and closure criteria</summary>
+
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
 | P1 | Nimzo · public hint alternatives | After `1.d4 Nf6 2.c4 e6 3.Nc3`, offer two is `…Be7`, losing 249.5‰ at both H17/H19. The maximum-hint game is source-bound and reaches mate at ply 63. | Recompute all offered roots and free opposing replies within the declared policy, preserve verified theory and sound sacrifices, and pass the native quality goal; evidence-integrity components alone cannot close this defect. [Witness](#nimzo-public-hint-witness) |
@@ -15,7 +22,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Hint comparison · whole diagnostic PV | The repaired Ruy public line has no large loss, but the rejected `Ng5 …O-O Nc3` comparison still contains a 346/378.5‰ weak move. | Audit comparison continuations as well as offered hints; repair the full free-reply line and keep the explicit comparison benchmark FAIL until both horizons qualify it. [Mechanism](../board/ai-quality.md#quiet-opposing-offers-inside-a-hint) |
 | P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation with 200k ordinary work and its separately charged finite proof reserve, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
-| P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
+| P2 | Release · compact check archive | Declared compact evidence is checked; geometry changes do not yet require it at promotion. | Reject omitted required evidence while preserving phase, run and capture substitution controls. |
 | P2 | Documentation · translation safeguards | The paired gate checks structure and links while prose and examples still need semantic review. | Detect copied prose and changed examples with focused negatives while preserving technical literals and immutable evidence. |
 | P1 | Game Review · move classification | The preceding 106-ply corpus has 11 native error labels on losses below 50‰ at both oracle depths and one missed large loss. | Isolate score-model and horizon effects without changing played history, inventing Elo or substituting hint scores for review evidence. |
 | P1 | Game Review · recommended lines | Ten of the preceding 106 review recommendations lose at least 150‰ at both H17/H19; both review branches are fully audited. | Repair complete same-horizon root/reply comparisons and preserve actual good moves and cached history. [Measured cases](#finished-game-native-losses-and-frontier-controls) |
@@ -40,6 +47,8 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P2 | AI quality · material evaluation | The material score differs from Stockfish. | Reduce the discrepancy with fixed search budgets. |
 | P2 | Puzzle calibration | Imported difficulty bands overlap. | Check attempts and time on a separate shuffled set. |
 | P2 | Android · separating screen transitions | The Android screen owns several session transitions. | Move transitions into a JVM-tested owner. |
+
+</details>
 
 ## Weak opposing replies inside public hints
 
@@ -98,40 +107,6 @@ Integrity, exposed-tail quality and review-recommendation quality are separate
 Extent verdicts. The first passes; the latter two fail. Local review ratings are
 not measured Elo, and three capped paths have no rating. [Contract and components](../testing/learning-archive.md#post-game-review-and-hint-endpoints)
 
-## Resolved Caro–Kann queen recapture
-
-The maximum public hint after `e4 c6 d4 d5 Nc3` now scores the legal `Qxd4`
-response to its old final `…Qxd4`. The repaired leader remains `…dxe4`, with a
-newly calculated continuation; no decorative move is appended. Both-color frontier,
-cache/bound and pinned-piece controls preserve the sound queen sacrifice. A shallow
-Sicilian challenger initially regressed, so the final change starts only at the
-completed seed horizon and preserves selective-offer eligibility.
-
-The initial qualification comparison contains 108 contexts, including 32 new contexts from known
-opening ancestry. Only this case and its color control change their complete
-HintSearch; no public leader changes. All 554 cold Stockfish H17/H19 queries are
-retained, with no newly bad leader or extra offer. The six already-bad leaders in
-that comparison remain open; this is preservation plus a tail repair, not absolute
-hint quality. The complete native analyses stay identical on all 2,303 catalog
-stages, so this change does not measure a Hard Elo gain.
-
-The original `…Qxd4` receipt above remains a historical counterexample. The other
-bad exposed tail (`…Nh6`), weak internal opposing replies and Game Review calibration
-remain open. Do not transfer the 200k hint verdict to the separate 85k review policy.
-Current evidence and new complete game journals are in
-`C:\work\sah\.studii\experiments\2026-11-18-qxd4` and
-`C:\work\sah\.studii\corpus\2026-11-18-qxd4-final`.
-[Behavior and components](../board/ai-quality.md#queen-recaptures-at-the-hint-frontier)
-
-The final follow-up replays the 108 frozen contexts and all 130 observed game
-frames. It adds 48 cold H17/H19 queries to the pinned original teacher phases,
-validating 1,650 query contexts without relabeling old output. Both Caro orientations
-and the Queen's Gambit fallback now have no stable large loss anywhere in their
-changed scored lines. No bad leader, extra offer or exposed endpoint is introduced;
-bad exposed endpoints fall from 17 to 14 across this replay. Those fourteen remain
-open, not fourteen independent families. All 2,303 catalog analyses and the 130
-recorded game analyses remain exactly identical for native Hard.
-
 ## Complete-game findings retained as component targets
 
 The two full games (Queen's Gambit and French) and the mating control belong to
@@ -177,9 +152,9 @@ Bind each XML file to the candidate commit and qualification run. Replace each X
 <details>
 <summary>P2 · Release · compact check archive</summary>
 
-The Android publisher verifies the bilingual compact report. The reusable gate qualifies the general Android phases. The procedure also calls for the compact archive when geometry changes.
+The archive verifier already checks declared compact phases, run identity and capture fingerprints. The remaining gap is selecting mandatory evidence from the change: `ReleaseGate qualification` requires components and Game Review, and does not itself require the compact receipt for a geometry change.
 
-Add compact verification to the promotion gate for geometry changes. Reject a missing phase, a phase from a different run, and a substituted PNG. Keep validation for archives from previous releases. [Qualification](../release/README.md#qualification-and-publication) · [Compact publisher](../../atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java)
+Reject omitted required compact evidence before promotion, while preserving the existing missing-phase, foreign-run and substituted-capture checks. Keep historical receipts unchanged. [Promotion procedure](../release/README.md#qualification-and-publication) · [Archive verifier](../../atf-tests/src/test/java/ro/atf/chess/ArchivedReleaseEvidence.java)
 
 </details>
 
@@ -189,15 +164,6 @@ Add compact verification to the promotion gate for geometry changes. Reject a mi
 The actual `GameReview.analyzeLine` preserves all 60 moves and emits no rating for the three capped studies. Nevertheless, `6.e6` in Caro–Kann is labelled `BEST` and White accuracy is 100 while the played root loses 533‰ at H17 and 581.5‰ at H19. Sicilian `5.Nc3` is labelled `BLUNDER` with 0‰ loss at both horizons. Across the three games, three positive labels accompany a large oracle loss and six severe labels accompany less than 10‰ loss at both depths.
 
 Freeze these full-history witnesses before fixing the shared comparison. Check native played and recommended roots at a common completed horizon, retain legal replay/bookmarks, and measure new families. Local logistic loss and Stockfish WDL are distinct models; do not make production depend on Stockfish or copy its label mechanically. The current audit grades the played root and checks saved review PV legality; it does not independently certify every review alternative. [Review contract and limitation](../board/game-review.md#measured-review-limitations) · [Paired audit](../testing/hard-hint-study.md)
-
-</details>
-
-<details>
-<summary>P2 · Game Review · NVDA</summary>
-
-NVDA 2026.3.1 repeated the position and score in RO. Component checks verify one accessible value.
-
-Confirm speech on the corrected build in RO and EN and a return to the same move from **Why?**. [Web feedback](web-parity.md)
 
 </details>
 
@@ -300,7 +266,7 @@ Install the published release on a clean emulator, create progress, install the 
 <details>
 <summary>P2 · AI quality · material evaluation</summary>
 
-After `2…dxc4`, J7 displays `−0.60` while Stockfish 19 at depth 13 gives `+0.21`. After `3.e3`, the discrepancy reaches 111 cp.
+After `2…dxc4`, Chess displays `−0.60` while Stockfish 19 at depth 13 gives `+0.21`. After `3.e3`, the discrepancy reaches 111 cp.
 
 Track recovery of the pawn for both colors and with control branches. Reduce the discrepancy within the evaluation bar's budget and retain the existing gates. [Measurements](../board/ai-quality.md#calibrating-hard-and-the-evaluation-bar)
 

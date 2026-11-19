@@ -7,7 +7,7 @@ Play chess against AI, solve puzzles, and study openings.
 - [Download Chess Lab 0.16.1 APK](https://github.com/crististefanita/chess/releases/download/v0.16.1/ChessLab-0.16.1.apk)
 - [Play in your browser](https://crististefanita.github.io/chess/)
 
-## J7 Architecture
+## Chess Architecture
 
 | Area | What it owns | Where to learn more |
 |---|---|---|
