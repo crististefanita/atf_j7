@@ -59,6 +59,9 @@ class ReplayCheckpointTest {
         check.same("No saved state means no restoration", true, ReplayCheckpoint.decode(null).isEmpty());
         check.rejects("Inline cannot secretly resume playback", IllegalArgumentException.class,
                 () -> new ReplayCheckpoint("s", ReplayCheckpoint.Kind.INLINE, "e2e4", List.of("e2e4"), 0, List.of(1), false));
+        var second = new ReplayCheckpoint("STUDY|source|0", ReplayCheckpoint.Kind.THEORY, "e2e4", LINES, 1, List.of(1, 2, 0), false, 2);
+        check.same("Two theory offers sharing e2e4 retain their own offer identity", 2, ReplayCheckpoint.decode(second.encode()).orElseThrow().offer());
+        check.same("The offered suggestion and chosen replay branch are independent", 1, second.branch());
     }
 
     @Test void malformedStateCannotOpenOrIndexAnUnrelatedReplay(Checks check) {

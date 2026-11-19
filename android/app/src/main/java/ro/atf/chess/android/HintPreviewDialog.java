@@ -30,7 +30,7 @@ final class HintPreviewDialog {
 
     static Session show(Context context, ChessPosition root, MatchHint.Playback study,
                        boolean blackBelow, Function<Move, String> notation, int sourceBoardSide,
-                       String source, String suggestion, ReplayCheckpoint restored) {
+                       String source, String suggestion, int offer, ReplayCheckpoint restored) {
         var workspace = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.CALCULATED, blackBelow,
                 study.lines().size() > 1, null, () -> { }, sourceBoardSide);
         workspace.setSummary(study.depth() > 0 ? context.getString(R.string.hint_compare_depth, study.depth()) : null);
@@ -50,12 +50,12 @@ final class HintPreviewDialog {
         }
         playback.select(selected);
         return new Session(workspace.show(), () -> new ReplayCheckpoint(source, ReplayCheckpoint.Kind.CALCULATED, suggestion,
-                lines, playback.active, branches.stream().map(branch -> branch.replay().step()).collect(Collectors.toList()), false));
+                lines, playback.active, branches.stream().map(branch -> branch.replay().step()).collect(Collectors.toList()), false, offer));
     }
 
     static Session showTheory(Context context, ChessPosition root, MatchHint.TheoryPlayback study,
                              boolean blackBelow, Function<Move, String> notation, int sourceBoardSide,
-                             String source, String suggestion, ReplayCheckpoint restored) {
+                             String source, String suggestion, int offer, ReplayCheckpoint restored) {
         var workspace = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.THEORY, blackBelow,
                 study.paths().size() > 1, null, () -> { }, sourceBoardSide);
         var paths = study.paths().stream().map(path -> new OpeningReplay(root, path)).collect(Collectors.toList());
@@ -77,7 +77,7 @@ final class HintPreviewDialog {
         }
         controls.select(selected);
         return new Session(workspace.show(), () -> new ReplayCheckpoint(source, ReplayCheckpoint.Kind.THEORY, suggestion,
-                lines, controls.active, paths.stream().map(OpeningReplay::ply).collect(Collectors.toList()), false));
+                lines, controls.active, paths.stream().map(OpeningReplay::ply).collect(Collectors.toList()), false, offer));
     }
 
     private static String moves(List<Move> moves) { return moves.stream().map(Move::uci).collect(Collectors.joining(" ")); }

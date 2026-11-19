@@ -260,6 +260,7 @@ public final class BoardSanity extends Instrumentation {
         tap(game.findViewById(R.id.match_history_previous));
         awaitSourceAnalysis(game);
         tap(game.findViewById(R.id.match_hint));
+        tap(game.findViewById(R.id.match_hint));
         var source = sourceBoardState(game);
         String inline = ((TextView) game.findViewById(R.id.match_analysis)).getText().toString().replace('\n', ' ');
         for (int rotation : new int[]{1, 0}) {
@@ -296,6 +297,12 @@ public final class BoardSanity extends Instrumentation {
         study = rotateBranchReplay(study, "theory");
         compare("Theory return preserves its source cursor", studySource, sourceBoardState(study));
         closeActivity(study);
+        long returnDeadline = SystemClock.uptimeMillis() + 7000;
+        while (!(sourceReplayActivity instanceof ChessActivity) || !sourceReplayActivity.hasWindowFocus()) {
+            if (SystemClock.uptimeMillis() >= returnDeadline) throw new AssertionError("Analysis did not return to the resumed source game");
+            waitForIdleSync();
+            SystemClock.sleep(30);
+        }
         game = sourceReplayActivity;
         closeActivity(game);
         compare("Rotation never changes saved game history", saved.checkpoint(), store.matches().readMatch().checkpoint());
@@ -3834,7 +3841,7 @@ public final class BoardSanity extends Instrumentation {
         if (phase.startsWith("analysis-compact-") || "analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
                 || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
                 || "puzzle-ux".equals(phase) || "active-match-restore".equals(phase) || "pending-bot-restore".equals(phase)
-                || sourceReplayPhase() || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
+                || sourceReplayPhase() || "open-replay-rotation".equals(phase) || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }

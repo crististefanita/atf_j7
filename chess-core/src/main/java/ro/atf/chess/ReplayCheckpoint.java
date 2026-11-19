@@ -8,8 +8,12 @@ import java.util.stream.Collectors;
 
 /** Small, context-free UI state; restoring it never plays a move on the source game. */
 public record ReplayCheckpoint(String source, Kind kind, String suggestion, List<String> lines,
-                               int branch, List<Integer> plies, boolean danger) {
+                               int branch, List<Integer> plies, boolean danger, int offer) {
     public enum Kind { INLINE, CALCULATED, THEORY, MATING }
+
+    public ReplayCheckpoint(String source, Kind kind, String suggestion, List<String> lines, int branch, List<Integer> plies, boolean danger) {
+        this(source, kind, suggestion, lines, branch, plies, danger, kind == Kind.MATING ? 0 : 1);
+    }
 
     public ReplayCheckpoint {
         if (lines == null || plies == null || lines.stream().anyMatch(java.util.Objects::isNull) || plies.stream().anyMatch(java.util.Objects::isNull)) {
@@ -23,6 +27,7 @@ public record ReplayCheckpoint(String source, Kind kind, String suggestion, List
         }
         if (!suggestion.isEmpty()) ChessPosition.Move.fromUci(suggestion);
         if (kind != Kind.MATING && suggestion.isEmpty()) throw new IllegalArgumentException("Missing revealed move");
+        if (kind == Kind.MATING ? offer != 0 : offer < 1 || offer > 3) throw new IllegalArgumentException("Invalid revealed offer");
         if ((kind == Kind.MATING || kind == Kind.INLINE) && (lines.size() != 1 || branch != 0)
                 || kind != Kind.MATING && danger
                 || kind == Kind.INLINE && (!lines.get(0).equals(suggestion) || plies.get(0) != 0)) {
@@ -42,18 +47,18 @@ public record ReplayCheckpoint(String source, Kind kind, String suggestion, List
     public String encode() {
         return String.join("\t", "1", encoded(source), kind.name(), suggestion, Integer.toString(branch),
                 lines.stream().map(ReplayCheckpoint::encoded).collect(Collectors.joining(",")),
-                plies.stream().map(String::valueOf).collect(Collectors.joining(",")), Boolean.toString(danger));
+                plies.stream().map(String::valueOf).collect(Collectors.joining(",")), Boolean.toString(danger), Integer.toString(offer));
     }
 
     public static Optional<ReplayCheckpoint> decode(String text) {
         if (text == null) return Optional.empty();
         try {
             String[] fields = text.split("\t", -1);
-            if (fields.length != 8 || !fields[0].equals("1") || !List.of("true", "false").contains(fields[7])) return Optional.empty();
+            if (fields.length != 9 || !fields[0].equals("1") || !List.of("true", "false").contains(fields[7])) return Optional.empty();
             return Optional.of(new ReplayCheckpoint(decoded(fields[1]), Kind.valueOf(fields[2]), fields[3],
                     java.util.Arrays.stream(fields[5].split(",", -1)).map(ReplayCheckpoint::decoded).collect(Collectors.toList()),
                     Integer.parseInt(fields[4]), java.util.Arrays.stream(fields[6].split(",", -1)).map(Integer::parseInt).collect(Collectors.toList()),
-                    Boolean.parseBoolean(fields[7])));
+                    Boolean.parseBoolean(fields[7]), Integer.parseInt(fields[8])));
         } catch (IllegalArgumentException invalid) { return Optional.empty(); }
     }
 

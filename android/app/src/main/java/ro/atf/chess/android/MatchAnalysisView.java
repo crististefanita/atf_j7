@@ -163,7 +163,7 @@ final class MatchAnalysisView extends TextView {
         if (pendingRestoration != null) return pendingRestoration.encode();
         if (hint != null && hint.revealedMove() != null) {
             String move = hint.revealedMove().uci();
-            return new ReplayCheckpoint(shownSource, ReplayCheckpoint.Kind.INLINE, move, List.of(move), 0, List.of(0), false).encode();
+            return new ReplayCheckpoint(shownSource, ReplayCheckpoint.Kind.INLINE, move, List.of(move), 0, List.of(0), false, hint.number()).encode();
         }
         return null;
     }
@@ -181,9 +181,9 @@ final class MatchAnalysisView extends TextView {
         if (restored == null || !restored.source().equals(shownSource)) return;
         for (int attempt = 0; attempt < hint.count(); attempt++) {
             hint.revealNext();
-            if (restored.suggestion().equals(hint.revealedMove().uci())) break;
+            if (hint.number() == restored.offer() && restored.suggestion().equals(hint.revealedMove().uci())) break;
         }
-        if (hint.revealedMove() == null || !restored.suggestion().equals(hint.revealedMove().uci())) {
+        if (hint.revealedMove() == null || hint.number() != restored.offer() || !restored.suggestion().equals(hint.revealedMove().uci())) {
             pendingRestoration = null;
             hint.hide();
             display();
@@ -277,7 +277,7 @@ final class MatchAnalysisView extends TextView {
         if (hint == null || preview != null) return;
         hint.theoryPlayback(shownPosition).ifPresent(study ->
                 rememberPreview(HintPreviewDialog.showTheory(getContext(), shownPosition, study, evaluationBar.blackBelow(), notation,
-                        sourceBoardSide.getAsInt(), shownSource, hint.revealedMove().uci(), restored)));
+                        sourceBoardSide.getAsInt(), shownSource, hint.revealedMove().uci(), hint.number(), restored)));
     }
 
     private void openPreview() {
@@ -290,7 +290,7 @@ final class MatchAnalysisView extends TextView {
         if (current == null || preview != null) return;
         current.playback(position).ifPresent(playback ->
                 rememberPreview(HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation,
-                        sourceBoardSide.getAsInt(), shownSource, hint.revealedMove().uci(), restored)));
+                        sourceBoardSide.getAsInt(), shownSource, hint.revealedMove().uci(), hint.number(), restored)));
     }
 
     private void rememberPreview(HintPreviewDialog.Session screen) {
