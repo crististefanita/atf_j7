@@ -1259,7 +1259,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-RECEIPT-EN-1
-    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
@@ -1267,7 +1267,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-RECEIPT-EN-2
-    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: atf-tests/src/test/java/ro/atf/chess/HintAuditSession.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
@@ -1275,7 +1275,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-RECEIPT-EN-3
-    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: atf-tests/src/test/java/ro/atf/chess/HintAuditSessionTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
@@ -1283,7 +1283,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-RECEIPT-EN-4
-    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
@@ -1291,7 +1291,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-RECEIPT-RO-1
-    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
     from: atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
@@ -1299,7 +1299,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-RECEIPT-RO-2
-    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
     from: atf-tests/src/test/java/ro/atf/chess/HintAuditSession.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
@@ -1307,7 +1307,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-RECEIPT-RO-3
-    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
     from: atf-tests/src/test/java/ro/atf/chess/HintAuditSessionTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
@@ -1315,7 +1315,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-RECEIPT-RO-4
-    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
     from: atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
     test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
@@ -1323,7 +1323,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-SCOPE-EN-HINTFRONTIERTEST
-    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
@@ -1331,7 +1331,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-SCOPE-EN-HINTPINSUPPORTTEST
-    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
@@ -1339,7 +1339,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-SCOPE-EN-HINTCANDIDATECOVERAGETEST
-    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
@@ -1347,7 +1347,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-SCOPE-EN-AIOPENINGREGRESSIONTEST
-    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
     from: atf-tests/src/test/java/ro/atf/chess/AiOpeningRegressionTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
@@ -1355,7 +1355,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-SCOPE-RO-HINTFRONTIERTEST
-    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
     from: atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
@@ -1363,7 +1363,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-SCOPE-RO-HINTPINSUPPORTTEST
-    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
     from: atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
@@ -1371,7 +1371,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-SCOPE-RO-HINTCANDIDATECOVERAGETEST
-    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
     from: atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
@@ -1379,7 +1379,7 @@ testChanges:
     allowDelete: false
 
   - id: J7-COACHING-SCOPE-RO-AIOPENINGREGRESSIONTEST
-    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
     from: atf-tests/src/test/java/ro/atf/chess/AiOpeningRegressionTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
