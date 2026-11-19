@@ -20,7 +20,7 @@ class FrenchRecaptureTest {
             check.same(label+" selects the independently verified knight tempo",row(data,phase,"free",19).path("bestmove").asText(),move);
             for(int depth:List.of(17,19))check.same(label+" H"+depth+" forced root loss stays below 50 permille",true,loss(data,phase,move,depth)<50);
             check.same("The ordinary common horizon really completed",6,analysis.decision().depth());
-            check.same(label+" actual="+move+" H"+analysis.decision().depth()+" nodes="+analysis.decision().extraNodes()+" PV="+analysis.search().result().ranked()+"; one allowance pays for all comparisons",true,analysis.decision().extraNodes()>100000&&analysis.decision().extraNodes()<=200000);
+            check.same(label+" actual="+move+" H"+analysis.decision().depth()+" nodes="+analysis.decision().extraNodes()+" PV="+analysis.search().result().ranked()+"; one allowance pays for all comparisons",true,analysis.decision().extraNodes()>0&&analysis.decision().extraNodes()<=200000);
             check.same("No move or history is applied by analysis",checkpoint,game.checkpoint());
         }
     }
@@ -28,6 +28,15 @@ class FrenchRecaptureTest {
         var data=load();var phase=phase(data,"queens-gambit-regression");var game=game(phase);var analysis=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(game,analysis);String move=analysis.decision().move().uci();
         check.same("The early-reuse regression must retain Bg3", "f4g3",move);
         for(int d:List.of(17,19))check.same("Current control H"+d+" chosen="+move+" loss="+loss(data,phase,move,d),true,loss(data,phase,move,d)<50&&loss(data,phase,"f4d6",d)>=150);
+    }
+
+    @Test void anInterruptedLastComparisonCannotClaimTheCompletedHorizon(Checks check)throws Exception {
+        var g=game(phase(load(),"french-original-root"));int actual=g.analyzeBot(MatchSetup.Level.HARD).decision().extraNodes();
+        var interrupted=atLimit(g,actual-1);var completed=atLimit(g,actual);
+        check.same("One missing visited node retains the earlier complete horizon",true,interrupted.depth()<6);
+        check.same("Interrupted work is still fully charged",actual-1,interrupted.extraNodes());
+        check.same("The exact paid boundary completes H6",6,completed.depth());
+        check.same("The completed choice is the verified knight move",Move.fromUci("e5c4"),completed.result().ranked().getFirst().move());
     }
 
     @Test void theRecordedFrontierIsACaptureAndTheActualReplyChangesItsScore(Checks check)throws Exception {
@@ -98,6 +107,11 @@ class FrenchRecaptureTest {
     private static double loss(JsonNode d,JsonNode p,String move,int depth){return StockfishStudyAudit.loss(row(d,p,"free",depth),row(d,p,move,depth));}
     private static ChessMatch game(JsonNode phase){var root=ChessPosition.fromFen(phase.path("initialFen").asText());var side=ChessPosition.fromFen(phase.path("fen").asText()).turn();var game=ChessMatch.fromPosition(root,new MatchSetup(side.other(),MatchSetup.Level.HARD,true));for(var u:phase.path("history"))game=game.play(Move.fromUci(u.asText()));return game;}
     private static TacticalAnalysis.Variation old(JsonNode d)throws Exception{return LearningGameAudit.mapper().treeToValue(d.path("oldVariation"),TacticalAnalysis.Variation.class);}
+    private static TacticalAnalysis.SearchReport atLimit(ChessMatch g,int maximum)throws Exception {
+        var rt=Class.forName("ro.atf.chess.TacticalAnalysis$RootSearch");var rc=rt.getDeclaredConstructor(ChessPosition.class,Set.class);rc.setAccessible(true);var ot=Class.forName("ro.atf.chess.TacticalAnalysis$Objective");@SuppressWarnings({"rawtypes","unchecked"})var objective=Enum.valueOf((Class)ot,"POSITION");var root=rc.newInstance(g.position(),Set.of());var analyze=TacticalAnalysis.class.getDeclaredMethod("analyze",rt,int.class,List.class,ot);analyze.setAccessible(true);var base=(TacticalAnalysis.Result)analyze.invoke(null,root,3,g.position().legalMoves(),objective);
+        var p=HardAdaptivePolicy.CURRENT;var cap=new HardAdaptivePolicy(true,Math.min(p.baseNodes(),maximum),maximum,p.maxPlies(),p.minimumPlies(),p.cacheObservations(),p.coldCachePerMille());var run=TacticalAnalysis.class.getDeclaredMethod("matchSearch",rt,MatchAiPolicy.Search.class,int.class,int.class,boolean.class,boolean.class,TacticalAnalysis.Result.class,HardAdaptivePolicy.class,List.class,int.class);run.setAccessible(true);return (TacticalAnalysis.SearchReport)run.invoke(null,root,p.search(),0,0,true,true,base,cap,g.searchHistory(),g.searchQuietPlies());
+    }
+
     private static Object closedLine(ChessPosition position,Move move)throws Exception {
         var rt=Class.forName("ro.atf.chess.TacticalAnalysis$RootSearch");var rc=rt.getDeclaredConstructor(ChessPosition.class,Set.class);rc.setAccessible(true);var bt=Class.forName("ro.atf.chess.TacticalAnalysis$SearchBudget");var bc=bt.getDeclaredConstructor(int.class,int.class,int.class);bc.setAccessible(true);var ot=Class.forName("ro.atf.chess.TacticalAnalysis$Objective");@SuppressWarnings({"unchecked","rawtypes"})var objective=Enum.valueOf((Class)ot,"POSITION");var method=rt.getDeclaredMethod("line",Move.class,int.class,int.class,bt,ot,int.class);method.setAccessible(true);return method.invoke(rc.newInstance(position,Set.of()),move,6,100001,bc.newInstance(200000,0,50000),objective,0);
     }

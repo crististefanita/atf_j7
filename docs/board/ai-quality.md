@@ -1098,3 +1098,62 @@ existing component contracts fail. The [frontier quality goals](../../atf-tests/
 keep mandatory evasions and exhausted comparisons visible in the benchmark suite;
 they are not silently counted as a normal component PASS. Preserve sound sacrifices
 and all scoped queen-exchange controls before broadening this frontier.
+
+
+## Closing a pawn recapture at the completed horizon
+
+The French witness is `Bb5+ …c6 Nc4 …Qd7 Nxf5 …exf5`. `Nxf5` captures an existing
+pawn; it is not a quiet move. At H5 the isolated bishop root scores +153 cp and
+stops at that capture. At the same full-window H6, the bishop root scores −204 cp,
+including `…exf5`, while `Nc4` scores −97 cp. Cold Stockfish H17/H19 gives the bishop
+475.5/453‰ loss and the forced knight alternative 5.5/5.5‰.
+
+Increasing the unchanged search to a diagnostic fixed 300k–500k does not finish H6.
+The first wider ordering/cache prototype does finish H6 but still returns the H5
+bishop because of the stability veto; it also regresses on a Queen's Gambit control.
+That wider activation was rejected and the control was added before narrowing the
+implementation. These are diagnostic budgets, not a new production node policy.
+
+The accepted scope reuses work for a non-mating odd-horizon piece-for-pawn capture
+that permits a legal pawn recapture. Early H3 activation additionally needs a checking
+first move. Later completed odd horizons can activate the same work. The pending
+exchange opens the existing adaptive reserve; base 100k and maximum 200k remain.
+Ordering observations are capped at 4,096, never supply a score and are used only
+in that mode. Exact and separately typed bound values share the loaded cache limit.
+A bound cuts only the matching alpha/beta window and never becomes an exact value.
+The horizon key retains position, remaining depth, distance, objective and frontier
+modes. Old exact entries cannot match a different ordinary horizon; work reuse keeps
+ordering observations while discarding stale values. [Upstream search](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp)
+
+The ordinary stability veto remains. Its narrow exception requires a **completed**
+common-horizon root comparison and an exact incumbent line that extends the former
+PV by the legal pawn recapture. Material must change from a non-losing gain to a loss,
+and the new completed leader must beat that closed incumbent. A further legal
+recapture on the same square or a resulting check leaves this proof open. Missing,
+foreign-prefix, bounded or interrupted evidence cannot override the guard. This is
+a local exchange test, not a claim that every other tactical move is exhausted.
+
+| Focus | Result |
+|---|---|
+| French original | `Nc4`, full ordinary H6, 175,874 additional nodes |
+| French mirrored | `…Nc5`, full ordinary H6, 173,121 additional nodes |
+| Independent forced root loss | 5.5/5.5‰ at H17/H19 |
+| Scandinavian control | `Ne4` retained; 25.5/110.5‰ |
+| Queen's Gambit regression | `Bg3` retained; the rejected wider prototype chose `Bd6` |
+| Work-boundary negative | One unpaid node keeps the previous complete horizon |
+
+[French components and quality goals](../../atf-tests/src/test/java/ro/atf/chess/FrenchRecaptureTest.java)
+retain the original histories, material ledgers, both colors, actual interrupted
+searches, bound/foreign-prefix mocks, pins, further recaptures and checking recaptures.
+[Cache components](../../atf-tests/src/test/java/ro/atf/chess/FrontierCacheTest.java)
+compare both bound windows with independent exhaustive minimax and enforce cache,
+ordering, horizon and mate-distance ownership. [Portable cold evidence](../../atf-tests/src/test/resources/french-recapture-witnesses.yaml)
+contains 32 raw phases and the regression discovered during this study. It is not a
+runtime opening book or a learned FEN override.
+
+The public hint and Game Review keep their independent policies. They still need
+their own repair: the hint can use weak `…Nd7`, and review can call `Bb5+` BEST.
+Their new executable benchmark goals remain separate failures. The requested shorter
+visible hint plus complete hidden verification proof and dynamic forcing-chain reserve
+remain [explicit coaching work](../feedback/README.md#tactical-proof-and-displayed-lines),
+not an implemented UI feature or a measured Elo gain.
