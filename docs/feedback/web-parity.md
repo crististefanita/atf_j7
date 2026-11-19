@@ -53,6 +53,15 @@ verify Back and the source rectangle. Do not infer TalkBack focus or speech
 from the input-window focus check.
 [Native replay protocol](../testing/README.md#native-source-sized-replay-sanity)
 
+**P2 · Use compact landscape width more effectively.** At 740 × 420 dp and
+font 1.3, the mating source and replay both measure 285 native pixels at
+320 dpi (142.5 dp). Navigation fits without page scrolling, but the vertical
+stack leaves substantial unused width. Explore a shared landscape arrangement
+with explanation beside the board, keeping source/replay sizing aligned and
+48 dp controls. Require RO/EN component bounds and native captures before
+changing the current no-jump contract.
+[Puzzle explanation controls](../../atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java)
+
 **P2 · Legacy analysis history oracles.** `awaitHiddenAnalysis` still checks
 one history child per ply. Align `analysis-prepare/restore` and their compact
 variants with the shared single-move game cursor. Preserve the Analysis
