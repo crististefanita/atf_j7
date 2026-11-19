@@ -44,8 +44,6 @@ Clasele JVM se compilează, iar adaptorul Android se compilează separat. Păstr
 
 ## WEB-02 · Adaptoare și afișaj comun
 
-**P1 · Antete și navigare APK–Web.** APK încă folosește întoarceri mari sub liste, meniul partidei în stânga și antete separate. Extrageți un adaptor nativ comun, cu Back lângă titlu, opțiuni la dreapta și navigare centrată. Cereți aceleași cazuri de componentă pentru adaptoare, păstrarea destinațiilor Back, a cursorilor și a comenzilor contextuale, apoi capturi native și MCP la font 1.3.
-
 **P2 · Folosirea mai bună a lățimii peisaj compacte.** La 740 × 420 dp și
 font 1.3, sursa și redarea matului măsoară ambele 285 pixeli nativi la
 320 dpi (142,5 dp). Navigarea încape fără derularea paginii, dar stiva
@@ -62,6 +60,8 @@ Păstrați lista completă a Tablei de analiză și oracolul său separat. Verif
 independent indiciul/evaluarea finalizate și poziția afișată; un timeout nu
 trebuie să înlocuiască diagnosticul unui oracol UI greșit.
 [Cursorul curent](../../chess-core/src/main/java/ro/atf/chess/MatchHistorySelection.java)
+
+**P2 · Pregătirea accesibilității native compacte.** Proba compactă veche se oprește la comanda Game Review vizibilă, deoarece instantaneul nodului de accesibilitate o raportează indisponibilă. Păstrați observația eșuată; actualizați și verificați nodul real înaintea apăsării, fără creșterea timeout-ului. Game Review la 360 × 640 dp și text 1,3×, precum și proba separată de rotație RO/EN, au trecut pe același APK semnat. Aceste verificări nu închid eșecul helperului vechi. Openings Web la 740 × 420 încă necesită aproximativ 37 de pixeli CSS de derulare a documentului; păstrați cazul în lucrarea pentru peisaj compact de mai sus.
 
 <details>
 <summary>Responsabilitatea adaptoarelor și intrările</summary>

@@ -1,0 +1,198 @@
+{
+  "status": "PASS",
+  "siteCommit": "fe1e1bbeb542e702caa253d435ae98d1211ab295",
+  "sourceCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a",
+  "manifestSha256": "0c741fe2fcb9777bc3ac73a7c44792a4dcd761c2eb7b3ba5d8cf70b7be215582",
+  "runtimeDirectory": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d",
+  "workflowUrl": "https://github.com/crististefanita/chess/actions/runs/44557773858",
+  "servedAssets": [
+    {
+      "path": "index.html",
+      "bytes": 16745,
+      "sha256": "b664e6279c04a9c0e8a97cec4efcb0c577819c5734aa05b27e2d6ddfe84c5eb7",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/board-layout.css",
+      "bytes": 648,
+      "sha256": "75bb5b1c5ca16a46c105f7d223666a2c429e8cafc4aa3863d5542603f7829f04",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/chess-controls.css",
+      "bytes": 2706,
+      "sha256": "e9533a25ab87b7bf9e9ed385e2525f56e7f6605e057fbe76b9d95a326919e1a2",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/chess-engine.mjs",
+      "bytes": 1760990,
+      "sha256": "984ef176003095eebd2914f4b3b3f5594eeee23841d05d1de63cf3efeb75e0a1",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/chrome-contract.mjs",
+      "bytes": 777,
+      "sha256": "7bbee5c6b62d526bd75873898b8bc36349db9749c135de24eaceec7d9b39514f",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/engine-worker.mjs",
+      "bytes": 10334,
+      "sha256": "bb31a62198530a50c308add28fc126e6096848ab8f036ae8d3332cbb178c9614",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/game-review.css",
+      "bytes": 23866,
+      "sha256": "6c4012ffb77345a9a046db2b3de4e33ccfaa309b4b907fe5c57ad794d2e769ba",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/game-review.mjs",
+      "bytes": 78362,
+      "sha256": "a107812595e3872c9eb3bf30f3bde1b948164022086709abc7e021c6aec78b67",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/hint-arrow.mjs",
+      "bytes": 671,
+      "sha256": "b8983e57cfe83d51dd6520f1be9ae64d89a3aaacbc818441e3e7dba7d3e8a995",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/home-menu.mjs",
+      "bytes": 5980,
+      "sha256": "5b00bfad09cd74619611fee226ff55b02cbb1fc91d78b4b9ee79b327b0068270",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/line-navigation.mjs",
+      "bytes": 769,
+      "sha256": "039b89390eca8e6c3921b3e4f9f2b785292b7526109825c40c0196dfa7f441e5",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/match-bot-timer.mjs",
+      "bytes": 926,
+      "sha256": "b93822b55dad538b27d8efcc764149046097516e7ebb87bd30e43bbd0472e2fb",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/match-history.mjs",
+      "bytes": 2542,
+      "sha256": "11ebf17135fe9d41808843485f54d3d3c04530d4ed081e291a2cebb91a237be8",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/match-inline-analysis.mjs",
+      "bytes": 8720,
+      "sha256": "6899f74ae8d3ee8f2a906f5f8d06119cd0e37662c4b336d2fee87ca3ddbc1712",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/options-menu.mjs",
+      "bytes": 4989,
+      "sha256": "542ea2c23b424e8cf7434cd3683677f00bd8965dd436199693c4da6e5b62d5db",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/player-profile.mjs",
+      "bytes": 846,
+      "sha256": "1cd7dd603ff911f1f0e612a398a3a1da60fdb75855ca1c03a7fccdc33c524445",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/review-announcement.mjs",
+      "bytes": 2277,
+      "sha256": "3149bda4c8360ea6792507f12461034d2280783c8e156140968663255eee3f78",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/review-focus.mjs",
+      "bytes": 1424,
+      "sha256": "7b9837924b9c746fd6bfb2893afe56e21e521f4672413fceeb1ae6b8aeab0342",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/review-import.mjs",
+      "bytes": 726,
+      "sha256": "8596da86a325260f458a85089b716a1182abf0ab8fcdc25eaf46e9b750413ed8",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/review-workspace.mjs",
+      "bytes": 16986,
+      "sha256": "9b1dde813400004e140aaec54f903fddd754ff77912d1e0b2ee8326145a73ada",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/screen-chrome.mjs",
+      "bytes": 1784,
+      "sha256": "98843bbc4fbcc7bd705fc1abbdea72819ce104a4f91c93d179b8a2ce20bdddd2",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-analysis.css",
+      "bytes": 6092,
+      "sha256": "400d50b1468a777ba2fecf262857c6545d0429da3e47750089c6fb6c24df8632",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-analysis.mjs",
+      "bytes": 28531,
+      "sha256": "0b0a5a9097245fc0816ee7e08610434b42d0ff37a47746dec9a98fc1690e58e8",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-board-size.mjs",
+      "bytes": 396,
+      "sha256": "a42df1838489da374a4b9fd9a0b482d1292df571c0947d80f3c1b3ae048f3ebe",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-board.mjs",
+      "bytes": 4266,
+      "sha256": "4ee478f72e403cdc446ffaabdc8ab0cde7981aea4272f63694474457894f9b19",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-navigation.mjs",
+      "bytes": 2841,
+      "sha256": "6cbe840f661d629b3ec4481ec1af3d1d8faf0e79ffb68afd1cead3ad7bae75d1",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-openings.css",
+      "bytes": 6986,
+      "sha256": "ad2dfbd21a35da1bc213c8f7cb0b646339ad18ab87e0de206a0b385e0a38bab2",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-openings.mjs",
+      "bytes": 28672,
+      "sha256": "724df5e6d4b07f3e02a85e3867107c1171041bf5e76f84b77dc848315aa8d98c",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-quests.css",
+      "bytes": 8381,
+      "sha256": "b2858f531827f2e09fb335a0af965b8bed592d5e25b69e4a9443ed40da32b560",
+      "status": 200
+    },
+    {
+      "path": "runtime/1d252b7ada67238062c5f7370d1012ffd342e38d04cb40d1f9d8714c617b512d/study-quests.mjs",
+      "bytes": 44121,
+      "sha256": "ab39fb44a004a490bfde1f2e24902e4e4380334eb2364261d09ea98a709c2be7",
+      "status": 200
+    }
+  ],
+  "engineProvenance": {
+    "status": "UI_ONLY_REUSE",
+    "engineSiteCommit": "e0651472291296a467e5bff887544872e91b591b",
+    "engineRuntimeDirectory": "runtime/143bb02779c3fda1d785eed9bf9b3fb65873075b6081b87295a75a15dca70a7b",
+    "sourceCommit": "55768279200be9bba0644efd28737af3c957c1b6",
+    "sha256": "984ef176003095eebd2914f4b3b3f5594eeee23841d05d1de63cf3efeb75e0a1"
+  },
+  "observedUtc": "2026-11-19T15:44:04.133Z"
+}

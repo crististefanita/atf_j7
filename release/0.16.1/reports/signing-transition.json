@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "previousVersion": "0.16.0",
+  "previousCertificateSha256": "4bc8b9639475dbf550b066f74a8493d20c713aed77388d52f7526b227051d247",
+  "candidateVersion": "0.16.1",
+  "candidateCertificateSha256": "e49cc581c12594496e0b2b911aba9a09d04893c661f1ad5316d00377dc8a7772",
+  "installMode": "CLEAN_INSTALL",
+  "result": "CLEAN_INSTALL_REQUIRED",
+  "apkSha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06",
+  "observedUtc": "2026-11-19T15:15:50.8145033Z"
+}

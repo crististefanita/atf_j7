@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-Candidatul aliniază navigarea Web și Android. Publicarea urmează calificării.
+Web și Android folosesc aceeași politică pentru antete și navigare.
 
 ## Îmbunătățiri
 

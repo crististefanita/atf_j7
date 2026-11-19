@@ -839,6 +839,8 @@ Bifa din joc afișează **AI** pe lățimi compacte și păstrează numele acces
 
 `ui-chrome-cases.json` este executat de `UiChromeParityTest` pe JVM și de `chrome-contract.test.mjs` pe Web. Acoperă ferestre înguste, compacte, cu densitate fracționară, peisaj, desktop și scunde, inclusiv text 1,3×. Deriva generării, destinațiile greșite și meniul în afara ferestrei resping componentele. Sanity nativ verifică antetul real, capturile și comenzile; MCP verifică adapterul Web randat. Separă aceste observații de geometria pură.
 
+Meniul nativ trebuie să-și măsoare conținutul intrinsec înaintea alegerii limitelor ancorate, apoi să folosească un layout explicit al copilului în propria zonă de derulare. Verificați explicația închisă înaintea suprapunerii; după deschidere comparați limitele neschimbate ale tablei și doar pixelii neacoperiți. Aliniați explicațiile mărite sus, astfel încât fereastra internă să nu înceapă la mijlocul textului rezervat. **AndroidAdapterApiTest** respinge apelul **Stream.toList()** observat în Java pentru adaptor și instrumentare; **Collectors.toList()** rămâne compatibil cu proba API 28. Această protecție sursă restrânsă completează execuția nativă.
+
 `GenerateUiChrome` trebuie să reproducă exact modulul urmărit înainte de calificare. Eșecul compilării motorului nu poate fi ascuns de împachetarea UI: la reutilizare exclusiv UI, consemnează separat commitul și amprenta motorului calificat. [Matrice APK–Web](../../web/parity.md) · [Proces de release](../release/README.md)
 
 ```mermaid

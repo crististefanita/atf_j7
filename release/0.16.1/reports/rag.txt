@@ -1,0 +1,363 @@
+ADVISORY_ONLY | Qualification and publication are NOT_RUN by this command.
+DOC_PAIR | main EN / main_RO RO. See docs/release/README.md (Bilingual Documentation / Documenta?ie bilingv?).
+  Run ReleaseGate documentation-pair <Git root> <EN ref> <RO ref> on the paired candidates, then review translated meaning.
+COVERED | .gitattributes
+COVERED | README.md
+COVERED | android/app/build.gradle
+COVERED | android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/AnalysisActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/AnalysisReplayDialog.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/BoardDetails.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/BoardView.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/CenteredControls.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/ChessActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/ChessHeader.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/GameReviewDialog.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/GameReviewWorkspace.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/HintPreviewDialog.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/MatchAnalysisView.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/MatchHistoryView.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/MatchListActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/OpeningActivity.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/PuzzleChrome.java
+COVERED | android/app/src/main/java/ro/atf/chess/android/QuestPayoffDialog.java
+COVERED | android/app/src/main/res/layout/match_list.xml
+COVERED | android/app/src/main/res/layout/match_setup.xml
+COVERED | android/app/src/main/res/layout/match_toolbar.xml
+COVERED | android/app/src/main/res/layout/puzzle_explain.xml
+COVERED | android/app/src/main/res/layout/puzzle_menu.xml
+COVERED | android/app/src/main/res/values-ro/strings.xml
+COVERED | android/app/src/main/res/values/match_ids.xml
+COVERED | android/app/src/main/res/values/puzzle_chrome_ids.xml
+COVERED | android/app/src/main/res/values/strings.xml
+COVERED | atf-tests/pom.xml
+COVERED | atf-tests/src/test/java/ro/atf/chess/AiOpeningRegressionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/AndroidAdapterApiTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/AndroidSourceReplayReceiptTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebAnalysisStudyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebBoardSizingTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebOptionsMenuTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebQuestStudyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebShellTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/CoachingProofOracleTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/FramebufferProjectionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/FrenchCoachingTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/FrenchRecaptureTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/FrontierCacheTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardAuditedGame.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardAuditedGameTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardContinuationWitnessTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGameTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardHintStudyBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardLeagueAudit.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardLeagueAuditTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardLearningWitnessBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardLearningWitnessTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardLearningWitnesses.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardMoveAudit.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardMoveAuditTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardPrincipalVariationTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardQuestAudit.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardQuestAuditTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HardQuestTransferBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintAuditPolicy.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintAuditSession.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintAuditSessionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintCandidateCoverageTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintComparisonTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintFrontierTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintPinSupportTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintQueenPieceRecaptureTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintQueenRecaptureTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintRecaptureRegressionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintReplayPresentationTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/HintTransferRegressionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/LearningArchiveBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/LearningGameAuditTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/LearningGameCollector.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/LearningReviewAudit.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/LearningReviewCollector.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchAiGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchEvaluationTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchHintTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchHistorySelectionTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchToolbarResourcesTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/MatchViewportTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/NativeMateAudit.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/NativeMateDefenseBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/NavigationGovernanceTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/OpenReplayRotationReceiptTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/PawnPushProofTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/PromotionExchangePolicyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/PuzzleChromeResourcesTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ReplayCheckpointTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/RookRootReentryTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/RuyComparisonBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/RuyReplyTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ScotchContinuationBenchmarkTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/ScotchWitnessTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/SignedSourceReplayReceiptTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/StockfishFenAuditTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/StockfishStudyAudit.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/StockfishStudyAuditTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/StudyFen.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/TacticalFrontierCheckTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/capture/FramebufferProjection.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/capture/ReplayViewportFixture.java
+COVERED | atf-tests/src/test/java/ro/atf/chess/capture/ReplayViewportProfile.java
+COVERED | atf-tests/src/test/resources/coaching-proof-witnesses.yaml
+COVERED | atf-tests/src/test/resources/coaching-review-tie-witnesses.yaml
+COVERED | atf-tests/src/test/resources/coaching-scope-witnesses.yaml
+COVERED | atf-tests/src/test/resources/coaching-stability-witnesses.yaml
+COVERED | atf-tests/src/test/resources/french-coaching-witnesses.yaml
+COVERED | atf-tests/src/test/resources/french-recapture-witnesses.yaml
+COVERED | atf-tests/src/test/resources/hard-continuation-witnesses.yaml
+COVERED | atf-tests/src/test/resources/hard-hint-study.yaml
+COVERED | atf-tests/src/test/resources/hard-learning-witnesses.yaml
+COVERED | atf-tests/src/test/resources/hint-audit.yaml
+COVERED | atf-tests/src/test/resources/learning-frame-before-coaching.yaml
+COVERED | atf-tests/src/test/resources/legacy-review-v1.yaml
+COVERED | atf-tests/src/test/resources/legacy-review-v2.yaml
+COVERED | atf-tests/src/test/resources/match-analysis-cases.json
+COVERED | atf-tests/src/test/resources/match-history-cases.json
+COVERED | atf-tests/src/test/resources/ruy-reply-witnesses.yaml
+COVERED | atf-tests/src/test/resources/ruy-transfer-witnesses.yaml
+COVERED | atf-tests/src/test/resources/scotch-continuation-witness.yaml
+COVERED | atf-tests/src/test/resources/ui-chrome-cases.json
+COVERED | chess-core/src/main/java/ro/atf/chess/ChessMatch.java
+COVERED | chess-core/src/main/java/ro/atf/chess/ChessPosition.java
+COVERED | chess-core/src/main/java/ro/atf/chess/CoachingProof.java
+COVERED | chess-core/src/main/java/ro/atf/chess/GameReview.java
+COVERED | chess-core/src/main/java/ro/atf/chess/GameReviewCodec.java
+COVERED | chess-core/src/main/java/ro/atf/chess/HintArrow.java
+COVERED | chess-core/src/main/java/ro/atf/chess/HintCandidateCoverage.java
+COVERED | chess-core/src/main/java/ro/atf/chess/HintPinSupport.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchAiPolicy.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchHint.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchHistorySelection.java
+COVERED | chess-core/src/main/java/ro/atf/chess/MatchViewport.java
+COVERED | chess-core/src/main/java/ro/atf/chess/OpeningReplay.java
+COVERED | chess-core/src/main/java/ro/atf/chess/PawnPushPolicy.java
+COVERED | chess-core/src/main/java/ro/atf/chess/PawnPushProof.java
+COVERED | chess-core/src/main/java/ro/atf/chess/PromotionExchangePolicy.java
+COVERED | chess-core/src/main/java/ro/atf/chess/ReplayBoardLayout.java
+COVERED | chess-core/src/main/java/ro/atf/chess/ReplayCheckpoint.java
+COVERED | chess-core/src/main/java/ro/atf/chess/TacticalAnalysis.java
+COVERED | chess-core/src/main/java/ro/atf/chess/UiChrome.java
+COVERED | chess-core/src/main/resources/coaching-proof.yaml
+COVERED | chess-core/src/main/resources/hard-pawn-promotion.yaml
+COVERED | chess-core/src/main/resources/hard-promotion-exchange.yaml
+COVERED | chess-core/src/main/resources/match-ai.yaml
+COVERED | docs/README.md
+COVERED | docs/board/README.md
+COVERED | docs/board/ai-quality.md
+COVERED | docs/board/game-review.md
+COVERED | docs/feedback/README.md
+COVERED | docs/feedback/hard-learning.md
+COVERED | docs/feedback/web-parity.md
+COVERED | docs/release/README.md
+COVERED | docs/testing/README.md
+COVERED | docs/testing/test-changes.yaml
+COVERED | pom.xml
+COVERED | release-tools/src/main/java/ro/atf/chess/release/ReleaseRag.java
+COVERED | release/0.15.2/README.md
+COVERED | release/0.15.2/reports/README.md
+COVERED | release/0.15.2/reports/distribution-verification.json
+COVERED | release/0.15.2/reports/game-review-execution.json
+COVERED | release/0.15.2/reports/github-release.json
+COVERED | release/0.15.2/reports/hint-analysis-execution.json
+COVERED | release/0.15.2/reports/public-download.json
+COVERED | release/0.15.2/reports/publication-governance.json
+COVERED | release/0.15.2/reports/qualification.json
+COVERED | release/0.15.2/reports/rag.txt
+COVERED | release/0.15.2/reports/raw-receipts.json
+COVERED | release/0.15.2/reports/replay-compact-execution.json
+COVERED | release/0.15.2/reports/test-change-review-execution.json
+COVERED | release/0.16.0/reports/README.md
+COVERED | release/0.16.0/reports/analysis-compact-execution.json
+COVERED | release/0.16.0/reports/android-analysis-compact.html
+COVERED | release/0.16.0/reports/android-game-review.html
+COVERED | release/0.16.0/reports/android-manual-analysis.html
+COVERED | release/0.16.0/reports/android-match-analysis.html
+COVERED | release/0.16.0/reports/components.html
+COVERED | release/0.16.0/reports/distribution-verification.json
+COVERED | release/0.16.0/reports/documentation-pair.txt
+COVERED | release/0.16.0/reports/game-review-execution.json
+COVERED | release/0.16.0/reports/github-release.json
+COVERED | release/0.16.0/reports/governance.html
+COVERED | release/0.16.0/reports/hint-analysis-execution.json
+COVERED | release/0.16.0/reports/public-download.json
+COVERED | release/0.16.0/reports/publication-documentation-ro.html
+COVERED | release/0.16.0/reports/publication-governance-execution.json
+COVERED | release/0.16.0/reports/publication-governance.html
+COVERED | release/0.16.0/reports/publication-governance.json
+COVERED | release/0.16.0/reports/qualification.json
+COVERED | release/0.16.0/reports/rag.txt
+COVERED | release/0.16.0/reports/raw-receipts.json
+COVERED | release/0.16.0/reports/release-retention.json
+COVERED | release/0.16.0/reports/signing-transition.json
+COVERED | release/0.16.0/reports/test-change-review-execution.json
+COVERED | release/0.16.0/reports/test-change-review.html
+COVERED | release/0.16.0/reports/test-change-review.html.proof.html
+COVERED | release/0.16.0/reports/web-publication.json
+COVERED | release/0.16.1/README.md
+COVERED | release/0.16.1/reports/README.md
+COVERED | release/README.md
+COVERED | release/index.json
+COVERED | scripts/Initialize-J7Signing.ps1
+COVERED | scripts/run-android-sanity.ps1
+COVERED | web/src/main/web/chess-controls.css
+COVERED | web/src/main/web/chrome-contract.mjs
+COVERED | web/src/main/web/game-review.css
+COVERED | web/src/main/web/game-review.mjs
+COVERED | web/src/main/web/index.html
+COVERED | web/src/main/web/options-menu.mjs
+COVERED | web/src/main/web/screen-chrome.mjs
+COVERED | web/src/main/web/study-analysis.css
+COVERED | web/src/main/web/study-analysis.mjs
+COVERED | web/tools/GenerateUiChrome.java
+NEEDS_REVIEW | .atf-signing/.gitignore
+NEEDS_REVIEW | .atf-signing/README.md
+NEEDS_REVIEW | .atf-signing/certificate.der
+NEEDS_REVIEW | .atf-signing/chesslab-release.p12
+NEEDS_REVIEW | .atf-signing/identity.json
+NEEDS_REVIEW | .atf-signing/password.dpapi
+NEEDS_REVIEW | docs/testing/hard-audit.md
+NEEDS_REVIEW | docs/testing/hard-hint-study.md
+NEEDS_REVIEW | docs/testing/hard-puzzle-study.md
+NEEDS_REVIEW | docs/testing/hint-audit.md
+NEEDS_REVIEW | docs/testing/learning-archive.md
+NEEDS_REVIEW | web/README.md
+NEEDS_REVIEW | web/parity.md
+NEEDS_REVIEW | web/src/main/java/ro/atf/chess/WebChessGame.java
+NEEDS_REVIEW | web/src/main/web/board-layout.css
+NEEDS_REVIEW | web/src/main/web/hint-arrow.mjs
+NEEDS_REVIEW | web/src/main/web/line-navigation.mjs
+NEEDS_REVIEW | web/src/main/web/match-history.mjs
+NEEDS_REVIEW | web/src/main/web/match-inline-analysis.mjs
+NEEDS_REVIEW | web/src/main/web/review-workspace.mjs
+NEEDS_REVIEW | web/src/main/web/study-board-size.mjs
+NEEDS_REVIEW | web/src/main/web/study-board.mjs
+NEEDS_REVIEW | web/src/main/web/study-navigation.mjs
+NEEDS_REVIEW | web/src/main/web/study-openings.css
+NEEDS_REVIEW | web/src/main/web/study-openings.mjs
+NEEDS_REVIEW | web/src/main/web/study-quests.css
+NEEDS_REVIEW | web/src/main/web/study-quests.mjs
+NEEDS_REVIEW | web/tests/analysis-study.test.mjs
+NEEDS_REVIEW | web/tests/board-layout-probe.mjs
+NEEDS_REVIEW | web/tests/board-layout.test.mjs
+NEEDS_REVIEW | web/tests/chrome-contract.test.mjs
+NEEDS_REVIEW | web/tests/fixtures/analysis-board-layout.json
+NEEDS_REVIEW | web/tests/hint-arrow-probe.mjs
+NEEDS_REVIEW | web/tests/home-menu.test.mjs
+NEEDS_REVIEW | web/tests/line-navigation.test.mjs
+NEEDS_REVIEW | web/tests/match-history-worker.mjs
+NEEDS_REVIEW | web/tests/match-history.test.mjs
+NEEDS_REVIEW | web/tests/options-menu.test.mjs
+NEEDS_REVIEW | web/tests/package-web.test.mjs
+NEEDS_REVIEW | web/tests/replay-layout.test.mjs
+NEEDS_REVIEW | web/tests/study-board.test.mjs
+NEEDS_REVIEW | web/tests/study-openings.test.mjs
+NEEDS_REVIEW | web/tests/study-quests.test.mjs
+NEEDS_REVIEW | web/tests/support/css-length.mjs
+NEEDS_REVIEW | web/tools/package-web.mjs
+docs/testing/README.md:835 ## Shared screen chrome
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly
+docs/testing/README.md:141 ### Menu and hint parity
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify ChessWebShellTest, ChessWebOptionsMenuTest and MCP compact RO/EN at 130%
+docs/testing/README.md:141 ### Menu and hint parity
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify HintReplayPresentationTest, HintPreviewTest, GameReviewLayoutTest and Android compact RO/EN at 130%
+docs/testing/README.md:22 ## Engine and projection
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify ChessComponentTest and QuestCatalogTest
+docs/board/ai-quality.md:206 ## Checks for every change
+  SHA-256 def70d82622f969a7ebc53fad1d4d22a56fedd81f9d859dbf2f75ac57dd6cad3
+  Verify HardQuestTransferBenchmarkTest, RookEndgameHistoryTest and ChessBenchmarkSuite: Stockfish and the offline league
+docs/testing/README.md:692 ## Game and History
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify MatchHintTest, HintPreviewTest, HintComparisonTest, AndroidReceiptTest and BoardSanity -AnalysisOnly -IncludeManualAnalysis
+docs/testing/README.md:692 ## Game and History
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify ChessMatchTest and BoardSanity
+docs/testing/README.md:596 ## Android Sanity
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify BoardSanity
+docs/testing/README.md:692 ## Game and History
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify GameReviewTest, GameReviewTimelineTest, GameReviewLayoutTest, GameReviewGraphLayoutTest, GameReviewGovernanceTest, MatchStoreTest and BoardSanity -Distribution -GameReviewOnly
+docs/testing/README.md:757 ## Analysis Board
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify OpeningTheoryTest, GameReviewLayoutTest and BoardSanity -Distribution -AnalysisOnly -IncludeManualAnalysis
+docs/testing/README.md:789 ## Shared replay on a compact screen
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify GameReviewLayoutTest and BoardSanity -Distribution -ReplayCompactOnly
+docs/testing/README.md:692 ## Game and History
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify MatchListEntryTest, MatchStoreTest, MatchArchiveTest, MatchSlotsTest, MainMenuLayoutTest and BoardSanity -MatchMenusOnly
+docs/testing/README.md:757 ## Analysis Board
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify AnalysisLineTest, MainMenuLayoutTest and BoardSanity -ManualAnalysisOnly
+docs/testing/README.md:798 ## TalkBack probe
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify QuestHintTest, BoardSanity and the TalkBack probe
+docs/testing/README.md:669 ## Openings
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify OpeningLessonTest and BoardSanity -IncludeOpenings
+docs/testing/README.md:556 ## Test changes against a Git baseline
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify TestChangeReview with the explicit Git baseline and ReleaseGate preflight
+docs/testing/README.md:514 ## JVM suites
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify ChessJvmSuite and ChessGovernanceSuite
+docs/release/README.md:72 ## Strict Exception for Installing the Exact APK
+  SHA-256 674b63c1519e790592607e8745a0e6ba93e91d3f8554854389e091e932834191
+  Verify DocumentationGovernanceTest and ReleaseGovernanceTest
+docs/testing/README.md:581 ## Extent Reporting
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify ExtentGovernanceTest
+docs/README.md:37 ## Documentation Checks
+  SHA-256 7ad9df4c50d568183d0b599d018053567a998ac551e7d3a8026dc63abcf60404
+  Verify DocumentationGovernanceTest and ReleaseGovernanceTest
+docs/testing/README.md:22 ## Engine and projection
+  SHA-256 93bb553734e3f328285a0fea60d5f1a07b687b225a623594e35a510ec11bfd0a
+  Verify BoardPanelLayoutTest and QuestHintTest
+docs/feedback/README.md:1 # Feedback · Chess Lab
+  SHA-256 54a99f8d32747245e120303c29541345eb57e7d71c08c158b4b7742dcd999732
+  Verify DocumentationGovernanceTest and review of open criteria
+lib/README.md:8 ## Provenance
+  SHA-256 4978317841ecb9c36517ca5be3b1f579a08e3b391cf52183dda6d2813777bce1
+  Verify PlatformLibraryProvenanceTest
+docs/release/README.md:8 ## Qualification and Publication
+  SHA-256 674b63c1519e790592607e8745a0e6ba93e91d3f8554854389e091e932834191
+  Verify DocumentationGovernanceTest, ReleaseGovernanceTest and ExtentGovernanceTest
+1. Investigate the changes from the latest tag and run `ReleaseRag` with the modified paths. Open the cited documents and record the risks, affected suites, and acceptance criteria.
+2. Select the version from the 0.x series. A fix increments the patch, and a new feature or contract change increments the minor version. Align `versionName`, `versionCode`, the Maven version, and the APK name. In `release/index.json`, `currentVersion` is the current release, and `versions` contains the current release followed by one previous release for comparison. The candidate remains separate until publication. [Release catalog](../../release/README.md)
+3. Update the notes and affected guides on both branches. Move confirmed rules from feedback into the owning guide. In `main` use **Play** and **Published Release**. In `main_RO` use **Jocul** and **Edi?ia publicat?**. Place the APK and browser links under the play heading in that order. Place the GitHub notes below the architecture. [Bilingual documentation](#bilingual-documentation) · [Web publication](../../web/parity.md#publishing-the-link)
+4. Create the candidate commit in a clean Git worktree in TMP. Declare the SHA of the review baseline, a distinct ancestor of the candidate. Run DocumentationGovernanceTest, ReleaseGovernanceTest, ExtentGovernanceTest, TestChangeReview, and ReleaseGate preflight before signing. Keep the reports and Git review receipt. Enable the AI probes when the diff affects the engine or corpus. [JVM suites](../testing/README.md#jvm-suites) · [Test changes](../testing/README.md#test-changes-against-a-git-baseline)
+5. Load the identity by dot-sourcing `scripts/Initialize-J7Signing.ps1`; an existing encrypted project record is detected automatically. For a new key after a published release, use `-StartNewIdentity` explicitly. The script rejects implicit rotation and protects the key with ACL and DPAPI. Build the APK and Android tests with Gradle, then verify the signature, `versionCode`, and compatibility through `scripts/verify-signing-continuity.ps1`. Run the flow that covers the change on the emulator and keep the installed APK hash and Extent report. If the signing identity changed and the emulator still has the old release, preserve the installation containing valuable data. A sanity APK with a different `applicationId` supplies supplementary evidence and cannot qualify the distribution binary.
+6. Run `ChessComponentSuite` and Game Review sanity under the same qualification ID. Pass the APK, commit, raw receipt directories, and Extent reports through `ReleaseGate qualification`. Check the expandable comparisons and captures for their steps in Extent. For a change to Opening theory or **Why?**, add the compact probe at a 1.3× font scale in RO and EN for the same APK and commit. [Shared replay](../testing/README.md#shared-replay-on-a-compact-screen) [Extent audit criteria](../testing/README.md#extent-reporting)
+7. After signing and qualification, push the candidate tag without rewriting history and publish the GitHub asset. Keep `currentVersion`, the comparison list, and the main README on the latest verified release until the new asset exists. Then promote the catalog and README on both branches. Keep only the new and immediately preceding releases on GitHub Releases and locally. Retire the other releases and folders after the new asset and README route pass verification. Keep the Git tags.
+8. Read the README from `main` on GitHub and download the APK from the displayed URL. Use `ReleaseGate publication` to verify the tag, channel, HTTP status, byte count, SHA-256, and CRC. Save the evidence, push the reports commit, and repeat the download from the final version of the README.
+docs/release/README.md:88 ## Signing Identity and Clean Installation
+  SHA-256 674b63c1519e790592607e8745a0e6ba93e91d3f8554854389e091e932834191
+  Verify ReleaseGovernanceTest and ReleaseGate signing-continuity
