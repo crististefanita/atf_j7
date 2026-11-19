@@ -53,6 +53,7 @@ final class LearningGameAudit {
             require(game.result()==ChessMatch.Result.IN_PROGRESS,"The game has ended");
             var nativeSearch=Objects.requireNonNull(hard.apply(game));
             var hint=Objects.requireNonNull(hints.apply(game.position(),MAX_HINT_NODES));
+            if(hint.proof()!=null&&!hint.proof().complete())throw new CoachingProof.Incomplete(hint.proof());
             var history=history(game);String fen=StudyFen.replay(initialFen,history);
             pending=new Frame(identity,caseId,initialFen,game.ply(),history,game.setup(),game.checkpoint(),fen,game.position().turn().name(),"HARD",MAX_HINT_NODES,
                     nativeSearch,hint,MatchAiPolicy.CURRENT.evaluation.nodes(),hint.proof()==null?MatchEvaluation.forPosition(game.position(),hint.lines().getFirst()):MatchEvaluation.from(game.position().turn(),hint.lines().getFirst()));

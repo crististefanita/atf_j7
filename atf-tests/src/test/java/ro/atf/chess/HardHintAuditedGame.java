@@ -35,6 +35,7 @@ final class HardHintAuditedGame {
             var match = game.match();
             var hard = game.analyze();
             var hint = Objects.requireNonNull(hints.apply(match.position()));
+            if(hint.proof()!=null&&!hint.proof().complete())throw new CoachingProof.Incomplete(hint.proof());
             validateHint(match.position(), hint);
             var estimate = hint.proof()==null?MatchEvaluation.forPosition(match.position(),hint.lines().getFirst()):MatchEvaluation.from(match.position().turn(),hint.lines().getFirst());
             pending = new Entry(match.checkpoint(), HintAuditSession.fen(match), hard, hint, estimate);
