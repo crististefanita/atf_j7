@@ -55,6 +55,8 @@ that explains the evidence, rather than rewriting a qualified artifact.
    When the edition changes, verify the complete APK from the English README
    on `main` and confirm the Romanian route points at the same release.
 
+Build the two worktrees sequentially when their Maven local repository is shared: root bootstrap installs the ATF binaries and Windows may lock a JAR already loaded by the other JVM. Independent target directories do not isolate that repository. Parallel builds require independently prepared local repositories and verified library provenance.
+
 ```powershell
 java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate documentation-pair . $enCommit $roCommit
 git push --atomic origin "${enCommit}:refs/heads/main" "${roCommit}:refs/heads/main_RO"
