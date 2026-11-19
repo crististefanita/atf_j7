@@ -236,7 +236,7 @@ class HintAuditSessionTest {
             var search = TacticalAnalysis.verifiedHints(board, budget);
             var compared = search.comparison();
             return new Search(search.lines(), compared == null ? List.of() : compared.result().ranked(), search.extraNodes(),
-                    search.selectedDepth(), search.seedDepth(), compared == null ? 0 : compared.depth());
+                    search.selectedDepth(), search.seedDepth(), compared == null ? 0 : compared.depth(),search.proof());
         }).decision();
         var restored = ChessMatch.restore(receipt.checkpoint());
         check.same(receipt.caseId() + " #" + receipt.index() + " | full input=" + receipt.checkpoint() + " | phase=" + receipt.phase()

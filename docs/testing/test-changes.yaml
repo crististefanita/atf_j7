@@ -1205,3 +1205,67 @@ testChanges:
     test: ro.atf.chess.HintArrowTest#webSvgAndReviewCanvasKeepTheNativeGeometry
     contract: "Retain every scale, orientation, measured-cell, invalid-geometry and native-adapter check; move only the destination clearance to twelve percent and execute matching SVG and Canvas coordinates"
     allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-EN-1
+    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    from: atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-EN-2
+    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintAuditSession.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-EN-3
+    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintAuditSessionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-EN-4
+    base: "0f7f08ce226f4de8126898cd336098a112c83cdd"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-RO-1
+    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    from: atf-tests/src/test/java/ro/atf/chess/HardHintAuditedGame.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-RO-2
+    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    from: atf-tests/src/test/java/ro/atf/chess/HintAuditSession.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-RO-3
+    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    from: atf-tests/src/test/java/ro/atf/chess/HintAuditSessionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false
+
+  - id: J7-COACHING-RECEIPT-RO-4
+    base: "cc80705b9fbbe28ddfeac6d176a9c4490af05480"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningGameAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java
+    test: ro.atf.chess.CoachingProofTest#retainsActualReserveWorkAndHistoricalReceiptShapes
+    contract: "Retain every existing assertion and collection phase; preserve the separately charged forcing receipt, reject incomplete or foreign work, and keep legacy null-free receipt shapes"
+    allowDelete: false

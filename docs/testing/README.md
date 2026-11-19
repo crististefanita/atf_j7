@@ -399,6 +399,14 @@ node scripts/verify-tactics.cjs $chessJs chess-core/src/main/resources/intermezz
 
 ## JVM suites
 
+Dynamic coaching verification belongs in components: `CoachingProofTest`,
+`CoachingProofOracleTest` and `CoachingStabilityTest` cover legal forcing chains,
+shared reserve accounting, interrupted evidence, cache compatibility and the qualified
+root-selection guard. Record ordinary nodes and the separate proof receipt in learning
+studies. Frozen old journals retain their original shape when no proof field existed;
+reading them never manufactures a current qualification. A completed tactical frontier
+does not replace independent Stockfish quality checks or paired-game Elo measurement.
+
 | JUnit entry point | What it checks |
 |---|---|
 | `ChessComponentSuite` | Rules, positions and puzzles, progress, games, openings, hints, and geometry verified in the JVM. Includes Web accessibility contracts run through Node.js. Runs offline. |
