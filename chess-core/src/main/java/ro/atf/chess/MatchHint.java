@@ -44,6 +44,7 @@ public final class MatchHint {
     private final ChessPosition position;
     private final TacticalAnalysis.SearchReport comparison;
     private final List<Theory> theory;
+    private final CoachingProof.Work proof;
     private int index = -1;
 
     public MatchHint(List<TacticalAnalysis.Variation> lines) {
@@ -55,16 +56,23 @@ public final class MatchHint {
     }
 
     private MatchHint(ChessPosition position, List<TacticalAnalysis.Variation> lines, TacticalAnalysis.SearchReport comparison, List<Theory> theory) {
+        this(position,lines,comparison,theory,null);
+    }
+
+    private MatchHint(ChessPosition position,List<TacticalAnalysis.Variation> lines,TacticalAnalysis.SearchReport comparison,List<Theory> theory,CoachingProof.Work proof) {
         this.position = position;
         this.lines = Collections.unmodifiableList(new ArrayList<>(lines));
         this.comparison = comparison;
         this.theory = theory;
+        this.proof = proof;
     }
 
     public static MatchHint analyze(ChessPosition position) {
         var search = TacticalAnalysis.verifiedHints(position);
-        return new MatchHint(position, search.lines(), search.comparison());
+        return new MatchHint(position,search.lines(),search.comparison(),List.of(),search.proof());
     }
+
+    public Optional<CoachingProof.Work> proof(){return Optional.ofNullable(proof);}
 
     static MatchHint study(ChessPosition position) {
         var choices = OpeningTheory.CURRENT.choices(position);
@@ -92,7 +100,8 @@ public final class MatchHint {
 
     public MatchEvaluation evaluation(ChessPosition position) {
         if (count() == 0) return null;
-        return theory.isEmpty() ? MatchEvaluation.forPosition(position, first()) : MatchEvaluation.forTheory(position);
+        if(!theory.isEmpty())return MatchEvaluation.forTheory(position);
+        return proof==null?MatchEvaluation.forPosition(position,first()):MatchEvaluation.from(position.turn(),first());
     }
 
     public Optional<HintPreview> preview(ChessPosition position) {

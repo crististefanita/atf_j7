@@ -110,7 +110,8 @@ final class MatchAnalysisView extends TextView {
                 if (request != currentRequest) return;
                 pending = null;
                 if (evaluation == null) {
-                    setText(R.string.match_analysis_ended);
+                    boolean incomplete=analyzed.proof().filter(p->!p.complete()).isPresent();
+                    setText(incomplete?R.string.match_analysis_incomplete:R.string.match_analysis_ended);
                     evaluationBar.setWhiteShare(terminal);
                     return;
                 }

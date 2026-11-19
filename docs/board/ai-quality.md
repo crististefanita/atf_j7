@@ -1164,7 +1164,61 @@ la execuție sau suprascriere învățată după FEN.
 
 Indiciul public și Game Review își păstrează politicile independente. Mai cer propria
 corecție: indiciul poate folosi `…Nd7` slab, iar analiza poate numi `Bb5+` BEST.
-Scopurile lor benchmark executabile rămân eșecuri separate. Cerința de indiciu vizibil
-mai scurt, cu dovadă ascunsă integrală și rezervă dinamică pentru șirul forțat, rămâne
-[lucru explicit la coaching](../feedback/README.md#dovada-tactică-și-liniile-afișate),
-nu o funcționalitate UI implementată sau o creștere Elo măsurată.
+Scopurile lor benchmark executabile rămân eșecuri separate. Verificarea dinamică a
+frontierei este implementată mai jos. Prefixul vizibil mai scurt și dovada ascunsă
+accesibilă separat rămân [lucru de prezentare](../feedback/README.md#dovada-tactică-și-liniile-afișate).
+
+## Frontiera dinamică de coaching
+
+[CoachingProof](../../chess-core/src/main/java/ro/atf/chess/CoachingProof.java) deține o
+rezervă separată pentru frontiera vizibilă neîncheiată din indicii și Analiza partidei.
+Se activează la șah fără evadare, recaptură legală după ultima captură sau ultima piesă
+importantă rămasă legal expusă. Matul complet și liniile deja închise își păstrează
+contractul. Căutarea adversarului nativ și politicile Basic/Advanced nu folosesc rezerva.
+
+[coaching-proof.yaml](../../chess-core/src/main/resources/coaching-proof.yaml) configurează
+rezerva maximă, pasul de alocare și limita de siguranță a șirului forțat. Rezerva implicită
+este de un milion de noduri, alocate la nevoie în pași de 25.000. Se adaugă alocației
+obișnuite a indiciului de 200k sau celei configurate pentru analiză. `extraNodes` rămâne
+lucrul obișnuit; `proof.nodes`, `proof.ordinaryNodes` și `totalNodes` arată explicit suma.
+Nu descrie decizia completă de coaching ca fiind plafonată la 200k.
+Analiza păstrează inițializarea H3 existentă în afara alocației suplimentare; suma arată
+lucrul suplimentar obișnuit taxat plus rezerva, fără acea inițializare moștenită.
+
+Fiecare rădăcină comparată folosește același orizont obișnuit complet și aceeași politică
+forțată. Indiciile păstrează domeniul rădăcinilor oferite/comparate; analiza compară toate
+mutările legale și evaluează integral mutarea jucată. Rădăcinile necompetitive pot primi
+limite superioare, însă numai liniile exacte intră în clasamentul întors. Primele două
+valori rămân exacte. La frontieră, capturile și promovările continuă fără vechiul prag de
+una/două semimutări; în șah se caută toate evadările legale, fără evaluare statică pe loc.
+Șahurile liniștite opționale dincolo de orizontul obișnuit nu sunt o promisiune a acestei
+căutări de liniștire. [Referința din amonte](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp)
+descrie aceeași distincție între capturi și evadările obligatorii.
+
+Un lider nou al indiciului cere și sprijin la orizontul par complet anterior, plătit din
+aceeași rezervă. Altfel, rădăcina stabilită păstrează linia și scorul nou calculate,
+închise; vechiul PV neîncheiat nu este restaurat. Recepția păstrează ambele scoruri,
+comparația anterioară și rădăcina aleasă. Un challenger nesusținut nu este prezentat ca
+echivalent. Protecția păstrează un martor independent în care modelul forțat fără gardă
+prefera `Bxe4` în loc de `Nxd7` și pierdea 335/243,5‰ WDL.
+
+Dovada separă rezultatele COMPLETE, NODE_LIMIT și FORCING_LIMIT. Adâncimea obișnuită
+rămâne distinctă de extensia forțată. Un plafon sau o confirmare neîncheiată nu întorc
+linii de indiciu evaluate; analiza aruncă rezultatul tipizat incomplet înainte să publice
+note sau grafic. Anularea se propagă fără cache de valori parțiale. Nu se reutilizează
+valori de transpoziție între modurile dovezii sau istorii. Repetiția se verifică pe traseul
+efectiv explorat; indiciile poziționale nu inventează istoricul anterior al partidei.
+
+PV-ul legal integral și recepția lucrului rămân accesibile auditului. Cache-ul de analiză
+v2 le păstrează după restart și respinge dovada altei poziții. Versiunea v1 rămâne lizibilă,
+fără dovadă inventată. Adaptoarele native disting verificarea incompletă de finalul
+partidei și nu salvează o analiză generată parțial.
+
+[Componentele](../../atf-tests/src/test/java/ro/atf/chess/CoachingProofTest.java) acoperă schimburi
+continue, pragul exact de noduri, legături, en passant, evadări, anulare, publicare incompletă,
+restart și compatibilitate v1. [Controalele profesorului rece](../../atf-tests/src/test/java/ro/atf/chess/CoachingProofOracleTest.java)
+păstrează recepțiile Stockfish H17/H19, matul cu sacrificiu corect de damă și contraexemplul
+promovării cu pat. [Controalele de stabilitate](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
+păstrează ambele orizonturi și negativul confirmării întrerupte. Completarea certifică
+domeniul declarat al căutării, nu șah optim sau creștere Elo. Feedback-ul apărării liniștite
+franceze și al calibrării analizei rămâne deschis.

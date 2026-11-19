@@ -398,6 +398,14 @@ node scripts/verify-tactics.cjs $chessJs chess-core/src/main/resources/intermezz
 
 ## Suite JVM
 
+Verificarea dinamică de coaching aparține componentelor: `CoachingProofTest`,
+`CoachingProofOracleTest` și `CoachingStabilityTest` acoperă șirurile forțate legale,
+contabilizarea rezervei comune, dovezile întrerupte, compatibilitatea cache-ului și
+protecția calificată a rădăcinii. Studiile păstrează nodurile obișnuite și recepția
+separată a dovezii. Jurnalele vechi își păstrează forma inițială când câmpul dovezii
+nu exista; citirea nu fabrică o calificare curentă. O frontieră tactică încheiată nu
+înlocuiește controalele independente Stockfish sau măsurarea Elo în partide pereche.
+
 | Intrare JUnit | Ce verifică |
 |---|---|
 | `ChessComponentSuite` | Regulile, pozițiile și problemele, progresul, partida, deschiderile, indiciile și geometria verificată în JVM. Include contractele de accesibilitate Web rulate prin Node.js. Rulează offline. |

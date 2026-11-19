@@ -33,10 +33,15 @@ public record GameReview(List<Turn> turns, Opening opening, int bookPlies, int i
         public Player { grades = Map.copyOf(grades); }
     }
     public record Turn(int ply, Side side, Move played, Grade grade, int bestPoints, int playedPoints, int loss,
-                       int whitePoints, int depth, List<Move> bestLine, List<Move> playedLine, int sacrificeCp) {
+                       int whitePoints, int depth, List<Move> bestLine, List<Move> playedLine, int sacrificeCp,
+                       CoachingProof.Work proof) {
+        public Turn(int ply,Side side,Move played,Grade grade,int bestPoints,int playedPoints,int loss,int whitePoints,int depth,List<Move> bestLine,List<Move> playedLine,int sacrificeCp) {
+            this(ply,side,played,grade,bestPoints,playedPoints,loss,whitePoints,depth,bestLine,playedLine,sacrificeCp,null);
+        }
         public Turn {
             bestLine = List.copyOf(bestLine);
             playedLine = List.copyOf(playedLine);
+            if(proof!=null&&!proof.complete())throw new IllegalArgumentException("Incomplete tactical proof cannot publish a graded review turn");
         }
     }
 
@@ -79,7 +84,7 @@ public record GameReview(List<Turn> turns, Opening opening, int bookPlies, int i
             var side = board.turn();
             if (ply == 1) initial = side == Side.WHITE ? best : 1000 - best;
             turns.add(new Turn(ply, side, played, grade, best, actual, loss, side == Side.WHITE ? actual : 1000 - actual,
-                    comparison.depth(), comparison.best().line(), comparison.played().line(), sacrifice));
+                    comparison.depth(), comparison.best().line(), comparison.played().line(), sacrifice,comparison.proof()));
             (side == Side.WHITE ? white : black).add(grade, loss);
             before = before.play(played);
             progress.accept(ply);

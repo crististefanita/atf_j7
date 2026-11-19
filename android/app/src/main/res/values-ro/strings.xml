@@ -108,6 +108,7 @@
     <string name="match_analysis_option">Analiză AI pentru o partidă nouă</string>
     <string name="match_analysis_pending">Analiză AI…</string>
     <string name="match_analysis_ended">Analiză AI · Partidă încheiată</string>
+    <string name="match_analysis_incomplete">Verificare tactică incompletă · Fără scor final</string>
     <string name="match_analysis_advantage">%1$s · %2$s</string>
     <string name="match_analysis_equal">%1$s · Echilibru</string>
     <string name="match_analysis_mate">%1$s · Mat în %2$d</string>
@@ -262,6 +263,7 @@
     <string name="game_review_close">Închide</string>
     <string name="game_review_progress">Analizez mutările %1$d / %2$d</string>
     <string name="game_review_failed">Analiza s-a întrerupt. Închide ecranul și deschide din nou Analiza partidei.</string>
+    <string name="game_review_incomplete">Verificarea tactică nu s-a încheiat. Nu au fost salvate scoruri finale.</string>
     <string name="game_review_unknown_opening">Deschidere neidentificată în catalogul local</string>
     <string name="game_review_graph">Evaluare pe mutări · avantajul albului deasupra centrului</string>
     <string name="game_review_insufficient">Prea puține mutări evaluate (%1$d)</string>

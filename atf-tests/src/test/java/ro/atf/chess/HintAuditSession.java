@@ -20,7 +20,7 @@ import static ro.atf.chess.HintAuditPolicy.require;
 
 /** Replayable diagnostic evidence, deliberately separate from live AI memory and search caches. */
 final class HintAuditSession {
-    private static final ObjectMapper JSON = new ObjectMapper();
+    private static final ObjectMapper JSON = LearningGameAudit.mapper();
     private static final String GENESIS = "0".repeat(64);
     private static final java.util.Map<?, ?> MATERIAL = ChessYaml.map(ChessYaml.resource("tactical-analysis.yaml"), "material");
     record Identity(String dataset, String run, String revision, String engineDigest, String configurationDigest) {
@@ -30,7 +30,8 @@ final class HintAuditSession {
                     && configurationDigest.matches("[a-f0-9]{64}"), "Exact source and configuration identities required");
         }
     }
-    record Search(List<Variation> lines, List<Variation> compared, int extraNodes, int selectedDepth, int seedDepth, int comparisonDepth) {
+    record Search(List<Variation> lines, List<Variation> compared, int extraNodes, int selectedDepth, int seedDepth, int comparisonDepth,CoachingProof.Work proof) {
+        Search(List<Variation> lines,List<Variation> compared,int extraNodes,int selectedDepth,int seedDepth,int comparisonDepth){this(lines,compared,extraNodes,selectedDepth,seedDepth,comparisonDepth,null);}
         Search { lines = List.copyOf(lines); compared = List.copyOf(compared); }
         Search(List<Variation> lines, int extraNodes, int selectedDepth, int seedDepth, int comparisonDepth) {
             this(lines, comparisonDepth == 0 ? List.of() : lines, extraNodes, selectedDepth, seedDepth, comparisonDepth);
@@ -46,7 +47,7 @@ final class HintAuditSession {
                     String side, String context, int repetitions, String cacheMode, String phase, String theoryMove,
                     int extraNodeLimit, int requestedRank, boolean requestedAvailable, int chosenRank, String chosen,
                     int selectedDepth, int seedDepth, int comparisonDepth, int extraNodes, List<Variant> variants, List<Variant> comparedVariants,
-                    String previousDigest) {
+                    String previousDigest,CoachingProof.Work proof) {
         Decision { variants = List.copyOf(variants); comparedVariants = List.copyOf(comparedVariants); }
     }
     record Envelope(Decision decision, String digest) { }
@@ -91,6 +92,7 @@ final class HintAuditSession {
         // Exactly one computation per decision. Resumption validates receipts without invoking the engine.
         var search = Objects.requireNonNull(engine.analyze(board, budget));
         require(search.extraNodes() >= 0 && search.extraNodes() <= budget, "Search exceeded the declared extra-node limit");
+        validateProof(board,search.proof(),search.extraNodes(),search.selectedDepth());
         require(search.selectedDepth() >= 1 && search.seedDepth() >= 1 && search.comparisonDepth() >= 0
                 && search.selectedDepth() <= MatchAiPolicy.MAX_PLIES && search.seedDepth() <= MatchAiPolicy.MAX_PLIES
                 && search.comparisonDepth() <= MatchAiPolicy.MAX_PLIES, "Missing or invalid achieved horizon");
@@ -109,7 +111,7 @@ final class HintAuditSession {
                 repetitions, "FRESH_POSITION_ONLY_NO_PERSISTENT_CACHE", book == null ? "OFF_BOOK_HINT_SEARCH" : "THEORY_AVAILABLE_INDEPENDENT_HINT",
                 book == null ? null : book.uci(), budget, requested,
                 available, chosenRank, variants.get(chosenRank - 1).pv().getFirst(), search.selectedDepth(), search.seedDepth(),
-                search.comparisonDepth(), search.extraNodes(), variants, compared, index == 0 ? GENESIS : receipts.getLast().digest());
+                search.comparisonDepth(), search.extraNodes(), variants, compared, index == 0 ? GENESIS : receipts.getLast().digest(),search.proof());
         var envelope = new Envelope(decision, digest(json(decision)));
         var next = match.play(Move.fromUci(decision.chosen()));
         receipts.add(envelope);
@@ -161,7 +163,7 @@ final class HintAuditSession {
             var body = received.decision();
             require(digest(json(body)).equals(received.digest()), "Altered audit receipt digest");
             var expected = session.advance((board, budget) -> new Search(scored(body.variants()), scored(body.comparedVariants()),
-                    body.extraNodes(), body.selectedDepth(), body.seedDepth(), body.comparisonDepth()));
+                    body.extraNodes(), body.selectedDepth(), body.seedDepth(), body.comparisonDepth(),body.proof()));
             require(expected.equals(received), "Audit history, position, clock, context, chain or rank differs");
         }
         return session;
@@ -170,6 +172,11 @@ final class HintAuditSession {
     private static List<Variation> scored(List<Variant> variants) {
         return variants.stream().map(variant -> new Variation(variant.pv().stream().map(Move::fromUci).toList(),
                 variant.scoreCp(), variant.materialChangeCp(), TacticalAnalysis.Ending.valueOf(variant.ending()))).toList();
+    }
+
+    static void validateProof(ChessPosition position,CoachingProof.Work proof,int ordinary,int depth) {
+        if(proof==null)return;proof.validate(position,depth);
+        require(proof.complete()&&proof.ordinaryNodes()==ordinary&&proof.nodes()<=proof.ceiling(),"Incomplete or foreign tactical work");
     }
 
     static int materialChangeCp(ChessPosition start, ChessPosition end) {

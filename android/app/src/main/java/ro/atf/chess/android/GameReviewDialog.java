@@ -186,6 +186,12 @@ final class GameReviewDialog {
                     remember.accept(result);
                     display(match, result, human, bot);
                 });
+            } catch (ro.atf.chess.CoachingProof.Incomplete incomplete) {
+                content.post(() -> {
+                    if(!dialog.isShowing())return;
+                    label.setText(R.string.game_review_incomplete);
+                    progress.setVisibility(View.GONE);
+                });
             } catch (CancellationException cancelled) {
                 // Closing the dialog cancels the local search.
             } catch (RuntimeException | LinkageError failure) {

@@ -23,7 +23,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P2 | Android · gestul predictiv | Gestul predictiv mai cere un dispozitiv compatibil. | Verifică anularea și reluarea pe API 33+. |
 | P1 | Hard nativ · pierderi în jocuri încheiate | `g4` din Scandinavă este protejat de noua regresie `Ne4`; Franceza `Nc4` este acum protejată de dovada recapturii la H6 complet; Engleza `…Qf6` și Gambitul Damei `…Qa5` rămân. | Compară replicile libere complete la un orizont comun; păstrează catalogul, sacrificiile corecte și Basic/Advanced înainte de promovare. [Pașii următori](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră) |
 | P2 | Frontieră tactică · șah la limită | O frontieră în șah poate încă să se oprească fără evadare legală; extensia generală pierde 13 contracte existente. | Rezolvă cauza precisă în aceeași alocație taxată; păstrează eșecurile benchmark explicite până trec calitatea și transferul. |
-| P1 | Coaching · dovada recapturii ascunse | Linia afișată poate opri schimbul înainte de răspuns; verificarea cerută nu trebuie să împrumute tacit o replică neevaluată. | Caută recapturile legale în aceeași alocație, păstrează dovada evaluată integrală separat de prefixul vizibil și guvernează întreruperea, legăturile, sacrificiile și restartul. [Contract](#dovada-tactică-și-liniile-afișate) |
+| P1 | Coaching · dovada recapturii ascunse | Verificarea forțată din motor și recepția lucrului sunt implementate; previzualizarea încă arată linia integrală evaluată. | Proiectează prefixul vizibil mai scurt păstrând dovada integrală, recomandarea comună și identitatea după restart. Nu ascunde replici decisive. [Contract](#dovada-tactică-și-liniile-afișate) |
 | P1 | Coaching francez · indiciu și analiză | Hard nativ alege acum mutarea verificată a calului, dar indiciul public preferă încă `Bb5+`, iar analiza o poate numi BEST. | Închide continuarea adversă completă și scorul analizei în bugetele proprii; ambele scopuri executabile trebuie să treacă fără istoric schimbat. [Reparația nativă și limite](../board/ai-quality.md#închiderea-recapturii-de-pion-la-orizontul-complet) |
 | P1 | Calibrarea profilurilor AI | Intervalele Elo încă se suprapun. | Adaugă jocuri pereche pentru a restrânge incertitudinea. |
 | P1 | Forța Hard adaptiv | Căutarea pornește cu 100.000 de noduri și o rezervă până la 200.000. | Compară cele trei moduri pe partide excluse din ajustare și verifică replica adversă. |
@@ -453,31 +453,29 @@ damă. Martorul francez `Nxf5 …exf5` este exact o captură piesă–pion urmat
 de pion. Păstrează SAN-ul și ambele bilanțuri materiale; nu clasifica `Nxf5` drept
 mutare liniștită.
 
-Implementează întâi proprietatea dovezii în motor și cazurile componente negative,
-apoi proiectează prefixul vizibil fără să modifici dovada sau istoricul salvat.
+Proprietatea dovezii în motor și componentele negative sunt implementate. Proiectează
+prefixul vizibil fără să modifici dovada sau istoricul salvat.
 Becul, destinația jucată și analiza finală trebuie să indice aceeași recomandare
 evaluată. Mock-urile acoperă lucrul întrerupt, rulările străine și fazele lipsă;
 deciziile șahistice păstrează dovada independentă Stockfish H17/H19. Separarea UI
 rămâne deschisă până trec contractele dovezii și prezentării.
 
-Cerința șirului forțat dinamic este de asemenea deschisă: continuă recapturile legale
-relevante și evadările obligatorii până la poziție stabilă sau rezultat efectiv,
-inclusiv repetiție. Alocă o rezervă configurabilă plafonată cât șirul este deschis;
-nu numi schimb încheiat o oprire la buget. Separă orizontul obișnuit de adâncimea
-forțată suplimentară și taxează fiecare vizită. La plafon, raportează dovadă incompletă,
-nu scor final certificat. Componentele trebuie să acopere recapturi multiple, recapturi
-cu șah, apărare liniștită mai puternică, pioni legați, repetiție și pragul exact de
-buget. Prefixul vizibil poate omite sufixul numai dacă dovada integrală evaluată
-rămâne în audit și după restart. Reparația Native H6 focalizată nu este implementarea
-completă a cerinței de prezentare pentru coaching.
+Rezerva din motor închide acum frontiera deschisă prin capturi continue și evadări
+obligatorii taxate, respingând rezultatele incomplete ale indiciului/analizei. Vezi
+[contractul implementării](../board/ai-quality.md#frontiera-dinamică-de-coaching). Separă
+lucrările rămase:
 
-Tratează 200k drept alocația obișnuită de coaching, fără să declari încheiat un schimb
-încă deschis doar fiindcă a fost atinsă. Politica YAML propusă trebuie să separe această
-alocație de un plafon mai mare al dovezii forțate și să taxeze lucrul cumulat. Alocă
-rezervă cât există recapturi relevante sau evadări legale în șah și compară alternativele
-sub aceeași politică. La repetiție, rezultat terminal, anulare sau plafon final,
-păstrează motivul distinct. Un sufix incomplet nu poate deveni scor exact în cache
-sau etichetă BEST. Nu urmări șahuri arbitrare la infinit și nu obliga adversarul să
-recaptureze când are o apărare legală mai puternică. Admiterea cere lanțuri componente
-de recapturi și evadări, negative la prag/anulare/cache și decizii complete independente
-înainte ca această funcționalitate să fie declarată implementată.
+- Previzualizarea arată încă dovada integrală; prefixul vizibil mai scurt și sufixul de
+  verificare accesibil separat cer teste proprii de prezentare și restart.
+- Franceza `Bb5+` și apărarea liniștită slabă rămân defecte de calitate. Recapturile
+  continue nu repară singure apărarea liniștită dincolo de orizont; păstrează ambele FAIL-uri benchmark.
+- Păstrează garda orizonturilor pare: prototipul fără gardă înlocuia `Nxd7` calificat
+  independent cu `Bxe4`, crescând pierderea de la 43,5/8 la 335/243,5‰ la H17/H19.
+  Garda finală trebuie să păstreze scorul închis efectiv, să taxeze confirmarea și
+  să nu publice scor dacă aceasta se întrerupe.
+- Cache-urile v1 rămân lizibile, fără recepția forțată nouă. Distinge analiza istorică
+  de evaluatorul nou calificat când revizitezi rezultate vechi păstrate în cache.
+
+Nu deduce Elo sau transfer independent larg din controalele forțate compuse. Partidele
+noi complete cer în continuare hint maxim înaintea fiecărei mutări, analiză finală și
+fazele profesorului rece sub producătorul real, cu recepția rezervei păstrată.
