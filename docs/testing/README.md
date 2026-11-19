@@ -830,3 +830,10 @@ contraexemplele scandinave de transfer și admiterea legală în oglindă.
 `RuyComparisonBenchmarkTest` și `ScotchContinuationBenchmarkTest` păstrează explicit
 roșie calitatea continuărilor încă nerezolvate; nu sunt aserțiuni verzi de componentă
 sau parcursuri în emulator. [Metoda auditului](learning-archive.md)
+
+`ScotchPromotionEvidenceTest` acoperă offline promovarea liniei complete și
+substituirea sursei, cu toate cele 28 de faze brute H17/H19 ale unei reparații respinse.
+Reutilizează `CoachingLineEvidence` la publicarea studiului.
+`ScotchReviewClassificationBenchmarkTest` adaugă clasificarea efectivă pe o mutare
+la scopurile runtime nerezolvate.
+[Admiterea rădăcinii și a liniei complete](learning-archive.md#admiterea-rădăcinii-și-a-liniei-complete)

@@ -163,3 +163,21 @@ respinși păstrează producătorul original și statutul diagnostic; o rejucare
 corecție de adnotare nu le transformă în joc observat al sursei curente. Derivă
 etichetele deschiderilor din ID-urile cazurilor reale; adaugă corecție legată de sursă
 dacă proza fixată era greșită, păstrând amprentele jurnalului, PGN-ului și oracolului.
+
+## Admiterea rădăcinii și a liniei complete
+
+Prima mutare reparată are verdict separat de continuarea evaluată.
+`CoachingLineEvidence` leagă corpul nativ exact de identitatea de încredere a oracolului,
+toate cererile libere/forțate H17/H19 planificate, UCI-ul brut și fiecare prefix
+ipotetic efectiv. Respinge fazele lipsă, duplicate, străine sau nefolosite înaintea
+calculului de calitate. Un corp nativ incomplet nu se califică nici cu amprentă nouă.
+
+`ScotchPromotionEvidenceTest` păstrează un experiment H7 respins: Re8+ trece pragul
+independent al rădăcinii, dar două alegeri negre ulterioare eșuează și o apărare albă
+are verdict diferit între adâncimi. Admiterea liniei cere rădăcină calificată și
+absența pierderilor mari stabile sau a disputelor între adâncimi. Reamprentarea unui
+rezumat editat nu verifică UCI-ul brut. Inventarul scurtat nu poate ascunde ultima mutare.
+
+Păstrează benchmarkurile runtime originale executabile, inclusiv clasificarea prin
+`GameReview.analyzeLine` efectiv pe o mutare. Validatorul de dovezi verde demonstrează
+respingerea experimentului slab de către poartă; nu califică motorul.
