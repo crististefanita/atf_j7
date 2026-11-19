@@ -102,6 +102,7 @@ public final class BoardSanity extends Instrumentation {
     private String runId;
     private String puzzleLanguage;
     private int replayRotation = -1;
+    private volatile Activity sourceReplayActivity;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
@@ -159,11 +160,8 @@ public final class BoardSanity extends Instrumentation {
 
     private void checkSourceSizedReplay() throws Exception {
         enableReviewNodeIds();
-        if (enlargedReplayPhase() && replayRotation < 0) throw new AssertionError("The enlarged probe requires an explicit physical rotation");
-        if (replayRotation >= 0) {
-            if (replayRotation > 1 || !getUiAutomation().setRotation(replayRotation)) {
-                throw new AssertionError("Could not freeze the requested replay rotation");
-            }
+        if (enlargedReplayPhase() && (replayRotation < 0 || replayRotation > 1)) {
+            throw new AssertionError("The enlarged probe requires an explicit physical rotation");
         }
         if (!enlargedReplayPhase()) calibrateSourceReplayDisplay();
         var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
@@ -172,13 +170,8 @@ public final class BoardSanity extends Instrumentation {
         var store = new ChessProgressStore(getTargetContext());
         var saved = ChessMatch.restore(ro.atf.chess.capture.ReplayViewportFixture.CALCULATED);
         if (!store.matches().saveMatch(saved, false)) throw new AssertionError("Could not seed analysis");
-        var game = launch();
-        if (enlargedReplayPhase()) {
-            long deadline = SystemClock.uptimeMillis() + 5000;
-            while (sourceDisplay().getRotation() != replayRotation && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(50);
-            if (sourceDisplay().getRotation() != replayRotation) throw new AssertionError("The target application's physical display did not rotate");
-            calibrateSourceReplayDisplay();
-        }
+        var game = launchSourceReplay();
+        if (enlargedReplayPhase()) calibrateSourceReplayDisplay();
         var config = game.getResources().getConfiguration();
         receipt.putString("replayProfile", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
                 + "@" + config.densityDpi + ", font=" + config.fontScale + ", language=" + config.getLocales().get(0).getLanguage());
@@ -216,7 +209,8 @@ public final class BoardSanity extends Instrumentation {
         if (!store.quests().save(store.quests().read(order).select(quest.id()), store.quests().readRewards(), 2)) {
             throw new AssertionError("Could not seed mating stage");
         }
-        var puzzle = launch();
+        var puzzle = launchSourceReplay();
+        if (enlargedReplayPhase()) calibrateSourceReplayDisplay();
         var puzzleBoard = findBoard(viewsOf(puzzle));
         var mateSource = screenBounds(puzzleBoard);
         tap(puzzle.findViewById(R.id.quest_guidance_label));
@@ -245,6 +239,29 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private boolean sourceReplayPhase() { return "source-sized-replay".equals(phase) || enlargedReplayPhase(); }
+
+    @Override public void callActivityOnResume(Activity activity) {
+        super.callActivityOnResume(activity);
+        if (sourceReplayPhase() && activity instanceof ChessActivity) sourceReplayActivity = activity;
+    }
+
+    private Activity launchSourceReplay() {
+        sourceReplayActivity = null;
+        Activity launched = launch();
+        if (!enlargedReplayPhase()) return launched;
+        if (!getUiAutomation().setRotation(replayRotation)) throw new AssertionError("Could not freeze the target replay rotation");
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        do {
+            waitForIdleSync();
+            Activity current = sourceReplayActivity;
+            boolean[] ready = {false};
+            if (current != null) runOnMainSync(() -> ready[0] = !current.isDestroyed() && !current.isFinishing()
+                    && current.hasWindowFocus() && sourceDisplay().getRotation() == replayRotation);
+            if (ready[0]) return current;
+            SystemClock.sleep(50);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("The resumed target activity did not reach its physical replay rotation");
+    }
 
     private void calibrateSourceReplayDisplay() throws Exception {
         replayCapture = displayCaptureGeometry();
