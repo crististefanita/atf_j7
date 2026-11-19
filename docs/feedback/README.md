@@ -9,6 +9,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
+| P1 | Scotch · winning check and opposing mate | At move 20, the hint compares `…dxc3` and `…gxf6`, omits `…Re8+`, and loses 314/348.5‰. Later in its PV, `Bxb2` replaces White's forced mate in three by `Bxh7+`. | Readmit the winning root and search free opposing replies, including quiet follow-up checks; preserve the valid bishop sacrifice, existing root guards and negative work limits. Both explicit quality goals remain FAIL. [Witnesses](#scotch-winning-check-and-opposing-mate) |
 | P1 | Hint comparison · whole diagnostic PV | The repaired Ruy public line has no large loss, but the rejected `Ng5 …O-O Nc3` comparison still contains a 346/378.5‰ weak move. | Audit comparison continuations as well as offered hints; repair the full free-reply line and keep the explicit comparison benchmark FAIL until both horizons qualify it. [Mechanism](../board/ai-quality.md#quiet-opposing-offers-inside-a-hint) |
 | P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation with 200k ordinary work and its separately charged finite proof reserve, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
@@ -527,3 +528,35 @@ sound-sacrifice components. The weaker compared continuation remains separate
 quality debt, with an executable benchmark and raw teacher phases. A new complete
 game must retain every pre-move hint and its full final analysis under the actual
 producer; do not relabel the previous 55-ply Ruy game as current play.
+
+## Scotch winning check and opposing mate
+
+The narrowed source `e4bdd31af382297360e825bb1a47729e20c5cbbc` passed the 106-position
+historical root gate: three changed recommendations, 18 fresh oracle phases, zero
+incomplete results and zero new large root regressions. Its 52-ply Scotch game is
+new observed play: ten declared theory moves, 21 actual Hard moves and 21 Stockfish
+moves, ending in Black checkmate. Every turn has a pre-move maximum hint. All 52
+hint objects match the baseline on these new positions: no full-capture admission
+was activated. This is preservation, not independent evidence of a strength gain.
+
+The 66 public offers have 377 hypothetical plies and 1,282 independent H17/H19
+queries. Twenty-seven plies have stable loss of at least 150‰, including twelve
+opposing replies; three first hints lose substantially. Two of the 52 native choices
+have large loss; only one was actually played by Hard, the other is a shadow choice
+on the oracle's turn. Full final review retains all 52 turns and both branches:
+three recommended roots lose substantially, 39 branch plies are weak, three native
+error labels have small oracle loss and one large loss lacks an error label.
+All 66 endpoints are checked: zero unsound exposed important pieces, but five last
+moves remain inferior. No Elo or globally optimal hints are established by this game.
+
+[ScotchWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/ScotchWitnessTest.java)
+keeps eight raw phases, full actual/hypothetical history and original source identity.
+At the original move, free Stockfish selects `…Re8+`; the verification shortlist
+omits it. Later, free White play proves `Bxh7+ Kxh7 Qh5+ Kg8 Qh8#` at both depths.
+`Bxb2` misses that mate but still retains winning chances; do not describe it as a
+losing sacrifice. The correct bishop-for-pawn sacrifice must survive future changes.
+[ScotchContinuationBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/ScotchContinuationBenchmarkTest.java)
+keeps separate FAIL goals for root readmission and the complete opposing continuation.
+Do not repair only the displayed suffix, ban captures, force one defense or replace
+history. Verify the root and all freely chosen replies at their actual horizon.
+Evidence is in `C:\work\sah\.studii\corpus\2026-11-19-ruy-qualified-coaching`.
