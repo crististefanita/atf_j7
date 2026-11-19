@@ -10,6 +10,8 @@ Choose the lowest test level that can observe the change. Build from a copy of t
 
 Opening variety is governed by [OpeningVarietyTest](../../atf-tests/src/test/java/ro/atf/chess/OpeningVarietyTest.java): complete authored-pool coverage, native decisions for all levels, atomic persistence failures, legacy checkpoints, history and slot replacement. The same-position hint and final review must remain identical across game choices. A new audited game measures transfer quality separately from these deterministic component contracts.
 
+Repertoire changes need their own scope check: freeze the independently verified root and all offered PV plies, compare free opposing replies at H17/H19, preserve the existing horizon and node allowance, and include a context where the same piece move is sound. An exact-position correction must not be reported as a general search or Elo gain. [Native example and independent evidence](../../atf-tests/src/test/java/ro/atf/chess/NimzoRepertoireTest.java)
+
 ## Choosing the Test Level
 
 - **Component** for rules, progress, persistence, ordering, and measurable layout. Use the real store with in-memory preferences and assert observable values.
