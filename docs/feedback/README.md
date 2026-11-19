@@ -21,8 +21,10 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P2 | Hint audit · broader transfer | Two more games reach checkmate with 106 pre-move native/hint pairs including the sound-sacrifice control. | Add excluded opening ancestry and actual candidate games; replaying the inspected paths is not new-family or Elo proof. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
-| P1 | Native Hard · finished-game losses | Scandinavian `g4` is protected by the new `Ne4` regression; English `…Qf6`, French `Bb5+` and Queen's Gambit `…Qa5` remain. | Compare complete free replies at a common horizon; preserve the catalog, sound sacrifices and Basic/Advanced before promotion. [Next work](#finished-game-native-losses-and-frontier-controls) |
+| P1 | Native Hard · finished-game losses | Scandinavian `g4` is protected by the new `Ne4` regression; French `Nc4` is now protected by complete H6 recapture evidence; English `…Qf6` and Queen's Gambit `…Qa5` remain. | Compare complete free replies at a common horizon; preserve the catalog, sound sacrifices and Basic/Advanced before promotion. [Next work](#finished-game-native-losses-and-frontier-controls) |
 | P2 | Tactical frontier · check at the limit | A checked frontier may still stop without a legal evasion; the broad extension fails 13 existing contracts. | Resolve the precise cause within one charged allowance; keep the explicit benchmark failures until quality and transfer pass. |
+| P1 | Coaching · hidden recapture proof | A displayed line may stop before its capture is answered; requested verification must not silently borrow an unscored reply. | Search legal recaptures inside the same allowance, retain the complete scored proof separately from the shorter visible line and govern interruption, pins, sound sacrifices and restart. [Contract](#tactical-proof-and-displayed-lines) |
+| P1 | French coaching · hint and review | Native Hard now chooses the verified knight move, but the public hint still prefers `Bb5+` and review can call it BEST. | Close the complete opposing continuation and the review score at their own budgets; both executable quality goals must pass without changing history. [Native repair and scope](../board/ai-quality.md#closing-a-pawn-recapture-at-the-completed-horizon) |
 | P1 | AI profile calibration | The Elo intervals still overlap. | Add paired games to narrow the rating uncertainty. |
 | P1 | Hard adaptive strength | Foreground search uses 100,000 nodes and a reserve to 200,000. | Compare the three modes on held-out games and verify the opposing reply. |
 | P1 | Hard learning from PGNs | The loss-trained ordering model keeps all final moves in 36 new families. | Add preserved moves and sacrifices, then verify ranking and complete decisions. |
@@ -413,8 +415,8 @@ played by Stockfish. It is not a second improved played game. Two prior French c
 also have small score differences, including a 2.5/4.5‰ deterioration. Mean catalog
 work rises by about 8.1%; no speed, depth or Elo gain is claimed. [Method and limits](../board/ai-quality.md#native-secondary-move-verification)
 
-**Next surgical priority:** resolve French `Bb5+ …c6 Nc4 …Qd7 Nf5 …exf5` as a complete
-scored comparison, and keep English `…Qf6` versus free `…Nc6` as a transfer case. Uniform
+The French native comparison is closed by the [completed recapture contract](../board/ai-quality.md#closing-a-pawn-recapture-at-the-completed-horizon). Keep its separate hint and review
+failures open and retain English `…Qf6` versus free `…Nc6` as transfer. Uniform
 one-ply closure gains 24 stages but loses 40; repeating it or merely increasing the
 expected answer is not an acceptable repair. Keep common-horizon free defenses,
 `training-021/051/065`, all mate chapters, scoped queen recaptures and a sound queen
@@ -422,3 +424,49 @@ sacrifice. The unresolved checked-frontier tests remain explicitly tagged benchm
 The [admission contract](../testing/learning-archive.md#finished-game-continuation-studies)
 explains original identities and automatic versus claimable draws. Evidence stays in
 `C:\work\sah\.studii\experiments\2026-11-19-hard-continuation`.
+
+## Tactical proof and displayed lines
+
+Requested on November 19: keep the final verification reply out of the normal hint
+preview when it is only needed to establish the result of an exchange. This requires
+two explicit representations: the visible prefix and the complete scored tactical
+proof. Keep origin, full history, legal recapture, score before/after, completed
+ordinary horizon, proof length, consumed work and termination reason auditable.
+Do not append a decorative reply or replace the score after rendering. Missing or
+interrupted evidence must stay unknown; it cannot certify a material gain.
+
+A single automatic recapture is insufficient when the adversary has a stronger
+quiet defense, several legal recaptures or a winning sacrifice. Search legal
+alternatives; preserve pins, en passant, promotion, mate and the sound queen offer.
+The French `Nxf5 …exf5` witness is exactly a piece-for-pawn capture followed by a pawn
+recapture. Preserve its SAN and both material ledgers; do not misclassify `Nxf5` as a quiet move.
+
+First implement engine-side proof ownership and negative component cases, then
+project the visible prefix without mutating the underlying proof or saved history.
+The bulb, played destination and final analysis must refer to that same scored
+recommendation. Component mocks cover interrupted work, foreign runs and missing
+phases; actual chess decisions retain independent Stockfish H17/H19 evidence.
+UI separation remains open until those proof and presentation contracts pass.
+
+The dynamic forcing-chain requirement is also open: continue relevant legal
+recaptures and mandatory check evasions until a stable position or actual terminal
+result, including repetition. Allocate a bounded configurable reserve when that
+chain is pending; do not call a budget cutoff a completed exchange. Keep ordinary
+search depth distinct from additional forcing depth and keep every visit charged.
+If the ceiling is reached, report incomplete proof rather than a certified final
+score. Component cases must cover multiple recaptures, checking recaptures, a quiet
+stronger defense, pinned recapturers, repetition and exact budget-boundary failure.
+The visible prefix may omit the verification suffix only when its complete scored
+proof remains available in audit and survives restart. The focused Native H6 repair
+is not a completed implementation of this coaching presentation requirement.
+
+Treat 200k as the ordinary coaching allowance, not a reason to declare a pending
+exchange finished. The proposed YAML policy must separate that allowance from a
+larger forcing-proof ceiling and charge their combined work. Allocate reserve only
+while relevant recaptures or legal check evasions are pending, and compare alternatives
+under the same policy. At a repetition, terminal result, cancellation or hard ceiling,
+record the distinct reason. An unfinished suffix must not become an exact cached score
+or a BEST classification. Do not pursue arbitrary checks forever or make the opponent
+recapture automatically when a stronger legal defense exists. Admission needs continuous
+recapture and check-evasion component chains, exact boundary/cancellation/cache negatives,
+and independent completed decisions before this feature is called implemented.
