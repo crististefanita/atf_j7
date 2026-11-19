@@ -48,7 +48,8 @@ final class OpeningTheory {
         // Shared lesson prefixes must not weight the same move more than once.
         var playing = new HashMap<SearchKey, List<Move>>();
         authored.forEach((key, paths) -> playing.put(key, paths.values().stream()
-                .map(path -> path.steps().get(0).move()).distinct().collect(Collectors.toUnmodifiableList())));
+                .map(path -> path.steps().get(0).move()).distinct()
+                .collect(Collectors.collectingAndThen(Collectors.toList(), List::copyOf))));
         playMoves = Map.copyOf(playing);
         // Apply the display limit per position, after indexing every documented lesson.
         var choices = new HashMap<SearchKey, List<Theory>>();
