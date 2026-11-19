@@ -141,3 +141,10 @@ o familie nouă de deschidere și nu stabilesc Elo. Salvează un martor mic al p
 pierderi, cu context integral, în resursele testelor; păstrează PGN-ul, toate observațiile
 pre-move și analizele complete în corpusul extern. Nu transforma cheile în mutări
 forțate la execuție.
+
+O colecție cu deschidere nouă nu trebuie să inventeze o partidă de sacrificiu de damă
+pentru a copia un fixture istoric. Benchmarkul final cere exact un capăt separat de
+sacrificiu corect când acel caz a fost efectiv colectat și zero altfel; toate capetele
+publice, analizele native, amprentele surselor, fazele brute și pragurile de calitate
+rămân obligatorii. Păstrează sacrificiul corect prin martorii de componentă și
+controlul colecției originale când rejoci acea colecție.
