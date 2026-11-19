@@ -221,6 +221,8 @@ mvn -B -ntp test '-Dtest=AndroidSanityPublication#publishSourceReplaySanity' `
 per profile/language. It verifies the run, process, APK, receipt/capture hashes
 and exact display marker. Missing, substituted or duplicate assertions and a
 wrong profile fail closed in `AndroidSourceReplayReceiptTest`.
+Next/Previous also require the expected displayed ply, branch selection and
+the actual mating move; unchanged coordinates alone cannot satisfy navigation.
 This development sanity does not qualify a signed release APK.
 
 On API 28, the full framebuffer may letterbox a different logical aspect

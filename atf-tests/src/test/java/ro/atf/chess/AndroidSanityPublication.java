@@ -759,7 +759,7 @@ class AndroidSanityPublication {
                             + (anchor == null ? "" : " · match run " + anchor.execution().path("runId").asText()),
                     sameExecution));
             if (runs.size() > 1) {
-                checks.add(new AtfAssertion("Instrumentation process IDs", "Two distinct Android PIDs", String.join(" → ", pids), restarted));
+                checks.add(new AtfAssertion("Instrumentation process IDs", runs.size() + " distinct Android PIDs", String.join(" → ", pids), restarted));
             }
             publish(phase, "Verify native provenance", checks, complete);
             if (sameExecution && sharedRunId) {
