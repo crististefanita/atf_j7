@@ -1317,3 +1317,8 @@ atacul calificat `…Qh5` împotriva substituției inferioare `…Bxf3` în dou�
 Contraexemplele sunt componente permanente. Partida Pirc a variantei largi rămâne
 diagnostică sub producătorul original și nu califică revizia restrânsă. Pornește
 colecția nouă observată a acesteia numai după poarta de transfer.
+
+În fixture-ul offline intră doar cele douăsprezece faze brute necesare celor trei
+contraexemple; toate cele patruzeci și opt de faze de transfer și rejucarea originală
+completă rămân externe. Fixture-ul redus păstrează amprentele planului și arhivei brute,
+istoricul integral și identitatea observației originale.

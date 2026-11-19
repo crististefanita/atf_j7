@@ -96,7 +96,7 @@ class RuyReplyTest {
         try(var in=getClass().getResourceAsStream("/ruy-transfer-witnesses.yaml")) {
             var data=JSON.readTree(in);
             check.same("The independently confirmed transfer counterexamples stay immutable",
-                    "ee5c196159014c9846830e0515c91751a704d5bfa8b46bf4f009722d04e0ea1d",
+                    "082b68d812ed7292ff49a189b1396eabfb03e3e4ac814a4f83abc825ce97255d",
                     HardLeagueAudit.digest(HardLeagueAudit.canonical(data).getBytes(StandardCharsets.UTF_8)));
             var teacher=rows(data);
             for(var sample:data.path("positions")) {
