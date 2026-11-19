@@ -227,12 +227,48 @@ This development sanity does not qualify a signed release APK.
 Use `-Dchess.extent=<report>` for a fresh explicit report path. Report durations
 refer to receipt validation/publication; native action latency is not measured.
 
+Run an explicit Android publisher in its own JUnit invocation, with a fresh
+report path. Do not combine it with component tests under the same
+`chess.extent`: both own their report session, and existing-output admission
+must reject overwriting one report with the other.
+
 On API 28, the full framebuffer may letterbox a different logical aspect
 ratio. `FramebufferProjection` accepts a mapping only when Android's primary
 input viewport matches the current display and its complete centered content
 rectangle. Pixel checks use that verified rectangle and preserve the original
 PNG. A crop, missing/foreign viewport or unsupported rotation fails closed;
 the older `ScreenCaptureGeometry` aspect-ratio checks remain unchanged.
+
+API 28 reports `deviceSize` and `physicalFrame` in the post-orientation
+coordinate space. Do not rotate them a second time. After launching the target,
+wait for the current resumed activity, its display rotation and InputReader's
+viewport to agree before calibrating touch or screenshots. A portrait launcher
+can recreate the target; a stale activity must not supply views or labels.
+[Android display projection](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-9.0.0_r61/services/core/java/com/android/server/display/DisplayDevice.java#L147-L208).
+
+For enlarged text and physical rotation, build the signed app **and** its
+instrumentation with `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`.
+On a clean emulator use `-Distribution -ReplayEnlargedOnly -SourceCommit <sha>`.
+This retains the three logical profiles and both locales at font 1.3. The
+portrait case is rotation 0; the two landscape cases require observed rotation
+90, with the unrotated display dimensions reversed before freezing rotation.
+Requested settings alone cannot qualify a physical turn.
+Each case starts and stabilizes at its declared orientation. This matrix does
+not rotate an already open replay dialog or certify its state restoration.
+
+The enlarged phase retains the twenty geometry/cursor checks and adds Back
+return checks for calculated, theory and mating dialogs. Back must restore the
+source rectangle and input focus to the source window; this does not certify
+TalkBack accessibility focus. All text growth stays within the explanation
+viewport, while board and touch controls remain outside page scrolling.
+The runner restores size, density, font and user rotation settings in `finally`.
+
+Publish with `AndroidSanityPublication#publishSignedSourceReplaySanity` and the
+same receipt directory. It requires a release variant, matching app/test signer
+and installed APK bytes, exact font/rotation/profile markers, twenty-three
+ordered assertions and four bound captures per locale/profile. The separate
+`publishEnlargedSourceReplaySanity` entry point is development-only and cannot
+qualify a signed APK. [Signing identity](../release/README.md#qualification-and-publication).
 
 <details>
 <summary>Shared cases, screens, and receipts</summary>

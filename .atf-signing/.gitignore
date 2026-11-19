@@ -1,0 +1,7 @@
+*
+!.gitignore
+!README.md
+!chesslab-release.p12
+!password.dpapi
+!identity.json
+!certificate.der
