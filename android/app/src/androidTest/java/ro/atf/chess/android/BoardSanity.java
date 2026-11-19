@@ -1431,8 +1431,9 @@ public final class BoardSanity extends Instrumentation {
         waitForIdleSync();
         var tokens = (ViewGroup) activity.findViewById(R.id.match_history_moves);
         compare("Confirming saves the prefix, removes old history chips and enables the selected side",
-                List.of(branch.checkpoint(), branchPly + 1, true),
-                List.of(store.matches().readMatch().checkpoint(), tokens.getChildCount(), cell(board, "b2").isEnabled()));
+                List.of(branch.checkpoint(), 1, true, ro.atf.chess.MatchHistorySelection.at(branch, branchPly).compact()),
+                List.of(store.matches().readMatch().checkpoint(), tokens.getChildCount(), cell(board, "b2").isEnabled(),
+                        ((TextView) tokens.getChildAt(0)).getText().toString()));
         tap(cell(board, "b2"));
         tap(cell(board, "b3"));
         compare("The alternative move becomes the new saved continuation", Move.fromUci("b2b3"), store.matches().readMatch().moveAt(branchPly + 1));
