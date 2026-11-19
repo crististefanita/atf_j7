@@ -226,6 +226,8 @@ profil greșit produc FAIL în `AndroidSourceReplayReceiptTest`.
 Înainte/Înapoi cer și semimutarea afișată corectă, selectarea variantei și
 mutarea efectivă de mat; coordonatele neschimbate nu sunt suficiente.
 Acest sanity de dezvoltare nu califică APK-ul semnat al unei ediții.
+Folosiți `-Dchess.extent=<raport>` pentru un fișier nou ales explicit. Duratele
+raportului descriu validarea/publicarea recepțiilor; latența acțiunilor native nu este măsurată.
 
 În API 28, framebufferul complet poate include benzi în jurul unui ecran
 logic cu alt raport de aspect. `FramebufferProjection` acceptă maparea doar
