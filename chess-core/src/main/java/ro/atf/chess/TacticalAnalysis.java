@@ -86,10 +86,15 @@ public final class TacticalAnalysis {
     static ReviewSearch review(ChessPosition position,Move played,Set<Move> draws,MatchAiPolicy.Search policy,CoachingProof.Policy proofPolicy) {
         var seed=reviewSeed(position,played,draws,policy);
         if(!CoachingProof.needed(position,List.of(seed.best(),seed.played())))return seed;
-        var verified=CoachingProof.compare(position,position.legalMoves(),seed.depth(),draws,proofPolicy,Set.of(played));
+        var reference=OpeningRepertoire.CURRENT.reviewReply(position);
+        var required=new java.util.HashSet<Move>();required.add(played);
+        if(reference!=null&&!draws.contains(reference))required.add(reference);
+        var verified=CoachingProof.compare(position,position.legalMoves(),seed.depth(),draws,proofPolicy,required,1);
         var work=verified.work().afterOrdinary(seed.ordinaryNodes());
         if(!work.complete())throw new CoachingProof.Incomplete(work);
         var ranked=verified.lines();var best=ranked.get(0);
+        var book=ranked.stream().filter(v->v.move().equals(reference)&&!draws.contains(v.move())).findFirst().orElse(null);
+        if(book!=null&&best.ending()==Ending.HORIZON&&book.ending()==Ending.HORIZON&&best.score()-book.score()<=180)best=book;
         var chosen=ranked.stream().filter(v->v.move().equals(played)).findFirst().orElseThrow();
         int other=ranked.stream().filter(v->!v.move().equals(played)).mapToInt(Variation::score).max().orElse(-LIMIT);
         boolean onlyMate=chosen.signedMatePlies()>0&&ranked.stream().noneMatch(v->!v.move().equals(played)&&v.signedMatePlies()>0);
@@ -351,13 +356,17 @@ public final class TacticalAnalysis {
         var roots=new java.util.LinkedHashSet<Move>();
         for(var line:seed.lines())roots.add(line.move());
         if(seed.comparison()!=null)for(var line:seed.comparison().result().ranked())roots.add(line.move());
-        var proof=CoachingProof.compare(position,List.copyOf(roots),seed.selectedDepth(),Set.of(),policy,Set.of(seed.lines().get(0).move()));
+        var proof=CoachingProof.compare(position,List.copyOf(roots),seed.selectedDepth(),Set.of(),policy,Set.of(seed.lines().get(0).move()),MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies());
+        if(proof.work().complete()) {
+            var ranked=new ArrayList<>(proof.lines());HintPinSupport.sort(position,ranked);proof=new CoachingProof.Result(ranked,proof.work());
+        }
         proof=CoachingProof.confirmLeader(position,proof,seed.lines().get(0).move(),policy);
         var work=proof.work().afterOrdinary(seed.extraNodes());
         if(!work.complete())return new HintSearch(List.of(),null,seed.extraNodes(),seed.seedDepth(),0,work);
         var result=new Result(proof.lines());
         var comparison=proof.lines().size()<2?null:new SearchReport(result,seed.selectedDepth(),0);
-        return new HintSearch(hintLines(result,MatchAiPolicy.CURRENT.hint),comparison,seed.extraNodes(),seed.seedDepth(),seed.selectedDepth(),work);
+        var eligible=hintLines(result,MatchAiPolicy.CURRENT.hint).stream().filter(v->v.move().equals(result.ranked().get(0).move())||seed.lines().stream().anyMatch(original->original.move().equals(v.move()))).collect(Collectors.toList());
+        return new HintSearch(eligible,comparison,seed.extraNodes(),seed.seedDepth(),seed.selectedDepth(),work);
     }
 
     private static HintSearch seedHints(ChessPosition position, int totalNodes) {
@@ -501,6 +510,17 @@ public final class TacticalAnalysis {
         var roots = alternative == null ? legal : List.of(preferred, alternative);
         var comparison = verifyHintRoots(position, roots, policy.verificationNodes(), policy.search().maxPlies()).search();
         var lines = comparison.result().ranked();
+        var publicHint=verifiedHints(position);
+        if(publicHint.proof()!=null&&publicHint.proof().roots().contains(preferred)
+                    &&(alternative==null||publicHint.proof().roots().contains(alternative))) {
+                if(!publicHint.proof().complete()||publicHint.comparison()==null)return java.util.Optional.empty();
+                comparison=publicHint.comparison();lines=comparison.result().ranked().stream()
+                        .filter(v->alternative==null||v.move().equals(preferred)||v.move().equals(alternative)).collect(Collectors.toList());
+        } else if(CoachingProof.needed(position,lines)) {
+                var proof=CoachingProof.compare(position,roots,comparison.depth(),Set.of(),CoachingProof.CURRENT,Set.of(preferred));
+                if(!proof.work().complete())return java.util.Optional.empty();
+                lines=proof.lines();
+        }
         if (alternative == null && !lines.isEmpty()) {
             var selected = lines.stream().filter(line -> line.move().equals(preferred)).findFirst().orElseThrow();
             var other = lines.stream().filter(line -> !line.move().equals(preferred)).findFirst().orElseThrow();

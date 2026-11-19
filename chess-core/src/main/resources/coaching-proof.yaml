@@ -1,4 +1,4 @@
 schema: 1
-max-nodes: 1000000
+max-nodes: 5000000
 allocation-step: 25000
 max-forcing-plies: 48

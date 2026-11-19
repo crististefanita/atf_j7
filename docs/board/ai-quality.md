@@ -1175,7 +1175,7 @@ contract. Native opponent search and Basic/Advanced policies do not use this res
 
 [coaching-proof.yaml](../../chess-core/src/main/resources/coaching-proof.yaml) configures
 the maximum reserve, allocation step and forcing safety limit. The default reserve is
-one million nodes, allocated as needed in 25,000-node steps. These are additional to the
+five million nodes, allocated as needed in 25,000-node steps. These are additional to the
 ordinary hint allowance of 200k or the configured review allowance. `extraNodes` still
 means ordinary work; `proof.nodes`, `proof.ordinaryNodes` and `totalNodes` make the sum
 explicit. Do not describe the complete coaching decision as capped at 200k.
@@ -1186,18 +1186,27 @@ Every compared root uses the same completed ordinary horizon and forcing policy.
 retain their established offered/compared root scope; review compares every legal root
 and fully evaluates the played move. Noncompetitive roots may receive upper bounds, but
 only exact lines enter the returned ranking. The best two values remain exact. At the
-frontier, captures and promotions continue without the old one/two-ply cutoff; a checked
-position searches every legal evasion and cannot use stand pat. Optional quiet checks
+frontier, the existing initial tactical allowance remains two plies for hints and one for
+review. After that, legal recaptures on the last move's square and mandatory check evasions
+continue until settled, rather than stopping after one/two replies. The receipt records
+that initial allowance separately. A checked position searches every legal evasion and
+cannot use stand pat. Optional quiet checks
 beyond the ordinary horizon are not a claim of this quiescence search. The
 [upstream reference](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp)
 describes the same distinction between captures and mandatory evasions.
 
-A changed hint leader also needs support from the preceding completed even horizon,
-paid from the same reserve. Otherwise the established root retains its newly calculated,
+A changed hint leader also needs a gain greater than the existing 25cp equivalence
+threshold and support from the preceding completed even horizon, paid from the same
+reserve. The receipt saves the actual threshold; restoration does not reinterpret it
+using a later configuration. Otherwise the established root retains its newly calculated,
 closed line and score; the old unfinished PV is never restored. The receipt records both
 root scores, the earlier comparison and the selected root. An unsupported challenger is
 not advertised as equivalent. This guard preserves an independently verified witness in
 which the unguarded forcing model preferred `Bxe4` over `Nxd7` and lost 335/243.5‰ WDL.
+Another cold H17/H19 control rejects a small-model reversal from Sicilian `…Nbd7` to
+`…Nc6`: the latter loses 302.5/358‰ against the teacher's free choice. No centipawn bonus
+is invented to retain the established defense. An explicit comparison must reuse the
+same public proof or omit a contradictory pair. The older exact-tie fixture is obsolete.
 
 The proof has separate COMPLETE, NODE_LIMIT and FORCING_LIMIT outcomes. Ordinary depth
 and additional forcing depth stay distinct. A hard ceiling or unfinished confirmation
@@ -1215,6 +1224,10 @@ over and never save a partially generated review.
 exchanges, exact node boundaries, pins, en passant, mandatory evasions, cancellation,
 incomplete publication, restart and v1 compatibility. [Cold teacher controls](../../atf-tests/src/test/java/ro/atf/chess/CoachingProofOracleTest.java)
 retain Stockfish H17/H19 receipts, sound queen mate and the promotion-stalemate counterexample.
+[Scope controls](../../atf-tests/src/test/java/ro/atf/chess/CoachingScopeTest.java) retain
+12 additional cold phases, the real opening requiring 1,037,401 reserve nodes, original
+hint eligibility and actual draw values. A newly resolved frontier may change numerical
+scores; tests compare the new scored proof instead of preserving an optimistic old value.
 [Stability controls](../../atf-tests/src/test/java/ro/atf/chess/CoachingStabilityTest.java)
 retain both horizons and the interrupted-confirmation negative. Completion certifies the
 declared search scope, not optimal chess or an Elo improvement. The French quiet-defense

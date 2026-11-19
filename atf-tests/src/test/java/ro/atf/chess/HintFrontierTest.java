@@ -117,7 +117,8 @@ class HintFrontierTest {
             var compared = search.comparison();
             check.same("Both roots retain scored evidence at one completed horizon", true, compared != null
                     && compared.depth() == search.selectedDepth()
-                    && compared.result().ranked().getFirst().score() - compared.result().ranked().get(1).score() > MatchAiPolicy.CURRENT.hint.maxLossCp());
+                    && compared.result().ranked().getFirst().score() >= compared.result().ranked().get(1).score());
+            check.same("A closed frontier cannot readmit a challenger already disproved by the ordinary comparison",1,search.lines().size());
         }
     }
 

@@ -448,7 +448,7 @@ recommendation. Component mocks cover interrupted work, foreign runs and missing
 phases; actual chess decisions retain independent Stockfish H17/H19 evidence.
 UI separation remains open until those proof and presentation contracts pass.
 
-The engine-side reserve now resolves a pending frontier with charged continuous captures
+The engine-side reserve now resolves a pending frontier with charged continuous recaptures
 and mandatory evasions, and rejects incomplete hint/review results. See the
 [implementation contract](../board/ai-quality.md#dynamic-coaching-frontier). Keep these
 remaining items distinct:
@@ -463,6 +463,13 @@ remaining items distinct:
   and publish no score if confirmation is interrupted.
 - Legacy v1 review caches remain readable but have no new forcing receipt. Distinguish
   historical analysis from a newly qualified evaluator when revisiting old cached results.
+
+The five-million-node YAML ceiling grows in 25k steps. A normal Italian theory exit
+requires 1,037,401 reserve nodes; its smaller-budget negative must remain incomplete,
+without restoring the seed score. Keep the 25cp leader-change threshold and the prior
+even-horizon check auditable. The Sicilian `…Nc6` reversal was independently worse than
+`…Nbd7` at both teacher depths; no fabricated score tie is an acceptable fix. The bulb,
+destination and explicit comparison now share that qualified proof decision.
 
 Do not infer Elo or broad independent transfer from the composed forcing controls.
 Fresh complete games still need every pre-move maximum hint, post-game review and cold
