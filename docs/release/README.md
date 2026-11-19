@@ -56,6 +56,8 @@ rescrieți un artefact calificat.
    Când se schimbă ediția, verificați APK-ul complet din README-ul EN de pe
    `main` și confirmați că ruta RO indică aceeași ediție.
 
+Construiți cele două worktree-uri secvențial când folosesc același depozit Maven local: inițializarea de la root instalează binarele ATF, iar Windows poate bloca un JAR deja încărcat de celălalt JVM. Directoarele target independente nu izolează acel depozit. Buildurile paralele cer depozite locale pregătite separat și proveniență verificată a bibliotecilor.
+
 ```powershell
 java -cp atf-tests/target/classes ro.atf.chess.release.ReleaseGate documentation-pair . $enCommit $roCommit
 git push --atomic origin "${enCommit}:refs/heads/main" "${roCommit}:refs/heads/main_RO"
