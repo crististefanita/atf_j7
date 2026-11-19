@@ -413,7 +413,7 @@ public final class ChessActivity extends BackNavigableActivity {
 
     private boolean compactMatchLayout() {
         var configuration = getResources().getConfiguration();
-        return configuration.orientation == Configuration.ORIENTATION_PORTRAIT && configuration.screenWidthDp <= 480;
+        return new ro.atf.chess.MatchViewport(configuration.screenWidthDp, configuration.screenHeightDp).compact();
     }
 
     private TextView compactMatchStatus() {

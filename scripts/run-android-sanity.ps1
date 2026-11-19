@@ -161,7 +161,7 @@ function Set-DisplayProfile($Profile) {
         if ($actual.size -ceq $Profile.size -and $actual.density -ceq $Profile.density -and $actual.font -ceq $Profile.font) { return }
         Start-Sleep -Milliseconds 150
     } while ([datetime]::UtcNow -lt $deadline)
-    throw 'Android did not reach the requested display profile.'
+    throw "Android display mismatch. Requested $($Profile | ConvertTo-Json -Compress); observed $($actual | ConvertTo-Json -Compress)."
 }
 
 function Receive-Frame([string]$Name, [string]$Directory = $run) {
@@ -376,8 +376,9 @@ try {
         try {
             foreach ($profile in '360x640', '740x420', '1280x900') {
                 $dimensions = $profile.Split('x')
-                $nativeSize = "$([int]$dimensions[0] * 2)x$([int]$dimensions[1] * 2)"
-                Set-DisplayProfile @{size=$nativeSize; density='320'; font='1.0'}
+                $scale = if ($profile -ceq '1280x900') { 1.5 } else { 2 }
+                $nativeSize = "$([int]([int]$dimensions[0] * $scale))x$([int]([int]$dimensions[1] * $scale))"
+                Set-DisplayProfile @{size=$nativeSize; density="$([int](160 * $scale))"; font='1.0'}
                 foreach ($locale in 'en','ro') {
                     $directory = Join-Path $run "$profile-$locale"
                     $null = New-Item -ItemType Directory $directory

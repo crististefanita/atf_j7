@@ -224,9 +224,12 @@ public final class BoardSanity extends Instrumentation {
         captureFrame("source-mating", "Mating replay renders all ranks with accessible fixed controls", image ->
                 hintBoardCornersAreRendered(image, geometry.get(0)));
         clickReviewIcon(R.id.quest_payoff_next);
-        compare("Mating Next keeps the board and control rectangles", geometry, sourceReplayGeometry(puzzle, true));
+        compare("Mating Next keeps the board and control rectangles", List.of(geometry, true),
+                List.of(sourceReplayGeometry(puzzle, true), dialogContains(puzzle.getString(R.string.mate_replay_done))
+                        && payoffShows(visibleReviewNode(R.id.quest_payoff_move), puzzle, quest.matingMove())));
         clickReviewIcon(R.id.quest_payoff_previous);
-        compare("Mating Previous keeps the board and control rectangles", geometry, sourceReplayGeometry(puzzle, true));
+        compare("Mating Previous keeps the board and control rectangles", List.of(geometry, true),
+                List.of(sourceReplayGeometry(puzzle, true), payoffShows(visibleReviewNode(R.id.quest_payoff_move), puzzle, quest.defenseAfter(0))));
         clickReviewIcon(R.id.quest_payoff_close);
         compare("Mating return restores the source rectangle", mateSource, screenBounds(puzzleBoard));
         closeActivity(puzzle);
@@ -269,15 +272,28 @@ public final class BoardSanity extends Instrumentation {
         captureFrame("source-" + owner, owner + " replay renders all ranks with accessible fixed controls", image ->
                 hintBoardCornersAreRendered(image, geometry.get(0)));
         clickReviewIcon(R.id.hint_preview_next);
-        compare(owner + " Next keeps the board and control rectangles", geometry, sourceReplayGeometry(activity, false));
+        compare(owner + " Next keeps the board and control rectangles", List.of(geometry, "1"),
+                List.of(sourceReplayGeometry(activity, false), sourceReplayStep()));
         clickReviewIcon(R.id.hint_preview_previous);
-        compare(owner + " Previous keeps the board and control rectangles", geometry, sourceReplayGeometry(activity, false));
+        compare(owner + " Previous keeps the board and control rectangles", List.of(geometry, "0"),
+                List.of(sourceReplayGeometry(activity, false), sourceReplayStep()));
         var alternate = visibleReviewNode(R.id.hint_compare_other);
         if (alternate == null || !alternate.isEnabled()) throw new AssertionError("Fixture must expose an alternative branch");
         clickReviewIcon(R.id.hint_compare_other);
-        compare(owner + " branch keeps the board and control rectangles", geometry, sourceReplayGeometry(activity, false));
+        var branchGeometry = sourceReplayGeometry(activity, false);
+        String branchStart = sourceReplayStep();
+        boolean selected = visibleReviewNode(R.id.hint_compare_other).isSelected();
+        clickReviewIcon(R.id.hint_preview_next);
+        compare(owner + " branch keeps the board and control rectangles", List.of(geometry, geometry, "0", "1", true),
+                List.of(branchGeometry, sourceReplayGeometry(activity, false), branchStart, sourceReplayStep(), selected));
         clickReviewIcon(R.id.hint_preview_return);
         compare(owner + " return restores the source rectangle", source, screenBounds(findBoard(viewsOf(activity))));
+    }
+
+    private String sourceReplayStep() {
+        var node = visibleReviewNode(R.id.hint_preview_step);
+        if (node == null || node.getText() == null) return "missing";
+        return node.getText().toString().split("/", 2)[0];
     }
 
     private List<Rect> sourceReplayGeometry(Activity activity, boolean mate) throws Exception {

@@ -193,10 +193,12 @@ application does not verify the instrumentation's dialog entry points.
 
 The focused phase runs Calculated line, Analysis hints and Mating line in
 EN/RO at 360 × 640, 740 × 420 and 1280 × 900 logical dp profiles, using
-720 × 1280, 1480 × 840 and 2560 × 1800 native pixels at 320 dpi, font 1.0.
+720 × 1280 and 1480 × 840 native pixels at 320 dpi, and 1920 × 1350 at 240 dpi,
+font 1.0. The largest profile stays below the API 28 emulator's width cap;
+silently clamped dimensions fail admission.
 Android system bars reduce the usable content window; these display sizes
-are not a claim of identical Web CSS viewports. Keep the established 320 dpi
-Android profile instead of treating Web CSS pixels as physical device pixels.
+are not a claim of identical Web CSS viewports. Use density-calibrated Android
+profiles instead of treating Web CSS pixels as physical device pixels.
 The runner restores the previous size, density and font in `finally` and
 releases its own lease. The isolated package leaves the normal app untouched.
 

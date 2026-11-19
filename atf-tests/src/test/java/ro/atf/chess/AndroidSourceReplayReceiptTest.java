@@ -53,6 +53,20 @@ class AndroidSourceReplayReceiptTest {
         return AndroidSanityPublication.readSourceReplayPhase(file, "360x640", "en").passed();
     }
 
+    @Test void eachLogicalProfileRequiresItsExactNativeSizeAndDensity(Checks check) throws Exception {
+        String[][] profiles = {{"360x640", "720x1280@320"}, {"740x420", "1480x840@320"}, {"1280x900", "1920x1350@240"}};
+        for (var profile : profiles) {
+            Path file = folder.resolve(profile[0] + ".txt");
+            Files.writeString(file, receipt().replace("720x1280@320", profile[1]));
+            check.same("Native profile represents exactly " + profile[0] + " logical dp", true,
+                    AndroidSanityPublication.readSourceReplayPhase(file, profile[0], "en").passed());
+        }
+        Path clamped = folder.resolve("clamped.txt");
+        Files.writeString(clamped, receipt().replace("720x1280@320", "2160x1800@320"));
+        check.same("The API 28 width clamp cannot qualify the 1280x900 target", false,
+                AndroidSanityPublication.readSourceReplayPhase(clamped, "1280x900", "en").passed());
+    }
+
     private String receipt() {
         var text = new StringBuilder("""
                 INSTRUMENTATION_RESULT: phase=source-sized-replay
