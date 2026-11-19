@@ -1,5 +1,7 @@
 # Android signing identity
 
+## Overview
+
 This project record was explicitly requested for J7. It contains an encrypted
 PKCS12 key, its public certificate, a relative-path manifest and a password
 protected with Windows DPAPI. No plaintext password belongs in the repository.

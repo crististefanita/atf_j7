@@ -28,6 +28,9 @@ class SignedSourceReplayReceiptTest {
                     read(valid.replaceAll("(?m)^INSTRUMENTATION_RESULT: replayRotation=.*\\R", ""), profile, locale));
             check.same(profile + " rejects an unproven Back return despite PASS", false,
                     read(valid.replaceAll("(?m)^INSTRUMENTATION_RESULT: check_\\d+=calculated Back.*\\R", ""), profile, locale));
+            check.same(profile + " cannot hide a failed Back return among the other successful checks", false,
+                    read(valid.replace("calculated Back restores the source window and board\t316\t316\ttrue",
+                            "calculated Back restores the source window and board\ttrue\tfalse\ttrue"), profile, locale));
         }
         check.rejects("Unknown profile cannot be silently resized", IllegalArgumentException.class,
                 () -> ReplayViewportProfile.of("640x360", true));
