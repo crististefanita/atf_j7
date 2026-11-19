@@ -1,4 +1,5 @@
 import { revealDistance } from './review-focus.mjs';
+import { hintArrow } from './hint-arrow.mjs';
 import { reviewGraphText, reviewPositionText, updateReviewRange } from './review-announcement.mjs';
 
 const axisInset = 2;
@@ -69,7 +70,7 @@ function drawCue(state) {
     const cue = find('review-cue');
     const source = find('board').querySelector(`[data-square="${state.cueFrom ?? ''}"]`);
     const destination = find('board').querySelector(`[data-square="${state.cueTo ?? ''}"]`);
-    cue.hidden = !source || !destination;
+    cue.hidden = !source || !destination || source === destination;
     if (cue.hidden) return;
     const bounds = cue.getBoundingClientRect();
     const a = source.getBoundingClientRect();
@@ -78,20 +79,17 @@ function drawCue(state) {
     if (!unit || !bounds.width || !bounds.height) return;
     const dx = b.x + b.width / 2 - a.x - unit / 2;
     const dy = b.y + b.height / 2 - a.y - a.height / 2;
+    const shape = hintArrow(dx, dy, unit);
     const context = canvasContext(cue, bounds.width, bounds.height);
     context.translate(a.x + unit / 2 - bounds.x, a.y + a.height / 2 - bounds.y);
-    context.rotate(Math.atan2(dy, dx));
-    const start = unit * .31;
-    const tip = Math.hypot(dx, dy) - unit * .28;
-    const head = tip - unit * .17;
-    const shaft = unit * .029;
-    const arrowHead = unit * .106;
+    context.rotate(shape.radians);
+    const { start, tip, head, halfShaft: shaft, halfHead: arrowHead } = shape;
     context.beginPath();
     context.moveTo(start, -shaft);
     for (const [x, y] of [[head, -shaft], [head, -arrowHead], [tip, 0], [head, arrowHead], [head, shaft], [start, shaft]]) context.lineTo(x, y);
     context.closePath();
     context.lineJoin = 'round';
-    context.lineWidth = unit * .027;
+    context.lineWidth = shape.outline;
     context.strokeStyle = colors.arrowOutline;
     context.stroke();
     context.fillStyle = colors.arrow;

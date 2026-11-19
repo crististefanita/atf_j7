@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.IntConsumer;
 import ro.atf.chess.BoardSquare;
 import ro.atf.chess.ChessPosition;
+import ro.atf.chess.HintArrow;
 import ro.atf.chess.QuestHint;
 
 final class BoardView extends ViewGroup {
@@ -98,22 +99,22 @@ final class BoardView extends ViewGroup {
 
     @Override protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        if (hintOrigin == null || hintDestination == null) return;
+        if (hintOrigin == null || hintDestination == null || hintOrigin == hintDestination) return;
         float unit = hintOrigin.getWidth();
         if (unit == 0) return;
         float x = hintOrigin.getLeft() + unit / 2;
         float y = hintOrigin.getTop() + hintOrigin.getHeight() / 2f;
         float dx = hintDestination.getLeft() + hintDestination.getWidth() / 2f - x;
         float dy = hintDestination.getTop() + hintDestination.getHeight() / 2f - y;
-        float distance = (float) Math.hypot(dx, dy);
+        var geometry = HintArrow.between(dx, dy, unit);
         canvas.save();
         canvas.translate(x, y);
-        canvas.rotate((float) Math.toDegrees(Math.atan2(dy, dx)));
-        float start = unit * .31f;
-        float tip = distance - unit * .28f;
-        float head = tip - unit * .17f;
-        float halfShaft = unit * .029f;
-        float halfHead = unit * .106f;
+        canvas.rotate((float) Math.toDegrees(geometry.radians()));
+        float start = (float) geometry.start();
+        float tip = (float) geometry.tip();
+        float head = (float) geometry.head();
+        float halfShaft = (float) geometry.halfShaft();
+        float halfHead = (float) geometry.halfHead();
         arrow.rewind();
         arrow.moveTo(start, -halfShaft);
         arrow.lineTo(head, -halfShaft);
@@ -126,7 +127,7 @@ final class BoardView extends ViewGroup {
         arrowPaint.setColor(HINT_OUTLINE);
         arrowPaint.setStyle(Paint.Style.STROKE);
         arrowPaint.setStrokeJoin(Paint.Join.ROUND);
-        arrowPaint.setStrokeWidth(unit * .027f);
+        arrowPaint.setStrokeWidth((float) geometry.outline());
         canvas.drawPath(arrow, arrowPaint);
         arrowPaint.setStyle(Paint.Style.FILL);
         arrowPaint.setColor(HINT_MARK);
