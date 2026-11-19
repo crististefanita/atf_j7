@@ -628,7 +628,11 @@ verifică legalitatea, ambele orizonturi, rezultate schimbate, faze străine și
 rămâne un scop nativ de calitate explicit eșuat; un PV legal și arhiva intactă
 nu trebuie să transforme cazul într-un PASS de motor reparat. Auditează fiecare
 continuare și recaptură de piesă importantă înainte să restrângi schimbarea următoare.
-Acoperirea oracolului pe întreaga partidă și analiza finală sunt în curs în `C:\work\sah\.studii`.
+Auditul complet păstrează 1.462 de interogări originale reci ale oracolului, plus completările pentru analiza finală. Există 80 de indicii oferite și 479 de semimutări ipotetice: 43 au pierdere mare stabilă, inclusiv 17 replici adverse și șase rădăcini oferite (o primă alegere). Analiza nativă finală pe 63 de semimutări are patru recomandări cu pierdere mare, 42 de semimutări ipotetice slabe, trei etichete de eroare pe pierderi independente mici și două pierderi mari omise. Integritatea dovezii trece; calitatea nativă rămâne FAIL.
+
+La semimutarea reală 34, prima previzualizare se încheie `…Rxf6 Ne4 …Rf7 dxc5 …b6 Be3 …bxc5 Bxc5`. Ultimul `Bxc5` pierde 504‰ la ambele orizonturi, dar recaptura aparentă `…Qxc5` este o capcană respinsă prin `Nxc5`; ea păstrează câștigul albului. Jocul advers liber folosește în schimb mutarea liniștită `…Ne5`. Albul putea păstra câștigul prin `Rf1` înainte de `Bxc5`. Același martor păstrează ambele identități ale profesorului și testează o replică străină chiar după recalcularea hashului plicului. Nu adăuga `…Qxc5` drept continuare presupus forțată și nu interzice sacrificiile de nebun pentru a ascunde defectul real al replicilor libere.
+
+Primele pierderi mari în jocul efectiv Native Hard sunt `…Nd7` la semimutarea 18 (259/159‰) și `…Nf6` la 20 (224/202,5‰), cu `…Qc7` preferat independent. Ambele decizii reale au consumat 200k noduri suplimentare și au păstrat H5. Sunt decizii de căutare, nu dovadă că simpla variație a cărții îmbunătățește Elo. Jurnalele originale, ambele ramuri ale analizei complete, replicile de la capătul liniilor și rapoartele Extent finale rămân în `C:\work\sah\.studii\corpus\2026-11-19-nimzo-variety` și studiul pereche `experiments\2026-11-19-opening-variety`.
 
 Variația deschiderilor este acoperită de
 [OpeningVarietyTest](../../atf-tests/src/test/java/ro/atf/chess/OpeningVarietyTest.java)

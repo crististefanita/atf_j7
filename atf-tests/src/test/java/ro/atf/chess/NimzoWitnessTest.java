@@ -45,19 +45,59 @@ class NimzoWitnessTest {
         check.rejects("A missing horizon is not a quality PASS", IllegalArgumentException.class, () -> rows(missing));
     }
 
+    @Test void aLegalRecaptureCannotReplaceTheStrongerQuietDefenseAtTheHintEnd(Checks check) throws Exception {
+        var tail = fixture().path("tail");
+        var base = checkedRows(tail.path("base"), 6);
+        var replies = checkedRows(tail.path("reply"), 2);
+        var board = position(tail);
+        var path = tail.path("publicPath");
+        for (int index = 0; index < path.size() - 1; index++) board = board.play(ChessPosition.Move.fromUci(path.get(index).asText()));
+        var capture = ChessPosition.Move.fromUci(path.get(path.size() - 1).asText());
+        check.same("The archived line ends with a bishop taking a pawn", List.of(ChessPosition.Kind.BISHOP, ChessPosition.Kind.PAWN),
+                List.of(board.pieceAt(capture.from()).kind(), board.pieceAt(capture.to()).kind()));
+        var after = board.play(capture);
+        check.same("Qxc5 is legal but must not be presumed forced", true, after.legalMoves().contains(ChessPosition.Move.fromUci("a5c5")));
+        for (int depth : List.of(17, 19)) {
+            var free = base.get(tail.path("free").path("" + depth).asText());
+            var forced = base.get(tail.path("forced").path("" + depth).asText());
+            check.same("Bxc5 loses the win against free replies H" + depth, 504.0, StockfishStudyAudit.loss(free, forced));
+            var recapture = replies.get(tail.path("recapture").path("" + depth).asText());
+            check.same("Accepting the material trap instead preserves White's win H" + depth, 1000.0,
+                    1000.0 - recapture.path("expectedPermille").asDouble());
+            check.same("The recapture is refuted by the knight, not a missing legal move", "e4c5", recapture.path("pv").get(1).asText());
+        }
+        check.same("The decisive free reply is the quiet Ne5, not Qxc5", "c6e5",
+                base.get(tail.path("endpoint").path("19").asText()).path("pv").get(0).asText());
+    }
+
+    @Test void aRehashedReplyFromAnotherRunStillCannotJustifyThePreview(Checks check) throws Exception {
+        var reply = fixture().path("tail").path("reply").deepCopy();
+        var envelope = (ObjectNode) reply.path("raw").get(0);
+        ((ObjectNode) envelope.path("body").path("identity")).put("run", "foreign-but-rehashed");
+        envelope.put("digest", HardLeagueAudit.digest(HardLeagueAudit.canonical(envelope.path("body")).getBytes(StandardCharsets.UTF_8)));
+        check.rejects("A valid checksum cannot turn a foreign recapture phase into the expected teacher evidence",
+                IllegalArgumentException.class, () -> checkedRows(reply, 2));
+    }
+
     static JsonNode fixture() throws Exception {
         try (var input = NimzoWitnessTest.class.getResourceAsStream("/nimzo-hint-witness.yaml")) {
             var data = LearningGameAudit.mapper().readTree(input);
             if (!HardLeagueAudit.digest(HardLeagueAudit.canonical(data).getBytes(StandardCharsets.UTF_8))
-                    .equals("961c8aa6be4d2c8f2d8dfd7d1bb43ca26462a6d9c8c9fe5e2f92217eb06dfed5")) {
+                    .equals("458f4cc22f20e58a974967368d2c877fec35a327dc0f4e8a1ecd60cb53174da8")) {
                 throw new IllegalArgumentException("Changed Nimzo witness");
             }
             rows(data);
+            checkedRows(data.path("tail").path("base"), 6);
+            checkedRows(data.path("tail").path("reply"), 2);
             return data;
         }
     }
 
     static Map<String, JsonNode> rows(JsonNode data) {
+        return checkedRows(data, 4);
+    }
+
+    private static Map<String, JsonNode> checkedRows(JsonNode data, int count) {
         var rows = new HashMap<String, JsonNode>();
         for (var envelope : data.path("raw")) {
             var body = envelope.path("body");
@@ -66,7 +106,7 @@ class NimzoWitnessTest {
                 throw new IllegalArgumentException("Changed or duplicated Nimzo phase");
             }
         }
-        if (rows.size() != 4) throw new IllegalArgumentException("Missing independent Nimzo horizon");
+        if (rows.size() != count) throw new IllegalArgumentException("Missing independent Nimzo horizon");
         for (var query : data.path("plan").path("queries")) {
             StockfishStudyAudit.validate(query.path("query"), data.path("plan").path("identity"), rows.get(query.path("key").asText()));
         }
