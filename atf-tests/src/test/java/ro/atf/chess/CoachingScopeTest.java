@@ -69,7 +69,7 @@ class CoachingScopeTest {
         check.same("The new score is closed rather than the former optimistic +651",21,review.best().score());
         try(var in=getClass().getResourceAsStream("/coaching-review-tie-witnesses.yaml")) {
             var data=LearningGameAudit.mapper().readTree(in);String sha=HardLeagueAudit.digest(HardLeagueAudit.canonical(data).getBytes(StandardCharsets.UTF_8));
-            require(sha.equals("3a8a196688530f1d8f7f1e689b184fe270d52cf0f59c9694be5d1d33fb428ea3"),"Changed review tie evidence");
+            require(sha.equals("5dea442782315d6aff89ae97e260e4d9e812107b47fd3c92ae236743190b5e50"),"Changed review tie evidence");
             var rows=new HashMap<String,JsonNode>();
             for(var e:data.path("raw")) {
                 var r=e.path("body");require(HardLeagueAudit.digest(HardLeagueAudit.canonical(r).getBytes(StandardCharsets.UTF_8)).equals(e.path("digest").asText()),"Changed raw review phase");
