@@ -134,3 +134,10 @@ component regression or minimax equivalence does not erase the archived mistakes
 qualify a new opening family or establish Elo. Store a small full-context first-loss
 witness in the test resources; keep the PGN, all pre-move observations and complete
 reviews in the external corpus. Never turn those keys into runtime move overrides.
+
+A new-opening collection need not invent a sound-queen game to match a historical
+fixture. The postgame benchmark requires exactly one separate sound-sacrifice tail
+when that case was actually collected and zero otherwise; all public tails, native
+reviews, source hashes, raw phases and quality floors remain mandatory. Keep the
+sound sacrifice protected by its component witnesses and preserve the original
+collection control when replaying that collection.

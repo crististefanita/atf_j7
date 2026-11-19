@@ -142,7 +142,8 @@ class LearningPostgameBenchmarkTest {
         }
         check.same("Every public hint has its exact last move audited",expectedPublicTails.keySet(),coveredTails);
         check.same("Readable tail tables have the same complete inventory",expectedPublicTails.keySet(),readableTails.keySet());
-        check.same("One sound-sacrifice control stays separate from public samples",1,controls);
+        check.same("An explicitly collected sound-sacrifice control stays separate from public samples",
+                games.containsKey("sound-queen-offer")?1:0,controls);
         check.same("Reviewed actual moves independently counted",summary.path("actualPlies").asInt(),turns);
         check.same("Public tails independently counted",summary.path("publicHintTails").asInt(),publicTails);
         check.same("Exposed important pieces independently counted",summary.path("exposedImportantTails").asInt(),exposed);

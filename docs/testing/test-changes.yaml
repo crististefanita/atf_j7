@@ -1431,3 +1431,19 @@ testChanges:
     test: ro.atf.chess.FrenchCoachingTest#counterplaySurvivesRestartAndTheActualV2ReceiptKeepsItsShape
     contract: "Retain all existing assertions and independent thresholds; move the two repaired French quality goals into components, retain complete free-reply proof and preserve legacy v2 bytes and JSON shape"
     allowDelete: false
+
+  - id: J7-FREE-COUNTERPLAY-EN-POSTGAME-INVENTORY
+    base: "95a5f6648a5631908b1eae7208309b1f3fedeb65"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
+    test: ro.atf.chess.LearningPostgameBenchmarkTest#everySavedGameRetainsItsCompleteReviewAndEveryOraclePhase
+    contract: "Keep all per-move, raw oracle, tail, recapture and quality assertions; require exactly one sound-sacrifice control when that case was actually collected and zero otherwise, rejecting invented or duplicated controls without fabricating a game in a new-opening corpus"
+    allowDelete: false
+
+  - id: J7-FREE-COUNTERPLAY-RO-POSTGAME-INVENTORY
+    base: "fa4e6b321532f956b16853862b3502eee1db4802"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
+    test: ro.atf.chess.LearningPostgameBenchmarkTest#everySavedGameRetainsItsCompleteReviewAndEveryOraclePhase
+    contract: "Keep all per-move, raw oracle, tail, recapture and quality assertions; require exactly one sound-sacrifice control when that case was actually collected and zero otherwise, rejecting invented or duplicated controls without fabricating a game in a new-opening corpus"
+    allowDelete: false

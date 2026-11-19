@@ -9,22 +9,21 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
-| P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation within 200k, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
+| P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation with 200k ordinary work and its separately charged finite proof reserve, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Documentation · translation safeguards | The paired gate checks structure and links while prose and examples still need semantic review. | Detect copied prose and changed examples with focused negatives while preserving technical literals and immutable evidence. |
-| P1 | Game Review · move classification | The latest 106-ply corpus has 11 native error labels on losses below 50‰ at both oracle depths and one missed large loss. | Isolate score-model and horizon effects without changing played history, inventing Elo or substituting hint scores for review evidence. |
-| P1 | Game Review · recommended lines | Ten of 106 fresh review recommendations lose at least 150‰ at both H17/H19; both review branches are fully audited. | Repair complete same-horizon root/reply comparisons and preserve actual good moves and cached history. [Measured cases](#finished-game-native-losses-and-frontier-controls) |
+| P1 | Game Review · move classification | The preceding 106-ply corpus has 11 native error labels on losses below 50‰ at both oracle depths and one missed large loss. | Isolate score-model and horizon effects without changing played history, inventing Elo or substituting hint scores for review evidence. |
+| P1 | Game Review · recommended lines | Ten of the preceding 106 review recommendations lose at least 150‰ at both H17/H19; both review branches are fully audited. | Repair complete same-horizon root/reply comparisons and preserve actual good moves and cached history. [Measured cases](#finished-game-native-losses-and-frontier-controls) |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
 | P1 | Italian · unresolved native exchange | Targeted recapture repairs the isolated H6 pair, but complete play and controls regress. | Resolve the complete decision within 200k, preserving 019/021/022 and independent transfer before a duel. |
-| P1 | Hint · leader, alternatives and opposing replies | The latest source-bound games retain large losses in 6/106 first hints, 11/143 offers and 14/140 first opposing replies. | Repair complete scored continuations at common horizons; all 759 hypothetical plies and legal important-piece recaptures remain independently graded. |
+| P1 | Hint · leader, alternatives and opposing replies | The preceding source-bound games retain large losses in 6/106 first hints, 11/143 offers and 14/140 first opposing replies. | Repair complete scored continuations at common horizons; all 759 hypothetical plies and legal important-piece recaptures remain independently graded. |
 | P2 | Hint audit · broader transfer | Two more games reach checkmate with 106 pre-move native/hint pairs including the sound-sacrifice control. | Add excluded opening ancestry and actual candidate games; replaying the inspected paths is not new-family or Elo proof. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
 | P1 | Native Hard · finished-game losses | Scandinavian `g4` is protected by the new `Ne4` regression; French `Nc4` is now protected by complete H6 recapture evidence; English `…Qf6` and Queen's Gambit `…Qa5` remain. | Compare complete free replies at a common horizon; preserve the catalog, sound sacrifices and Basic/Advanced before promotion. [Next work](#finished-game-native-losses-and-frontier-controls) |
 | P2 | Tactical frontier · check at the limit | A checked frontier may still stop without a legal evasion; the broad extension fails 13 existing contracts. | Resolve the precise cause within one charged allowance; keep the explicit benchmark failures until quality and transfer pass. |
 | P1 | Coaching · hidden recapture proof | Engine-side forcing verification and its work receipt are implemented; the visible preview still shows the complete scored line. | Project a shorter visible prefix while retaining the complete scored proof, shared recommendation and restart identity. Do not hide decisive replies. [Contract](#tactical-proof-and-displayed-lines) |
-| P1 | French coaching · hint and review | Native Hard now chooses the verified knight move, but the public hint still prefers `Bb5+` and review can call it BEST. | Close the complete opposing continuation and the review score at their own budgets; both executable quality goals must pass without changing history. [Native repair and scope](../board/ai-quality.md#closing-a-pawn-recapture-at-the-completed-horizon) |
 | P1 | AI profile calibration | The Elo intervals still overlap. | Add paired games to narrow the rating uncertainty. |
 | P1 | Hard adaptive strength | Foreground search uses 100,000 nodes and a reserve to 200,000. | Compare the three modes on held-out games and verify the opposing reply. |
 | P1 | Hard learning from PGNs | The loss-trained ordering model keeps all final moves in 36 new families. | Add preserved moves and sacrifices, then verify ranking and complete decisions. |
@@ -415,8 +414,8 @@ played by Stockfish. It is not a second improved played game. Two prior French c
 also have small score differences, including a 2.5/4.5‰ deterioration. Mean catalog
 work rises by about 8.1%; no speed, depth or Elo gain is claimed. [Method and limits](../board/ai-quality.md#native-secondary-move-verification)
 
-The French native comparison is closed by the [completed recapture contract](../board/ai-quality.md#closing-a-pawn-recapture-at-the-completed-horizon). Keep its separate hint and review
-failures open and retain English `…Qf6` versus free `…Nc6` as transfer. Uniform
+The French native comparison is closed by the [completed recapture contract](../board/ai-quality.md#closing-a-pawn-recapture-at-the-completed-horizon). Its separate hint and review
+defects are now covered by the free-counterplay components; retain English `…Qf6` versus free `…Nc6` as transfer. Uniform
 one-ply closure gains 24 stages but loses 40; repeating it or merely increasing the
 expected answer is not an acceptable repair. Keep common-horizon free defenses,
 `training-021/051/065`, all mate chapters, scoped queen recaptures and a sound queen
@@ -485,3 +484,27 @@ does not certify globally optimal play or replace a fresh complete-game Elo meas
 Do not infer Elo or broad independent transfer from the composed forcing controls.
 Fresh complete games still need every pre-move maximum hint, post-game review and cold
 teacher phases under their actual producer, with the reserve receipt retained.
+
+## New-opening audit after the French repair
+
+The corrected evaluator played a complete Ruy López game, with maximum hints recorded
+before all 55 actual plies, including theory and oracle moves. Native Hard supplied
+22 actual moves; Stockfish supplied 23 and ten came from the declared theory prefix.
+This is one observed game, not an Elo match or a replay promoted to new play.
+
+The 77 hint offers contain 398 hypothetical plies, each independently checked at
+H17/H19 with complete history: 40 plies lose at least 150‰ at both depths, including
+19 opposing replies. Six offered roots and one first hint exceed that floor. The
+55 recorded native choices have no stable large loss on this game. These are
+separate quality verdicts; passing receipt integrity does not certify the hints.
+
+Prioritize the weak free reply, not a special opening override: after the recorded
+`8.Ng5` branch, the hint uses `…Be6`, losing 509.5/511‰ against free play. Earlier in
+another preview `…d5` loses 428.5/443‰ where `…Nxe4` is available. Preserve both
+complete hypothetical histories, compare free replies at a common horizon and keep
+the French, Italian, Caro–Kann and sound-sacrifice components. The executable
+`LearningArchiveBenchmarkTest.maximumHintsHaveNoStableLargeLossInEitherSideOfThePreview`
+remains FAIL; never change its zero-error assertion to accept the observed count.
+The finished-game review and all its branches retain a separate oracle audit.
+Evidence: `C:\work\sah\.studii\corpus\2026-11-19-french-coaching-quiet`; producer
+`098848be9612e68e370d3495df4dc679a0f7aedd`, original journal and work receipts intact.
