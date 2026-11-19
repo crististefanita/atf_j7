@@ -3,7 +3,7 @@
 ## Overview
 
 This directory documents how the Chess Lab tests use the ATF libraries.
-J0 owns implementation and generic regression tests. J7 verifies its own integration.
+J0 owns implementation and generic regression tests. Chess verifies its own integration.
 
 ## Provenance
 
@@ -63,6 +63,6 @@ J0 owns the behavior of the library examples. [Executable J0 guides](https://git
 
 ## Maintenance and Feedback
 
-Report Chess Lab integration issues in [J7 feedback](../docs/feedback/README.md).
+Report Chess Lab integration issues in [Chess feedback](../docs/feedback/README.md).
 For a library defect, isolate the reproduction with the J0 owner and repeat
 consumer acceptance after replacing the pair.

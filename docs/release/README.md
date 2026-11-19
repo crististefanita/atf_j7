@@ -103,7 +103,7 @@ Dot-source the script in the build session to load `J7_SIGNING_STORE` and `J7_SI
   [Negative tests](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
   verify the gate.
 
-  J7 also keeps the explicitly requested encrypted project record in
+  Chess also keeps the explicitly requested encrypted project record in
   [`.atf-signing`](../../.atf-signing/README.md). An existing directory is loaded
   automatically; `-ProjectIdentity -StartNewIdentity` provisions a missing one
   only after explicit approval of the signing transition. Paths in its manifest

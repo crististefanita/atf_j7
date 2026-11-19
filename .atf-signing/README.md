@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project record was explicitly requested for J7. It contains an encrypted
+This project record was explicitly requested for Chess. It contains an encrypted
 PKCS12 key, its public certificate, a relative-path manifest and a password
 protected with Windows DPAPI. No plaintext password belongs in the repository.
 
