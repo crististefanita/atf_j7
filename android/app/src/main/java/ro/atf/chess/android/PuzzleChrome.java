@@ -93,7 +93,7 @@ final class PuzzleChrome extends FrameLayout {
         optionHeight = Math.max(dp(48), Math.max(home.getLineHeight(), flip.getLineHeight()) + dp(12));
         var panelPosition = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.LEFT);
         optionsScroller = new ScrollView(getContext());
-        optionsScroller.addView(panel);
+        optionsScroller.addView(panel, new ScrollView.LayoutParams(-1, -2));
         options.addView(optionsScroller, panelPosition);
         options.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> placeOptions());
         addView(options, new LayoutParams(-1, -1));
@@ -152,7 +152,9 @@ final class PuzzleChrome extends FrameLayout {
 
     private void placeOptions() {
         View panel = optionsScroller.getChildAt(0);
-        if (options.getVisibility() != VISIBLE || panel.getMeasuredWidth() == 0) return;
+        if (options.getVisibility() != VISIBLE || options.getWidth() == 0 || options.getHeight() == 0) return;
+        panel.measure(MeasureSpec.makeMeasureSpec(Math.max(0, options.getWidth() - dp(16)), MeasureSpec.AT_MOST),
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
         int[] anchor = new int[2], origin = new int[2];
         menu.getLocationOnScreen(anchor);
         options.getLocationOnScreen(origin);

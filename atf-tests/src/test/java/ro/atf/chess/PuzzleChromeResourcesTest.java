@@ -19,7 +19,7 @@ class PuzzleChromeResourcesTest {
 
     @Test void exposesStableLocalizedPuzzleOptionsAndNavigation(Checks check) throws Exception {
         var expectedIds = List.of("puzzle_options", "puzzle_options_panel", "puzzle_flip_board", "puzzle_main_menu",
-                "puzzle_chapter", "puzzle_rank", "puzzle_turn", "puzzle_points", "puzzle_streak", "quest_previous", "quest_next");
+                "puzzle_chapter", "puzzle_rank", "puzzle_turn", "puzzle_status", "puzzle_points", "puzzle_streak", "quest_previous", "quest_next");
         var ids = elements(read("values/puzzle_chrome_ids.xml"), "item")
                 .filter(element -> element.getAttribute("type").equals("id"))
                 .map(element -> element.getAttribute("name"))

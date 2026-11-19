@@ -1,6 +1,6 @@
 # Chess Lab 0.16.1 · Dovezi
 
-## Orientare
+## Pe scurt
 
 Calificarea candidatului este în curs. README-ul principal păstrează ediția publicată până când există assetul semnat și trece descărcarea completă.
 

@@ -1750,3 +1750,19 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#projectReadmeArchitectureMatchesTheExecutableBuild
     contract: "Advance only the patch metadata; preserve the source boundaries, test selection and SDK contract and keep the published link separate until promotion"
     allowDelete: false
+
+  - id: J7-CHROME-TOOLBAR-RO
+    base: "81b306e114fead9a9699e7c9c999a7fad2fd2e74"
+    from: atf-tests/src/test/java/ro/atf/chess/MatchToolbarResourcesTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MatchToolbarResourcesTest.java
+    test: ro.atf.chess.MatchToolbarResourcesTest#sharesOneRowAndLetsLocalizedAutomationWrapInsideTheRemainingWidth
+    contract: "Keep the three-line glyph, localized checked action and minimum 48 dp touch target while admitting the shared header and enlarged text"
+    allowDelete: false
+
+  - id: J7-CHROME-PUZZLE-STATUS-RO
+    base: "81b306e114fead9a9699e7c9c999a7fad2fd2e74"
+    from: atf-tests/src/test/java/ro/atf/chess/PuzzleChromeResourcesTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/PuzzleChromeResourcesTest.java
+    test: ro.atf.chess.PuzzleChromeResourcesTest#exposesStableLocalizedPuzzleOptionsAndNavigation
+    contract: "Retain all original IDs and localized actions; add an explicit status target so native pixel evidence checks the first explanation line"
+    allowDelete: false

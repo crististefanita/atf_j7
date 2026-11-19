@@ -1,6 +1,6 @@
 # Chess Lab 0.16.1
 
-## Orientare
+## Pe scurt
 
 Candidatul aliniază navigarea Web și Android. Publicarea urmează calificării.
 
