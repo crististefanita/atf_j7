@@ -323,10 +323,8 @@ public final class BoardSanity extends Instrumentation {
 
     private boolean replayBackReturns(Activity source, int replayBoard) throws Exception {
         if (reviewNode(replayBoard, 2500) == null) throw new AssertionError("Replay must be open before pressing Back");
-        for (int action : new int[]{KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP}) {
-            if (!getUiAutomation().injectInputEvent(new KeyEvent(action, KeyEvent.KEYCODE_BACK), true)) {
-                throw new AssertionError("Android rejected the native Back key");
-            }
+        if (!getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)) {
+            throw new AssertionError("Android rejected the system Back action");
         }
         long deadline = SystemClock.uptimeMillis() + 2500;
         do {
