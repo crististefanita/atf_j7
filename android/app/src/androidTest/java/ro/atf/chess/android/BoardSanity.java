@@ -255,7 +255,7 @@ public final class BoardSanity extends Instrumentation {
             byte[] buffer = new byte[8192];
             for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
             String dump = output.toString(java.nio.charset.StandardCharsets.UTF_8.name());
-            receipt.putString("replayInputViewport", dump.lines().filter(line -> line.contains("Viewport: displayId=0"))
+            receipt.putString("replayInputViewport", java.util.Arrays.stream(dump.split("\\r?\\n")).filter(line -> line.contains("Viewport: displayId=0"))
                     .map(String::trim).distinct().collect(java.util.stream.Collectors.joining(" | ")));
             framebufferProjection = ro.atf.chess.capture.FramebufferProjection.fromInputDump(
                     dump, replayCapture.logicalWidth(), replayCapture.logicalHeight(),
