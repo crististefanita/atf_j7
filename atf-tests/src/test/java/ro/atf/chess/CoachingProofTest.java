@@ -107,6 +107,18 @@ class CoachingProofTest {
         check.rejects("A foreign board cannot borrow this proof",IllegalArgumentException.class,()->before.work().validate(board.play(m("e1f1")),1));
     }
 
+    @Test void learningCannotReplaceAnIncompleteProofWithAMissingVariantError(Checks check) {
+        var game=ChessMatch.start(new MatchSetup(ChessPosition.Side.WHITE,MatchSetup.Level.HARD,true));
+        var proof=CoachingProof.compare(game.position(),1,Set.of(),new CoachingProof.Policy(1,1,48));
+        var hint=new TacticalAnalysis.HintSearch(List.of(),null,0,1,0,proof.work());
+        var identity=new LearningGameAudit.Identity("forcing-incomplete","0f7f08ce226f4de8126898cd336098a112c83cdd","a".repeat(64),"b".repeat(64));
+        var journal=new ArrayList<LearningGameAudit.Envelope>();
+        var study=new LearningGameAudit(identity,"incomplete","rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",game,journal::add,g->g.analyzeBot(MatchSetup.Level.HARD),(p,n)->hint);
+        check.rejects("The producer retains the typed incomplete diagnostic",CoachingProof.Incomplete.class,study::observe);
+        check.same("No scored frame can be journaled",0,journal.size());
+        check.same("The actual game remains at its original checkpoint",game.checkpoint(),study.match().checkpoint());
+    }
+
     @Test void retainsActualReserveWorkAndHistoricalReceiptShapes(Checks check)throws Exception {
         var board=ChessPosition.fromFen(CHAIN);var proof=CoachingProof.compare(board,1,Set.of(),ROOM);var ranked=proof.lines();var work=proof.work().afterOrdinary(77);
         var hint=new TacticalAnalysis.HintSearch(List.of(ranked.getFirst()),new TacticalAnalysis.SearchReport(new TacticalAnalysis.Result(ranked),1,0),77,1,1,work);
