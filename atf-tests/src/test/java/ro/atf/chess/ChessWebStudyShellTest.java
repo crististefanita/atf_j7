@@ -17,6 +17,12 @@ import org.junit.jupiter.api.io.TempDir;
 class ChessWebStudyShellTest {
     @TempDir Path output;
 
+    @Test void replayChromeKeepsFixedSlots(Checks check) throws IOException, InterruptedException {
+        verify(check, "replay-layout.test.mjs", List.of("--test", "--test-reporter=tap"), List.of(), "ok ", List.of(
+                "Calculated and Mating line allocate fixed chrome before their scrolling explanation",
+                "The AI hint and continuation keep stable slots while short-window metadata shares one row"));
+    }
+
     @Test void sharedBoardWorksWithMockControls(Checks check) throws IOException, InterruptedException {
         verify(check, "study-board.test.mjs", List.of("--test", "--test-reporter=tap"), List.of(), "ok ", List.of(
                 "Each study route has an enabled home entry and a distinct panel",

@@ -133,7 +133,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - The final position shows the match result.
 
 - The lightbulb clears the current selection and shows the recommended move. The suggestion button opens the line on the preview board, where arrows step through the moves without changing the match.
-- **Calculated line**, puzzle replay and Analysis board previews inherit the visible source board's side before opening. Stepping or switching lines retains that ceiling; reopening measures the current source again. The square follows the shared Analysis board limit. Extra content scrolls rather than imposing a second height reduction on the preview.
+- **Calculated line**, **Mating line** and Analysis board previews inherit the visible source board's side before opening. Steps and branch changes retain the square; reopening measures the current source again. Fixed header and navigation rows surround the board. The explanation scrolls in the remaining area, without overlapping the square or scrolling the whole dialog.
 - Closing returns to the history ply, and reopening the slot resumes at the end of the match with the hint hidden. The analysis board also offers opening theory.
 - At the current position, tapping the marked destination plays the legal hint when there is no board selection. The browser calculates analysis in a separate worker.
 - Changing the position or leaving the match invalidates the previous result. [Component and UI checks](../docs/testing/README.md#analysis-in-the-ai-game)
@@ -148,7 +148,7 @@ mvn -B -ntp -pl atf-tests test '-Dtest=ChessWebBotPublication' "-Dchess.web.bund
 - The first AI setup has Back even before a game exists. Back and Cancel leave the form through the same action and retain the saved game that opened it.
 - New game, saved games and study screens use `--play-column`, the same page insets and the base palette from Analysis board. Compact landscape reduces the page inset for every screen. The header does not acquire a wider canvas than its content. A visible evaluation bar uses the common 8 px rail and 5 px gap; the square uses the remaining width up to the shared limit.
 - A different game or study route resets inherited document scroll before displaying its content. Stepping through moves on the same screen preserves the page position; Back and Forward do not add a duplicate route entry.
-- Puzzles, AI matches, reopened saved matches and Openings consume that same reference limit. Puzzle scores or longer explanations do not subtract a second height allowance. On short windows the page may scroll to its 48 px controls; text and controls must remain accessible without overlap or horizontal overflow.
+- Puzzles, AI matches, reopened saved matches and Openings consume that same reference limit. Puzzle scores or longer explanations do not subtract a second height allowance. Standard AI and puzzle windows keep the board and 48 px controls in the viewport; puzzle details scroll internally. The AI hint reserves its row before revealing the move. Short windows place turn and profile on one line, with accessible full text and visual ellipsis when needed. The continuation row keeps its space even while hidden.
 - [Compact RO/EN check](../docs/testing/README.md#analysis-in-the-ai-game)
 
 `ChessWebBoardSizingTest` checks ten independent size fixtures, including rails,

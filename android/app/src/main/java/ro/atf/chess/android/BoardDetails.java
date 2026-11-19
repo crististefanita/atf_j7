@@ -3,18 +3,25 @@ package ro.atf.chess.android;
 import android.view.ViewGroup;
 import android.widget.ScrollView;
 import ro.atf.chess.BoardPanelLayout;
+import ro.atf.chess.ReplayBoardLayout;
 
 /** Keeps room for the square and leaves the remaining height for scrollable text. */
 final class BoardDetails extends ViewGroup {
     private final BoardPanel panel;
     private final ScrollView details;
     private final int detailsMinimum;
+    private final int sourceBoardSide;
 
     BoardDetails(BoardPanel panel, ScrollView details, int detailsMinimum) {
+        this(panel, details, detailsMinimum, 0);
+    }
+
+    BoardDetails(BoardPanel panel, ScrollView details, int detailsMinimum, int sourceBoardSide) {
         super(panel.getContext());
         this.panel = panel;
         this.details = details;
         this.detailsMinimum = detailsMinimum;
+        this.sourceBoardSide = sourceBoardSide;
         addView(panel);
         addView(details);
     }
@@ -22,7 +29,10 @@ final class BoardDetails extends ViewGroup {
     @Override protected void onMeasure(int widthSpec, int heightSpec) {
         int width = MeasureSpec.getSize(widthSpec);
         int height = MeasureSpec.getSize(heightSpec);
-        var layout = BoardPanelLayout.withDetails(width, height, panel.measureLabels(width), detailsMinimum);
+        int labels = panel.measureLabels(width);
+        var replay = ReplayBoardLayout.fit(width, Math.max(0, height - labels), sourceBoardSide, 0, detailsMinimum);
+        var layout = sourceBoardSide > 0 ? new BoardPanelLayout.WithDetails(replay.side() + Math.min(height, labels), replay.detailsHeight())
+                : BoardPanelLayout.withDetails(width, height, labels, detailsMinimum);
         panel.measure(exact(width), exact(layout.boardHeight()));
         details.measure(exact(width), exact(layout.detailsHeight()));
         setMeasuredDimension(width, height);

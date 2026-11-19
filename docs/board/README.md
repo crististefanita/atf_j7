@@ -39,6 +39,44 @@
 
 - The two-step hint model follows Daily Puzzle. The explanation remains a separate action, as does explicitly revealing the solution in Lichess Training. [Chess.com Daily Puzzle](https://support.chess.com/en/articles/8708990-how-does-the-daily-puzzle-work) · [Lichess Puzzle Training](https://lichess.org/training/daily)
 
+### Source-sized replay
+
+Calculated line, Mating line and AI/theory previews capture the visible source
+square when they open. Navigation changes pieces and text without measuring
+the preview as a new source. Reopening captures the current source again.
+
+```mermaid
+flowchart LR
+    Source[Visible source square] -->|measure current side| Capture[Capture once at opening]
+    Capture -->|CSS pixels| Web[Web CSS side in pixels]
+    Capture -->|native pixels| APK[APK ReplayBoardLayout]
+    Web -->|bounded rows| Frame[Fixed board and control rows]
+    APK -->|measured bounds| Frame
+    Frame -->|remaining area| Details[Remaining height for scrolling explanation]
+    Step[Step or branch] -->|reuse captured side| Position[Position and text]
+    Position -->|update pieces and captions| Frame
+```
+
+<details>
+<summary>Legend · Source, adapters and fixed rows</summary>
+
+- Web stores `--replay-board-side`; fixed rows prevent text from overlapping
+  the square or arrows. The standard AI hint row and continuation slot reserve
+  their space before an action. Short-window metadata shares one line. Replay
+  columns use `minmax(0, 1fr)` so an explanation scrollbar cannot widen the
+  board's track and shift its center between steps.
+- Android passes `board.getWidth()` through `MatchAnalysisView` and the puzzle
+  replay entry. `ReplayBoardLayout` keeps that measured side, allocates fixed
+  controls, then gives the remainder to the explanation. A rotated or narrower
+  window clamps the square to the new usable area; an unmeasured source uses
+  a bounded fallback. The general Game Review layout keeps its own policy.
+- Compare usable CSS pixels and native logical units, including each platform's
+  insets. The contract is equivalent presentation and stable navigation, not
+  identical raw pixels across displays. Components qualify the calculation;
+  native sanity qualifies actual APK rendering. [Verification](../testing/README.md#analysis-in-the-ai-game)
+
+</details>
+
 ## Rules and puzzles
 
 - [`chess-rules.yaml`](../../chess-core/src/main/resources/chess-rules.yaml) declares piece vectors, sliding or jumping movement, pawn direction, captures, promotion, and the setup for both types of castling. The engine applies obstacles, alternating turns, king safety, and expiry of en passant rights. The safety conditions remain mandatory when loading the standard profile.

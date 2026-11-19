@@ -73,6 +73,10 @@ final class AnalysisReplayDialog {
     private final LinearLayout choices;
 
     AnalysisReplayDialog(Context context, Mode mode, boolean blackBelow, boolean showChoices, View action, Runnable onReturn) {
+        this(context, mode, blackBelow, showChoices, action, onReturn, 0);
+    }
+
+    AnalysisReplayDialog(Context context, Mode mode, boolean blackBelow, boolean showChoices, View action, Runnable onReturn, int sourceBoardSide) {
         this.context = context;
         this.blackBelow = blackBelow;
         var screen = column(context);
@@ -136,7 +140,7 @@ final class AnalysisReplayDialog {
         details.addView(reason, new LinearLayout.LayoutParams(-1, -2));
         var scroll = new ScrollView(context);
         scroll.addView(details);
-        screen.addView(new GameReviewWorkspace(context, board, controls, scroll), new LinearLayout.LayoutParams(-1, 0, 1));
+        screen.addView(new GameReviewWorkspace(context, board, controls, scroll, sourceBoardSide), new LinearLayout.LayoutParams(-1, 0, 1));
     }
 
     Button addBranch(int id, String title, String description, Runnable select) {

@@ -117,7 +117,7 @@ public final class AnalysisActivity extends LocalizedActivity {
         top.setId(View.generateViewId());
         bottom.setId(View.generateViewId());
         board = new BoardView(this, this::tap);
-        analysis = new MatchAnalysisView(this, this::notation, () -> select(study));
+        analysis = new MatchAnalysisView(this, this::notation, () -> select(study), () -> board.getWidth());
         screen.addView(new BoardPanel(this, top, board, bottom, analysis.evaluationBar()), new LinearLayout.LayoutParams(-1, 0, 1));
         status = text(14);
         status.setGravity(Gravity.CENTER);

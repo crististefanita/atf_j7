@@ -1,4 +1,52 @@
 testChanges:
+  - id: J7-REPLAY-SOURCE-EN
+    base: "aecf2b013fd4d49fc63395593ca00f0e70a828d1"
+    from: atf-tests/src/test/java/ro/atf/chess/HintReplayPresentationTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java
+    test: ro.atf.chess.ReplayBoardLayoutTest#nativeOwnersPassTheMeasuredBoardAtTheTimeOfOpening
+    contract: "Retain legal replay, independent branches and shared native surface checks; require actual source geometry at opening for calculated, theory and mating previews"
+    allowDelete: false
+
+  - id: J7-REPLAY-VIEWPORT-EN
+    base: "aecf2b013fd4d49fc63395593ca00f0e70a828d1"
+    from: atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+    test: ro.atf.chess.BoardSizingGovernanceTest#explanationsScrollInsideTheViewportWithoutSqueezingTheSquare
+    contract: "Keep the Analysis reference and 48 px controls; replace document growth with an internal explanation viewport, without a second height reduction of the square"
+    allowDelete: false
+
+  - id: J7-REPLAY-COMPONENTS-EN
+    base: "aecf2b013fd4d49fc63395593ca00f0e70a828d1"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    test: ro.atf.chess.ChessWebStudyShellTest#replayChromeKeepsFixedSlots
+    contract: "Retain every route, worker and publication probe; add Extent-backed checks for fixed replay chrome, stable hint and continuation slots and compact metadata"
+    allowDelete: false
+
+  - id: J7-REPLAY-SOURCE-RO
+    base: "e67811de29a4ac97c918099ce6612d0f9def0538"
+    from: atf-tests/src/test/java/ro/atf/chess/HintReplayPresentationTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java
+    test: ro.atf.chess.ReplayBoardLayoutTest#nativeOwnersPassTheMeasuredBoardAtTheTimeOfOpening
+    contract: "Retain legal replay, independent branches and shared native surface checks; require actual source geometry at opening for calculated, theory and mating previews"
+    allowDelete: false
+
+  - id: J7-REPLAY-VIEWPORT-RO
+    base: "e67811de29a4ac97c918099ce6612d0f9def0538"
+    from: atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/BoardSizingGovernanceTest.java
+    test: ro.atf.chess.BoardSizingGovernanceTest#explanationsScrollInsideTheViewportWithoutSqueezingTheSquare
+    contract: "Keep the Analysis reference and 48 px controls; replace document growth with an internal explanation viewport, without a second height reduction of the square"
+    allowDelete: false
+
+  - id: J7-REPLAY-COMPONENTS-RO
+    base: "e67811de29a4ac97c918099ce6612d0f9def0538"
+    from: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/ChessWebStudyShellTest.java
+    test: ro.atf.chess.ChessWebStudyShellTest#replayChromeKeepsFixedSlots
+    contract: "Retain every route, worker and publication probe; add Extent-backed checks for fixed replay chrome, stable hint and continuation slots and compact metadata"
+    allowDelete: false
+
   - id: J7-HOME-SETTINGS-LAYOUT
     base: "d08d487dc463d5321da6a4691123c808dfd73406"
     from: atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java

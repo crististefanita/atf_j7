@@ -44,6 +44,16 @@ Before publishing a new engine, use a deterministic portable digest and verify i
 
 ## WEB-02 · Adapters and Shared Layout
 
+**P2 · APK source-sized replay rendering.** The native adapter passes the
+measured source side to calculated/theory and mating replays. Components cover
+fixed geometry, long text and resize clamping; the external sanity APK builds.
+Qualify native frames with the existing Analysis, Manual Analysis and Puzzle
+Mate Replay probes: compare source/replay sides, Next/Previous and branch
+rectangles, all eight ranks and control access in compact RO/EN. Keep this
+native verdict separate from the nine Web profile/flow comparisons.
+[Source contract](../board/README.md#source-sized-replay) ·
+[Layout components](../../atf-tests/src/test/java/ro/atf/chess/ReplayBoardLayoutTest.java)
+
 <details>
 <summary>Adapter ownership and input</summary>
 
