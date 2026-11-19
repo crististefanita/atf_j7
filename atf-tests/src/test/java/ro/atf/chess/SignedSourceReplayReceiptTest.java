@@ -54,6 +54,11 @@ class SignedSourceReplayReceiptTest {
                 AndroidSanityPublication.signedSourceIdentity(identity.deepCopy().put("testCertificateSha256", "d".repeat(64))));
         check.same("A different installed APK cannot borrow the receipt", false,
                 AndroidSanityPublication.signedSourceIdentity(identity.deepCopy().put("installedApkSha256", "d".repeat(64))));
+        var failed = AndroidSanityPublication.signedSourceEvidence(new AndroidSanityPublication.PhaseEvidence("123", List.of(), true),
+                identity.deepCopy().put("variant", "sanity"));
+        check.same("A signing failure retains an explicit failed assertion for Extent", false, failed.passed());
+        check.same("The diagnostic identifies the signed admission contract", "Signed APK identity", failed.rows().getFirst().name());
+        check.same("The rejected variant remains auditable", true, failed.rows().getFirst().actual().contains("variant=sanity"));
     }
 
     @Test void sourceGeometryAndFixedTargetsRemainRequiredInTheEnlargedPhase(Checks check) throws Exception {
@@ -70,6 +75,11 @@ class SignedSourceReplayReceiptTest {
     @Test void projectSigningRecordIsRelativeAndContainsNoPlaintextPassword(Checks check) throws Exception {
         Path root = ProjectRoot.locate();
         Path directory = root.resolve(".atf-signing");
+        try (var files = Files.list(directory)) {
+            check.same("The signing record contains no build artifacts, temporary certificates or logs",
+                    java.util.Set.of(".gitignore", "README.md", "identity.json", "certificate.der", "chesslab-release.p12", "password.dpapi"),
+                    files.map(path -> path.getFileName().toString()).collect(java.util.stream.Collectors.toSet()));
+        }
         var manifest = new ObjectMapper().readTree(directory.resolve("identity.json").toFile());
         check.same("The encrypted key remains relocatable between worktrees", "chesslab-release.p12", manifest.path("store").asText());
         check.same("Only the DPAPI-wrapped password is named by the manifest", "password.dpapi", manifest.path("credential").asText());

@@ -237,6 +237,13 @@ validat și păstrează PNG-ul original. Decuparea, viewportul lipsă/străin sa
 rotația nesuportată produc FAIL; verificările de aspect existente din
 `ScreenCaptureGeometry` rămân neschimbate.
 
+API 28 raportează `deviceSize` și `physicalFrame` în coordonatele de după
+orientare. Nu le rotiți încă o dată. După lansarea aplicației, așteptați
+concordanța activității reluate curente, rotației displayului și viewportului
+InputReader înainte de calibrarea atingerii sau capturilor. Launcherul portret
+poate recrea aplicația; o activitate veche nu poate furniza vederile sau etichetele.
+[Proiecția displayului Android](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-9.0.0_r61/services/core/java/com/android/server/display/DisplayDevice.java#L147-L208).
+
 Pentru text mărit și rotație fizică, construiți APK-ul semnat **și** instrumentarea
 cu `-Pj7Distribution :app:assembleRelease :app:assembleReleaseAndroidTest`.
 Pe un emulator curat folosiți `-Distribution -ReplayEnlargedOnly -SourceCommit <sha>`.
@@ -244,6 +251,8 @@ Proba păstrează cele trei profiluri logice și ambele limbi la font 1.3. Cazul
 portret cere rotație 0; cele două cazuri peisaj cer rotație observată 90,
 cu dimensiunile displayului nerotit inversate înainte de blocarea rotației.
 Setarea cerută singură nu califică rotirea fizică.
+Fiecare caz pornește și se stabilizează în orientarea declarată. Matricea nu
+rotește un dialog de redare deja deschis și nu califică restaurarea stării sale.
 
 Faza mărită păstrează cele douăzeci de verificări ale geometriei și cursorului
 și adaugă revenirea cu Back din dialogurile calculat, teoretic și de mat.

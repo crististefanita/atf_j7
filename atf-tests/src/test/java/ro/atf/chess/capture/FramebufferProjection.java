@@ -35,17 +35,12 @@ public record FramebufferProjection(int logicalWidth, int logicalHeight, int phy
         while (matches.find()) {
             int[] value = new int[12];
             for (int group = 1; group <= 11; group++) value[group] = Integer.parseInt(matches.group(group));
-            int deviceWidth = rotation == 0 ? physicalWidth : physicalHeight;
-            int deviceHeight = rotation == 0 ? physicalHeight : physicalWidth;
+            // DisplayDevice.populateViewportLocked reports dimensions and physicalFrame post-orientation.
             if (value[1] != rotation || value[2] != 0 || value[3] != 0 || value[4] != width || value[5] != height
-                    || value[10] != deviceWidth || value[11] != deviceHeight) {
+                    || value[10] != physicalWidth || value[11] != physicalHeight) {
                 throw new IllegalArgumentException("Input viewport does not match the observed display and rotation");
             }
-            int left = rotation == 0 ? value[6] : value[7];
-            int top = rotation == 0 ? value[7] : deviceWidth - value[8];
-            int right = rotation == 0 ? value[8] : value[9];
-            int bottom = rotation == 0 ? value[9] : deviceWidth - value[6];
-            found.add(new FramebufferProjection(width, height, physicalWidth, physicalHeight, left, top, right, bottom));
+            found.add(new FramebufferProjection(width, height, physicalWidth, physicalHeight, value[6], value[7], value[8], value[9]));
         }
         if (found.size() != 1) throw new IllegalArgumentException("Missing or ambiguous primary input viewport");
         return found.iterator().next();
