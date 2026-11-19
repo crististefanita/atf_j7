@@ -92,6 +92,27 @@ class RuyReplyTest {
                 GameReviewCodec.decodeLine(game,encoded,GameReviewCodec.checkpointDigest(game)));
     }
 
+    @Test void anUnacceptedOfferCannotReplaceTheQualifiedScandinavianAttack(Checks check)throws Exception {
+        try(var in=getClass().getResourceAsStream("/ruy-transfer-witnesses.yaml")) {
+            var data=JSON.readTree(in);
+            check.same("The independently confirmed transfer counterexamples stay immutable",
+                    "ee5c196159014c9846830e0515c91751a704d5bfa8b46bf4f009722d04e0ea1d",
+                    HardLeagueAudit.digest(HardLeagueAudit.canonical(data).getBytes(StandardCharsets.UTF_8)));
+            var teacher=rows(data);
+            for(var sample:data.path("positions")) {
+                var row=sample.path("row");var board=ChessPosition.fromFen(row.path("initialFen").asText());
+                for(var move:row.path("history"))board=board.play(JSON.treeToValue(move,Move.class));
+                var c=sample.path("case");var expected=m(c.path("old").asText());
+                var actual=c.path("kind").asText().equals("hint")?TacticalAnalysis.verifiedHints(board).lines().getFirst().move()
+                        :TacticalAnalysis.review(board,JSON.treeToValue(row.path("oldReview").path("played"),Move.class),Set.of(),GameReviewPolicy.CURRENT.search).best().move();
+                check.same("An attacked piece which the PV does not take cannot erase the qualified attack "+c.path("ply").asInt()+" "+c.path("kind").asText(),expected,actual);
+                for(int d:List.of(17,19))check.same("The preserved move and rejected broad-scope regression have independent H"+d+" evidence",true,
+                        StockfishStudyAudit.loss(teacher.get(c.path("pairs").path("free-"+d).asText()),teacher.get(c.path("pairs").path("old-"+d).asText()))<50
+                        &&StockfishStudyAudit.loss(teacher.get(c.path("pairs").path("free-"+d).asText()),teacher.get(c.path("pairs").path("new-"+d).asText()))>150);
+            }
+        }
+    }
+
     static JsonNode fixture()throws Exception {
         try(var in=RuyReplyTest.class.getResourceAsStream("/ruy-reply-witnesses.yaml")) {
             var data=JSON.readTree(in);String hash=HardLeagueAudit.digest(HardLeagueAudit.canonical(data).getBytes(StandardCharsets.UTF_8));

@@ -1273,7 +1273,8 @@ proof now admits that case even though its endpoint has no recapture. It searche
 all replies at the declared common horizon, including castling, and charges the
 existing finite reserve. It never bans `…Be6` by move, FEN or opening name.
 
-For an interior quiet offer of a capturable non-pawn, forcing verification retains
+For an interior quiet offer of a non-pawn that the displayed PV actually captures
+on the very next move, forcing verification retains
 all legal captures and promotions until quiet, including captures on different
 squares. The former two-ply capture scope could miss `…Bxb3`, a recapture and then
 `…Nxd4`; repairing only the first reply left another serious hypothetical mistake.
@@ -1301,3 +1302,12 @@ keeps that separate quality gap executable. A comparison is not an optimal playa
 line merely because its root score is lower; retain its independent oracle verdict.
 H7 with full captures exhausts the five-million-node proof allowance in this study;
 no H7 score or Elo improvement is claimed.
+
+The broader admission based only on a capturable opposing piece was rejected. It
+changed nine roots on 106 historical positions and introduced three large losses in
+Scandinavian hint/review. The accepted dependency matters: an attacked piece that
+the PV ignores cannot authorize this new scope. Forty-eight fresh transfer phases
+protect the qualified `…Qh5` attack against the inferior `…Bxf3` substitution at two
+positions. These are permanent component counterexamples. The broad Pirc game
+remains diagnostic under its original producer, and cannot qualify the narrowed
+revision. Start its new observed collection only after the transfer gate.

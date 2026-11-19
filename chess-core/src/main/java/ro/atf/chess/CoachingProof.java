@@ -182,10 +182,10 @@ public final class CoachingProof {
                 var move=line.line().get(i);var after=before.playGenerated(move);
                 boolean capture=MatchMaterial.victim(before,move)!=null;
                 boolean important=before.pieceAt(move.from()).kind()!=ChessPosition.Kind.PAWN||move.promotion()!=null;
-                // A quiet opposing offer inside the preview also needs freely searched alternatives.
+                // An opposing quiet offer actually accepted by the preview needs freely searched alternatives.
                 boolean opposingOffer=i%2==1&&!capture&&important&&move.promotion()==null&&!after.isCheck();
-                if(opposingOffer&&after.legalCapturesAndPromotions().stream()
-                        .anyMatch(m->m.to()==move.to()&&MatchMaterial.victim(after,m)!=null))return true;
+                var reply=line.line().get(i+1);
+                if(opposingOffer&&reply.to()==move.to()&&MatchMaterial.victim(after,reply)!=null)return true;
                 before=after;
             }
         }
