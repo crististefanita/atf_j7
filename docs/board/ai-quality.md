@@ -1246,6 +1246,8 @@ domeniul declarat al căutării, nu șah optim sau creștere Elo.
 `Bb5+` față de `Nc4`, ambele culori, negativul nodului lipsă, cache v2 real și faze noi
 Stockfish H17/H19. Numele deschiderii, FEN-ul și apărările prescrise nu intră în regula motorului.
 
+Regula se aplică șahurilor fără captură sau promovare. Sacrificiile imediate precum corectul
+`…Bxf2+` din Traxler își păstrează evaluarea existentă; prototipul larg pierdea acel martor.
 Indiciul termina deja o comparație mai adâncă, dar folosea vechiul veto H4 după pierderea
 materialului de către liderul cu șah. Acum plătește comparația liberă H5 și, numai când
 aceasta arată cel puțin pierderea unei piese ușoare pentru pion și peste pragul existent de

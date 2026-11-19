@@ -61,6 +61,9 @@ class FrenchCoachingTest {
                 ()->new CoachingProof.Counterplay(5,quiet,later,quiet,later,later.move(),100,25,220));
         var board=ChessMatch.restore("2|analysis|"+HISTORY).position();
         check.same("A proved mate does not demand this different mechanism",false,CoachingProof.shortCheckingLine(board,new TacticalAnalysis.Variation(List.of(m("f1b5")),99997,0,TacticalAnalysis.Ending.CHECKMATE),4));
+        var traxler=ChessMatch.restore("2|analysis|e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 f3g5 f8c5 g5f7").position();
+        check.same("The explicit sound Traxler capture keeps its established sacrifice evaluation",false,
+                CoachingProof.shortCheckingLine(traxler,line("c5f2",0,-220),4));
         var noPawn=ChessPosition.fromFen("rnb1k2r/pp2bp2/3qp3/4Np2/3P3p/2P3N1/PP3PPP/R2QKB1R w KQkq - 0 11");
         var proof=CoachingProof.counterplay(noPawn,List.of(m("f1b5"),m("e5c4")),m("f1b5"),2,CoachingProof.CURRENT,Set.of(),Set.of());
         check.same("The missing c-pawn control completes",true,proof.work().complete());
