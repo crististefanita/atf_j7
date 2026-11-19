@@ -102,6 +102,7 @@ public final class BoardSanity extends Instrumentation {
     private String runId;
     private String puzzleLanguage;
     private int replayRotation = -1;
+    private int rotationEvents;
     private volatile Activity sourceReplayActivity;
 
     @Override public void onCreate(Bundle arguments) {
@@ -119,7 +120,8 @@ public final class BoardSanity extends Instrumentation {
         receipt.putString("pid", Integer.toString(android.os.Process.myPid()));
         if (!runId.isEmpty()) receipt.putString("runId", runId);
         try {
-            if (sourceReplayPhase()) checkSourceSizedReplay();
+            if ("open-replay-rotation".equals(phase)) checkOpenReplayRotation();
+            else if (sourceReplayPhase()) checkSourceSizedReplay();
             else if ("openings".equals(phase)) checkOpenings();
             else if ("game-review".equals(phase)) checkGameReview();
             else if ("game-review-why".equals(phase)) checkReviewExplanation();
@@ -240,13 +242,187 @@ public final class BoardSanity extends Instrumentation {
 
     @Override public void callActivityOnResume(Activity activity) {
         super.callActivityOnResume(activity);
-        if (sourceReplayPhase() && activity instanceof ChessActivity) sourceReplayActivity = activity;
+        if ((sourceReplayPhase() && activity instanceof ChessActivity)
+                || "open-replay-rotation".equals(phase) && (activity instanceof ChessActivity || activity instanceof AnalysisActivity)) sourceReplayActivity = activity;
+    }
+
+    private void checkOpenReplayRotation() throws Exception {
+        enableReviewNodeIds();
+        var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
+        if (!new AppLanguagePreference(new AndroidGamePreferences(settings)).save(AppLanguage.fromTag(puzzleLanguage).orElseThrow())) {
+            throw new AssertionError("Could not select rotation language");
+        }
+        var store = new ChessProgressStore(getTargetContext());
+        var saved = ChessMatch.restore(ro.atf.chess.capture.ReplayViewportFixture.CALCULATED + " g1f3 d7d6");
+        if (!store.matches().saveMatch(saved, false)) throw new AssertionError("Could not seed historical source");
+        var game = launchSourceReplay(true);
+        tap(game.findViewById(R.id.match_history_previous));
+        tap(game.findViewById(R.id.match_history_previous));
+        awaitSourceAnalysis(game);
+        tap(game.findViewById(R.id.match_hint));
+        tap(game.findViewById(R.id.match_hint));
+        var source = sourceBoardState(game);
+        String inline = ((TextView) game.findViewById(R.id.match_analysis)).getText().toString().replace('\n', ' ');
+        for (int rotation : new int[]{1, 0}) {
+            game = rotateOpenReplay(game, rotation, 0);
+            compare("Inline hint survives rotation " + rotation, List.of(inline, source, true),
+                    List.of(((TextView) game.findViewById(R.id.match_analysis)).getText().toString().replace('\n', ' '), sourceBoardState(game),
+                            game.findViewById(R.id.match_hint).isSelected()));
+            if (rotation == 1) {
+                final Activity rotatedGame = game;
+                var bounds = screenBounds(findBoard(viewsOf(game)));
+                captureFrame("rotated-inline", "Inline hint fits in rotated landscape", image ->
+                        sourceRootFits(rotatedGame, findBoard(viewsOf(rotatedGame))) && hintBoardCornersAreRendered(image, bounds));
+            }
+        }
+        final Activity inlineGame = game;
+        var inlineBounds = screenBounds(findBoard(viewsOf(game)));
+        captureFrame("rotation-inline", "Inline hint fits after both recreations", image ->
+                sourceRootFits(inlineGame, findBoard(viewsOf(inlineGame))) && hintBoardCornersAreRendered(image, inlineBounds));
+        game = rotateBranchReplay(game, "calculated");
+        compare("Calculated return preserves the historical source cursor", source, sourceBoardState(game));
+        tap(game.findViewById(R.id.match_history_previous));
+        tap(game.findViewById(R.id.match_history_previous));
+        var monitor = addMonitor(AnalysisActivity.class.getName(), null, false);
+        Activity study;
+        try {
+            tap(game.findViewById(R.id.match_actions));
+            clickMenuItem(game.getString(R.string.manual_analysis));
+            study = waitForMonitorWithTimeout(monitor, 7000);
+        } finally { removeMonitor(monitor); }
+        if (study == null) throw new AssertionError("Analysis board did not open");
+        awaitSourceAnalysis(study);
+        tap(study.findViewById(R.id.match_hint));
+        String studySource = sourceBoardState(study);
+        study = rotateBranchReplay(study, "theory");
+        compare("Theory return preserves its source cursor", studySource, sourceBoardState(study));
+        closeActivity(study);
+        long returnDeadline = SystemClock.uptimeMillis() + 7000;
+        while (!(sourceReplayActivity instanceof ChessActivity) || !sourceReplayActivity.hasWindowFocus()) {
+            if (SystemClock.uptimeMillis() >= returnDeadline) throw new AssertionError("Analysis did not return to the resumed source game");
+            waitForIdleSync();
+            SystemClock.sleep(30);
+        }
+        game = sourceReplayActivity;
+        closeActivity(game);
+        compare("Rotation never changes saved game history", saved.checkpoint(), store.matches().readMatch().checkpoint());
+        if (!store.matches().leaveMatch()) throw new AssertionError("Could not leave the isolated match");
+        var quest = QuestCatalog.loadMateInTwo().get(0);
+        var order = List.of(quest.id());
+        if (!store.quests().save(store.quests().read(order).select(quest.id()), store.quests().readRewards(), 2)) throw new AssertionError("Could not seed mate");
+        var puzzle = launchSourceReplay(false);
+        tap(puzzle.findViewById(R.id.quest_guidance_label));
+        tap(guidance(puzzle, R.string.show_solution));
+        tap(guidance(puzzle, R.string.why_mate));
+        var puzzleSource = sourceBoardState(puzzle);
+        clickReviewIcon(R.id.quest_payoff_next);
+        String mating = replayBoardState(true);
+        for (int rotation : new int[]{1, 0}) {
+            puzzle = rotateOpenReplay(puzzle, rotation, R.id.quest_payoff_board);
+            compare("Mating cursor survives rotation " + rotation, mating, replayBoardState(true));
+            sourceReplayGeometry(puzzle, true);
+            compare("Mating replay keeps the rotated source side " + rotation,
+                    screenBounds(findBoard(viewsOf(puzzle))).width(), nodeBounds(visibleReviewNode(R.id.quest_payoff_board)).width());
+            if (rotation == 1) {
+                var bounds = nodeBounds(visibleReviewNode(R.id.quest_payoff_board));
+                captureFrame("rotated-mating", "Mating replay fits in rotated landscape", image -> hintBoardCornersAreRendered(image, bounds));
+            }
+        }
+        var mateBounds = nodeBounds(visibleReviewNode(R.id.quest_payoff_board));
+        captureFrame("rotation-mating", "Mating replay fits after both recreations", image -> hintBoardCornersAreRendered(image, mateBounds));
+        compare("Mating Back returns to its unchanged source", List.of(true, puzzleSource),
+                List.of(replayBackReturns(puzzle, R.id.quest_payoff_board), sourceBoardState(puzzle)));
+        closeActivity(puzzle);
+        var config = puzzle.getResources().getConfiguration();
+        receipt.putString("rotationProfile", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
+                + "@" + config.densityDpi + ", font=" + config.fontScale + ", language=" + config.getLocales().get(0).getLanguage());
+    }
+
+    private Activity rotateBranchReplay(Activity activity, String owner) throws Exception {
+        tap(activity.findViewById(R.id.match_analysis));
+        clickReviewIcon(R.id.hint_compare_best);
+        clickReviewIcon(R.id.hint_preview_next);
+        String first = replayBoardState(false);
+        clickReviewIcon(R.id.hint_compare_other);
+        clickReviewIcon(R.id.hint_preview_next);
+        clickReviewIcon(R.id.hint_preview_next);
+        String other = replayBoardState(false);
+        for (int rotation : new int[]{1, 0}) {
+            activity = rotateOpenReplay(activity, rotation, R.id.hint_preview_board);
+            compare(owner + " selected branch and cursor survive rotation " + rotation, List.of(other, true),
+                    List.of(replayBoardState(false), visibleReviewNode(R.id.hint_compare_other).isSelected()));
+            clickReviewIcon(R.id.hint_compare_best);
+            compare(owner + " inactive branch cursor survives rotation " + rotation, first, replayBoardState(false));
+            clickReviewIcon(R.id.hint_compare_other);
+            sourceReplayGeometry(activity, false);
+            compare(owner + " replay keeps the rotated source side " + rotation,
+                    screenBounds(findBoard(viewsOf(activity))).width(), nodeBounds(visibleReviewNode(R.id.hint_preview_board)).width());
+            if (rotation == 1) {
+                var bounds = nodeBounds(visibleReviewNode(R.id.hint_preview_board));
+                captureFrame("rotated-" + owner, owner + " replay fits in rotated landscape", image -> hintBoardCornersAreRendered(image, bounds));
+            }
+        }
+        var bounds = nodeBounds(visibleReviewNode(R.id.hint_preview_board));
+        captureFrame("rotation-" + owner, owner + " replay fits after both recreations", image -> hintBoardCornersAreRendered(image, bounds));
+        compare(owner + " Back restores the recreated source window", true, replayBackReturns(activity, R.id.hint_preview_board));
+        return activity;
+    }
+
+    private Activity rotateOpenReplay(Activity before, int rotation, int dialogBoard) throws Exception {
+        if (!getUiAutomation().setRotation(rotation)) throw new AssertionError("Could not request replay rotation");
+        long deadline = SystemClock.uptimeMillis() + 12000;
+        do {
+            waitForIdleSync();
+            Activity current = sourceReplayActivity;
+            if (current != null && current != before && current.getClass() == before.getClass()
+                    && !current.isDestroyed() && sourceDisplay().getRotation() == rotation
+                    && current.getResources().getConfiguration().orientation == (rotation == 1 ? Configuration.ORIENTATION_LANDSCAPE : Configuration.ORIENTATION_PORTRAIT)) {
+                View content = current.findViewById(android.R.id.content);
+                boolean ready = content != null && content.isLaidOut() && !content.isLayoutRequested()
+                        && (dialogBoard == 0 ? current.findViewById(R.id.match_hint).isSelected() : visibleReviewNode(dialogBoard) != null);
+                if (ready) {
+                    try {
+                        calibrateSourceReplayDisplay();
+                        if (current == sourceReplayActivity) {
+                            receipt.putString(String.format(Locale.ROOT, "rotation_%02d", ++rotationEvents),
+                                    before.getClass().getSimpleName() + " recreated at " + rotation);
+                            return current;
+                        }
+                    } catch (IllegalArgumentException settlingViewport) { /* Await the unchanged compositor contract. */ }
+                }
+            }
+            SystemClock.sleep(40);
+        } while (SystemClock.uptimeMillis() < deadline);
+        throw new AssertionError("Open replay was not restored after recreation at rotation " + rotation);
+    }
+
+    private String sourceBoardState(Activity activity) {
+        var board = findBoard(viewsOf(activity));
+        var text = new StringBuilder();
+        for (int index = 0; index < board.getChildCount(); index++) text.append(board.getChildAt(index).getContentDescription()).append('|');
+        return text.toString();
+    }
+
+    private String replayBoardState(boolean mate) {
+        var board = visibleReviewNode(mate ? R.id.quest_payoff_board : R.id.hint_preview_board);
+        if (board == null || !board.refresh() || board.getChildCount() != 64) throw new AssertionError("Missing replay board");
+        var text = new StringBuilder();
+        int caption = mate ? R.id.quest_payoff_move : R.id.hint_preview_step;
+        var label = visibleReviewNode(caption);
+        if (label == null || !label.refresh()) throw new AssertionError("Missing replay caption");
+        text.append(label.getText().toString().replace('\n', ' ')).append('|');
+        for (int index = 0; index < board.getChildCount(); index++) {
+            var cell = board.getChild(index);
+            if (cell == null || !cell.refresh()) throw new AssertionError("Stale replay square " + index);
+            text.append(cell.getContentDescription()).append('|');
+        }
+        return text.toString();
     }
 
     private Activity launchSourceReplay(boolean analysisRequired) throws Exception {
         sourceReplayActivity = null;
         Activity launched = launch();
-        if (!enlargedReplayPhase()) return launched;
+        if (!enlargedReplayPhase() && !"open-replay-rotation".equals(phase)) return launched;
         if (!getUiAutomation().setRotation(replayRotation)) throw new AssertionError("Could not freeze the target replay rotation");
         long deadline = SystemClock.uptimeMillis() + 12000;
         do {
@@ -3665,7 +3841,7 @@ public final class BoardSanity extends Instrumentation {
         if (phase.startsWith("analysis-compact-") || "analysis-prepare".equals(phase) || "manual-analysis".equals(phase) || "tactics-explanation".equals(phase)
                 || "training-finish".equals(phase) || "puzzle-mate-replay".equals(phase) || "puzzle-danger".equals(phase)
                 || "puzzle-ux".equals(phase) || "active-match-restore".equals(phase) || "pending-bot-restore".equals(phase)
-                || sourceReplayPhase() || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
+                || sourceReplayPhase() || "open-replay-rotation".equals(phase) || talkBackReview() || phase.startsWith(COMPACT_REPLAY)) {
             receipt.putString("capture_" + name, captureDigest(file));
         }
     }
