@@ -25,6 +25,7 @@ param(
     [switch]$PuzzleUxOnly,
     [switch]$ReplayViewportOnly,
     [switch]$ReplayEnlargedOnly,
+    [switch]$ReplayRotationOnly,
     [ValidateSet('ro','en')][string]$PuzzleLanguage = 'ro',
     [switch]$IncludeOpenings,
     [switch]$IncludeGameReview,
@@ -52,7 +53,8 @@ if ($ReplayCompactOnly -and (!$Distribution -or $AnalysisOnly -or $OpeningsOnly 
         $IncludeOpenings -or $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive)) {
     throw 'ReplayCompactOnly selects both compact locales on the signed APK.'
 }
-$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly, $PuzzleUxOnly, $ReplayViewportOnly, $ReplayEnlargedOnly).Where({ $_ })
+if ($ReplayRotationOnly -and !$Distribution) { throw 'ReplayRotationOnly requires the signed APK.' }
+$puzzleProbes = @($TacticsExplanationOnly, $TrainingFinishOnly, $PuzzleMateReplayOnly, $PuzzleDangerOnly, $PuzzleUxOnly, $ReplayViewportOnly, $ReplayEnlargedOnly, $ReplayRotationOnly).Where({ $_ })
 if ($puzzleProbes.Count -gt 1 -or ($puzzleProbes.Count -eq 1 -and ($AnalysisOnly -or $OpeningsOnly -or $GameReviewOnly -or
         $ManualAnalysisOnly -or $MatchSlotsOnly -or $MatchArchiveOnly -or $MatchMenusOnly -or $IncludeOpenings -or
         $IncludeGameReview -or $IncludeManualAnalysis -or $IncludeMatchSlots -or $IncludeMatchArchive))) {
@@ -247,6 +249,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
                 ForEach-Object { "puzzle-ux-$_" }
         }
         { $_ -in 'source-sized-replay','source-sized-replay-enlarged' } { $frames = @('source-ai', 'source-calculated', 'source-theory', 'source-mating') }
+        'open-replay-rotation' { $frames = @('rotation-inline', 'rotation-calculated', 'rotation-theory', 'rotation-mating') }
     }
     $captureHashes = [ordered]@{}
     foreach ($frame in $frames) {
@@ -254,7 +257,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         $file = "$frame.png"
         $captureHashes[$file] = (Get-FileHash -LiteralPath (Join-Path $Directory $file)).Hash.ToLowerInvariant()
         if ($Phase -like 'analysis-compact-*' -or $Phase -in 'analysis-prepare','manual-analysis','tactics-explanation','training-finish','puzzle-mate-replay','puzzle-danger','puzzle-ux',
-                'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore','source-sized-replay','source-sized-replay-enlarged') {
+                'replay-compact-ro','replay-compact-en','active-match-restore','pending-bot-restore','source-sized-replay','source-sized-replay-enlarged','open-replay-rotation') {
             $marker = @($lines | Where-Object { $_.StartsWith("INSTRUMENTATION_RESULT: capture_$frame=") })
             if ($marker.Count -eq 0) { throw "Native capture fingerprint is missing: $file." }
             if ($marker.Count -ne 1 -or $marker[0] -cne "INSTRUMENTATION_RESULT: capture_$frame=$($captureHashes[$file])") {
@@ -272,7 +275,7 @@ function Invoke-FocusedSanity([string]$Directory, [string]$Phase, [int]$Expected
         }
         $execution.runId = $RunId
     }
-    if ($Distribution -and $ReplayEnlargedOnly) {
+    if ($Distribution -and ($ReplayEnlargedOnly -or $ReplayRotationOnly)) {
         $execution.signingCertificateSha256 = $certificate
         $execution.testCertificateSha256 = $testCertificate
         $execution.installedApkSha256 = ($onDevice -split '\s+')[0]
@@ -367,7 +370,7 @@ try {
     $api = (Invoke-Device @('shell','getprop','ro.build.version.sdk') | Out-String).Trim()
     $hash = (Get-FileHash -LiteralPath $apk).Hash.ToLowerInvariant()
     if ($Distribution) {
-        if ($ReplayEnlargedOnly) {
+        if ($ReplayEnlargedOnly -or $ReplayRotationOnly) {
             $sdk = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { $env:ANDROID_SDK_ROOT }
             if (!$sdk) { throw 'Signed replay requires ANDROID_HOME or ANDROID_SDK_ROOT.' }
             $signer = Get-ChildItem (Join-Path $sdk 'build-tools') -Directory | Sort-Object { [version]$_.Name } -Descending |
@@ -404,6 +407,26 @@ try {
     $runner = "$app.test/ro.atf.chess.android.BoardSanity"
     $instrument = @('shell','am','instrument','-w','-r')
     if ($Distribution) { $instrument += @('-e','externalFrames','true') }
+    if ($ReplayRotationOnly) {
+        $original = Read-DisplayProfile
+        $original | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'original-display.json') -Encoding utf8NoBOM
+        $runId = [guid]::NewGuid().ToString('N')
+        try {
+            Set-DisplayProfile @{size='720x1280'; density='320'; font='1.3'}
+            foreach ($locale in 'en','ro') {
+                $directory = Join-Path $run "360x640-$locale"
+                $null = New-Item -ItemType Directory $directory
+                $clear = Invoke-Device @('shell','pm','clear',$app)
+                if ($clear -cnotcontains 'Success') { throw 'Could not reset the rotation fixture.' }
+                $instrument = @('shell','am','instrument','-w','-r','-e','puzzleLanguage',$locale,'-e','replayRotation','0','-e','externalFrames','true')
+                Invoke-FocusedSanity $directory 'open-replay-rotation' 28 $runId
+            }
+        } finally {
+            Set-DisplayProfile $original
+            Read-DisplayProfile | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'restored-display.json') -Encoding utf8NoBOM
+        }
+        return
+    }
     if ($ReplayViewportOnly -or $ReplayEnlargedOnly) {
         $original = Read-DisplayProfile
         $original | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'original-display.json') -Encoding utf8NoBOM

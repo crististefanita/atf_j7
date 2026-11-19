@@ -117,12 +117,15 @@ public final class ChessActivity extends BackNavigableActivity {
     private ImageButton previous;
     private ImageButton next;
     private boolean blackBelow;
+    private QuestPayoffDialog payoffDialog;
+    private String suspendedMate;
     private int selected = -1;
     private Move last;
     private List<Move> options = Collections.emptyList();
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        suspendedMate = state == null ? null : state.getString("matingReplay");
         chapters = List.of(
                 new Chapter(R.id.chapter_one, R.string.open_mate_one, R.id.chapter_one_totals, QuestCatalog.load()),
                 new Chapter(R.id.chapter_two, R.string.open_mate_two, R.id.chapter_two_totals, QuestCatalog.loadMateInTwo()),
@@ -143,9 +146,10 @@ public final class ChessActivity extends BackNavigableActivity {
             Toast.makeText(this, R.string.match_load_failed, Toast.LENGTH_LONG).show();
         }
         String archiveId = state == null ? null : state.getString("archive-id");
-        if (archiveId != null && openArchivedMatch(archiveId)) return;
+        if (archiveId != null && openArchivedMatch(archiveId)) { restoreMatchReplay(state); return; }
         if (match != null && store.matches().resumeMatch()) {
             displayMatch(store.matches().matchBlackBelow());
+            restoreMatchReplay(state);
             return;
         }
         if (store.quests().resumeChapter()) for (int index = 0; index < chapters.size(); index++) {
@@ -153,6 +157,9 @@ public final class ChessActivity extends BackNavigableActivity {
             if (!chapterIds.contains(progress.currentId())) continue;
             displayChapter(index);
             if (state != null && progress.currentId().equals(state.getString("questId"))) blackBelow = state.getBoolean("blackBelow", blackBelow);
+            if (state != null && progress.currentId().equals(state.getString("questId"))) {
+                hint = QuestHint.valueOf(state.getString("questHint", QuestHint.NONE.name()));
+            }
             render();
             return;
         }
@@ -478,6 +485,10 @@ public final class ChessActivity extends BackNavigableActivity {
     }
 
     private void showSolution(QuestCatalog.Quest authored) {
+        showSolution(authored, null);
+    }
+
+    private void showSolution(QuestCatalog.Quest authored, ro.atf.chess.ReplayCheckpoint restored) {
         var quest = completedQuest == null ? authored : completedQuest;
         if (quest.objective() == QuestCatalog.Objective.MATERIAL) {
             var study = QuestFinishStudy.forStage(quest, quest.playerMoves() - 1);
@@ -502,7 +513,19 @@ public final class ChessActivity extends BackNavigableActivity {
                     : getString(R.string.mate_exit_occupied, square, getString(BoardView.kindLabel(exit.ownBlocker().kind())));
             message.append('\n').append(detail);
         }
-        QuestPayoffDialog.openMate(this, QuestReplay.mate(authored, step, completedQuest), blackBelow, message.toString(), board.getWidth());
+        payoffDialog = QuestPayoffDialog.openMate(this, QuestReplay.mate(authored, step, completedQuest), blackBelow,
+                message.toString(), board.getWidth(), matingSource(), restored);
+    }
+
+    private String matingSource() { return "QUEST|" + chapterIndex + "|" + progress.currentId() + "|" + step.ply() + "|" + (completedQuest != null); }
+
+    private void restoreMatchReplay(Bundle state) {
+        if (state == null || !match.checkpoint().equals(state.getString("replayMatch"))) return;
+        int cursor = state.getInt("reviewedPly", -1);
+        if (cursor < -1 || cursor > match.ply()) return;
+        reviewedPly = cursor;
+        if (matchAnalysis != null) matchAnalysis.restoreState(state.getString("analysisReplay"));
+        renderMatch();
     }
 
     private void showFinishStudy(QuestCatalog.Quest quest, QuestFinishStudy study, boolean triedAlternative) {
@@ -1211,19 +1234,29 @@ public final class ChessActivity extends BackNavigableActivity {
         scheduleDefense();
         scheduleBot();
         if (inMatch && matchAnalysis != null) renderMatch();
+        String mate = suspendedMate;
+        suspendedMate = null;
+        if (!inMatch && chapterIndex >= 0 && board != null) ro.atf.chess.ReplayCheckpoint.decode(mate).ifPresent(restored -> board.post(() -> {
+            if (resumed && !inMatch && chapterIndex >= 0 && restored.source().equals(matingSource())) {
+                showSolution(quests.get(questIndex), restored);
+            }
+        }));
     }
 
     @Override protected void onPause() {
         resumed = false;
         main.removeCallbacks(reply);
         cancelBot();
-        if (inMatch && matchAnalysis != null) matchAnalysis.cancel();
+        if (inMatch && matchAnalysis != null) matchAnalysis.suspend();
+        suspendedMate = payoffDialog == null ? null : payoffDialog.savedState();
+        if (payoffDialog != null) payoffDialog.dismiss();
         super.onPause();
     }
 
     @Override protected void onDestroy() {
         cancelBot();
         if (reviewDialog != null) reviewDialog.dismiss();
+        if (payoffDialog != null) payoffDialog.dismiss();
         bot.shutdown();
         if (matchAnalysis != null) matchAnalysis.close();
         super.onDestroy();
@@ -1261,6 +1294,13 @@ public final class ChessActivity extends BackNavigableActivity {
         state.putString("questId", progress.currentId());
         state.putBoolean("blackBelow", blackBelow);
         state.putString("menuPage", menuPage.name());
+        state.putString("questHint", hint.name());
+        state.putString("matingReplay", payoffDialog != null && payoffDialog.savedState() != null ? payoffDialog.savedState() : suspendedMate);
+        if (inMatch) {
+            state.putString("replayMatch", match.checkpoint());
+            state.putInt("reviewedPly", reviewedPly);
+            if (matchAnalysis != null) state.putString("analysisReplay", matchAnalysis.savedState());
+        }
         super.onSaveInstanceState(state);
     }
 }

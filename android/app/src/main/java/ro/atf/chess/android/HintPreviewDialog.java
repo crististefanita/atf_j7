@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import ro.atf.chess.ChessPosition;
 import ro.atf.chess.ChessPosition.Move;
@@ -17,6 +18,7 @@ import ro.atf.chess.MatchHint;
 import ro.atf.chess.OpeningReplay;
 import ro.atf.chess.OpeningCatalog.Text;
 import ro.atf.chess.QuestHint;
+import ro.atf.chess.ReplayCheckpoint;
 
 /** Plays the suggested branch on its own board and returns to the original cursor. */
 final class HintPreviewDialog {
@@ -24,8 +26,11 @@ final class HintPreviewDialog {
 
     private HintPreviewDialog() { }
 
-    static Dialog show(Context context, ChessPosition root, MatchHint.Playback study,
-                       boolean blackBelow, Function<Move, String> notation, int sourceBoardSide) {
+    record Session(Dialog dialog, Supplier<ReplayCheckpoint> checkpoint) { }
+
+    static Session show(Context context, ChessPosition root, MatchHint.Playback study,
+                       boolean blackBelow, Function<Move, String> notation, int sourceBoardSide,
+                       String source, String suggestion, ReplayCheckpoint restored) {
         var workspace = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.CALCULATED, blackBelow,
                 study.lines().size() > 1, null, () -> { }, sourceBoardSide);
         workspace.setSummary(study.depth() > 0 ? context.getString(R.string.hint_compare_depth, study.depth()) : null);
@@ -37,12 +42,20 @@ final class HintPreviewDialog {
             int branchIndex = index;
             branches.get(index).button().setOnClickListener(view -> playback.select(branchIndex));
         }
+        var lines = study.lines().stream().map(line -> moves(line.line())).collect(Collectors.toList());
+        if (restored != null && !restored.matches(source, ReplayCheckpoint.Kind.CALCULATED, lines)) return null;
+        if (restored != null && restored.matches(source, ReplayCheckpoint.Kind.CALCULATED, lines)) {
+            for (int index = 0; index < branches.size(); index++) branches.get(index).replay().seek(restored.plies().get(index));
+            selected = restored.branch();
+        }
         playback.select(selected);
-        return workspace.show();
+        return new Session(workspace.show(), () -> new ReplayCheckpoint(source, ReplayCheckpoint.Kind.CALCULATED, suggestion,
+                lines, playback.active, branches.stream().map(branch -> branch.replay().step()).collect(Collectors.toList()), false));
     }
 
-    static Dialog showTheory(Context context, ChessPosition root, MatchHint.TheoryPlayback study,
-                             boolean blackBelow, Function<Move, String> notation, int sourceBoardSide) {
+    static Session showTheory(Context context, ChessPosition root, MatchHint.TheoryPlayback study,
+                             boolean blackBelow, Function<Move, String> notation, int sourceBoardSide,
+                             String source, String suggestion, ReplayCheckpoint restored) {
         var workspace = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.THEORY, blackBelow,
                 study.paths().size() > 1, null, () -> { }, sourceBoardSide);
         var paths = study.paths().stream().map(path -> new OpeningReplay(root, path)).collect(Collectors.toList());
@@ -54,9 +67,20 @@ final class HintPreviewDialog {
             buttons.add(workspace.addBranch(BRANCH_IDS[index], label, label + " · " + theoryTitle(context, study.paths().get(index)),
                     () -> controls.select(active)));
         }
-        controls.select(study.selected());
-        return workspace.show();
+        var lines = study.paths().stream().map(path -> moves(path.steps().stream().map(step -> step.move()).collect(Collectors.toList())))
+                .collect(Collectors.toList());
+        if (restored != null && !restored.matches(source, ReplayCheckpoint.Kind.THEORY, lines)) return null;
+        int selected = study.selected();
+        if (restored != null && restored.matches(source, ReplayCheckpoint.Kind.THEORY, lines)) {
+            for (int index = 0; index < paths.size(); index++) paths.get(index).seek(restored.plies().get(index));
+            selected = restored.branch();
+        }
+        controls.select(selected);
+        return new Session(workspace.show(), () -> new ReplayCheckpoint(source, ReplayCheckpoint.Kind.THEORY, suggestion,
+                lines, controls.active, paths.stream().map(OpeningReplay::ply).collect(Collectors.toList()), false));
     }
+
+    private static String moves(List<Move> moves) { return moves.stream().map(Move::uci).collect(Collectors.joining(" ")); }
 
     static String theoryTitle(Context context, MatchHint.Theory theory) {
         var locale = context.getResources().getConfiguration().getLocales().get(0);

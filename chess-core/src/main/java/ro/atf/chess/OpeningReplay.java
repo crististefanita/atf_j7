@@ -32,4 +32,8 @@ public final class OpeningReplay {
     public boolean hasPrevious() { return ply > 0; }
     public void next() { if (hasNext()) ply++; }
     public void previous() { if (hasPrevious()) ply--; }
+    public void seek(int value) {
+        if (value < 0 || value > length()) throw new IllegalArgumentException("Invalid theory ply: " + value);
+        ply = value;
+    }
 }

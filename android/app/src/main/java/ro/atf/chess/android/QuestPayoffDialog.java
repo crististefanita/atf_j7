@@ -24,6 +24,7 @@ import ro.atf.chess.QuestDanger;
 import ro.atf.chess.QuestHint;
 import ro.atf.chess.QuestPayoff;
 import ro.atf.chess.QuestReplay;
+import ro.atf.chess.ReplayCheckpoint;
 
 final class QuestPayoffDialog {
     private static final int TEXT = 0xffeff2ec;
@@ -43,6 +44,8 @@ final class QuestPayoffDialog {
     private final ImageButton previous;
     private final ImageButton next;
     private QuestReplay replay;
+    private final Dialog dialog;
+    private String source;
 
     static void open(Context context, QuestPayoff payoff, boolean blackBelow, int sourceBoardSide) {
         int title = payoff.defenseStudy() != null ? R.string.tactics_defense_study : R.string.why_tactic;
@@ -54,8 +57,28 @@ final class QuestPayoffDialog {
         new QuestPayoffDialog(context, QuestReplay.at(payoff, 1), blackBelow, label, null, sourceBoardSide);
     }
 
-    static void openMate(Context context, QuestReplay replay, boolean blackBelow, String explanation, int sourceBoardSide) {
-        new QuestPayoffDialog(context, replay, blackBelow, context.getString(R.string.mate_replay_title), explanation, sourceBoardSide);
+    static QuestPayoffDialog openMate(Context context, QuestReplay replay, boolean blackBelow, String explanation, int sourceBoardSide,
+                                      String source, ReplayCheckpoint restored) {
+        if (restored != null) {
+            if (!restored.matches(source, ReplayCheckpoint.Kind.MATING, lines(replay.payoff()))) return null;
+            replay = QuestReplay.at(replay.payoff(), restored.plies().get(0));
+            if (restored.danger()) replay = replay.toggleDanger();
+        }
+        var result = new QuestPayoffDialog(context, replay, blackBelow, context.getString(R.string.mate_replay_title), explanation, sourceBoardSide);
+        result.source = source;
+        return result;
+    }
+
+    String savedState() {
+        return !dialog.isShowing() || source == null ? null : new ReplayCheckpoint(source, ReplayCheckpoint.Kind.MATING, "",
+                lines(payoff), 0, List.of(replay.ply()), replay.shownDanger() != null).encode();
+    }
+
+    void dismiss() { dialog.dismiss(); }
+
+    private static List<String> lines(QuestPayoff payoff) {
+        return List.of(java.util.stream.IntStream.rangeClosed(1, payoff.plies()).mapToObj(ply -> payoff.at(ply).move().uci())
+                .collect(java.util.stream.Collectors.joining(" ")));
     }
 
     private QuestPayoffDialog(Context context, QuestReplay initial, boolean blackBelow, String titleText, String mateExplanation, int sourceBoardSide) {
@@ -65,7 +88,7 @@ final class QuestPayoffDialog {
         this.studyingDefense = payoff.defenseStudy() != null;
         this.mateExplanation = mateExplanation;
         this.blackBelow = blackBelow;
-        var dialog = new Dialog(context, android.R.style.Theme_Material_NoActionBar);
+        dialog = new Dialog(context, android.R.style.Theme_Material_NoActionBar);
         var screen = LayoutInflater.from(context).inflate(R.layout.puzzle_explain, null);
         if (Build.VERSION.SDK_INT >= 35) {
             screen.setOnApplyWindowInsetsListener((view, insets) -> {

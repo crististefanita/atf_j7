@@ -170,6 +170,74 @@ class AndroidSanityPublication {
         publishSourceReplaySanity(true, false);
     }
 
+    static final List<String> OPEN_REPLAY_ROTATION_CHECKS = openReplayRotationChecks();
+
+    private static List<String> openReplayRotationChecks() {
+        var checks = new ArrayList<String>();
+        for (int rotation : List.of(1, 0)) checks.add("Inline hint survives rotation " + rotation);
+        checks.add("Inline hint fits after both recreations");
+        for (String owner : List.of("calculated", "theory")) {
+            for (int rotation : List.of(1, 0)) {
+                checks.add(owner + " selected branch and cursor survive rotation " + rotation);
+                checks.add(owner + " inactive branch cursor survives rotation " + rotation);
+                checks.add(owner + " replay keeps the rotated source side " + rotation);
+            }
+            checks.add(owner + " replay fits after both recreations");
+            checks.add(owner + " Back restores the recreated source window");
+            checks.add(owner.equals("calculated") ? "Calculated return preserves the historical source cursor" : "Theory return preserves its source cursor");
+        }
+        checks.add("Rotation never changes saved game history");
+        for (int rotation : List.of(1, 0)) {
+            checks.add("Mating cursor survives rotation " + rotation);
+            checks.add("Mating replay keeps the rotated source side " + rotation);
+        }
+        checks.add("Mating replay fits after both recreations");
+        checks.add("Mating Back returns to its unchanged source");
+        return List.copyOf(checks);
+    }
+
+    static PhaseEvidence readOpenReplayRotationPhase(Path receipt, String locale) throws IOException {
+        var evidence = readPhase(receipt, "open-replay-rotation", OPEN_REPLAY_ROTATION_CHECKS.size(), OPEN_REPLAY_ROTATION_CHECKS, null);
+        var markers = Files.isRegularFile(receipt) ? Files.readAllLines(receipt) : List.<String>of();
+        String expected = "720x1280@320, font=1.3, language=" + locale;
+        var observed = markerValues(markers, "INSTRUMENTATION_RESULT: rotationProfile=");
+        var rows = new ArrayList<>(evidence.rows());
+        boolean valid = List.of("en", "ro").contains(locale) && observed.equals(List.of(expected));
+        rows.add(new AtfAssertion("Native rotation profile", expected, observed.toString(), valid));
+        for (int index = 1; index <= 8; index++) {
+            String activity = index == 5 || index == 6 ? "AnalysisActivity" : "ChessActivity";
+            String event = activity + " recreated at " + (index % 2 == 1 ? 1 : 0);
+            var actual = markerValues(markers, String.format(java.util.Locale.ROOT, "INSTRUMENTATION_RESULT: rotation_%02d=", index));
+            boolean same = actual.equals(List.of(event));
+            rows.add(new AtfAssertion("Observed recreation " + index, event, actual.toString(), same));
+            valid &= same;
+        }
+        return new PhaseEvidence(evidence.pid(), rows, evidence.passed() && valid);
+    }
+
+    @Test void publishOpenReplayRotationSanity() throws Exception {
+        Path root = Path.of(System.getProperty("chess.android.receipt"));
+        var runs = new ArrayList<BoundRun>();
+        for (String locale : List.of("en", "ro")) {
+            Path receipt = root.resolve("360x640-" + locale).resolve("open-replay-rotation.txt");
+            var run = boundRun("open-replay-rotation", "THEN open replays survive both rotations in " + locale,
+                    receipt, OPEN_REPLAY_ROTATION_CHECKS.size(), OPEN_REPLAY_ROTATION_CHECKS, "open replay rotation", List.of(
+                            new Frame("rotation-inline.png", "Revealed AI hint after two recreations"),
+                            new Frame("rotation-calculated.png", "Calculated variation and its own cursor"),
+                            new Frame("rotation-theory.png", "Theory variation and its own cursor"),
+                            new Frame("rotation-mating.png", "Mating cursor after two recreations")));
+            var evidence = signedSourceEvidence(readOpenReplayRotationPhase(receipt, locale), run.execution());
+            var identity = new ArrayList<>(run.identity());
+            identity.add(new ReportField("Native rotation", "360×640 dp ↔ 640×360 dp · font 1.3 · " + locale));
+            identity.add(new ReportField("Signing certificate SHA-256", run.execution().path("signingCertificateSha256").asText()));
+            identity.add(new ReportField("Timing scope", "Receipt validation/publication; native action latency is not measured."));
+            if (run.identity().isEmpty() || !signedSourceIdentity(run.execution())) identity.clear();
+            runs.add(new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), identity, run.frames(), run.nativeMarkers()));
+        }
+        publishNativeRuns("open-replay-rotation", "Retain source, variation and every cursor through Activity recreation",
+                Path.of(System.getProperty("chess.extent", root.resolve("open-replay-rotation.html").toString())), runs, null, true);
+    }
+
     private void publishSourceReplaySanity(boolean enlarged, boolean signed) throws Exception {
         Path root = Path.of(System.getProperty("chess.android.receipt"));
         String scope = enlarged ? "source-sized-replay-enlarged" : "source-sized-replay";
