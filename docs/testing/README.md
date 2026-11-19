@@ -328,6 +328,34 @@ substituite, coordonatele deformate și abaterea de la linia comună.
 
 </details>
 
+<details>
+<summary>Recrearea redării deschise la font 1.3</summary>
+
+Folosiți build-ul semnat cu `-Distribution -ReplayRotationOnly -SourceCommit <sha>`.
+Proba compactă EN/RO rotește fiecare suprafață deja deschisă 0° → 90° → 0°,
+cerând o altă Activity reluată la fiecare rotire. Verifică indiciul AI
+dezvăluit, varianta calculată/de teorie, cursorul fiecărei variante,
+semimutarea matului, tabla istorică sursă și partida salvată nemodificată.
+Back revine în fereastra sursă recreată. Geometria se măsoară din nou din
+sursa noii orientări; dimensiunea portret în pixeli nu se reutilizează.
+
+Publicați separat cu `AndroidSanityPublication#publishOpenReplayRotationSanity`,
+`-Dchess.android.receipt=<run>` și un `-Dchess.extent=<report>` nou.
+Admiterea cere 32 de verificări native per limbă, opt marcaje ordonate de
+recreare per proces, fontul/profilul 1.3 măsurat, octeții APK semnați identici
+și șaisprezece capturi distincte încorporate în EN/RO. Negativele de componentă resping
+pași lipsă, aserțiuni înlocuite, rotații duplicate și alt profil.
+Proba nu certifică moartea procesului sau focusul/vorbirea TalkBack.
+
+`ReplayCheckpoint` păstrează într-un format mic versionat identitatea sursei,
+liniile UCI ordonate, indiciul/varianta și cursorii independenți. Activity îl
+salvează înainte ca pauza să anuleze workerul și recalculează analiza sursei
+după recreare. Restaurarea cere aceeași sursă și toate semnăturile liniilor;
+o poziție, continuare sau mod diferit respinge starea veche. Nu se reține
+Activity, Dialog sau worker, iar restaurarea nu joacă în partida salvată.
+
+</details>
+
 ### Actualizarea pachetului Web
 
 În componentă, verificați că adresele din `index.html` indică aceeași

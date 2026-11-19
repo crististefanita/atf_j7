@@ -80,6 +80,29 @@ flowchart LR
 
 </details>
 
+Rotația păstrează varianta aleasă și cursorul fiecărei linii. Sursa APK
+recreată măsoară noua latură înainte să redeschidă aceeași continuare.
+Indiciul AI simplu rămâne simplu; Back închide redarea și revine la sursă.
+
+```mermaid
+flowchart LR
+    Open[Redare deschisă] -->|pauză| Save[Salvează sursa, liniile complete și cursorii]
+    Save -->|rotație| Recreate[Recreează sursa și recalculează analiza]
+    Recreate -->|validează| Match{Aceeași sursă și aceleași linii?}
+    Match -->|da| Restore[Restaurează varianta și cursorii]
+    Match -->|nu| Reject[Respinge redarea expirată]
+```
+
+<details>
+<summary>Legendă · Restaurare · identitatea sursei și cursorii independenți</summary>
+
+- `ReplayCheckpoint` validează sursa, modul, semnăturile UCI ordonate, varianta și limitele cursorilor.
+- `MatchAnalysisView` deține anularea calculului și restaurarea liniilor exacte.
+- `ChessActivity` și `AnalysisActivity` salvează valori mici în starea instanței; niciun obiect UI nu este reținut.
+
+</details>
+
+
 ## Reguli și probleme
 
 - [`chess-rules.yaml`](../../chess-core/src/main/resources/chess-rules.yaml) declară vectorii pieselor, deplasarea pe rază sau prin salt, sensul pionului, captura, promovarea și configurația celor două rocade. Motorul aplică blocajele, alternarea culorilor, protecția regelui și expirarea dreptului en passant. Condițiile de siguranță rămân obligatorii la încărcarea profilului standard.

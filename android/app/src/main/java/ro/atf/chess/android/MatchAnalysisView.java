@@ -1,6 +1,5 @@
 package ro.atf.chess.android;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.text.SpannableString;
@@ -24,6 +23,8 @@ import ro.atf.chess.MatchEvaluation;
 import ro.atf.chess.MatchHint;
 import ro.atf.chess.QuestHint;
 import ro.atf.chess.TacticalAnalysis;
+import ro.atf.chess.ReplayCheckpoint;
+import java.util.List;
 
 /** Displays analysis for the current frame, independently of the computer's move. */
 final class MatchAnalysisView extends TextView {
@@ -31,12 +32,15 @@ final class MatchAnalysisView extends TextView {
     private final ImageButton bulb;
     private final EvaluationBar evaluationBar;
     private final IntSupplier sourceBoardSide;
+    private final Runnable renderBoard;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private ChessPosition shownPosition;
     private double shownTerminal = Double.NaN;
     private MatchHint hint;
     private MatchEvaluation shownEvaluation;
-    private Dialog preview;
+    private HintPreviewDialog.Session preview;
+    private String shownSource;
+    private ReplayCheckpoint pendingRestoration;
     private Future<?> pending;
     private int request;
 
@@ -44,6 +48,7 @@ final class MatchAnalysisView extends TextView {
         super(context);
         this.notation = notation;
         this.sourceBoardSide = sourceBoardSide;
+        this.renderBoard = renderBoard;
         evaluationBar = new EvaluationBar(context);
         setId(R.id.match_analysis);
         setGravity(Gravity.CENTER);
@@ -82,22 +87,28 @@ final class MatchAnalysisView extends TextView {
     void show(ChessMatch match, int ply) {
         double terminal = match.result() != ChessMatch.Result.IN_PROGRESS && ply == match.ply()
                 ? MatchEvaluation.terminalWhiteShare(match.result()) : Double.NaN;
-        show(match.positionAt(ply), () -> match.hintAt(ply), terminal);
+        show(match.positionAt(ply), () -> match.hintAt(ply), terminal, "MATCH|" + match.checkpoint() + "|" + ply);
     }
 
     void show(ChessPosition position) {
-        show(position, () -> MatchHint.analyze(position), Double.NaN);
+        String board = java.util.stream.IntStream.range(0, 64).mapToObj(square -> String.valueOf(position.pieceAt(square)))
+                .collect(java.util.stream.Collectors.joining(","));
+        String legal = position.legalMoves().stream().map(Move::uci).sorted().collect(java.util.stream.Collectors.joining(" "));
+        show(position, () -> MatchHint.analyze(position), Double.NaN, "POSITION|" + position.turn() + "|" + board + "|" + legal);
     }
 
     void show(AnalysisLine line) {
         double terminal = line.result() == ChessMatch.Result.IN_PROGRESS
                 ? Double.NaN : MatchEvaluation.terminalWhiteShare(line.result());
-        show(line.position(), line::hint, terminal);
+        show(line.position(), line::hint, terminal, "STUDY|" + line.line().checkpoint() + "|" + line.ply());
     }
 
-    private void show(ChessPosition position, Supplier<MatchHint> search, double terminal) {
+    private void show(ChessPosition position, Supplier<MatchHint> search, double terminal, String source) {
         if (position == shownPosition && Double.compare(terminal, shownTerminal) == 0) return;
+        var restoring = pendingRestoration;
         cancel();
+        pendingRestoration = restoring != null && restoring.source().equals(source) ? restoring : null;
+        shownSource = source;
         shownPosition = position;
         shownTerminal = terminal;
         setText(R.string.match_analysis_pending);
@@ -118,6 +129,7 @@ final class MatchAnalysisView extends TextView {
                 hint = analyzed;
                 shownEvaluation = evaluation;
                 display();
+                restorePreview(currentRequest);
             });
         });
     }
@@ -129,8 +141,10 @@ final class MatchAnalysisView extends TextView {
     }
 
     void cancel() {
-        if (preview != null) preview.dismiss();
+        if (preview != null) preview.dialog().dismiss();
         preview = null;
+        pendingRestoration = null;
+        shownSource = null;
         request++;
         shownPosition = null;
         shownTerminal = Double.NaN;
@@ -142,6 +156,47 @@ final class MatchAnalysisView extends TextView {
         updateBulb();
         if (pending != null) pending.cancel(true);
         pending = null;
+    }
+
+    String savedState() {
+        if (preview != null && preview.dialog().isShowing()) return preview.checkpoint().get().encode();
+        if (pendingRestoration != null) return pendingRestoration.encode();
+        if (hint != null && hint.revealedMove() != null) {
+            String move = hint.revealedMove().uci();
+            return new ReplayCheckpoint(shownSource, ReplayCheckpoint.Kind.INLINE, move, List.of(move), 0, List.of(0), false, hint.number()).encode();
+        }
+        return null;
+    }
+
+    void restoreState(String state) { pendingRestoration = ReplayCheckpoint.decode(state).orElse(null); }
+
+    void suspend() {
+        String state = savedState();
+        cancel();
+        restoreState(state);
+    }
+
+    private void restorePreview(int expectedRequest) {
+        var restored = pendingRestoration;
+        if (restored == null || !restored.source().equals(shownSource)) return;
+        for (int attempt = 0; attempt < hint.count(); attempt++) {
+            hint.revealNext();
+            if (hint.number() == restored.offer() && restored.suggestion().equals(hint.revealedMove().uci())) break;
+        }
+        if (hint.revealedMove() == null || hint.number() != restored.offer() || !restored.suggestion().equals(hint.revealedMove().uci())) {
+            pendingRestoration = null;
+            hint.hide();
+            display();
+            return;
+        }
+        display();
+        renderBoard.run();
+        post(() -> {
+            if (request != expectedRequest || !restored.source().equals(shownSource)) return;
+            if (restored.kind() == ReplayCheckpoint.Kind.CALCULATED) openPreview(restored);
+            else if (restored.kind() == ReplayCheckpoint.Kind.THEORY) openTheory(restored);
+            pendingRestoration = null;
+        });
     }
 
     private void updateBulb() {
@@ -215,22 +270,33 @@ final class MatchAnalysisView extends TextView {
     }
 
     private void openTheory() {
+        openTheory(null);
+    }
+
+    private void openTheory(ReplayCheckpoint restored) {
         if (hint == null || preview != null) return;
         hint.theoryPlayback(shownPosition).ifPresent(study ->
-                rememberPreview(HintPreviewDialog.showTheory(getContext(), shownPosition, study, evaluationBar.blackBelow(), notation, sourceBoardSide.getAsInt())));
+                rememberPreview(HintPreviewDialog.showTheory(getContext(), shownPosition, study, evaluationBar.blackBelow(), notation,
+                        sourceBoardSide.getAsInt(), shownSource, hint.revealedMove().uci(), hint.number(), restored)));
     }
 
     private void openPreview() {
+        openPreview(null);
+    }
+
+    private void openPreview(ReplayCheckpoint restored) {
         var position = shownPosition;
         var current = hint;
         if (current == null || preview != null) return;
         current.playback(position).ifPresent(playback ->
-                rememberPreview(HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation, sourceBoardSide.getAsInt())));
+                rememberPreview(HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation,
+                        sourceBoardSide.getAsInt(), shownSource, hint.revealedMove().uci(), hint.number(), restored)));
     }
 
-    private void rememberPreview(Dialog screen) {
+    private void rememberPreview(HintPreviewDialog.Session screen) {
+        if (screen == null) return;
         preview = screen;
-        screen.setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
+        screen.dialog().setOnDismissListener(dialog -> { if (preview == screen) preview = null; });
     }
 
     private String leadingColor(int advantage) { return getContext().getString(advantage > 0 ? R.string.white : R.string.black); }
