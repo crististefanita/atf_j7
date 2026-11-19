@@ -26,6 +26,14 @@ Calificarea strictă leagă 534 de cazuri de componentă și 30 de aserțiuni Ga
 - [Workflow Web fixat și 30 de fișiere servite](web-publication.json)
 - [Motorul calificat reutilizat de pachetul Web care schimbă doar interfața](web-engine-provenance.json)
 - [Context RAG consultativ pentru diferențele candidatului](rag.txt)
+- [Descărcare autentificată completă din README-ul publicat](distribution-verification.json)
+- [Descărcare reală prin browser MCP — APK complet identic](browser-download.json)
+- [Geometria Web compactă publicată, observată în MCP](web-rendered-observation.json)
+- [Păstrarea ediției curente și anterioare](release-retention.json)
+
+- [Guvernanța publicării — 19 verificări trecute](publication-governance.html)
+- [Guvernanța documentației românești — 18 verificări trecute](publication-documentation-ro.html)
+- [Recepții de guvernanță și identitatea intrărilor testate](publication-governance-execution.json)
 
 ## Domeniu și lucrări rămase
 

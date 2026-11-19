@@ -9,5 +9,6 @@
   "digest": "sha256:bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06",
   "assetUrl": "https://github.com/crististefanita/chess/releases/download/v0.16.1/ChessLab-0.16.1.apk",
   "publishedUtc": "2026-11-19T15:45:21Z",
-  "draft": false
+  "draft": false,
+  "targetCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a"
 }

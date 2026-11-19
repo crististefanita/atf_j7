@@ -18,6 +18,8 @@ Versiunea disponibilă se verifică în README-ul din `origin/main`. Dacă ramur
 7. După semnare și calificare, împingeți tagul candidat fără a rescrie istoricul și publicați asset-ul GitHub. Păstrați `currentVersion`, lista de comparație și README-ul principal pe ultima ediție verificată până când asset-ul nou există. Apoi promovați catalogul și README-ul în ambele ramuri. Păstrați în GitHub Release și local doar ediția nouă și ediția imediat anterioară; retrageți celelalte release-uri și dosare după ce noul asset și ruta din README au trecut verificarea. Nu ștergeți tagurile Git.
 8. Citiți README-ul din `main` pe GitHub și descărcați APK-ul de la URL-ul afișat. Verificați prin `ReleaseGate publication` tagul, canalul, statusul HTTP, octeții, SHA-256 și CRC. Salvați dovezile, împingeți commitul cu rapoartele și repetați descărcarea de pe versiunea finală a README-ului.
 
+- Păstrați separat recepțiile descărcării publice și autentificate. Metadatele GitHub trebuie să identifice producătorul calificat prin `targetCommit`; recepția publică păstrează statusul HTTP observat, octeții compleți, amprenta și CRC pentru ruta canonică a asset-ului din README. O descărcare autentificată reușită, singură, nu încheie guvernanța publicării.
+
 - După publicarea unui draft, recitiți release-ul după tag și identificați asset-ul după ID. GitHub poate returna o rută provizorie cu segmentul „untagged” în răspunsul de upload. Folosiți în README doar ruta canonică din metadatele release-ului publicat și verificați descărcarea completă.
 
 - Trimiteți notele din fișierul UTF-8. Pentru REST, trimiteți octeții UTF-8 ai JSON-ului și recitiți corpul release-ului publicat după tag. Comparați textul cu sursa și verificați că linkul spre dovezi deschide dosarul ediției.

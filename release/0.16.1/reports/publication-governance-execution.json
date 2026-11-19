@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "version": "0.16.1",
+  "qualifiedSourceCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a",
+  "english": {
+    "checkoutCommit": "33ddb0610982a2b61e4babf6fb7475b4d964852a",
+    "workingTree": "Publication evidence and the documented process clarification were pending commit when tested.",
+    "tests": 19,
+    "extent": "publication-governance.html",
+    "extentSha256": "e639ccb5676fd5544042ecb5e21bebe951f1d0343a259ff9bde13fd58ccadc17",
+    "receipts": {
+      "TEST-ro.atf.chess.DocumentationGovernanceTest.xml": "1691cd8748f739084265539910af0e4d9de244282ae1b8210c0dd1cdadee02b1",
+      "TEST-ro.atf.chess.ReleaseGovernanceTest.xml": "1076049bd63ed38f4c51ae867690c394a86824252a510ef9b4546bb87231b18e"
+    },
+    "inputs": {
+      "README.md": "95fe1026574afb71e2d8961a60b79658834408667a149a3c2618277da46b42db",
+      "release/index.json": "31e44b70b8f1868c8254cba3b8abbcbe504f9aac5c35f0e93ba6b6235bb11993",
+      "release/0.16.1/reports/qualification.json": "11c74715750dd001d3907ec8903e87fab1096d60207f627ca3848497e379378e",
+      "release/0.16.1/reports/github-release.json": "337e8a351fae98bfc6c1e9d09bf129ed80b3746db4734bc594dee9005934ab1b",
+      "release/0.16.1/reports/public-download.json": "00925b946c9367486143b6c4f8f8caec37168113e22ea2ddc60356779b9ee788",
+      "release/0.16.1/reports/distribution-verification.json": "e1238da681bc8984be37151229d8fe3a8582eafb1c514a64273b53ffe8d5b4c4"
+    }
+  },
+  "romanian": {
+    "checkoutCommit": "ceb8f10778710d7050dc30467691b937ebc50730",
+    "workingTree": "Publication evidence and the documented process clarification were pending commit when tested.",
+    "tests": 18,
+    "extent": "publication-documentation-ro.html",
+    "extentSha256": "123f86f7ba98098abdb31d54fb3d49b9c5a30c00c8cb45693f1534b8348e47e5",
+    "receipts": {
+      "TEST-ro.atf.chess.DocumentationGovernanceTest.xml": "c363ff5d0cbe62c69403e28344c896d7791e7946a28f7324ccbc68fbd090aa22"
+    },
+    "inputs": {
+      "README.md": "944290cf880a929104185d3bd8e4dc6c73574545e76cda2cc183d5a669fa3367",
+      "release/index.json": "31e44b70b8f1868c8254cba3b8abbcbe504f9aac5c35f0e93ba6b6235bb11993",
+      "release/0.16.1/reports/qualification.json": "11c74715750dd001d3907ec8903e87fab1096d60207f627ca3848497e379378e",
+      "release/0.16.1/reports/github-release.json": "337e8a351fae98bfc6c1e9d09bf129ed80b3746db4734bc594dee9005934ab1b",
+      "release/0.16.1/reports/public-download.json": "00925b946c9367486143b6c4f8f8caec37168113e22ea2ddc60356779b9ee788",
+      "release/0.16.1/reports/distribution-verification.json": "e1238da681bc8984be37151229d8fe3a8582eafb1c514a64273b53ffe8d5b4c4"
+    }
+  },
+  "parallelSourceControl": {
+    "test": "ScotchPromotionEvidenceTest",
+    "tests": 5,
+    "result": "PASS",
+    "scope": "Merged test-only continuation evidence; not a different APK producer"
+  },
+  "observedUtc": "2026-11-19T16:03:06.346Z"
+}

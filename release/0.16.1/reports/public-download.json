@@ -1,0 +1,17 @@
+{
+  "channel": "Anonymous browser-compatible release asset",
+  "targetCommit": "6b958f5a7ef8fed3f441a0983a4d5f812a61aa8a",
+  "zipCrc": "PASS",
+  "repository": "crististefanita/chess",
+  "httpStatus": 200,
+  "sha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06",
+  "readmeCommit": "33ddb0610982a2b61e4babf6fb7475b4d964852a",
+  "releaseUrl": "https://github.com/crististefanita/chess/releases/tag/v0.16.1",
+  "readmeBlob": "6e6d8821da9592dd1afb47213c26fbb056aa3bb0",
+  "status": "PASS",
+  "assetUrl": "https://github.com/crististefanita/chess/releases/download/v0.16.1/ChessLab-0.16.1.apk",
+  "assetId": 768264121,
+  "bytes": 1280580,
+  "tag": "v0.16.1",
+  "observedUtc": "2026-11-19T16:00:51.0130652Z"
+}

@@ -1,0 +1,14 @@
+{
+  "driver": "Browser MCP",
+  "qualifiedBytesIdentical": true,
+  "assetUrl": "https://github.com/crististefanita/chess/releases/download/v0.16.1/ChessLab-0.16.1.apk",
+  "browserSession": "Signed out, public repository",
+  "observedUtc": "2026-11-19T15:54:33.6251532Z",
+  "downloadedFile": "C:\\Users\\Cristi\\Downloads\\ChessLab-0.16.1.apk",
+  "readmeUrl": "https://github.com/crististefanita/chess",
+  "status": "PASS",
+  "sha256": "bf0732d6b2520ffdbc92b75aefedb91e8484b35b07b6f6b5ebc2a2f9bb8b4c06",
+  "bytes": 1280580,
+  "route": "Rendered main README link -> browser download event",
+  "downloadEvent": "COMPLETED"
+}

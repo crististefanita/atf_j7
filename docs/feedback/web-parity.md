@@ -53,6 +53,8 @@ de 48 dp. Cereți dreptunghiuri în componente RO/EN și capturi native înainte
 de schimbarea contractului actual fără salturi.
 [Controalele explicației](../../atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java)
 
+**P2 · Identitatea execuției meniurilor native.** Propagați un ID de execuție generat prin instrumentarea meniurilor Salvate/Încheiate, recepții și Extent. Observațiile focalizate actuale au trecut pe sursele și APK-ul calificate, dar le lipsește această legătură și rămân în afara calificării suplimentare stricte. Adăugați cazuri negative pentru ID lipsă sau înlocuit înaintea admiterii lor în acea poartă.
+
 **P2 · Oracolele vechi ale istoricului nativ.** `awaitHiddenAnalysis` încă
 verifică un copil de istoric per semimutare. Aliniați `analysis-prepare/restore`
 și variantele compacte la cursorul comun cu o singură mutare afișată în joc.
