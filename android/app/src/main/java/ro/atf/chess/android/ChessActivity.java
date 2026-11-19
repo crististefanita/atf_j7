@@ -1235,10 +1235,10 @@ public final class ChessActivity extends BackNavigableActivity {
         scheduleBot();
         if (inMatch && matchAnalysis != null) renderMatch();
         String mate = suspendedMate;
-        suspendedMate = null;
         if (!inMatch && chapterIndex >= 0 && board != null) ro.atf.chess.ReplayCheckpoint.decode(mate).ifPresent(restored -> board.post(() -> {
             if (resumed && !inMatch && chapterIndex >= 0 && restored.source().equals(matingSource())) {
                 showSolution(quests.get(questIndex), restored);
+                suspendedMate = null;
             }
         }));
     }
@@ -1248,7 +1248,7 @@ public final class ChessActivity extends BackNavigableActivity {
         main.removeCallbacks(reply);
         cancelBot();
         if (inMatch && matchAnalysis != null) matchAnalysis.suspend();
-        suspendedMate = payoffDialog == null ? null : payoffDialog.savedState();
+        if (payoffDialog != null) suspendedMate = payoffDialog.savedState();
         if (payoffDialog != null) payoffDialog.dismiss();
         super.onPause();
     }

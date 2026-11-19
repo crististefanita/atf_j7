@@ -384,11 +384,17 @@ public final class BoardSanity extends Instrumentation {
 
     private String replayBoardState(boolean mate) {
         var board = visibleReviewNode(mate ? R.id.quest_payoff_board : R.id.hint_preview_board);
-        if (board == null || board.getChildCount() != 64) throw new AssertionError("Missing replay board");
+        if (board == null || !board.refresh() || board.getChildCount() != 64) throw new AssertionError("Missing replay board");
         var text = new StringBuilder();
         int caption = mate ? R.id.quest_payoff_move : R.id.hint_preview_step;
-        text.append(visibleReviewNode(caption).getText()).append('|');
-        for (int index = 0; index < board.getChildCount(); index++) text.append(board.getChild(index).getContentDescription()).append('|');
+        var label = visibleReviewNode(caption);
+        if (label == null || !label.refresh()) throw new AssertionError("Missing replay caption");
+        text.append(label.getText()).append('|');
+        for (int index = 0; index < board.getChildCount(); index++) {
+            var cell = board.getChild(index);
+            if (cell == null || !cell.refresh()) throw new AssertionError("Stale replay square " + index);
+            text.append(cell.getContentDescription()).append('|');
+        }
         return text.toString();
     }
 

@@ -160,11 +160,12 @@ final class MatchAnalysisView extends TextView {
 
     String savedState() {
         if (preview != null && preview.dialog().isShowing()) return preview.checkpoint().get().encode();
+        if (pendingRestoration != null) return pendingRestoration.encode();
         if (hint != null && hint.revealedMove() != null) {
             String move = hint.revealedMove().uci();
             return new ReplayCheckpoint(shownSource, ReplayCheckpoint.Kind.INLINE, move, List.of(move), 0, List.of(0), false).encode();
         }
-        return pendingRestoration == null ? null : pendingRestoration.encode();
+        return null;
     }
 
     void restoreState(String state) { pendingRestoration = ReplayCheckpoint.decode(state).orElse(null); }
@@ -178,18 +179,23 @@ final class MatchAnalysisView extends TextView {
     private void restorePreview(int expectedRequest) {
         var restored = pendingRestoration;
         if (restored == null || !restored.source().equals(shownSource)) return;
-        pendingRestoration = null;
         for (int attempt = 0; attempt < hint.count(); attempt++) {
             hint.revealNext();
             if (restored.suggestion().equals(hint.revealedMove().uci())) break;
         }
-        if (hint.revealedMove() == null || !restored.suggestion().equals(hint.revealedMove().uci())) { hint.hide(); display(); return; }
+        if (hint.revealedMove() == null || !restored.suggestion().equals(hint.revealedMove().uci())) {
+            pendingRestoration = null;
+            hint.hide();
+            display();
+            return;
+        }
         display();
         renderBoard.run();
         post(() -> {
             if (request != expectedRequest || !restored.source().equals(shownSource)) return;
             if (restored.kind() == ReplayCheckpoint.Kind.CALCULATED) openPreview(restored);
             else if (restored.kind() == ReplayCheckpoint.Kind.THEORY) openTheory(restored);
+            pendingRestoration = null;
         });
     }
 
