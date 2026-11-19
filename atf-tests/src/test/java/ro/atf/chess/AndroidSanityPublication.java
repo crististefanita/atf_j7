@@ -162,7 +162,14 @@ class AndroidSanityPublication {
                             new Frame("source-calculated.png", "Calculated line"), new Frame("source-theory.png", "Analysis hint"),
                             new Frame("source-mating.png", "Mating line")));
             var evidence = readSourceReplayPhase(receipt, profile, locale);
-            runs.add(new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), run.identity(), run.frames(), run.nativeMarkers()));
+            var identity = new ArrayList<>(run.identity());
+            identity.add(new ReportField("Logical profile", profile + " dp · " + locale));
+            identity.add(new ReportField("Native profile", markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: replayProfile=").toString()));
+            var projection = markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: framebufferProjection=");
+            if (projection.size() > 1 || run.execution().path("api").asText().equals("28") && projection.size() != 1) identity.clear();
+            if (!identity.isEmpty() && !projection.isEmpty()) identity.add(new ReportField("Verified compositor projection", projection.toString()));
+            if (run.identity().isEmpty()) identity.clear();
+            runs.add(new BoundRun(run.scope(), run.title(), receipt, evidence, run.execution(), identity, run.frames(), run.nativeMarkers()));
         }
         publishNativeRuns("source-sized-replay", "Keep source-sized native boards and fixed controls across replay navigation",
                 root.resolve("android-source-sized-replay.html"), runs, null, true);

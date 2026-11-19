@@ -98,6 +98,7 @@ public final class BoardSanity extends Instrumentation {
     private String phase;
     private boolean externalFrames;
     private ScreenCaptureGeometry replayCapture;
+    private ro.atf.chess.capture.FramebufferProjection framebufferProjection;
     private String runId;
     private String puzzleLanguage;
 
@@ -157,6 +158,17 @@ public final class BoardSanity extends Instrumentation {
     private void checkSourceSizedReplay() throws Exception {
         enableReviewNodeIds();
         replayCapture = displayCaptureGeometry();
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
+            try (var input = new ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand("dumpsys input"));
+                 var output = new java.io.ByteArrayOutputStream()) {
+                byte[] buffer = new byte[8192];
+                for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
+                framebufferProjection = ro.atf.chess.capture.FramebufferProjection.fromInputDump(
+                        output.toString(java.nio.charset.StandardCharsets.UTF_8.name()), replayCapture.logicalWidth(), replayCapture.logicalHeight(),
+                        replayCapture.physicalWidth(), replayCapture.physicalHeight());
+                receipt.putString("framebufferProjection", framebufferProjection.toString());
+            }
+        }
         var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
         var locale = AppLanguage.fromTag(puzzleLanguage).orElseThrow();
         if (!new AppLanguagePreference(new AndroidGamePreferences(settings)).save(locale)) throw new AssertionError("Could not select language");
@@ -3527,7 +3539,8 @@ public final class BoardSanity extends Instrumentation {
         } else {
             capture = getUiAutomation().takeScreenshot();
         }
-        if (capture != null && !replayCapture.accepts(api, capture.getWidth(), capture.getHeight())) {
+        if (capture != null && !(framebufferProjection == null ? replayCapture.accepts(api, capture.getWidth(), capture.getHeight())
+                : framebufferProjection.accepts(capture.getWidth(), capture.getHeight()))) {
             String raster = capture.getWidth() + "x" + capture.getHeight();
             capture.recycle();
             throw new IllegalStateException("Replay capture " + raster + " does not cover " + replayCapture);
@@ -3582,8 +3595,14 @@ public final class BoardSanity extends Instrumentation {
         }
         double scaleX = (double) image.getWidth() / display.widthPixels;
         double scaleY = (double) image.getHeight() / display.heightPixels;
-        Rect bounds = new Rect((int) Math.floor(screenBounds.left * scaleX), (int) Math.floor(screenBounds.top * scaleY),
-                (int) Math.ceil(screenBounds.right * scaleX), (int) Math.ceil(screenBounds.bottom * scaleY));
+        Rect bounds;
+        if (framebufferProjection == null) {
+            bounds = new Rect((int) Math.floor(screenBounds.left * scaleX), (int) Math.floor(screenBounds.top * scaleY),
+                    (int) Math.ceil(screenBounds.right * scaleX), (int) Math.ceil(screenBounds.bottom * scaleY));
+        } else {
+            int[] mapped = framebufferProjection.project(screenBounds.left, screenBounds.top, screenBounds.right, screenBounds.bottom);
+            bounds = new Rect(mapped[0], mapped[1], mapped[2], mapped[3]);
+        }
         int marked = 0;
         int right = Math.min(image.getWidth(), bounds.right);
         int bottom = Math.min(image.getHeight(), bounds.bottom);

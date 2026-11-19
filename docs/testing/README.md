@@ -221,6 +221,13 @@ and exact display marker. Missing, substituted or duplicate assertions and a
 wrong profile fail closed in `AndroidSourceReplayReceiptTest`.
 This development sanity does not qualify a signed release APK.
 
+On API 28, the full framebuffer may letterbox a different logical aspect
+ratio. `FramebufferProjection` accepts a mapping only when Android's primary
+input viewport matches the current display and its complete centered content
+rectangle. Pixel checks use that verified rectangle and preserve the original
+PNG. A crop, missing/foreign viewport or unsupported rotation fails closed;
+the older `ScreenCaptureGeometry` aspect-ratio checks remain unchanged.
+
 <details>
 <summary>Shared cases, screens, and receipts</summary>
 
