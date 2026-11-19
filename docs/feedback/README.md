@@ -9,7 +9,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
-| P1 | Scotch · winning check and opposing mate | At move 20, the hint compares `…dxc3` and `…gxf6`, omits `…Re8+`, and loses 314/348.5‰. Later in its PV, `Bxb2` replaces White's forced mate in three by `Bxh7+`. | Readmit the winning root and search free opposing replies, including quiet follow-up checks; preserve the valid bishop sacrifice, existing root guards and negative work limits. Both explicit quality goals remain FAIL. [Witnesses](#scotch-winning-check-and-opposing-mate) |
+| P1 | Scotch · winning check and opposing mate | At move 20, the hint compares `…dxc3` and `…gxf6`, omits `…Re8+`, and loses 314/348.5‰. Later in its PV, `Bxb2` replaces White's forced mate in three by `Bxh7+`. | Readmit the winning root and search free opposing replies, including quiet follow-up checks; preserve the valid bishop sacrifice, existing root guards and negative work limits. The hint-root, review-root and continuation goals remain FAIL. [Witnesses](#scotch-winning-check-and-opposing-mate) |
 | P1 | Hint comparison · whole diagnostic PV | The repaired Ruy public line has no large loss, but the rejected `Ng5 …O-O Nc3` comparison still contains a 346/378.5‰ weak move. | Audit comparison continuations as well as offered hints; repair the full free-reply line and keep the explicit comparison benchmark FAIL until both horizons qualify it. [Mechanism](../board/ai-quality.md#quiet-opposing-offers-inside-a-hint) |
 | P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation with 200k ordinary work and its separately charged finite proof reserve, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
@@ -550,13 +550,18 @@ All 66 endpoints are checked: zero unsound exposed important pieces, but five la
 moves remain inferior. No Elo or globally optimal hints are established by this game.
 
 [ScotchWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/ScotchWitnessTest.java)
-keeps eight raw phases, full actual/hypothetical history and original source identity.
+keeps ten raw phases, full actual/hypothetical history and original source identity.
 At the original move, free Stockfish selects `…Re8+`; the verification shortlist
 omits it. Later, free White play proves `Bxh7+ Kxh7 Qh5+ Kg8 Qh8#` at both depths.
 `Bxb2` misses that mate but still retains winning chances; do not describe it as a
 losing sacrifice. The correct bishop-for-pawn sacrifice must survive future changes.
 [ScotchContinuationBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/ScotchContinuationBenchmarkTest.java)
-keeps separate FAIL goals for root readmission and the complete opposing continuation.
+keeps separate FAIL goals for hint-root readmission, review-root selection and the complete opposing continuation.
 Do not repair only the displayed suffix, ban captures, force one defense or replace
 history. Verify the root and all freely chosen replies at their actual horizon.
 Evidence is in `C:\work\sah\.studii\corpus\2026-11-19-ruy-qualified-coaching`.
+
+At that same move the native review selects `…dxc3` and calls the actually played
+`…Re8+` BLUNDER with 298 native points lost. Forced H17/H19 checks of Re8+ lose only
+7.5/8‰. Repairing shortlist coverage alone cannot close this: review already covers
+all legal roots but misranks them. Preserve the separate review-root benchmark.
