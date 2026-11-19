@@ -359,7 +359,7 @@ public final class TacticalAnalysis {
         var roots=new java.util.LinkedHashSet<Move>();
         for(var line:seed.lines())roots.add(line.move());
         if(seed.comparison()!=null)for(var line:seed.comparison().result().ranked())roots.add(line.move());
-        var proof=CoachingProof.compare(position,List.copyOf(roots),seed.selectedDepth(),Set.of(),policy,Set.of(seed.lines().get(0).move()),MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies());
+        var proof=CoachingProof.compare(position,List.copyOf(roots),seed.selectedDepth(),Set.of(),policy,Set.copyOf(roots),MatchAiPolicy.CURRENT.hint.tacticalExtensionPlies());
         if(proof.work().complete()) {
             var ranked=new ArrayList<>(proof.lines());HintPinSupport.sort(position,ranked);proof=new CoachingProof.Result(ranked,proof.work());
         }
