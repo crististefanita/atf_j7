@@ -486,6 +486,11 @@ decizie calificată a dovezii.
 Analiza păstrează și liderul la egalitate numerică exactă. Egalitatea `Nf3`/`e4` din Engleză
 este +21 după închidere, fără vechiul +651. Păstrează cele șase faze ale profesorului și
 negativul de componentă: ordinea lexicală producea singură o recomandare independent mai slabă.
+Replay-ul final pe 106 poziții activează rezerva în 44 de indicii și 66 de analize, fără
+rezultat incomplet. Cele 43 de recomandări schimbate au 252 de faze H17/H19. Nicio pierdere
+nouă nu atinge 150‰; maximele suplimentare sunt 73,5/54‰. Aceste degradări mici rămân
+datorie de calibrare, alături de cele două benchmark-uri franceze eșuate. Frontiera tactică
+închisă nu certifică joc global optim și nu înlocuiește măsurarea Elo în partide complete noi.
 
 Nu deduce Elo sau transfer independent larg din controalele forțate compuse. Partidele
 noi complete cer în continuare hint maxim înaintea fiecărei mutări, analiză finală și
