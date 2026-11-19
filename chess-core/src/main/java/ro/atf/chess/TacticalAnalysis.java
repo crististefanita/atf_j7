@@ -646,6 +646,7 @@ public final class TacticalAnalysis {
         var budget = new SearchBudget(policy.extraNodes(), tacticalExtension, transpositionLimit);
         budget.adaptive = adaptive == null ? null : adaptive.budget(root.position());
         budget.checkOrderBonus = prioritizeChecks ? MatchAiPolicy.CURRENT.hardOrdering.checkBonus() : 0;
+        budget.principalVariationSearch = prioritizeChecks && tacticalExtension == 0;
         budget.quietMoveOrdering = prioritizeChecks ? new QuietMoveOrdering() : null;
         int exchangeLimit = MatchAiPolicy.CURRENT.pawnExchangeNodes;
         var pawnCandidate = prioritizeChecks && gap == 0 && exchangeLimit > 0 && !shallowScores.isEmpty() && !root.position().isCheck()
@@ -1066,7 +1067,19 @@ public final class TacticalAnalysis {
         Line best = null;
         boolean cutoff = false;
         for (Move move : moves) {
-            var child = search(position.playGenerated(move), left - 1, distance + 1, -beta, -alpha, budget, objective);
+            var next = position.playGenerated(move);
+            Line child;
+            // A secondary move first proves whether it can improve alpha. An in-window
+            // improvement is searched again at full width before it supplies the PV.
+            if (budget != null && budget.principalVariationSearch && best != null && beta - alpha > 1) {
+                child = search(next, left - 1, distance + 1, -alpha - 1, -alpha, budget, objective);
+                int probe = -child.score();
+                if (probe > alpha && probe < beta) {
+                    child = search(next, left - 1, distance + 1, -beta, -alpha, budget, objective);
+                }
+            } else {
+                child = search(next, left - 1, distance + 1, -beta, -alpha, budget, objective);
+            }
             int score = -child.score();
             if (best == null || score > best.score()) best = child.prepend(move);
             alpha = Math.max(alpha, score);
@@ -1332,6 +1345,7 @@ public final class TacticalAnalysis {
     }
 
     private static final class SearchBudget {
+        private boolean principalVariationSearch;
         private final int allocated;
         private HardAdaptivePolicy.Budget adaptive;
         private int adaptiveOffset;
