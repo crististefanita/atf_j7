@@ -291,8 +291,8 @@ public final class BoardSanity extends Instrumentation {
         } finally { removeMonitor(monitor); }
         if (study == null) throw new AssertionError("Analysis board did not open");
         awaitSourceAnalysis(study);
-        String studySource = sourceBoardState(study);
         tap(study.findViewById(R.id.match_hint));
+        String studySource = sourceBoardState(study);
         study = rotateBranchReplay(study, "theory");
         compare("Theory return preserves its source cursor", studySource, sourceBoardState(study));
         closeActivity(study);
