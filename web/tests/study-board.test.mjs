@@ -140,7 +140,8 @@ test('Study draws the native origin and destination cue in both board orientatio
     assert.equal(white.transform, 'translate(4.5 6.5) rotate(-90)');
     assert.equal(black.transform, 'translate(3.5 1.5) rotate(90)');
     assert.equal(white.path, black.path);
-    assert.ok(white.path.includes('L 1.72 0'));
+    const tip = Number(/ L ([\d.]+) 0 /.exec(white.path)[1]);
+    assert.ok(Math.abs((2 - tip) - .20) < 1e-10, 'The tip stops one fifth of a square before the destination center');
     const knight = studyArrow('b1', 'c3', false);
     assert.match(knight.transform, /^translate\(1\.5 7\.5\) rotate\(-63\./);
     assert.equal(studyArrow('e2', undefined, false), null);
@@ -239,7 +240,7 @@ test('Puzzle and match boards share the Analysis reference and keep controls in 
     assert.match(puzzleCss, /grid-template-rows:\s*auto auto auto minmax\(0, 1fr\) auto;/);
     assert.match(puzzleCss, /\.quest-study-board-and-details\s*\{[^}]*container-type:\s*inline-size;/);
     assert.match(puzzleCss, /#quest-study-board\s*\{[^}]*inline-size:\s*min\(100%, var\(--play-board-limit\)\)/);
-    assert.match(puzzleCss, /#quest-study-game\s*\{[^}]*min-block-size:\s*calc\(100dvh - var\(--quest-insets\)\);/);
+    assert.match(puzzleCss, /#quest-study-game\s*\{[^}]*block-size:\s*calc\(100dvh - var\(--quest-insets\)\);[^}]*min-block-size: 0/);
     assert.match(puzzleCss, /\.quest-study-details,[^}]*overflow:\s*auto;/);
 
     assert.match(puzzleCss, /#quest-study-turn\s*\{[^}]*block-size:\s*calc\(1lh \+ 2 \* var\(--quest-turn-padding\)\)/,
@@ -289,7 +290,7 @@ test('Replay layout caps puzzle, match and analysis boards at the originating sq
         .map(name => readFile(new URL('../src/main/web/' + name, import.meta.url), 'utf8')));
     for (const [index, selector] of ['#quest-study-replay-board', '#match-inline-preview-board.board'].entries()) {
         const rule = css[index].slice(css[index].indexOf(selector)).split('}')[0];
-        assert.match(rule, /(?:inline-size|width): min\(100%, var\(--replay-board-side, var\(--play-board-limit\)\)\)/);
+        assert.match(rule, /(?:inline-size|width): min\(100%, var\(--replay-board-side, var\(--play-board-limit\)\), var\(--play-board-limit\)\)/);
         assert.doesNotMatch(rule, /100cqb|100cqh/);
     }
     assert.match(css[2], /\.analysis-study-replay \.analysis-study-stack\s*\{\s*max-inline-size: var\(--replay-board-side, 100%\);/);

@@ -136,7 +136,7 @@ Every ply, including an opposing reply, requires the actual history-aware Hard a
 
 `ChessWebStudyShellTest` checks the common rule and control structure. `ChessWebBoardSizingTest` evaluates the actual CSS expressions against ten independent fixtures for screen width, height, rail and text scale, including rejected arithmetic inputs. `BoardSizingGovernanceTest` checks the single sizing owner and the consumers' scroll policy. These components qualify the contract; they do not replace browser layout measurement.
 
-In Browser MCP, use Analysis board as the reference at the same viewport and text size. Compare Puzzles, AI, reopened Saved games and Openings at 360 × 640, 740 × 420 and 1280 × 900 CSS px. Measure the square, rail and controls before and after navigation. Extra content may scroll vertically; it must not squeeze the square again or overlap controls. Preserve 48 px targets, all eight ranks and no horizontal overflow. [Sizing rule](../../web/README.md#the-board-in-puzzles-and-matches)
+In Browser MCP, use Analysis board as the reference at the same viewport and text size. Compare Puzzles, AI, reopened Saved games and Openings at 360 × 640, 740 × 420 and 1280 × 900 CSS px. Measure the square, rail and controls before and after navigation. Standard AI and puzzle pages must not require document scrolling; explanations scroll in their own area. Preserve 48 px targets, all eight ranks and no horizontal overflow. [Sizing rule](../../web/README.md#the-board-in-puzzles-and-matches)
 
 ### Menu and hint parity
 
@@ -147,6 +147,7 @@ In Browser MCP, use Analysis board as the reference at the same viewport and tex
   130% text, a scrolled origin and long lists.
 - `HintReplayPresentationTest` checks the shared replay layout, independent line
   cursors and the Android adapter. The selected history position is preserved.
+- [`HintArrowTest`](../../atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java) checks the tip's actual position against the destination center for short and long horizontal, vertical, diagonal and knight moves, in both orientations and at different cell sizes. It compares the JVM model, Web SVG and mocked review Canvas on the same measured-cell cases, including odd-sized boards with rounded cell edges. The expected gap is 20% of the cell side; the Android adapter delegates to the tested model.
 - `WebUiParityGovernanceTest` requires RAG to cite these component checks and
   the owning section. An unknown surface remains flagged for review.
 
@@ -170,6 +171,18 @@ Compare the same checkpoint and ply in the JVM and worker. Use native and browse
 `MatchHistorySelectionTest` verifies the single game-move cursor against fourteen shared cases. The Web component covers both wire formats, unchanged live announcements, history growth, branching and stale cursors. The compiled worker checks projection parity and orientation. In Browser MCP, step from Start through the first, intermediate and latest move at compact, landscape and desktop sizes; verify one label between the arrows, boundary cues and an unchanged board rectangle. The APK adapter uses the shared cursor in game mode and preserves the Analysis board's history strip.
 
 `NavigationGovernanceTest` registers the shared title, Back and navigation styling, the adapters that consume the line projection and the variant collections that must remain available. Component probes retain the Analysis board's complete history, both opening and calculated-line branches, and puzzle hint/Danger controls. A rendered Web check visits Games, Puzzles, Openings and Analysis board, including their contextual Back path; it must not infer Android rendering from Web captures.
+
+`ReplayBoardLayoutTest` checks the native source-side contract, fixed controls,
+long explanations, resizing and missing geometry. `ChessWebStudyShellTest#replayChromeKeepsFixedSlots`
+publishes the CSS chrome checks in Extent; mocked owners separately exercise
+capture before hiding the source, independent branches, stepping and reopening.
+For Browser MCP, open Calculated line, Mating line and an Analysis preview on
+each profile above. Compare the source and replay sides, then every board and
+arrow rectangle after Next, Previous, a branch change and return. Record the
+document height, dialog scroll range and embedded captures. The explanation
+may scroll; the board and controls remain fixed. Native compilation and pure
+layout components prepare APK parity but do not qualify Android rendering.
+[Shared replay contract](../board/README.md#source-sized-replay)
 
 <details>
 <summary>Shared cases, screens, and receipts</summary>
@@ -219,7 +232,7 @@ receipts, distorted coordinates, and deviations from the common line.
   board reference instead of the native geometry. Its 8 px rail and 5 px gap
   remain alongside the full square. Compare the Web result with Analysis at
   the same viewport and text size. The hint retains a 48 px target; on short
-  pages, scroll to it without changing the square. **Mate in 1** keeps its
+  pages, keep it in the viewport without changing the square. **Mate in 1** keeps its
   rectangle after solving, Next, and Back.
 
 </details>

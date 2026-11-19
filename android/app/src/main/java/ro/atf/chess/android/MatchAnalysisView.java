@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.IntSupplier;
 import ro.atf.chess.AnalysisLine;
 import ro.atf.chess.ChessMatch;
 import ro.atf.chess.ChessPosition;
@@ -29,6 +30,7 @@ final class MatchAnalysisView extends TextView {
     private final Function<Move, String> notation;
     private final ImageButton bulb;
     private final EvaluationBar evaluationBar;
+    private final IntSupplier sourceBoardSide;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private ChessPosition shownPosition;
     private double shownTerminal = Double.NaN;
@@ -38,9 +40,10 @@ final class MatchAnalysisView extends TextView {
     private Future<?> pending;
     private int request;
 
-    MatchAnalysisView(Context context, Function<Move, String> notation, Runnable renderBoard) {
+    MatchAnalysisView(Context context, Function<Move, String> notation, Runnable renderBoard, IntSupplier sourceBoardSide) {
         super(context);
         this.notation = notation;
+        this.sourceBoardSide = sourceBoardSide;
         evaluationBar = new EvaluationBar(context);
         setId(R.id.match_analysis);
         setGravity(Gravity.CENTER);
@@ -213,7 +216,7 @@ final class MatchAnalysisView extends TextView {
     private void openTheory() {
         if (hint == null || preview != null) return;
         hint.theoryPlayback(shownPosition).ifPresent(study ->
-                rememberPreview(HintPreviewDialog.showTheory(getContext(), shownPosition, study, evaluationBar.blackBelow(), notation)));
+                rememberPreview(HintPreviewDialog.showTheory(getContext(), shownPosition, study, evaluationBar.blackBelow(), notation, sourceBoardSide.getAsInt())));
     }
 
     private void openPreview() {
@@ -221,7 +224,7 @@ final class MatchAnalysisView extends TextView {
         var current = hint;
         if (current == null || preview != null) return;
         current.playback(position).ifPresent(playback ->
-                rememberPreview(HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation)));
+                rememberPreview(HintPreviewDialog.show(getContext(), position, playback, evaluationBar.blackBelow(), notation, sourceBoardSide.getAsInt())));
     }
 
     private void rememberPreview(Dialog screen) {

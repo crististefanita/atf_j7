@@ -40,10 +40,11 @@ class BoardSizingGovernanceTest {
         check.same("All eight ranks remain square grid rows", true, source("game-review.css").contains("grid-template-rows: repeat(8, minmax(0, 1fr))"));
     }
 
-    @Test void extraContentScrollsWithoutSqueezingTheSquare(Checks check) throws Exception {
+    @Test void explanationsScrollInsideTheViewportWithoutSqueezingTheSquare(Checks check) throws Exception {
         String puzzles = source("study-quests.css");
-        check.same("Puzzle page can grow beyond its viewport minimum", true, puzzles.contains("min-block-size: calc(100dvh - var(--quest-insets))"));
-        check.same("Puzzle page is not fixed to viewport height", false, Pattern.compile("(?<!min-)block-size: calc\\(100dvh - var\\(--quest-insets\\)\\)").matcher(puzzles).find());
+        check.same("The standard puzzle window owns one viewport", true, puzzles.contains("block-size: calc(100dvh - var(--quest-insets))"));
+        check.same("Puzzle details yield remaining space without a second square reduction", true,
+                puzzles.contains("grid-template-rows: auto minmax(0, 1fr)"));
         for (String owner : List.of("study-analysis.css", "study-openings.css", "study-quests.css", "game-review.css")) {
             check.same(owner + " preserves scrollable explanations", true, source(owner).contains("overflow: auto"));
         }

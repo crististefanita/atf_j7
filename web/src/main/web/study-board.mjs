@@ -1,3 +1,5 @@
+import { hintArrow } from './hint-arrow.mjs';
+
 export function boardPlacement(fen) {
     if (/^[prnbqkPRNBQK ]{64}$/.test(fen)) return fen;
     const ranks = fen.split(' ', 1)[0].split('/').map(rank => rank.replace(/[1-8]/g, count => ' '.repeat(Number(count))));
@@ -31,13 +33,12 @@ export function studyArrow(origin, destination, blackBelow) {
     const [endX, endY] = center(destination);
     const dx = endX - x;
     const dy = endY - y;
-    // Match the proportions in Android BoardView. Each square is one SVG unit.
-    const tip = Math.hypot(dx, dy) - .28;
-    const head = tip - .17;
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    // Each square is one SVG unit; both Web renderers use the same geometry.
+    const shape = hintArrow(dx, dy);
+    const angle = shape.radians * 180 / Math.PI;
     return {
         transform: `translate(${x} ${y}) rotate(${angle})`,
-        path: `M .31 -.029 H ${head} V -.106 L ${tip} 0 L ${head} .106 V .029 H .31 Z`,
+        path: `M ${shape.start} ${-shape.halfShaft} H ${shape.head} V ${-shape.halfHead} L ${shape.tip} 0 L ${shape.head} ${shape.halfHead} V ${shape.halfShaft} H ${shape.start} Z`,
     };
 }
 

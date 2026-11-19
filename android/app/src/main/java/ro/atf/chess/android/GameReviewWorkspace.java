@@ -5,6 +5,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import ro.atf.chess.GameReviewLayout;
+import ro.atf.chess.ReplayBoardLayout;
 
 /** Places the measured board, fixed controls and scrolling report in the dialog's usable window. */
 @SuppressLint("ViewConstructor") // Constructed in code with its three measured children.
@@ -12,13 +13,19 @@ final class GameReviewWorkspace extends ViewGroup {
     private final View board;
     private final View controls;
     private final View report;
+    private final int sourceBoardSide;
     private GameReviewLayout placement;
 
     GameReviewWorkspace(Context context, View board, View controls, View report) {
+        this(context, board, controls, report, 0);
+    }
+
+    GameReviewWorkspace(Context context, View board, View controls, View report, int sourceBoardSide) {
         super(context);
         this.board = board;
         this.controls = controls;
         this.report = report;
+        this.sourceBoardSide = sourceBoardSide;
         addView(board);
         addView(controls);
         addView(report);
@@ -29,8 +36,9 @@ final class GameReviewWorkspace extends ViewGroup {
         int height = MeasureSpec.getSize(heightSpec);
         controls.measure(exact(width), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST));
         int gutter = dp(8);
-        placement = GameReviewLayout.fit(width, height, controls.getMeasuredHeight(), dp(48) * 5,
-                dp(132), dp(248), gutter);
+        placement = sourceBoardSide > 0
+                ? new GameReviewLayout(false, ReplayBoardLayout.fit(width, height, sourceBoardSide, controls.getMeasuredHeight(), dp(132)).side(), width)
+                : GameReviewLayout.fit(width, height, controls.getMeasuredHeight(), dp(48) * 5, dp(132), dp(248), gutter);
         int side = placement.boardSide();
         controls.measure(exact(placement.panelWidth()), exact(controls.getMeasuredHeight()));
         board.measure(exact(side), exact(side));

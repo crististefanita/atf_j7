@@ -33,11 +33,50 @@
 ### Hint and explanation controls
 
 - **Hint** marks the piece's square with a subtle turquoise outline and announces its name and coordinate. **Show move** adds a thin arrow and the text “Suggested move,” including the required piece for promotion. The cells announce the cues in text, and the arrow follows the coordinates when the board is flipped. After the defense, the hint starts from the new position.
+- The arrow's geometric tip ends 20% of the square's side length before the destination's center, along the move's direction. The origin, head size and width keep the same proportions on APK and Web. Android uses the measured cell centers through [`HintArrow`](../../chess-core/src/main/java/ro/atf/chess/HintArrow.java), including when integer pixel rounding gives adjacent cells slightly different widths.
 - The screen reader announces the color and piece for **Hint**, then includes the destination for **Show move**. When you reach a milestone, the checkmate confirmation also announces it. The progress bar keeps the milestone visible when you return.
 - In **Mate in 1**, **Explain** opens the checkmate position on a separate board. In **Mate in 2** and **Mate in 3**, the arrows navigate the line one ply at a time. While solving, the line starts at the current position. After solving, it starts from the beginning and shows the played finish, including an accepted alternative mate. The last step explains the check and the escape squares.
 - In the explanation, the current move appears first below the fixed board, above the scrollable reason. **Danger**, between the arrows, outlines the mated king or the captured piece's square and announces the reason. For a capture, it calculates the minimum material gain that remains after any legal reply. A recapture that removes the gain, an opposing checkmate, and stalemate suppress the marker. The arrows clear it whenever the position changes. The **OK** button in the header returns to the puzzle with progress and points preserved.
 
 - The two-step hint model follows Daily Puzzle. The explanation remains a separate action, as does explicitly revealing the solution in Lichess Training. [Chess.com Daily Puzzle](https://support.chess.com/en/articles/8708990-how-does-the-daily-puzzle-work) · [Lichess Puzzle Training](https://lichess.org/training/daily)
+
+### Source-sized replay
+
+Calculated line, Mating line and AI/theory previews capture the visible source
+square when they open. Navigation changes pieces and text without measuring
+the preview as a new source. Reopening captures the current source again.
+
+```mermaid
+flowchart LR
+    Source[Visible source square] -->|measure current side| Capture[Capture once at opening]
+    Capture -->|CSS pixels| Web[Web CSS side in pixels]
+    Capture -->|native pixels| APK[APK ReplayBoardLayout]
+    Web -->|bounded rows| Frame[Fixed board and control rows]
+    APK -->|measured bounds| Frame
+    Frame -->|remaining area| Details[Remaining height for scrolling explanation]
+    Step[Step or branch] -->|reuse captured side| Position[Position and text]
+    Position -->|update pieces and captions| Frame
+```
+
+<details>
+<summary>Legend · Source, adapters and fixed rows</summary>
+
+- Web stores `--replay-board-side`; fixed rows prevent text from overlapping
+  the square or arrows. The standard AI hint row and continuation slot reserve
+  their space before an action. Short-window metadata shares one line. Replay
+  columns use `minmax(0, 1fr)` so an explanation scrollbar cannot widen the
+  board's track and shift its center between steps.
+- Android passes `board.getWidth()` through `MatchAnalysisView` and the puzzle
+  replay entry. `ReplayBoardLayout` keeps that measured side, allocates fixed
+  controls, then gives the remainder to the explanation. A rotated or narrower
+  window clamps the square to the new usable area; an unmeasured source uses
+  a bounded fallback. The general Game Review layout keeps its own policy.
+- Compare usable CSS pixels and native logical units, including each platform's
+  insets. The contract is equivalent presentation and stable navigation, not
+  identical raw pixels across displays. Components qualify the calculation;
+  native sanity qualifies actual APK rendering. [Verification](../testing/README.md#analysis-in-the-ai-game)
+
+</details>
 
 ## Rules and puzzles
 

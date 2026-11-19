@@ -241,12 +241,13 @@ dialog::backdrop { background: #121613a8; }
 }
 .match-inline-analysis {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   gap: .3rem;
   margin-block-start: .2rem;
   font-size: .8rem;
+  min-block-size: var(--chess-control-size);
 }
 .match-inline-analysis #match-inline-score { text-align: center; }
 .match-inline-analysis button {
@@ -262,18 +263,19 @@ dialog::backdrop { background: #121613a8; }
 #match-inline-hint[aria-pressed="true"] { color: #57e0b4; }
 #match-inline-preview {
   --preview-padding: .65rem;
-  inline-size: min(calc(var(--replay-board-side, 35rem) + 2 * var(--preview-padding) + 2px), 100%);
+  inline-size: min(calc(min(var(--replay-board-side, var(--play-board-limit)), var(--play-board-limit)) + 2 * var(--preview-padding) + 2px), 100%);
   max-inline-size: none;
   max-block-size: calc(100dvh - 1rem);
+  block-size: calc(100dvh - 1rem);
   inset-block: .5rem auto;
   margin-block: 0;
   padding: var(--preview-padding);
   container-type: inline-size;
-  overflow: auto;
+  overflow: hidden;
 }
 #match-inline-preview[open] {
   display: grid;
-  grid-template-rows: auto auto auto auto;
+  grid-template-rows: var(--chess-control-size) auto var(--chess-control-size) minmax(0, 1fr);
   gap: .35rem;
 }
 #match-inline-preview > header {
@@ -282,7 +284,7 @@ dialog::backdrop { background: #121613a8; }
 }
 #match-inline-preview-title { min-inline-size: 0; }
 #match-inline-preview-board.board {
-  inline-size: min(100%, var(--replay-board-side, var(--play-board-limit)));
+  inline-size: min(100%, var(--replay-board-side, var(--play-board-limit)), var(--play-board-limit));
   margin-inline: auto;
 }
 #match-inline-preview button:not(.square) { min-block-size: var(--play-action-size); }
@@ -299,8 +301,19 @@ dialog::backdrop { background: #121613a8; }
 }
 .match-inline-preview-navigation button { min-inline-size: var(--play-action-size); }
 .match-inline-preview-details {
+  min-block-size: 0;
   overflow: auto;
   overscroll-behavior: contain;
+}
+#match-inline-branches { flex-wrap: nowrap; }
+#match-inline-branches button { flex: 1; min-inline-size: 0; padding-inline: .25rem; font-size: .8rem; }
+@media (max-height: 480px) {
+  .match-caption { display: flex; justify-content: center; gap: .6rem; }
+  .match-caption > .turn {
+    flex: 0 1 auto; min-inline-size: 0; margin-block: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .match .movement, .match-inline-analysis { margin-block-start: 0; }
 }
 #match-inline-branches:not(:empty) { margin-block-end: .35rem; }
 .square {

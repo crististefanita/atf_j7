@@ -25,9 +25,9 @@ final class HintPreviewDialog {
     private HintPreviewDialog() { }
 
     static Dialog show(Context context, ChessPosition root, MatchHint.Playback study,
-                       boolean blackBelow, Function<Move, String> notation) {
+                       boolean blackBelow, Function<Move, String> notation, int sourceBoardSide) {
         var workspace = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.CALCULATED, blackBelow,
-                study.lines().size() > 1, null, () -> { });
+                study.lines().size() > 1, null, () -> { }, sourceBoardSide);
         workspace.setSummary(study.depth() > 0 ? context.getString(R.string.hint_compare_depth, study.depth()) : null);
         var branches = branches(context, root, study, workspace, notation);
         var playback = new Playback(context, root, workspace, notation, branches);
@@ -42,9 +42,9 @@ final class HintPreviewDialog {
     }
 
     static Dialog showTheory(Context context, ChessPosition root, MatchHint.TheoryPlayback study,
-                             boolean blackBelow, Function<Move, String> notation) {
+                             boolean blackBelow, Function<Move, String> notation, int sourceBoardSide) {
         var workspace = new AnalysisReplayDialog(context, AnalysisReplayDialog.Mode.THEORY, blackBelow,
-                study.paths().size() > 1, null, () -> { });
+                study.paths().size() > 1, null, () -> { }, sourceBoardSide);
         var paths = study.paths().stream().map(path -> new OpeningReplay(root, path)).collect(Collectors.toList());
         var buttons = new ArrayList<Button>(paths.size());
         var controls = new TheoryControls(context, workspace, study, paths, buttons, notation);
