@@ -1701,7 +1701,7 @@ testChanges:
     contract: "Preserve every preceding replay oracle; require both real Activity recreations, all branch cursors, original source history, font 1.3 and signed receipt/capture identity in both locales"
     allowDelete: false
 
-  - id: J7-CHROME-MainMenuLayoutTest-java-EN
+  - id: J7-CHROME-MAINMENULAYOUTTEST-JAVA-EN
     base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
     from: atf-tests/src/test/java/ro/atf/chess/MainMenuLayoutTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
@@ -1709,7 +1709,7 @@ testChanges:
     contract: "Preserve six chapters, every replay control, all game rows and Back visibility; relocate Back beside the title and retain actual native image checks with shared geometry and contextual destinations"
     allowDelete: false
 
-  - id: J7-CHROME-PuzzleExplainLayoutTest-java-EN
+  - id: J7-CHROME-PUZZLEEXPLAINLAYOUTTEST-JAVA-EN
     base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
     from: atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java
     replacement: atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
@@ -1717,7 +1717,7 @@ testChanges:
     contract: "Preserve six chapters, every replay control, all game rows and Back visibility; relocate Back beside the title and retain actual native image checks with shared geometry and contextual destinations"
     allowDelete: false
 
-  - id: J7-CHROME-study-quests-test-mjs-EN
+  - id: J7-CHROME-STUDY-QUESTS-TEST-MJS-EN
     base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
     from: web/tests/study-quests.test.mjs
     replacement: atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
@@ -1725,7 +1725,7 @@ testChanges:
     contract: "Preserve six chapters, every replay control, all game rows and Back visibility; relocate Back beside the title and retain actual native image checks with shared geometry and contextual destinations"
     allowDelete: false
 
-  - id: J7-CHROME-BoardSanity-java-EN
+  - id: J7-CHROME-BOARDSANITY-JAVA-EN
     base: "8184c68eaa206e56ad1bbfd7e72124c34990ab58"
     from: android/app/src/androidTest/java/ro/atf/chess/android/BoardSanity.java
     replacement: atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
