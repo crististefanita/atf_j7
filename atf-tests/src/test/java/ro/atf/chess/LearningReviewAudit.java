@@ -8,6 +8,10 @@ import java.util.function.IntConsumer;
 
 /** Additive post-game review: it never rewrites the original pre-move journal. */
 final class LearningReviewAudit {
+    static void validateControlInventory(java.util.Set<String> collectedCases,int soundControls) {
+        require(soundControls==(collectedCases.contains("sound-queen-offer")?1:0),
+                "Missing, duplicated or invented sound-sacrifice control");
+    }
     enum Mode { FINISHED_GAME, CAPPED_LINE }
     record Player(Integer accuracy, GameReview.Rating localRating, int ratedMoves, Map<GameReview.Grade,Integer> grades) { }
     record Why(GameReviewExplanation.Reason reason, ChessPosition.Side side, int loss, int depth,

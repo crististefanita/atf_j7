@@ -508,3 +508,12 @@ remains FAIL; never change its zero-error assertion to accept the observed count
 The finished-game review and all its branches retain a separate oracle audit.
 Evidence: `C:\work\sah\.studii\corpus\2026-11-19-french-coaching-quiet`; producer
 `098848be9612e68e370d3495df4dc679a0f7aedd`, original journal and work receipts intact.
+
+The completed review audits both branches of all 55 moves. It retains one inferior
+recommendation (move 26, 267.5/289.5‰ loss) and seven native error labels on moves
+losing below 50‰ at both depths. All 77 hint endpoints are independently checked:
+none exposes an important final piece to a legal recapture, but 14 last moves are
+still inferior at both oracle depths. This does not certify the whole PV: the
+finished-review quality benchmark remains FAIL for that recommendation. Repair
+free-reply comparisons and classification separately; never hide the internal
+weak replies just because the final piece is safe.

@@ -9,6 +9,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class LearningReviewAuditTest {
+    @Test void recordedCaseInventoryRejectsMissingDuplicatedOrInventedControlTails(Checks check) {
+        var fresh=java.util.Set.of("ruy-lopez");var withControl=java.util.Set.of("ruy-lopez","sound-queen-offer");
+        LearningReviewAudit.validateControlInventory(fresh,0);
+        LearningReviewAudit.validateControlInventory(withControl,1);
+        check.rejects("A new-opening game cannot invent a historical control",IllegalArgumentException.class,
+                ()->LearningReviewAudit.validateControlInventory(fresh,1));
+        check.rejects("Collecting the sound-sacrifice case makes its tail mandatory",IllegalArgumentException.class,
+                ()->LearningReviewAudit.validateControlInventory(withControl,0));
+        check.rejects("A repeated control cannot replace missing public phases",IllegalArgumentException.class,
+                ()->LearningReviewAudit.validateControlInventory(withControl,2));
+    }
     private static final LearningGameAudit.Identity SOURCE=new LearningGameAudit.Identity("review-fixture","a".repeat(40),"b".repeat(64),"c".repeat(64));
     private static final LearningGameAudit.Identity REVIEWER=new LearningGameAudit.Identity("review-verifier","d".repeat(40),"e".repeat(64),"f".repeat(64));
     private static final String JOURNAL="1".repeat(64),POLICY="2".repeat(64);

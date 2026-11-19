@@ -1435,15 +1435,47 @@ testChanges:
   - id: J7-FREE-COUNTERPLAY-EN-POSTGAME-INVENTORY
     base: "95a5f6648a5631908b1eae7208309b1f3fedeb65"
     from: atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
-    test: ro.atf.chess.LearningPostgameBenchmarkTest#everySavedGameRetainsItsCompleteReviewAndEveryOraclePhase
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+    test: ro.atf.chess.LearningReviewAuditTest#recordedCaseInventoryRejectsMissingDuplicatedOrInventedControlTails
     contract: "Keep all per-move, raw oracle, tail, recapture and quality assertions; require exactly one sound-sacrifice control when that case was actually collected and zero otherwise, rejecting invented or duplicated controls without fabricating a game in a new-opening corpus"
     allowDelete: false
 
   - id: J7-FREE-COUNTERPLAY-RO-POSTGAME-INVENTORY
     base: "fa4e6b321532f956b16853862b3502eee1db4802"
     from: atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
-    replacement: atf-tests/src/test/java/ro/atf/chess/LearningPostgameBenchmarkTest.java
-    test: ro.atf.chess.LearningPostgameBenchmarkTest#everySavedGameRetainsItsCompleteReviewAndEveryOraclePhase
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+    test: ro.atf.chess.LearningReviewAuditTest#recordedCaseInventoryRejectsMissingDuplicatedOrInventedControlTails
     contract: "Keep all per-move, raw oracle, tail, recapture and quality assertions; require exactly one sound-sacrifice control when that case was actually collected and zero otherwise, rejecting invented or duplicated controls without fabricating a game in a new-opening corpus"
+    allowDelete: false
+
+  - id: J7-FREE-COUNTERPLAY-EN-LEARNINGREVIEWAUDIT
+    base: "95a5f6648a5631908b1eae7208309b1f3fedeb65"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningReviewAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+    test: ro.atf.chess.LearningReviewAuditTest#recordedCaseInventoryRejectsMissingDuplicatedOrInventedControlTails
+    contract: "Keep all existing review, receipt and independent quality assertions; reject invented, missing and duplicated sacrifice controls using the actual collected case inventory"
+    allowDelete: false
+
+  - id: J7-FREE-COUNTERPLAY-EN-LEARNINGREVIEWAUDITTEST
+    base: "95a5f6648a5631908b1eae7208309b1f3fedeb65"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+    test: ro.atf.chess.LearningReviewAuditTest#recordedCaseInventoryRejectsMissingDuplicatedOrInventedControlTails
+    contract: "Keep all existing review, receipt and independent quality assertions; reject invented, missing and duplicated sacrifice controls using the actual collected case inventory"
+    allowDelete: false
+
+  - id: J7-FREE-COUNTERPLAY-RO-LEARNINGREVIEWAUDIT
+    base: "fa4e6b321532f956b16853862b3502eee1db4802"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningReviewAudit.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+    test: ro.atf.chess.LearningReviewAuditTest#recordedCaseInventoryRejectsMissingDuplicatedOrInventedControlTails
+    contract: "Keep all existing review, receipt and independent quality assertions; reject invented, missing and duplicated sacrifice controls using the actual collected case inventory"
+    allowDelete: false
+
+  - id: J7-FREE-COUNTERPLAY-RO-LEARNINGREVIEWAUDITTEST
+    base: "fa4e6b321532f956b16853862b3502eee1db4802"
+    from: atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/LearningReviewAuditTest.java
+    test: ro.atf.chess.LearningReviewAuditTest#recordedCaseInventoryRejectsMissingDuplicatedOrInventedControlTails
+    contract: "Keep all existing review, receipt and independent quality assertions; reject invented, missing and duplicated sacrifice controls using the actual collected case inventory"
     allowDelete: false
