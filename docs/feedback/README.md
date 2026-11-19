@@ -9,8 +9,8 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
+| P1 | Nimzo · public hint alternatives | After `1.d4 Nf6 2.c4 e6 3.Nc3`, offer two is `…Be7`, losing 249.5‰ at both H17/H19. The maximum-hint game is source-bound and reaches mate at ply 63. | Recompute all offered roots and free opposing replies within the declared policy, preserve verified theory and sound sacrifices, and pass the native quality goal; evidence-integrity components alone cannot close this defect. [Witness](#nimzo-public-hint-witness) |
 | P2 | Web · proof portability | The current TeaVM build reaches JRE security providers through `PawnPushProof.hash`; compilation fails on `Class.getModule` / `ClassLoader.loadClass`. The proof class is unchanged from live baseline `b51e17e`. | Supply a portable identical-digest implementation or supported build substitution, with known-vector negatives and JVM/Web parity; do not alter proof semantics or label Java-only compilation a runnable Web PASS. |
-| P2 | AI opening variety | Live bots always selected the first of three display paths; several paths share the same immediate move. | Rotate distinct authored continuations per new AI game; persist the choice across restart, history, ten slots and failed saves; keep verified overrides, coaching and off-book search unchanged. Component qualification and a new Nimzo game audit are in progress. |
 | P1 | Scotch · winning check and opposing mate | At move 20, the hint compares `…dxc3` and `…gxf6`, omits `…Re8+`, and loses 314/348.5‰. Later in its PV, `Bxb2` replaces White's forced mate in three by `Bxh7+`. | Readmit the winning root and search free opposing replies, including quiet follow-up checks; preserve the valid bishop sacrifice, existing root guards and negative work limits. The hint-root, review-root and continuation goals remain FAIL. [Witnesses](#scotch-winning-check-and-opposing-mate) |
 | P1 | Hint comparison · whole diagnostic PV | The repaired Ruy public line has no large loss, but the rejected `Ng5 …O-O Nc3` comparison still contains a 346/378.5‰ weak move. | Audit comparison continuations as well as offered hints; repair the full free-reply line and keep the explicit comparison benchmark FAIL until both horizons qualify it. [Mechanism](../board/ai-quality.md#quiet-opposing-offers-inside-a-hint) |
 | P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation with 200k ordinary work and its separately charged finite proof reserve, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
@@ -592,3 +592,29 @@ castling move that has not actually been searched, or buy a correct root through
 an overvalued rook sacrifice. Even an isolated H9 comparison at 20M nodes stopped
 without a score; more work alone did not qualify this repair. The runtime keeps
 its existing budgets and evaluation. Evidence: `C:\work\sah\.studii\experiments\2026-11-19-scotch-re8`.
+
+## Nimzo public hint witness
+
+The new game `nimzo-indian-hard-black`, producer `3a1b0dbc01da1617d5eca29983f8f86056a7f8e0`,
+records 63 actual plies from the initial board, with Hard and the maximum public
+hint before every White/Black move, including the six declared theory plies.
+Hard plays Black and loses by checkmate to the full-strength offline teacher.
+This is diagnostic evidence, not a paired Elo estimate or an opening-strength gate.
+
+The stored second offer after `1.d4 Nf6 2.c4 e6 3.Nc3` is
+`…Be7 e4 …d6 Bf4 …Nc6 Nf3`. Free cold Stockfish 19 searches prefer `…Bb4`;
+forcing `…Be7` loses 249.5‰ WDL at both H17 and H19. The original oracle
+receipts retain their actual identities in
+[nimzo-hint-witness.yaml](../../atf-tests/src/test/resources/nimzo-hint-witness.yaml).
+[NimzoWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/NimzoWitnessTest.java)
+checks legality, both horizons, changed outcomes, foreign phases and missing receipts.
+[NimzoHintBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/NimzoHintBenchmarkTest.java)
+remains an explicit failing native quality goal; a legal PV and an intact archive
+must not turn this into a repaired-engine PASS. Audit every continuation and
+valuable-piece recapture before narrowing the next change. Whole-game oracle
+coverage and the final review are being completed in `C:\work\sah\.studii`.
+
+Opening variety itself is covered by
+[OpeningVarietyTest](../../atf-tests/src/test/java/ro/atf/chess/OpeningVarietyTest.java)
+and documented in the [AI guide](../board/ai-quality.md). It does not randomize
+hint ranking, change search budgets or prove any increase in Hard's Elo.
