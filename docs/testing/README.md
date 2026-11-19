@@ -848,6 +848,8 @@ Bifa din joc afișează **AI** pe lățimi compacte și păstrează numele acces
 
 Meniul nativ trebuie să-și măsoare conținutul intrinsec înaintea alegerii limitelor ancorate, apoi să folosească un layout explicit al copilului în propria zonă de derulare. Verificați explicația închisă înaintea suprapunerii; după deschidere comparați limitele neschimbate ale tablei și doar pixelii neacoperiți. Aliniați explicațiile mărite sus, astfel încât fereastra internă să nu înceapă la mijlocul textului rezervat. **AndroidAdapterApiTest** respinge apelul **Stream.toList()** observat în Java pentru adaptor și instrumentare; **Collectors.toList()** rămâne compatibil cu proba API 28. Această protecție sursă restrânsă completează execuția nativă.
 
+Pentru randare pereche, folosiți `1.e4 c5 2.c3 h5` la întoarcerea din istoricul deschiderii la linia Alapin jucată și `1.f3 e5 2.g4 Qh4#` pentru analiză și De ce. Fiecare adaptor consemnează poziția sursă, varianta selectată, cursorul, comenzile legale și starea la întoarcere. Un fixture comun sau rezultatul workerului nu califică o observație nativă/browser lipsă.
+
 `GenerateUiChrome` trebuie să reproducă exact modulul urmărit înainte de calificare. Eșecul compilării motorului nu poate fi ascuns de împachetarea UI: la reutilizare exclusiv UI, consemnează separat commitul și amprenta motorului calificat. [Matrice APK–Web](../../web/parity.md) · [Proces de release](../release/README.md)
 
 ```mermaid

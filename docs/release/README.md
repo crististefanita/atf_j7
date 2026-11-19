@@ -104,7 +104,7 @@ Dot-source scriptul în sesiunea de build pentru a încărca `J7_SIGNING_STORE` 
   [Testele negative](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
   verifică poarta.
 
-  J7 păstrează și înregistrarea criptată cerută explicit în proiect,
+  Chess păstrează și înregistrarea criptată cerută explicit în proiect,
   [`.atf-signing`](../../.atf-signing/README.md). Un director existent este
   încărcat automat; `-ProjectIdentity -StartNewIdentity` inițializează unul
   lipsă numai după aprobarea explicită a schimbării certificatului. Căile din

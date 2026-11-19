@@ -7,7 +7,7 @@ Joacă șah cu AI, rezolvă probleme și studiază deschiderile.
 - [Descarcă APK Chess Lab 0.16.1](https://github.com/crististefanita/chess/releases/download/v0.16.1/ChessLab-0.16.1.apk)
 - [Joacă în browser](https://crististefanita.github.io/chess/)
 
-## Arhitectura J7
+## Arhitectura Chess
 
 | Zonă | Ce deține | Unde aprofundezi |
 |---|---|---|

@@ -7,13 +7,20 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 
 [Revizuirea mutărilor între suite](../testing/README.md#schimbarea-testelor-față-de-o-bază-git) descrie baza Git și dovezile de acoperire.
 
+- [Forță nativă și comparații indiciu/analiză](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră)
+- [Transferul ordonării învățate încă necesar](hard-learning.md)
+- [Paritate APK/Web și dovezi randate](web-parity.md)
+
+<details>
+<summary>Registrul priorităților și criteriile de închidere</summary>
+
 | Prioritate | Zonă | Observație | Criteriu de închidere |
 |---|---|---|---|
 | P1 | Scoțiană · șah câștigător și mat advers | La mutarea 20, indiciul compară `…dxc3` și `…gxf6`, omite `…Re8+` și pierde 314/348,5‰. Mai târziu în PV, `Bxb2` înlocuiește matul alb în trei prin `Bxh7+`. | Readmite rădăcina câștigătoare și caută replicile adverse libere, inclusiv șahurile liniștite ulterioare; păstrează sacrificiul corect de nebun, gărzile rădăcinilor și limitele negative de lucru. Scopurile de rădăcină în indiciu, analiză și continuare rămân FAIL. [Martori](#scoțiană-șah-câștigător-și-mat-advers) |
 | P1 | Comparație indiciu · PV diagnostic complet | Linia publică reparată din Spaniolă nu are pierdere mare, dar comparația respinsă `Ng5 …O-O Nc3` păstrează o mutare slabă de 346/378,5‰. | Auditează continuările comparative alături de indiciile oferite; repară linia cu replici libere și păstrează benchmarkul comparației FAIL până la calificarea ambelor orizonturi. [Mecanism](../board/ai-quality.md#oferte-adverse-liniștite-în-interiorul-indiciului) |
 | P1 | Indiciu · continuarea adversă completă | A doua variantă nouă după `1.e4` conține `Bxe6` slab; jocul advers liber preferă `Nc3`, cu pierdere 382/399‰ la H17/H19. | Repară continuarea completă evaluată cu 200k lucru obișnuit și rezerva finită de dovadă taxată separat, verifică fiecare semimutare PV pe familii independente și păstrează sacrificiile corecte. [Martor](#replici-adverse-slabe-în-indiciile-publice) |
 | P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
-| P2 | Release · arhiva probei compacte | Proba compactă are o arhivă separată. | Respinge fazele lipsă, rulările străine și PNG-urile substituite. |
+| P2 | Release · arhiva probei compacte | Dovada compactă declarată este verificată; geometria modificată încă nu o impune la promovare. | Respinge omiterea dovezii obligatorii, păstrând controalele fazelor, rulării și capturilor substituite. |
 | P2 | Documentație · protejarea traducerilor | Poarta bilingvă verifică structura și linkurile, iar proza și exemplele cer în continuare revizuire semantică. | Detectează proza copiată și exemplele schimbate prin cazuri negative țintite, păstrând literalii tehnici și dovezile imuabile. |
 | P1 | Game Review · clasificarea mutărilor | Ultimul corpus cu 106 semimutări are 11 etichete native de eroare pe pierderi sub 50‰ la ambele adâncimi și o pierdere mare omisă. | Izolează modelul de scor și efectele orizontului fără istoric schimbat, Elo inventat sau scoruri ale indiciului puse în locul analizei. |
 | P1 | Game Review · liniile recomandate | Zece din 106 recomandări proaspete pierd cel puțin 150‰ la H17/H19; ambele ramuri ale analizei sunt auditate integral. | Repară comparațiile complete rădăcină/replică la același orizont și păstrează mutările efective bune și istoricul din cache. [Cazuri măsurate](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră) |
@@ -38,6 +45,8 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P2 | Calitatea AI · evaluare material | Scorul material diferă de Stockfish. | Redu abaterea la aceleași bugete. |
 | P2 | Calibrarea problemelor | Benzile de dificultate importate se suprapun. | Verifică timpul și încercările pe un lot amestecat separat. |
 | P2 | Android · separarea tranzițiilor de ecran | Ecranul Android deține mai multe tranziții de sesiune. | Mută tranzițiile într-un responsabil testabil pe JVM. |
+
+</details>
 
 ## Replici adverse slabe în indiciile publice
 
@@ -98,43 +107,6 @@ verdicte Extent separate. Prima trece; ultimele două eșuează. Ratingurile loc
 ale analizei nu sunt Elo măsurat, iar cele trei trasee plafonate nu au rating.
 [Contract și componente](../testing/learning-archive.md#analiza-finală-și-capetele-indiciilor)
 
-## Recaptura damei din Caro–Kann rezolvată
-
-Indiciul public maxim după `e4 c6 d4 d5 Nc3` include acum în scor răspunsul legal
-`Qxd4` la vechea mutare finală `…Qxd4`. Liderul corectat rămâne `…dxe4`, cu o
-continuare calculată din nou; nu se adaugă o mutare decorativă. Martorii frontierei
-în ambele culori, ai cache-ului/limitelor și ai pieselor legate păstrează sacrificiul
-corect de damă. Un candidat sicilian superficial regresa inițial, așa că soluția
-finală începe abia la orizontul inițial încheiat și păstrează eligibilitatea
-variantelor verificate selectiv.
-
-Comparația calificării inițiale cuprinde 108 contexte, inclusiv 32 noi din familii de deschidere
-cunoscute. Doar acest caz și martorul cu culorile inversate își schimbă HintSearch
-integral; niciun lider public nu se schimbă. Sunt păstrate toate cele 554 de cereri
-reci Stockfish H17/H19, fără lider rău sau variantă suplimentară rea nouă. Cei șase
-lideri deja greșiți din comparație rămân deschiși; avem păstrare și repararea unui
-capăt de linie, nu calitate absolută a indiciilor. Analizele native complete rămân
-identice în toate cele 2.303 etape ale catalogului, deci schimbarea nu măsoară o
-creștere Elo Hard.
-
-Recepția originală `…Qxd4` de mai sus rămâne contraexemplu istoric. Celălalt capăt
-expus greșit (`…Nh6`), replicile adverse interne slabe și calibrarea Game Review
-rămân deschise. Nu transfera verdictul indiciului de 200k politicii separate de
-85k a analizei finale. Dovezile curente și jurnalele partidelor complete noi sunt în
-`C:\work\sah\.studii\experiments\2026-11-18-qxd4` și
-`C:\work\sah\.studii\corpus\2026-11-18-qxd4-final`.
-[Comportament și componente](../board/ai-quality.md#recaptura-damei-la-frontiera-indiciului)
-
-Verificarea finală reia cele 108 contexte înghețate și toate cele 130 de cadre
-observate din partide. Adaugă 48 de cereri reci H17/H19 fazelor originale fixate,
-validând 1.650 de contexte de cerere fără reetichetarea rezultatelor vechi. Ambele
-orientări Caro și fallback-ul din Gambitul Damei nu mai au pierdere mare stabilă
-nicăieri în liniile noi evaluate. Nu apare lider rău, ofertă suplimentară rea sau
-capăt expus greșit nou; capetele expuse greșite scad de la 17 la 14 în această
-rejucare. Cele paisprezece rămân deschise, nu reprezintă paisprezece familii
-independente. Toate cele 2.303 analize ale catalogului și cele 130 de analize din
-partide rămân exact identice pentru Hard nativ.
-
 ## Constatările partidelor complete păstrate ca ținte de componentă
 
 Cele două partide complete (Gambitul Damei și Franceza) și martorul de mat aparțin
@@ -182,9 +154,9 @@ Leagă fiecare XML de commitul candidat și de rularea de calificare. Înlocuie�
 <details>
 <summary>P2 · Release · arhiva probei compacte</summary>
 
-Publicatorul Android verifică raportul compact bilingv. Poarta reutilizabilă califică fazele Android generale; procedura cere și arhiva compactă pentru schimbările de geometrie.
+Verificatorul arhivei controlează deja fazele compacte declarate, identitatea execuției și amprentele capturilor. Lacuna rămasă este selectarea dovezii obligatorii din schimbare: `ReleaseGate qualification` cere componente și Game Review, fără să impună singur recepția compactă pentru o modificare de geometrie.
 
-Adaugă verificarea compactă în poarta de promovare pentru schimbările de geometrie. Respinge faza lipsă, faza din altă rulare și PNG-ul substituit. Păstrează validarea arhivelor din edițiile anterioare. [Calificare](../release/README.md#calificare-și-publicare) · [Publicator compact](../../atf-tests/src/test/java/ro/atf/chess/AndroidSanityPublication.java)
+Respingeți omiterea dovezii compacte obligatorii înaintea promovării, păstrând verificările existente pentru fază lipsă, execuție străină și captură înlocuită. Recepțiile istorice rămân neschimbate. [Procedura promovării](../release/README.md#calificare-și-publicare) · [Verificatorul arhivei](../../atf-tests/src/test/java/ro/atf/chess/ArchivedReleaseEvidence.java)
 
 </details>
 
@@ -194,15 +166,6 @@ Adaugă verificarea compactă în poarta de promovare pentru schimbările de geo
 Apelul efectiv `GameReview.analyzeLine` păstrează toate cele 60 de mutări și nu emite rating pentru cele trei studii limitate. Totuși, `6.e6` din Caro–Kann are eticheta `BEST`, iar precizia albului este 100, deși rădăcina jucată pierde 533‰ la H17 și 581,5‰ la H19. `5.Nc3` din Siciliană are eticheta `BLUNDER`, cu 0‰ pierdere la ambele orizonturi. În cele trei partide, trei etichete pozitive însoțesc o pierdere mare la oracol, iar șase etichete severe însoțesc sub 10‰ pierdere la ambele adâncimi.
 
 Îngheață martorii cu istoric complet înainte de corecția comparației comune. Verifică rădăcinile jucată și recomandată la același orizont complet, păstrează redarea legală și marcajele din istoric și măsoară familii noi. Pierderea logistică locală și WDL Stockfish sunt modele distincte; nu lega producția de Stockfish și nu copia mecanic eticheta sa. Auditul curent evaluează rădăcina jucată și verifică legalitatea PV-urilor salvate; nu certifică independent fiecare alternativă a analizei. [Contractul analizei și limitarea](../board/game-review.md#limitările-măsurate-ale-analizei) · [Audit pereche](../testing/hard-hint-study.md)
-
-</details>
-
-<details>
-<summary>P2 · Game Review · NVDA</summary>
-
-NVDA 2026.3.1 a reprodus în RO dublarea poziției și a scorului. Testele de componentă verifică o singură valoare accesibilă.
-
-Confirmați vorbirea pe build-ul corectat, în RO și EN, și revenirea la aceeași mutare din **De ce?**. [Feedback Web](web-parity.md)
 
 </details>
 
@@ -305,7 +268,7 @@ Instalați ediția publicată pe un emulator curat, creați progres, instalați 
 <details>
 <summary>P2 · Calitatea AI · evaluare material</summary>
 
-După `2…dxc4`, J7 afișează `−0,60`, iar Stockfish 19 la adâncimea 13 indică `+0,21`; după `3.e3`, abaterea ajunge la 111 cp.
+După `2…dxc4`, Chess afișează `−0,60`, iar Stockfish 19 la adâncimea 13 indică `+0,21`; după `3.e3`, abaterea ajunge la 111 cp.
 
 Urmăriți recuperarea pionului pe ambele culori și cu ramuri de control. Reduceți abaterea fără să depășiți bugetul barei sau să slăbiți porțile. [Măsurători](../board/ai-quality.md#calibrarea-hard-și-a-barei)
 
