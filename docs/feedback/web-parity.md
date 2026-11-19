@@ -53,6 +53,15 @@ dreptunghiul sursei. Focusul ferestrei de intrare nu dovedește focusul sau
 vorbirea TalkBack.
 [Protocolul nativ](../testing/README.md#sanity-nativ-la-dimensiunea-sursei)
 
+**P2 · Folosirea mai bună a lățimii peisaj compacte.** La 740 × 420 dp și
+font 1.3, sursa și redarea matului măsoară ambele 285 pixeli nativi la
+320 dpi (142,5 dp). Navigarea încape fără derularea paginii, dar stiva
+verticală lasă multă lățime nefolosită. Explorați o așezare peisaj comună,
+cu explicația lângă tablă, păstrând dimensiunea sursă/redare și comenzile
+de 48 dp. Cereți dreptunghiuri în componente RO/EN și capturi native înainte
+de schimbarea contractului actual fără salturi.
+[Controalele explicației](../../atf-tests/src/test/java/ro/atf/chess/PuzzleExplainLayoutTest.java)
+
 **P2 · Oracolele vechi ale istoricului nativ.** `awaitHiddenAnalysis` încă
 verifică un copil de istoric per semimutare. Aliniați `analysis-prepare/restore`
 și variantele compacte la cursorul comun cu o singură mutare afișată în joc.
