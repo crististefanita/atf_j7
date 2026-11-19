@@ -4,6 +4,7 @@
 
 Choose the lowest test level that can observe the change. Build from a copy of the source in TMP.
 
+- [Measured Native Hard status](hard-status.md) separates all-defense mate proofs, material conversion and the paired Elo snapshot.
 - [JVM suites](#jvm-suites) check rules, adapters, and governance without an emulator.
 - [Android sanity](#android-sanity) and [Web parity](#web-engine-parity) cover rendering, lifecycle, and real assistive technology when needed.
 - [Extent evidence](#extent-reporting) ties assertions to the run. [Qualification](../release/README.md#qualification-and-publication) governs promotion.

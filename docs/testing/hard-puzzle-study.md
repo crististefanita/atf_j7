@@ -137,3 +137,7 @@ Keep the original FEN draw clock distinct from a newly constructed board-only se
 prefix cannot alone supply an omitted initial clock. The qualified post-capture conversion
 has equal counters after reset; arbitrary composed origins still require the explicit
 clock-adapter follow-up recorded in feedback.
+
+Baseline status and candidate promotion are separate operations. Measure the ordinary native catalog before consulting keys, keep all-defense mate proofs separate from canonical material stages, and retain unfinished games as outcome intervals in paired rating estimates. The [measured snapshot](hard-status.md) records actual source and protocol; updating a status must not change runtime budgets, curriculum acceptance or displayed app ratings.
+
+An unavailable hint has a typed failure, no final coaching line or score, and its own completion verdict. It must not replace or cancel the independent playing profile. Preserve the durable prefix and every original failed attempt during an explicit technical recovery; disclose any teacher-session reset. Outcome integrity may pass while coaching completion fails. Such a game is not a complete-hint learning-corpus observation.
