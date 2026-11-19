@@ -2594,7 +2594,7 @@ public final class BoardSanity extends Instrumentation {
 
     private boolean uncoveredBoardCornersRendered(Bitmap image, BoardView board, View overlay) {
         var unobscured = List.of("a1", "h1", "a8", "h8").stream()
-                .filter(square -> !Rect.intersects(screenBounds(cell(board, square)), screenBounds(overlay))).toList();
+                .filter(square -> !Rect.intersects(screenBounds(cell(board, square)), screenBounds(overlay))).collect(java.util.stream.Collectors.toList());
         return unobscured.size() >= 2 && unobscured.stream().allMatch(square -> {
             int color = BoardSquare.isLight(BoardSquare.parse(square)) ? 0xffedf0d5 : 0xff769556;
             return hasColor(image, cell(board, square), color, 24);
