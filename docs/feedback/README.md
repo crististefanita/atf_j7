@@ -9,8 +9,8 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 
 | Prioritate | Zonă | Observație | Criteriu de închidere |
 |---|---|---|---|
+| P1 | Nimzo · alternativele publice ale indiciului | După `1.d4 Nf6 2.c4 e6 3.Nc3`, a doua variantă este `…Be7`, cu pierdere 249,5‰ la H17/H19. Partida cu hint maxim are sursă exactă și ajunge la mat la semimutarea 63. | Recalculează toate rădăcinile oferite și replicile adverse libere în politica declarată, păstrează teoria verificată și sacrificiile corecte și treci scopul nativ de calitate; componentele de integritate singure nu pot închide defectul. [Martor](#martorul-public-al-indiciului-nimzo) |
 | P2 | Web · portabilitatea dovezii | Compilarea TeaVM curentă ajunge la furnizorii de securitate JRE prin `PawnPushProof.hash`; eșuează la `Class.getModule` / `ClassLoader.loadClass`. Clasa dovezii este identică reperului live `b51e17e`. | Asigură o implementare portabilă cu digest identic ori o substituție suportată la build, cu vectori cunoscuți și paritate JVM/Web; nu modifica semantica dovezii și nu numi compilarea Java singură un PASS Web executabil. |
-| P2 | Variația deschiderilor AI | Boții alegeau mereu prima dintre trei variante de afișare; mai multe variante împart aceeași mutare imediată. | Rotește continuări redactate distincte pentru fiecare partidă AI nouă; păstrează alegerea la restart, istoric, zece sloturi și salvare eșuată; păstrează replicile verificate, îndrumarea și căutarea în afara teoriei. Calificarea componentelor și auditul unei partide Nimzo noi sunt în curs. |
 | P1 | Scoțiană · șah câștigător și mat advers | La mutarea 20, indiciul compară `…dxc3` și `…gxf6`, omite `…Re8+` și pierde 314/348,5‰. Mai târziu în PV, `Bxb2` înlocuiește matul alb în trei prin `Bxh7+`. | Readmite rădăcina câștigătoare și caută replicile adverse libere, inclusiv șahurile liniștite ulterioare; păstrează sacrificiul corect de nebun, gărzile rădăcinilor și limitele negative de lucru. Scopurile de rădăcină în indiciu, analiză și continuare rămân FAIL. [Martori](#scoțiană-șah-câștigător-și-mat-advers) |
 | P1 | Comparație indiciu · PV diagnostic complet | Linia publică reparată din Spaniolă nu are pierdere mare, dar comparația respinsă `Ng5 …O-O Nc3` păstrează o mutare slabă de 346/378,5‰. | Auditează continuările comparative alături de indiciile oferite; repară linia cu replici libere și păstrează benchmarkul comparației FAIL până la calificarea ambelor orizonturi. [Mecanism](../board/ai-quality.md#oferte-adverse-liniștite-în-interiorul-indiciului) |
 | P1 | Indiciu · continuarea adversă completă | A doua variantă nouă după `1.e4` conține `Bxe6` slab; jocul advers liber preferă `Nc3`, cu pierdere 382/399‰ la H17/H19. | Repară continuarea completă evaluată cu 200k lucru obișnuit și rezerva finită de dovadă taxată separat, verifică fiecare semimutare PV pe familii independente și păstrează sacrificiile corecte. [Martor](#replici-adverse-slabe-în-indiciile-publice) |
@@ -608,3 +608,29 @@ rocade încă necăutate și nu cumpăra rădăcina corectă printr-un sacrifici
 supraevaluat. Chiar comparația izolată H9 la 20M de noduri s-a oprit fără scor;
 lucrul suplimentar nu a calificat reparația. Runtime-ul păstrează bugetele și evaluarea
 existente. Dovezi: `C:\work\sah\.studii\experiments\2026-11-19-scotch-re8`.
+
+## Martorul public al indiciului Nimzo
+
+Partida nouă `nimzo-indian-hard-black`, produsă de `3a1b0dbc01da1617d5eca29983f8f86056a7f8e0`,
+păstrează 63 de semimutări reale din poziția inițială, cu Hard și indiciul public
+maxim înaintea fiecărei mutări alb/negru, inclusiv cele șase mutări declarate de teorie.
+Hard joacă negru și pierde prin mat contra profesorului offline la forță deplină.
+Este dovadă de diagnostic, nu estimare Elo pereche ori poartă de forță a deschiderii.
+
+A doua variantă salvată după `1.d4 Nf6 2.c4 e6 3.Nc3` este
+`…Be7 e4 …d6 Bf4 …Nc6 Nf3`. Căutările Stockfish 19 libere și reci preferă `…Bb4`;
+forțarea lui `…Be7` pierde 249,5‰ WDL la H17 și H19. Recepțiile originale
+își păstrează identitățile efective în
+[nimzo-hint-witness.yaml](../../atf-tests/src/test/resources/nimzo-hint-witness.yaml).
+[NimzoWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/NimzoWitnessTest.java)
+verifică legalitatea, ambele orizonturi, rezultate schimbate, faze străine și recepții lipsă.
+[NimzoHintBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/NimzoHintBenchmarkTest.java)
+rămâne un scop nativ de calitate explicit eșuat; un PV legal și arhiva intactă
+nu trebuie să transforme cazul într-un PASS de motor reparat. Auditează fiecare
+continuare și recaptură de piesă importantă înainte să restrângi schimbarea următoare.
+Acoperirea oracolului pe întreaga partidă și analiza finală sunt în curs în `C:\work\sah\.studii`.
+
+Variația deschiderilor este acoperită de
+[OpeningVarietyTest](../../atf-tests/src/test/java/ro/atf/chess/OpeningVarietyTest.java)
+și documentată în [ghidul AI](../board/ai-quality.md). Nu randomizează ordinea
+indiciilor, nu schimbă bugetele de căutare și nu dovedește o creștere Elo pentru Hard.
