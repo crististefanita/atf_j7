@@ -183,6 +183,7 @@ class AndroidSanityPublication {
                             new Frame("source-calculated.png", "Calculated line"), new Frame("source-theory.png", "Analysis hint"),
                             new Frame("source-mating.png", "Mating line")));
             var evidence = readSourceReplayPhase(receipt, profile, locale, enlarged);
+            if (signed) evidence = signedSourceEvidence(evidence, run.execution());
             var identity = new ArrayList<>(run.identity());
             identity.add(new ReportField("Logical profile", profile + " dp · " + locale));
             identity.add(new ReportField("Native profile", markerValues(run.nativeMarkers(), "INSTRUMENTATION_RESULT: replayProfile=").toString()));
@@ -208,6 +209,15 @@ class AndroidSanityPublication {
                 && execution.path("sourceCommit").asText().matches("[a-f0-9]{40}")
                 && execution.path("testCertificateSha256").asText().equals(certificate)
                 && execution.path("installedApkSha256").asText().equals(execution.path("apkSha256").asText());
+    }
+
+    static PhaseEvidence signedSourceEvidence(PhaseEvidence evidence, JsonNode execution) {
+        if (signedSourceIdentity(execution)) return evidence;
+        var rows = new ArrayList<>(evidence.rows());
+        String observed = List.of("variant", "sourceCommit", "signingCertificateSha256", "testCertificateSha256",
+                "apkSha256", "installedApkSha256").stream().map(field -> field + "=" + execution.path(field).asText()).collect(java.util.stream.Collectors.joining("; "));
+        rows.add(new AtfAssertion("Signed APK identity", "Release source, matching app/test certificates and installed APK bytes", observed, false));
+        return new PhaseEvidence(evidence.pid(), rows, false);
     }
 
     private record MenuCheckpoint(String action, String assertion, String frame) { }

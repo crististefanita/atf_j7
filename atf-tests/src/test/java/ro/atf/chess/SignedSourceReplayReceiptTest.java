@@ -54,6 +54,11 @@ class SignedSourceReplayReceiptTest {
                 AndroidSanityPublication.signedSourceIdentity(identity.deepCopy().put("testCertificateSha256", "d".repeat(64))));
         check.same("A different installed APK cannot borrow the receipt", false,
                 AndroidSanityPublication.signedSourceIdentity(identity.deepCopy().put("installedApkSha256", "d".repeat(64))));
+        var failed = AndroidSanityPublication.signedSourceEvidence(new AndroidSanityPublication.PhaseEvidence("123", List.of(), true),
+                identity.deepCopy().put("variant", "sanity"));
+        check.same("A signing failure retains an explicit failed assertion for Extent", false, failed.passed());
+        check.same("The diagnostic identifies the signed admission contract", "Signed APK identity", failed.rows().getFirst().name());
+        check.same("The rejected variant remains auditable", true, failed.rows().getFirst().actual().contains("variant=sanity"));
     }
 
     @Test void sourceGeometryAndFixedTargetsRemainRequiredInTheEnlargedPhase(Checks check) throws Exception {

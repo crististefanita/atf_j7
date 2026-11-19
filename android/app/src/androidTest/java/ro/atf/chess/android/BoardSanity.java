@@ -159,27 +159,13 @@ public final class BoardSanity extends Instrumentation {
 
     private void checkSourceSizedReplay() throws Exception {
         enableReviewNodeIds();
+        if (enlargedReplayPhase() && replayRotation < 0) throw new AssertionError("The enlarged probe requires an explicit physical rotation");
         if (replayRotation >= 0) {
             if (replayRotation > 1 || !getUiAutomation().setRotation(replayRotation)) {
                 throw new AssertionError("Could not freeze the requested replay rotation");
             }
-            long deadline = SystemClock.uptimeMillis() + 5000;
-            while (sourceDisplay().getRotation() != replayRotation && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(50);
-            if (sourceDisplay().getRotation() != replayRotation) throw new AssertionError("The physical display did not rotate");
         }
-        replayCapture = displayCaptureGeometry();
-        receipt.putString("replayRotation", Integer.toString(sourceDisplay().getRotation()));
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
-            try (var input = new ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand("dumpsys input"));
-                 var output = new java.io.ByteArrayOutputStream()) {
-                byte[] buffer = new byte[8192];
-                for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
-                framebufferProjection = ro.atf.chess.capture.FramebufferProjection.fromInputDump(
-                        output.toString(java.nio.charset.StandardCharsets.UTF_8.name()), replayCapture.logicalWidth(), replayCapture.logicalHeight(),
-                        replayCapture.physicalWidth(), replayCapture.physicalHeight(), sourceDisplay().getRotation());
-                receipt.putString("framebufferProjection", framebufferProjection.toString());
-            }
-        }
+        if (!enlargedReplayPhase()) calibrateSourceReplayDisplay();
         var settings = getTargetContext().getSharedPreferences("app-settings", android.content.Context.MODE_PRIVATE);
         var locale = AppLanguage.fromTag(puzzleLanguage).orElseThrow();
         if (!new AppLanguagePreference(new AndroidGamePreferences(settings)).save(locale)) throw new AssertionError("Could not select language");
@@ -187,6 +173,12 @@ public final class BoardSanity extends Instrumentation {
         var saved = ChessMatch.restore(ro.atf.chess.capture.ReplayViewportFixture.CALCULATED);
         if (!store.matches().saveMatch(saved, false)) throw new AssertionError("Could not seed analysis");
         var game = launch();
+        if (enlargedReplayPhase()) {
+            long deadline = SystemClock.uptimeMillis() + 5000;
+            while (sourceDisplay().getRotation() != replayRotation && SystemClock.uptimeMillis() < deadline) SystemClock.sleep(50);
+            if (sourceDisplay().getRotation() != replayRotation) throw new AssertionError("The target application's physical display did not rotate");
+            calibrateSourceReplayDisplay();
+        }
         var config = game.getResources().getConfiguration();
         receipt.putString("replayProfile", replayCapture.logicalWidth() + "x" + replayCapture.logicalHeight()
                 + "@" + config.densityDpi + ", font=" + config.fontScale + ", language=" + config.getLocales().get(0).getLanguage());
@@ -253,6 +245,21 @@ public final class BoardSanity extends Instrumentation {
     }
 
     private boolean sourceReplayPhase() { return "source-sized-replay".equals(phase) || enlargedReplayPhase(); }
+
+    private void calibrateSourceReplayDisplay() throws Exception {
+        replayCapture = displayCaptureGeometry();
+        receipt.putString("replayRotation", Integer.toString(sourceDisplay().getRotation()));
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.P) return;
+        try (var input = new ParcelFileDescriptor.AutoCloseInputStream(getUiAutomation().executeShellCommand("dumpsys input"));
+             var output = new java.io.ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            for (int count; (count = input.read(buffer)) != -1;) output.write(buffer, 0, count);
+            framebufferProjection = ro.atf.chess.capture.FramebufferProjection.fromInputDump(
+                    output.toString(java.nio.charset.StandardCharsets.UTF_8.name()), replayCapture.logicalWidth(), replayCapture.logicalHeight(),
+                    replayCapture.physicalWidth(), replayCapture.physicalHeight(), sourceDisplay().getRotation());
+            receipt.putString("framebufferProjection", framebufferProjection.toString());
+        }
+    }
 
     private boolean enlargedReplayPhase() { return "source-sized-replay-enlarged".equals(phase); }
 

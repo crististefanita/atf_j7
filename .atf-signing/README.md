@@ -16,4 +16,5 @@ protected with Windows DPAPI. No plaintext password belongs in the repository.
   does not provide a usable password. Preserve the account's recovery material
   separately; do not turn the password into a committed text file.
 - Keep build logs, APKs and qualification reports outside this directory.
+  Project signing logs use the caller's external `TEMP` build directory.
   [Release protocol](../docs/release/README.md#qualification-and-publication).
