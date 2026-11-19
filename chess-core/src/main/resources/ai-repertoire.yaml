@@ -47,3 +47,8 @@ positions:
   - id: sicilian-double-center
     moves: "e2e4 c7c5 g1f3 e7e5"
     reply: f3e5
+
+  # Independently qualified with free replies at Stockfish 19 H17/H19.
+  - id: nimzo-pinned-knight
+    moves: "d2d4 g8f6 c2c4 e7e6 b1c3"
+    reply: f8b4

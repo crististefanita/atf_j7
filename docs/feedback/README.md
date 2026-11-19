@@ -16,7 +16,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 
 | Priority | Area | Observation | Closure Criterion |
 |---|---|---|---|
-| P1 | Nimzo · public hint alternatives | After `1.d4 Nf6 2.c4 e6 3.Nc3`, offer two is `…Be7`, losing 249.5‰ at both H17/H19. The maximum-hint game is source-bound and reaches mate at ply 63. | Recompute all offered roots and free opposing replies within the declared policy, preserve verified theory and sound sacrifices, and pass the native quality goal; evidence-integrity components alone cannot close this defect. [Witness](#nimzo-public-hint-witness) |
+| P1 | Nimzo · free quiet replies | The opening-root Be7 defect is qualified, but the original later PV ends with Bxc5 and assumes a weak opposing continuation; free Ne5 loses 504‰ for White, while Qxc5 is a trap. | Compare Rf1/Bxc5 and free Ne5/Qxc5 at the same horizon, preserve the independently sound recapture trap and French/Ruy controls, then audit the whole changed line. [Witness](#nimzo-public-hint-witness) |
 | P2 | Web · proof portability | The current TeaVM build reaches JRE security providers through `PawnPushProof.hash`; compilation fails on `Class.getModule` / `ClassLoader.loadClass`. The proof class is unchanged from live baseline `b51e17e`. | Supply a portable identical-digest implementation or supported build substitution, with known-vector negatives and JVM/Web parity; do not alter proof semantics or label Java-only compilation a runnable Web PASS. |
 | P1 | Scotch · winning check and opposing mate | At move 20, the hint compares `…dxc3` and `…gxf6`, omits `…Re8+`, and loses 314/348.5‰. Later in its PV, `Bxb2` replaces White's forced mate in three by `Bxh7+`. | Readmit the winning root and search free opposing replies, including quiet follow-up checks; preserve the valid bishop sacrifice, existing root guards and negative work limits. The hint-root, review-root and continuation goals remain FAIL. [Witnesses](#scotch-winning-check-and-opposing-mate) |
 | P1 | Hint comparison · whole diagnostic PV | The repaired Ruy public line has no large loss, but the rejected `Ng5 …O-O Nc3` comparison still contains a 346/378.5‰ weak move. | Audit comparison continuations as well as offered hints; repair the full free-reply line and keep the explicit comparison benchmark FAIL until both horizons qualify it. [Mechanism](../board/ai-quality.md#quiet-opposing-offers-inside-a-hint) |
@@ -561,7 +561,7 @@ its existing budgets and evaluation. Evidence: `C:\work\sah\.studii\experiments\
 
 ## Nimzo public hint witness
 
-The new game `nimzo-indian-hard-black`, producer `3a1b0dbc01da1617d5eca29983f8f86056a7f8e0`,
+The original game `nimzo-indian-hard-black`, producer `3a1b0dbc01da1617d5eca29983f8f86056a7f8e0`,
 records 63 actual plies from the initial board, with Hard and the maximum public
 hint before every White/Black move, including the six declared theory plies.
 Hard plays Black and loses by checkmate to the full-strength offline teacher.
@@ -575,9 +575,7 @@ receipts retain their actual identities in
 [NimzoWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/NimzoWitnessTest.java)
 checks legality, both horizons, changed outcomes, foreign phases and missing receipts.
 [NimzoHintBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/NimzoHintBenchmarkTest.java)
-remains an explicit failing native quality goal; a legal PV and an intact archive
-must not turn this into a repaired-engine PASS. Audit every continuation and
-valuable-piece recapture before narrowing the next change. The complete audit retains 1,462 original cold oracle queries plus the final-review additions. There are 80 offered hints and 479 hypothetical hint plies: 43 have stable large loss, including 17 opposing replies and six offered roots (one first choice). The native 63-ply final review has four large-loss recommendations, 42 bad hypothetical review plies, three error labels on independently small losses and two missed large losses. Evidence integrity passes; native quality remains FAIL.
+now passes for the opening root. [NimzoRepertoireTest](../../atf-tests/src/test/java/ro/atf/chess/NimzoRepertoireTest.java) makes the exact position, preserved H6/200k allowance, all six scored PV plies and the French counterexample regular component contracts. The correction is a teacher-qualified repertoire entry, not a new global evaluation term; see the [behavior and limits](../board/ai-quality.md#verified-nimzo-development). The later quiet-reply and review failures below stay open. The original pre-fix audit retains 1,462 original cold oracle queries plus the final-review additions. There are 80 offered hints and 479 hypothetical hint plies: 43 have stable large loss, including 17 opposing replies and six offered roots (one first choice). The native 63-ply final review has four large-loss recommendations, 42 bad hypothetical review plies, three error labels on independently small losses and two missed large losses. Evidence integrity passes; native quality remains FAIL.
 
 At actual ply 34, the first preview ends `…Rxf6 Ne4 …Rf7 dxc5 …b6 Be3 …bxc5 Bxc5`. The final `Bxc5` loses 504‰ at both horizons, but the apparent `…Qxc5` recapture is a trap refuted by `Nxc5`; it preserves White's win. Free opposing play instead uses the quiet `…Ne5`. White could preserve the win with `Rf1` before `Bxc5`. The same witness now retains both teacher identities and tests a foreign reply even when its envelope is rehashed. Do not append `…Qxc5` as a presumed forced continuation or ban bishop sacrifices to hide the actual free-reply defect.
 

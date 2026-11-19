@@ -38,6 +38,14 @@ The bar and first line of text use a separate estimate for the current position.
 
 </details>
 
+## Verified Nimzo development
+
+After `1.d4 Nf6 2.c4 e6 3.Nc3`, live theory already knew `…Bb4`, while coaching compared only `…Nc6` and `…Be7`. Widening the generic shortlist alone lowered its completed horizon from H6 to H5 and was rejected. The qualified correction uses the existing exact-position [verified repertoire](../../chess-core/src/main/resources/ai-repertoire.yaml), with the same castling/turn identity and no positional bonus or scripted opposing reply.
+
+At cold Stockfish 19 H17/H19, `…Bb4` loses 0/0‰ relative to the free search, while `…Be7` loses 249.5/249.5‰. The actual public line is recalculated at H6 within the unchanged 200k ordinary allowance: `…Bb4 Nf3 …Nc6 a3 …Bxc3+ bxc3`. All six hypothetical plies have independent free/forced teacher phases and no stable loss of at least 150‰; the largest loss is 63/63‰ on `a3`. The French control `…Be7` loses 36/77.5‰ and stays legal: this is not a global ban of bishop development. [Native, oracle and scope contracts](../../atf-tests/src/test/java/ro/atf/chess/NimzoRepertoireTest.java)
+
+The verified position also informs Game Review, which still evaluates the actual played move with its own policy. Existing French/Ruy lines and sound sacrifices retain their own guards. The former [Nimzo native goal](../../atf-tests/src/test/java/ro/atf/chess/NimzoHintBenchmarkTest.java) now passes and is covered in the component suite. Original bad receipts remain immutable counterexamples; later free-reply failures, score calibration and global Elo are separate obligations. Native live play already selected `…Bb4` here, so this correction is not evidence of a game-strength increase.
+
 ## Queen recaptures at the hint frontier
 
 A completed verification PV that ends with a queen taking a pawn must include a
