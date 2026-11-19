@@ -111,3 +111,24 @@ keeps exact full histories and eight raw oracle phases in YAML 1.2 JSON syntax.
 `HardLearningWitnessBenchmarkTest` recalculates the current native choice and
 keeps each known loss red until it is repaired. An unseen replacement needs new
 teacher evidence. These positions are counterexamples, never runtime book entries.
+
+## Finished-game continuation studies
+
+The November 19 collection records English and Scandinavian from the initial board
+to checkmate, plus the sound queen-offer control. All 106 actual plies have their own
+pre-move Hard calculation and maximum public hint, including theory and Stockfish
+moves. Its 759 public hypothetical plies have 2,692 distinct cold H17/H19 queries.
+The complete native reviews use a separately identified reviewer. Every review
+branch and exposed important-piece endpoint also needs its own oracle coverage.
+
+Use automatic fivefold repetition and the 75-move rule when the collector does not
+implement a player's draw claim. A merely claimable threefold/fifty-move draw must
+not truncate an ongoing native game. A capped trace still uses `analyzeLine` and has
+no completed-game rating. External tools are frozen with the study; live source
+changes require an explicit replay with its own runtime identity, not edited journals.
+
+Keep integrity and absolute quality in separate Extent reports. A successful
+component regression or minimax equivalence does not erase the archived mistakes,
+qualify a new opening family or establish Elo. Store a small full-context first-loss
+witness in the test resources; keep the PGN, all pre-move observations and complete
+reviews in the external corpus. Never turn those keys into runtime move overrides.

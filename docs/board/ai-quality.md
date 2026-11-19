@@ -1057,3 +1057,44 @@ their retained certificate, and replay rejects substituted work, history, opposi
 strategy or evaluation. [Repeatable audit contract](../testing/hard-puzzle-study.md#auditing-winning-plan-certificates)
 
 Historical study `2026-11-18-j7-hard-promotion-conversion` has been retired from the active learning archive. The retirement inventory is `C:\work\sah\.studii\metadata\retired-studies.json`; source history remains in pinned Git references. Use the [current admission contract](../testing/learning-archive.md) and newly recorded journals instead of deleted game bodies. Historical scores above are not a new current-source Elo estimate.
+
+## Native secondary-move verification
+
+Native Hard now probes secondary moves with a null window inside its ordinary
+alpha-beta search. A result that improves alpha inside the parent window is searched
+again at full width before it supplies the principal variation. A fail-high remains
+a lower bound; a fail-low remains an upper bound. The existing exact-only cache and
+node visits retain their contracts. This mode is enabled only in ordinary Hard
+search outside theory; hint, review, Basic, Advanced and specialized rook search
+retain their policies. [Primary search reference](https://github.com/official-stockfish/Stockfish/blob/sf_19/src/search.cpp)
+
+[Independent minimax components](../../atf-tests/src/test/java/ro/atf/chess/HardPrincipalVariationTest.java)
+compare five legal positions at H1/H2/H3, with both modes, cold/warm caches and
+fail-high/fail-low recovery. The diagnostic full-catalog replay preserves the accepted
+result of all 2,303 canonical stages: zero gains and zero losses. It changes one
+selected move and 843 complete analysis records. Mean additional work rises from
+15,537.99 to 16,798.86 nodes; 19 horizons are shallower and five deeper. This is not
+an across-the-board speed or depth gain.
+
+On the 106 observed positions from English, Scandinavian and the sound queen-offer
+control, replay changes one selected move. At Scandinavian ply 12, `g4` loses
+526.5/620 per mille at Stockfish H17/H19; `Ne4` loses 25.5/110.5. The selected
+ordinary horizon is H4, not the old H5, within the same 200k allowance. Six stable
+large native losses become five, with no newly confirmed large loss in this cohort.
+Basic and Advanced retain all 212 complete comparison analyses. This is a local
+quality result, not a measured Elo gain or a proof on unseen opening families.
+
+The [portable new witnesses](../../atf-tests/src/test/resources/hard-continuation-witnesses.yaml)
+retain original full histories and raw cold receipts; the new knight alternative is
+an explicitly separate replay, never a replacement for the historical pawn move.
+[Components](../../atf-tests/src/test/java/ro/atf/chess/HardContinuationWitnessTest.java)
+protect that improvement and reject substituted depth or producer. English
+`…Qf6` versus `…Nc6`, French `Bb5+ …c6` and Queen's Gambit `…Qa5` remain open.
+
+Uniform one-ply tactical closure was rejected: 24 gained and 40 lost canonical
+stages, despite repairing the isolated French choice. Continuing every checked
+frontier also remains experimental: the small legality goals improve while 13
+existing component contracts fail. The [frontier quality goals](../../atf-tests/src/test/java/ro/atf/chess/TacticalFrontierCheckTest.java)
+keep mandatory evasions and exhausted comparisons visible in the benchmark suite;
+they are not silently counted as a normal component PASS. Preserve sound sacrifices
+and all scoped queen-exchange controls before broadening this frontier.

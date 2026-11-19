@@ -13,14 +13,16 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
 | P2 | Release · compact check archive | The compact proof has a separate archive. | Reject missing phases, foreign runs and replaced PNGs. |
 | P2 | Documentation · translation safeguards | The paired gate checks structure and links while prose and examples still need semantic review. | Detect copied prose and changed examples with focused negatives while preserving technical literals and immutable evidence. |
-| P1 | Game Review · move classification | Five native error labels accompany played losses below 50‰ at both oracle depths on the newly admitted corpus. | Isolate score-model and horizon effects without changing played history, inventing Elo or substituting hint scores for review evidence. |
-| P1 | Game Review · recommended lines | Nine of 76 fresh review recommendations lose at least 150‰ at both H17/H19. | Repair complete same-horizon root/reply comparisons and preserve the actual good moves, cached review and independent families. [Measured cases](#full-review-calibration-on-the-admitted-corpus) |
+| P1 | Game Review · move classification | The latest 106-ply corpus has 11 native error labels on losses below 50‰ at both oracle depths and one missed large loss. | Isolate score-model and horizon effects without changing played history, inventing Elo or substituting hint scores for review evidence. |
+| P1 | Game Review · recommended lines | Ten of 106 fresh review recommendations lose at least 150‰ at both H17/H19; both review branches are fully audited. | Repair complete same-horizon root/reply comparisons and preserve actual good moves and cached history. [Measured cases](#finished-game-native-losses-and-frontier-controls) |
 | P2 | Game Review · NVDA | RO screen speech repeated position and score. | Confirm one announcement in RO and EN and focus return. |
 | P1 | Italian · unresolved native exchange | Targeted recapture repairs the isolated H6 pair, but complete play and controls regress. | Resolve the complete decision within 200k, preserving 019/021/022 and independent transfer before a duel. |
-| P1 | Hint · leader, alternatives and opposing replies | The corrected replay retains large losses in 8/60 first hints, 11/82 offered variants and 9/82 first opposing replies. | Repair complete public suggestions and their scored replies at common horizons, preserving correct native choices and independent families. |
-| P2 | Hint audit · broader transfer | Paired native/hint collection and raw H17/H19 replay now cover three replays and two fresh thematic branches. | Freeze new independent histories and verify whether fixes transfer beyond these inspected paths. |
+| P1 | Hint · leader, alternatives and opposing replies | The latest source-bound games retain large losses in 6/106 first hints, 11/143 offers and 14/140 first opposing replies. | Repair complete scored continuations at common horizons; all 759 hypothetical plies and legal important-piece recaptures remain independently graded. |
+| P2 | Hint audit · broader transfer | Two more games reach checkmate with 106 pre-move native/hint pairs including the sound-sacrifice control. | Add excluded opening ancestry and actual candidate games; replaying the inspected paths is not new-family or Elo proof. |
 | P2 | Puzzles · TalkBack focus in options | Puzzle option focus still needs speech evidence. | Capture the menu focus path in both languages. |
 | P2 | Android · predictive Back gesture | Predictive Back still needs a compatible device. | Exercise cancellation and resumption on API 33+. |
+| P1 | Native Hard · finished-game losses | Scandinavian `g4` is protected by the new `Ne4` regression; English `…Qf6`, French `Bb5+` and Queen's Gambit `…Qa5` remain. | Compare complete free replies at a common horizon; preserve the catalog, sound sacrifices and Basic/Advanced before promotion. [Next work](#finished-game-native-losses-and-frontier-controls) |
+| P2 | Tactical frontier · check at the limit | A checked frontier may still stop without a legal evasion; the broad extension fails 13 existing contracts. | Resolve the precise cause within one charged allowance; keep the explicit benchmark failures until quality and transfer pass. |
 | P1 | AI profile calibration | The Elo intervals still overlap. | Add paired games to narrow the rating uncertainty. |
 | P1 | Hard adaptive strength | Foreground search uses 100,000 nodes and a reserve to 200,000. | Compare the three modes on held-out games and verify the opposing reply. |
 | P1 | Hard learning from PGNs | The loss-trained ordering model keeps all final moves in 36 new families. | Add preserved moves and sacrifices, then verify ranking and complete decisions. |
@@ -392,3 +394,31 @@ receipts with their real producer; never patch their headers to manufacture pari
 · [FEN receipt helper](../../atf-tests/src/test/java/ro/atf/chess/StudyFen.java)
 
 </details>
+
+## Finished-game native losses and frontier controls
+
+The current batch uses producer `37c5f65`, not the later Native PVS consumer. English
+ends in 51 plies and Scandinavian in 52, both lost by native Hard to full-strength
+Stockfish; the sound queen-offer control ends in three. All 106 actual plies retain
+both pre-move searches and complete native review. The 4,104 cold oracle queries
+cover all 759 public hypothetical plies, every review branch and important-piece
+recaptures. Integrity admission does not erase 77 weak PV plies, five unsound exposed
+hint tails or ten bad review recommendations.
+
+The Native PVS replay preserves all 2,303 canonical acceptance outcomes and Basic/
+Advanced's 212 complete analyses. It fixes Scandinavian `g4` to `Ne4`, with independent
+loss 526.5/620 → 25.5/110.5‰. The 236 current/prior frame comparisons have no newly
+confirmed large loss; a second gain is a shadow Native choice on a position actually
+played by Stockfish. It is not a second improved played game. Two prior French choices
+also have small score differences, including a 2.5/4.5‰ deterioration. Mean catalog
+work rises by about 8.1%; no speed, depth or Elo gain is claimed. [Method and limits](../board/ai-quality.md#native-secondary-move-verification)
+
+**Next surgical priority:** resolve French `Bb5+ …c6 Nc4 …Qd7 Nf5 …exf5` as a complete
+scored comparison, and keep English `…Qf6` versus free `…Nc6` as a transfer case. Uniform
+one-ply closure gains 24 stages but loses 40; repeating it or merely increasing the
+expected answer is not an acceptable repair. Keep common-horizon free defenses,
+`training-021/051/065`, all mate chapters, scoped queen recaptures and a sound queen
+sacrifice. The unresolved checked-frontier tests remain explicitly tagged benchmark.
+The [admission contract](../testing/learning-archive.md#finished-game-continuation-studies)
+explains original identities and automatic versus claimable draws. Evidence stays in
+`C:\work\sah\.studii\experiments\2026-11-19-hard-continuation`.
