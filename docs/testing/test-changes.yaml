@@ -1197,3 +1197,11 @@ testChanges:
     test: ro.atf.chess.HardLearningWitnessTest#permanentLossesRetainTheirCompleteLegalContextAndRawTeacher
     contract: "Preserve all existing archive and hypothetical-ply checks; add a separate native quality verdict with portable source-bound oracle witnesses, leaving unresolved quality failures visible"
     allowDelete: false
+
+  - id: J7-HINT-CENTER-EN
+    base: "48292c53df6ba51a9158633c8cf7bdd372fc3e48"
+    from: atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintArrowTest.java
+    test: ro.atf.chess.HintArrowTest#webSvgAndReviewCanvasKeepTheNativeGeometry
+    contract: "Retain every scale, orientation, measured-cell, invalid-geometry and native-adapter check; move only the destination clearance to twelve percent and execute matching SVG and Canvas coordinates"
+    allowDelete: false

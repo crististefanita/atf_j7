@@ -88,7 +88,7 @@ for (const example of examples) {
     const destinationX = example.blackBelow ? 7.5 - column : column + .5;
     const destinationY = example.blackBelow ? 7.5 - row : row + .5;
     const svgGap = Math.hypot(destinationX - actualX, destinationY - actualY);
-    close(svgGap, .20, example.id + ' SVG destination-center gap');
+    close(svgGap, .12, example.id + ' SVG destination-center gap');
     result.push({ id: example.id, canvasX: number(canvasX), canvasY: number(canvasY), svgGap: number(svgGap) });
 }
 for (const dimension of ['width', 'height']) {
