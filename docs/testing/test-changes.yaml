@@ -1385,3 +1385,18 @@ testChanges:
     test: ro.atf.chess.CoachingScopeTest#closedFrontiersPreserveEligibilityAndTheTruthOfTheNewScores
     contract: "Retain every test method, legal PV, root coverage, scope and eligibility check; replace obsolete unclosed numeric scores with actual completed reserve scores, independently protect Nbd7 with twelve cold teacher phases, and never label the retained local score as the stronger comparison"
     allowDelete: false
+
+  - id: J7-COACHING-CREDIT-EN
+    base: "975139ec679367789c964c28200f291c7e6f62a5"
+    from: atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+    test: ro.atf.chess.HintCreditRegressionTest#historicalCreditCannotReintroduceTheRefutedItalianBishopOffer
+    contract: "Retain every move, sacrifice, history and budget assertion; preserve both exact challenger scores in the charged confirmation when an unsupported reversal cannot honestly be displayed as a weaker comparison"
+    allowDelete: false
+  - id: J7-COACHING-CREDIT-RO
+    base: "fb7d21feec4f21973b290c29ab7facb762e23fcd"
+    from: atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/HintCreditRegressionTest.java
+    test: ro.atf.chess.HintCreditRegressionTest#historicalCreditCannotReintroduceTheRefutedItalianBishopOffer
+    contract: "Retain every move, sacrifice, history and budget assertion; preserve both exact challenger scores in the charged confirmation when an unsupported reversal cannot honestly be displayed as a weaker comparison"
+    allowDelete: false

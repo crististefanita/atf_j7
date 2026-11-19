@@ -16,9 +16,15 @@ class HintCreditRegressionTest {
         check.same("The independent H17/H19 defense replaces the false bishop compensation", Move.fromUci("d6g6"), search.lines().getFirst().move());
         check.same("Neither the refuted offer nor the weaker historical knight move is offered as equivalent", List.of("d6g6"),
                 search.lines().stream().map(line -> line.move().uci()).toList());
-        check.same("The historical challenger remains diagnostic evidence at one completed comparison horizon", true,
-                search.comparison() != null && search.comparison().depth() == search.selectedDepth()
-                        && search.comparison().result().ranked().stream().anyMatch(line -> line.move().uci().equals("g8e7")));
+        var proof=search.proof();var confirmation=proof==null?null:proof.confirmation();
+        boolean compared=search.comparison()!=null&&search.comparison().depth()==search.selectedDepth()
+                &&search.comparison().result().ranked().stream().anyMatch(line->line.move().uci().equals("g8e7"));
+        boolean guarded=proof!=null&&proof.complete()&&proof.ordinaryPlies()==search.selectedDepth()
+                &&proof.boundedRoots()==0&&confirmation!=null&&confirmation.challenger().uci().equals("g8e7")
+                &&confirmation.selected().equals(confirmation.incumbent())
+                &&confirmation.incumbentScore()==search.lines().getFirst().score();
+        check.same("The historical challenger keeps exact diagnostic scores at the completed horizon, even when its reversal is rejected",true,compared||guarded);
+        if(guarded)check.same("A rejected stronger local score cannot be labelled a weaker public equivalent",null,search.comparison());
         check.same("The whole decision stays within the unchanged strongest-hint ceiling", true,
                 search.extraNodes() > 0 && search.extraNodes() <= 200_000);
         var publicHint = MatchHint.analyze(match.position());
