@@ -103,7 +103,6 @@ final class QuestPayoffDialog {
         TextView title = header.title();
         title.setText(titleText);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) title.setAccessibilityHeading(true);
-        screen.findViewById(R.id.quest_payoff_close).setOnClickListener(view -> dialog.dismiss());
         board = new BoardView(context, ignored -> { });
         board.setId(R.id.quest_payoff_board);
         board.setContentDescription(context.getString(R.string.game_review_board));

@@ -60,7 +60,6 @@ public final class MatchListActivity extends LocalizedActivity {
             empty.setText(finished ? R.string.match_archive_empty : R.string.match_saved_empty);
             empty.setVisibility(View.VISIBLE);
         } else rows.setVisibility(View.VISIBLE);
-        page.findViewById(R.id.match_list_back).setOnClickListener(view -> finish());
         setContentView(page);
     }
 
