@@ -1,6 +1,6 @@
 # Measured Native Hard status
 
-The baseline snapshot belongs to source **`85b1c478575d3c31065161c55aa02cffcd0e7eee`**. The current objective-blind replay includes the bounded queen-reply correction below; the curriculum, ordinary 100k→200k allowance and displayed app ratings stay unchanged. The Elo table still belongs to the baseline, not the corrected player. Baseline calibration is independent of candidate-promotion gates: an incomplete puzzle catalog does not prevent measuring the existing player, and a rating estimate does not qualify a candidate.
+The baseline snapshot belongs to source **`85b1c478575d3c31065161c55aa02cffcd0e7eee`**. The current objective-blind replay includes the bounded queen-reply and outside-pawn corrections below; the curriculum, ordinary 100k→200k allowance and displayed app ratings stay unchanged. The Elo table still belongs to the baseline, not the corrected player. Baseline calibration is independent of candidate-promotion gates: an incomplete puzzle catalog does not prevent measuring the existing player, and a rating estimate does not qualify a candidate.
 
 ## Puzzle results
 
@@ -10,12 +10,12 @@ The baseline snapshot belongs to source **`85b1c478575d3c31065161c55aa02cffcd0e7
 | mate-in-two | 300/300 | 300/300 | 600/600 |
 | mate-in-three | 200/200 | 200/200 | 600/600 |
 | tactics | 95/100 | 87/100 | 203/221 |
-| training | 94/114 | 78/114 | 274/330 |
+| training | 95/114 | 79/114 | 275/330 |
 | intermezzo | 24/24 | 22/24 | 49/52 |
 
-Totals are **1,213/1,238** first moves, **1,187/1,238** complete canonical exercises and **2,226/2,303** stages, up by two in each measure with zero lost stages. **51 exercises remain incomplete**; the existing all-solved goal remains FAIL. Native search receives only the position and its playing profile; the key is read after its receipt. Reference-path interventions are explicit and cannot become autonomous solutions.
+Totals are **1,214/1,238** first moves, **1,188/1,238** complete canonical exercises and **2,227/2,303** stages, up by three from the original snapshot and one from the qualified queen-reply player, with zero lost stages. **50 exercises remain incomplete**; the existing all-solved goal remains FAIL. Native search receives only the position and its playing profile; the key is read after its receipt. Reference-path interventions are explicit and cannot become autonomous solutions.
 
-All **1,000 mating exercises** also pass against every legal defense: **2,236 native decisions**, **1,236 defensive branches** and **1,500 terminal mating branches**, within the original goal. The declared-objective solver was not used. Material exercises are weaker: **187/238 complete, 78.6%**, with **526/603** accepted stages. The easy-mate majority cannot conceal that gap behind the 95.9% global score.
+All **1,000 mating exercises** also pass against every legal defense: **2,236 native decisions**, **1,236 defensive branches** and **1,500 terminal mating branches**, within the original goal. The declared-objective solver was not used. Material exercises are weaker: **188/238 complete, 79.0%**, with **527/603** accepted stages. The easy-mate majority cannot conceal that gap behind the 96.0% global score.
 
 Before the queen-reply correction, against the identical preserved catalog at `ecf5291a71e49e02b846365b529dc070b4e3057a`, one choice changes with **zero gained or lost stages**. This is not a new catalog-accuracy gain. Cold Stockfish H17/H19 grades every one of the 79 unaccepted stages: **56 stable large losses**, **23 near-oracle alternatives**, and no stable large loss for the curriculum keys. **42** are first reachable large native losses without a reference intervention. Of those, 28 retain H5, nine H6, one H4 and four H7; only five consume the effective maximum allowance. Isolate score, horizon, leader confirmation and root coverage before attributing every miss to a node ceiling.
 
@@ -79,4 +79,28 @@ At the ordinary 200k ceiling, the five retained league defeats still fail their 
 
 The external dossier is `C:\work\sah\.studii\experiments\2026-11-19-puzzle-status\README.md`. It links eight Extent reports, exact source/runtime/configuration pins, raw decisions, all PGNs, teacher transcripts, final reviews and 42 contextual YAML lessons. Lessons are study-only: counterexamples and excluded-family transfer are still pending, and no key is imported into runtime. The execution amendment preserves all completed results when increasing independent concurrency; interrupted attempts remain archived and unscored.
 
-Use the [native puzzle protocol](hard-puzzle-study.md), [canonical benchmark](../../atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java) and [all-defenses mate benchmark](../../atf-tests/src/test/java/ro/atf/chess/NativeMateDefenseBenchmarkTest.java). [AiCalibrationObservationTest](../../atf-tests/src/test/java/ro/atf/chess/AiCalibrationObservationTest.java) preserves the mocked unavailable-advice contract without freezing an engine defect or changing learning-corpus admission. Next isolate the still-open **training-051: Ke6 versus Rc8+**, with its independently confirmed 500‰ win-to-draw loss; tactic-040 and tactic-095 are now regression controls. Keep the five retained league defeats separate from this material-catalog priority. Compare free replies at the same horizon, preserve every previously accepted stage and all 1,000 mates, then test counterexamples and untouched families before a direct candidate duel. [Open work](../feedback/README.md).
+Use the [native puzzle protocol](hard-puzzle-study.md), [canonical benchmark](../../atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java) and [all-defenses mate benchmark](../../atf-tests/src/test/java/ro/atf/chess/NativeMateDefenseBenchmarkTest.java). [AiCalibrationObservationTest](../../atf-tests/src/test/java/ro/atf/chess/AiCalibrationObservationTest.java) preserves the mocked unavailable-advice contract without freezing an engine defect or changing learning-corpus admission. The initial `training-051` loss and its pawn-race handoff are now protected by portable components and actual conversion games. Keep the five retained league defeats and the remaining material catalog separate. Next isolate the first independently confirmed defect in a complete native/hint/review line; preserve every accepted stage and free-defense mate before a new paired strength study. [Open work](../feedback/README.md).
+
+## Qualified outside-pawn race
+
+The shared model removes a misleading advancement bonus only in a king-blockaded outside-pawn
+race. A charged H4/H6 confirmation preserves `h4` after rook liquidation without weakening
+the general stability rule. Native play, maximum hint and Game Review select `Rc8+` initially.
+The current complete catalog adds **training-051:0**, with **zero lost accepted stages**;
+all 1,000 mating exercises also retain every legal defense. [Algorithm and counterexamples](../board/pawn-race.md)
+
+The inspected 24 source-game contexts contain two recovered Hard choices, each formerly losing 1,000‰ against the free teacher. In 48 new,
+teacher-blind source-game contexts, all Hard and Basic roots remain unchanged; Advanced
+recovers three losing choices. No profile degrades at both Stockfish H17/H19 horizons.
+This corrects a shared evaluator; lower profiles do not claim bitwise unchanged results.
+
+Two actually played composed endings retain every White/Black pre-move native decision,
+maximum public hint and complete final review. Against unrestricted Stockfish 19 H19,
+Hard now wins by mate at **39 and 35 plies**; the original orientation lost at ply 30.
+Earlier candidates that chose Rc8+ but lost the pawn ending remain rejected evidence.
+These are conversion games, not paired opening games or a measured candidate ΔElo.
+Displayed evaluation and review classification remain independently open quality goals.
+
+The study is `C:\work\sah\.studii\experiments\2026-11-20-hard-rook-defense\README.md`.
+Its source-bound cold oracle grades complete offered hint and review continuations, not only
+their first moves. Original receipts retain their actual producers when later code is tested.

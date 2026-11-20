@@ -153,3 +153,22 @@ Keep rejected broad variants and their counterexamples. Once inspected, a failed
 Retain complete candidate analyses or a pinned immutable baseline plus explicit full changed-analysis deltas. Recompute canonical first moves, complete exercises and every accepted stage. A disabled-policy run must restore the whole baseline decision, PV, depth and work, not merely its chosen move. The [queen-reply study](hard-status.md#bounded-queen-reply-verification) is the current example.
 
 Only after the fixed regressions, all-defense mates and untouched transfer pass, freeze a paired game protocol before playing. Keep every actual move's native decision and maximum hint attempt, plus the final review and full PGN. New games require new source-bound journals; position replays do not count as games. Estimate candidate ΔElo with opening pairs, confidence intervals and unfinished sensitivity. Do not update the baseline anchor from a puzzle gain or present a hypothetical duel as executed.
+
+## Portable native collection
+
+Run `ro.atf.chess.NativeCatalogCollector <external directory> <exact producer commit>` with
+the pinned test classpath from the compiled checkout. Preflight rejects an existing observation
+or project-local destination. The collector calls ordinary Hard before consulting the key.
+It writes a complete identity, catalog and digest-enveloped native stream without replacing files.
+
+The current publisher additionally requires exact `queenReplyPolicy` and `pawnBlockadePolicy`
+snapshots and each row's **actual `nativeQuietPlies`**. Preserve the original source FEN clock
+separately: `ChessMatch.fromPosition` currently starts its native quiet counter at zero.
+These fields expose that limitation; they do not repair the API or imply draw-clock parity.
+Missing/foreign model snapshots and stale native clocks are component negatives.
+[Metadata controls](../../atf-tests/src/test/java/ro/atf/chess/NativeModelAuditTest.java)
+
+Keep historical receipts and their original compatible reader immutable. Do not add current
+policy fields to an old producer after the event. A new full native collection has its own
+source; a reader-only replay is identified separately. All-solved remains a distinct failing
+quality goal while any canonical exercise is incomplete.

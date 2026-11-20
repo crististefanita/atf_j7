@@ -39,7 +39,7 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P2 | Tactical frontier · check at the limit | A checked frontier may still stop without a legal evasion; the broad extension fails 13 existing contracts. | Resolve the precise cause within one charged allowance; keep the explicit benchmark failures until quality and transfer pass. |
 | P1 | Coaching · hidden recapture proof | Engine-side forcing verification and its work receipt are implemented; the visible preview still shows the complete scored line. | Project a shorter visible prefix while retaining the complete scored proof, shared recommendation and restart identity. Do not hide decisive replies. [Contract](#tactical-proof-and-displayed-lines) |
 | P1 | AI profile calibration | The current protocol measures 12 paired starts per profile with unfinished sensitivity; it does not measure a candidate gain or a human rating. | Compare all three native profiles at unchanged allowances on excluded opening families and their free replies to narrow uncertainty; do not count historical repeats as new independent starts or replace app anchors from a small pilot. [Snapshot](../testing/hard-status.md#relative-elo-snapshot) |
-| P1 | Native Hard · remaining material objectives | Queen-reply verification repairs tactic-040/095, with zero lost stages: 77 unaccepted stages in 51 exercises; 187/238 material exercises complete. Two large losses recover on independent source games. | Start with training-051 Ke6/Rc8+, preserve the new repairs, quiet/sparse counterexamples and all-defense mates. Verify free-reply conversion and new families; measure paired ΔElo separately. [Measured status](../testing/hard-status.md) |
+| P1 | Native Hard · remaining material objectives | The outside-pawn correction closes training-051 and its free-reply conversion; 76 stages in 50 exercises remain unaccepted, with 188/238 complete material exercises. | Preserve the new king/tempo/opposition controls, every accepted stage and all-defense mates. Prioritize the first remaining actual WDL loss and require new transfer before paired ΔElo. [Measured status](../testing/hard-status.md) |
 | P2 | Native studies · original FEN clock | A board-only new match starts its quiet counter at zero while oracle FEN metadata retains the original clock. | Add explicit native FEN-clock initialization and 0/99/149-clock negatives before claiming draw parity for arbitrary composed origins. |
 | P2 | Progress · Android upgrade | A signed upgrade still needs a progress probe. | Keep IDs, solutions and points across upgrade and restart. |
 | P2 | Puzzle calibration | Imported difficulty bands overlap. | Check attempts and time on a separate shuffled set. |
@@ -535,3 +535,15 @@ New game `kings-indian-hard-black`, producer `c8247d386bc922aefbc7d7c46838e32fc0
 The first actual loss is 8…Bd7, also shown by the hint, at H5 after 200k additional native nodes. Free Stockfish replies prefer …e6 with Rc1 among the opposing continuations; the played move loses 231/242‰. [KingsIndianWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/KingsIndianWitnessTest.java) preserves the original actor, full history and both independent horizons. [KingsIndianHintBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/KingsIndianHintBenchmarkTest.java) exposes separate still-failing native goals for the actual decision and public hint. Do not turn the passing witness into an engine PASS or install another lookup without first isolating score, horizon and coverage effects.
 
 This is a different opening family, not a paired comparison with the original Nimzo game and not a new Elo estimate. The corrected Nimzo entry is absent from these actual King’s Indian root positions. The known Nimzo Bxc5/Ne5 and Scotch Re8+ defects remain open. Complete evidence is in `C:\work\sah\.studii\experiments\2026-11-19-nimzo-free-replies` and `corpus\2026-11-19-kings-indian-qualified`.
+
+## Outside-pawn closure and score calibration
+
+The training-051 initial choice and pawn-race handoff are complete at the unchanged ordinary
+allowance, with both actual composed games won. The broad geometric discount and rook-cache
+optimization remain rejected. [Reusable rule and tests](../board/pawn-race.md)
+
+Keep the evaluation/classification gap open: selecting the winning rook check while describing
+its independent winning outcome as approximately equal is not calibrated analysis. Continue
+from the first confirmed weak native, hint or review reply in the complete cold-oracle audit.
+Require free defenses and reachable-king/opposition counterexamples; do not install a FEN key,
+erase a rejected trial or infer Elo from the two composed games. Historical league goals remain open.
