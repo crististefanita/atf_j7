@@ -21,13 +21,19 @@ class PawnBlockadeTest {
     }
     @Test void theDiscountRemovesOnlyTheExistingAdvanceBonusWithConsistentColorAndTempo(Checks check) {
         var enabled=new PawnBlockadePolicy(true,1000);var disabled=new PawnBlockadePolicy(false,1000);var half=new PawnBlockadePolicy(true,500);
-        for(var row:List.of(Map.entry("8/5k2/p4Pp1/6Pp/2K5/P7/8/8 b - - 0 53",48),Map.entry("8/5k2/p4Pp1/6Pp/2K5/P7/8/8 w - - 0 53",-48),Map.entry("8/8/p7/2k5/6pP/P4pP1/5K2/8 w - - 0 53",48))) {
+        for(var row:List.of(Map.entry("8/5k2/p4Pp1/6Pp/2K5/P7/8/8 b - - 0 53",48),Map.entry("8/5k2/p4Pp1/6Pp/2K5/P7/8/8 w - - 0 53",0),Map.entry("8/8/p7/2k5/6pP/P4pP1/5K2/8 w - - 0 53",48))) {
             var p=ChessPosition.fromFen(row.getKey());int before=MatchPositionEvaluation.bonus(p,disabled);
             check.same("The material ledger and other position terms stay outside the adjustment: "+row.getKey(),row.getValue(),MatchPositionEvaluation.bonus(p,enabled)-before);
             check.same("The configured fraction scales only that advancement",row.getValue()/2,MatchPositionEvaluation.bonus(p,half)-before);
         }
         var rooks=ChessPosition.fromFen(BLACK);
         check.same("The adjustment is absent while rooks remain",MatchPositionEvaluation.bonus(rooks,disabled),MatchPositionEvaluation.bonus(rooks,enabled));
+    }
+    @Test void anAdjacentPasserOrAReachablePromotionCannotJustifyDiscountingTheBlockadedPawn(Checks check) {
+        var close=ChessPosition.fromFen("8/5k2/p4Pp1/6Pp/4K3/P7/8/8 b - - 0 53");int f6=BoardSquare.parse("f6");
+        check.same("A king already inside the square can stop the outside pawn",false,MatchPositionEvaluation.uncatchableOutsidePasser(close,f6,close.pieceAt(f6)));
+        var counterexample=ChessPosition.fromFen("8/8/2p1k1p1/p2pP3/P3KPP1/8/8/8 b - - 0 39");int e5=BoardSquare.parse("e5");
+        check.same("A neighboring-file passer is not an outside racing pawn",false,MatchPositionEvaluation.uncatchableOutsidePasser(counterexample,e5,counterexample.pieceAt(e5)));
     }
     @Test void ordinaryPlayAndMaximumHintChooseTheWinningCheckInBothColors(Checks check) {
         for(var entry:List.of(Map.entry(BLACK,"d8c8"),Map.entry(WHITE,"d1c1"))) {

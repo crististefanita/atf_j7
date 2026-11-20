@@ -54,7 +54,8 @@ final class MatchPositionEvaluation {
             phase += PHASE[kind];
             opening += sign * OPENING[kind][relative];
             endgame += sign * ENDGAME[kind][relative];
-            if (piece.kind() == Kind.PAWN && kingBlocksPassedPawn(position, square, piece)) {
+            if (piece.kind() == Kind.PAWN && kingBlocksPassedPawn(position, square, piece)
+                    && uncatchableOutsidePasser(position, square, piece)) {
                 blockedAdvance += sign * ENDGAME[kind][relative];
             }
             if (piece.kind() == Kind.BISHOP) {
@@ -81,13 +82,42 @@ final class MatchPositionEvaluation {
         if(front<0||front>=64)return false;
         var blocker=position.pieceAt(front);
         if(blocker==null||blocker.side()==pawn.side()||blocker.kind()!=Kind.KING)return false;
-        for(int ahead=front;ahead>=0&&ahead<64;ahead+=step) {
+        return passedPawn(position,square,pawn);
+    }
+
+    private static boolean passedPawn(ChessPosition position,int square,Piece pawn) {
+        int step=pawn.side()==Side.WHITE?8:-8;
+        for(int ahead=square+step;ahead>=0&&ahead<64;ahead+=step) {
             for(int file=Math.max(0,square%8-1);file<=Math.min(7,square%8+1);file++) {
                 var other=position.pieceAt(ahead/8*8+file);
                 if(other!=null&&other.side()!=pawn.side()&&other.kind()==Kind.PAWN)return false;
             }
         }
         return true;
+    }
+
+    static boolean uncatchableOutsidePasser(ChessPosition position,int blockedSquare,Piece blockedPawn) {
+        int defendingKing=-1;
+        for(int square=0;square<64;square++) {
+            var p=position.pieceAt(square);
+            if(p!=null&&p.side()==blockedPawn.side()&&p.kind()==Kind.KING){defendingKing=square;break;}
+        }
+        for(int square=0;square<64;square++) {
+            var pawn=position.pieceAt(square);
+            if(pawn==null||pawn.kind()!=Kind.PAWN||pawn.side()==blockedPawn.side()
+                    ||Math.abs(square%8-blockedSquare%8)<2||!passedPawn(position,square,pawn))continue;
+            int step=pawn.side()==Side.WHITE?8:-8,promotion=(pawn.side()==Side.WHITE?56:0)+square%8;
+            boolean clear=true;
+            for(int ahead=square+step;ahead>=0&&ahead<64;ahead+=step)if(position.pieceAt(ahead)!=null){clear=false;break;}
+            if(!clear)continue;
+            int pawnMoves=Math.abs(promotion/8-square/8);
+            int kingMoves=pawnMoves+(position.turn()==blockedPawn.side()?1:0);
+            int distance=Math.max(Math.abs(defendingKing%8-promotion%8),Math.abs(defendingKing/8-promotion/8));
+            // Include a possible capture on the promotion square after the defender's initial tempo.
+            // Double pawn pushes are ignored conservatively; this is a static adjustment, never a win certificate.
+            if(distance>kingMoves)return true;
+        }
+        return false;
     }
 
     private static int matePressure(int attacker, int defender) {
