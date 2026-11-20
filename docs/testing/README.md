@@ -159,6 +159,15 @@ In Browser MCP, use Analysis board as the reference at the same viewport and tex
 Use the MCP browser for the rendered Web check and Android for the native
 adapter. Keep those observations distinct from the offline component verdict.
 
+### Shared board geometry
+
+The native panel, study SVG, review Canvas and inline AI analysis share one geometry contract. Inspect the [architecture atlas](../architecture.md#engine-and-platform-boundaries) before changing a platform adapter.
+
+- `HintArrowTest` compares the JVM model and real Web renderers with mocked bounds, including rounded cells and both orientations. Keep the complete assertion values and the 12% destination-center clearance.
+- `BoardPanelLayoutTest`, `MatchAnalysisParityTest` and `ChessWebBoardSizingTest` protect the usable square, analysis rail and stable board while navigating or resuming.
+- RAG cites these component checks and a focused Android/MCP observation for each registered geometry adapter. A citation is a plan, not a completed run.
+- Render only the affected flow at compact RO/EN, 130% text, with the same source position and cursor. Bind the signed APK and served bundle identities to their receipts; offline geometry does not certify rendered parity.
+
 ### Controlling AI replies
 
 - Select `ChessWebParityPublication#packagedWorkerKeepsAiIdentityThroughManualControl` in the Maven command for the TeaVM bundle. `MatchControlsTest` and the worker read the same fixture for toggling control without a manual move and for a legal move played by the AI side.
@@ -597,6 +606,15 @@ In Extent, open the scenario, **TEST BODY**, and **Assertions** to see expected 
 For Game Review, keep the native receipt, APK identity, and Extent report. Verify the report and capture fingerprints in the release evidence. [Release qualification](../release/README.md#qualification-and-publication)
 
 - The UI Automation capture can have raster dimensions smaller than the emulator's actual screen. Pixel comparisons map screen-coordinate rectangles to bitmap coordinates using the actual display dimensions. Element visibility checks still use the native window bounds. Resizing the capture therefore avoids a false visual failure.
+
+
+### Receipt identity and evaluated comparisons
+
+A comparison belongs to its original owner, scenario and phase. Verify the test result and the complete expected/actual cells; a legal PV, an artifact file or a matching count cannot substitute for the intended objective.
+
+`ComponentQualification` rejects a different commit, run, suite, testcase inventory or nonpassing raw receipt. `ReleaseGovernanceTest` supplies the negative controls. `ExtentAudit` rejects a passing component body without audited assertions.
+
+`ReportArtifactInspector.inspect(path, profile)` receives an independently declared component/evidence inventory. In Browser MCP, inspect the selected live Tests panel and its owner; hidden source templates and projected copies are separate DOMs. Collapsing a parent hides the subtree, while reopening restores the previously selected local disclosure state.
 
 ## Android Sanity
 

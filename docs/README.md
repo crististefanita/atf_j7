@@ -6,7 +6,7 @@ Start with the guide that answers your question. Verify claims about behavior ag
 
 | Question | Guide |
 |---|---|
-| How do the engine, app, and tests fit together? | [Chess architecture](../README.md#chess-architecture) · [Engine and adapters](../web/README.md#shared-engine-and-platform-adapters) · [ATF libraries](../lib/README.md) |
+| How do the engine, app, and tests fit together? | [Chess architecture](../README.md#chess-architecture) · [Context atlas](architecture.md) · [Engine and adapters](../web/README.md#shared-engine-and-platform-adapters) · [ATF libraries](../lib/README.md) |
 | How do I play and configure puzzles? | [Board and gameplay](board/README.md) · [Catalog](board/quest-curation.md) |
 | How are AI opponents measured and game reviews interpreted? | [AI protocol](board/ai-quality.md#checks-for-every-change) · [Game Review](board/game-review.md) |
 | What needs checking before a change? | [Choosing a test level](testing/README.md#choosing-the-test-level) · [Extent reporting](testing/README.md#extent-reporting) |
@@ -25,6 +25,7 @@ Ordinary Hard and puzzle-goal solvers have separate evidence: [native puzzle stu
 - **Format.** One title, semantic Markdown, and language tags on fenced blocks.
   Use tables for comparisons and numbered steps for procedures.
   Each diagram answers one question and has its legend immediately below.
+  Use `flowchart LR`, `sequenceDiagram`, `stateDiagram-v2` or `classDiagram`, with executable content after the type. Label flow relationships with concise verbs.
 - **Identity.** Use `chess` for current repository and checkout routes, and Chess Lab for the app. Preserve opaque signing/protocol identifiers and immutable historical receipts. Pin historical evidence to the commit that actually contains it; a build tag may predate the later report.
 - **Language.** Review prose and visible labels in both branches against the
   [bilingual documentation contract](release/README.md#bilingual-documentation).

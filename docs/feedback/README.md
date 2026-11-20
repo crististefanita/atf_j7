@@ -20,11 +20,11 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Native Hard · retained league defeats | The five actual losses all retain H5. Four omit a legal queen recapture at the PV boundary. A candidate repairs two cases but worsens Nimzo and loses 16 catalog stages. | Compare complete free replies without replacing an unsupported H5 value with an even worse H4 choice. Preserve French/QG and all accepted stages; require excluded-family transfer before a duel. [Witnesses and failed trials](../testing/hard-status.md#first-confirmed-losses-in-the-retained-league) |
 | P1 | King's Indian · shared Hard/hint loss | In the new 79-ply source-bound game, 8…Bd7 is the first large actual Hard loss and the first hint agrees with it: 231/242‰ versus free e6 at H17/H19. | Compare Bd7/e6 and free replies at the same horizon before changing search or evaluation. Preserve the Nimzo correction, French/Ruy and sound sacrifices; require counterexamples and excluded families. [Witness](#kings-indian-audit-after-the-nimzo-correction) |
 | P1 | Nimzo · free quiet replies | The opening-root Be7 defect is qualified, but the original later PV ends with Bxc5 and assumes a weak opposing continuation; free Ne5 loses 504‰ for White, while Qxc5 is a trap. | Compare Rf1/Bxc5 and free Ne5/Qxc5 at the same horizon, preserve the independently sound recapture trap and French/Ruy controls, then audit the whole changed line. [Witness](#nimzo-public-hint-witness) |
-| P2 | Web · proof portability | The current TeaVM build reaches JRE security providers through `PawnPushProof.hash`; compilation fails on `Class.getModule` / `ClassLoader.loadClass`. The proof class is unchanged from live baseline `b51e17e`. | Supply a portable identical-digest implementation or supported build substitution, with known-vector negatives and JVM/Web parity; do not alter proof semantics or label Java-only compilation a runnable Web PASS. |
+| P1 | Web · proof portability | The current TeaVM build reaches JRE security providers through `PawnPushProof.hash`; compilation fails on `Class.getModule` / `ClassLoader.loadClass`. The proof class is unchanged from live baseline `b51e17e`. | Supply a portable identical-digest implementation or supported build substitution, with known-vector negatives and JVM/Web parity; do not alter proof semantics or label Java-only compilation a runnable Web PASS. |
 | P1 | Scotch · winning check and opposing mate | At move 20, the hint compares `…dxc3` and `…gxf6`, omits `…Re8+`, and loses 314/348.5‰. Later in its PV, `Bxb2` replaces White's forced mate in three by `Bxh7+`. | Readmit the winning root and search free opposing replies, including quiet follow-up checks; preserve the valid bishop sacrifice, existing root guards and negative work limits. The hint-root, review-root and continuation goals remain FAIL. [Witnesses](#scotch-winning-check-and-opposing-mate) |
 | P1 | Hint comparison · whole diagnostic PV | The repaired Ruy public line has no large loss, but the rejected `Ng5 …O-O Nc3` comparison still contains a 346/378.5‰ weak move. | Audit comparison continuations as well as offered hints; repair the full free-reply line and keep the explicit comparison benchmark FAIL until both horizons qualify it. [Mechanism](../board/ai-quality.md#quiet-opposing-offers-inside-a-hint) |
 | P1 | Hint · whole opposing continuation | A new second hint after `1.e4` contains weak `Bxe6`; free opposing play prefers `Nc3`, with 382/399‰ loss at H17/H19. | Repair the complete scored continuation with 200k ordinary work and its separately charged finite proof reserve, check every offered PV ply on independent families and preserve sound sacrifices. [Witness](#weak-opposing-replies-inside-public-hints) |
-| P1 | Release · governance identity | XML identity is checked by name and verdict. | Reject a PASS receipt from another commit or run. |
+| P1 | Release · preflight receipt identity | `qualification` binds component receipts to source and run; signing preflight checks the three governance XML verdicts but not their source/run identity. | Bind each Documentation, Release and Extent receipt to the expected candidate and preflight run; reject a passing receipt from another commit/run while retaining the current Git test-change receipt. |
 | P2 | Release · compact check archive | Declared compact evidence is checked; geometry changes do not yet require it at promotion. | Reject omitted required evidence while preserving phase, run and capture substitution controls. |
 | P2 | Documentation · translation safeguards | The paired gate checks structure and links while prose and examples still need semantic review. | Detect copied prose and changed examples with focused negatives while preserving technical literals and immutable evidence. |
 | P1 | Game Review · move classification | The preceding 106-ply corpus has 11 native error labels on losses below 50‰ at both oracle depths and one missed large loss. | Isolate score-model and horizon effects without changing played history, inventing Elo or substituting hint scores for review evidence. |
@@ -38,16 +38,10 @@ describes the behavior, and the [release catalog](../../release/README.md) point
 | P1 | Native Hard · finished-game losses | Scandinavian `g4` is protected by the new `Ne4` regression; French `Nc4` is now protected by complete H6 recapture evidence; English `…Qf6` and Queen's Gambit `…Qa5` remain. | Compare complete free replies at a common horizon; preserve the catalog, sound sacrifices and Basic/Advanced before promotion. [Next work](#finished-game-native-losses-and-frontier-controls) |
 | P2 | Tactical frontier · check at the limit | A checked frontier may still stop without a legal evasion; the broad extension fails 13 existing contracts. | Resolve the precise cause within one charged allowance; keep the explicit benchmark failures until quality and transfer pass. |
 | P1 | Coaching · hidden recapture proof | Engine-side forcing verification and its work receipt are implemented; the visible preview still shows the complete scored line. | Project a shorter visible prefix while retaining the complete scored proof, shared recommendation and restart identity. Do not hide decisive replies. [Contract](#tactical-proof-and-displayed-lines) |
-| P1 | AI profile calibration | The current protocol measures 12 paired starts per profile with unfinished sensitivity; it does not measure a candidate gain or a human rating. | Add excluded opening families to narrow uncertainty; do not count historical repeats as new independent starts or replace app anchors from a small pilot. [Snapshot](../testing/hard-status.md#relative-elo-snapshot) |
-| P1 | Hard adaptive strength | Foreground search uses 100,000 nodes and a reserve to 200,000. | Compare the three modes on held-out games and verify the opposing reply. |
-| P1 | Hard learning from PGNs | The loss-trained ordering model keeps all final moves in 36 new families. | Add preserved moves and sacrifices, then verify ranking and complete decisions. |
-| P1 | Hard search · generalization | Selective recapture regresses on independent openings. | Require independent gains at the fixed budget. |
-| P1 | Hard · conversion after a pawn capture | The pawn capture can lose its advantage later. | Verify conversion on new positions and distinct replies. |
-| P1 | Transfer from tactics to games | Hard misses tactics without a declared objective. | Measure discovery and preserve the solver contract. |
-| P1 | Native Hard · remaining material objectives | The current full replay retains 79 unaccepted stages in 53 exercises; 185/238 material exercises complete. H17/H19 confirms 56 large stage losses, 42 first reachable without reference intervention. | Isolate a common-horizon mechanism, starting with Qc1/dxe6 in tactic-040; preserve training-051, every accepted stage and all 1,000 all-defense mates, then require counterexamples and excluded families. [Measured status](../testing/hard-status.md) |
+| P1 | AI profile calibration | The current protocol measures 12 paired starts per profile with unfinished sensitivity; it does not measure a candidate gain or a human rating. | Compare all three native profiles at unchanged allowances on excluded opening families and their free replies to narrow uncertainty; do not count historical repeats as new independent starts or replace app anchors from a small pilot. [Snapshot](../testing/hard-status.md#relative-elo-snapshot) |
+| P1 | Native Hard · remaining material objectives | The current full replay retains 79 unaccepted stages in 53 exercises; 185/238 material exercises complete. H17/H19 confirms 56 large stage losses, 42 first reachable without reference intervention. | Isolate a common-horizon mechanism, starting with Qc1/dxe6 in tactic-040; preserve training-051, every accepted stage and all 1,000 all-defense mates, then verify objective-blind conversion against free replies, counterexamples and excluded families. [Measured status](../testing/hard-status.md) |
 | P2 | Native studies · original FEN clock | A board-only new match starts its quiet counter at zero while oracle FEN metadata retains the original clock. | Add explicit native FEN-clock initialization and 0/99/149-clock negatives before claiming draw parity for arbitrary composed origins. |
 | P2 | Progress · Android upgrade | A signed upgrade still needs a progress probe. | Keep IDs, solutions and points across upgrade and restart. |
-| P2 | AI quality · material evaluation | The material score differs from Stockfish. | Reduce the discrepancy with fixed search budgets. |
 | P2 | Puzzle calibration | Imported difficulty bands overlap. | Check attempts and time on a separate shuffled set. |
 | P2 | Android · separating screen transitions | The Android screen owns several session transitions. | Move transitions into a JVM-tested owner. |
 
@@ -144,11 +138,11 @@ identities, never newly invented historical pre-move journals.
 ## Evidence and Closure Checks
 
 <details>
-<summary>P1 · Release · governance identity</summary>
+<summary>P1 · Release · preflight receipt identity</summary>
 
-Preflight ties the test-change receipt to Git and checks the Documentation, Release, and Extent XML files by name and verdict.
+`ReleaseGate.preflight(reports, checkout, base)` requires a clean candidate and a distinct Git ancestor, validates the three named governance verdicts, then verifies the Git test-change receipt. It does not bind those governance XML files to the candidate or a common execution. A focused probe substituted all three passing XML files with foreign commit/run properties while retaining the genuine current Git receipt; the real preflight CLI still accepted them. `ComponentQualification` protects component receipt identity later; this does not close the earlier preflight boundary.
 
-Bind each XML file to the candidate commit and qualification run. Replace each XML in turn with a PASS receipt from another commit or run and verify rejection while keeping the current Git receipt. [Preflight](../../release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java) · [Tests](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
+Add explicit candidate/run binding and substitution negatives for each of `DocumentationGovernanceTest`, `ReleaseGovernanceTest` and `ExtentGovernanceTest`, while keeping the correct Git receipt. Preserve the existing missing/failing/skipped checks and document the expected run provenance. [Preflight](../../release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java) · [Current controls](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
 
 </details>
 
@@ -224,36 +218,9 @@ Verify predictive Back in the game and Openings on API 33+, including gesture ca
 <details>
 <summary>P1 · AI profile calibration</summary>
 
-Basic was estimated at 1067 Elo (638–1225) after 144 games against Stockfish 19. In the same protocol, Advanced at 10,000 nodes was estimated at 1421 (1245–1553), and Hard at 44,000 at 1534 (1396–1672).
+The [relative Elo snapshot](../testing/hard-status.md#relative-elo-snapshot) owns the current 12 paired starts per profile, actual allowances, unfinished-game sensitivity and uncertainty. Earlier fixed-budget estimates remain historical evidence in the AI guide; they do not describe the current adaptive opponent.
 
-Add new pairs with both colors to narrow uncertainty around Basic's 1200 limit and the Advanced range. Recalibrate the app values with pinned sources and evidence covered by governance. [Basic calibration](../board/ai-quality.md#calibrating-basic-with-selective-depth)
-
-</details>
-
-<details>
-<summary>P1 · Hard search · generalization</summary>
-
-Selective recapture improves Tactics, but mean loss on independent openings rises from 53.0‰ to 68.0‰. The bounds cache prototype misses a mate-in-three puzzle, and the head-to-head interval includes zero.
-
-In the Hard benchmark, include the Scandinavian after `4.d4` and the Classical Sicilian after `6.Bg5`. Require improvement on an independent set and in matches with reversed colors under the declared fixed or adaptive profile. Preserve mate-in-three correctness and record the actual nodes consumed. [Recapture](../board/ai-quality.md#hard-recapture-at-the-horizon) · [Experimental cache](../board/ai-quality.md#local-alpha-beta-bounds-prototype--not-integrated)
-
-</details>
-
-<details>
-<summary>P1 · Hard · conversion after a pawn capture</summary>
-
-Hard now finds `Nxe5` in the Sicilian with `…h6` and neighboring positions at 44,000 nodes. In the continuation with `…Nc6 Nxc6`, pushing `e5` loses 211‰ relative to `d3` at depth 17. In the final thematic set, B finished with 3 wins and A with 5.
-
-Check the choice of `d3` on new positions and after different opposing replies. Track whether the advantage holds in paired games at the same budget. Keep the capture tests and the defended-pawn controls. [Evidence](../board/ai-quality.md#checking-exchanges-after-a-pawn-capture)
-
-</details>
-
-<details>
-<summary>P1 · Transfer from tactics to games</summary>
-
-Given a declared objective, the solver completes 1,220/1,220 public puzzles and 24/24 independent puzzles. With the objective unknown, Hard still misses six mates in three and key material-winning moves. Stopping at a proven mate reduced average mate-in-three cost by 33%.
-
-Measure which tactics can be detected from the position and retain 100% for the solver. For the opponent, require improvement on the independent set at the same budgets and no regressions in paired games. [Evidence and head-to-head play](../board/ai-quality.md#solving-puzzles-with-a-declared-objective)
+Compare all three native profiles from one pinned source at unchanged allowances on excluded opening families and free replies. Preserve Basic/Advanced independence, sound sacrifices and complete decisions; compare fixed and adaptive Hard explicitly. Repeated starts do not narrow independent uncertainty or prove a candidate gain. [Adaptive contract](../board/ai-quality.md#adaptive-foreground-budget)
 
 </details>
 
@@ -263,15 +230,6 @@ Measure which tactics can be detected from the position and retain 100% for the 
 Release 0.12.0 demonstrates process restart for Tactical Training, and a component check shows that extending the catalog preserves the cursor and score. An upgrade check with signed APKs and existing saved data is still needed across two releases with the same identity.
 
 Install the published release on a clean emulator, create progress, install the compatible candidate over it, and check the ID, solutions, and points after restart without duplicate credits. [Upgrade check](../testing/README.md#upgrading-saved-progress)
-
-</details>
-
-<details>
-<summary>P2 · AI quality · material evaluation</summary>
-
-After `2…dxc4`, Chess displays `−0.60` while Stockfish 19 at depth 13 gives `+0.21`. After `3.e3`, the discrepancy reaches 111 cp.
-
-Track recovery of the pawn for both colors and with control branches. Reduce the discrepancy within the evaluation bar's budget and retain the existing gates. [Measurements](../board/ai-quality.md#calibrating-hard-and-the-evaluation-bar)
 
 </details>
 
@@ -290,26 +248,6 @@ Measure time and incorrect attempts before the hint across shuffled positions, t
 `ChessActivity` owns menus, the cursor, saving, and reply scheduling. A change to game resumption touches the class that also orchestrates exercises and navigation.
 
 Start by extracting resumption, cancellation, and delayed AI results into a JVM-testable owner. Keep component coverage for restoration and rejection of stale replies. On Android, verify one resumption and the visible ordering. [Game and history](../testing/README.md#game-and-history)
-
-</details>
-
-<details>
-<summary>P1 · Hard adaptive strength</summary>
-
-Foreground search uses a configurable 100,000-node allowance with a reserve to 200,000. Continuation retains the active stack and cache. Component checks protect the existing exchange proof.
-
-The historical v1 comparison retains native `Bg5` at Sicilian S7 (24‰) against hint `N1c3` (499.5‰). The Italian hint has since been corrected to `…Qg6`; the old `…Bxf2+` recommendation no longer describes live source. Continue comparing the APIs independently rather than automatically copying hint selection into Hard.
-
-Measure fixed 100,000, fixed 200,000, and the adaptive mode from the same source on held-out games and Stockfish-verified loss positions. Keep the learned-order league's source identity separate and check legal quiet alternatives, mate, and drawn endgames. [Adaptive contract](../board/ai-quality.md#adaptive-foreground-budget)
-
-</details>
-
-<details>
-<summary>P1 · Hard learning from PGNs</summary>
-
-The 58-loss ordering model changes 34/36 held-out root lists and keeps all final moves. Corrected chronology identifies one earlier loss in 36 games.
-
-Include preserved good moves, quiet replies, and verified sacrifices in the next training set. Require alternative-rank improvement and a change in complete decisions on excluded families before interpreting the paired Elo. [Offline research](hard-learning.md)
 
 </details>
 
