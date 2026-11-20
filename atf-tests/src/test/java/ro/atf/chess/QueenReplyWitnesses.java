@@ -9,7 +9,7 @@ final class QueenReplyWitnesses {
     static List<Witness> load()throws Exception {
         try(var in=QueenReplyWitnesses.class.getResourceAsStream("/queen-reply-witnesses.yaml")) {
             require(in!=null,"Missing queen reply references");var data=LearningGameAudit.mapper().readTree(in.readAllBytes());
-            require(hash(data).equals("85676507b33f87030975cb30e6ea97b71e186c129fda55bd7ef4b2b78ffe7d55"),"Modified queen reply references");
+            require(hash(data).equals("180eba08646b184cff714859e884885fe537f0270025d4ff0bcc6d76e2b9e994"),"Modified queen reply references");
             var result=new ArrayList<Witness>();for(var item:data.path("cases"))result.add(read(item));return List.copyOf(result);
         }
     }

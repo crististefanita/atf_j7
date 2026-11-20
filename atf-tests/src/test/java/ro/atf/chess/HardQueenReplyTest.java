@@ -9,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class HardQueenReplyTest {
-    @Test void captureReassessmentSolvesBothIndependentlyScoredMaterialWitnesses(Checks check)throws Exception {
+    @Test void captureReassessmentSolvesCatalogAndRetainedTransferWitnesses(Checks check)throws Exception {
         for(var witness:QueenReplyWitnesses.load()) {
             var game=witness.game();String before=game.checkpoint();var actual=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(game,actual);
             check.same(witness.id()+" is searched without a repertoire answer",null,OpeningRepertoire.CURRENT.playReply(game.position(),MatchSetup.Level.HARD));
@@ -31,6 +31,18 @@ class HardQueenReplyTest {
             check.same("The sparse counterexample keeps the standard guard "+quest.id(),false,QueenReplyPolicy.CURRENT.applies(game.position()));
             var actual=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(game,actual);var outcome=quest.assess(actual.decision().move(),stage);
             check.same(quest.id()+":"+stage+" actual="+actual.decision().move().uci()+" remains an accepted tactic",true,outcome.continues()||outcome.solved());
+        }
+    }
+    @Test void quietPlansKeepTheUnchangedGuardInsteadOfBorrowingCaptureEvidence(Checks check) {
+        var cases=Map.of(
+                "d2d4 g8f6 c2c4 e7e6 g2g3 d7d5 f1g2 f8e7 b1d2","e8g8",
+                "e2e4 e7e5 b1c3 g8f6 f2f4 d7d5 f4e5 f6g4","d2d4");
+        for(var entry:cases.entrySet()) {
+            var game=ChessMatch.restore("1|"+entry.getKey());
+            var actual=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(game,actual);
+            check.same("The known good quiet plan survives: "+entry.getKey(),entry.getValue(),actual.decision().move().uci());
+            check.same("A recapturable queen at the distant frontier does not make this root a capture",false,
+                    QueenReplyPolicy.CURRENT.verifies(game.position(),actual.search().result().ranked().getFirst(),actual.decision().depth()));
         }
     }
     @Test void aRewrittenTeacherOrForeignOriginCannotCertifyTheCapture(Checks check)throws Exception {
