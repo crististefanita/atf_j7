@@ -20,11 +20,11 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Hard nativ · înfrângeri din liga păstrată | Cele cinci pierderi efective rețin H5. Patru omit recaptura legală a damei la frontiera liniei. Un candidat repară două cazuri, dar agravează Nimzo și pierde 16 etape de catalog. | Compară complet replicile libere fără înlocuirea valorii H5 nesusținute cu o alegere H4 și mai slabă. Păstrează Franceza/Gambitul Damei și toate etapele acceptate; cere transfer pe familii excluse înaintea duelului. [Martori și probe respinse](../testing/hard-status.md#primele-pierderi-confirmate-din-liga-păstrată) |
 | P1 | Indiana Regelui · pierdere comună Hard/indiciu | În partida nouă de 79 de semimutări cu sursă exactă, 8…Bd7 este prima pierdere mare efectivă Hard și prima variantă a indiciului o repetă: 231/242‰ față de e6 liber la H17/H19. | Compară Bd7/e6 și replicile libere la același orizont înainte de schimbarea căutării ori evaluării. Păstrează corecția Nimzo, Franceza/Spaniola și sacrificiile corecte; cere contraexemple și familii excluse. [Martor](#auditul-indienei-regelui-după-corecția-nimzo) |
 | P1 | Nimzo · replicile liniștite libere | Defectul Be7 de la rădăcina deschiderii este calificat, dar PV-ul ulterior original se încheie cu Bxc5 și presupune o continuare adversă slabă; Ne5 liber pierde 504‰ pentru alb, iar Qxc5 este o capcană. | Compară Rf1/Bxc5 și Ne5/Qxc5 libere la același orizont, păstrează capcana de recaptură confirmată independent și gărzile Franceză/Spaniolă, apoi auditează întreaga linie schimbată. [Martor](#martorul-public-al-indiciului-nimzo) |
-| P2 | Web · portabilitatea dovezii | Compilarea TeaVM curentă ajunge la furnizorii de securitate JRE prin `PawnPushProof.hash`; eșuează la `Class.getModule` / `ClassLoader.loadClass`. Clasa dovezii este identică reperului live `b51e17e`. | Asigură o implementare portabilă cu digest identic ori o substituție suportată la build, cu vectori cunoscuți și paritate JVM/Web; nu modifica semantica dovezii și nu numi compilarea Java singură un PASS Web executabil. |
+| P1 | Web · portabilitatea dovezii | Compilarea TeaVM curentă ajunge la furnizorii de securitate JRE prin `PawnPushProof.hash`; eșuează la `Class.getModule` / `ClassLoader.loadClass`. Clasa dovezii este identică reperului live `b51e17e`. | Asigură o implementare portabilă cu digest identic ori o substituție suportată la build, cu vectori cunoscuți și paritate JVM/Web; nu modifica semantica dovezii și nu numi compilarea Java singură un PASS Web executabil. |
 | P1 | Scoțiană · șah câștigător și mat advers | La mutarea 20, indiciul compară `…dxc3` și `…gxf6`, omite `…Re8+` și pierde 314/348,5‰. Mai târziu în PV, `Bxb2` înlocuiește matul alb în trei prin `Bxh7+`. | Readmite rădăcina câștigătoare și caută replicile adverse libere, inclusiv șahurile liniștite ulterioare; păstrează sacrificiul corect de nebun, gărzile rădăcinilor și limitele negative de lucru. Scopurile de rădăcină în indiciu, analiză și continuare rămân FAIL. [Martori](#scoțiană-șah-câștigător-și-mat-advers) |
 | P1 | Comparație indiciu · PV diagnostic complet | Linia publică reparată din Spaniolă nu are pierdere mare, dar comparația respinsă `Ng5 …O-O Nc3` păstrează o mutare slabă de 346/378,5‰. | Auditează continuările comparative alături de indiciile oferite; repară linia cu replici libere și păstrează benchmarkul comparației FAIL până la calificarea ambelor orizonturi. [Mecanism](../board/ai-quality.md#oferte-adverse-liniștite-în-interiorul-indiciului) |
 | P1 | Indiciu · continuarea adversă completă | A doua variantă nouă după `1.e4` conține `Bxe6` slab; jocul advers liber preferă `Nc3`, cu pierdere 382/399‰ la H17/H19. | Repară continuarea completă evaluată cu 200k lucru obișnuit și rezerva finită de dovadă taxată separat, verifică fiecare semimutare PV pe familii independente și păstrează sacrificiile corecte. [Martor](#replici-adverse-slabe-în-indiciile-publice) |
-| P1 | Release · identitatea guvernanței | Identitatea XML este verificată după nume și verdict. | Respinge recepțiile PASS din alt commit sau din altă rulare. |
+| P1 | Release · identitatea recepțiilor preflight | `qualification` leagă recepțiile componentelor de sursă și rulare; preflight-ul semnării verifică verdictele celor trei XML-uri de guvernanță, dar nu identitatea sursei/rulării. | Leagă fiecare recepție Documentation, Release și Extent de candidatul așteptat și rularea preflight; respinge o recepție PASS din alt commit/rulare păstrând recepția Git curentă pentru schimbarea testelor. |
 | P2 | Release · arhiva probei compacte | Dovada compactă declarată este verificată; geometria modificată încă nu o impune la promovare. | Respinge omiterea dovezii obligatorii, păstrând controalele fazelor, rulării și capturilor substituite. |
 | P2 | Documentație · protejarea traducerilor | Poarta bilingvă verifică structura și linkurile, iar proza și exemplele cer în continuare revizuire semantică. | Detectează proza copiată și exemplele schimbate prin cazuri negative țintite, păstrând literalii tehnici și dovezile imuabile. |
 | P1 | Game Review · clasificarea mutărilor | Ultimul corpus cu 106 semimutări are 11 etichete native de eroare pe pierderi sub 50‰ la ambele adâncimi și o pierdere mare omisă. | Izolează modelul de scor și efectele orizontului fără istoric schimbat, Elo inventat sau scoruri ale indiciului puse în locul analizei. |
@@ -38,16 +38,10 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P1 | Hard nativ · pierderi în jocuri încheiate | `g4` din Scandinavă este protejat de noua regresie `Ne4`; Franceza `Nc4` este acum protejată de dovada recapturii la H6 complet; Engleza `…Qf6` și Gambitul Damei `…Qa5` rămân. | Compară replicile libere complete la un orizont comun; păstrează catalogul, sacrificiile corecte și Basic/Advanced înainte de promovare. [Pașii următori](#pierderi-native-din-partide-încheiate-și-martori-de-frontieră) |
 | P2 | Frontieră tactică · șah la limită | O frontieră în șah poate încă să se oprească fără evadare legală; extensia generală pierde 13 contracte existente. | Rezolvă cauza precisă în aceeași alocație taxată; păstrează eșecurile benchmark explicite până trec calitatea și transferul. |
 | P1 | Coaching · dovada recapturii ascunse | Verificarea forțată din motor și recepția lucrului sunt implementate; previzualizarea încă arată linia integrală evaluată. | Proiectează prefixul vizibil mai scurt păstrând dovada integrală, recomandarea comună și identitatea după restart. Nu ascunde replici decisive. [Contract](#dovada-tactică-și-liniile-afișate) |
-| P1 | Calibrarea profilurilor AI | Protocolul curent măsoară 12 starturi pereche per profil, cu sensibilitatea neterminatelor; nu măsoară câștigul candidatului sau ratingul unui om. | Adaugă familii de deschidere excluse pentru a restrânge incertitudinea; nu număra reluările istorice ca starturi independente noi și nu înlocui reperele aplicației dintr-un pilot mic. [Instantaneu](../testing/hard-status.md#instantaneul-elo-relativ) |
-| P1 | Forța Hard adaptiv | Căutarea pornește cu 100.000 de noduri și o rezervă până la 200.000. | Compară cele trei moduri pe partide excluse din ajustare și verifică replica adversă. |
-| P1 | Învățarea Hard din PGN-uri | Modelul de ordonare antrenat pe pierderi păstrează toate mutările finale în 36 de familii noi. | Adaugă mutări bune păstrate și sacrificii, apoi verifică ordonarea și deciziile complete. |
-| P1 | Căutarea Hard · generalizare | Recaptura selectivă pierde pe deschideri independente. | Cere progres independent la bugetul fix. |
-| P1 | Hard · conversia după captura de pion | Avantajul după captură poate fi pierdut ulterior. | Verifică păstrarea avantajului pe poziții și replici noi. |
-| P1 | Transferul tactică → partidă | Hard ratează tactici fără obiectiv declarat. | Măsoară detectarea și păstrează contractul rezolvării cu obiectiv. |
-| P1 | Hard nativ · obiective materiale rămase | Rejucarea completă curentă păstrează 79 de etape neacceptate în 53 de exerciții; 185/238 exerciții materiale complete. H17/H19 confirmă 56 de pierderi mari pe etape, 42 prime accesibile fără intervenție de referință. | Izolează mecanismul la orizont comun, începând cu Qc1/dxe6 din tactic-040; păstrează training-051, fiecare etapă acceptată și toate cele 1.000 de mate cu toate apărările, apoi cere contraexemple și familii excluse. [Status măsurat](../testing/hard-status.md) |
+| P1 | Calibrarea profilurilor AI | Protocolul curent măsoară 12 starturi pereche per profil, cu sensibilitatea neterminatelor; nu măsoară câștigul candidatului sau ratingul unui om. | Compară toate cele trei profiluri native, la alocații neschimbate, pe familii excluse și replicile lor libere, pentru a restrânge incertitudinea; nu număra reluările istorice ca starturi independente noi și nu înlocui reperele aplicației dintr-un pilot mic. [Instantaneu](../testing/hard-status.md#instantaneul-elo-relativ) |
+| P1 | Hard nativ · obiective materiale rămase | Rejucarea completă curentă păstrează 79 de etape neacceptate în 53 de exerciții; 185/238 exerciții materiale complete. H17/H19 confirmă 56 de pierderi mari pe etape, 42 prime accesibile fără intervenție de referință. | Izolează mecanismul la orizont comun, începând cu Qc1/dxe6 din tactic-040; păstrează training-051, fiecare etapă acceptată și toate cele 1.000 de mate cu toate apărările, apoi verifică conversia fără obiectiv declarat împotriva replicilor libere, cu contraexemple și familii excluse. [Status măsurat](../testing/hard-status.md) |
 | P2 | Studii native · contorul FEN inițial | O partidă nouă din tablă pornește contorul fără progres la zero, iar metadatele FEN ale oracolului păstrează valoarea inițială. | Adaugă inițializare nativă explicită din contorul FEN și cazuri 0/99/149 înainte de a declara paritate de remiză pentru origini compuse arbitrare. |
 | P2 | Progres · upgrade Android | Upgrade-ul semnat mai cere o probă de progres. | Păstrează ID-urile, rezolvările și punctele după upgrade și restart. |
-| P2 | Calitatea AI · evaluare material | Scorul material diferă de Stockfish. | Redu abaterea la aceleași bugete. |
 | P2 | Calibrarea problemelor | Benzile de dificultate importate se suprapun. | Verifică timpul și încercările pe un lot amestecat separat. |
 | P2 | Android · separarea tranzițiilor de ecran | Ecranul Android deține mai multe tranziții de sesiune. | Mută tranzițiile într-un responsabil testabil pe JVM. |
 
@@ -148,11 +142,11 @@ identitățile originale ale profesorului, niciodată jurnale istorice inventate
 ## Dovezi și verificări de închidere
 
 <details>
-<summary>P1 · Release · identitatea guvernanței</summary>
+<summary>P1 · Release · identitatea recepțiilor preflight</summary>
 
-Preflight leagă recepția pentru schimbarea testelor de Git, iar XML-urile Documentation, Release și Extent sunt verificate după nume și verdict.
+`ReleaseGate.preflight(reports, checkout, base)` cere un candidat curat și un strămoș Git distinct, validează cele trei verdicte de guvernanță numite, apoi verifică recepția Git pentru schimbarea testelor. Nu leagă acele XML-uri de guvernanță de candidat sau de o execuție comună. O probă punctuală a substituit toate cele trei XML-uri PASS cu proprietăți din alt commit/rulare, păstrând recepția Git curentă autentică; CLI-ul preflight real le-a acceptat. `ComponentQualification` protejează ulterior identitatea recepțiilor componentelor; aceasta nu închide limita anterioară de preflight.
 
-Leagă fiecare XML de commitul candidat și de rularea de calificare. Înlocuiește pe rând un XML cu o recepție PASS din alt commit sau din altă rulare și verifică refuzul, păstrând recepția Git curentă. [Preflight](../../release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java) · [Teste](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
+Adaugă legarea explicită de candidat/rulare și negative cu substituție pentru fiecare dintre `DocumentationGovernanceTest`, `ReleaseGovernanceTest` și `ExtentGovernanceTest`, păstrând recepția Git corectă. Conservă verificările pentru lipsă/eșec/skipped și documentează proveniența rulării așteptate. [Preflight](../../release-tools/src/main/java/ro/atf/chess/release/ReleaseGate.java) · [Controalele actuale](../../atf-tests/src/test/java/ro/atf/chess/ReleaseGovernanceTest.java)
 
 </details>
 
@@ -228,36 +222,9 @@ Verificați gestul predictiv în joc și Deschideri pe API 33+, inclusiv anulare
 <details>
 <summary>P1 · Calibrarea profilurilor AI</summary>
 
-Basic a estimat 1067 Elo (638–1225) după 144 de partide cu Stockfish 19. Advanced la 10.000 de noduri a estimat 1421 (1245–1553), iar Hard la 44.000 a estimat 1534 (1396–1672) în același protocol.
+[Instantaneul Elo relativ](../testing/hard-status.md#instantaneul-elo-relativ) deține cele 12 porniri pereche actuale per profil, bugetele efective, sensibilitatea la partidele neîncheiate și incertitudinea. Estimările anterioare cu buget fix rămân dovezi istorice în ghidul AI; nu descriu adversarul adaptiv curent.
 
-Adăugați perechi noi cu ambele culori pentru a restrânge incertitudinea în jurul limitei Basic de 1200 și a benzii Advanced. Recalibrați valorile din aplicație cu sursă fixată și dovezi guvernate. [Calibrarea Basic](../board/ai-quality.md#calibrarea-basic-cu-adâncime-selectivă)
-
-</details>
-
-<details>
-<summary>P1 · Căutarea Hard · generalizare</summary>
-
-Recaptura selectivă îmbunătățește Tactica, dar pierderea medie pe deschideri independente urcă de la 53,0‰ la 68,0‰. Prototipul cache cu limite pierde o problemă de mat în trei, iar intervalul duelului include zero.
-
-În benchmarkul Hard, includeți Scandinavă după `4.d4` și Siciliană clasică după `6.Bg5`. Cereți progres pe lot independent și în duel cu culori inversate, cu profilul fix sau adaptiv declarat. Păstrați corectitudinea matului în trei și înregistrați nodurile efectiv consumate. [Recaptură](../board/ai-quality.md#recaptura-hard-la-orizont) · [Cache experimental](../board/ai-quality.md#prototip-local-de-limite-alpha-beta--neintegrat)
-
-</details>
-
-<details>
-<summary>P1 · Hard · conversia după captura de pion</summary>
-
-Hard găsește acum `Nxe5` în Siciliana cu `…h6` și în poziții vecine, la 44.000 de noduri. În continuarea cu `…Nc6 Nxc6`, împingerea `e5` pierde 211‰ față de `d3` la adâncimea 17. În lotul tematic final, B a încheiat cu 3 victorii, iar A cu 5.
-
-Verificați alegerea `d3` pe poziții noi și după replici adverse distincte, apoi urmăriți păstrarea avantajului în jocuri pereche cu același buget. Păstrați testele de captură și martorii cu pion apărat. [Dovezi](../board/ai-quality.md#verificarea-schimburilor-după-o-captură-de-pion)
-
-</details>
-
-<details>
-<summary>P1 · Transferul tactică → partidă</summary>
-
-Cu obiectiv declarat, solverul rezolvă 1.220/1.220 publice și 24/24 independente. La obiectiv necunoscut, Hard ratează încă șase maturi în trei și chei materiale. Oprirea la mat dovedit a redus costul mediu pe Mat în trei cu 33%.
-
-Măsurați ce tactici pot fi detectate din poziție și păstrați 100% în solver. Pentru adversar, cereți progres pe lotul independent cu aceleași bugete și absența regresiilor pe jocuri pereche. [Dovezi și duel](../board/ai-quality.md#rezolvarea-quest-urilor-cu-obiectiv-declarat)
+Compară toate cele trei profiluri native din aceeași sursă fixată, cu bugete neschimbate, pe familii de deschideri excluse și replici libere. Păstrează independența Basic/Advanced, sacrificiile corecte și deciziile complete; compară explicit Hard fix și adaptiv. Pornirile repetate nu reduc incertitudinea independentă și nu dovedesc progresul unui candidat. [Contractul adaptiv](../board/ai-quality.md#buget-adaptiv-în-prim-plan)
 
 </details>
 
@@ -267,15 +234,6 @@ Măsurați ce tactici pot fi detectate din poziție și păstrați 100% în solv
 Restartul procesului pentru Antrenament tactic este demonstrat în 0.12.0, iar extinderea catalogului păstrează cursorul și punctajul în componentă. Lipsește proba de update cu APK-ul semnat și date deja salvate, pe două ediții cu aceeași identitate.
 
 Instalați ediția publicată pe un emulator curat, creați progres, instalați candidatul compatibil peste ea și verificați după restart ID-ul, rezolvările și punctele fără dublare. [Proba de upgrade](../testing/README.md#upgrade-al-progresului)
-
-</details>
-
-<details>
-<summary>P2 · Calitatea AI · evaluare material</summary>
-
-După `2…dxc4`, Chess afișează `−0,60`, iar Stockfish 19 la adâncimea 13 indică `+0,21`; după `3.e3`, abaterea ajunge la 111 cp.
-
-Urmăriți recuperarea pionului pe ambele culori și cu ramuri de control. Reduceți abaterea fără să depășiți bugetul barei sau să slăbiți porțile. [Măsurători](../board/ai-quality.md#calibrarea-hard-și-a-barei)
 
 </details>
 
@@ -294,26 +252,6 @@ Măsurați timpul și încercările greșite înaintea indiciului pe poziții am
 `ChessActivity` deține meniurile, cursorul, salvarea și programarea replicilor. O modificare în reluarea partidei atinge aceeași clasă care orchestrează exercițiile și navigarea.
 
 Extrageți întâi tranzițiile reluare, anulare și rezultat AI întârziat într-un owner testabil JVM. Păstrați componentele pentru restaurare și respingerea replicii vechi; pe Android verificați o singură reluare și ordinea vizibilă. [Partidă și istoric](../testing/README.md#partidă-și-istoric)
-
-</details>
-
-<details>
-<summary>P1 · Forța Hard adaptiv</summary>
-
-Căutarea pentru mutarea curentă folosește o alocație configurabilă de 100.000 de noduri, cu o rezervă până la 200.000. Continuarea păstrează stiva activă și cache-ul. Testele de componentă protejează verificarea existentă a schimbului.
-
-Comparația istorică v1 păstrează `Bg5` nativ în S7 sicilian (24‰), față de `N1c3` din indiciu (499,5‰). Indiciul italian este între timp reparat la `…Qg6`; vechea recomandare `…Bxf2+` nu mai descrie sursa live. Compară în continuare API-urile independent, fără a copia automat selecția indiciului în Hard.
-
-Măsurați 100.000 fix, 200.000 fix și modul adaptiv pe aceeași sursă, în partide excluse din ajustare și în poziții cu pierderi verificate de Stockfish. Păstrați identitatea sursei pentru liga ordonării învățate și verificați alternativele legale liniștite, matul și finalurile de remiză. [Contractul adaptiv](../board/ai-quality.md#buget-adaptiv-în-prim-plan)
-
-</details>
-
-<details>
-<summary>P1 · Învățarea Hard din PGN-uri</summary>
-
-Modelul de ordonare antrenat pe 58 de pierderi schimbă 34/36 de liste de rădăcini excluse din ajustare și păstrează toate mutările finale. Verificarea cronologică identifică o pierdere mai devreme într-una dintre cele 36 de partide.
-
-Includeți în următorul lot de antrenare mutări bune păstrate, replici liniștite și sacrificii verificate. Cereți îmbunătățirea rangului alternativei și schimbarea deciziilor complete în familii excluse din ajustare înainte de interpretarea Elo pereche. [Cercetarea offline](hard-learning.md)
 
 </details>
 

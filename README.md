@@ -59,6 +59,8 @@ flowchart LR
 
 ## Puncte de intrare
 
+- [Atlasul arhitecturii](docs/architecture.md) — motorul comun, responsabilitățile adaptoarelor, tranzițiile sesiunii și dovezile.
+
 - [Documentația proiectului](docs/README.md) — alege ghidul după zona schimbată.
 - [Strategia de testare](docs/testing/README.md#alegerea-nivelului) — alege componentă, guvernanță sau sanity Android.
 - [Procesul de release](docs/release/README.md#calificare-și-publicare) — construiește și califică ediția în TMP.

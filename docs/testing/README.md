@@ -159,6 +159,15 @@ Fiecare semimutare, inclusiv replica adversarului, cere analiza efectivă Hard c
 Folosiți browserul MCP pentru proba Web randată și Android pentru adaptorul
 nativ. Consemnați separat aceste observații și verdictul componentelor offline.
 
+### Geometria comună a tablei
+
+Panoul nativ, SVG-ul de studiu, Canvas-ul analizei și analiza AI inline au un singur contract de geometrie. Consultați [atlasul arhitecturii](../architecture.md#motorul-și-limitele-platformelor) înainte de a schimba un adaptor de platformă.
+
+- `HintArrowTest` compară modelul JVM și rendererele Web reale cu limite simulate, inclusiv celule rotunjite și ambele orientări. Păstrați valorile complete ale aserțiunilor și distanța de 12% față de centrul destinației.
+- `BoardPanelLayoutTest`, `MatchAnalysisParityTest` și `ChessWebBoardSizingTest` protejează pătratul util, bara de analiză și tabla fixă la navigare sau reluare.
+- RAG citează aceste componente și o observație focalizată Android/MCP pentru fiecare adaptor de geometrie înregistrat. Citarea este un plan, nu o rulare încheiată.
+- Randați doar parcursul afectat pe compact RO/EN, text 130%, cu aceeași poziție sursă și cursor. Legați identitățile APK-ului semnat și bundle-ului servit de recepții; geometria offline nu certifică paritatea randată.
+
 ### Controlul replicilor AI
 
 - Selectați `ChessWebParityPublication#packagedWorkerKeepsAiIdentityThroughManualControl` în comanda Maven pentru pachetul TeaVM. `MatchControlsTest` și workerul citesc același fixture pentru comutarea fără mutare manuală și pentru mutarea legală jucată de partea AI.
@@ -600,6 +609,14 @@ mvn test "-Dtest=TestChangeReview" "-Dchess.testChanges.base=$reviewBase" "-Dche
 Pentru Analiza partidei, păstrați recepția nativă, identitatea APK-ului și raportul Extent. Verificați amprentele raportului și ale capturilor în dovezile ediției. [Calificarea ediției](../release/README.md#calificare-și-publicare)
 
 - Captura UI Automation poate avea dimensiuni raster mai mici decât ecranul real al emulatorului. Comparațiile de pixeli proiectează dreptunghiurile din coordonate de ecran în coordonatele bitmapului folosind dimensiunile reale ale displayului; verificarea vizibilității elementelor rămâne bazată pe limitele native ale ferestrei. Astfel, redimensionarea capturii nu devine un fals eșec vizual.
+
+### Identitatea recepțiilor și comparațiile evaluate
+
+O comparație aparține ownerului, scenariului și fazei originale. Verificați rezultatul testului și celulele complete așteptate/observate; un PV legal, un fișier de artefact sau un număr potrivit nu înlocuiesc obiectivul cerut.
+
+`ComponentQualification` respinge alt commit, altă rulare, suită, inventar de cazuri sau recepție brută care nu trece. `ReleaseGovernanceTest` furnizează negativele. `ExtentAudit` refuză un corp de componentă PASS fără aserțiuni auditate.
+
+`ReportArtifactInspector.inspect(path, profile)` primește inventarul componentelor/dovezilor declarat independent. În Browser MCP, inspectați panoul Tests live selectat și ownerul său; template-urile sursă ascunse și copiile proiectate sunt DOM-uri separate. Închiderea părintelui ascunde subarborele, iar redeschiderea reface starea locală a disclosure-ului selectată anterior.
 
 ## Sanity Android
 

@@ -79,18 +79,6 @@ trebuie să înlocuiască diagnosticul unui oracol UI greșit.
 
 **P2 · Calificarea ediției.** Legați în RAG commitul, cataloagele și amprentele APK și Web de recepțiile aceleiași ediții. [Criteriul de actualizare](../testing/README.md#actualizarea-pachetului-web)
 
-<details>
-<summary>Rutarea RAG după fișierul modificat</summary>
-
-Adăugați o rută RAG explicită pentru geometria și analiza partidei când diff-ul atinge
-[BoardPanel.java](../../android/app/src/main/java/ro/atf/chess/android/BoardPanel.java),
-[study-board.mjs](../../web/src/main/web/study-board.mjs) sau [match-inline-analysis.mjs](../../web/src/main/web/match-inline-analysis.mjs).
-Pentru fiecare fișier, un test de rutare trebuie să ceară citarea [MatchAnalysisParityTest](../../atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java)
-și a dovezilor de interfață: sanity compact RO/EN la 130% pe APK-ul semnat și proba
-Web în browser MCP pe pachetul servit. [Probele de analiză](../testing/README.md#analiza-în-partida-cu-ai)
-
-</details>
-
 **Criteriu de închidere.** Porniți proba din **Joacă în browser**, sub
 APK în README, și confirmați manifestul pachetului servit. Verificați
 la upgrade biblioteca de partide, o analiză arhivată și semimutarea de

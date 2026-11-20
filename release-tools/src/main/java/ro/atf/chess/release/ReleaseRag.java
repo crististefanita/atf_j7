@@ -42,6 +42,12 @@ public final class ReleaseRag {
             new Route("web/src/main/web/screen-chrome.mjs", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
             new Route("web/tools/GenerateUiChrome.java", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
             new Route("atf-tests/src/test/resources/ui-chrome-cases.json", "docs/testing/README.md", "## Antet și navigare comune", "UiChromeParityTest, NavigationGovernanceTest and BoardSanity -Distribution -PuzzleUxOnly"),
+            geometry("android/app/src/main/java/ro/atf/chess/android/BoardPanel.java"),
+            geometry("chess-core/src/main/java/ro/atf/chess/HintArrow.java"),
+            geometry("web/src/main/web/hint-arrow.mjs"),
+            geometry("web/src/main/web/study-board.mjs"),
+            geometry("web/src/main/web/review-workspace.mjs"),
+            geometry("web/src/main/web/match-inline-analysis.mjs"),
             uiMenus("web/src/main/web/index.html"),
             uiMenus("web/src/main/web/home-menu.mjs"),
             uiMenus("web/src/main/web/game-review.mjs"),
@@ -184,6 +190,7 @@ public final class ReleaseRag {
             new Route("atf-tests/src/test/java/ro/atf/chess/DocumentationGovernanceTest.java", RELEASE.document(), RELEASE.heading(), RELEASE.check()),
             new Route("docs/testing/README.md", "docs/testing/README.md", "## Suite JVM", "ChessJvmSuite și ChessGovernanceSuite"),
             new Route("docs/README.md", "docs/README.md", "## Verificarea documentației", "DocumentationGovernanceTest și ReleaseGovernanceTest"),
+            new Route("docs/architecture.md", "docs/architecture.md", "## Pe scurt", "DocumentationGovernanceTest, MarkdownDiagramGovernanceTest and DocumentationPairGovernanceTest"),
             new Route("docs/board/", "docs/testing/README.md", "## Motor și proiecție", "BoardPanelLayoutTest și QuestHintTest"),
             new Route("docs/feedback/", "docs/feedback/README.md", "# Feedback · Chess Lab",
                     "DocumentationGovernanceTest și revizia criteriilor deschise"),
@@ -203,6 +210,11 @@ public final class ReleaseRag {
             new Route("README.md", RELEASE.document(), RELEASE.heading(), RELEASE.check()), RELEASE);
 
     private ReleaseRag() { }
+
+    private static Route geometry(String path) {
+        return new Route(path, "docs/testing/README.md", "### Geometria comună a tablei",
+                "HintArrowTest, BoardPanelLayoutTest, MatchAnalysisParityTest, ChessWebBoardSizingTest; Android și MCP compact RO/EN la 130%");
+    }
 
     private static Route uiMenus(String path) {
         return new Route(path, "docs/testing/README.md", "### Paritatea meniurilor și indiciilor",

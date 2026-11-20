@@ -1774,3 +1774,11 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#documentedArchitectureRejectsMissingSourcesExtraModulesAndScopeDrift
     contract: "Redenumeste doar titlul arhitecturii proiectului in Chess; pastreaza topologia executabila, rutele catre owneri si toate cazurile negative pentru surse, module si scope."
     allowDelete: false
+
+  - id: CHESS-DIAGRAM-CONTENT-RO
+    base: "11c200c7934a1d72e100c1a5e6ea4fd79f43aabe"
+    from: atf-tests/src/test/java/ro/atf/chess/MarkdownVisualContract.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MarkdownDiagramGovernanceTest.java
+    test: ro.atf.chess.MarkdownDiagramGovernanceTest#typeCheckingPreservesTheExistingEdgeAndLegendRequirements
+    contract: "Preserve every existing fence, presentation, orientation, semantic edge and adjacent legend rule; additionally reject unknown Mermaid kinds and diagrams without executable content"
+    allowDelete: false
