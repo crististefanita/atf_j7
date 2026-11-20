@@ -31,6 +31,7 @@ final class MatchPositionEvaluation {
         int whiteKing = -1;
         int blackKing = -1;
         int pieces = 0;
+        int blockedAdvance = 0;
         Piece lastPiece = null;
         for (int square = 0; square < 64; square++) {
             Piece piece = position.pieceAt(square);
@@ -49,6 +50,9 @@ final class MatchPositionEvaluation {
             phase += PHASE[kind];
             opening += sign * OPENING[kind][relative];
             endgame += sign * ENDGAME[kind][relative];
+            if (piece.kind() == Kind.PAWN && kingBlocksPassedPawn(position, square, piece)) {
+                blockedAdvance += sign * ENDGAME[kind][relative];
+            }
             if (piece.kind() == Kind.BISHOP) {
                 if (white) whiteBishops++;
                 else blackBishops++;
@@ -61,10 +65,27 @@ final class MatchPositionEvaluation {
         int bishopPair = (whiteBishops >= 2 ? 1 : 0) - (blackBishops >= 2 ? 1 : 0);
         phase = Math.min(phase, FULL_PHASE);
         int whiteBonus = (opening * phase + endgame * (FULL_PHASE - phase)) / FULL_PHASE + bishopPair * 22;
+        if (phase == 0 && PawnBlockadePolicy.CURRENT.enabled()) {
+            whiteBonus -= blockedAdvance * PawnBlockadePolicy.CURRENT.advanceDiscountPermille() / 1000;
+        }
         if (pieces == 1 && (lastPiece.kind() == Kind.ROOK || lastPiece.kind() == Kind.QUEEN)) {
             whiteBonus += lastPiece.side() == Side.WHITE ? matePressure(whiteKing, blackKing) : -matePressure(blackKing, whiteKing);
         }
         return position.turn() == Side.WHITE ? whiteBonus : -whiteBonus;
+    }
+
+    static boolean kingBlocksPassedPawn(ChessPosition position, int square, Piece pawn) {
+        int step=pawn.side()==Side.WHITE?8:-8,front=square+step;
+        if(front<0||front>=64)return false;
+        var blocker=position.pieceAt(front);
+        if(blocker==null||blocker.side()==pawn.side()||blocker.kind()!=Kind.KING)return false;
+        for(int ahead=front;ahead>=0&&ahead<64;ahead+=step) {
+            for(int file=Math.max(0,square%8-1);file<=Math.min(7,square%8+1);file++) {
+                var other=position.pieceAt(ahead/8*8+file);
+                if(other!=null&&other.side()!=pawn.side()&&other.kind()==Kind.PAWN)return false;
+            }
+        }
+        return true;
     }
 
     private static int matePressure(int attacker, int defender) {
