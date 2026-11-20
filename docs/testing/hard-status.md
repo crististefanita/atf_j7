@@ -35,6 +35,26 @@ Only the midpoint gives unfinished games half a point; they are never recorded a
 
 Each actual move retains pre-move shadow Hard and a maximum public hint attempt; Basic/Advanced still play their own decisions. The study retains **one unavailable hint** and **one incomplete final review**. Typed failures have no invented final coaching score or line and have a separate quality verdict. The recovered game preserves its original durable prefix; the technical Stockfish session reset retains full history and identical options with both transcripts pinned. Those local review ratings do not supply the measured Elo. The league's full hint and review continuations are not all independently H17/H19-certified, so this rating bundle does not replace the admitted learning corpus.
 
+## First confirmed losses in the retained league
+
+The five actual Hard defeats from the same 72-game calibration were inspected chronologically. Cold unrestricted Stockfish H17/H19 compares every earlier actual Hard move until the first loss reaches 150‰ at both horizons: 30 decisions and 120 raw phases. This is diagnosis of the existing games, not five new independent test families.
+
+| Game | Actual first loss | Better free H19 reply | WDL loss H17/H19 |
+|---|---|---|---|
+| Alekhine, Black | 11…Bxf2+ | …O-O | 997.5/996.5‰ |
+| King's Gambit, Black | 9…Bb4+ | …Bg7 | 300/329‰ |
+| Nimzo, White | 11.Qb3 | Na4 | 250.5/244.5‰ |
+| Petroff, White | 7.h3 | Nbd2 | 206/236.5‰ |
+| Slav, Black | 9…Nxc3 | …Nb4 | 284.5/230.5‰ |
+
+All five retained decisions stop at H5. Four PVs end with a queen capture and an omitted legal recapture, sometimes a check evasion; Petroff ends with a pawn capture and has a different mechanism. Isolated full-window H4/H5/H6 comparisons do not prove a playable full decision: earlier iterations and all root alternatives still consume the allowance. The Alekhine native final review reports 99% Black accuracy despite the independently confirmed first loss; that local evaluator is not an external strength reference.
+
+General root null-window probing preserves exact minimax scores but fails three existing French/Queen's Gambit controls and changes none of the five choices. A scoped H4/H6 confirmation also changes none. Rejecting an exposed-queen H5 frontier improves Alekhine and Slav, but choosing the older H4 line worsens Nimzo to **357.5/383.5‰**. Its full catalog replay gains eight accepted stages and loses sixteen, with 82 changed analyses among 2,303. All 1,700 canonical mating stages remain identical; all-defenses mate transfer was not rerun for this rejected candidate. The engine and policies in live remain unchanged, and no candidate duel or ΔElo is justified.
+
+[HardDefeatWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/HardDefeatWitnessTest.java) retains the five legal histories, original native work and cold teacher receipts, with wrong-history/run/score negatives. It does not require the live player to repeat a bad move. [HardDefeatBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/HardDefeatBenchmarkTest.java) exposes five separate quality goals; all remain FAIL on the reference and are kept out of the ordinary component suite. An unmeasured new move requires a fresh oracle phase, never an assumed improvement. [Portable fixture](../../atf-tests/src/test/resources/hard-defeat-witnesses.yaml).
+
+The auditable external dossier is `C:\work\sah\.studii\experiments\2026-11-20-hard-losses\README.md`. Next require a completed free-reply comparison that removes the exposed-queen optimism without falling back to a worse H4 move; preserve the French/QG controls and every previously accepted stage before excluded-family transfer and a paired duel. More passing plumbing assertions do not establish stronger play.
+
 ## Evidence and next study
 
 The external dossier is `C:\work\sah\.studii\experiments\2026-11-19-puzzle-status\README.md`. It links eight Extent reports, exact source/runtime/configuration pins, raw decisions, all PGNs, teacher transcripts, final reviews and 42 contextual YAML lessons. Lessons are study-only: counterexamples and excluded-family transfer are still pending, and no key is imported into runtime. The execution amendment preserves all completed results when increasing independent concurrency; interrupted attempts remain archived and unscored.
