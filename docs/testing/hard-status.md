@@ -105,3 +105,12 @@ Evaluarea afișată și clasificarea analizei rămân obiective de calitate inde
 Studiul este `C:\work\sah\.studii\experiments\2026-11-20-hard-rook-defense\README.md`.
 Oracolul rece legat de sursă clasifică toate continuările oferite de indiciu și analiză, nu
 doar prima mutare. Recepțiile originale își păstrează producătorii când testăm cod ulterior.
+
+Auditul rece complet acoperă **74 de rădăcini efective**, **128 de indicii / 787 de semimutări**,
+**773 de semimutări ale analizei** și **401 de semimutări ale PV-ului nativ**, plus două
+contraexemple de rege: 2.037 de semimutări și 2.850 de faze exacte libere/forțate. Mutările
+efective, rădăcinile native, indiciile și ambele ramuri ale analizei nu au pierderi stabile
+≥150‰ la ambele orizonturi în aceste două partide. Continuările interne native păstrează
+**13** pierderi: `Ke6`/`Ke3` ipotetic rămâne în căutarea mai scurtă, deși planul efectiv este
+reparat. Benchmarkul clasificării rămâne și el FAIL: Ke6 pierde victoria, dar primește GOOD,
+cu pierdere nativă 44. Aceste obiective rămân deschise, nu sunt șterse de cele două conversii.
