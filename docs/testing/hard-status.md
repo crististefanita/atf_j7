@@ -66,7 +66,7 @@ Proba mai largă, bazată numai pe fază, a fost respinsă după ce a stricat do
 | Context independent | Mutarea reperului → corectată | Pierdere WDL H17/H19, înainte → după |
 |---|---|---|
 | `06cPH` | `Bxg6` → `h5` | 1000/1000‰ → 0/0‰ |
-| `07GQq` | `Bxe5` → `Qxe5` | 779/717‰ → 0/0‰ |
+| `07GQq` | `…Bxe5` → `…Qxe5` | 779/717‰ → 0/0‰ |
 | `03z37` | `…Bxc5` → `…Bg3` | 1000/1000‰ → 992/999‰ |
 
 Nu există degradări confirmate la ambele orizonturi în cele 17 cazuri, iar toate cele 34 de analize Basic/Advanced rămân identice. Ultimul rând rămâne pierzător și este o schimbare numerică mică, nu o problemă rezolvată. Cele două reușite clare de transfer devin martori portabili de regresie. Lotul selectat prin activare nu estimează forța medie de joc sau Elo.
