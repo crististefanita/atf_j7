@@ -1,0 +1,311 @@
+{
+  "schema": 1,
+  "scope": "Actual pre-move frame; no past observation is relabeled as the current producer.",
+  "frame": {
+    "identity": {
+      "run": "rook-defense-confirmed-observed-20261120",
+      "revision": "0548e18ecf6d2039ce51203b043302d0a4aa04d3",
+      "runtimeDigest": "7c690e90cdbab1b0dfb2dfcbaa18f97f2a60d16b2cc02e1548f24848533e6e9b",
+      "configurationDigest": "c831be2651617b9b294339dc203c4537f8f8aceb982ea4b2e801a5796e91deab"
+    },
+    "caseId": "rook-defense-confirmed",
+    "initialFen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+    "ply": 36,
+    "history": [
+      {
+        "from": 59,
+        "to": 58,
+        "promotion": null
+      },
+      {
+        "from": 34,
+        "to": 27,
+        "promotion": null
+      },
+      {
+        "from": 58,
+        "to": 26,
+        "promotion": null
+      },
+      {
+        "from": 27,
+        "to": 26,
+        "promotion": null
+      },
+      {
+        "from": 39,
+        "to": 31,
+        "promotion": null
+      },
+      {
+        "from": 26,
+        "to": 34,
+        "promotion": null
+      },
+      {
+        "from": 31,
+        "to": 23,
+        "promotion": null
+      },
+      {
+        "from": 34,
+        "to": 41,
+        "promotion": null
+      },
+      {
+        "from": 23,
+        "to": 15,
+        "promotion": null
+      },
+      {
+        "from": 41,
+        "to": 40,
+        "promotion": null
+      },
+      {
+        "from": 15,
+        "to": 7,
+        "promotion": "QUEEN"
+      },
+      {
+        "from": 40,
+        "to": 33,
+        "promotion": null
+      },
+      {
+        "from": 7,
+        "to": 35,
+        "promotion": null
+      },
+      {
+        "from": 33,
+        "to": 25,
+        "promotion": null
+      },
+      {
+        "from": 35,
+        "to": 38,
+        "promotion": null
+      },
+      {
+        "from": 16,
+        "to": 24,
+        "promotion": null
+      },
+      {
+        "from": 53,
+        "to": 45,
+        "promotion": null
+      },
+      {
+        "from": 25,
+        "to": 26,
+        "promotion": null
+      },
+      {
+        "from": 38,
+        "to": 32,
+        "promotion": null
+      },
+      {
+        "from": 26,
+        "to": 19,
+        "promotion": null
+      },
+      {
+        "from": 32,
+        "to": 24,
+        "promotion": null
+      },
+      {
+        "from": 19,
+        "to": 11,
+        "promotion": null
+      },
+      {
+        "from": 46,
+        "to": 38,
+        "promotion": null
+      },
+      {
+        "from": 11,
+        "to": 19,
+        "promotion": null
+      },
+      {
+        "from": 38,
+        "to": 30,
+        "promotion": null
+      },
+      {
+        "from": 19,
+        "to": 20,
+        "promotion": null
+      },
+      {
+        "from": 30,
+        "to": 22,
+        "promotion": null
+      },
+      {
+        "from": 20,
+        "to": 21,
+        "promotion": null
+      },
+      {
+        "from": 24,
+        "to": 17,
+        "promotion": null
+      },
+      {
+        "from": 21,
+        "to": 12,
+        "promotion": null
+      },
+      {
+        "from": 17,
+        "to": 10,
+        "promotion": null
+      },
+      {
+        "from": 12,
+        "to": 21,
+        "promotion": null
+      },
+      {
+        "from": 22,
+        "to": 14,
+        "promotion": null
+      },
+      {
+        "from": 21,
+        "to": 29,
+        "promotion": null
+      },
+      {
+        "from": 10,
+        "to": 19,
+        "promotion": null
+      },
+      {
+        "from": 29,
+        "to": 30,
+        "promotion": null
+      }
+    ],
+    "setup": {
+      "humanSide": "WHITE",
+      "level": "HARD",
+      "analysisEnabled": true
+    },
+    "checkpoint": "3|WHITE|HARD|1|d8c8 c5d4 c8c4 d4c4 h5h4 c4c5 h4h3 c5b6 h3h2 b6a6 h2h1q a6b5 h1d5 b5b4 d5g5 a3a4 f7f6 b4c4 g5a5 c4d3 a5a4 d3d2 g6g5 d2d3 g5g4 d3e3 g4g3 e3f3 a4b3 f3e2 b3c2 e2f3 g3g2 f3f4 c2d3 f4g4",
+    "fen": "8/8/5k2/8/6K1/3q4/6p1/8 b - - 3 69",
+    "side": "BLACK",
+    "nativeLevel": "HARD",
+    "requestedHintNodes": 200000,
+    "hard": {
+      "decision": {
+        "move": {
+          "from": 14,
+          "to": 6,
+          "promotion": "KNIGHT"
+        },
+        "depth": 4,
+        "extraNodes": 2499
+      },
+      "search": {
+        "result": {
+          "ranked": [
+            {
+              "line": [
+                {
+                  "from": 14,
+                  "to": 6,
+                  "promotion": "KNIGHT"
+                },
+                {
+                  "from": 30,
+                  "to": 29,
+                  "promotion": null
+                },
+                {
+                  "from": 19,
+                  "to": 21,
+                  "promotion": null
+                }
+              ],
+              "score": 99997,
+              "materialChange": 220,
+              "ending": "CHECKMATE"
+            },
+            {
+              "line": [
+                {
+                  "from": 14,
+                  "to": 6,
+                  "promotion": "QUEEN"
+                },
+                {
+                  "from": 30,
+                  "to": 31,
+                  "promotion": null
+                },
+                {
+                  "from": 6,
+                  "to": 38,
+                  "promotion": null
+                }
+              ],
+              "score": 99997,
+              "materialChange": 800,
+              "ending": "CHECKMATE"
+            }
+          ]
+        },
+        "depth": 4,
+        "extraNodes": 2499,
+        "horizonLeaders": [],
+        "scoreCredits": {},
+        "excludedRoots": [],
+        "nonEquivalentRoots": [],
+        "pawnProof": null
+      }
+    },
+    "hint": {
+      "lines": [
+        {
+          "line": [
+            {
+              "from": 14,
+              "to": 6,
+              "promotion": "KNIGHT"
+            },
+            {
+              "from": 30,
+              "to": 29,
+              "promotion": null
+            },
+            {
+              "from": 19,
+              "to": 21,
+              "promotion": null
+            }
+          ],
+          "score": 99997,
+          "materialChange": 220,
+          "ending": "CHECKMATE"
+        }
+      ],
+      "comparison": null,
+      "extraNodes": 136959,
+      "seedDepth": 3,
+      "selectedDepth": 7
+    },
+    "separateEstimateLimit": 16000,
+    "estimate": {
+      "ending": "CHECKMATE",
+      "whiteCentipawns": 0,
+      "whiteMateMoves": -2
+    }
+  }
+}
