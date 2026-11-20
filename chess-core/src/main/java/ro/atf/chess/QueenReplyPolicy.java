@@ -17,6 +17,12 @@ record QueenReplyPolicy(boolean enabled, int minimumPhase, int aspirationWindowC
         return enabled && MatchPositionEvaluation.phase(position) >= minimumPhase;
     }
 
+    boolean verifies(ChessPosition position, TacticalAnalysis.Variation previous, int completed) {
+        return applies(position) && !previous.line().isEmpty()
+                && MatchMaterial.victim(position, previous.move()) != null
+                && TacticalAnalysis.unresolvedQueenRecapture(position, previous, completed);
+    }
+
     static QueenReplyPolicy read(Map<?, ?> values) {
         if (!values.keySet().equals(Set.of("schema", "enabled", "minimum-phase", "aspiration-window-cp"))
                 || ChessYaml.number(values, "schema") != 1 || !(values.get("enabled") instanceof Boolean enabled)) {

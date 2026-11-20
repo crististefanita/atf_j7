@@ -9,6 +9,37 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @AtfComponentTest
 @ExtendWith(ExtentAudit.class)
 class HardQueenReplyTest {
+    @Test void captureReassessmentSolvesBothIndependentlyScoredMaterialWitnesses(Checks check)throws Exception {
+        for(var witness:QueenReplyWitnesses.load()) {
+            var game=witness.game();String before=game.checkpoint();var actual=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(game,actual);
+            check.same(witness.id()+" is searched without a repertoire answer",null,OpeningRepertoire.CURRENT.playReply(game.position(),MatchSetup.Level.HARD));
+            check.same(witness.id()+" actual H"+actual.decision().depth()+" nodes="+actual.decision().extraNodes()+" PV="+actual.search().result().ranked(),witness.move("selected"),actual.decision().move().uci());
+            check.same("The full sixth horizon completes within the unchanged ceiling",true,actual.decision().depth()==6&&actual.decision().extraNodes()<=200000);
+            for(int depth:List.of(17,19)) {
+                check.same(witness.id()+" H"+depth+" retains the independently confirmed bad-root distinction",true,witness.loss("rejected",depth)>=150);
+                check.same(witness.id()+" H"+depth+" selected loss="+witness.loss("selected",depth),true,witness.loss("selected",depth)<50);
+            }
+            check.same("Neither move nor history is applied by analysis",before,game.checkpoint());
+        }
+    }
+    @Test void sparseWinningTacticsRetainTheirOriginalHorizonProtection(Checks check) {
+        var catalog=QuestCatalog.loadTraining();
+        for(var caseStage:List.of(Map.entry("training-067",2),Map.entry("training-090",2),Map.entry("training-021",1))) {
+            var quest=catalog.stream().filter(q->q.id().equals(caseStage.getKey())).findFirst().orElseThrow();int stage=caseStage.getValue();
+            var game=ChessMatch.fromPosition(quest.position(),new MatchSetup(quest.position().turn().other(),MatchSetup.Level.HARD,false));
+            for(var move:quest.line().subList(0,2*stage))game=game.play(move);
+            check.same("The sparse counterexample keeps the standard guard "+quest.id(),false,QueenReplyPolicy.CURRENT.applies(game.position()));
+            var actual=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(game,actual);var outcome=quest.assess(actual.decision().move(),stage);
+            check.same(quest.id()+":"+stage+" actual="+actual.decision().move().uci()+" remains an accepted tactic",true,outcome.continues()||outcome.solved());
+        }
+    }
+    @Test void aRewrittenTeacherOrForeignOriginCannotCertifyTheCapture(Checks check)throws Exception {
+        var witness=QueenReplyWitnesses.load().getFirst();var changed=witness.input().deepCopy();
+        ((com.fasterxml.jackson.databind.node.ObjectNode)changed.path("raw").get(0).path("body")).put("score",999);
+        check.rejects("A modified teacher score has no valid original receipt",IllegalArgumentException.class,()->QueenReplyWitnesses.read(changed));
+        var foreign=witness.input().deepCopy();((com.fasterxml.jackson.databind.node.ObjectNode)foreign).put("initialFen",ChessPosition.initial().toString());
+        check.rejects("Another origin cannot borrow this evidence",IllegalArgumentException.class,()->QueenReplyWitnesses.read(foreign));
+    }
     @Test void phaseAndConfigurationKeepSparseEndgamesOutsideThisVerification(Checks check) {
         var policy=QueenReplyPolicy.CURRENT;
         check.same("The active phase threshold and aspiration window are explicit",List.of(true,16,200),List.of(policy.enabled(),policy.minimumPhase(),policy.aspirationWindowCp()));
@@ -36,6 +67,8 @@ class HardQueenReplyTest {
             var line=analysis.search().result().ranked().getFirst();
             check.same(witness.id()+" actual legal recapture, not just a geometric attack",!witness.id().equals("petroff-hard-white"),
                     TacticalAnalysis.unresolvedQueenRecapture(witness.game().position(),line,analysis.decision().depth()));
+            check.same("Quiet plans keep the original horizon rule: "+witness.id(),Set.of("alekhine-hard-black","slav-hard-black").contains(witness.id()),
+                    QueenReplyPolicy.CURRENT.verifies(witness.game().position(),line,analysis.decision().depth()));
         }
     }
     @Test void aPinnedRecapturerOrQuietQueenMoveCannotActivateTheReserve(Checks check) {

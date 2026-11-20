@@ -751,8 +751,7 @@ public final class TacticalAnalysis {
         for (int depth = completed + 1; depth <= policy.maxPlies(); depth++) {
             try {
                 boolean queenReply = prioritizeChecks && gap == 0 && completed == depth - 1 && depth % 2 == 0
-                        && evenLeader != null && QueenReplyPolicy.CURRENT.applies(root.position())
-                        && unresolvedQueenRecapture(root.position(), best.ranked().get(0), completed);
+                        && evenLeader != null && QueenReplyPolicy.CURRENT.verifies(root.position(), best.ranked().get(0), completed);
                 budget.rootPrediction = queenReply ? evenScore : null;
                 if (queenReply) {
                     // Confirm the prior even-horizon leader by searching every root at H6, never by returning H4.
