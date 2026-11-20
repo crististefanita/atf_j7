@@ -1,0 +1,1851 @@
+{
+  "schema": 1,
+  "scope": "Retained cold Stockfish 19 witnesses, not live lookup or training data. Original losing decisions and teacher producers stay distinct.",
+  "cases": [
+    {
+      "id": "training-051-black",
+      "source": {
+        "revision": "af17de341e37a438bf7c4287b95ebc3b06999828",
+        "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37"
+      },
+      "teacherIdentity": {
+        "run": "rook-defense-baseline-oracle-20261120",
+        "source": {
+          "revision": "af17de341e37a438bf7c4287b95ebc3b06999828",
+          "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37"
+        },
+        "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+        "options": {
+          "Threads": 1,
+          "Hash": 32,
+          "UCI_LimitStrength": false,
+          "UCI_ShowWDL": true
+        }
+      },
+      "originalProducerRevision": "af17de341e37a438bf7c4287b95ebc3b06999828",
+      "originalDecision": {
+        "move": {
+          "from": 53,
+          "to": 44,
+          "promotion": null
+        },
+        "depth": 7,
+        "extraNodes": 200000
+      },
+      "initialFen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+      "history": [],
+      "checkpoint": "3|WHITE|HARD|1|",
+      "fen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+      "free": {
+        "17": "c31195b1baac5ac999fb2dd348d213a5a090445103d95bce65081468decb2b65",
+        "19": "7a769dc75d4f51283950549c6be122b46b3be096e1dccf34366d609f42bbeb3e"
+      },
+      "forced": {
+        "17": "6c006dd88927576a913d54f6bdea76c1ccc4148234381ee527d72c755d6971da",
+        "19": "c67ad76c102f61ad1cdf7a2399584cdcedf6f2f61506f7cf1afcceafffd1efa5"
+      },
+      "raw": [
+        {
+          "body": {
+            "actualDepth": 17,
+            "bestmove": "d8c8",
+            "expectedPermille": 1000.0,
+            "fen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "rook-defense-baseline-oracle-20261120",
+              "source": {
+                "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37",
+                "revision": "af17de341e37a438bf7c4287b95ebc3b06999828"
+              }
+            },
+            "key": "c31195b1baac5ac999fb2dd348d213a5a090445103d95bce65081468decb2b65",
+            "nodes": 69822,
+            "pv": [
+              "d8c8",
+              "c5b6",
+              "c8c4",
+              "a3a4",
+              "h5h4",
+              "b6a6",
+              "h4h3",
+              "a6b5",
+              "h3h2",
+              "a4a5",
+              "c4g4",
+              "b5b6",
+              "g4b4",
+              "b6c5"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 17,
+              "history": [],
+              "initialFen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": null
+            },
+            "san": [
+              "Rc8+",
+              "Kb6",
+              "Rxc4",
+              "a4",
+              "h4",
+              "Kxa6",
+              "h3",
+              "Kb5",
+              "h2",
+              "a5",
+              "Rg4",
+              "Kb6",
+              "Rb4+",
+              "Kc5"
+            ],
+            "score": 775,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+                "go depth 17",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 5 multipv 1 score cp 72 wdl 179 821 0 nodes 26 nps 8666 hashfull 0 tbhits 0 time 3 pv d8c8 c5b4 c8c4 b4c4",
+                "info depth 2 seldepth 5 multipv 1 score cp 72 wdl 179 821 0 nodes 59 nps 19666 hashfull 0 tbhits 0 time 3 pv d8c8 c5d4",
+                "info depth 3 seldepth 5 multipv 1 score cp 72 wdl 179 821 0 nodes 97 nps 32333 hashfull 0 tbhits 0 time 3 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 4 seldepth 5 multipv 1 score cp 72 wdl 179 821 0 nodes 132 nps 44000 hashfull 0 tbhits 0 time 3 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 5 seldepth 7 multipv 1 score cp 137 wdl 884 116 0 nodes 215 nps 53750 hashfull 0 tbhits 0 time 4 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 6 seldepth 7 multipv 1 score cp 150 wdl 940 60 0 nodes 345 nps 86250 hashfull 0 tbhits 0 time 4 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 7 seldepth 8 multipv 1 score cp 198 wdl 996 4 0 nodes 615 nps 153750 hashfull 0 tbhits 0 time 4 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 8 seldepth 9 multipv 1 score cp 223 wdl 999 1 0 nodes 787 nps 196750 hashfull 0 tbhits 0 time 4 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d4",
+                "info depth 9 seldepth 10 multipv 1 score cp 311 wdl 1000 0 0 nodes 1375 nps 229166 hashfull 0 tbhits 0 time 6 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d5",
+                "info depth 10 seldepth 11 multipv 1 score cp 429 wdl 1000 0 0 nodes 3771 nps 314250 hashfull 0 tbhits 0 time 12 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d3",
+                "info depth 11 seldepth 15 multipv 1 score cp 596 wdl 1000 0 0 nodes 8609 nps 478277 hashfull 0 tbhits 0 time 18 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d3 h4h3 d3d4",
+                "info depth 12 seldepth 20 multipv 1 score cp 685 wdl 1000 0 0 nodes 19554 nps 630774 hashfull 0 tbhits 0 time 31 pv d8c8 c5b6 c8c4 b6a6 c4g4 a6b7 g4g5",
+                "info depth 13 seldepth 17 multipv 1 score cp 698 wdl 1000 0 0 nodes 25164 nps 571909 hashfull 0 tbhits 0 time 44 pv d8c8 c5b6 c8c4 a3a4 c4g4 b6c7",
+                "info depth 14 seldepth 15 multipv 1 score cp 715 wdl 1000 0 0 nodes 31352 nps 475030 hashfull 1 tbhits 0 time 66 pv d8c8 c5b6 c8c4 a3a4 c4c2 b6a7",
+                "info depth 15 seldepth 25 multipv 1 score cp 735 wdl 1000 0 0 nodes 54044 nps 446644 hashfull 2 tbhits 0 time 121 pv d8c8 c5b6 c8c4 a3a4 c4a4 b6a7 a4a5 a7b6 a5g5 b6c6 f7f6",
+                "info depth 16 seldepth 18 multipv 1 score cp 727 wdl 1000 0 0 nodes 57295 nps 458360 hashfull 2 tbhits 0 time 125 pv d8c8 c5b6 c8c4 a3a4 c4a4 b6c7 a4g4 c7b8 g4g5 b8a7 g5g4 a7a8",
+                "info depth 17 seldepth 20 multipv 1 score cp 775 wdl 1000 0 0 nodes 69822 nps 491704 hashfull 3 tbhits 0 time 142 pv d8c8 c5b6 c8c4 a3a4 h5h4 b6a6 h4h3 a6b5 h3h2 a4a5 c4g4 b5b6 g4b4 b6c5",
+                "bestmove d8c8 ponder c5b6"
+              ]
+            },
+            "wdl": [
+              1000,
+              0,
+              0
+            ]
+          },
+          "digest": "80f2239528b5341caf4e39c5df1078666b62dc4542babb771d89031890640e1b"
+        },
+        {
+          "body": {
+            "actualDepth": 19,
+            "bestmove": "d8c8",
+            "expectedPermille": 1000.0,
+            "fen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "rook-defense-baseline-oracle-20261120",
+              "source": {
+                "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37",
+                "revision": "af17de341e37a438bf7c4287b95ebc3b06999828"
+              }
+            },
+            "key": "7a769dc75d4f51283950549c6be122b46b3be096e1dccf34366d609f42bbeb3e",
+            "nodes": 116098,
+            "pv": [
+              "d8c8",
+              "c5d4",
+              "c8c4",
+              "d4c4",
+              "h5h4",
+              "c4d4",
+              "h4h3",
+              "a3a4",
+              "h3h2",
+              "d4e3",
+              "h2h1q",
+              "e3f2",
+              "h1h4",
+              "f2e2",
+              "h4g5"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 19,
+              "history": [],
+              "initialFen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": null
+            },
+            "san": [
+              "Rc8+",
+              "Kd4",
+              "Rxc4+",
+              "Kxc4",
+              "h4",
+              "Kd4",
+              "h3",
+              "a4",
+              "h2",
+              "Ke3",
+              "h1=Q",
+              "Kf2",
+              "Qh4+",
+              "Ke2",
+              "Qxg5"
+            ],
+            "score": 819,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+                "go depth 19",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 5 multipv 1 score cp 72 wdl 179 821 0 nodes 26 nps 13000 hashfull 0 tbhits 0 time 2 pv d8c8 c5b4 c8c4 b4c4",
+                "info depth 2 seldepth 5 multipv 1 score cp 72 wdl 179 821 0 nodes 59 nps 29500 hashfull 0 tbhits 0 time 2 pv d8c8 c5d4",
+                "info depth 3 seldepth 5 multipv 1 score cp 72 wdl 179 821 0 nodes 97 nps 48500 hashfull 0 tbhits 0 time 2 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 4 seldepth 5 multipv 1 score cp 72 wdl 179 821 0 nodes 132 nps 66000 hashfull 0 tbhits 0 time 2 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 5 seldepth 7 multipv 1 score cp 137 wdl 884 116 0 nodes 215 nps 107500 hashfull 0 tbhits 0 time 2 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 6 seldepth 7 multipv 1 score cp 150 wdl 940 60 0 nodes 345 nps 115000 hashfull 0 tbhits 0 time 3 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 7 seldepth 8 multipv 1 score cp 198 wdl 996 4 0 nodes 615 nps 205000 hashfull 0 tbhits 0 time 3 pv d8c8 c5d4 c8c4 d4c4",
+                "info depth 8 seldepth 9 multipv 1 score cp 223 wdl 999 1 0 nodes 787 nps 262333 hashfull 0 tbhits 0 time 3 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d4",
+                "info depth 9 seldepth 10 multipv 1 score cp 311 wdl 1000 0 0 nodes 1375 nps 458333 hashfull 0 tbhits 0 time 3 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d5",
+                "info depth 10 seldepth 11 multipv 1 score cp 429 wdl 1000 0 0 nodes 3771 nps 754200 hashfull 0 tbhits 0 time 5 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d3",
+                "info depth 11 seldepth 15 multipv 1 score cp 596 wdl 1000 0 0 nodes 8609 nps 1229857 hashfull 0 tbhits 0 time 7 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d3 h4h3 d3d4",
+                "info depth 12 seldepth 20 multipv 1 score cp 685 wdl 1000 0 0 nodes 19554 nps 931142 hashfull 0 tbhits 0 time 21 pv d8c8 c5b6 c8c4 b6a6 c4g4 a6b7 g4g5",
+                "info depth 13 seldepth 17 multipv 1 score cp 698 wdl 1000 0 0 nodes 25164 nps 867724 hashfull 0 tbhits 0 time 29 pv d8c8 c5b6 c8c4 a3a4 c4g4 b6c7",
+                "info depth 14 seldepth 15 multipv 1 score cp 715 wdl 1000 0 0 nodes 31352 nps 764682 hashfull 1 tbhits 0 time 41 pv d8c8 c5b6 c8c4 a3a4 c4c2 b6a7",
+                "info depth 15 seldepth 25 multipv 1 score cp 735 wdl 1000 0 0 nodes 54044 nps 491309 hashfull 2 tbhits 0 time 110 pv d8c8 c5b6 c8c4 a3a4 c4a4 b6a7 a4a5 a7b6 a5g5 b6c6 f7f6",
+                "info depth 16 seldepth 18 multipv 1 score cp 727 wdl 1000 0 0 nodes 57295 nps 507035 hashfull 2 tbhits 0 time 113 pv d8c8 c5b6 c8c4 a3a4 c4a4 b6c7 a4g4 c7b8 g4g5 b8a7 g5g4 a7a8",
+                "info depth 17 seldepth 20 multipv 1 score cp 775 wdl 1000 0 0 nodes 69822 nps 554142 hashfull 3 tbhits 0 time 126 pv d8c8 c5b6 c8c4 a3a4 h5h4 b6a6 h4h3 a6b5 h3h2 a4a5 c4g4 b5b6 g4b4 b6c5",
+                "info depth 18 seldepth 23 multipv 1 score cp 742 wdl 1000 0 0 nodes 97895 nps 523502 hashfull 6 tbhits 0 time 187 pv d8c8 c5d4 c8c4 d4e3 c4g4 a3a4 g4g5 e3f3 h5h4 a4a5 h4h3 f3f4 h3h2",
+                "info depth 19 seldepth 22 multipv 1 score cp 819 wdl 1000 0 0 nodes 116098 nps 464392 hashfull 7 tbhits 0 time 250 pv d8c8 c5d4 c8c4 d4c4 h5h4 c4d4 h4h3 a3a4 h3h2 d4e3 h2h1q e3f2 h1h4 f2e2 h4g5",
+                "bestmove d8c8 ponder c5d4"
+              ]
+            },
+            "wdl": [
+              1000,
+              0,
+              0
+            ]
+          },
+          "digest": "a99ebf206ea626dec1c91a34a09e3c9ff1116a7cd09840e35ffa09dcf36b6183"
+        },
+        {
+          "body": {
+            "actualDepth": 17,
+            "bestmove": "f7e6",
+            "expectedPermille": 500.0,
+            "fen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "rook-defense-baseline-oracle-20261120",
+              "source": {
+                "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37",
+                "revision": "af17de341e37a438bf7c4287b95ebc3b06999828"
+              }
+            },
+            "key": "6c006dd88927576a913d54f6bdea76c1ccc4148234381ee527d72c755d6971da",
+            "nodes": 33504,
+            "pv": [
+              "f7e6",
+              "c4e4",
+              "e6f5",
+              "e4d4",
+              "d8f8",
+              "d4d5",
+              "f5e4",
+              "d5d4"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 17,
+              "history": [],
+              "initialFen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": "f7e6"
+            },
+            "san": [
+              "Ke6",
+              "Re4+",
+              "Kf5",
+              "Rd4",
+              "Rf8",
+              "Rd5+",
+              "Ke4",
+              "Rd4+"
+            ],
+            "score": 0,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+                "go depth 17 searchmoves f7e6",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 2 multipv 1 score cp -7 wdl 3 991 6 nodes 1 nps 1000 hashfull 0 tbhits 0 time 1 pv f7e6",
+                "info depth 2 seldepth 4 multipv 1 score cp 7 wdl 6 991 3 nodes 11 nps 11000 hashfull 0 tbhits 0 time 1 pv f7e6",
+                "info depth 3 seldepth 4 multipv 1 score cp 13 wdl 8 990 2 nodes 33 nps 33000 hashfull 0 tbhits 0 time 1 pv f7e6",
+                "info depth 4 seldepth 8 multipv 1 score cp -10 wdl 2 991 7 nodes 277 nps 138500 hashfull 0 tbhits 0 time 2 pv f7e6 c5b6 d8d6 b6b7",
+                "info depth 5 seldepth 9 multipv 1 score cp 4 wdl 5 992 3 nodes 590 nps 295000 hashfull 0 tbhits 0 time 2 pv f7e6 c5b6",
+                "info depth 6 seldepth 9 multipv 1 score cp 12 wdl 8 990 2 nodes 778 nps 389000 hashfull 0 tbhits 0 time 2 pv f7e6 c5b4",
+                "info depth 7 seldepth 8 multipv 1 score cp 11 wdl 7 991 2 nodes 1038 nps 519000 hashfull 0 tbhits 0 time 2 pv f7e6 c5b4 e6f5 c4c5 f5f4 f6f7",
+                "info depth 8 seldepth 11 multipv 1 score cp 19 wdl 12 987 1 nodes 3464 nps 692800 hashfull 1 tbhits 0 time 5 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7",
+                "info depth 9 seldepth 16 multipv 1 score cp 7 wdl 6 991 3 nodes 8519 nps 851900 hashfull 1 tbhits 0 time 10 pv f7e6 c4d4 d8c8 c5b6 c8h8 d4f4 e6f7 f4d4",
+                "info depth 10 seldepth 21 multipv 1 score cp 0 wdl 4 992 4 nodes 13126 nps 937571 hashfull 2 tbhits 0 time 14 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7 e4e7 f7f8 c6d7",
+                "info depth 11 seldepth 18 multipv 1 score cp 0 wdl 4 992 4 nodes 14405 nps 960333 hashfull 2 tbhits 0 time 15 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7 e4e7 f7f8 c6d7 f5g5 d7e6 g5b5 e7f7 f8e8 f7e7 e8f8",
+                "info depth 12 seldepth 18 multipv 1 score cp 0 wdl 4 992 4 nodes 18488 nps 1027111 hashfull 2 tbhits 0 time 18 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7 e4e7 f7f8 c6d7 f5f1 e7e8 f8f7 e8e7",
+                "info depth 13 seldepth 17 multipv 1 score cp 0 wdl 4 992 4 nodes 19606 nps 784240 hashfull 2 tbhits 0 time 25 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7 e4e7 f7f8 c6d7 f5g5 d7e6 g5c5 e7f7 f8e8 f7g7",
+                "info depth 14 seldepth 21 multipv 1 score cp 0 wdl 4 992 4 nodes 26432 nps 734222 hashfull 3 tbhits 0 time 36 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4 e4f5",
+                "info depth 15 seldepth 11 multipv 1 score cp 0 wdl 4 992 4 nodes 27858 nps 733105 hashfull 4 tbhits 0 time 38 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4",
+                "info depth 16 seldepth 10 multipv 1 score cp 0 wdl 4 992 4 nodes 30166 nps 685590 hashfull 4 tbhits 0 time 44 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4 e4f5",
+                "info depth 17 seldepth 9 multipv 1 score cp 0 wdl 4 992 4 nodes 33504 nps 587789 hashfull 6 tbhits 0 time 57 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4",
+                "bestmove f7e6 ponder c4e4"
+              ]
+            },
+            "wdl": [
+              4,
+              992,
+              4
+            ]
+          },
+          "digest": "214992f9437e1457d0fac3e14f9d23c44565df392cbbcea0a6dd15653c9467d1"
+        },
+        {
+          "body": {
+            "actualDepth": 19,
+            "bestmove": "f7e6",
+            "expectedPermille": 500.0,
+            "fen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "rook-defense-baseline-oracle-20261120",
+              "source": {
+                "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37",
+                "revision": "af17de341e37a438bf7c4287b95ebc3b06999828"
+              }
+            },
+            "key": "c67ad76c102f61ad1cdf7a2399584cdcedf6f2f61506f7cf1afcceafffd1efa5",
+            "nodes": 55551,
+            "pv": [
+              "f7e6",
+              "c4e4",
+              "e6f5",
+              "e4d4",
+              "d8f8",
+              "d4d5",
+              "f5e4",
+              "d5d4"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 19,
+              "history": [],
+              "initialFen": "3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": "f7e6"
+            },
+            "san": [
+              "Ke6",
+              "Re4+",
+              "Kf5",
+              "Rd4",
+              "Rf8",
+              "Rd5+",
+              "Ke4",
+              "Rd4+"
+            ],
+            "score": 0,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51",
+                "go depth 19 searchmoves f7e6",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 2 multipv 1 score cp -7 wdl 3 991 6 nodes 1 nps 500 hashfull 0 tbhits 0 time 2 pv f7e6",
+                "info depth 2 seldepth 4 multipv 1 score cp 7 wdl 6 991 3 nodes 11 nps 5500 hashfull 0 tbhits 0 time 2 pv f7e6",
+                "info depth 3 seldepth 4 multipv 1 score cp 13 wdl 8 990 2 nodes 33 nps 16500 hashfull 0 tbhits 0 time 2 pv f7e6",
+                "info depth 4 seldepth 8 multipv 1 score cp -10 wdl 2 991 7 nodes 277 nps 92333 hashfull 0 tbhits 0 time 3 pv f7e6 c5b6 d8d6 b6b7",
+                "info depth 5 seldepth 9 multipv 1 score cp 4 wdl 5 992 3 nodes 590 nps 118000 hashfull 0 tbhits 0 time 5 pv f7e6 c5b6",
+                "info depth 6 seldepth 9 multipv 1 score cp 12 wdl 8 990 2 nodes 778 nps 155600 hashfull 0 tbhits 0 time 5 pv f7e6 c5b4",
+                "info depth 7 seldepth 8 multipv 1 score cp 11 wdl 7 991 2 nodes 1038 nps 69200 hashfull 0 tbhits 0 time 15 pv f7e6 c5b4 e6f5 c4c5 f5f4 f6f7",
+                "info depth 8 seldepth 11 multipv 1 score cp 19 wdl 12 987 1 nodes 3464 nps 157454 hashfull 1 tbhits 0 time 22 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7",
+                "info depth 9 seldepth 16 multipv 1 score cp 7 wdl 6 991 3 nodes 8519 nps 157759 hashfull 1 tbhits 0 time 54 pv f7e6 c4d4 d8c8 c5b6 c8h8 d4f4 e6f7 f4d4",
+                "info depth 10 seldepth 21 multipv 1 score cp 0 wdl 4 992 4 nodes 13126 nps 222474 hashfull 2 tbhits 0 time 59 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7 e4e7 f7f8 c6d7",
+                "info depth 11 seldepth 18 multipv 1 score cp 0 wdl 4 992 4 nodes 14405 nps 225078 hashfull 2 tbhits 0 time 64 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7 e4e7 f7f8 c6d7 f5g5 d7e6 g5b5 e7f7 f8e8 f7e7 e8f8",
+                "info depth 12 seldepth 18 multipv 1 score cp 0 wdl 4 992 4 nodes 18488 nps 267942 hashfull 2 tbhits 0 time 69 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7 e4e7 f7f8 c6d7 f5f1 e7e8 f8f7 e8e7",
+                "info depth 13 seldepth 17 multipv 1 score cp 0 wdl 4 992 4 nodes 19606 nps 280085 hashfull 2 tbhits 0 time 70 pv f7e6 c4f4 d8d5 c5c6 d5f5 f4e4 e6f7 e4e7 f7f8 c6d7 f5g5 d7e6 g5c5 e7f7 f8e8 f7g7",
+                "info depth 14 seldepth 21 multipv 1 score cp 0 wdl 4 992 4 nodes 26432 nps 347789 hashfull 3 tbhits 0 time 76 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4 e4f5",
+                "info depth 15 seldepth 11 multipv 1 score cp 0 wdl 4 992 4 nodes 27858 nps 275821 hashfull 4 tbhits 0 time 101 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4",
+                "info depth 16 seldepth 10 multipv 1 score cp 0 wdl 4 992 4 nodes 30166 nps 287295 hashfull 4 tbhits 0 time 105 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4 e4f5",
+                "info depth 17 seldepth 9 multipv 1 score cp 0 wdl 4 992 4 nodes 33504 nps 304581 hashfull 6 tbhits 0 time 110 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4",
+                "info depth 18 seldepth 10 multipv 1 score cp 0 wdl 4 992 4 nodes 36221 nps 312250 hashfull 6 tbhits 0 time 116 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4 e4f5",
+                "info depth 19 seldepth 27 multipv 1 score cp 0 wdl 4 992 4 nodes 55551 nps 221318 hashfull 11 tbhits 0 time 251 pv f7e6 c4e4 e6f5 e4d4 d8f8 d4d5 f5e4 d5d4",
+                "bestmove f7e6 ponder c4e4"
+              ]
+            },
+            "wdl": [
+              4,
+              992,
+              4
+            ]
+          },
+          "digest": "5f39dbb9d6b52a96a7b9c31ed84b05ea276d4f14dd1af3d6904a9b5dd0b3d49e"
+        }
+      ]
+    },
+    {
+      "id": "training-051-white-mirror",
+      "source": {
+        "revision": "af17de341e37a438bf7c4287b95ebc3b06999828",
+        "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37"
+      },
+      "teacherIdentity": {
+        "run": "rook-defense-baseline-oracle-20261120",
+        "source": {
+          "revision": "af17de341e37a438bf7c4287b95ebc3b06999828",
+          "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37"
+        },
+        "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+        "options": {
+          "Threads": 1,
+          "Hash": 32,
+          "UCI_LimitStrength": false,
+          "UCI_ShowWDL": true
+        }
+      },
+      "originalProducerRevision": "af17de341e37a438bf7c4287b95ebc3b06999828",
+      "originalDecision": {
+        "move": {
+          "from": 13,
+          "to": 20,
+          "promotion": null
+        },
+        "depth": 7,
+        "extraNodes": 200000
+      },
+      "initialFen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+      "history": [],
+      "checkpoint": "3|BLACK|HARD|1|",
+      "fen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+      "free": {
+        "17": "6c6de374155d8a727cdf791362b4f827357240fe7bd95ac47a35a56c18a27ea6",
+        "19": "c72ef728216f9101e6531f94f348a66ab8ff7c330b1afe104bc114508ce6f4ff"
+      },
+      "forced": {
+        "17": "189e2c1815a4100803f60f33492e15be890c3e6e47da55aa1f7f34ce5d02e0b9",
+        "19": "e60d491d635ea75b32285fbc709d20a10e2709e23e893a33bb27dd5d2f083e4b"
+      },
+      "raw": [
+        {
+          "body": {
+            "actualDepth": 17,
+            "bestmove": "d1c1",
+            "expectedPermille": 1000.0,
+            "fen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "rook-defense-baseline-oracle-20261120",
+              "source": {
+                "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37",
+                "revision": "af17de341e37a438bf7c4287b95ebc3b06999828"
+              }
+            },
+            "key": "6c6de374155d8a727cdf791362b4f827357240fe7bd95ac47a35a56c18a27ea6",
+            "nodes": 80600,
+            "pv": [
+              "d1c1",
+              "c4d5",
+              "c1c5",
+              "d5e6",
+              "c5g5",
+              "a6a5",
+              "h4h5",
+              "e6f6",
+              "g5g4",
+              "f6e5",
+              "h5h6",
+              "a5a4"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 17,
+              "history": [],
+              "initialFen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": null
+            },
+            "san": [
+              "Rc1+",
+              "Kd5",
+              "Rxc5+",
+              "Ke6",
+              "Rg5",
+              "a5",
+              "h5",
+              "Kf6",
+              "Rxg4",
+              "Ke5",
+              "h6",
+              "a4"
+            ],
+            "score": 765,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+                "go depth 17",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 5 multipv 1 score cp 634 wdl 1000 0 0 nodes 25 nps 12500 hashfull 0 tbhits 0 time 2 pv d1c1 c4b3 c1c5",
+                "info depth 2 seldepth 5 multipv 1 score cp 94 wdl 413 587 0 nodes 109 nps 54500 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 3 seldepth 5 multipv 1 score cp 94 wdl 413 587 0 nodes 192 nps 96000 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 4 seldepth 5 multipv 1 score cp 94 wdl 413 587 0 nodes 277 nps 138500 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 5 seldepth 7 multipv 1 score cp 136 wdl 879 121 0 nodes 375 nps 187500 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 6 seldepth 7 multipv 1 score cp 153 wdl 949 51 0 nodes 511 nps 255500 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d4",
+                "info depth 7 seldepth 8 multipv 1 score cp 204 wdl 997 3 0 nodes 683 nps 341500 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 8 seldepth 9 multipv 1 score cp 257 wdl 1000 0 0 nodes 926 nps 463000 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d5",
+                "info depth 9 seldepth 10 multipv 1 score cp 311 wdl 1000 0 0 nodes 1346 nps 673000 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d6",
+                "info depth 10 seldepth 11 multipv 1 score cp 419 wdl 1000 0 0 nodes 2879 nps 959666 hashfull 0 tbhits 0 time 3 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d6 h5h6 d6e7",
+                "info depth 11 seldepth 13 multipv 1 score cp 552 wdl 1000 0 0 nodes 7782 nps 1556400 hashfull 0 tbhits 0 time 5 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d6 h5h6 d6e5",
+                "info depth 12 seldepth 23 multipv 1 score cp 687 wdl 1000 0 0 nodes 28233 nps 1283318 hashfull 2 tbhits 0 time 22 pv d1c1 c4b3 c1c5 b3a3 h4h5 a3b2 h5h6 b2a1 c5a5 a1b2",
+                "info depth 13 seldepth 16 multipv 1 score cp 726 wdl 1000 0 0 nodes 29603 nps 1287086 hashfull 2 tbhits 0 time 23 pv d1c1 c4b3 c1c5 b3a3 c5c4 a3a2 c4g4 a2a1 h4h5 a1b1",
+                "info depth 14 seldepth 21 multipv 1 score cp 755 wdl 1000 0 0 nodes 49270 nps 1231750 hashfull 4 tbhits 0 time 40 pv d1c1 c4d5 c1c5 d5e6 c5c4 e6f5",
+                "info depth 15 seldepth 21 multipv 1 score cp 753 wdl 1000 0 0 nodes 64066 nps 1104586 hashfull 5 tbhits 0 time 58 pv d1c1 c4d5 c1c5 d5e6 c5g5 e6f6 g5g4 f6f5 g4a4 f5f6 h4h5 f6g7",
+                "info depth 16 seldepth 21 multipv 1 score cp 762 wdl 1000 0 0 nodes 68687 nps 1126016 hashfull 5 tbhits 0 time 61 pv d1c1 c4d5 c1c5 d5e6 h4h5 e6f6 c5c6 f6g7 h5h6 g7h8 c6a6 h8h7 a6c6 h7h8 c6g6 h8h7 g6g7 h7h8 g7c7",
+                "info depth 17 seldepth 22 multipv 1 score cp 765 wdl 1000 0 0 nodes 80600 nps 1185294 hashfull 6 tbhits 0 time 68 pv d1c1 c4d5 c1c5 d5e6 c5g5 a6a5 h4h5 e6f6 g5g4 f6e5 h5h6 a5a4",
+                "bestmove d1c1 ponder c4d5"
+              ]
+            },
+            "wdl": [
+              1000,
+              0,
+              0
+            ]
+          },
+          "digest": "ebd3adfa40aece356bc75e05d6b220b5a7599d1e7ad4f6b0048f84ff7765f648"
+        },
+        {
+          "body": {
+            "actualDepth": 19,
+            "bestmove": "d1c1",
+            "expectedPermille": 1000.0,
+            "fen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "rook-defense-baseline-oracle-20261120",
+              "source": {
+                "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37",
+                "revision": "af17de341e37a438bf7c4287b95ebc3b06999828"
+              }
+            },
+            "key": "c72ef728216f9101e6531f94f348a66ab8ff7c330b1afe104bc114508ce6f4ff",
+            "nodes": 119544,
+            "pv": [
+              "d1c1",
+              "c4d5",
+              "c1c5",
+              "d5e6",
+              "c5h5",
+              "a6a5",
+              "h5g5",
+              "e6f6",
+              "g5g4",
+              "f6f5",
+              "g4g8",
+              "f5e6",
+              "h4h5",
+              "e6f7",
+              "g8g6",
+              "f7e7",
+              "h5h6",
+              "e7f7"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 19,
+              "history": [],
+              "initialFen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": null
+            },
+            "san": [
+              "Rc1+",
+              "Kd5",
+              "Rxc5+",
+              "Ke6",
+              "Rh5",
+              "a5",
+              "Rg5",
+              "Kf6",
+              "Rxg4",
+              "Kf5",
+              "Rg8",
+              "Ke6",
+              "h5",
+              "Kf7",
+              "Rg6",
+              "Ke7",
+              "h6",
+              "Kf7"
+            ],
+            "score": 817,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+                "go depth 19",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 5 multipv 1 score cp 634 wdl 1000 0 0 nodes 25 nps 12500 hashfull 0 tbhits 0 time 2 pv d1c1 c4b3 c1c5",
+                "info depth 2 seldepth 5 multipv 1 score cp 94 wdl 413 587 0 nodes 109 nps 54500 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 3 seldepth 5 multipv 1 score cp 94 wdl 413 587 0 nodes 192 nps 96000 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 4 seldepth 5 multipv 1 score cp 94 wdl 413 587 0 nodes 277 nps 138500 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 5 seldepth 7 multipv 1 score cp 136 wdl 879 121 0 nodes 375 nps 187500 hashfull 0 tbhits 0 time 2 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 6 seldepth 7 multipv 1 score cp 153 wdl 949 51 0 nodes 511 nps 170333 hashfull 0 tbhits 0 time 3 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d4",
+                "info depth 7 seldepth 8 multipv 1 score cp 204 wdl 997 3 0 nodes 683 nps 227666 hashfull 0 tbhits 0 time 3 pv d1c1 c4d4 c1c5 d4c5",
+                "info depth 8 seldepth 9 multipv 1 score cp 257 wdl 1000 0 0 nodes 926 nps 308666 hashfull 0 tbhits 0 time 3 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d5",
+                "info depth 9 seldepth 10 multipv 1 score cp 311 wdl 1000 0 0 nodes 1346 nps 336500 hashfull 0 tbhits 0 time 4 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d6",
+                "info depth 10 seldepth 11 multipv 1 score cp 419 wdl 1000 0 0 nodes 2879 nps 575800 hashfull 0 tbhits 0 time 5 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d6 h5h6 d6e7",
+                "info depth 11 seldepth 13 multipv 1 score cp 552 wdl 1000 0 0 nodes 7782 nps 972750 hashfull 0 tbhits 0 time 8 pv d1c1 c4d4 c1c5 d4c5 h4h5 c5d6 h5h6 d6e5",
+                "info depth 12 seldepth 23 multipv 1 score cp 687 wdl 1000 0 0 nodes 28233 nps 688609 hashfull 2 tbhits 0 time 41 pv d1c1 c4b3 c1c5 b3a3 h4h5 a3b2 h5h6 b2a1 c5a5 a1b2",
+                "info depth 13 seldepth 16 multipv 1 score cp 726 wdl 1000 0 0 nodes 29603 nps 688441 hashfull 2 tbhits 0 time 43 pv d1c1 c4b3 c1c5 b3a3 c5c4 a3a2 c4g4 a2a1 h4h5 a1b1",
+                "info depth 14 seldepth 21 multipv 1 score cp 755 wdl 1000 0 0 nodes 49270 nps 879821 hashfull 4 tbhits 0 time 56 pv d1c1 c4d5 c1c5 d5e6 c5c4 e6f5",
+                "info depth 15 seldepth 21 multipv 1 score cp 753 wdl 1000 0 0 nodes 64066 nps 970696 hashfull 5 tbhits 0 time 66 pv d1c1 c4d5 c1c5 d5e6 c5g5 e6f6 g5g4 f6f5 g4a4 f5f6 h4h5 f6g7",
+                "info depth 16 seldepth 21 multipv 1 score cp 762 wdl 1000 0 0 nodes 68687 nps 928202 hashfull 5 tbhits 0 time 74 pv d1c1 c4d5 c1c5 d5e6 h4h5 e6f6 c5c6 f6g7 h5h6 g7h8 c6a6 h8h7 a6c6 h7h8 c6g6 h8h7 g6g7 h7h8 g7c7",
+                "info depth 17 seldepth 22 multipv 1 score cp 765 wdl 1000 0 0 nodes 80600 nps 995061 hashfull 6 tbhits 0 time 81 pv d1c1 c4d5 c1c5 d5e6 c5g5 a6a5 h4h5 e6f6 g5g4 f6e5 h5h6 a5a4",
+                "info depth 18 seldepth 23 multipv 1 score cp 791 wdl 1000 0 0 nodes 97288 nps 1080977 hashfull 6 tbhits 0 time 90 pv d1c1 c4d5 c1c5 d5e6 c5a5 e6f7 a5g5 f7f6 g5g8 f6f7 g8g4 f7f6 h4h5 f6f5 g4g8",
+                "info depth 19 seldepth 22 multipv 1 score cp 817 wdl 1000 0 0 nodes 119544 nps 1232412 hashfull 6 tbhits 0 time 97 pv d1c1 c4d5 c1c5 d5e6 c5h5 a6a5 h5g5 e6f6 g5g4 f6f5 g4g8 f5e6 h4h5 e6f7 g8g6 f7e7 h5h6 e7f7",
+                "bestmove d1c1 ponder c4d5"
+              ]
+            },
+            "wdl": [
+              1000,
+              0,
+              0
+            ]
+          },
+          "digest": "9c49b4f1bbc3e5077541f701343c2747440f4fc45bc07996c3c6119bcc1f2c1e"
+        },
+        {
+          "body": {
+            "actualDepth": 17,
+            "bestmove": "f2e3",
+            "expectedPermille": 500.0,
+            "fen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "rook-defense-baseline-oracle-20261120",
+              "source": {
+                "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37",
+                "revision": "af17de341e37a438bf7c4287b95ebc3b06999828"
+              }
+            },
+            "key": "189e2c1815a4100803f60f33492e15be890c3e6e47da55aa1f7f34ce5d02e0b9",
+            "nodes": 28602,
+            "pv": [
+              "f2e3",
+              "c5e5",
+              "e3f4",
+              "e5d5",
+              "d1c1",
+              "c4d3",
+              "f4g4",
+              "f3f2",
+              "g4f3",
+              "d5f5",
+              "f3g2",
+              "d3e2",
+              "c1c2",
+              "e2e1",
+              "c2c1"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 17,
+              "history": [],
+              "initialFen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": "f2e3"
+            },
+            "san": [
+              "Ke3",
+              "Re5+",
+              "Kf4",
+              "Rd5",
+              "Rc1+",
+              "Kd3",
+              "Kxg4",
+              "f2",
+              "Kf3",
+              "Rf5+",
+              "Kg2",
+              "Ke2",
+              "Rc2+",
+              "Ke1",
+              "Rc1+"
+            ],
+            "score": 0,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+                "go depth 17 searchmoves f2e3",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 2 multipv 1 score cp -7 wdl 3 991 6 nodes 1 nps 1000 hashfull 0 tbhits 0 time 1 pv f2e3",
+                "info depth 2 seldepth 4 multipv 1 score cp -307 wdl 0 0 1000 nodes 35 nps 35000 hashfull 0 tbhits 0 time 1 pv f2e3 c5e5 e3d2",
+                "info depth 3 seldepth 4 multipv 1 score cp -77 wdl 0 786 214 nodes 50 nps 50000 hashfull 0 tbhits 0 time 1 pv f2e3",
+                "info depth 4 seldepth 6 multipv 1 score cp -56 wdl 0 918 82 nodes 76 nps 76000 hashfull 0 tbhits 0 time 1 pv f2e3",
+                "info depth 5 seldepth 6 multipv 1 score cp -35 wdl 1 972 27 nodes 333 nps 166500 hashfull 0 tbhits 0 time 2 pv f2e3",
+                "info depth 6 seldepth 8 multipv 1 score cp -31 wdl 1 977 22 nodes 685 nps 228333 hashfull 0 tbhits 0 time 3 pv f2e3 c4b3",
+                "info depth 7 seldepth 9 multipv 1 score cp -17 wdl 2 988 10 nodes 879 nps 293000 hashfull 0 tbhits 0 time 3 pv f2e3 c4b3 d1d4",
+                "info depth 8 seldepth 9 multipv 1 score cp -8 wdl 3 991 6 nodes 1444 nps 361000 hashfull 0 tbhits 0 time 4 pv f2e3 c4b3 d1d4 c5e5 e3f2",
+                "info depth 9 seldepth 11 multipv 1 score cp 3 wdl 5 992 3 nodes 1853 nps 463250 hashfull 0 tbhits 0 time 4 pv f2e3 c4b3 d1d4 c5e5 e3f2",
+                "info depth 10 seldepth 18 multipv 1 score cp 0 wdl 4 992 4 nodes 5538 nps 692250 hashfull 1 tbhits 0 time 8 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "info depth 11 seldepth 15 multipv 1 score cp 0 wdl 4 992 4 nodes 6300 nps 315000 hashfull 1 tbhits 0 time 20 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1",
+                "info depth 12 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 6589 nps 329450 hashfull 1 tbhits 0 time 20 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g4",
+                "info depth 13 seldepth 17 multipv 1 score cp 0 wdl 4 992 4 nodes 7463 nps 339227 hashfull 1 tbhits 0 time 22 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1 e1e2",
+                "info depth 14 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 8531 nps 355458 hashfull 1 tbhits 0 time 24 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "info depth 15 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 10817 nps 386321 hashfull 1 tbhits 0 time 28 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2d3",
+                "info depth 16 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 16147 nps 448527 hashfull 2 tbhits 0 time 36 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "info depth 17 seldepth 31 multipv 1 score cp 0 wdl 4 992 4 nodes 28602 nps 484779 hashfull 4 tbhits 0 time 59 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "bestmove f2e3 ponder c5e5"
+              ]
+            },
+            "wdl": [
+              4,
+              992,
+              4
+            ]
+          },
+          "digest": "c84f393d1879ca037f3f0425d16d80cce350d47f2642920e77dc476b488ad068"
+        },
+        {
+          "body": {
+            "actualDepth": 19,
+            "bestmove": "f2e3",
+            "expectedPermille": 500.0,
+            "fen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "rook-defense-baseline-oracle-20261120",
+              "source": {
+                "planSha256": "00439abb9ab56ab0e651687e5caf1cb9160bd547aeb7de63564fa11d3eb2af37",
+                "revision": "af17de341e37a438bf7c4287b95ebc3b06999828"
+              }
+            },
+            "key": "e60d491d635ea75b32285fbc709d20a10e2709e23e893a33bb27dd5d2f083e4b",
+            "nodes": 48877,
+            "pv": [
+              "f2e3",
+              "c5e5",
+              "e3f4",
+              "e5d5",
+              "d1f1",
+              "d5d4",
+              "f4e5",
+              "d4d5",
+              "e5e4",
+              "d5d4",
+              "e4e5"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 19,
+              "history": [],
+              "initialFen": "8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": "f2e3"
+            },
+            "san": [
+              "Ke3",
+              "Re5+",
+              "Kf4",
+              "Rd5",
+              "Rf1",
+              "Rd4+",
+              "Ke5",
+              "Rd5+",
+              "Ke4",
+              "Rd4+",
+              "Ke5"
+            ],
+            "score": 0,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51",
+                "go depth 19 searchmoves f2e3",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 2 multipv 1 score cp -7 wdl 3 991 6 nodes 1 nps 500 hashfull 0 tbhits 0 time 2 pv f2e3",
+                "info depth 2 seldepth 4 multipv 1 score cp -307 wdl 0 0 1000 nodes 35 nps 17500 hashfull 0 tbhits 0 time 2 pv f2e3 c5e5 e3d2",
+                "info depth 3 seldepth 4 multipv 1 score cp -77 wdl 0 786 214 nodes 50 nps 25000 hashfull 0 tbhits 0 time 2 pv f2e3",
+                "info depth 4 seldepth 6 multipv 1 score cp -56 wdl 0 918 82 nodes 76 nps 38000 hashfull 0 tbhits 0 time 2 pv f2e3",
+                "info depth 5 seldepth 6 multipv 1 score cp -35 wdl 1 972 27 nodes 333 nps 166500 hashfull 0 tbhits 0 time 2 pv f2e3",
+                "info depth 6 seldepth 8 multipv 1 score cp -31 wdl 1 977 22 nodes 685 nps 228333 hashfull 0 tbhits 0 time 3 pv f2e3 c4b3",
+                "info depth 7 seldepth 9 multipv 1 score cp -17 wdl 2 988 10 nodes 879 nps 293000 hashfull 0 tbhits 0 time 3 pv f2e3 c4b3 d1d4",
+                "info depth 8 seldepth 9 multipv 1 score cp -8 wdl 3 991 6 nodes 1444 nps 361000 hashfull 0 tbhits 0 time 4 pv f2e3 c4b3 d1d4 c5e5 e3f2",
+                "info depth 9 seldepth 11 multipv 1 score cp 3 wdl 5 992 3 nodes 1853 nps 463250 hashfull 0 tbhits 0 time 4 pv f2e3 c4b3 d1d4 c5e5 e3f2",
+                "info depth 10 seldepth 18 multipv 1 score cp 0 wdl 4 992 4 nodes 5538 nps 615333 hashfull 1 tbhits 0 time 9 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "info depth 11 seldepth 15 multipv 1 score cp 0 wdl 4 992 4 nodes 6300 nps 630000 hashfull 1 tbhits 0 time 10 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1",
+                "info depth 12 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 6589 nps 658900 hashfull 1 tbhits 0 time 10 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g4",
+                "info depth 13 seldepth 17 multipv 1 score cp 0 wdl 4 992 4 nodes 7463 nps 678454 hashfull 1 tbhits 0 time 11 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1 e1e2",
+                "info depth 14 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 8531 nps 656230 hashfull 1 tbhits 0 time 13 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "info depth 15 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 10817 nps 721133 hashfull 1 tbhits 0 time 15 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2d3",
+                "info depth 16 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 16147 nps 733954 hashfull 2 tbhits 0 time 22 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "info depth 17 seldepth 31 multipv 1 score cp 0 wdl 4 992 4 nodes 28602 nps 681000 hashfull 4 tbhits 0 time 42 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "info depth 18 seldepth 16 multipv 1 score cp 0 wdl 4 992 4 nodes 35848 nps 663851 hashfull 4 tbhits 0 time 54 pv f2e3 c5e5 e3f4 e5d5 d1c1 c4d3 f4g4 f3f2 g4f3 d5f5 f3g2 d3e2 c1c2 e2e1 c2c1",
+                "info depth 19 seldepth 23 multipv 1 score cp 0 wdl 4 992 4 nodes 48877 nps 588879 hashfull 6 tbhits 0 time 83 pv f2e3 c5e5 e3f4 e5d5 d1f1 d5d4 f4e5 d4d5 e5e4 d5d4 e4e5",
+                "bestmove f2e3 ponder c5e5"
+              ]
+            },
+            "wdl": [
+              4,
+              992,
+              4
+            ]
+          },
+          "digest": "d9994a3d5621f3a78e506fadb9142e4c5ba9ab4f21ff28ec0d3b62b0232c1e8f"
+        }
+      ]
+    },
+    {
+      "id": "021cc-opposition-counterexample",
+      "source": {
+        "revision": "9b77e9fa5fadbbe0b3922898b25d59a3a8db3d07",
+        "planSha256": "f4d7f55bb5ad8e6e2176a2686b9c121c45c3788269d1a04f5c019eda4fc8e004"
+      },
+      "teacherIdentity": {
+        "run": "pawn-blockade-transfer-and-pv-oracle-20261120",
+        "source": {
+          "revision": "9b77e9fa5fadbbe0b3922898b25d59a3a8db3d07",
+          "planSha256": "f4d7f55bb5ad8e6e2176a2686b9c121c45c3788269d1a04f5c019eda4fc8e004"
+        },
+        "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+        "options": {
+          "Threads": 1,
+          "Hash": 32,
+          "UCI_LimitStrength": false,
+          "UCI_ShowWDL": true
+        }
+      },
+      "originalProducerRevision": "9b77e9fa5fadbbe0b3922898b25d59a3a8db3d07",
+      "originalDecision": {
+        "move": {
+          "from": 44,
+          "to": 51,
+          "promotion": null
+        },
+        "depth": 6,
+        "extraNodes": 3983
+      },
+      "initialFen": "8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39",
+      "history": [
+        {
+          "from": 27,
+          "to": 34,
+          "promotion": null
+        }
+      ],
+      "checkpoint": "3|WHITE|HARD|0|d4c5",
+      "fen": "8/8/2p1k1p1/p1KpP3/P4PP1/8/8/8 b - - 1 39",
+      "free": {
+        "17": "0db15ad7a9a5f836510decc1c2bf6264b0044b356e75c48f8c8575c154aff719",
+        "19": "3edab93751e07a1493e4c9b9f06f414cd6e0d7e5a133f049c284465e490ab534"
+      },
+      "forced": {
+        "17": "c9f5fab16b619e4b4b089f59e1804a01a41d86652766e32be0d3fd594366aaf4",
+        "19": "163e39b43927c074937e99f7cb6218356d0aa032107f0855ec2de6dc3694a0fd"
+      },
+      "raw": [
+        {
+          "body": {
+            "actualDepth": 17,
+            "bestmove": "g6g5",
+            "expectedPermille": 1000.0,
+            "fen": "8/8/2p1k1p1/p1KpP3/P4PP1/8/8/8 b - - 1 39",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "pawn-blockade-transfer-and-pv-oracle-20261120",
+              "source": {
+                "planSha256": "f4d7f55bb5ad8e6e2176a2686b9c121c45c3788269d1a04f5c019eda4fc8e004",
+                "revision": "9b77e9fa5fadbbe0b3922898b25d59a3a8db3d07"
+              }
+            },
+            "key": "0db15ad7a9a5f836510decc1c2bf6264b0044b356e75c48f8c8575c154aff719",
+            "nodes": 568970,
+            "pv": [
+              "g6g5",
+              "f4f5",
+              "e6e5",
+              "f5f6",
+              "e5f6",
+              "c5d4",
+              "f6e6",
+              "d4d3",
+              "c6c5",
+              "d3e3"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 17,
+              "history": [
+                "d4c5"
+              ],
+              "initialFen": "8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": null
+            },
+            "san": [
+              "g5",
+              "f5+",
+              "Kxe5",
+              "f6",
+              "Kxf6",
+              "Kd4",
+              "Ke6",
+              "Kd3",
+              "c5",
+              "Ke3"
+            ],
+            "score": 592,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39 moves d4c5",
+                "go depth 17",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 5 multipv 1 score cp -54 wdl 0 928 72 nodes 12 nps 6000 hashfull 0 tbhits 0 time 2 pv g6g5",
+                "info depth 2 seldepth 5 multipv 1 score cp -49 wdl 0 942 58 nodes 35 nps 17500 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 c5c6",
+                "info depth 3 seldepth 5 multipv 1 score cp -49 wdl 0 942 58 nodes 56 nps 28000 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 c5c6",
+                "info depth 4 seldepth 5 multipv 1 score cp -66 wdl 0 866 134 nodes 164 nps 82000 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 g5g6",
+                "info depth 5 seldepth 6 multipv 1 score cp -44 wdl 0 956 44 nodes 218 nps 109000 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 g5g6",
+                "info depth 6 seldepth 8 multipv 1 score cp -34 wdl 1 974 25 nodes 299 nps 149500 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 g5g6",
+                "info depth 7 seldepth 8 multipv 1 score cp -1 wdl 4 992 4 nodes 426 nps 213000 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 g5g6",
+                "info depth 8 seldepth 9 multipv 1 score cp 10 wdl 7 991 2 nodes 563 nps 281500 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 c5c6",
+                "info depth 9 seldepth 10 multipv 1 score cp 52 wdl 67 933 0 nodes 1138 nps 379333 hashfull 0 tbhits 0 time 3 pv g6g5 f4g5 e6e5 g5g6 e5f6 c5c6 d5d4 c6d5",
+                "info depth 10 seldepth 15 multipv 1 score cp 90 wdl 367 633 0 nodes 1918 nps 639333 hashfull 0 tbhits 0 time 3 pv g6g5 f4g5 e6e5 c5c6",
+                "info depth 11 seldepth 9 multipv 1 score cp 143 wdl 914 86 0 nodes 3032 nps 758000 hashfull 0 tbhits 0 time 4 pv g6g5 f4f5 e6e5",
+                "info depth 12 seldepth 9 multipv 1 score cp 208 wdl 997 3 0 nodes 6888 nps 1148000 hashfull 0 tbhits 0 time 6 pv g6g5 f4f5 e6e5 c5b6 d5d4 b6c5",
+                "info depth 13 seldepth 11 multipv 1 score cp 314 wdl 1000 0 0 nodes 20567 nps 1082473 hashfull 1 tbhits 0 time 19 pv g6g5 f4f5 e6e5 c5c6",
+                "info depth 14 seldepth 22 multipv 1 score cp 440 wdl 1000 0 0 nodes 76782 nps 1828142 hashfull 3 tbhits 0 time 42 pv g6g5 f4g5 e6e5 g5g6 e5f6 c5b6",
+                "info depth 15 seldepth 29 multipv 1 score cp 470 wdl 1000 0 0 nodes 107034 nps 1911321 hashfull 7 tbhits 0 time 56 pv g6g5 f4g5 e6e5 g5g6 e5f6 c5d4 f6g6 d4e3 g6g5 e3f3 d5d4 f3g3 c6c5 g3f3 d4d3 f3e3 c5c4 e3d2",
+                "info depth 16 seldepth 44 multipv 1 score cp 530 wdl 1000 0 0 nodes 257158 nps 2125272 hashfull 16 tbhits 0 time 121 pv g6g5 f4g5 e6e5 g5g6 e5f6 c5d4 f6g6 d4e3 g6g5 e3d4 g5g4 d4c5 g4f5 c5d4 f5f4 d4d3 c6c5 d3d2",
+                "info depth 17 seldepth 45 multipv 1 score cp 592 wdl 1000 0 0 nodes 568970 nps 1890265 hashfull 43 tbhits 0 time 301 pv g6g5 f4f5 e6e5 f5f6 e5f6 c5d4 f6e6 d4d3 c6c5 d3e3",
+                "bestmove g6g5 ponder f4f5"
+              ]
+            },
+            "wdl": [
+              1000,
+              0,
+              0
+            ]
+          },
+          "digest": "51178e0007fb2b38cacf7bee4aa5e0c01c6e3646d14dedc31f9f5e8c67d7dcc9"
+        },
+        {
+          "body": {
+            "actualDepth": 19,
+            "bestmove": "g6g5",
+            "expectedPermille": 1000.0,
+            "fen": "8/8/2p1k1p1/p1KpP3/P4PP1/8/8/8 b - - 1 39",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "pawn-blockade-transfer-and-pv-oracle-20261120",
+              "source": {
+                "planSha256": "f4d7f55bb5ad8e6e2176a2686b9c121c45c3788269d1a04f5c019eda4fc8e004",
+                "revision": "9b77e9fa5fadbbe0b3922898b25d59a3a8db3d07"
+              }
+            },
+            "key": "3edab93751e07a1493e4c9b9f06f414cd6e0d7e5a133f049c284465e490ab534",
+            "nodes": 609414,
+            "pv": [
+              "g6g5",
+              "c5d4",
+              "g5f4",
+              "g4g5",
+              "f4f3",
+              "d4e3",
+              "e6e5",
+              "e3f3",
+              "e5f5",
+              "g5g6",
+              "f5g6",
+              "f3g4",
+              "c6c5",
+              "g4f4",
+              "g6f6",
+              "f4g4",
+              "f6e5",
+              "g4g5"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 19,
+              "history": [
+                "d4c5"
+              ],
+              "initialFen": "8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": null
+            },
+            "san": [
+              "g5",
+              "Kd4",
+              "gxf4",
+              "g5",
+              "f3",
+              "Ke3",
+              "Kxe5",
+              "Kxf3",
+              "Kf5",
+              "g6",
+              "Kxg6",
+              "Kg4",
+              "c5",
+              "Kf4",
+              "Kf6",
+              "Kg4",
+              "Ke5",
+              "Kg5"
+            ],
+            "score": 630,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39 moves d4c5",
+                "go depth 19",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 5 multipv 1 score cp -54 wdl 0 928 72 nodes 12 nps 6000 hashfull 0 tbhits 0 time 2 pv g6g5",
+                "info depth 2 seldepth 5 multipv 1 score cp -49 wdl 0 942 58 nodes 35 nps 17500 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 c5c6",
+                "info depth 3 seldepth 5 multipv 1 score cp -49 wdl 0 942 58 nodes 56 nps 28000 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 c5c6",
+                "info depth 4 seldepth 5 multipv 1 score cp -66 wdl 0 866 134 nodes 164 nps 82000 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 g5g6",
+                "info depth 5 seldepth 6 multipv 1 score cp -44 wdl 0 956 44 nodes 218 nps 109000 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 g5g6",
+                "info depth 6 seldepth 8 multipv 1 score cp -34 wdl 1 974 25 nodes 299 nps 149500 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 g5g6",
+                "info depth 7 seldepth 8 multipv 1 score cp -1 wdl 4 992 4 nodes 426 nps 213000 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 g5g6",
+                "info depth 8 seldepth 9 multipv 1 score cp 10 wdl 7 991 2 nodes 563 nps 281500 hashfull 0 tbhits 0 time 2 pv g6g5 f4g5 e6e5 c5c6",
+                "info depth 9 seldepth 10 multipv 1 score cp 52 wdl 67 933 0 nodes 1138 nps 379333 hashfull 0 tbhits 0 time 3 pv g6g5 f4g5 e6e5 g5g6 e5f6 c5c6 d5d4 c6d5",
+                "info depth 10 seldepth 15 multipv 1 score cp 90 wdl 367 633 0 nodes 1918 nps 639333 hashfull 0 tbhits 0 time 3 pv g6g5 f4g5 e6e5 c5c6",
+                "info depth 11 seldepth 9 multipv 1 score cp 143 wdl 914 86 0 nodes 3032 nps 758000 hashfull 0 tbhits 0 time 4 pv g6g5 f4f5 e6e5",
+                "info depth 12 seldepth 9 multipv 1 score cp 208 wdl 997 3 0 nodes 6888 nps 1148000 hashfull 0 tbhits 0 time 6 pv g6g5 f4f5 e6e5 c5b6 d5d4 b6c5",
+                "info depth 13 seldepth 11 multipv 1 score cp 314 wdl 1000 0 0 nodes 20567 nps 1713916 hashfull 1 tbhits 0 time 12 pv g6g5 f4f5 e6e5 c5c6",
+                "info depth 14 seldepth 22 multipv 1 score cp 440 wdl 1000 0 0 nodes 76782 nps 1371107 hashfull 3 tbhits 0 time 56 pv g6g5 f4g5 e6e5 g5g6 e5f6 c5b6",
+                "info depth 15 seldepth 29 multipv 1 score cp 470 wdl 1000 0 0 nodes 107034 nps 1305292 hashfull 7 tbhits 0 time 82 pv g6g5 f4g5 e6e5 g5g6 e5f6 c5d4 f6g6 d4e3 g6g5 e3f3 d5d4 f3g3 c6c5 g3f3 d4d3 f3e3 c5c4 e3d2",
+                "info depth 16 seldepth 44 multipv 1 score cp 530 wdl 1000 0 0 nodes 257158 nps 1461125 hashfull 16 tbhits 0 time 176 pv g6g5 f4g5 e6e5 g5g6 e5f6 c5d4 f6g6 d4e3 g6g5 e3d4 g5g4 d4c5 g4f5 c5d4 f5f4 d4d3 c6c5 d3d2",
+                "info depth 17 seldepth 45 multipv 1 score cp 592 wdl 1000 0 0 nodes 568970 nps 1841326 hashfull 43 tbhits 0 time 309 pv g6g5 f4f5 e6e5 f5f6 e5f6 c5d4 f6e6 d4d3 c6c5 d3e3",
+                "info depth 18 seldepth 25 multipv 1 score cp 625 wdl 1000 0 0 nodes 599061 nps 1843264 hashfull 47 tbhits 0 time 325 pv g6g5 c5d4 g5f4 g4g5 f4f3 d4e3 e6e5 e3f3 e5f5 g5g6 f5g6 f3g3 g6g5 g3h3",
+                "info depth 19 seldepth 31 multipv 1 score cp 630 wdl 1000 0 0 nodes 609414 nps 1852322 hashfull 48 tbhits 0 time 329 pv g6g5 c5d4 g5f4 g4g5 f4f3 d4e3 e6e5 e3f3 e5f5 g5g6 f5g6 f3g4 c6c5 g4f4 g6f6 f4g4 f6e5 g4g5",
+                "bestmove g6g5 ponder c5d4"
+              ]
+            },
+            "wdl": [
+              1000,
+              0,
+              0
+            ]
+          },
+          "digest": "46da79c90008b8b65ae527fdc6a3d30b54801efaa840d9e4c0cda7b939fe7990"
+        },
+        {
+          "body": {
+            "actualDepth": 17,
+            "bestmove": "e6d7",
+            "expectedPermille": 500.0,
+            "fen": "8/8/2p1k1p1/p1KpP3/P4PP1/8/8/8 b - - 1 39",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "pawn-blockade-transfer-and-pv-oracle-20261120",
+              "source": {
+                "planSha256": "f4d7f55bb5ad8e6e2176a2686b9c121c45c3788269d1a04f5c019eda4fc8e004",
+                "revision": "9b77e9fa5fadbbe0b3922898b25d59a3a8db3d07"
+              }
+            },
+            "key": "c9f5fab16b619e4b4b089f59e1804a01a41d86652766e32be0d3fd594366aaf4",
+            "nodes": 46917,
+            "pv": [
+              "e6d7",
+              "f4f5",
+              "g6g5",
+              "c5d4",
+              "d7e7",
+              "d4e3",
+              "c6c5",
+              "e3e2",
+              "e7f7",
+              "e5e6",
+              "f7e7",
+              "e2e1",
+              "e7d6",
+              "e1e2"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 17,
+              "history": [
+                "d4c5"
+              ],
+              "initialFen": "8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": "e6d7"
+            },
+            "san": [
+              "Kd7",
+              "f5",
+              "g5",
+              "Kd4",
+              "Ke7",
+              "Ke3",
+              "c5",
+              "Ke2",
+              "Kf7",
+              "e6+",
+              "Ke7",
+              "Ke1",
+              "Kd6",
+              "Ke2"
+            ],
+            "score": 0,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39 moves d4c5",
+                "go depth 17 searchmoves e6d7",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 2 multipv 1 score cp -129 wdl 0 169 831 nodes 1 nps 1000 hashfull 0 tbhits 0 time 1 pv e6d7",
+                "info depth 2 seldepth 5 multipv 1 score cp -170 wdl 0 21 979 nodes 22 nps 11000 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6f5 g4f5",
+                "info depth 3 seldepth 5 multipv 1 score cp -174 wdl 0 16 984 nodes 57 nps 28500 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6f5 g4f5",
+                "info depth 4 seldepth 5 multipv 1 score cp -174 wdl 0 16 984 nodes 78 nps 39000 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6f5 g4f5",
+                "info depth 5 seldepth 7 multipv 1 score cp -108 wdl 0 396 604 nodes 222 nps 111000 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6f5 g4f5",
+                "info depth 6 seldepth 10 multipv 1 score cp -173 wdl 0 18 982 nodes 540 nps 270000 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6f5 g4f5 d7e7",
+                "info depth 7 seldepth 13 multipv 1 score cp -282 wdl 0 0 1000 nodes 1089 nps 544500 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6f5 g4f5 d7e8 f5f6 e8f7 c5d6 d5d4 e5e6 f7f6",
+                "info depth 8 seldepth 10 multipv 1 score cp -138 wdl 0 111 889 nodes 1460 nps 486666 hashfull 0 tbhits 0 time 3 pv e6d7 f4f5 g6g5 e5e6 d7e7 c5c6",
+                "info depth 9 seldepth 10 multipv 1 score cp -103 wdl 0 455 545 nodes 1785 nps 595000 hashfull 0 tbhits 0 time 3 pv e6d7 f4f5 g6g5 e5e6 d7e7 c5c6 d5d4",
+                "info depth 10 seldepth 15 multipv 1 score cp -72 wdl 0 824 176 nodes 2911 nps 970333 hashfull 0 tbhits 0 time 3 pv e6d7 f4f5 g6g5 e5e6 d7e7 c5d4",
+                "info depth 11 seldepth 13 multipv 1 score cp -62 wdl 0 893 107 nodes 5151 nps 1030200 hashfull 1 tbhits 0 time 5 pv e6d7 f4f5 g6g5 c5d4 d7e7 e5e6",
+                "info depth 12 seldepth 14 multipv 1 score cp 0 wdl 4 992 4 nodes 13604 nps 1700500 hashfull 1 tbhits 0 time 8 pv e6d7 f4f5 g6g5 e5e6 d7e7 c5d4 e7d6 d4e3 d6e7",
+                "info depth 13 seldepth 10 multipv 1 score cp -1 wdl 4 992 4 nodes 21594 nps 1963090 hashfull 2 tbhits 0 time 11 pv e6d7 f4f5 g6g5 f5f6",
+                "info depth 14 seldepth 13 multipv 1 score cp 0 wdl 4 992 4 nodes 24761 nps 1904692 hashfull 2 tbhits 0 time 13 pv e6d7 f4f5 g6g5 c5d4 d7e7 f5f6 e7f7 d4c5 f7e6 c5d4",
+                "info depth 15 seldepth 11 multipv 1 score cp 0 wdl 4 992 4 nodes 25514 nps 1822428 hashfull 2 tbhits 0 time 14 pv e6d7 f4f5 g6g5 c5d4 d7e7 f5f6 e7f7 d4c5 f7e6 c5d4",
+                "info depth 16 seldepth 26 multipv 1 score cp -1 wdl 4 992 4 nodes 41761 nps 1988619 hashfull 3 tbhits 0 time 21 pv e6d7 f4f5 g6g5 c5d4 d7e7 d4e3 c6c5 e3e2 e7f7 e5e6 f7e7 e2e1 e7d6 e1d2 d6e7 d2c3 e7f6 c3b3 f6e7 b3a2",
+                "info depth 17 seldepth 15 multipv 1 score cp 0 wdl 4 992 4 nodes 46917 nps 1954875 hashfull 3 tbhits 0 time 24 pv e6d7 f4f5 g6g5 c5d4 d7e7 d4e3 c6c5 e3e2 e7f7 e5e6 f7e7 e2e1 e7d6 e1e2",
+                "bestmove e6d7 ponder f4f5"
+              ]
+            },
+            "wdl": [
+              4,
+              992,
+              4
+            ]
+          },
+          "digest": "52c49d06f6d6cabbfac6352b850ddc85fa51d53a06345b4f65e949384796c418"
+        },
+        {
+          "body": {
+            "actualDepth": 19,
+            "bestmove": "e6d7",
+            "expectedPermille": 500.0,
+            "fen": "8/8/2p1k1p1/p1KpP3/P4PP1/8/8/8 b - - 1 39",
+            "identity": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "run": "pawn-blockade-transfer-and-pv-oracle-20261120",
+              "source": {
+                "planSha256": "f4d7f55bb5ad8e6e2176a2686b9c121c45c3788269d1a04f5c019eda4fc8e004",
+                "revision": "9b77e9fa5fadbbe0b3922898b25d59a3a8db3d07"
+              }
+            },
+            "key": "163e39b43927c074937e99f7cb6218356d0aa032107f0855ec2de6dc3694a0fd",
+            "nodes": 57363,
+            "pv": [
+              "e6d7",
+              "f4f5",
+              "g6g5",
+              "c5d4",
+              "d7e7",
+              "d4e3",
+              "c6c5",
+              "e3e2",
+              "e7f7",
+              "e5e6",
+              "f7e7",
+              "e2e1",
+              "e7d6",
+              "e1d2",
+              "d6e7",
+              "d2c2",
+              "e7d6",
+              "c2b3",
+              "d6e7",
+              "b3a2",
+              "e7f6"
+            ],
+            "query": {
+              "binarySha256": "45bc8e4969147db9c2eb533810637994619bff0eacc81ccfd9854394901bcbd0",
+              "depth": 19,
+              "history": [
+                "d4c5"
+              ],
+              "initialFen": "8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39",
+              "options": {
+                "Hash": 32,
+                "Threads": 1,
+                "UCI_LimitStrength": false,
+                "UCI_ShowWDL": true
+              },
+              "root": "e6d7"
+            },
+            "san": [
+              "Kd7",
+              "f5",
+              "g5",
+              "Kd4",
+              "Ke7",
+              "Ke3",
+              "c5",
+              "Ke2",
+              "Kf7",
+              "e6+",
+              "Ke7",
+              "Ke1",
+              "Kd6",
+              "Kd2",
+              "Ke7",
+              "Kc2",
+              "Kd6",
+              "Kb3",
+              "Ke7",
+              "Ka2",
+              "Kf6"
+            ],
+            "score": -1,
+            "scoreType": "cp",
+            "terminal": false,
+            "uci": {
+              "commands": [
+                "uci",
+                "setoption name Threads value 1",
+                "setoption name Hash value 32",
+                "setoption name UCI_LimitStrength value false",
+                "setoption name UCI_ShowWDL value true",
+                "isready",
+                "position fen 8/8/2p1k1p1/p2pP3/P2K1PP1/8/8/8 w - - 0 39 moves d4c5",
+                "go depth 19 searchmoves e6d7",
+                "quit"
+              ],
+              "stdout": [
+                "Stockfish 19 by the Stockfish developers (see AUTHORS file)",
+                "id name Stockfish 19",
+                "id author the Stockfish developers (see AUTHORS file)",
+                "",
+                "option name Debug Log File type string default <empty>",
+                "option name NumaPolicy type string default auto",
+                "option name Threads type spin default 1 min 1 max 1024",
+                "option name Hash type spin default 16 min 1 max 33554432",
+                "option name Clear Hash type button",
+                "option name Ponder type check default false",
+                "option name MultiPV type spin default 1 min 1 max 256",
+                "option name Skill Level type spin default 20 min 0 max 20",
+                "option name Move Overhead type spin default 10 min 0 max 5000",
+                "option name nodestime type spin default 0 min 0 max 10000",
+                "option name UCI_Chess960 type check default false",
+                "option name UCI_LimitStrength type check default false",
+                "option name UCI_Elo type spin default 1320 min 1320 max 3190",
+                "option name UCI_ShowWDL type check default false",
+                "option name SyzygyPath type string default <empty>",
+                "option name SyzygyProbeDepth type spin default 1 min 1 max 100",
+                "option name Syzygy50MoveRule type check default true",
+                "option name SyzygyProbeLimit type spin default 7 min 0 max 7",
+                "option name EvalFile type string default nn-1a298aa575a0.nnue",
+                "uciok",
+                "info string Using 1 thread",
+                "readyok",
+                "info string Available processors: 0-3",
+                "info string Using 1 thread",
+                "info string NNUE evaluation using nn-1a298aa575a0.nnue (109MiB, (86896, 1024, 32, 32, 1))",
+                "info string Network replica 1: Shared memory.",
+                "info depth 1 seldepth 2 multipv 1 score cp -129 wdl 0 169 831 nodes 1 nps 1000 hashfull 0 tbhits 0 time 1 pv e6d7",
+                "info depth 2 seldepth 5 multipv 1 score cp -170 wdl 0 21 979 nodes 22 nps 22000 hashfull 0 tbhits 0 time 1 pv e6d7 f4f5 g6f5 g4f5",
+                "info depth 3 seldepth 5 multipv 1 score cp -174 wdl 0 16 984 nodes 57 nps 57000 hashfull 0 tbhits 0 time 1 pv e6d7 f4f5 g6f5 g4f5",
+                "info depth 4 seldepth 5 multipv 1 score cp -174 wdl 0 16 984 nodes 78 nps 78000 hashfull 0 tbhits 0 time 1 pv e6d7 f4f5 g6f5 g4f5",
+                "info depth 5 seldepth 7 multipv 1 score cp -108 wdl 0 396 604 nodes 222 nps 222000 hashfull 0 tbhits 0 time 1 pv e6d7 f4f5 g6f5 g4f5",
+                "info depth 6 seldepth 10 multipv 1 score cp -173 wdl 0 18 982 nodes 540 nps 540000 hashfull 0 tbhits 0 time 1 pv e6d7 f4f5 g6f5 g4f5 d7e7",
+                "info depth 7 seldepth 13 multipv 1 score cp -282 wdl 0 0 1000 nodes 1089 nps 544500 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6f5 g4f5 d7e8 f5f6 e8f7 c5d6 d5d4 e5e6 f7f6",
+                "info depth 8 seldepth 10 multipv 1 score cp -138 wdl 0 111 889 nodes 1460 nps 730000 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6g5 e5e6 d7e7 c5c6",
+                "info depth 9 seldepth 10 multipv 1 score cp -103 wdl 0 455 545 nodes 1785 nps 892500 hashfull 0 tbhits 0 time 2 pv e6d7 f4f5 g6g5 e5e6 d7e7 c5c6 d5d4",
+                "info depth 10 seldepth 15 multipv 1 score cp -72 wdl 0 824 176 nodes 2911 nps 970333 hashfull 0 tbhits 0 time 3 pv e6d7 f4f5 g6g5 e5e6 d7e7 c5d4",
+                "info depth 11 seldepth 13 multipv 1 score cp -62 wdl 0 893 107 nodes 5151 nps 1030200 hashfull 1 tbhits 0 time 5 pv e6d7 f4f5 g6g5 c5d4 d7e7 e5e6",
+                "info depth 12 seldepth 14 multipv 1 score cp 0 wdl 4 992 4 nodes 13604 nps 1700500 hashfull 1 tbhits 0 time 8 pv e6d7 f4f5 g6g5 e5e6 d7e7 c5d4 e7d6 d4e3 d6e7",
+                "info depth 13 seldepth 10 multipv 1 score cp -1 wdl 4 992 4 nodes 21594 nps 1963090 hashfull 2 tbhits 0 time 11 pv e6d7 f4f5 g6g5 f5f6",
+                "info depth 14 seldepth 13 multipv 1 score cp 0 wdl 4 992 4 nodes 24761 nps 2063416 hashfull 2 tbhits 0 time 12 pv e6d7 f4f5 g6g5 c5d4 d7e7 f5f6 e7f7 d4c5 f7e6 c5d4",
+                "info depth 15 seldepth 11 multipv 1 score cp 0 wdl 4 992 4 nodes 25514 nps 2126166 hashfull 2 tbhits 0 time 12 pv e6d7 f4f5 g6g5 c5d4 d7e7 f5f6 e7f7 d4c5 f7e6 c5d4",
+                "info depth 16 seldepth 26 multipv 1 score cp -1 wdl 4 992 4 nodes 41761 nps 2197947 hashfull 3 tbhits 0 time 19 pv e6d7 f4f5 g6g5 c5d4 d7e7 d4e3 c6c5 e3e2 e7f7 e5e6 f7e7 e2e1 e7d6 e1d2 d6e7 d2c3 e7f6 c3b3 f6e7 b3a2",
+                "info depth 17 seldepth 15 multipv 1 score cp 0 wdl 4 992 4 nodes 46917 nps 2039869 hashfull 3 tbhits 0 time 23 pv e6d7 f4f5 g6g5 c5d4 d7e7 d4e3 c6c5 e3e2 e7f7 e5e6 f7e7 e2e1 e7d6 e1e2",
+                "info depth 18 seldepth 22 multipv 1 score cp 0 wdl 4 992 4 nodes 49948 nps 1997920 hashfull 3 tbhits 0 time 25 pv e6d7 f4f5 g6g5 c5d4 d7e7 d4e3 c6c5 e3e2 e7f7 e5e6 f7e7 e2e1 e7d6 e1d2 d6e7",
+                "info depth 19 seldepth 28 multipv 1 score cp -1 wdl 4 992 4 nodes 57363 nps 2048678 hashfull 3 tbhits 0 time 28 pv e6d7 f4f5 g6g5 c5d4 d7e7 d4e3 c6c5 e3e2 e7f7 e5e6 f7e7 e2e1 e7d6 e1d2 d6e7 d2c2 e7d6 c2b3 d6e7 b3a2 e7f6",
+                "bestmove e6d7 ponder f4f5"
+              ]
+            },
+            "wdl": [
+              4,
+              992,
+              4
+            ]
+          },
+          "digest": "0570b616e10f8d28f41b5da42649d8e9e4f4f8134a870b144f27f72d5cfa5983"
+        }
+      ]
+    }
+  ]
+}

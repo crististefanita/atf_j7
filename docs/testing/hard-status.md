@@ -1,6 +1,6 @@
 # Statusul măsurat al Hard nativ
 
-Instantaneul reperului aparține sursei **`85b1c478575d3c31065161c55aa02cffcd0e7eee`**. Rejucarea curentă fără obiectiv declarat include corecția limitată pentru replica damei descrisă mai jos; catalogul, alocația obișnuită 100k→200k și ratingurile afișate rămân neschimbate. Tabelul Elo aparține în continuare reperului, nu adversarului corectat. Calibrarea reperului este independentă de porțile promovării unui candidat: catalogul incomplet nu împiedică măsurarea adversarului existent, iar estimarea ratingului nu califică un candidat.
+Instantaneul reperului aparține sursei **`85b1c478575d3c31065161c55aa02cffcd0e7eee`**. Rejucarea curentă fără obiectiv declarat include corecțiile limitate pentru replica damei și cursa pionului exterior descrise mai jos; catalogul, alocația obișnuită 100k→200k și ratingurile afișate rămân neschimbate. Tabelul Elo aparține în continuare reperului, nu adversarului corectat. Calibrarea reperului este independentă de porțile promovării unui candidat: catalogul incomplet nu împiedică măsurarea adversarului existent, iar estimarea ratingului nu califică un candidat.
 
 ## Rezultatele problemelor
 
@@ -10,12 +10,12 @@ Instantaneul reperului aparține sursei **`85b1c478575d3c31065161c55aa02cffcd0e7
 | mate-in-two | 300/300 | 300/300 | 600/600 |
 | mate-in-three | 200/200 | 200/200 | 600/600 |
 | tactics | 95/100 | 87/100 | 203/221 |
-| training | 94/114 | 78/114 | 274/330 |
+| training | 95/114 | 79/114 | 275/330 |
 | intermezzo | 24/24 | 22/24 | 49/52 |
 
-Totalurile sunt **1.213/1.238** prime mutări, **1.187/1.238** exerciții canonice complete și **2.226/2.303** etape, cu două reușite în plus în fiecare măsură și zero etape pierdute. **51 de exerciții rămân incomplete**; obiectivul existent «toate rezolvate» rămâne FAIL. Căutarea nativă primește numai poziția și profilul de joc; cheia se citește după recepție. Intervențiile pe traseul de referință sunt explicite și nu devin soluții autonome.
+Totalurile sunt **1.214/1.238** prime mutări, **1.188/1.238** exerciții canonice complete și **2.227/2.303** etape, cu trei reușite față de instantaneul inițial și una față de adversarul calificat cu replica damei, fără etape pierdute. **50 de exerciții rămân incomplete**; obiectivul existent «toate rezolvate» rămâne FAIL. Căutarea nativă primește numai poziția și profilul de joc; cheia se citește după recepție. Intervențiile pe traseul de referință sunt explicite și nu devin soluții autonome.
 
-Toate cele **1.000 de probleme de mat** trec și împotriva fiecărei apărări legale: **2.236 de decizii native**, **1.236 de ramuri defensive** și **1.500 de ramuri terminale cu mat**, în limita originală. Solverul cu obiectiv declarat nu a fost folosit. Exercițiile materiale sunt mai slabe: **187/238 complete, 78,6%**, cu **526/603** etape acceptate. Majoritatea de mate scurte nu poate ascunde această lacună în procentul global de 95,9%.
+Toate cele **1.000 de probleme de mat** trec și împotriva fiecărei apărări legale: **2.236 de decizii native**, **1.236 de ramuri defensive** și **1.500 de ramuri terminale cu mat**, în limita originală. Solverul cu obiectiv declarat nu a fost folosit. Exercițiile materiale sunt mai slabe: **188/238 complete, 79,0%**, cu **527/603** etape acceptate. Majoritatea de mate scurte nu poate ascunde această lacună în procentul global de 96,0%.
 
 Înaintea corecției pentru replica damei, față de catalogul identic păstrat la `ecf5291a71e49e02b846365b529dc070b4e3057a`, o alegere diferă, cu **zero etape câștigate sau pierdute**. Nu există progres nou în acuratețea catalogului. Stockfish rece H17/H19 verifică fiecare dintre cele 79 de etape neacceptate: **56 de pierderi mari stabile**, **23 de alternative apropiate de oracol** și nicio pierdere mare stabilă pentru cheile pedagogice. **42** sunt prime pierderi native mari accesibile fără intervenție de referință. Dintre ele, 28 rețin H5, nouă H6, una H4 și patru H7; numai cinci consumă plafonul efectiv maxim. Izolează scorul, orizontul, confirmarea liderului și acoperirea rădăcinilor înainte să atribui fiecare ratare plafonului de noduri.
 
@@ -79,4 +79,29 @@ La plafonul obișnuit 200k, cele cinci înfrângeri din liga păstrată ratează
 
 Dosarul extern este `C:\work\sah\.studii\experiments\2026-11-19-puzzle-status\README.md`. Acesta leagă opt rapoarte Extent, identitățile exacte de sursă/runtime/configurație, deciziile brute, toate PGN-urile, transcripturile profesorului, analizele finale și 42 de lecții YAML contextuale. Lecțiile sunt numai pentru studiu: contraexemplele și transferul pe familii excluse rămân necesare, iar cheile nu intră în runtime. Amendamentul execuției păstrează toate rezultatele încheiate când crește paralelizarea independentă; încercările întrerupte rămân arhivate și nescorate.
 
-Folosește [protocolul problemelor native](hard-puzzle-study.md), [benchmarkul canonic](../../atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java) și [benchmarkul cu toate apărările la mat](../../atf-tests/src/test/java/ro/atf/chess/NativeMateDefenseBenchmarkTest.java). [AiCalibrationObservationTest](../../atf-tests/src/test/java/ro/atf/chess/AiCalibrationObservationTest.java) păstrează contractul indiciului indisponibil cu mock, fără să fixeze un defect de motor sau să schimbe admiterea în corpusul de învățare. Izolează apoi **training-051: Ke6 față de Rc8+**, încă deschis, cu pierderea confirmată independent de 500‰, victorie→remiză; tactic-040 și tactic-095 sunt acum martori de regresie. Păstrează separat cele cinci înfrângeri din liga reținută față de această prioritate materială de catalog. Compară replicile libere la același orizont, păstrează fiecare etapă acceptată și toate cele 1.000 de mate, apoi verifică contraexemple și familii neatinse înaintea duelului direct al candidatului. [Lucrări deschise](../feedback/README.md).
+Folosește [protocolul problemelor native](hard-puzzle-study.md), [benchmarkul canonic](../../atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java) și [benchmarkul cu toate apărările la mat](../../atf-tests/src/test/java/ro/atf/chess/NativeMateDefenseBenchmarkTest.java). [AiCalibrationObservationTest](../../atf-tests/src/test/java/ro/atf/chess/AiCalibrationObservationTest.java) păstrează contractul indiciului indisponibil cu mock, fără să fixeze un defect de motor sau să schimbe admiterea în corpusul de învățare. Pierderea inițială din `training-051` și predarea planului de pioni sunt acum protejate prin componente portabile și partide de conversie. Păstrează separat cele cinci înfrângeri din ligă și problemele materiale rămase. Izolează următorul prim defect confirmat independent din linia completă nativă/indiciu/analiză, păstrând toate etapele acceptate și matele cu apărări libere înaintea unui nou duel. [Lucru deschis](../feedback/README.md).
+
+## Cursa calificată a pionului exterior
+
+Modelul comun elimină bonusul înșelător al avansării numai în cursa cu pion exterior și blocaj
+direct al regelui. Confirmarea H4/H6 taxată păstrează `h4` după schimbul turnurilor fără să
+slăbească regula generală de stabilitate. Jocul nativ, indiciul maxim și Game Review aleg
+inițial `Rc8+`. Catalogul complet adaugă **training-051:0**, cu **zero etape acceptate pierdute**;
+toate cele 1.000 de probleme de mat păstrează și fiecare apărare legală. [Algoritm și contraexemple](../board/pawn-race.md)
+
+Cele 24 de contexte inspectate din partide sursă conțin două alegeri Hard recuperate, fiecare pierzând anterior
+1.000‰ față de profesorul liber. În 48 de contexte noi, independente de rezultatul profesorului, rădăcinile Hard și
+Basic rămân identice; Advanced recuperează trei alegeri pierzătoare. Niciun profil nu se
+degradează la ambele orizonturi Stockfish H17/H19. Corecția privește evaluatorul comun;
+nivelurile inferioare nu pretind rezultate identice octet cu octet.
+
+Două finaluri compuse jucate efectiv păstrează decizia nativă și indiciul public maxim înaintea
+fiecărei mutări alb/negru, plus analiza finală completă. Contra Stockfish 19 H19 fără limitare
+de forță, Hard câștigă prin mat la **39 și 35 de semimutări**; orientarea inițială pierdea la 30.
+Candidații anteriori care alegeau Rc8+ dar pierdeau finalul rămân probe respinse.
+Acestea sunt partide de conversie, nu perechi din deschideri sau ΔElo măsurat al candidatului.
+Evaluarea afișată și clasificarea analizei rămân obiective de calitate independente, deschise.
+
+Studiul este `C:\work\sah\.studii\experiments\2026-11-20-hard-rook-defense\README.md`.
+Oracolul rece legat de sursă clasifică toate continuările oferite de indiciu și analiză, nu
+doar prima mutare. Recepțiile originale își păstrează producătorii când testăm cod ulterior.

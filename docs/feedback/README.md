@@ -39,7 +39,7 @@ descrie comportamentul, iar [catalogul edițiilor](../../release/README.md) indi
 | P2 | Frontieră tactică · șah la limită | O frontieră în șah poate încă să se oprească fără evadare legală; extensia generală pierde 13 contracte existente. | Rezolvă cauza precisă în aceeași alocație taxată; păstrează eșecurile benchmark explicite până trec calitatea și transferul. |
 | P1 | Coaching · dovada recapturii ascunse | Verificarea forțată din motor și recepția lucrului sunt implementate; previzualizarea încă arată linia integrală evaluată. | Proiectează prefixul vizibil mai scurt păstrând dovada integrală, recomandarea comună și identitatea după restart. Nu ascunde replici decisive. [Contract](#dovada-tactică-și-liniile-afișate) |
 | P1 | Calibrarea profilurilor AI | Protocolul curent măsoară 12 starturi pereche per profil, cu sensibilitatea neterminatelor; nu măsoară câștigul candidatului sau ratingul unui om. | Compară toate cele trei profiluri native, la alocații neschimbate, pe familii excluse și replicile lor libere, pentru a restrânge incertitudinea; nu număra reluările istorice ca starturi independente noi și nu înlocui reperele aplicației dintr-un pilot mic. [Instantaneu](../testing/hard-status.md#instantaneul-elo-relativ) |
-| P1 | Hard nativ · obiective materiale rămase | Verificarea replicii damei repară tactic-040/095, cu zero etape pierdute: 77 de etape neacceptate în 51 de exerciții; 187/238 exerciții materiale complete. Două pierderi mari se recuperează pe partide sursă independente. | Începe cu training-051 Ke6/Rc8+, păstrează reparațiile, contraexemplele liniștite/rare și toate apărările la mat. Verifică conversia cu replici libere și familii noi; măsoară separat ΔElo pereche. [Status măsurat](../testing/hard-status.md) |
+| P1 | Hard nativ · obiective materiale rămase | Corecția pionului exterior închide training-051 și conversia cu replici libere; rămân 76 de etape neacceptate în 50 de exerciții, cu 188/238 exerciții materiale complete. | Păstrează martorii noi de rege/tempo/opoziție, fiecare etapă acceptată și matele cu toate apărările. Prioritizează prima pierdere WDL efectivă rămasă și cere transfer nou înaintea ΔElo pereche. [Status măsurat](../testing/hard-status.md) |
 | P2 | Studii native · contorul FEN inițial | O partidă nouă din tablă pornește contorul fără progres la zero, iar metadatele FEN ale oracolului păstrează valoarea inițială. | Adaugă inițializare nativă explicită din contorul FEN și cazuri 0/99/149 înainte de a declara paritate de remiză pentru origini compuse arbitrare. |
 | P2 | Progres · upgrade Android | Upgrade-ul semnat mai cere o probă de progres. | Păstrează ID-urile, rezolvările și punctele după upgrade și restart. |
 | P2 | Calibrarea problemelor | Benzile de dificultate importate se suprapun. | Verifică timpul și încercările pe un lot amestecat separat. |
@@ -548,3 +548,15 @@ Partida nouă `kings-indian-hard-black`, produsă de `c8247d386bc922aefbc7d7c468
 Prima pierdere reală este 8…Bd7, arătată și de indiciu, la H5 după 200k noduri native suplimentare. Replicile libere Stockfish preferă …e6, cu Rc1 printre continuările adverse; mutarea jucată pierde 231/242‰. [KingsIndianWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/KingsIndianWitnessTest.java) păstrează actorul original, istoricul complet și ambele orizonturi independente. [KingsIndianHintBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/KingsIndianHintBenchmarkTest.java) expune separat scopurile native încă eșuate pentru decizia efectivă și indiciul public. Nu transforma martorul corect într-un PASS de motor și nu instala alt lookup înainte să izolezi efectele scorului, orizontului și acoperirii.
 
 Este o altă familie de deschidere, nu o comparație pereche cu Nimzo originală și nu o estimare Elo nouă. Intrarea Nimzo corectată lipsește din aceste poziții-rădăcină efective ale Indienei Regelui. Defectele Nimzo Bxc5/Ne5 și Scoțiană Re8+ rămân deschise. Dovezile complete sunt în `C:\work\sah\.studii\experiments\2026-11-19-nimzo-free-replies` și `corpus\2026-11-19-kings-indian-qualified`.
+
+## Închiderea cursei pionului și calibrarea scorului
+
+Alegerea inițială din training-051 și predarea planului pionului sunt închise la alocația
+obișnuită neschimbată, cu ambele finaluri compuse câștigate efectiv. Discountul geometric larg
+și optimizarea cache-ului de turn rămân respinse. [Regulă reutilizabilă și teste](../board/pawn-race.md)
+
+Păstrează deschisă diferența de evaluare/clasificare: alegerea șahului câștigător de turn,
+descris independent ca aproximativ egal, nu înseamnă analiză calibrată. Continuă de la prima
+replică slabă confirmată din joc, indiciu sau analiză în auditul complet cu oracol rece.
+Cere apărări libere și contraexemple de rege accesibil/opoziție; nu instala o cheie după FEN,
+nu șterge proba respinsă și nu deduce Elo din două finaluri compuse. Obiectivele ligii rămân deschise.

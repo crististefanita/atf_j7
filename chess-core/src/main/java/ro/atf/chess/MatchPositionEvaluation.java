@@ -23,6 +23,10 @@ final class MatchPositionEvaluation {
     }
 
     static int bonus(ChessPosition position) {
+        return bonus(position, PawnBlockadePolicy.CURRENT);
+    }
+
+    static int bonus(ChessPosition position, PawnBlockadePolicy pawnPolicy) {
         int opening = 0;
         int endgame = 0;
         int phase = 0;
@@ -61,6 +65,18 @@ final class MatchPositionEvaluation {
         int bishopPair = (whiteBishops >= 2 ? 1 : 0) - (blackBishops >= 2 ? 1 : 0);
         phase = Math.min(phase, FULL_PHASE);
         int whiteBonus = (opening * phase + endgame * (FULL_PHASE - phase)) / FULL_PHASE + bishopPair * 22;
+        if (phase == 0 && pawnPolicy.enabled()) {
+            int blockedAdvance = 0;
+            for (int square = 0; square < 64; square++) {
+                var pawn = position.pieceAt(square);
+                if (pawn != null && pawn.kind() == Kind.PAWN && PawnRace.kingBlocksPassedPawn(position, square, pawn)
+                        && PawnRace.uncatchableOutsidePasser(position, square, pawn)) {
+                    int relative = pawn.side() == Side.WHITE ? square : square ^ 56;
+                    blockedAdvance += (pawn.side() == Side.WHITE ? 1 : -1) * ENDGAME[Kind.PAWN.ordinal()][relative];
+                }
+            }
+            whiteBonus -= pawnPolicy.discount(blockedAdvance);
+        }
         if (pieces == 1 && (lastPiece.kind() == Kind.ROOK || lastPiece.kind() == Kind.QUEEN)) {
             whiteBonus += lastPiece.side() == Side.WHITE ? matePressure(whiteKing, blackKing) : -matePressure(blackKing, whiteKing);
         }

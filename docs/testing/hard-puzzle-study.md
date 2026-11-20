@@ -154,3 +154,22 @@ Păstrează variantele largi respinse și contraexemplele lor. După inspecție,
 Păstrează analizele complete ale candidatului ori un reper imuabil fixat și diferențele explicite cu analizele complete schimbate. Recalculează primele mutări, exercițiile complete și fiecare etapă acceptată. Rularea cu politica dezactivată trebuie să restabilească decizia completă, PV-ul, adâncimea și lucrul reperului, nu doar mutarea. [Studiul replicii damei](hard-status.md#verificarea-limitată-a-replicii-damei) este exemplul curent.
 
 Numai după regresiile fixe, toate apărările la mat și transferul neatins, îngheață protocolul partidelor pereche înainte de joc. Păstrează decizia nativă și tentativa maximă de indiciu pentru fiecare mutare efectivă, analiza finală și PGN-ul complet. Partidele noi cer jurnale noi legate de sursă; rejucările de poziții nu se numără ca partide. Estimează ΔElo al candidatului pe perechi de deschidere, cu intervale și sensibilitatea neterminatelor. Nu actualiza ancora reperului dintr-un câștig de puzzle și nu prezenta un duel ipotetic ca executat.
+
+## Colectare nativă portabilă
+
+Rulează `ro.atf.chess.NativeCatalogCollector <director extern> <commit exact producător>` cu
+classpath-ul fixat al testelor din checkout-ul compilat. Verificarea inițială respinge observația
+existentă sau destinația din proiect. Colectorul apelează Hard obișnuit înainte să consulte cheia.
+Scrie identitatea completă, catalogul și fluxul nativ cu amprente, fără să înlocuiască fișiere.
+
+Publicarea curentă cere suplimentar instantaneele exacte `queenReplyPolicy` și `pawnBlockadePolicy`
+și **`nativeQuietPlies` efectiv** în fiecare rând. Păstrează separat contorul FEN-ului sursă:
+`ChessMatch.fromPosition` pornește acum contorul nativ de mutări liniștite de la zero.
+Câmpurile expun limita; nu repară API-ul și nu implică paritate a contorului de remiză.
+Modelele lipsă/străine și contoarele native învechite au negative de componentă.
+[Controale de metadate](../../atf-tests/src/test/java/ro/atf/chess/NativeModelAuditTest.java)
+
+Păstrează imuabile recepțiile istorice și cititorul lor compatibil inițial. Nu adăuga ulterior
+politici curente în antetul unui producător vechi. Colectarea nativă completă nouă are propria
+sursă; rejucarea numai prin cititor este identificată separat. Rezolvarea întregului catalog
+rămâne un obiectiv de calitate separat, cu eșec real cât timp există exerciții incomplete.
