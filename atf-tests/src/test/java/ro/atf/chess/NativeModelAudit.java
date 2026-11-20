@@ -11,6 +11,11 @@ final class NativeModelAudit {
         require(identity,"pawnBlockadePolicy",PawnBlockadePolicy.CURRENT);
     }
 
+    static void validateClock(JsonNode row,ChessMatch game) {
+        if(!row.path("nativeQuietPlies").isInt()||row.path("nativeQuietPlies").asInt()!=game.searchQuietPlies())
+            throw new IllegalArgumentException("Missing or foreign actual native quiet counter");
+    }
+
     private static void require(JsonNode identity,String name,Object expected) {
         if(!LearningGameAudit.mapper().valueToTree(expected).equals(identity.path(name)))
             throw new IllegalArgumentException("Missing or foreign native model: "+name);

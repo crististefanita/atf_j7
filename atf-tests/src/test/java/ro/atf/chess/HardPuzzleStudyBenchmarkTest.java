@@ -54,6 +54,7 @@ class HardPuzzleStudyBenchmarkTest {
                     require(row.path("chapter").asText().equals(chapter.name())&&row.path("id").asText().equals(quest.id())&&row.path("stage").asInt()==stage,"Missing, reordered or borrowed canonical stage");
                     require(row.path("rootFen").asText().equals(quest.fen())&&row.path("checkpoint").asText().equals(game.checkpoint())&&row.path("fen").asText().equals(StudyFen.replay(quest.fen(),quest.line().subList(0,stage*2))),"Foreign puzzle origin or prefix");
                     var analysis=nativeAnalysis(row.path("analysis"));HardQuestAudit.validate(game,analysis);
+                    NativeModelAudit.validateClock(row,game);
                     check.same("Actual profile ceiling "+quest.id()+":"+stage,HardQuestAudit.maximumNodes(game.position()),row.path("maximumExtraNodes").asInt());
                     var outcome=quest.assess(analysis.decision().move(),stage);boolean accepted=outcome.continues()||outcome.solved();
                     require(row.path("canonicalStageAccepted").asBoolean()==accepted&&row.path("priorNativeStagesAccepted").asBoolean()==prior&&row.path("prefixReferenceIntervention").asBoolean()==intervened,"Invented canonical success or hidden reference intervention");
