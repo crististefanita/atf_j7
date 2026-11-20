@@ -1,0 +1,4 @@
+schema: 1
+enabled: true
+minimum-phase: 16
+aspiration-window-cp: 200
