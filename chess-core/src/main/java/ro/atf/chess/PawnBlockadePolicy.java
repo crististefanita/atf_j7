@@ -14,7 +14,7 @@ record PawnBlockadePolicy(boolean enabled, int advanceDiscountPermille) {
         return enabled ? advancement * advanceDiscountPermille / 1000 : 0;
     }
     boolean confirms(ChessPosition position,ChessPosition.Move proposed) {
-        return enabled && MatchPositionEvaluation.outsidePawnAdvance(position,proposed);
+        return enabled && advanceDiscountPermille > 0 && PawnRace.outsidePawnAdvance(position,proposed);
     }
     static PawnBlockadePolicy read(Map<?,?> row) {
         if(!row.keySet().equals(Set.of("schema","enabled","advance-discount-per-mille"))

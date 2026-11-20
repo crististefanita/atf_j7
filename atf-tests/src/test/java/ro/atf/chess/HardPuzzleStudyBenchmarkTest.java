@@ -34,6 +34,7 @@ class HardPuzzleStudyBenchmarkTest {
         check.same("The complete public baseline uses the active native policy, not a diagnostic overlay",JSON.valueToTree(HardAdaptivePolicy.CURRENT),identity.path("nativePolicy"));
         check.same("The closed promotion feature is bound to its actually loaded policy",JSON.valueToTree(PromotionExchangePolicy.CURRENT),identity.path("promotionExchangePolicy"));
         check.same("The forced promotion phase is bound to its actually loaded policy",JSON.valueToTree(PawnPushPolicy.CURRENT),identity.path("pawnPushPolicy"));
+        NativeModelAudit.validate(identity);
         check.same("Additional nodes do not include the initial native horizon",MatchAiPolicy.BASE_PLIES,identity.path("unbudgetedBasePlies").asInt());
         var chapters=chapters();var expectedCatalog=new ArrayList<Object>();
         for(var chapter:chapters)for(var q:chapter.quests())expectedCatalog.add(java.util.Map.of("chapter",chapter.name(),"id",q.id(),"fen",q.fen(),"line",q.line(),"objective",q.objective()));

@@ -1782,3 +1782,11 @@ testChanges:
     test: ro.atf.chess.MarkdownDiagramGovernanceTest#typeCheckingPreservesTheExistingEdgeAndLegendRequirements
     contract: "Preserve every existing fence, presentation, orientation, semantic edge and adjacent legend rule; additionally reject unknown Mermaid kinds and diagrams without executable content"
     allowDelete: false
+
+  - id: CHESS-NATIVE-MODELS-EN
+    base: "af17de341e37a438bf7c4287b95ebc3b06999828"
+    from: atf-tests/src/test/java/ro/atf/chess/HardPuzzleStudyBenchmarkTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/NativeModelAuditTest.java
+    test: ro.atf.chess.NativeModelAuditTest#rejectsMissingOrForeignPoliciesEvenWithTheOtherProfileFieldsPresent
+    contract: "Retain every original policy, digest, context, work, canonical acceptance and all-solved check; additionally reject missing, different or extended selective-model snapshots without rewriting legacy receipts"
+    allowDelete: false

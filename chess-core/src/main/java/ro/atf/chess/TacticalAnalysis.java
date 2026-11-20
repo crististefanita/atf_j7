@@ -783,11 +783,11 @@ public final class TacticalAnalysis {
                 }
                 boolean sameLeader = stableHardLeader(best.ranked().get(0).move(), candidate);
                 boolean verifiedQueenReply = queenReply && !sameLeader
-                        && corroboratedEvenLeader(root, best.ranked().get(0), candidate, depth, budget);
+                        && corroboratedEvenLeader(root, best.ranked().get(0).move(), candidate, depth, budget);
                 boolean verifiedPawnRace = prioritizeChecks && gap == 0 && depth == policy.maxPlies()
                         && depth % 2 == 0 && !sameLeader
                         && PawnBlockadePolicy.CURRENT.confirms(root.position(), candidate.ranked().get(0).move())
-                        && corroboratedEvenLeader(root, best.ranked().get(0), candidate, depth, budget);
+                        && corroboratedEvenLeader(root, best.ranked().get(0).move(), candidate, depth, budget);
                 if (prioritizeChecks && depth == policy.maxPlies()
                         && !sameLeader && !verifiedQueenReply && !verifiedPawnRace
                         && !closedPawnRecapture(root.position(), best.ranked().get(0), candidate,
@@ -982,13 +982,13 @@ public final class TacticalAnalysis {
         return after.legalCapturesAndPromotions().stream().anyMatch(reply -> reply.to() == capture.to());
     }
 
-    private static boolean corroboratedEvenLeader(RootSearch root, Variation previous, Result candidate,
+    private static boolean corroboratedEvenLeader(RootSearch root, Move previous, Result candidate,
                                                    int depth, SearchBudget budget) {
         // With a zero root gap, every tied root is retained. Absence proves strict inferiority at completed H6.
-        if (candidate.ranked().stream().anyMatch(line -> line.move().equals(previous.move()))) return false;
+        if (candidate.ranked().stream().anyMatch(line -> line.move().equals(previous))) return false;
         try {
             int balance = material(root.position());
-            var incumbent = root.line(previous.move(), depth - 2, LIMIT, budget, Objective.POSITION, balance);
+            var incumbent = root.line(previous, depth - 2, LIMIT, budget, Objective.POSITION, balance);
             var challenger = root.line(candidate.ranked().get(0).move(), depth - 2, LIMIT, budget, Objective.POSITION, balance);
             // The H4 ordering used shallow credits; only fresh uncredited exact scores corroborate H6.
             return incumbent.exact() && challenger.exact() && incumbent.ending() == Ending.HORIZON
