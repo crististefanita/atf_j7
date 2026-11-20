@@ -10,6 +10,9 @@ record PawnBlockadePolicy(boolean enabled, int advanceDiscountPermille) {
     PawnBlockadePolicy {
         if(advanceDiscountPermille<0||advanceDiscountPermille>1000)throw new IllegalArgumentException("Invalid pawn blockade discount");
     }
+    int discount(int advancement) {
+        return enabled ? advancement * advanceDiscountPermille / 1000 : 0;
+    }
     static PawnBlockadePolicy read(Map<?,?> row) {
         if(!row.keySet().equals(Set.of("schema","enabled","advance-discount-per-mille"))
                 ||ChessYaml.number(row,"schema")!=1||!(row.get("enabled") instanceof Boolean enabled))

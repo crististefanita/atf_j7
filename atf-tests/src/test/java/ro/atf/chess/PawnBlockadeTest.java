@@ -1,0 +1,52 @@
+package ro.atf.chess;
+
+import atf.testkit.AtfComponentTest;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+/** The shared evaluator has one bounded structural rule, not an exercise-key override. */
+@AtfComponentTest @ExtendWith(ExtentAudit.class)
+class PawnBlockadeTest {
+    private static final String BLACK="3r4/5k2/p4Pp1/2K3Pp/2R5/P7/8/8 b - - 0 51";
+    private static final String WHITE="8/8/p7/2r5/2k3pP/P4pP1/5K2/3R4 w - - 0 51";
+    @Test void onlyARealPassedPawnDirectlyBlockedByTheOpposingKingQualifies(Checks check) {
+        var position=ChessPosition.fromFen("8/5k2/p4Pp1/6Pp/2K5/P7/8/8 b - - 0 53");
+        int pawn=BoardSquare.parse("f6");
+        check.same("f6 is passed and its direct advance is blocked by Kf7",true,MatchPositionEvaluation.kingBlocksPassedPawn(position,pawn,position.pieceAt(pawn)));
+        var guarded=ChessPosition.fromFen("8/4pk2/p4Pp1/6Pp/2K5/P7/8/8 b - - 0 53");
+        check.same("An opposing pawn on an adjacent forward file makes this a different structure",false,MatchPositionEvaluation.kingBlocksPassedPawn(guarded,pawn,guarded.pieceAt(pawn)));
+        var free=ChessPosition.fromFen("8/4k3/p4Pp1/6Pp/2K5/P7/8/8 b - - 0 53");
+        check.same("A king beside the advance is not a direct blockade",false,MatchPositionEvaluation.kingBlocksPassedPawn(free,pawn,free.pieceAt(pawn)));
+    }
+    @Test void theDiscountRemovesOnlyTheExistingAdvanceBonusWithConsistentColorAndTempo(Checks check) {
+        var enabled=new PawnBlockadePolicy(true,1000);var disabled=new PawnBlockadePolicy(false,1000);var half=new PawnBlockadePolicy(true,500);
+        for(var row:List.of(Map.entry("8/5k2/p4Pp1/6Pp/2K5/P7/8/8 b - - 0 53",48),Map.entry("8/5k2/p4Pp1/6Pp/2K5/P7/8/8 w - - 0 53",-48),Map.entry("8/8/p7/2k5/6pP/P4pP1/5K2/8 w - - 0 53",48))) {
+            var p=ChessPosition.fromFen(row.getKey());int before=MatchPositionEvaluation.bonus(p,disabled);
+            check.same("The material ledger and other position terms stay outside the adjustment: "+row.getKey(),row.getValue(),MatchPositionEvaluation.bonus(p,enabled)-before);
+            check.same("The configured fraction scales only that advancement",row.getValue()/2,MatchPositionEvaluation.bonus(p,half)-before);
+        }
+        var rooks=ChessPosition.fromFen(BLACK);
+        check.same("The adjustment is absent while rooks remain",MatchPositionEvaluation.bonus(rooks,disabled),MatchPositionEvaluation.bonus(rooks,enabled));
+    }
+    @Test void ordinaryPlayAndMaximumHintChooseTheWinningCheckInBothColors(Checks check) {
+        for(var entry:List.of(Map.entry(BLACK,"d8c8"),Map.entry(WHITE,"d1c1"))) {
+            var p=ChessPosition.fromFen(entry.getKey());var game=ChessMatch.fromPosition(p,new MatchSetup(p.turn().other(),MatchSetup.Level.HARD,true));String checkpoint=game.checkpoint();
+            var actual=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(game,actual);
+            check.same("Native H"+actual.decision().depth()+" nodes="+actual.decision().extraNodes()+" "+entry.getKey(),entry.getValue(),actual.decision().move().uci());
+            var hint=TacticalAnalysis.verifiedHints(p,200000);
+            check.same("The maximum public hint independently agrees",entry.getValue(),hint.lines().getFirst().move().uci());
+            check.same("The root correction does not silently raise the ordinary allowance",true,actual.decision().extraNodes()<=200000&&hint.extraNodes()<=200000);
+            var review=GameReview.analyzeLine(game.play(ChessPosition.Move.fromUci(entry.getValue())),n->{});
+            check.same("Game Review retains its own search and the same winning recommendation",entry.getValue(),review.turns().getFirst().bestLine().getFirst().uci());
+            check.same("Analysis cannot mutate the actual checkpoint",checkpoint,game.checkpoint());
+        }
+    }
+    @Test void unknownKeysOutOfRangeWeightsAndUntypedSwitchesAreRejected(Checks check) {
+        var row=new HashMap<Object,Object>(ChessYaml.resource("pawn-blockade.yaml"));
+        check.same("The active policy is the typed file",PawnBlockadePolicy.CURRENT,PawnBlockadePolicy.read(row));
+        for(Object bad:List.of(-1,1001,"1000")){var changed=new HashMap<>(row);changed.put("advance-discount-per-mille",bad);check.rejects("Invalid discount "+bad,IllegalArgumentException.class,()->PawnBlockadePolicy.read(changed));}
+        for(String key:List.of("fen","winning-move","oracle-score","extra-nodes")){var changed=new HashMap<>(row);changed.put(key,"forbidden");check.rejects("No hidden context/key override "+key,IllegalArgumentException.class,()->PawnBlockadePolicy.read(changed));}
+        row.put("enabled","true");check.rejects("The switch is a boolean",IllegalArgumentException.class,()->PawnBlockadePolicy.read(row));
+    }
+}
