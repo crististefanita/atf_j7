@@ -263,17 +263,13 @@ Add focused negative cases for copied prose, disclosure captions, link captions 
 <details>
 <summary>P1 · Native Hard · remaining material goals and first WDL losses</summary>
 
-Keep 77 unaccepted stages in 51 material exercises open after the two queen-reply repairs.
+Keep 76 unaccepted stages in 50 material exercises open after the queen-reply and outside-pawn repairs.
 The previous 79-stage teacher audit remains historical evidence, not a relabeled measurement
 of the new player. tactic-040/095 are closed regression controls. Verify accepted prefixes
 and fresh changed-root evidence before claiming another first chronological loss.
 [Qualified progress and limits](../testing/hard-status.md#bounded-queen-reply-verification).
 
-**Next compact control: `training-051`.** Ordinary Hard still chooses `Ke6` instead of
-`Rc8+`; six fresh H17/H19 queries confirm a 500‰ win-to-draw loss. Compare the rook move and
-free opposing replies at common horizons inside the effective allowance. The new pawn proof
-does not apply while the adversary has a rook; do not extend its safety lemma to that scope.
-Preserve `training-021/065`, the complete native catalog and mate gates before promotion.
+**Closed control: `training-051`.** The bounded outside-pawn model repairs `Rc8+` and the subsequent `h4` handoff, with actual mate conversion in both colors. Preserve `training-021/065`, the reachable-king/opposition counterexamples and full native catalog. The five historical league losses remain open; the next local goal is calibrated review classification and the cooperative internal continuation after rook liquidation. [Qualified mechanism](../board/pawn-race.md).
 
 The post-promotion `a4` conversion is closed by a source-bound winning-plan certificate and
 actual checkmates in both colors. Its mechanism, 37/31-ply games, failure controls and limits

@@ -48,3 +48,7 @@ postgame reviews and source-bound teacher phases. Replaying a saved position is 
 evidence, not a new observation. A win in a composed ending is conversion evidence, not Elo.
 Keep recommendation quality, score calibration, complete canonical puzzles and game strength
 as separate verdicts. [Native study protocol](../testing/hard-puzzle-study.md)
+
+[PawnRaceScoreBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/PawnRaceScoreBenchmarkTest.java)
+keeps a separate open quality goal: the independently confirmed win-to-draw `Ke6` must not
+receive GOOD after the winning recommendation has been repaired. Its FAIL is retained.

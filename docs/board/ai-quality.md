@@ -963,7 +963,7 @@ Among the 54 first missed educational stages, 43 have a large WDL loss at both d
 after a reference intervention remain marked conditional evidence, not independent games.
 All 80 inspected curriculum keys stay below the existing large-loss boundary at both depths.
 
-`training-051` remains `Ke6` instead of winning `Rc8+`; both oracle depths confirm win→draw.
+`training-051` remains `Ke6` instead of winning `Rc8+`; both oracle depths confirm win→draw. This is the recorded baseline; the current [outside-pawn correction](pawn-race.md) closes that control.
 The mate fix does not claim this non-mating endgame solved. This baseline identified
 `training-107:1`: six pieces, `c5` instead of `h8=Q`, H5 and 14,652 additional nodes,
 with a 500‰ loss at both depths. Its qualified promotion recovery and the newly exposed
@@ -1017,7 +1017,7 @@ is claimed. Basic and Advanced retain their complete analyses at each compared c
 after `c5`. The candidate reaches `h8=Q Rxh8 Kxh8 Ke4`, then loses the win with `Kg7` instead
 of `a4`; both oracle horizons confirm 500‰ loss. That line finishes as a bare-king draw after
 12 plies. That gap is closed by the [bounded conversion proof](#bounded-pawn-ending-conversion) below. `training-051` still chooses
-`Ke6` instead of winning `Rc8+`. The 79 remaining canonical misses comprise 56 large WDL losses,
+`Ke6` instead of winning `Rc8+`. This is the recorded baseline; the current [outside-pawn correction](pawn-race.md) closes that control. The 79 remaining canonical misses comprise 56 large WDL losses,
 22 win-preserving goal misses and one smaller/depth-sensitive case. Their 53 first educational
 misses include 42 large losses; accepted prefixes still need checking before claiming first
 chronological WDL loss. The all-exercises-solved verdict remains FAIL for 53 exercises.
@@ -1060,7 +1060,7 @@ At a diagnostic 5k maximum, incomplete proof preserves `Kg7`/H6 and publishes no
 
 The source-bound audit records 84 actually played plies across reference/candidate and both
 colors, with 313 cold oracle queries. Six fresh H17/H19 queries confirm the unchanged control:
-`training-051` still chooses drawing `Ke6` instead of winning `Rc8+`. The 79 educational misses
+`training-051` still chooses drawing `Ke6` instead of winning `Rc8+`. This is the recorded baseline; the current [outside-pawn correction](pawn-race.md) closes that control. The 79 educational misses
 in 53 exercises remain open. Neither two mirrored conversions nor the transfer roots establish
 an Elo gain. Full held-out conversion and broader material scopes remain separate work.
 
