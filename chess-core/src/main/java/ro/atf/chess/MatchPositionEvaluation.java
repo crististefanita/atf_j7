@@ -13,6 +13,15 @@ final class MatchPositionEvaluation {
 
     private MatchPositionEvaluation() { }
 
+    static int phase(ChessPosition position) {
+        int value = 0;
+        for (int square = 0; square < 64; square++) {
+            var piece = position.pieceAt(square);
+            if (piece != null) value += PHASE[piece.kind().ordinal()];
+        }
+        return Math.min(FULL_PHASE, value);
+    }
+
     static int bonus(ChessPosition position) {
         int opening = 0;
         int endgame = 0;

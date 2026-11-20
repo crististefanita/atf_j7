@@ -746,8 +746,21 @@ public final class TacticalAnalysis {
         var pawnCandidate = prioritizeChecks && gap == 0 && exchangeLimit > 0 && !shallowScores.isEmpty() && !root.position().isCheck()
                 ? pawnExchangeCandidate(root.position(), base) : null;
         int exchangeNodes = pawnCandidate == null ? 0 : Math.min(exchangeLimit, policy.extraNodes() / 6);
+        Move evenLeader = null;
+        int evenScore = 0;
         for (int depth = completed + 1; depth <= policy.maxPlies(); depth++) {
             try {
+                boolean queenReply = prioritizeChecks && gap == 0 && completed == depth - 1 && depth % 2 == 0
+                        && evenLeader != null && QueenReplyPolicy.CURRENT.applies(root.position())
+                        && unresolvedQueenRecapture(root.position(), best.ranked().get(0), completed);
+                budget.rootPrediction = queenReply ? evenScore : null;
+                if (queenReply) {
+                    // Confirm the prior even-horizon leader by searching every root at H6, never by returning H4.
+                    moves.remove(evenLeader);
+                    moves.add(0, evenLeader);
+                    if (!budget.reuseFrontierWork) budget.reuseFrontierWork();
+                    if (budget.adaptive != null) budget.adaptive.exchangeProof(true);
+                }
                 // Give Hard a two-horizon ranking if the next full iteration cannot finish.
                 var confirmation = depth == MatchAiPolicy.BASE_PLIES + 1 ? shallowScores : Map.<Move, Integer>of();
                 if (depth == MatchAiPolicy.BASE_PLIES + 2 && exchangeNodes > 0 && best.ranked().get(0).ending() == Ending.HORIZON
@@ -769,8 +782,11 @@ public final class TacticalAnalysis {
                     // The earlier horizons already had a chance to prove a shorter mate.
                     return new SearchReport(candidate, depth, policy.extraNodes() - budget.remaining);
                 }
+                boolean sameLeader = stableHardLeader(best.ranked().get(0).move(), candidate);
+                boolean verifiedQueenReply = queenReply && !sameLeader
+                        && corroboratedQueenReply(root, best.ranked().get(0), candidate, depth, budget);
                 if (prioritizeChecks && depth == policy.maxPlies()
-                        && !stableHardLeader(moves.get(0), candidate)
+                        && !sameLeader && !verifiedQueenReply
                         && !closedPawnRecapture(root.position(), best.ranked().get(0), candidate,
                                 evidence == null ? null : evidence.get(moves.get(0)))) {
                     var promotion = confirmPromotionExchange(root, best.ranked().get(0).move(),
@@ -803,6 +819,10 @@ public final class TacticalAnalysis {
                 }
                 best = candidate;
                 completed = depth;
+                if (depth % 2 == 0) {
+                    evenLeader = best.ranked().get(0).move();
+                    evenScore = best.ranked().get(0).score();
+                }
                 if (budget.adaptive != null) budget.adaptive.completed(completed);
                 budget.reserve = 0;
                 var leader = best.ranked().get(0).move();
@@ -947,6 +967,32 @@ public final class TacticalAnalysis {
     static boolean stableHardLeader(Move previousLeader, Result deeper) {
         return previousLeader != null && !deeper.ranked().isEmpty()
                 && previousLeader.equals(deeper.ranked().get(0).move());
+    }
+
+    static boolean unresolvedQueenRecapture(ChessPosition position, Variation line, int completed) {
+        if (completed < 5 || completed % 2 == 0 || line.ending() != Ending.HORIZON || line.line().size() != completed) return false;
+        var before = position;
+        for (Move move : line.line().subList(0, completed - 1)) before = before.playGenerated(move);
+        Move capture = line.line().getLast();
+        if (before.pieceAt(capture.from()).kind() != Kind.QUEEN || MatchMaterial.victim(before, capture) == null) return false;
+        var after = before.playGenerated(capture);
+        return after.legalCapturesAndPromotions().stream().anyMatch(reply -> reply.to() == capture.to());
+    }
+
+    private static boolean corroboratedQueenReply(RootSearch root, Variation previous, Result candidate,
+                                                   int depth, SearchBudget budget) {
+        // With a zero root gap, every tied root is retained. Absence proves strict inferiority at completed H6.
+        if (candidate.ranked().stream().anyMatch(line -> line.move().equals(previous.move()))) return false;
+        try {
+            int balance = material(root.position());
+            var incumbent = root.line(previous.move(), depth - 2, LIMIT, budget, Objective.POSITION, balance);
+            var challenger = root.line(candidate.ranked().get(0).move(), depth - 2, LIMIT, budget, Objective.POSITION, balance);
+            // The H4 ordering used shallow credits; only fresh uncredited exact scores corroborate H6.
+            return incumbent.exact() && challenger.exact() && incumbent.ending() == Ending.HORIZON
+                    && challenger.ending() == Ending.HORIZON && challenger.score() > incumbent.score();
+        } catch (BudgetExhausted exhausted) {
+            return false;
+        }
     }
 
     static void orderCheckingRootMovesFirst(ChessPosition position, List<Move> moves) {
@@ -1110,7 +1156,18 @@ public final class TacticalAnalysis {
             int offset = root.repetitionOffers().contains(move) ? 0 : shallowScores.getOrDefault(move, 0);
             // Allow for the bonus before pruning and keep the boundary inclusive. Endings use the unadjusted score.
             int beta = Math.min(LIMIT, 1 - cutoff + Math.max(0, offset));
-            var line = root.line(move, plies, beta, budget, Objective.POSITION, startingBalance);
+            Line line;
+            if (best.isEmpty() && budget.rootPrediction != null) {
+                int window = QueenReplyPolicy.CURRENT.aspirationWindowCp();
+                int alpha = Math.max(-LIMIT, budget.rootPrediction - window);
+                int upper = Math.min(LIMIT, budget.rootPrediction + window);
+                line = root.lineWindow(move, plies, alpha, upper, budget, startingBalance);
+                if (!line.exact() || line.score() <= alpha || line.score() >= upper) {
+                    line = root.line(move, plies, beta, budget, Objective.POSITION, startingBalance);
+                }
+            } else {
+                line = root.line(move, plies, beta, budget, Objective.POSITION, startingBalance);
+            }
             if (evidence != null) evidence.put(move, line);
             int score = line.ending() == Ending.HORIZON ? line.score() + offset : line.score();
             if (score < cutoff) continue;
@@ -1141,6 +1198,11 @@ public final class TacticalAnalysis {
     }
 
     private record RootSearch(ChessPosition position, Set<Move> repetitionOffers) {
+        Line lineWindow(Move move, int plies, int alpha, int beta, SearchBudget budget, int startingBalance) {
+            if (repetitionOffers.contains(move)) return new Line(0, startingBalance, List.of(move), Ending.HORIZON);
+            return search(position.playGenerated(move), plies - 1, 1, -beta, -alpha, budget, Objective.POSITION).prepend(move);
+        }
+
         Line line(Move move, int plies, int beta, SearchBudget budget, Objective objective, int startingBalance) {
             // Discount the projected score when a repeat invites a draw. The game still decides its own result.
             if (repetitionOffers.contains(move)) return new Line(0, startingBalance, List.of(move), Ending.HORIZON);
@@ -1498,6 +1560,7 @@ public final class TacticalAnalysis {
     }
 
     private static final class SearchBudget {
+        private Integer rootPrediction;
         private boolean principalVariationSearch;
         private boolean reuseFrontierWork;
         private final int allocated;
