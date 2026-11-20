@@ -32,7 +32,7 @@ class PawnBlockadeTest {
     @Test void anAdjacentPasserOrAReachablePromotionCannotJustifyDiscountingTheBlockadedPawn(Checks check) {
         var close=ChessPosition.fromFen("8/5k2/p4Pp1/6Pp/4K3/P7/8/8 b - - 0 53");int f6=BoardSquare.parse("f6");
         check.same("A king already inside the square can stop the outside pawn",false,MatchPositionEvaluation.uncatchableOutsidePasser(close,f6,close.pieceAt(f6)));
-        var counterexample=ChessPosition.fromFen("8/8/2p1k1p1/p2pP3/P3KPP1/8/8/8 b - - 0 39");int e5=BoardSquare.parse("e5");
+        var counterexample=ChessPosition.fromFen("8/8/2p1k1p1/p1KpP3/P4PP1/8/8/8 b - - 0 39");int e5=BoardSquare.parse("e5");
         check.same("A neighboring-file passer is not an outside racing pawn",false,MatchPositionEvaluation.uncatchableOutsidePasser(counterexample,e5,counterexample.pieceAt(e5)));
     }
     @Test void ordinaryPlayAndMaximumHintChooseTheWinningCheckInBothColors(Checks check) {
@@ -46,6 +46,21 @@ class PawnBlockadeTest {
             var review=GameReview.analyzeLine(game.play(ChessPosition.Move.fromUci(entry.getValue())),n->{});
             check.same("Game Review retains its own search and the same winning recommendation",entry.getValue(),review.turns().getFirst().bestLine().getFirst().uci());
             check.same("Analysis cannot mutate the actual checkpoint",checkpoint,game.checkpoint());
+        }
+    }
+    @Test void liquidationKeepsTheSupportedPawnRaceInsteadOfTheCooperativeKingCapture(Checks check) {
+        for(var entry:List.of(Map.entry(BLACK,"d8c8 c5d4 c8c4 d4c4 h5h4"),Map.entry(WHITE,"d1c1 c4d5 c1c5 d5c5 h4h5"))) {
+            var p=ChessPosition.fromFen(entry.getKey());var game=ChessMatch.fromPosition(p,new MatchSetup(p.turn().other(),MatchSetup.Level.HARD,true));var moves=entry.getValue().split(" ");
+            for(int i=0;i<4;i++)game=game.play(ChessPosition.Move.fromUci(moves[i]));String checkpoint=game.checkpoint();
+            var actual=game.analyzeBot(MatchSetup.Level.HARD);HardQuestAudit.validate(game,actual);
+            check.same("The two exact even-horizon comparisons support the pawn advance",moves[4],actual.decision().move().uci());
+            check.same("The completed H6 and confirmation share the ordinary ceiling",true,actual.decision().depth()==6&&actual.decision().extraNodes()<=200000);
+            check.same("The maximum hint independently agrees after the exchange",moves[4],TacticalAnalysis.verifiedHints(game.position(),200000).lines().getFirst().move().uci());
+            check.same("Only the real outside racing pawn can be confirmed",true,PawnBlockadePolicy.CURRENT.confirms(game.position(),actual.decision().move()));
+            var kingMove=ChessPosition.Move.fromUci(p.turn()==ChessPosition.Side.BLACK?"f7e6":"f2e3");
+            check.same("A king move cannot borrow the pawn-race exception",false,PawnBlockadePolicy.CURRENT.confirms(game.position(),kingMove));
+            check.same("Disabling the feature disables its confirmation too",false,new PawnBlockadePolicy(false,1000).confirms(game.position(),actual.decision().move()));
+            check.same("The complete actual history is conserved",checkpoint,game.checkpoint());
         }
     }
     @Test void unknownKeysOutOfRangeWeightsAndUntypedSwitchesAreRejected(Checks check) {

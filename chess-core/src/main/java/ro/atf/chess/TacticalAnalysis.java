@@ -783,9 +783,13 @@ public final class TacticalAnalysis {
                 }
                 boolean sameLeader = stableHardLeader(best.ranked().get(0).move(), candidate);
                 boolean verifiedQueenReply = queenReply && !sameLeader
-                        && corroboratedQueenReply(root, best.ranked().get(0), candidate, depth, budget);
+                        && corroboratedEvenLeader(root, best.ranked().get(0), candidate, depth, budget);
+                boolean verifiedPawnRace = prioritizeChecks && gap == 0 && depth == policy.maxPlies()
+                        && depth % 2 == 0 && !sameLeader
+                        && PawnBlockadePolicy.CURRENT.confirms(root.position(), candidate.ranked().get(0).move())
+                        && corroboratedEvenLeader(root, best.ranked().get(0), candidate, depth, budget);
                 if (prioritizeChecks && depth == policy.maxPlies()
-                        && !sameLeader && !verifiedQueenReply
+                        && !sameLeader && !verifiedQueenReply && !verifiedPawnRace
                         && !closedPawnRecapture(root.position(), best.ranked().get(0), candidate,
                                 evidence == null ? null : evidence.get(moves.get(0)))) {
                     var promotion = confirmPromotionExchange(root, best.ranked().get(0).move(),
@@ -978,7 +982,7 @@ public final class TacticalAnalysis {
         return after.legalCapturesAndPromotions().stream().anyMatch(reply -> reply.to() == capture.to());
     }
 
-    private static boolean corroboratedQueenReply(RootSearch root, Variation previous, Result candidate,
+    private static boolean corroboratedEvenLeader(RootSearch root, Variation previous, Result candidate,
                                                    int depth, SearchBudget budget) {
         // With a zero root gap, every tied root is retained. Absence proves strict inferiority at completed H6.
         if (candidate.ranked().stream().anyMatch(line -> line.move().equals(previous.move()))) return false;

@@ -3,7 +3,7 @@ package ro.atf.chess;
 import java.util.Map;
 import java.util.Set;
 
-/** Discounts advancement that a passed pawn cannot currently use in a king-and-pawn ending. */
+/** Discounts a king-blockaded passer only in the presence of an uncatchable outside-pawn race. */
 record PawnBlockadePolicy(boolean enabled, int advanceDiscountPermille) {
     static final PawnBlockadePolicy CURRENT=read(ChessYaml.resource("pawn-blockade.yaml"));
 
@@ -12,6 +12,9 @@ record PawnBlockadePolicy(boolean enabled, int advanceDiscountPermille) {
     }
     int discount(int advancement) {
         return enabled ? advancement * advanceDiscountPermille / 1000 : 0;
+    }
+    boolean confirms(ChessPosition position,ChessPosition.Move proposed) {
+        return enabled && MatchPositionEvaluation.outsidePawnAdvance(position,proposed);
     }
     static PawnBlockadePolicy read(Map<?,?> row) {
         if(!row.keySet().equals(Set.of("schema","enabled","advance-discount-per-mille"))

@@ -35,7 +35,6 @@ final class MatchPositionEvaluation {
         int whiteKing = -1;
         int blackKing = -1;
         int pieces = 0;
-        int blockedAdvance = 0;
         Piece lastPiece = null;
         for (int square = 0; square < 64; square++) {
             Piece piece = position.pieceAt(square);
@@ -54,10 +53,6 @@ final class MatchPositionEvaluation {
             phase += PHASE[kind];
             opening += sign * OPENING[kind][relative];
             endgame += sign * ENDGAME[kind][relative];
-            if (piece.kind() == Kind.PAWN && kingBlocksPassedPawn(position, square, piece)
-                    && uncatchableOutsidePasser(position, square, piece)) {
-                blockedAdvance += sign * ENDGAME[kind][relative];
-            }
             if (piece.kind() == Kind.BISHOP) {
                 if (white) whiteBishops++;
                 else blackBishops++;
@@ -70,7 +65,18 @@ final class MatchPositionEvaluation {
         int bishopPair = (whiteBishops >= 2 ? 1 : 0) - (blackBishops >= 2 ? 1 : 0);
         phase = Math.min(phase, FULL_PHASE);
         int whiteBonus = (opening * phase + endgame * (FULL_PHASE - phase)) / FULL_PHASE + bishopPair * 22;
-        if (phase == 0) whiteBonus -= pawnPolicy.discount(blockedAdvance);
+        if (phase == 0 && pawnPolicy.enabled()) {
+            int blockedAdvance = 0;
+            for (int square = 0; square < 64; square++) {
+                var pawn = position.pieceAt(square);
+                if (pawn != null && pawn.kind() == Kind.PAWN && kingBlocksPassedPawn(position, square, pawn)
+                        && uncatchableOutsidePasser(position, square, pawn)) {
+                    int relative = pawn.side() == Side.WHITE ? square : square ^ 56;
+                    blockedAdvance += (pawn.side() == Side.WHITE ? 1 : -1) * ENDGAME[Kind.PAWN.ordinal()][relative];
+                }
+            }
+            whiteBonus -= pawnPolicy.discount(blockedAdvance);
+        }
         if (pieces == 1 && (lastPiece.kind() == Kind.ROOK || lastPiece.kind() == Kind.QUEEN)) {
             whiteBonus += lastPiece.side() == Side.WHITE ? matePressure(whiteKing, blackKing) : -matePressure(blackKing, whiteKing);
         }
@@ -97,6 +103,23 @@ final class MatchPositionEvaluation {
     }
 
     static boolean uncatchableOutsidePasser(ChessPosition position,int blockedSquare,Piece blockedPawn) {
+        return uncatchableOutsidePasser(position,blockedSquare,blockedPawn,-1);
+    }
+
+    static boolean outsidePawnAdvance(ChessPosition position,ChessPosition.Move move) {
+        var pawn=position.pieceAt(move.from());
+        if(pawn==null||pawn.kind()!=Kind.PAWN||pawn.side()!=position.turn()||phase(position)!=0
+                ||position.pieceAt(move.to())!=null||move.to()-move.from()!=(pawn.side()==Side.WHITE?8:-8))return false;
+        for(int square=0;square<64;square++) {
+            var blocked=position.pieceAt(square);
+            if(blocked!=null&&blocked.kind()==Kind.PAWN&&blocked.side()!=pawn.side()
+                    &&kingBlocksPassedPawn(position,square,blocked)
+                    &&uncatchableOutsidePasser(position,square,blocked,move.from()))return true;
+        }
+        return false;
+    }
+
+    private static boolean uncatchableOutsidePasser(ChessPosition position,int blockedSquare,Piece blockedPawn,int requiredPawn) {
         int defendingKing=-1;
         for(int square=0;square<64;square++) {
             var p=position.pieceAt(square);
@@ -104,7 +127,7 @@ final class MatchPositionEvaluation {
         }
         for(int square=0;square<64;square++) {
             var pawn=position.pieceAt(square);
-            if(pawn==null||pawn.kind()!=Kind.PAWN||pawn.side()==blockedPawn.side()
+            if(requiredPawn>=0&&square!=requiredPawn||pawn==null||pawn.kind()!=Kind.PAWN||pawn.side()==blockedPawn.side()
                     ||Math.abs(square%8-blockedSquare%8)<2||!passedPawn(position,square,pawn))continue;
             int step=pawn.side()==Side.WHITE?8:-8,promotion=(pawn.side()==Side.WHITE?56:0)+square%8;
             boolean clear=true;
