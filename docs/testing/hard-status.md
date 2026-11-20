@@ -104,3 +104,12 @@ Displayed evaluation and review classification remain independently open quality
 The study is `C:\work\sah\.studii\experiments\2026-11-20-hard-rook-defense\README.md`.
 Its source-bound cold oracle grades complete offered hint and review continuations, not only
 their first moves. Original receipts retain their actual producers when later code is tested.
+
+The complete cold audit covers **74 actual roots**, **128 offered hints / 787 hint plies**,
+**773 review plies** and **401 native PV plies**, plus two rejected-king counterexamples:
+2,037 line plies and 2,850 exact free/forced phases. Actual moves, native root choices,
+offered hints and both review branches have zero stable losses ≥150‰ at both horizons in
+these two games. Native internal continuations retain **13** such losses; hypothetical
+`Ke6`/`Ke3` survives inside the shorter scored search even though the actual handoff is fixed.
+The classification benchmark also remains FAIL: losing the win with Ke6 is still GOOD,
+with native review loss 44. These are open goals, not erased by the two conversions.
