@@ -66,7 +66,7 @@ The wider phase-only trial was rejected after harming two quiet plans in 21 arch
 | Independent context | Baseline → corrected move | WDL loss H17/H19, before → after |
 |---|---|---|
 | `06cPH` | `Bxg6` → `h5` | 1000/1000‰ → 0/0‰ |
-| `07GQq` | `Bxe5` → `Qxe5` | 779/717‰ → 0/0‰ |
+| `07GQq` | `…Bxe5` → `…Qxe5` | 779/717‰ → 0/0‰ |
 | `03z37` | `…Bxc5` → `…Bg3` | 1000/1000‰ → 992/999‰ |
 
 There are no confirmed two-horizon degradations in the 17 cases, and all 34 Basic/Advanced analyses are identical. The last row remains losing and is a small numerical change, not a solved puzzle. The two strong transfer cases are now portable regression witnesses. This trigger-selected sample does not estimate average game strength or Elo.
