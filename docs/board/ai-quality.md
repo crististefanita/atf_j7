@@ -960,7 +960,7 @@ Din cele 54 de prime ratări didactice, 43 au pierdere WDL mare la ambele adânc
 unei intervenții de referință rămân dovezi condiționate, nu partide independente.
 Toate cele 80 de chei didactice inspectate rămân sub limita existentă de pierdere mare la ambele adâncimi.
 
-`training-051` rămâne la `Ke6`, nu `Rc8+` câștigător; ambele orizonturi confirmă victorie→remiză.
+`training-051` rămâne la `Ke6`, nu `Rc8+` câștigător; ambele orizonturi confirmă victorie→remiză. Acesta este reperul înregistrat; [corecția curentă a pionului exterior](pawn-race.md) închide martorul.
 Fixul de mat nu declară acest final rezolvat. Acest reper a identificat `training-107:1`:
 șase piese, `c5` în loc de `h8=Q`, H5 și 14.652 de noduri suplimentare, cu pierdere 500‰
 la ambele adâncimi. Recuperarea calificată a promovării și noua lacună de conversie sunt
@@ -1014,7 +1014,7 @@ câștig de latență sau Elo. Basic și Advanced păstrează analiza completă 
 repetiție după `c5`. Candidatul ajunge la `h8=Q Rxh8 Kxh8 Ke4`, apoi pierde victoria cu `Kg7`
 în loc de `a4`; ambele orizonturi confirmă 500‰ pierdut. Linia se încheie cu remiză și regi goi
 după 12 semimutări. Lacuna este închisă prin [dovada limitată de conversie](#conversia-limitată-a-finalurilor-de-pioni) de mai jos.
-`training-051` alege încă `Ke6`, nu `Rc8+` câștigător. Cele 79 de ratări canonice rămase cuprind
+`training-051` alege încă `Ke6`, nu `Rc8+` câștigător. Acesta este reperul înregistrat; [corecția curentă a pionului exterior](pawn-race.md) închide martorul. Cele 79 de ratări canonice rămase cuprind
 56 de pierderi WDL mari, 22 de obiective ratate cu victoria păstrată și un caz mai mic/dependent
 de adâncime. Din cele 53 de prime ratări didactice, 42 au pierdere mare; verifică și prefixele
 acceptate înainte de a declara prima pierdere WDL cronologică. Verdictul „toate problemele
@@ -1060,7 +1060,7 @@ capacitatea cache-ului; H3 rămâne separat nebugetat. La maximul diagnostic de 
 
 Auditul legat de sursă înregistrează 84 de semimutări efective pentru referință/candidat și
 ambele culori, cu 313 interogări de oracol cu cache gol. Șase interogări H17/H19 noi confirmă
-martorul păstrat: `training-051` alege încă `Ke6` de remiză, nu `Rc8+` câștigător. Cele 79 de
+martorul păstrat: `training-051` alege încă `Ke6` de remiză, nu `Rc8+` câștigător. Acesta este reperul înregistrat; [corecția curentă a pionului exterior](pawn-race.md) închide martorul. Cele 79 de
 ratări didactice în 53 de probleme rămân deschise. Două conversii în oglindă sau rădăcinile
 de transfer nu stabilesc un câștig Elo. Conversia completă pe loturi independente și domeniile
 materiale mai largi rămân lucrări separate.

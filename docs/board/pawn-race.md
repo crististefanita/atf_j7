@@ -48,3 +48,7 @@ păstrează candidații respinși, partidele observate inițial, fiecare încerc
 salvate este regresie, nu observație nouă. Victoria într-un final compus este conversie, nu Elo.
 Păstrează verdicte separate pentru recomandare, calibrarea scorului, catalogul complet și forța
 în partide. [Protocolul studiilor native](../testing/hard-puzzle-study.md)
+
+[PawnRaceScoreBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/PawnRaceScoreBenchmarkTest.java)
+păstrează separat obiectivul deschis: `Ke6`, confirmat independent ca victorie→remiză, nu
+poate primi GOOD după repararea recomandării câștigătoare. Eșecul rămâne explicit.

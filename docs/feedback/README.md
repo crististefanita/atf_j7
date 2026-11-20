@@ -267,17 +267,13 @@ Adaugă cazuri negative țintite pentru proză copiată, titluri de secțiuni co
 <details>
 <summary>P1 · Hard fără obiectiv declarat · obiective materiale și primele pierderi WDL</summary>
 
-Păstrează deschise 77 de etape neacceptate în 51 de probleme materiale după cele două reparații
-ale replicii damei. Auditul anterior al celor 79 de etape rămâne dovadă istorică, nu măsurare
+Păstrează deschise 76 de etape neacceptate în 50 de probleme materiale după corecțiile
+replicii damei și pionului exterior. Auditul anterior al celor 79 de etape rămâne dovadă istorică, nu măsurare
 reetichetată a adversarului nou. tactic-040/095 sunt martori de regresie închiși. Verifică
 prefixele acceptate și dovezile noi ale rădăcinilor schimbate înaintea altei prime pierderi.
 [Progres calificat și limite](../testing/hard-status.md#verificarea-limitată-a-replicii-damei).
 
-**Următorul martor compact: `training-051`.** Hard obișnuit alege încă `Ke6`, nu `Rc8+`;
-șase interogări H17/H19 noi confirmă o pierdere de 500‰, victorie→remiză. Compară mutarea de
-turn și replicile adverse libere la orizonturi comune, în alocația efectivă. Noua dovadă de
-pioni nu se aplică atunci când adversarul are turn; nu extinde lema ei de siguranță la acel
-domeniu. Păstrează `training-021/065` și porțile native pentru catalogul complet și maturi.
+**Martor închis: `training-051`.** Modelul limitat al pionului exterior repară `Rc8+` și predarea planului către `h4`, cu mat efectiv în ambele culori. Păstrează `training-021/065`, contraexemplele de rege accesibil/opoziție și catalogul nativ complet. Cele cinci înfrângeri istorice din ligă rămân deschise; următorul obiectiv local este clasificarea calibrată și continuarea internă cooperativă după schimbul turnurilor. [Mecanism calificat](../board/pawn-race.md).
 
 Conversia `a4` după promovare este închisă printr-un certificat de plan câștigător legat de
 sursă și maturi efective în ambele culori. Mecanismul, partidele de 37/31 de semimutări,
