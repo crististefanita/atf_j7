@@ -79,18 +79,6 @@ not stand in for a wrong UI oracle.
 
 **P2 · Release qualification.** In RAG, tie the commit, catalogs, and APK and Web hashes to receipts from the same release. [Update criterion](../testing/README.md#updating-the-web-bundle)
 
-<details>
-<summary>RAG routing by affected file</summary>
-
-Add an explicit RAG route for game geometry and analysis when a diff touches
-[BoardPanel.java](../../android/app/src/main/java/ro/atf/chess/android/BoardPanel.java),
-[study-board.mjs](../../web/src/main/web/study-board.mjs), or [match-inline-analysis.mjs](../../web/src/main/web/match-inline-analysis.mjs).
-For each file, a routing test should require a citation to [MatchAnalysisParityTest](../../atf-tests/src/test/java/ro/atf/chess/MatchAnalysisParityTest.java)
-and to the UI evidence for compact RO/EN sanity at 130% on the signed APK and the
-MCP browser check on the served Web bundle. [Analysis checks](../testing/README.md#analysis-in-the-ai-game)
-
-</details>
-
 **Closure criterion.** Start the check from **Play in your browser**, below
 the APK in the README, and confirm the manifest of the served bundle. On
 upgrade, verify the game library, an archived review, and the resumed ply,

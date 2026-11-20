@@ -59,6 +59,8 @@ flowchart LR
 
 ## Entry Points
 
+- [Architecture atlas](docs/architecture.md) — shared engine, adapter responsibilities, session transitions and evidence.
+
 - [Project documentation](docs/README.md) — find the guide for the area you changed.
 - [Testing strategy](docs/testing/README.md#choosing-the-test-level) — choose component testing, governance, or Android sanity.
 - [Release process](docs/release/README.md#qualification-and-publication) — build and qualify the release in TMP.

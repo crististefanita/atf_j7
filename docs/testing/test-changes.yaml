@@ -1774,3 +1774,11 @@ testChanges:
     test: ro.atf.chess.DocumentationGovernanceTest#documentedArchitectureRejectsMissingSourcesExtraModulesAndScopeDrift
     contract: "Rename only the project architecture heading to Chess; preserve the executable build topology, ownership routes and all missing-source/module/scope negative cases."
     allowDelete: false
+
+  - id: CHESS-DIAGRAM-CONTENT-EN
+    base: "046e25dbbcc504c099a89c2e984e497ff5d555e6"
+    from: atf-tests/src/test/java/ro/atf/chess/MarkdownVisualContract.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/MarkdownDiagramGovernanceTest.java
+    test: ro.atf.chess.MarkdownDiagramGovernanceTest#typeCheckingPreservesTheExistingEdgeAndLegendRequirements
+    contract: "Preserve every existing fence, presentation, orientation, semantic edge and adjacent legend rule; additionally reject unknown Mermaid kinds and diagrams without executable content"
+    allowDelete: false
