@@ -1790,3 +1790,11 @@ testChanges:
     test: ro.atf.chess.NativeModelAuditTest#rejectsMissingOrForeignModelsAndActualClocks
     contract: "Retain every original policy, digest, context, work, canonical acceptance and all-solved check; additionally reject missing, different or extended selective-model snapshots and stale actual native clocks without rewriting legacy receipts"
     allowDelete: false
+
+  - id: CHESS-PORTABLE-WEB-CONTRACT-EN
+    base: "af17de341e37a438bf7c4287b95ebc3b06999828"
+    from: atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
+    replacement: atf-tests/src/test/java/ro/atf/chess/UiChromeParityTest.java
+    test: ro.atf.chess.UiChromeParityTest#generatedWebPolicyAndExecutableAdapterUseTheSameCases
+    contract: "Keep generation from the actual Java contract, byte-identical Web policy and all five executable adapter assertions; resolve the loaded class location rather than assuming Maven output inside the checkout"
+    allowDelete: false

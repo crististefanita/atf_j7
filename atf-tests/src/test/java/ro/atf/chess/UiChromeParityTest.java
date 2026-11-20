@@ -50,7 +50,8 @@ class UiChromeParityTest {
         Path root = ProjectRoot.locate();
         Path generated = scratch.resolve("chrome-contract.mjs");
         run(check, root, scratch.resolve("generator.log"), List.of(Path.of(System.getProperty("java.home"), "bin", "java.exe").toString(),
-                "-cp", root.resolve("atf-tests/target/classes").toString(), root.resolve("web/tools/GenerateUiChrome.java").toString(), generated.toString()));
+                "-cp", Path.of(UiChrome.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
+                root.resolve("web/tools/GenerateUiChrome.java").toString(), generated.toString()));
         check.same("The Web contract is generated from Java without drift", Files.readString(generated).replace("\r\n", "\n"),
                 Files.readString(root.resolve("web/src/main/web/chrome-contract.mjs")).replace("\r\n", "\n"));
         Path log = scratch.resolve("node.tap");

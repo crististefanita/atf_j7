@@ -976,7 +976,8 @@ public final class TacticalAnalysis {
         if (completed < 5 || completed % 2 == 0 || line.ending() != Ending.HORIZON || line.line().size() != completed) return false;
         var before = position;
         for (Move move : line.line().subList(0, completed - 1)) before = before.playGenerated(move);
-        Move capture = line.line().getLast();
+        var path = line.line();
+        Move capture = path.get(path.size() - 1);
         if (before.pieceAt(capture.from()).kind() != Kind.QUEEN || MatchMaterial.victim(before, capture) == null) return false;
         var after = before.playGenerated(capture);
         return after.legalCapturesAndPromotions().stream().anyMatch(reply -> reply.to() == capture.to());
