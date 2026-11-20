@@ -35,6 +35,26 @@ Numai punctul central acordă partidelor neterminate jumătate de punct; ele nu 
 
 Fiecare mutare efectivă păstrează Hard shadow și tentativa de indiciu public maxim înainte de joc; Basic/Advanced își joacă în continuare propriile decizii. Există **un indiciu indisponibil** și **o analiză finală incompletă**. Eșecurile tipizate nu au linie sau scor final de coaching inventat și au verdict separat de calitate. Partida recuperată păstrează prefixul original durabil; resetarea tehnică Stockfish păstrează istoricul complet, aceleași opțiuni și ambele transcripturi fixate. Ratingurile locale ale analizei nu furnizează Elo măsurat. Nu toate continuările de indiciu și analiză ale ligii au certificare independentă H17/H19, deci pachetul de rating nu înlocuiește corpusul admis pentru învățare.
 
+## Primele pierderi confirmate din liga păstrată
+
+Cele cinci înfrângeri efective ale Hard din aceeași calibrare de 72 de partide au fost inspectate cronologic. Stockfish rece, nelimitat, H17/H19 compară fiecare mutare Hard anterioară până la prima pierdere de cel puțin 150‰ la ambele orizonturi: 30 de decizii și 120 de faze brute. Este diagnosticul partidelor existente, nu cinci familii noi independente.
+
+| Partidă | Prima pierdere efectivă | Replica liberă mai bună H19 | Pierdere WDL H17/H19 |
+|---|---|---|---|
+| Alehină, negru | 11…Bxf2+ | …O-O | 997,5/996,5‰ |
+| Gambitul Regelui, negru | 9…Bb4+ | …Bg7 | 300/329‰ |
+| Nimzo, alb | 11.Qb3 | Na4 | 250,5/244,5‰ |
+| Petroff, alb | 7.h3 | Nbd2 | 206/236,5‰ |
+| Slavă, negru | 9…Nxc3 | …Nb4 | 284,5/230,5‰ |
+
+Toate cele cinci decizii reținute se opresc la H5. Patru linii se termină cu o captură a damei și o recaptură legală omisă, uneori evadare din șah; Petroff se termină cu o captură de pion și are alt mecanism. Comparațiile izolate la fereastră completă H4/H5/H6 nu dovedesc o decizie completă de joc: iterațiile precedente și toate alternativele de la rădăcină consumă în continuare bugetul. Analiza nativă finală a Alehinei raportează 99% acuratețe pentru negru, în ciuda primei pierderi confirmate independent; evaluatorul local nu este reper extern de forță.
+
+Proba generală cu fereastră nulă la rădăcină păstrează scorurile minimax exacte, dar pierde trei controale existente din Franceză/Gambitul Damei și nu schimbă cele cinci alegeri. Confirmarea restrânsă H4/H6 nu le schimbă nici ea. Respingerea frontierei H5 cu dama expusă îmbunătățește Alehina și Slava, dar alegerea vechii linii H4 agravează Nimzo la **357,5/383,5‰**. Rejucarea completă a catalogului câștigă opt etape acceptate și pierde șaisprezece, cu 82 de analize schimbate din 2.303. Toate cele 1.700 de etape canonice de mat rămân identice; transferul cu toate apărările la mat nu a fost rerulat pentru candidatul respins. Motorul și politicile live rămân neschimbate, iar duelul candidatului și ΔElo nu sunt justificate.
+
+[HardDefeatWitnessTest](../../atf-tests/src/test/java/ro/atf/chess/HardDefeatWitnessTest.java) păstrează cele cinci istorii legale, lucrul nativ original și recepțiile profesorului rece, cu negative pentru istoric/rulare/scor străin. Nu cere adversarului live să repete o mutare greșită. [HardDefeatBenchmarkTest](../../atf-tests/src/test/java/ro/atf/chess/HardDefeatBenchmarkTest.java) expune cinci obiective de calitate separate; toate rămân FAIL pe reper și sunt separate de suita obișnuită de componente. O mutare nouă nemăsurată cere o fază nouă a oracolului, nu presupunerea că este mai bună. [Fixture portabil](../../atf-tests/src/test/resources/hard-defeat-witnesses.yaml).
+
+Dosarul extern auditabil este `C:\work\sah\.studii\experiments\2026-11-20-hard-losses\README.md`. Următorul pas cere o comparație completă cu replici libere care elimină optimismul damei expuse fără revenire la o mutare H4 și mai slabă; păstrează controalele Franceză/Gambitul Damei și fiecare etapă acceptată înainte de transferul pe familii excluse și duelul pereche. Mai multe aserțiuni de infrastructură trecute nu demonstrează un joc mai puternic.
+
 ## Dovezi și studiul următor
 
 Dosarul extern este `C:\work\sah\.studii\experiments\2026-11-19-puzzle-status\README.md`. Acesta leagă opt rapoarte Extent, identitățile exacte de sursă/runtime/configurație, deciziile brute, toate PGN-urile, transcripturile profesorului, analizele finale și 42 de lecții YAML contextuale. Lecțiile sunt numai pentru studiu: contraexemplele și transferul pe familii excluse rămân necesare, iar cheile nu intră în runtime. Amendamentul execuției păstrează toate rezultatele încheiate când crește paralelizarea independentă; încercările întrerupte rămân arhivate și nescorate.
